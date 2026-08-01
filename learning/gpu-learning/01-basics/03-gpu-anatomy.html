@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU 內部構造 — GPU 完全自學指南</title>
+<style>
+  :root{--green:#76b900;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4f0;min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#0f0c29,#302b63);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .back{display:inline-block;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;margin-bottom:16px;}
+  .hero .badge{display:inline-block;background:rgba(118,185,0,.25);border:1px solid var(--green);color:#a3e635;padding:4px 14px;border-radius:12px;font-size:.8rem;margin-bottom:12px;}
+  .hero h1{font-size:1.9rem;line-height:1.4;}
+  .hero h1 span{color:var(--green);}
+  .hero p{opacity:.85;max-width:560px;margin:12px auto 0;line-height:1.8;}
+  .container{max-width:820px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:14px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:24px;}
+  h2{font-size:1.25rem;color:#1a1a1a;margin-bottom:14px;}
+  h3{font-size:1rem;color:#333;margin:18px 0 10px;font-weight:700;}
+  p{line-height:1.85;color:#444;margin-bottom:12px;font-size:.95rem;}
+  .analogy{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-left:4px solid #4ade80;border-radius:0 12px 12px 0;padding:18px 20px;margin:16px 0;}
+  .analogy .label{font-size:.75rem;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:6px;}
+  .analogy p{color:#166534;margin:0;}
+  .component-grid{display:grid;gap:16px;margin:16px 0;}
+  .comp{border-radius:12px;padding:20px;border:2px solid transparent;}
+  .comp-cuda{background:#f0fdf4;border-color:#86efac;}
+  .comp-tensor{background:#fdf4ff;border-color:#d8b4fe;}
+  .comp-vram{background:#eff6ff;border-color:#93c5fd;}
+  .comp-bw{background:#fff7ed;border-color:#fdba74;}
+  .comp-pcie{background:#fef2f2;border-color:#fca5a5;}
+  .comp h3{margin:0 0 8px;font-size:1rem;}
+  .comp-cuda h3{color:#15803d;} .comp-tensor h3{color:#7c3aed;} .comp-vram h3{color:#1d4ed8;} .comp-bw h3{color:#c2410c;} .comp-pcie h3{color:#dc2626;}
+  .comp p{font-size:.88rem;margin:0 0 8px;color:#555;}
+  .comp .stat{display:inline-block;padding:3px 10px;border-radius:8px;font-size:.78rem;font-weight:700;margin-top:4px;}
+  .cuda-stat{background:#dcfce7;color:#15803d;} .tensor-stat{background:#f3e8ff;color:#7c3aed;} .vram-stat{background:#dbeafe;color:#1d4ed8;} .bw-stat{background:#ffedd5;color:#c2410c;} .pcie-stat{background:#fee2e2;color:#dc2626;}
+  .gpu-diagram{background:#1e1e2e;border-radius:14px;padding:24px;margin:16px 0;font-family:monospace;}
+  .diag-title{color:#94a3b8;font-size:.8rem;margin-bottom:16px;text-align:center;}
+  .diag-gpu{border:2px solid #76b900;border-radius:10px;padding:16px;}
+  .diag-label{color:#76b900;font-size:.8rem;margin-bottom:12px;font-weight:700;}
+  .diag-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .diag-block{border-radius:6px;padding:6px 10px;font-size:.72rem;font-weight:700;text-align:center;}
+  .blk-sm{background:#1d4ed8;color:#bfdbfe;} .blk-tc{background:#7c3aed;color:#e9d5ff;} .blk-vram{background:#065f46;color:#a7f3d0;} .blk-bw{background:#c2410c;color:#fed7aa;} .blk-io{background:#374151;color:#d1d5db;}
+  .key-box{background:#1a1a2e;color:#e2e8f0;border-radius:12px;padding:20px;margin:16px 0;}
+  .key-box .label{color:var(--green);font-size:.8rem;font-weight:700;letter-spacing:.05em;margin-bottom:10px;}
+  .key-box ul{padding-left:20px;}
+  .key-box li{line-height:2.1;font-size:.9rem;}
+  table{width:100%;border-collapse:collapse;font-size:.87rem;margin:12px 0;}
+  th{background:#1a1a2e;color:#a3e635;padding:10px 14px;text-align:left;}
+  td{padding:10px 14px;border-bottom:1px solid #eee;}
+  tr:nth-child(even) td{background:#f9fafb;}
+  .highlight{color:var(--green);font-weight:700;}
+  .warn-box{background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .warn-box p{color:#92400e;margin:0;font-size:.9rem;line-height:1.8;}
+  .takeaway{background:linear-gradient(135deg,#1a1a2e,#302b63);color:#fff;border-radius:14px;padding:24px;margin-top:24px;}
+  .takeaway h2{color:var(--green);margin-bottom:12px;}
+  .takeaway li{line-height:2.2;font-size:.9rem;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:24px;gap:12px;}
+  .btn{display:block;padding:12px 24px;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;text-align:center;}
+  .btn-outline{border:2px solid var(--green);color:var(--green);}
+  .btn-fill{background:var(--green);color:#fff;}
+  .btn:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <a class="back" href="../index.html">← 回到目錄</a><br>
+  <div class="badge">初級 · 文章 3／12</div>
+  <h1>🔬 GPU 的<span>內部構造</span></h1>
+  <p>拆開 GPU 看裡面有什麼。認識這些名詞，你再也不怕規格表，也能和工程師討論硬體選型。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🗺️ GPU 的整體結構示意</h2>
+    <div class="gpu-diagram">
+      <div class="diag-title">RTX 4090 結構示意（簡化版）</div>
+      <div class="diag-gpu">
+        <div class="diag-label">▶ GPU 晶片（AD102）</div>
+        <div class="diag-row">
+          <div class="diag-block blk-sm" style="flex:3;">CUDA Cores × 16,384<br><small>一般浮點運算</small></div>
+          <div class="diag-block blk-tc" style="flex:2;">Tensor Cores × 512<br><small>AI 矩陣加速</small></div>
+        </div>
+        <div class="diag-row">
+          <div class="diag-block blk-vram" style="flex:1;">L2 快取<br>72MB</div>
+          <div class="diag-block blk-bw" style="flex:2;">記憶體控制器<br>384-bit 寬</div>
+          <div class="diag-block blk-io" style="flex:1;">PCIe 介面<br>Gen4 x16</div>
+        </div>
+        <div class="diag-row">
+          <div class="diag-block blk-vram" style="flex:1;">GDDR6X VRAM<br>24 GB</div>
+        </div>
+      </div>
+    </div>
+    <p>先不用背這些，接下來一個一個解釋。</p>
+  </div>
+
+  <div class="card">
+    <h2>🔩 五大核心組件</h2>
+    <div class="component-grid">
+
+      <div class="comp comp-cuda">
+        <h3>① CUDA Core（CUDA 核心）</h3>
+        <p>GPU 最基本的運算單元，做的事就是加法、乘法這類「浮點運算」。RTX 4090 有 16,384 個。一般程式（遊戲、影像處理）主要用到它。</p>
+        <div class="analogy" style="margin:8px 0 0;">
+          <div class="label">💡 比喻</div>
+          <p style="font-size:.85rem;">像一個計算機：只會算數，但一次出動一萬六千個。</p>
+        </div>
+        <span class="stat cuda-stat">RTX 4090：16,384 個 CUDA Core</span>
+      </div>
+
+      <div class="comp comp-tensor">
+        <h3>② Tensor Core（張量核心）</h3>
+        <p>專門為 AI 設計的加速器，從 NVIDIA Volta 架構（2017）開始加入。可以一次做「矩陣 × 矩陣」的計算，比 CUDA Core 快 8–32 倍。<strong>訓練 AI 模型主要靠它。</strong></p>
+        <div class="analogy" style="margin:8px 0 0;">
+          <div class="label">💡 比喻</div>
+          <p style="font-size:.85rem;">如果 CUDA Core 是一個計算機，Tensor Core 就是一台試算表機器，可以一次算整個 Excel 表格。</p>
+        </div>
+        <span class="stat tensor-stat">RTX 4090：512 個 4th-Gen Tensor Core</span>
+      </div>
+
+      <div class="comp comp-vram">
+        <h3>③ VRAM（視訊記憶體）</h3>
+        <p>GPU 專屬的記憶體，AI 模型跑起來必須整個放進 VRAM。VRAM 不夠，模型放不下，就會出錯。這是選購 GPU 最關鍵的規格之一。</p>
+        <div class="analogy" style="margin:8px 0 0;">
+          <div class="label">💡 比喻</div>
+          <p style="font-size:.85rem;">VRAM = GPU 的工作桌大小。桌子太小，資料放不下，只能換一張更小的書來讀（量化）。</p>
+        </div>
+        <span class="stat vram-stat">RTX 4090：24GB GDDR6X</span>
+      </div>
+
+      <div class="comp comp-bw">
+        <h3>④ 記憶體頻寬（Memory Bandwidth）</h3>
+        <p>GPU 核心和 VRAM 之間，資料流通的速度。頻寬越大，GPU 「吃」資料的速度越快。現代 AI 訓練往往是頻寬瓶頸，而不是核心算力瓶頸。</p>
+        <div class="analogy" style="margin:8px 0 0;">
+          <div class="label">💡 比喻</div>
+          <p style="font-size:.85rem;">記憶體頻寬 = 工廠與倉庫之間的道路寬度。核心再多，如果料送不過來，也是乾等。</p>
+        </div>
+        <span class="stat bw-stat">RTX 4090：1,008 GB/s；H100 SXM：3,350 GB/s</span>
+      </div>
+
+      <div class="comp comp-pcie">
+        <h3>⑤ PCIe 介面（連接 CPU 的通道）</h3>
+        <p>GPU 插在主機板的 PCIe 插槽，透過它和 CPU 溝通、傳資料。現代是 PCIe 4.0 或 5.0。速度比 VRAM 內部頻寬慢很多，所以 CPU→GPU 的資料傳輸要盡量減少。</p>
+        <div class="analogy" style="margin:8px 0 0;">
+          <div class="label">💡 比喻</div>
+          <p style="font-size:.85rem;">PCIe = 辦公室走廊。GPU 工廠內部有高速輸送帶（頻寬），但走廊（PCIe）相對窄，要盡量減少進出次數。</p>
+        </div>
+        <span class="stat pcie-stat">PCIe 5.0 x16：~128 GB/s 雙向</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 VRAM 種類比較</h2>
+    <table>
+      <tr><th>類型</th><th>用途</th><th>頻寬</th><th>特點</th></tr>
+      <tr><td>GDDR6X</td><td>消費型 GPU（RTX 40 系列）</td><td>~1,000 GB/s</td><td>便宜、普及</td></tr>
+      <tr><td>GDDR7</td><td>消費型 GPU（RTX 50 系列）</td><td>~1,800 GB/s</td><td>新一代，更快</td></tr>
+      <tr><td>HBM2e</td><td>資料中心 GPU（A100）</td><td>2,000 GB/s</td><td>高頻寬，晶粒堆疊</td></tr>
+      <tr><td class="highlight">HBM3</td><td class="highlight">資料中心 GPU（H100）</td><td class="highlight">3,350 GB/s</td><td class="highlight">AI 首選，貴</td></tr>
+    </table>
+    <div class="warn-box">
+      <p>🔑 <strong>重要：</strong>HBM（High Bandwidth Memory）是把記憶體晶粒直接疊在 GPU 晶片旁邊，頻寬是 GDDR 的 3 倍以上，但成本也高出很多。這是 H100 比 RTX 4090 貴 10 倍的原因之一。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📐 看懂規格表的關鍵數字</h2>
+    <table>
+      <tr><th>規格名稱</th><th>我要看它</th><th>越大越好？</th></tr>
+      <tr><td>CUDA Cores 數</td><td>一般算力指標</td><td>✅ 是</td></tr>
+      <tr><td>Tensor TFLOPS（FP16）</td><td>AI 訓練/推理速度</td><td>✅ 是</td></tr>
+      <tr><td>VRAM 容量（GB）</td><td>能跑多大的模型</td><td>✅ 是</td></tr>
+      <tr><td>記憶體頻寬（GB/s）</td><td>資料吞吐速度</td><td>✅ 是</td></tr>
+      <tr><td>TDP（瓦特）</td><td>耗電量 / 散熱需求</td><td>❌ 越小越好</td></tr>
+      <tr><td>PCIe 版本</td><td>和 CPU 的溝通速度</td><td>✅ 新的好，但影響較小</td></tr>
+    </table>
+    <div class="key-box">
+      <div class="label">AI 應用的選購優先順序</div>
+      <ul>
+        <li>1. <strong>VRAM 容量</strong>：決定你能跑的模型大小，不夠就跑不了</li>
+        <li>2. <strong>Tensor TFLOPS</strong>：決定訓練速度</li>
+        <li>3. <strong>記憶體頻寬</strong>：推理速度的關鍵</li>
+        <li>4. <strong>TDP / 散熱</strong>：機器能不能承受</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <h2>✅ 本章重點整理</h2>
+    <ul>
+      <li>CUDA Core：基本運算單元，數量越多越快</li>
+      <li>Tensor Core：AI 專屬加速，訓練模型靠它</li>
+      <li>VRAM：模型必須完整放進去，容量是硬門檻</li>
+      <li>記憶體頻寬：資料傳輸速度，影響推理效能</li>
+      <li>HBM > GDDR 在頻寬上，但貴得多（H100 vs RTX）</li>
+      <li>AI 選購：先看 VRAM 容量，再看 Tensor TFLOPS</li>
+    </ul>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-outline" href="02-gpu-vs-cpu.html">← 上一篇：GPU vs CPU</a>
+    <a class="btn btn-fill" href="../02-how-it-works/01-parallel-computing.html">下一篇：平行運算 →</a>
+  </div>
+</div>
+</body>
+</html>

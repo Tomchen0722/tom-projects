@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>雲端 GPU 費用解析 — GPU 完全自學指南</title>
+<style>
+  :root{--red:#f43f5e;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4f0;min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#0f0c29,#4c0519);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .back{display:inline-block;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;margin-bottom:16px;}
+  .hero .badge{display:inline-block;background:rgba(244,63,94,.25);border:1px solid #fb7185;color:#fda4af;padding:4px 14px;border-radius:12px;font-size:.8rem;margin-bottom:12px;}
+  .hero h1{font-size:1.9rem;line-height:1.4;}
+  .hero h1 span{color:#fb7185;}
+  .hero p{opacity:.85;max-width:560px;margin:12px auto 0;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:14px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:24px;}
+  h2{font-size:1.25rem;color:#1a1a1a;margin-bottom:14px;}
+  h3{font-size:1rem;color:#333;margin:18px 0 10px;font-weight:700;}
+  p{line-height:1.85;color:#444;margin-bottom:12px;font-size:.95rem;}
+  .analogy{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-left:4px solid #4ade80;border-radius:0 12px 12px 0;padding:18px 20px;margin:16px 0;}
+  .analogy .label{font-size:.75rem;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:6px;}
+  .analogy p{color:#166534;margin:0;line-height:1.8;}
+  .warn-box{background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .warn-box p{color:#92400e;margin:0;font-size:.9rem;line-height:1.8;}
+  .danger-box{background:#fee2e2;border-left:4px solid #ef4444;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .danger-box p{color:#991b1b;margin:0;font-size:.9rem;line-height:1.8;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;margin:12px 0;overflow-x:auto;display:block;}
+  th{background:#1a1a2e;color:#a3e635;padding:10px 12px;text-align:left;white-space:nowrap;}
+  td{padding:10px 12px;border-bottom:1px solid #eee;white-space:nowrap;}
+  tr:nth-child(even) td{background:#f9fafb;}
+  .hl{color:#76b900;font-weight:700;}
+  .hl-red{color:#dc2626;font-weight:700;}
+  .pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:16px 0;}
+  .pricing-card{border-radius:12px;padding:18px;border:1px solid #e5e7eb;}
+  .pricing-card .platform{font-size:.75rem;font-weight:700;letter-spacing:.05em;margin-bottom:6px;}
+  .pricing-card .gpu-name{font-size:1rem;font-weight:700;color:#1a1a1a;margin-bottom:10px;}
+  .pricing-card .price-big{font-size:1.8rem;font-weight:800;margin-bottom:2px;}
+  .pricing-card .price-unit{font-size:.75rem;color:#888;}
+  .pricing-card .gpu-spec{font-size:.78rem;color:#666;margin-top:8px;line-height:1.7;}
+  .pc-aws{background:#fff7ed;border-color:#fdba74;} .pc-aws .platform{color:#c2410c;} .pc-aws .price-big{color:#c2410c;}
+  .pc-gcp{background:#eff6ff;border-color:#93c5fd;} .pc-gcp .platform{color:#1d4ed8;} .pc-gcp .price-big{color:#1d4ed8;}
+  .pc-vast{background:#f0fdf4;border-color:#86efac;} .pc-vast .platform{color:#15803d;} .pc-vast .price-big{color:#15803d;}
+  .pc-lmd{background:#fdf4ff;border-color:#d8b4fe;} .pc-lmd .platform{color:#7c3aed;} .pc-lmd .price-big{color:#7c3aed;}
+  .mode-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0;}
+  .mode-box{border-radius:10px;padding:16px;}
+  .m-demand{background:#fff7ed;border:1px solid #fdba74;}
+  .m-reserved{background:#f0fdf4;border:1px solid #86efac;}
+  .m-spot{background:#fdf4ff;border:1px solid #d8b4fe;}
+  .mode-box h3{font-size:.9rem;margin:0 0 8px;}
+  .m-demand h3{color:#c2410c;} .m-reserved h3{color:#15803d;} .m-spot h3{color:#7c3aed;}
+  .mode-box .price-diff{font-size:1.4rem;font-weight:800;margin:8px 0;}
+  .mode-box p{font-size:.8rem;color:#555;margin:0;line-height:1.7;}
+  .calc-box{background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:20px;margin:16px 0;}
+  .calc-box h3{font-size:.95rem;margin:0 0 14px;}
+  .calc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.88rem;}
+  .calc-total{font-weight:700;color:#dc2626;font-size:1rem;}
+  .calc-row:last-child{border:none;}
+  .tips-list{list-style:none;padding:0;margin:12px 0;}
+  .tips-list li{padding:10px 12px;border-radius:8px;margin-bottom:8px;font-size:.88rem;line-height:1.7;padding-left:36px;position:relative;}
+  .tips-list li::before{position:absolute;left:10px;font-size:1rem;}
+  .tip-save{background:#f0fdf4;color:#166534;} .tip-save::before{content:'💡';}
+  .tip-warn{background:#fef3c7;color:#92400e;} .tip-warn::before{content:'⚠️';}
+  .takeaway{background:linear-gradient(135deg,#1a1a2e,#4c0519);color:#fff;border-radius:14px;padding:24px;margin-top:24px;}
+  .takeaway h2{color:#fb7185;margin-bottom:12px;}
+  .takeaway li{line-height:2.2;font-size:.9rem;list-style:disc;margin-left:20px;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:24px;gap:12px;}
+  .btn{display:block;padding:12px 24px;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;text-align:center;}
+  .btn-outline{border:2px solid #76b900;color:#76b900;}
+  .btn-fill{background:#76b900;color:#fff;}
+  .btn:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <a class="back" href="../index.html">← 回到目錄</a><br>
+  <div class="badge">企業 · 文章 10／12</div>
+  <h1>💰 雲端 GPU<br><span>費用完整解析</span></h1>
+  <p>AWS、GCP、Azure、Vast.ai 怎麼收費？什麼時候租比買划算？避免帳單爆炸的實用技巧。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🌐 為什麼要用雲端 GPU？</h2>
+    <div class="analogy">
+      <div class="label">💡 雲端 GPU 的本質</div>
+      <p>雲端 GPU = 租用別人的電腦跑你的 AI，按小時計費。<br><br>
+      優點：不用買硬體、可以隨時升級到最強的 GPU、不需要機房和散熱。<br>
+      缺點：長期用比買貴、資料在別人的伺服器、網路傳輸有成本。</p>
+    </div>
+    <p>大多數 AI 公司的選擇是：<strong>開發和測試用雲端，大規模訓練視情況買或租，推理服務視流量決定</strong>。</p>
+  </div>
+
+  <div class="card">
+    <h2>💵 各平台 GPU 時薪對比（2025 年參考）</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card pc-aws">
+        <div class="platform">AWS EC2</div>
+        <div class="gpu-name">A100 80GB ×8</div>
+        <div class="price-big">$32</div>
+        <div class="price-unit">/ 小時（按需）</div>
+        <div class="gpu-spec">p4d.24xlarge<br>8×A100 40GB + 320GB RAM</div>
+      </div>
+      <div class="pricing-card pc-gcp">
+        <div class="platform">Google Cloud</div>
+        <div class="gpu-name">H100 80GB ×8</div>
+        <div class="price-big">$28</div>
+        <div class="price-unit">/ 小時（按需）</div>
+        <div class="gpu-spec">a3-highgpu-8g<br>8×H100 + 624GB RAM</div>
+      </div>
+      <div class="pricing-card pc-vast">
+        <div class="platform">Vast.ai（租散戶）</div>
+        <div class="gpu-name">RTX 4090</div>
+        <div class="price-big">$0.35</div>
+        <div class="price-unit">/ 小時（市場價）</div>
+        <div class="gpu-spec">個人自建出租<br>價格浮動，最便宜</div>
+      </div>
+      <div class="pricing-card pc-lmd">
+        <div class="platform">Lambda Labs</div>
+        <div class="gpu-name">H100 SXM ×8</div>
+        <div class="price-big">$24</div>
+        <div class="price-unit">/ 小時（按需）</div>
+        <div class="gpu-spec">AI 專用雲<br>比 AWS/GCP 便宜</div>
+      </div>
+    </div>
+    <table>
+      <tr><th>平台</th><th>GPU</th><th>時薪（按需）</th><th>月費（按需）</th><th>適合</th></tr>
+      <tr><td>AWS p3.2xlarge</td><td>V100 16GB ×1</td><td>~$3.06</td><td>~$2,200</td><td>入門測試</td></tr>
+      <tr><td>GCP T4 ×1</td><td>T4 16GB ×1</td><td>~$0.35</td><td>~$252</td><td>推理服務</td></tr>
+      <tr><td>AWS p4d.24xlarge</td><td>A100 40GB ×8</td><td>~$32.77</td><td>~$23,600</td><td>大型訓練</td></tr>
+      <tr><td class="hl">Lambda H100 ×8</td><td class="hl">H100 80GB ×8</td><td class="hl">~$24.00</td><td class="hl">~$17,300</td><td class="hl">最划算大型訓練</td></tr>
+      <tr><td>Vast.ai RTX 4090</td><td>RTX 4090 24GB</td><td>~$0.35–0.60</td><td>~$250–430</td><td>個人實驗最便宜</td></tr>
+      <tr><td>RunPod H100</td><td>H100 80GB ×1</td><td>~$3.89</td><td>~$2,800</td><td>中型訓練</td></tr>
+    </table>
+    <div class="danger-box">
+      <p>🚨 <strong>帳單地雷：</strong>AWS 按需 H100 跑一整個月 = ~$64,000 美元。<strong>一定要設 billing alert</strong>，避免忘記關機導致帳單爆炸。真實案例：有人跑 GPU 忘關，一週帳單 $50,000。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚡ 三種定價方式：按需 vs 預留 vs Spot</h2>
+    <div class="mode-compare">
+      <div class="mode-box m-demand">
+        <h3>🔴 按需（On-Demand）</h3>
+        <div class="price-diff">100%</div>
+        <p>隨時啟動，隨時停止。靈活但最貴。適合：短期測試、不確定用量時。</p>
+      </div>
+      <div class="mode-box m-reserved">
+        <h3>🟢 預留（Reserved）</h3>
+        <div class="price-diff">~40–60%</div>
+        <p>預付 1–3 年，折扣高達 40–60%。適合：長期穩定需求，預算可預測。</p>
+      </div>
+      <div class="mode-box m-spot">
+        <h3>🟣 Spot / Preemptible</h3>
+        <div class="price-diff">~10–30%</div>
+        <p>用閒置資源，最便宜但可能被強制終止。適合：可中斷的訓練，要存 checkpoint。</p>
+      </div>
+    </div>
+    <div class="analogy">
+      <div class="label">💡 比喻</div>
+      <p>按需 = 便利商店（隨買隨用，貴）<br>預留 = 年費健身房（先付一年，每次便宜）<br>Spot = 搶便宜機票（超便宜但可能被取消，要有備案）</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧮 費用試算：訓練一個 7B LLM 要多少錢</h2>
+    <div class="calc-box">
+      <h3>情境：微調（Fine-tune）LLaMA 3 7B，10 萬筆資料</h3>
+      <div class="calc-row"><span>估計訓練時間</span><span>~8 小時（單張 H100）</span></div>
+      <div class="calc-row"><span>GPU 選擇</span><span>RunPod H100 80GB</span></div>
+      <div class="calc-row"><span>時薪</span><span>$3.89 / hr</span></div>
+      <div class="calc-row"><span>GPU 費用</span><span>8 hr × $3.89 = <strong>$31</strong></span></div>
+      <div class="calc-row"><span>儲存費（100GB × 月）</span><span>~$2</span></div>
+      <div class="calc-row calc-total"><span>總費用（約）</span><span>~US$33（約 NT$1,000）</span></div>
+    </div>
+    <div class="calc-box">
+      <h3>情境：訓練 LLaMA 70B from scratch（參考）</h3>
+      <div class="calc-row"><span>需要</span><span>64 × H100，跑 30 天</span></div>
+      <div class="calc-row"><span>時薪（Lambda 64×H100）</span><span>~$192 / hr</span></div>
+      <div class="calc-row"><span>總小時</span><span>30 × 24 = 720 小時</span></div>
+      <div class="calc-row calc-total"><span>總費用（約）</span><span>~US$138,000（約 NT$450 萬）</span></div>
+    </div>
+    <div class="warn-box">
+      <p>💡 <strong>結論：</strong>微調（Fine-tune）現有模型 = 幾十美元可以完成。從頭訓練（Pretraining）= 數十萬美元起跳。大多數公司做的是微調，不是從頭訓練。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛡️ 避免帳單爆炸的 10 個技巧</h2>
+    <ul class="tips-list">
+      <li class="tip-save">設定 Billing Alert（AWS Budget Alarm），超過 $50 就發 Email 通知</li>
+      <li class="tip-save">訓練完立刻停止實例，不要讓 GPU 閒置（閒置也在計費）</li>
+      <li class="tip-save">用 Spot/Preemptible 實例，省 70–90%，訓練時每小時存一次 checkpoint</li>
+      <li class="tip-save">測試階段用最小的 GPU（T4/A10G），確認程式沒問題再換大 GPU</li>
+      <li class="tip-save">預估費用：在本地跑 1 個 batch，計算一個 epoch 要多久，再算總時間 × 時薪</li>
+      <li class="tip-warn">不要把資料集放在 GPU 實例的本地磁碟——實例刪掉就沒了，用 S3/GCS</li>
+      <li class="tip-warn">多人共用帳號時，每個人的實例要加 tag，知道誰在用什麼</li>
+      <li class="tip-save">Lambda Labs 和 CoreWeave 通常比 AWS/GCP 便宜 30–50%</li>
+      <li class="tip-save">個人實驗：Vast.ai 或 RunPod 是最便宜的選擇，不需要企業合規</li>
+      <li class="tip-warn">AWS 的 data transfer 費用：資料從 AWS 傳出是要收費的，大資料集注意</li>
+    </ul>
+  </div>
+
+  <div class="takeaway">
+    <h2>✅ 本章重點整理</h2>
+    <ul>
+      <li>雲端 GPU 按小時計費，從 $0.35（RTX 4090）到 $32+（8×A100）</li>
+      <li>Spot 實例最便宜（省 70–90%），但可能被強制終止，要存 checkpoint</li>
+      <li>微調 7B 模型約 US$30–50；從頭訓練大模型 = 數十萬美元</li>
+      <li>Lambda Labs / RunPod 通常比 AWS/GCP 便宜 30–50%</li>
+      <li>個人實驗：Vast.ai 最便宜；企業合規需求：AWS / GCP</li>
+      <li>務必設 Billing Alert，否則忘記關機帳單可能爆炸</li>
+    </ul>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-outline" href="../03-ai-and-gpu/03-run-ai-locally.html">← 上一篇：在電腦跑 AI</a>
+    <a class="btn btn-fill" href="02-gpu-cluster.html">下一篇：GPU 叢集架構 →</a>
+  </div>
+</div>
+</body>
+</html>

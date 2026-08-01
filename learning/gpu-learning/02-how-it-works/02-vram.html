@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRAM — GPU 完全自學指南</title>
+<style>
+  :root{--green:#76b900;--blue:#3b82f6;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4f0;min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#0f0c29,#1e3a5f);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .back{display:inline-block;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;margin-bottom:16px;}
+  .hero .badge{display:inline-block;background:rgba(59,130,246,.3);border:1px solid #60a5fa;color:#93c5fd;padding:4px 14px;border-radius:12px;font-size:.8rem;margin-bottom:12px;}
+  .hero h1{font-size:1.9rem;line-height:1.4;}
+  .hero h1 span{color:#60a5fa;}
+  .hero p{opacity:.85;max-width:560px;margin:12px auto 0;line-height:1.8;}
+  .container{max-width:820px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:14px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:24px;}
+  h2{font-size:1.25rem;color:#1a1a1a;margin-bottom:14px;}
+  h3{font-size:1rem;color:#333;margin:18px 0 10px;font-weight:700;}
+  p{line-height:1.85;color:#444;margin-bottom:12px;font-size:.95rem;}
+  .analogy{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-left:4px solid #4ade80;border-radius:0 12px 12px 0;padding:18px 20px;margin:16px 0;}
+  .analogy .label{font-size:.75rem;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:6px;}
+  .analogy p{color:#166534;margin:0;line-height:1.8;}
+  .warn-box{background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .warn-box p{color:#92400e;margin:0;font-size:.9rem;line-height:1.8;}
+  .error-box{background:#fee2e2;border-left:4px solid #ef4444;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .error-box p{color:#991b1b;margin:0;font-size:.9rem;line-height:1.8;font-family:monospace;}
+  table{width:100%;border-collapse:collapse;font-size:.87rem;margin:12px 0;}
+  th{background:#1a1a2e;color:#a3e635;padding:10px 14px;text-align:left;}
+  td{padding:10px 14px;border-bottom:1px solid #eee;}
+  tr:nth-child(even) td{background:#f9fafb;}
+  .hl{color:var(--green);font-weight:700;}
+  .hl-red{color:#dc2626;font-weight:700;}
+  .vram-bar-container{margin:16px 0;}
+  .vram-item{margin-bottom:10px;}
+  .vram-item .label-row{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px;}
+  .vram-item .model-name{font-weight:600;color:#333;}
+  .vram-item .vram-num{color:var(--green);font-weight:700;}
+  .bar-bg{background:#e5e7eb;border-radius:8px;height:18px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:8px;transition:width .3s;}
+  .key-box{background:#1a1a2e;color:#e2e8f0;border-radius:12px;padding:20px;margin:16px 0;}
+  .key-box .label{color:var(--green);font-size:.8rem;font-weight:700;letter-spacing:.05em;margin-bottom:10px;}
+  .key-box ul{padding-left:20px;}
+  .key-box li{line-height:2.1;font-size:.9rem;}
+  .method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:16px 0;}
+  .method-card{border-radius:12px;padding:18px;}
+  .m1{background:#f0fdf4;border:1px solid #86efac;}
+  .m2{background:#eff6ff;border:1px solid #93c5fd;}
+  .m3{background:#fdf4ff;border:1px solid #d8b4fe;}
+  .m4{background:#fff7ed;border:1px solid #fdba74;}
+  .method-card h3{font-size:.9rem;margin:0 0 8px;}
+  .m1 h3{color:#15803d;} .m2 h3{color:#1d4ed8;} .m3 h3{color:#7c3aed;} .m4 h3{color:#c2410c;}
+  .method-card p{font-size:.82rem;color:#555;margin:0;line-height:1.7;}
+  .method-card .trade{font-size:.76rem;margin-top:8px;font-style:italic;color:#888;}
+  .calc-box{background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:20px;margin:16px 0;}
+  .calc-box h3{font-size:.95rem;color:#374151;margin-bottom:14px;}
+  .calc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.88rem;}
+  .calc-row:last-child{border:none;font-weight:700;color:#15803d;font-size:.95rem;}
+  .takeaway{background:linear-gradient(135deg,#1a1a2e,#1e3a5f);color:#fff;border-radius:14px;padding:24px;margin-top:24px;}
+  .takeaway h2{color:#60a5fa;margin-bottom:12px;}
+  .takeaway li{line-height:2.2;font-size:.9rem;list-style:disc;margin-left:20px;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:24px;gap:12px;}
+  .btn{display:block;padding:12px 24px;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;text-align:center;}
+  .btn-outline{border:2px solid var(--green);color:var(--green);}
+  .btn-fill{background:var(--green);color:#fff;}
+  .btn:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <a class="back" href="../index.html">← 回到目錄</a><br>
+  <div class="badge">中級 · 文章 5／12</div>
+  <h1>💾 <span>VRAM</span><br>GPU 的工作桌大小</h1>
+  <p>VRAM 是 AI 應用中最常被卡住的硬體限制。這篇讓你搞懂它是什麼、需要多少、不夠怎麼辦。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🪑 VRAM 是什麼</h2>
+    <p><strong>VRAM（Video RAM，視訊記憶體）</strong>是 GPU 自己專用的記憶體，獨立於電腦的主記憶體（RAM）之外。</p>
+    <div class="analogy">
+      <div class="label">💡 最重要的比喻</div>
+      <p><strong>VRAM = GPU 的工作桌</strong><br><br>
+      你要做一個大型拼圖（AI 模型），必須把它攤開在桌上才能操作。<br>
+      桌子（VRAM）太小 → 拼圖放不下 → 工作進行不了。<br>
+      桌子夠大 → 同時可以放多個拼圖 → 工作更有效率。<br><br>
+      <strong>關鍵：AI 模型執行時，必須完整放入 VRAM，放不下就報錯。</strong></p>
+    </div>
+    <div class="error-box">
+      <p>CUDA out of memory. Tried to allocate 2.00 GiB but only 1.50 GiB of VRAM is free.</p>
+    </div>
+    <p>這個錯誤就是 VRAM 不夠的症狀——你跑 AI 時最常遇到的錯誤。</p>
+  </div>
+
+  <div class="card">
+    <h2>📊 各 GPU 的 VRAM 容量</h2>
+    <div class="vram-bar-container">
+      <div class="vram-item"><div class="label-row"><span class="model-name">RTX 4060</span><span class="vram-num">8 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:7.4%;background:#94a3b8;"></div></div></div>
+      <div class="vram-item"><div class="label-row"><span class="model-name">RTX 4070</span><span class="vram-num">12 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:11%;background:#64748b;"></div></div></div>
+      <div class="vram-item"><div class="label-row"><span class="model-name">RTX 4080</span><span class="vram-num">16 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:14.8%;background:#3b82f6;"></div></div></div>
+      <div class="vram-item"><div class="label-row"><span class="model-name">RTX 4090</span><span class="vram-num">24 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:22%;background:#76b900;"></div></div></div>
+      <div class="vram-item"><div class="label-row"><span class="model-name">RTX 5090</span><span class="vram-num">32 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:29.6%;background:#a3e635;"></div></div></div>
+      <div class="vram-item"><div class="label-row"><span class="model-name">A100</span><span class="vram-num">40 / 80 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:74%;background:#f59e0b;"></div></div></div>
+      <div class="vram-item"><div class="label-row"><span class="model-name">H100</span><span class="vram-num">80 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:74%;background:#f43f5e;"></div></div></div>
+      <div class="vram-item"><div class="label-row"><span class="model-name">H200</span><span class="vram-num">141 GB</span></div><div class="bar-bg"><div class="bar-fill" style="width:100%;background:#dc2626;"></div></div></div>
+    </div>
+    <p style="font-size:.8rem;color:#888;">* 長條圖以 H200 141GB 為基準比例。</p>
+  </div>
+
+  <div class="card">
+    <h2>🧮 AI 模型需要多少 VRAM？</h2>
+    <p>最常見的問題：「我的 GPU 能跑這個模型嗎？」有一個粗略的速算公式：</p>
+    <div class="calc-box">
+      <h3>📐 VRAM 需求速算公式</h3>
+      <div class="calc-row"><span>模型參數量（Billion）</span><span>× 精度倍數</span></div>
+      <div class="calc-row"><span>FP32（全精度）</span><span>參數數 × 4 Bytes</span></div>
+      <div class="calc-row"><span>FP16 / BF16（半精度）</span><span>參數數 × 2 Bytes</span></div>
+      <div class="calc-row"><span>INT8（量化）</span><span>參數數 × 1 Byte</span></div>
+      <div class="calc-row"><span>INT4（強力量化）</span><span>參數數 × 0.5 Bytes</span></div>
+    </div>
+    <table>
+      <tr><th>模型</th><th>參數量</th><th>FP16 最低 VRAM</th><th>INT4 最低 VRAM</th></tr>
+      <tr><td>LLaMA 3 7B</td><td>7B</td><td class="hl">~14 GB</td><td>~4 GB</td></tr>
+      <tr><td>LLaMA 3 13B</td><td>13B</td><td class="hl-red">~26 GB</td><td>~7 GB</td></tr>
+      <tr><td>LLaMA 3 70B</td><td>70B</td><td class="hl-red">~140 GB</td><td>~35 GB</td></tr>
+      <tr><td>GPT-4（估計）</td><td>~1.8T</td><td class="hl-red">~3.6 TB</td><td>~900 GB</td></tr>
+      <tr><td>Stable Diffusion 1.5</td><td>0.86B</td><td>~4 GB</td><td>~2 GB</td></tr>
+    </table>
+    <div class="warn-box">
+      <p>⚠️ 以上是<strong>純推理</strong>的最低需求。訓練時還需要存梯度、優化器狀態，VRAM 需求會是推理的 <strong>4–8 倍</strong>。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔧 VRAM 不夠怎麼辦？4 種解法</h2>
+    <div class="method-grid">
+      <div class="method-card m1">
+        <h3>① 量化（Quantization）</h3>
+        <p>把模型權重從 FP16（16位元）降到 INT8 或 INT4，大小直接縮小 2–4 倍，VRAM 需求大幅降低。</p>
+        <p class="trade">代價：精度略有損失，但 INT8 影響通常很小。工具：llama.cpp、GPTQ、AWQ。</p>
+      </div>
+      <div class="method-card m2">
+        <h3>② 分頁推理（Paged Attention）</h3>
+        <p>把模型的一部分暫時存到主記憶體（RAM），需要時才搬回 VRAM。速度會變慢但可以跑大模型。</p>
+        <p class="trade">代價：速度下降，因為 CPU↔GPU 資料傳輸是瓶頸。</p>
+      </div>
+      <div class="method-card m3">
+        <h3>③ 多 GPU</h3>
+        <p>把模型拆成幾份，分散到多張 GPU 的 VRAM 上。2 張 RTX 4090 = 48GB VRAM。</p>
+        <p class="trade">代價：成本翻倍，需要 GPU 間通訊（NVLink 或 PCIe）。</p>
+      </div>
+      <div class="method-card m4">
+        <h3>④ 換小模型</h3>
+        <p>用 7B 代替 70B。現代的 7B 模型（經過微調）往往比舊的 70B 更實用。</p>
+        <p class="trade">代價：能力上限較低，但對大多數應用已足夠。</p>
+      </div>
+    </div>
+    <div class="analogy">
+      <div class="label">💡 實務建議</div>
+      <p>一般個人用途先試量化（INT4 / INT8），通常品質足夠，VRAM 需求砍半。Ollama 預設就幫你做量化了。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💡 VRAM vs RAM：有什麼不同？</h2>
+    <table>
+      <tr><th></th><th>VRAM（GPU 記憶體）</th><th>RAM（主記憶體）</th></tr>
+      <tr><td>誰使用</td><td>GPU 核心</td><td>CPU + 系統</td></tr>
+      <tr><td>速度</td><td>超快（1,000 GB/s+）</td><td>較慢（50–100 GB/s）</td></tr>
+      <tr><td>容量</td><td>小（8–141 GB）</td><td>大（16 GB–數 TB）</td></tr>
+      <tr><td>AI 模型能放嗎</td><td>✅ 可以，這是正常路徑</td><td>⚠️ 可以，但跑起來極慢</td></tr>
+      <tr><td>價格（每 GB）</td><td>高（GDDR6X / HBM3）</td><td>低（DDR5）</td></tr>
+    </table>
+    <div class="key-box">
+      <div class="label">重要：模型放在 RAM 跑有多慢？</div>
+      <ul>
+        <li>GPU VRAM 頻寬：~1,000 GB/s</li>
+        <li>CPU RAM 頻寬：~80 GB/s</li>
+        <li>速度差約 <strong>12 倍</strong>——實際體感更差，因為 CPU 核心數也少</li>
+        <li>結論：能用 GPU 就別用 CPU 跑模型</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <h2>✅ 本章重點整理</h2>
+    <ul>
+      <li>VRAM = GPU 專屬記憶體，AI 模型必須完整放入</li>
+      <li>速算：7B 模型 FP16 需約 14GB VRAM，INT4 量化約 4GB</li>
+      <li>VRAM 不夠時：量化 → 最優先，成本低品質損失小</li>
+      <li>訓練比推理需要更多 VRAM（約 4–8 倍）</li>
+      <li>VRAM 比 RAM 快約 12 倍，能放 GPU 就別用 CPU</li>
+      <li>H100 有 80GB HBM3，比 RTX 4090 的 24GB GDDR6X 多 3 倍還快得多</li>
+    </ul>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-outline" href="01-parallel-computing.html">← 上一篇：平行運算</a>
+    <a class="btn btn-fill" href="03-cuda-drivers.html">下一篇：CUDA 與驅動 →</a>
+  </div>
+</div>
+</body>
+</html>

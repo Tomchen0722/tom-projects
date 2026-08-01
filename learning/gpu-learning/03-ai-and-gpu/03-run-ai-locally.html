@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>在自己電腦跑 AI — GPU 完全自學指南</title>
+<style>
+  :root{--amber:#f59e0b;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4f0;min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#0f0c29,#451a03);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .back{display:inline-block;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;margin-bottom:16px;}
+  .hero .badge{display:inline-block;background:rgba(245,158,11,.25);border:1px solid #fbbf24;color:#fcd34d;padding:4px 14px;border-radius:12px;font-size:.8rem;margin-bottom:12px;}
+  .hero h1{font-size:1.9rem;line-height:1.4;}
+  .hero h1 span{color:#fbbf24;}
+  .hero p{opacity:.85;max-width:560px;margin:12px auto 0;line-height:1.8;}
+  .container{max-width:820px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:14px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:24px;}
+  h2{font-size:1.25rem;color:#1a1a1a;margin-bottom:14px;}
+  h3{font-size:1rem;color:#333;margin:18px 0 10px;font-weight:700;}
+  p{line-height:1.85;color:#444;margin-bottom:12px;font-size:.95rem;}
+  .analogy{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-left:4px solid #4ade80;border-radius:0 12px 12px 0;padding:18px 20px;margin:16px 0;}
+  .analogy .label{font-size:.75rem;font-weight:700;color:#16a34a;letter-spacing:.05em;margin-bottom:6px;}
+  .analogy p{color:#166534;margin:0;line-height:1.8;}
+  .warn-box{background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .warn-box p{color:#92400e;margin:0;font-size:.9rem;line-height:1.8;}
+  .code-block{background:#1e1e2e;border-radius:8px;padding:16px 18px;font-family:monospace;font-size:.87rem;color:#e2e8f0;margin:12px 0;overflow-x:auto;line-height:1.8;}
+  .code-comment{color:#6b7280;}
+  .code-cmd{color:#a3e635;}
+  .code-str{color:#fbbf24;}
+  .code-kw{color:#60a5fa;}
+  .tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0;}
+  .tool-card{border-radius:12px;padding:20px;border:1px solid #e5e7eb;}
+  .tool-card .tool-icon{font-size:2rem;margin-bottom:10px;}
+  .tool-card h3{font-size:.95rem;margin:0 0 8px;}
+  .tool-card p{font-size:.83rem;color:#555;margin:0 0 10px;line-height:1.7;}
+  .tool-card .tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:700;}
+  .t-easy{background:#dcfce7;color:#15803d;}
+  .t-mid{background:#dbeafe;color:#1d4ed8;}
+  .t-hard{background:#fee2e2;color:#dc2626;}
+  .tc1{background:#f0fdf4;border-color:#86efac;}
+  .tc2{background:#eff6ff;border-color:#93c5fd;}
+  .tc3{background:#fdf4ff;border-color:#d8b4fe;}
+  .tc4{background:#fff7ed;border-color:#fdba74;}
+  .req-table{width:100%;border-collapse:collapse;font-size:.87rem;margin:12px 0;}
+  th{background:#1a1a2e;color:#a3e635;padding:10px 14px;text-align:left;}
+  td{padding:10px 14px;border-bottom:1px solid #eee;}
+  tr:nth-child(even) td{background:#f9fafb;}
+  .hl{color:#76b900;font-weight:700;}
+  .ok{color:#15803d;}
+  .ng{color:#dc2626;}
+  .steps{counter-reset:step;}
+  .step{counter-increment:step;display:flex;gap:14px;margin-bottom:18px;align-items:flex-start;}
+  .step-num{width:32px;height:32px;border-radius:50%;background:#76b900;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0;}
+  .step-content h4{font-size:.95rem;font-weight:700;margin-bottom:6px;color:#1a1a1a;}
+  .step-content p{font-size:.88rem;color:#555;margin:0;line-height:1.7;}
+  .quant-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin:16px 0;}
+  .quant-box h3{font-size:.95rem;margin:0 0 12px;}
+  .quant-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:.85rem;}
+  .quant-row:last-child{border:none;}
+  .q-type{font-weight:700;color:#333;width:60px;}
+  .q-bar{flex:1;margin:0 12px;}
+  .q-bar-bg{background:#e5e7eb;border-radius:4px;height:12px;}
+  .q-bar-fill{height:100%;border-radius:4px;}
+  .q-size{color:#666;font-size:.8rem;width:80px;text-align:right;}
+  .takeaway{background:linear-gradient(135deg,#1a1a2e,#451a03);color:#fff;border-radius:14px;padding:24px;margin-top:24px;}
+  .takeaway h2{color:#fbbf24;margin-bottom:12px;}
+  .takeaway li{line-height:2.2;font-size:.9rem;list-style:disc;margin-left:20px;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:24px;gap:12px;}
+  .btn{display:block;padding:12px 24px;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;text-align:center;}
+  .btn-outline{border:2px solid #76b900;color:#76b900;}
+  .btn-fill{background:#76b900;color:#fff;}
+  .btn:hover{opacity:.85;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <a class="back" href="../index.html">← 回到目錄</a><br>
+  <div class="badge">進階 · 文章 9／12</div>
+  <h1>🚀 在自己電腦<br><span>跑 AI 模型</span></h1>
+  <p>實戰教學：用 Ollama 跑本地 LLM、用 Stable Diffusion 生圖。最低門檻是什麼？</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🖥️ 硬體需求一覽</h2>
+    <table class="req-table">
+      <tr><th>用途</th><th>最低 GPU VRAM</th><th>建議 VRAM</th><th>CPU 也能跑？</th></tr>
+      <tr><td>LLM 7B（量化）</td><td class="hl">4 GB</td><td>8 GB+</td><td class="ok">可以（極慢）</td></tr>
+      <tr><td>LLM 13B（量化）</td><td class="hl">8 GB</td><td>12 GB+</td><td class="ng">不建議</td></tr>
+      <tr><td>LLM 70B（量化）</td><td class="hl">24 GB</td><td>48 GB+（多卡）</td><td class="ng">無法</td></tr>
+      <tr><td>Stable Diffusion 1.5</td><td class="hl">4 GB</td><td>8 GB</td><td class="ok">可以（慢）</td></tr>
+      <tr><td>SDXL / Flux</td><td class="hl">8 GB</td><td>12–16 GB</td><td class="ng">不建議</td></tr>
+      <tr><td>語音辨識（Whisper）</td><td>2 GB</td><td>4 GB</td><td class="ok">可以</td></tr>
+    </table>
+    <div class="analogy">
+      <div class="label">💡 沒有 NVIDIA GPU 怎麼辦</div>
+      <p><strong>Apple Silicon（M1/M2/M3/M4）：</strong>用統一記憶體，可以共享 RAM，跑 LLM 效果不錯。Ollama 完整支援。<br><br>
+      <strong>AMD GPU：</strong>Ollama 和 Stable Diffusion 有支援，但部分模型有 bug。<br><br>
+      <strong>只有 CPU：</strong>llama.cpp 可以跑，但 7B 模型一秒只輸出 1–2 個 token，比打字還慢。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ 四大工具選擇</h2>
+    <div class="tool-grid">
+      <div class="tool-card tc1">
+        <div class="tool-icon">🦙</div>
+        <h3>Ollama</h3>
+        <p>最簡單的本地 LLM 工具。一行指令安裝模型並開始對話。支援 Windows / Mac / Linux。</p>
+        <span class="tag t-easy">最容易入門</span>
+      </div>
+      <div class="tool-card tc2">
+        <div class="tool-icon">🎨</div>
+        <h3>Stable Diffusion WebUI</h3>
+        <p>本地跑圖像生成 AI，有完整的 Web 介面。AUTOMATIC1111 版本最多人用。</p>
+        <span class="tag t-mid">需安裝 Python</span>
+      </div>
+      <div class="tool-card tc3">
+        <div class="tool-icon">🤖</div>
+        <h3>LM Studio</h3>
+        <p>圖形介面的本地 LLM，可以瀏覽、下載、運行模型。適合不想打指令的用戶。</p>
+        <span class="tag t-easy">GUI 操作</span>
+      </div>
+      <div class="tool-card tc4">
+        <div class="tool-icon">💬</div>
+        <h3>Open WebUI</h3>
+        <p>搭配 Ollama 使用的 ChatGPT 風格介面，可以在瀏覽器像用 ChatGPT 一樣使用本地模型。</p>
+        <span class="tag t-mid">需 Docker 或 npm</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🦙 Ollama 快速上手（10 分鐘）</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>安裝 Ollama</h4>
+          <p>到 ollama.com 下載並安裝（Windows / Mac / Linux 都有）。安裝後背景自動啟動服務。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>下載並執行模型</h4>
+          <div class="code-block">
+<span class="code-comment"># 下載並直接啟動對話（自動量化）</span>
+<span class="code-cmd">ollama run llama3</span>
+
+<span class="code-comment"># 下載其他模型（更小、更快）</span>
+<span class="code-cmd">ollama run phi3</span>
+<span class="code-cmd">ollama run gemma2</span>
+<span class="code-cmd">ollama run qwen2.5</span>
+
+<span class="code-comment"># 查看已下載的模型</span>
+<span class="code-cmd">ollama list</span>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>開始對話</h4>
+          <p>執行 <code>ollama run llama3</code> 後，終端機出現 <code>&gt;&gt;&gt;</code> 提示符，直接輸入問題按 Enter 就能對話。輸入 <code>/bye</code> 結束。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>（選用）用 API 呼叫</h4>
+          <div class="code-block">
+<span class="code-comment"># Ollama 預設在 port 11434 提供 API</span>
+curl http://localhost:11434/api/generate \
+  -d <span class="code-str">'{"model":"llama3","prompt":"台灣最高的山是什麼"}'</span>
+
+<span class="code-comment"># Python 使用</span>
+<span class="code-kw">import</span> ollama
+response = ollama.chat(model=<span class="code-str">'llama3'</span>, messages=[
+  {<span class="code-str">'role'</span>: <span class="code-str">'user'</span>, <span class="code-str">'content'</span>: <span class="code-str">'台灣最高的山是什麼'</span>}
+])
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="warn-box">
+      <p>💡 <strong>模型下載很大：</strong>LLaMA 3 8B 約 4.7 GB，70B 約 40 GB。確保有足夠硬碟空間和穩定網路。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚖️ 量化等級選哪個</h2>
+    <p>Ollama 模型名稱後面可以加標籤選量化等級：</p>
+    <div class="quant-box">
+      <h3>llama3:8b 的各量化版本（模型大小 vs 品質）</h3>
+      <div class="quant-row">
+        <span class="q-type">fp16</span>
+        <div class="q-bar"><div class="q-bar-bg"><div class="q-bar-fill" style="width:100%;background:#dc2626;"></div></div></div>
+        <span class="q-size">~16 GB</span>
+        <span style="font-size:.78rem;color:#15803d;">最佳品質</span>
+      </div>
+      <div class="quant-row">
+        <span class="q-type">q8_0</span>
+        <div class="q-bar"><div class="q-bar-bg"><div class="q-bar-fill" style="width:50%;background:#f59e0b;"></div></div></div>
+        <span class="q-size">~8 GB</span>
+        <span style="font-size:.78rem;color:#15803d;">幾乎無損</span>
+      </div>
+      <div class="quant-row">
+        <span class="q-type">q6_K</span>
+        <div class="q-bar"><div class="q-bar-bg"><div class="q-bar-fill" style="width:38%;background:#f59e0b;"></div></div></div>
+        <span class="q-size">~6 GB</span>
+        <span style="font-size:.78rem;color:#555;">輕微損失</span>
+      </div>
+      <div class="quant-row">
+        <span class="q-type">q4_K_M</span>
+        <div class="q-bar"><div class="q-bar-bg"><div class="q-bar-fill" style="width:30%;background:#76b900;"></div></div></div>
+        <span class="q-size">~4.7 GB</span>
+        <span style="font-size:.78rem;color:#15803d;font-weight:700;">建議預設</span>
+      </div>
+      <div class="quant-row">
+        <span class="q-type">q2_K</span>
+        <div class="q-bar"><div class="q-bar-bg"><div class="q-bar-fill" style="width:18%;background:#94a3b8;"></div></div></div>
+        <span class="q-size">~2.9 GB</span>
+        <span style="font-size:.78rem;color:#dc2626;">品質明顯下降</span>
+      </div>
+    </div>
+    <div class="code-block">
+<span class="code-comment"># 指定量化版本</span>
+<span class="code-cmd">ollama run llama3:8b-q4_K_M</span>   <span class="code-comment"># 建議：4.7GB，品質/大小最平衡</span>
+<span class="code-cmd">ollama run llama3:8b-q8_0</span>    <span class="code-comment"># 高品質：8GB，幾乎無損</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎨 Stable Diffusion 生圖（簡介）</h2>
+    <p>比 Ollama 複雜一點，但有完整的圖形介面。推薦兩種方案：</p>
+    <div class="tool-grid">
+      <div class="tool-card tc1">
+        <div class="tool-icon">🖼️</div>
+        <h3>ComfyUI（推薦）</h3>
+        <p>節點式工作流，最靈活。社群活躍，有大量工作流可以直接下載使用。</p>
+        <div class="code-block" style="font-size:.78rem;margin-top:8px;">
+git clone https://github.com/comfyanonymous/ComfyUI<br>
+cd ComfyUI<br>
+pip install -r requirements.txt<br>
+python main.py
+        </div>
+      </div>
+      <div class="tool-card tc2">
+        <div class="tool-icon">🎛️</div>
+        <h3>AUTOMATIC1111 WebUI</h3>
+        <p>傳統 SD WebUI，功能最齊全，上手稍難但文件超多。</p>
+        <div class="code-block" style="font-size:.78rem;margin-top:8px;">
+git clone https://github.com/<br>
+AUTOMATIC1111/stable-diffusion-webui<br>
+cd stable-diffusion-webui<br>
+./webui.sh  <span class="code-comment"># Mac/Linux</span>
+        </div>
+      </div>
+    </div>
+    <div class="warn-box">
+      <p>⚠️ <strong>Stable Diffusion 環境設定較複雜</strong>，需要 Python 3.10、git、安裝 CUDA toolkit。遇到問題先 Google 錯誤訊息，通常都有解。</p>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <h2>✅ 本章重點整理</h2>
+    <ul>
+      <li>跑 7B LLM：最低 4GB VRAM（INT4 量化），建議 8GB</li>
+      <li>Ollama = 最快上手，一行指令就能跑本地 LLM</li>
+      <li>量化 q4_K_M 是品質/大小最佳平衡點</li>
+      <li>Apple M 系列晶片用統一記憶體，跑 Ollama 效果也不錯</li>
+      <li>圖像生成：ComfyUI 最靈活，AUTOMATIC1111 功能最多</li>
+      <li>CPU 可以跑但極慢，有 GPU 就用 GPU</li>
+    </ul>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-outline" href="02-gpu-comparison.html">← 上一篇：GPU 型號比較</a>
+    <a class="btn btn-fill" href="../04-enterprise/01-cloud-gpu-cost.html">下一篇：雲端 GPU 費用 →</a>
+  </div>
+</div>
+</body>
+</html>

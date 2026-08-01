@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU 完全自學指南</title>
+<style>
+  :root{--green:#76b900;--dark:#0f0c29;--bg:#f0f4f0;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#0f0c29,#302b63);color:#fff;padding:52px 24px 44px;text-align:center;}
+  .hero h1{font-size:2.2rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--green);}
+  .hero p{opacity:.85;max-width:600px;margin:0 auto;line-height:1.8;font-size:1rem;}
+  .pills{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+  .pill{background:rgba(255,255,255,.12);padding:8px 18px;border-radius:24px;font-size:.85rem;}
+  .pill b{color:var(--green);}
+  .container{max-width:960px;margin:-28px auto 0;padding:0 16px 60px;}
+  .section-title{font-size:1rem;font-weight:700;color:#555;letter-spacing:.05em;text-transform:uppercase;margin:32px 0 14px;display:flex;align-items:center;gap:8px;}
+  .section-title::after{content:'';flex:1;height:1px;background:#ddd;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+  .module{background:#fff;border-radius:16px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.08);text-decoration:none;color:#222;transition:.2s;display:block;border-left:5px solid #eee;}
+  .module:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,.14);}
+  .module.lv1{border-color:#4ade80;}
+  .module.lv2{border-color:#60a5fa;}
+  .module.lv3{border-color:#f59e0b;}
+  .module.lv4{border-color:#f43f5e;}
+  .module .badge{display:inline-block;padding:3px 12px;border-radius:12px;font-size:.75rem;font-weight:700;margin-bottom:12px;}
+  .lv1 .badge{background:#dcfce7;color:#16a34a;}
+  .lv2 .badge{background:#dbeafe;color:#1d4ed8;}
+  .lv3 .badge{background:#fef3c7;color:#b45309;}
+  .lv4 .badge{background:#ffe4e6;color:#be123c;}
+  .module .icon{font-size:2.2rem;margin-bottom:12px;}
+  .module h2{font-size:1.15rem;margin-bottom:8px;}
+  .module p{font-size:.85rem;color:#666;line-height:1.7;}
+  .module ul{margin-top:10px;padding-left:0;list-style:none;}
+  .module ul li{font-size:.82rem;color:#777;padding:3px 0;padding-left:16px;position:relative;}
+  .module ul li::before{content:'→';position:absolute;left:0;color:var(--green);}
+  .path{background:#fff;border-radius:14px;padding:24px;box-shadow:0 3px 12px rgba(0,0,0,.08);margin-top:16px;}
+  .path h2{font-size:1.05rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .steps{display:flex;align-items:center;flex-wrap:wrap;gap:0;}
+  .step{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:80px;}
+  .step .dot{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.9rem;}
+  .step .label{font-size:.72rem;color:#666;text-align:center;}
+  .arrow{font-size:1.4rem;color:#ccc;margin:0 4px;padding-bottom:20px;}
+  .s1 .dot{background:#4ade80;} .s2 .dot{background:#60a5fa;} .s3 .dot{background:#f59e0b;} .s4 .dot{background:#f43f5e;}
+  .tip-box{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:12px;padding:18px 20px;margin-top:16px;}
+  .tip-box p{font-size:.88rem;line-height:1.8;color:#166534;}
+  footer{text-align:center;padding:20px;color:#999;font-size:.8rem;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>🖥️ <span>GPU</span> 完全自學指南</h1>
+  <p>從零開始理解 GPU：概念、原理、AI 應用到企業架構決策，<br>高中程度白話解說，含實戰建議。</p>
+  <div class="pills">
+    <span class="pill">📚 <b>4</b> 大模組</span>
+    <span class="pill">📄 <b>12</b> 篇文章</span>
+    <span class="pill">⏱ 總閱讀約 <b>3-4</b> 小時</span>
+    <span class="pill">🎯 適合：創業者 / 工程師轉型</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="section-title">學習路徑</div>
+  <div class="path">
+    <h2>🗺️ 建議閱讀順序</h2>
+    <div class="steps">
+      <div class="step s1"><div class="dot">1</div><div class="label">初級<br>概念</div></div>
+      <div class="arrow">→</div>
+      <div class="step s2"><div class="dot">2</div><div class="label">運作<br>原理</div></div>
+      <div class="arrow">→</div>
+      <div class="step s3"><div class="dot">3</div><div class="label">AI 與<br>GPU</div></div>
+      <div class="arrow">→</div>
+      <div class="step s4"><div class="dot">4</div><div class="label">企業<br>應用</div></div>
+    </div>
+    <div class="tip-box" style="margin-top:16px;">
+      <p>💡 <strong>建議：</strong>第 1、2 模組先搞懂概念（約 1 小時），第 3 模組可以直接動手跑 AI，第 4 模組是做採購/架構決策時的參考。</p>
+    </div>
+  </div>
+
+  <div class="section-title">模組一：初級 — GPU 是什麼</div>
+  <div class="grid">
+    <a class="module lv1" href="01-basics/01-what-is-gpu.html">
+      <div class="icon">🎮</div>
+      <span class="badge">初級 · 文章 1</span>
+      <h2>GPU 是什麼？從遊戲說起</h2>
+      <p>從遊戲畫面解釋 GPU 的誕生原因，以及它為什麼從「顯示卡」變成 AI 時代最重要的晶片。</p>
+      <ul><li>像素就是 GPU 的工作單位</li><li>為什麼遊戲帶動了 AI</li><li>NVIDIA、AMD、Intel 是誰</li></ul>
+    </a>
+    <a class="module lv1" href="01-basics/02-gpu-vs-cpu.html">
+      <div class="icon">⚖️</div>
+      <span class="badge">初級 · 文章 2</span>
+      <h2>GPU vs CPU：一個天才 vs 一萬個工人</h2>
+      <p>用最直白的比喻解釋兩者差異。你的電腦裡同時有 CPU 和 GPU，它們分工合作。</p>
+      <ul><li>CPU 擅長什麼</li><li>GPU 擅長什麼</li><li>為什麼不能用 GPU 取代 CPU</li></ul>
+    </a>
+    <a class="module lv1" href="01-basics/03-gpu-anatomy.html">
+      <div class="icon">🔬</div>
+      <span class="badge">初級 · 文章 3</span>
+      <h2>GPU 的內部構造</h2>
+      <p>拆開 GPU 看裡面有什麼：運算核心、記憶體、匯流排，認識這些名詞再也不怕規格表。</p>
+      <ul><li>CUDA Core / Tensor Core</li><li>VRAM 視訊記憶體</li><li>記憶體頻寬</li></ul>
+    </a>
+  </div>
+
+  <div class="section-title">模組二：中級 — GPU 怎麼運作</div>
+  <div class="grid">
+    <a class="module lv2" href="02-how-it-works/01-parallel-computing.html">
+      <div class="icon">🔀</div>
+      <span class="badge">中級 · 文章 4</span>
+      <h2>平行運算：同時做一萬件事</h2>
+      <p>GPU 最核心的能力就是「平行」。理解它之後，你就懂為什麼 GPU 跑 AI 比 CPU 快 100 倍。</p>
+      <ul><li>序列 vs 平行的比喻</li><li>Thread、Block、Grid</li><li>什麼任務適合平行</li></ul>
+    </a>
+    <a class="module lv2" href="02-how-it-works/02-vram.html">
+      <div class="icon">💾</div>
+      <span class="badge">中級 · 文章 5</span>
+      <h2>VRAM：GPU 的工作桌大小</h2>
+      <p>VRAM 決定你能跑多大的 AI 模型。7B LLM 需要多少 VRAM？VRAM 不夠怎麼辦？</p>
+      <ul><li>GDDR6 vs HBM3 差在哪</li><li>模型大小 vs VRAM 速算表</li><li>VRAM 不足的解法</li></ul>
+    </a>
+    <a class="module lv2" href="02-how-it-works/03-cuda-drivers.html">
+      <div class="icon">⚙️</div>
+      <span class="badge">中級 · 文章 6</span>
+      <h2>CUDA、驅動程式與軟體生態</h2>
+      <p>為什麼 AI 圈都用 NVIDIA？因為 CUDA。了解這個生態鏈，才知道為什麼 AMD GPU 便宜很多卻沒人用。</p>
+      <ul><li>CUDA 是什麼</li><li>CUDA → PyTorch → 你的程式</li><li>AMD ROCm vs CUDA</li></ul>
+    </a>
+  </div>
+
+  <div class="section-title">模組三：進階 — GPU 與 AI</div>
+  <div class="grid">
+    <a class="module lv3" href="03-ai-and-gpu/01-why-ai-needs-gpu.html">
+      <div class="icon">🧠</div>
+      <span class="badge">進階 · 文章 7</span>
+      <h2>為什麼 AI 訓練非 GPU 不可</h2>
+      <p>Neural Network 的本質是大量矩陣乘法。GPU 就是為了矩陣而生。兩者的相遇改變了世界。</p>
+      <ul><li>矩陣乘法的直覺解說</li><li>反向傳播需要什麼</li><li>1 塊 GPU vs 1000 塊 CPU</li></ul>
+    </a>
+    <a class="module lv3" href="03-ai-and-gpu/02-gpu-comparison.html">
+      <div class="icon">📊</div>
+      <span class="badge">進階 · 文章 8</span>
+      <h2>GPU 型號大比較：買哪張最划算</h2>
+      <p>RTX 4090、H100、A100、MI300X⋯規格看到眼花？這篇幫你釐清每個等級的定位和使用情境。</p>
+      <ul><li>消費型 vs 資料中心級</li><li>VRAM / 算力 / 價格對比表</li><li>不同預算的建議</li></ul>
+    </a>
+    <a class="module lv3" href="03-ai-and-gpu/03-run-ai-locally.html">
+      <div class="icon">🚀</div>
+      <span class="badge">進階 · 文章 9</span>
+      <h2>在自己電腦跑 AI 模型</h2>
+      <p>實戰教學：用 Ollama 跑本地 LLM、用 Stable Diffusion 生圖。最低門檻是什麼？</p>
+      <ul><li>硬體最低需求</li><li>Ollama 安裝與使用</li><li>量化技術：讓大模型塞進小 VRAM</li></ul>
+    </a>
+  </div>
+
+  <div class="section-title">模組四：企業應用</div>
+  <div class="grid">
+    <a class="module lv4" href="04-enterprise/01-cloud-gpu-cost.html">
+      <div class="icon">💰</div>
+      <span class="badge">企業 · 文章 10</span>
+      <h2>雲端 GPU 費用完整解析</h2>
+      <p>AWS、GCP、Azure、Vast.ai 怎麼收費？什麼時候租比買划算？避免帳單爆炸的實用技巧。</p>
+      <ul><li>各平台 GPU 時薪比較</li><li>按需 vs 預留 vs Spot</li><li>每月費用快速試算</li></ul>
+    </a>
+    <a class="module lv4" href="04-enterprise/02-gpu-cluster.html">
+      <div class="icon">🏗️</div>
+      <span class="badge">企業 · 文章 11</span>
+      <h2>GPU 叢集與分散式訓練架構</h2>
+      <p>一張 GPU 不夠怎麼辦？多張 GPU、多台機器如何協同訓練超大模型。</p>
+      <ul><li>Data Parallel vs Model Parallel</li><li>NVLink / InfiniBand 是什麼</li><li>幾張 GPU 需要幾台機器</li></ul>
+    </a>
+    <a class="module lv4" href="04-enterprise/03-decision-guide.html">
+      <div class="icon">📋</div>
+      <span class="badge">企業 · 文章 12</span>
+      <h2>給老闆的 GPU 採購決策指南</h2>
+      <p>買 GPU 還是租雲端？要幾張？工程師說要 H100 是在騙你嗎？這篇給你問問題的框架。</p>
+      <ul><li>自建 vs 雲端的決策樹</li><li>TCO 計算方式</li><li>跟工程師開會前必讀</li></ul>
+    </a>
+  </div>
+</div>
+<footer>GPU 完全自學指南 · Tom Projects Learning Hub</footer>
+</body>
+</html>
