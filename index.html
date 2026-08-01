@@ -345,7 +345,9 @@ a{color:inherit}
     main.innerHTML = html;
   }
 
-  fetch('projects.json')
+  // 加上時間戳避開快取。GitHub Pages 的 Cache-Control 是 10 分鐘，
+  // 少了這個，剛更新的專案網址要等快取過期訪客才看得到。
+  fetch('projects.json?v=' + Date.now())
     .then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
