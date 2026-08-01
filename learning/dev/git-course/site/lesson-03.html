@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 03 課 Git 三大區域：搞懂這個，一切都通了｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li class="active"><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元一 · 基礎觀念</div><h1>第 3 課 · Git 三大區域：搞懂這個，一切都通了</h1><p class="lesson-sub">工作區、暫存區、儲存庫——Git 所有指令都在這三者之間搬東西。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p><strong>這是整套教材最重要的一課。</strong> 90% 的 Git 新手困惑，都來自不理解這三個區域。理解了，後面所有指令都會突然變得合理。</p>
+<p>Git 把你的檔案分成三個「地方」：</p>
+<div class="tablewrap"><table><thead><tr><th>區域</th><th>英文</th><th>白話</th><th>檔案在這裡代表</th></tr></thead><tbody><tr><td><strong>工作區</strong></td><td>Working Directory</td><td>你正在編輯的資料夾</td><td>你剛剛手動改的、還沒告訴 Git 的改動</td></tr><tr><td><strong>暫存區</strong></td><td>Staging Area / Index</td><td>「待拍照清單」</td><td>你已經挑好、下次 commit 要拍進去的改動</td></tr><tr><td><strong>儲存庫</strong></td><td>Repository</td><td>「相簿」</td><td>已經拍成快照、永久記錄的歷史</td></tr></tbody></table></div>
+<p>想像你在整理要寄的包裹：</p>
+<ul>
+<li><strong>工作區</strong> = 你的房間，東西散落各處（你隨手改的檔案）。</li>
+<li><strong>暫存區</strong> = 你挑出「這次要寄的東西」放進紙箱（<code>git add</code>）。</li>
+<li><strong>儲存庫</strong> = 把紙箱封箱貼上標籤寄出，正式成為一筆記錄（<code>git commit</code>）。</li>
+</ul>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>   工作區                暫存區               儲存庫
+（你在改的檔案）  ──add──▶ （待拍照清單） ──commit──▶ （永久快照歷史）
+     房間                  紙箱                  寄出的包裹</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 為什麼要多一個「暫存區」？</div><div class="callout-body"><p>新手常問：「為什麼不能改完直接存檔就好，要多一步 add？」</p>
+<p>因為<strong>暫存區讓你能挑選要 commit 的內容</strong>。假設你同時改了 A 檔案（修 bug）和 B 檔案（試驗性的東西還沒好）。你可以只 <code>git add A</code>，把「修 bug」單獨 commit，B 留著慢慢弄。這讓每一個 commit 都乾淨、單一主題——這是專業工程師和新手的一大差別。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 的紙箱</div><div class="callout-body"><p>Tom 今天改了兩個東西：修好了 <code>login.py</code> 的一個 bug，還順手在 <code>style.css</code> 試了個新顏色（但還沒確定要不要）。</p>
+<p>他本來想全部一起 commit，Alice 提醒他：「一個 commit 只講一件事。你的 bug 修好了就先單獨寄出去，CSS 還在實驗就先別包進來。」</p>
+<p>於是 Tom：<code>git add login.py</code>（只把修好的檔案放進紙箱）→ <code>git commit -m "fix: 修正登入按鈕失效"</code>。而 <code>style.css</code> 的改動還留在工作區，等他確定後再處理。這樣歷史紀錄清清楚楚，Alice review 時一眼就懂 Tom 這次到底做了什麼。</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p><strong>用 <code>git status</code> 隨時看檔案在哪個區域</strong>，這是你最常打的指令：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git status</code></pre></div>
+<p>它會用顏色和文字告訴你：</p>
+<ul>
+<li><strong>Untracked files</strong>（紅色）：Git 完全不認識的新檔案，還在工作區。</li>
+<li><strong>Changes not staged for commit</strong>（紅色）：改過但還沒 add 的檔案（工作區）。</li>
+<li><strong>Changes to be committed</strong>（綠色）：已經 add、在暫存區、等著被 commit。</li>
+</ul>
+<p><strong>在三大區域之間搬東西的指令：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 工作區 ──▶ 暫存區（把改動放進紙箱）
+git add 檔名          # 加單一檔案
+git add .             # 加全部改動
+
+# 暫存區 ──▶ 儲存庫（封箱寄出）
+git commit -m "說明訊息"
+
+# 暫存區 ──▶ 工作區（把東西從紙箱拿回房間，取消 add）
+git restore --staged 檔名
+
+# 丟棄工作區的改動（把房間裡的改動還原成上次快照的樣子，小心！）
+git restore 檔名</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — `git restore 檔名` 會真的刪掉你的改動</div><div class="callout-body"><p>這個指令會把檔案還原成「上一次 commit 的樣子」，你還沒 commit 的改動會消失且無法用 Git 救回。用之前先想清楚。</p></div></div>
+<p><strong>看快照歷史：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git log              # 完整歷史
+git log --oneline    # 每個 commit 一行，簡潔好讀（常用）</code></pre></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<p>VS Code 的原始碼控制面板，就是「三大區域」的視覺化版本：</p>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 對照三大區域</div><div class="callout-body"><ol>
+<li>按 <code>Ctrl+Shift+G</code> 打開原始碼控制面板。</li>
+<li><strong>Changes</strong> 區塊 = 工作區（你改了但還沒 add 的檔案）。</li>
+<li>在某個檔案上按 <strong><code>+</code>（Stage Changes）</strong> = <code>git add</code>，檔案會移到上面的 <strong>Staged Changes</strong> 區塊（= 暫存區）。</li>
+<li>上方輸入框打訊息，按 <strong>✓（Commit）</strong> = <code>git commit</code>。</li>
+<li>按 <strong><code>−</code>（Unstage）</strong> 就是把檔案從暫存區拿回工作區（= <code>git restore --staged</code>）。</li>
+</ol></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 圖形介面的最大好處：看得到 diff</div><div class="callout-body"><p>在面板裡點一下任何檔案，右邊會並排顯示「改之前 vs 改之後」，綠色是新增、紅色是刪除。這比在終端機看 <code>git diff</code> 直覺非常多，強烈建議 commit 前都用這個檢查一遍自己到底改了什麼。</p></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>commit 前一定先看 diff</strong>：養成「先檢查自己改了什麼，再 commit」的習慣，避免把測試用的 <code>print</code>、密碼、暫時的爛 code 一起送出去。</li>
+<li><strong>一個 commit 只做一件事</strong>：善用暫存區挑選內容。這叫「原子性 commit（atomic commit）」，是團隊協作和事後救援的基礎。</li>
+<li><strong>常 commit、小步走</strong>：與其一天結束才 commit 一大包，不如每完成一個小功能就 commit。快照越細，出事時越好回溯。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 專業技巧：只 add 部分改動</div><div class="callout-body"><p>如果同一個檔案裡，你想只 commit 其中一段改動，可以用：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git add -p 檔名</code></pre></div>
+<p>Git 會一段一段問你「這段要不要加入暫存？」（y/n）。這在把「一團混在一起的改動」拆成乾淨 commit 時非常好用。VS Code 裡則是選取想要的行 → 右鍵 → Stage Selected Ranges。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 不小心 add 了不該加的檔案</div><div class="callout-body"><p>還沒 commit 之前，把它從暫存區拿回來就好，改動不會消失：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git restore --staged 不小心加的檔案</code></pre></div></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 剛剛 commit 完，發現訊息打錯字</div><div class="callout-body"><p>只要還沒 push，可以直接改最後一個 commit 的訊息：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git commit --amend -m "正確的訊息"</code></pre></div></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 剛剛 commit 完，發現漏了一個檔案沒加</div><div class="callout-body"><p>把漏掉的檔案 add 進來，再用 <code>--amend</code> 併進上一個 commit：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git add 漏掉的檔案
+git commit --amend --no-edit</code></pre></div>
+<p><code>--no-edit</code> 代表沿用原本的 commit 訊息不改。</p></div></div>
+<div class="callout danger"><div class="callout-head">🚨 危險操作 — 用 `git restore 檔名` 前務必確認</div><div class="callout-body"><p>再強調一次：這會丟棄工作區還沒 commit 的改動，且 Git 救不回來（因為它從沒被記錄過）。不確定時，先 <code>git status</code> 看清楚，或先 commit 起來再說。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>Git 有三個區域：工作區（你在改的）、暫存區（待拍照清單）、儲存庫（永久快照）。<code>add</code> 是工作區→暫存區，<code>commit</code> 是暫存區→儲存庫。<code>git status</code> 隨時告訴你檔案在哪。理解這張圖，後面所有課都會順很多。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>Git 的三大區域是哪三個？各自的白話比喻是什麼？</summary><div class="qa-body"><p><strong>工作區</strong>（你在改的檔案／房間）、<strong>暫存區</strong>（待拍照清單／紙箱）、<strong>儲存庫</strong>（永久快照歷史／寄出的包裹）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>`git add` 和 `git commit` 分別在哪兩個區域之間搬東西？</summary><div class="qa-body"><p><code>git add</code>：工作區 → 暫存區（把改動放進紙箱）。<code>git commit</code>：暫存區 → 儲存庫（封箱寄出，成為永久快照）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>為什麼要多一個「暫存區」，不能改完直接 commit 嗎？</summary><div class="qa-body"><p>因為暫存區讓你能<strong>挑選</strong>要 commit 的內容。例如同時改了兩個檔案，你可以只把其中一個 commit，讓每個 commit 主題單一乾淨。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q4</span>哪個指令能隨時告訴你檔案在哪個區域？</summary><div class="qa-body"><p><code>git status</code>。紅色通常是工作區的改動、綠色是已加入暫存區待 commit 的。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>建一個測試資料夾、<code>git init</code>，新增一個檔案，用 <code>git status</code> 觀察它是紅色 Untracked。</li>
+<li><code>git add</code> 它，再 <code>git status</code>，觀察它變綠色（進入暫存區）。</li>
+<li><code>git commit -m "第一個 commit"</code>，然後 <code>git log --oneline</code> 看你的第一張快照。</li>
+<li>試著 <code>git restore --staged 檔名</code> 把檔案退回工作區，感受兩個區域的移動。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-02.html"><small>← 上一課</small><span>安裝 Git 與 VS Code、做好初次設定</span></a><a class="pg pg-next" href="lesson-04.html"><small>下一課 →</small><span>建立專案與你的第一個 commit</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

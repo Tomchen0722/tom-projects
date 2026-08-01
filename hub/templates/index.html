@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ hub.title }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
+</head>
+<body>
+
+<!-- 圖示集：統一線寬 1.6，不使用表情符號當作介面圖示 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="6 4 20 12 6 20 6 4"></polygon>
+  </symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="6" width="12" height="12" rx="1"></rect>
+  </symbol>
+  <symbol id="i-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+    <polyline points="15 3 21 3 21 9"></polyline>
+    <line x1="10" y1="14" x2="21" y2="3"></line>
+  </symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+    <line x1="8" y1="13" x2="16" y2="13"></line>
+    <line x1="8" y1="17" x2="13" y2="17"></line>
+  </symbol>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="7 10 12 15 17 10"></polyline>
+    <line x1="12" y1="15" x2="12" y2="3"></line>
+  </symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+    <line x1="12" y1="9" x2="12" y2="13"></line>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </symbol>
+  <symbol id="i-desktop" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+    <line x1="8" y1="21" x2="16" y2="21"></line>
+    <line x1="12" y1="17" x2="12" y2="21"></line>
+  </symbol>
+</svg>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="/">
+      <span class="logo-mark">陳</span>
+      <span class="nav-brand-text">
+        <strong>Tom Chen</strong>
+        <span>PROJECT HUB</span>
+      </span>
+    </a>
+    <nav class="nav-links" aria-label="分類導覽">
+      {% for cat in tree %}
+      <a class="nav-link" href="#cat-{{ cat.id }}">{{ cat.label }}</a>
+      {% endfor %}
+    </nav>
+    <button class="nav-stopall" id="stopAll" type="button" disabled>
+      <svg width="12" height="12" aria-hidden="true"><use href="#i-stop"></use></svg>
+      全部停止
+    </button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="watermark" aria-hidden="true">PROJECTS</div>
+  <div class="container hero-inner">
+    <div>
+      <p class="eyebrow hero-eyebrow">LOCAL CONTROL CENTER</p>
+      <h1>
+        <span class="hero-line">作品集與學習專案</span>
+        <span class="hero-line hero-line-2"><em>Project Hub</em><i class="cursor blink" aria-hidden="true"></i></span>
+      </h1>
+      <p class="hero-sub hero-tagline">{{ hub.subtitle }}。每個專案點一下就在本機啟動，網頁類會自動開啟分頁，桌面類直接開視窗。</p>
+
+      <div class="hero-stats hero-statsrow">
+        <div class="stat">
+          <b>{{ total }}</b>
+          <span>Projects</span>
+        </div>
+        {% for cat in tree %}
+        <div class="stat">
+          <b>{{ cat.count }}</b>
+          <span>{{ cat.en }}</span>
+        </div>
+        {% endfor %}
+        <div class="stat is-live">
+          <b id="runningCount">0</b>
+          <span>Running</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右側裝飾區：純視覺，對螢幕閱讀器隱藏 -->
+    <div class="hero-deco" aria-hidden="true">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="deco-frame">
+        <b>{{ total }}</b>
+        <span>Projects</span>
+      </div>
+      <div class="chip-float chip-1 float-a">Streamlit</div>
+      <div class="chip-float chip-2 float-b">Flask</div>
+      <div class="chip-float chip-3 float-c">PySide6</div>
+      <div class="chip-float chip-4 float-a">PyTorch</div>
+      <div class="chip-float chip-5 float-b">Pandas</div>
+      <div class="chip-float chip-6 float-c">Tkinter</div>
+    </div>
+  </div>
+</section>
+
+<div class="filters">
+  <div class="container filters-inner" role="group" aria-label="篩選專案分類">
+    <button class="chip" type="button" data-filter="all" aria-pressed="true">
+      全部 <span class="n">{{ total }}</span>
+    </button>
+    {% for cat in tree %}
+    <button class="chip" type="button" data-filter="cat:{{ cat.id }}" aria-pressed="false">
+      {{ cat.label }} <span class="n">{{ cat.count }}</span>
+    </button>
+    {% endfor %}
+    <button class="chip" type="button" data-filter="running" aria-pressed="false">
+      執行中 <span class="n" id="chipRunning">0</span>
+    </button>
+  </div>
+</div>
+
+<main>
+{% for cat in tree %}
+  <section class="section" id="cat-{{ cat.id }}" data-cat="{{ cat.id }}">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">{{ cat.en }}</p>
+        <h2>{{ cat.label }}</h2>
+        <p>{{ cat.desc }}</p>
+      </div>
+
+      {% for sub in cat.sub %}
+      <div class="subsection" data-sub="{{ sub.id }}">
+        <div class="subsection-head">
+          <h3>{{ sub.label }}</h3>
+          <span class="en">{{ sub.en }}</span>
+          <span class="n">{{ sub.apps|length }}</span>
+        </div>
+
+        <div class="grid">
+          {% for app in sub.apps %}
+          {# 階梯延遲上限設在第 6 階，卡片再多也不會讓最後一張等太久 #}
+          <article class="card fade-in fade-in-{{ [loop.index, 6]|min }}"
+                   data-id="{{ app.id }}" data-cat="{{ cat.id }}" data-kind="{{ app.kind }}">
+            <div class="card-top">
+              <div class="card-title">
+                <h4>{{ app.name }}</h4>
+                <span class="en">{{ app.en }}</span>
+              </div>
+              <span class="status" data-state="stopped" role="status">
+                <span class="dot" aria-hidden="true"></span>
+                <span class="status-text">未啟動</span>
+              </span>
+            </div>
+
+            <p class="card-desc">{{ app.desc }}</p>
+
+            <div class="tags">
+              {% for t in app.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+              {% if app.heavy %}<span class="tag warn">大型依賴</span>{% endif %}
+            </div>
+
+            <div class="card-meta">
+              <svg width="12" height="12" aria-hidden="true">
+                <use href="{% if app.kind == 'desktop' %}#i-desktop{% else %}#i-open{% endif %}"></use>
+              </svg>
+              <span class="kind">
+                {% if app.kind == 'streamlit' %}Streamlit 網頁
+                {% elif app.kind == 'flask' %}Flask 網頁
+                {% elif app.kind == 'static' %}靜態網頁
+                {% elif app.kind == 'static-build' %}靜態網頁（需產生）
+                {% else %}桌面應用{% endif %}
+              </span>
+              {% if app.port %}<span>PORT {{ app.port }}</span>{% endif %}
+            </div>
+
+            <div class="card-actions">
+              <button class="btn btn-primary" type="button" data-act="start">
+                <svg width="13" height="13" aria-hidden="true"><use href="#i-play"></use></svg>
+                <span class="label">啟動</span>
+              </button>
+              <button class="btn btn-danger" type="button" data-act="stop" hidden>
+                <svg width="13" height="13" aria-hidden="true"><use href="#i-stop"></use></svg>
+                停止
+              </button>
+              <a class="btn btn-ghost" href="/doc/{{ app.id }}" title="查看 {{ app.name }} 的說明文件">
+                <svg width="13" height="13" aria-hidden="true"><use href="#i-doc"></use></svg>
+                說明
+              </a>
+            </div>
+
+            <div class="card-hint" hidden></div>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endfor %}
+</main>
+
+<footer class="foot">
+  <div class="container foot-inner">
+    <span>TOM CHEN — PROJECT HUB</span>
+    <span>新增專案請編輯 projects.json</span>
+  </div>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<script src="{{ url_for('static', filename='js/hub.js') }}"></script>
+</body>
+</html>

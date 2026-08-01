@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 08 課 VS Code 圖形介面完整操作（不背指令也能用 Git）｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li class="active"><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元二 · 單人基本操作</div><h1>第 8 課 · VS Code 圖形介面完整操作（不背指令也能用 Git）</h1><p class="lesson-sub">把前面學的所有操作，用滑鼠完整走一遍。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>指令強大，但日常 90% 的 Git 操作，用 VS Code 圖形介面點一點更快、更不容易出錯，而且<strong>看得到自己在做什麼</strong>。很多資深工程師平時都用圖形介面 commit，只有遇到複雜情況才回到終端機。</p>
+<p>這一課把前面幾課的操作——init、add、commit、看 diff、看歷史、切分支、push/pull——用圖形介面<strong>完整整合走一遍</strong>，讓你就算暫時記不住指令，也能獨立作業。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 圖形介面 vs 指令，該學哪個？</div><div class="callout-body"><p>兩個都要，但順序是：<strong>先用圖形介面建立直覺，再用指令理解底層。</strong> 因為圖形介面按鈕的背後就是這些指令，理解指令後你會更懂每個按鈕在做什麼，遇到按鈕做不到的複雜情況也不會卡死。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 的一天，全用滑鼠</div><div class="callout-body"><p>Tom 早上開工：VS Code 拉最新的程式（Pull）→ 開新分支寫功能 → 邊寫邊在 Source Control 面板看自己改了哪些行 → 挑選要的改動 Stage → 打規範的 commit 訊息 → Commit → Push 到 GitHub → 開 Pull Request 請 Alice review。</p>
+<p>整個流程 Tom 一行指令都沒打，全靠 VS Code 的按鈕。他心裡清楚每個按鈕對應哪個指令，所以就算哪天按鈕不夠用，他也能切回終端機。這就是「圖形介面打底、指令墊底」的理想狀態。</p></div></div>
+<h2 id="3-圖形介面-指令對照表">3. 圖形介面 ↔ 指令對照表</h2>
+<p>這張表是本課精華，把你會用到的每個按鈕對應到指令：</p>
+<div class="tablewrap"><table><thead><tr><th>VS Code 操作</th><th>等於指令</th><th>在哪裡</th></tr></thead><tbody><tr><td>Initialize Repository</td><td><code>git init</code></td><td>Source Control 面板</td></tr><tr><td>檔案上的 <code>+</code>（Stage Changes）</td><td><code>git add 檔名</code></td><td>Changes 清單</td></tr><tr><td><code>−</code>（Unstage Changes）</td><td><code>git restore --staged</code></td><td>Staged Changes 清單</td></tr><tr><td>Discard Changes（垃圾桶↩）</td><td><code>git restore 檔名</code></td><td>Changes 清單</td></tr><tr><td>打訊息 + ✓（Commit）</td><td><code>git commit -m</code></td><td>面板上方</td></tr><tr><td>Sync Changes / ↻</td><td><code>git pull</code> + <code>git push</code></td><td>狀態列左下</td></tr><tr><td>⋯ 選單 → Push</td><td><code>git push</code></td><td>面板選單</td></tr><tr><td>⋯ 選單 → Pull</td><td><code>git pull</code></td><td>面板選單</td></tr><tr><td>左下角分支名 → 點它</td><td><code>git switch</code> / <code>git branch</code></td><td>狀態列</td></tr><tr><td>Create Branch</td><td><code>git switch -c 新分支</code></td><td>分支選單</td></tr></tbody></table></div>
+<h2 id="4-VS-Code-圖形介面操作-逐步">4. VS Code 圖形介面操作（逐步）</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 完整流程演練</div><div class="callout-body"><p><strong>A. 每天開工：拉最新程式</strong> 點左下狀態列的<strong>同步圖示（↻）</strong>，或 Source Control 面板 ⋯ → Pull。這會把 GitHub 上隊友的最新改動拉下來。</p>
+<p><strong>B. 開一條新分支再開始寫</strong> 點左下角的<strong>分支名稱</strong>（例如顯示 <code>main</code>）→ 選 <strong>Create new branch</strong> → 命名如 <code>feature/login</code> → Enter。你現在就在新分支上了。</p>
+<p><strong>C. 邊寫邊看自己改了什麼</strong> 每改一個檔案，Source Control 面板的 <strong>Changes</strong> 就會列出它。點它看並排 diff（綠增紅刪），commit 前務必掃一遍。</p>
+<p><strong>D. 挑選並暫存改動</strong> 確認無誤的檔案，按 <strong><code>+</code></strong> 移到 Staged Changes。想只加檔案裡的某幾行？選取那幾行 → 右鍵 → <strong>Stage Selected Ranges</strong>。</p>
+<p><strong>E. 寫訊息並 commit</strong> 上方訊息框輸入 <code>feat: 加入登入頁</code>，按 <strong>✓ Commit</strong>。</p>
+<p><strong>F. 推上 GitHub</strong> 按 <strong>Sync Changes</strong>（或 ⋯ → Push）。第一次推新分支時，VS Code 會問要不要 publish（發佈）分支到 GitHub，按確定即可。</p>
+<p><strong>G. 開 Pull Request</strong> 安裝官方擴充套件 <strong>GitHub Pull Requests</strong>，push 後 VS Code 會跳出 <strong>Create Pull Request</strong> 按鈕，填標題與說明就能直接在編輯器裡開 PR（第 14 課詳談）。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 三個必裝擴充套件</div><div class="callout-body"><ol>
+<li><strong>GitLens</strong> — 逐行歷史、blame、強大的歷史檢視。</li>
+<li><strong>GitHub Pull Requests</strong> — 在 VS Code 裡開 PR、做 Code Review。</li>
+<li><strong>Git Graph</strong> — 用漂亮的圖形顯示所有分支與 commit 的關係，看多分支專案神器。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>commit 前一定用 diff 面板檢查</strong>：圖形介面讓這件事變得零成本，沒理由不做。</li>
+<li><strong>善用 Git Graph 看分支全貌</strong>：多人協作時，一張圖勝過想像。</li>
+<li><strong>圖形介面處理不了的，回終端機</strong>：像互動式 rebase、cherry-pick、reflog 救援這類，指令仍是最可靠的。<strong>別排斥終端機，它是你的安全網。</strong></li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 團隊建議：統一工具但尊重習慣</div><div class="callout-body"><p>公司通常不強制用哪個 Git 客戶端（VS Code、SourceTree、GitHub Desktop、純指令都行），但會要求<strong>結果一致</strong>：規範的 commit、正確的分支、乾淨的歷史。工具是手段，紀律才是重點。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 按錯 Discard，改動不見了</div><div class="callout-body"><p>Discard Changes = <code>git restore</code>，會丟棄還沒 commit 的改動。若那些改動從沒 commit 過，就救不回來。<strong>預防勝於治療：養成小步 commit 的習慣。</strong> VS Code 較新版本刪除前會有確認提示，別無腦按確定。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — Sync 之後出現一堆衝突紅字</div><div class="callout-body"><p>代表你和隊友改到同一個地方，需要解衝突。別怕，VS Code 有內建的衝突解決介面（Accept Current / Incoming / Both），第 10 課會完整教。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 找不到某個按鈕？</div><div class="callout-body"><p>VS Code 的 Git 按鈕會依情境出現（例如沒改東西時就沒有 Stage 按鈕）。找不到功能時，點 Source Control 面板右上的 <strong>⋯（更多動作）</strong>，幾乎所有 Git 指令都在那個選單裡。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>VS Code 圖形介面能完成日常 90% 的 Git 操作：pull → 開分支 → 看 diff → stage → commit → push → 開 PR。每個按鈕背後都是一個指令（記住對照表）。三個必裝：GitLens、GitHub Pull Requests、Git Graph。複雜情況再回終端機。單元二完成，你已能獨立單人開發，下一單元進入多人協作的核心：分支。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>VS Code 裡按 `+`（Stage Changes）等於哪個指令？打訊息按 ✓ 呢？</summary><div class="qa-body"><p><code>+</code> = <code>git add</code>；打訊息按 ✓ Commit = <code>git commit</code>。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>圖形介面處理不了的複雜操作（如互動式 rebase、reflog 救援）該怎麼辦？</summary><div class="qa-body"><p>回終端機用指令。圖形介面打底、指令墊底——別排斥終端機，它是你的安全網。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>哪三個 VS Code 擴充套件對 Git 工作最有幫助？</summary><div class="qa-body"><p>GitLens（逐行歷史／blame）、GitHub Pull Requests（在編輯器開 PR 與 review）、Git Graph（圖形化看分支）。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>純用 VS Code 圖形介面完成一次：改檔 → 看 diff → Stage → Commit，全程不打指令。</li>
+<li>安裝 GitLens，把游標停在某行程式碼上，看它顯示「這行是誰、何時改的」。</li>
+<li>對照本課的「圖形介面 ↔ 指令」表，把每個按鈕在心裡對應到指令。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-07.html"><small>← 上一課</small><span>查看歷史、比較差異、還原檔案</span></a><a class="pg pg-next" href="lesson-09.html"><small>下一課 →</small><span>分支 Branch：多人協作的核心</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

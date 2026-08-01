@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ app.name }} — 說明</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hub.css') }}">
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="/">
+      <span class="logo-mark">陳</span>
+      <span class="nav-brand-text">
+        <strong>Tom Chen</strong>
+        <span>PROJECT HUB</span>
+      </span>
+    </a>
+    <a class="nav-stopall" href="/" style="text-decoration:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      回總覽
+    </a>
+  </div>
+</header>
+
+<section class="doc">
+  <div class="container">
+    <p class="eyebrow">{{ app.en }}</p>
+    <h1 style="font-family:'Noto Serif TC',serif;font-size:30px;margin:14px 0 10px">{{ app.name }}</h1>
+    <p style="color:var(--ink-mid);max-width:64ch;margin:0 0 18px">{{ app.desc }}</p>
+
+    <div class="tags" style="margin-bottom:28px">
+      {% for t in app.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+    </div>
+
+    <div class="doc-body" id="docBody"></div>
+
+    {% if not readme %}
+    <div class="card-hint">這個專案沒有附說明文件。專案路徑：<code>{{ app.path }}</code></div>
+    {% endif %}
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="container foot-inner">
+    <span>TOM CHEN — PROJECT HUB</span>
+    <span>{{ app.path }}</span>
+  </div>
+</footer>
+
+<script id="rawmd" type="text/plain">{{ readme }}</script>
+<script>
+/* 極簡 Markdown 渲染器：只處理說明文件會用到的語法，不引入外部套件，離線也能看。 */
+(function () {
+  'use strict';
+  const raw = document.getElementById('rawmd').textContent;
+  if (!raw.trim()) return;
+
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  function inline(s) {
+    return esc(s)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" rel="noopener">$1</a>');
+  }
+
+  const lines = raw.replace(/\r\n/g, '\n').split('\n');
+  const out = [];
+  let i = 0;
+  let listType = null;
+
+  function closeList() {
+    if (listType) { out.push('</' + listType + '>'); listType = null; }
+  }
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // 程式碼區塊
+    if (/^```/.test(line)) {
+      closeList();
+      const buf = [];
+      i += 1;
+      while (i < lines.length && !/^```/.test(lines[i])) { buf.push(lines[i]); i += 1; }
+      i += 1;
+      out.push('<pre><code>' + esc(buf.join('\n')) + '</code></pre>');
+      continue;
+    }
+
+    // 表格
+    if (/^\s*\|.*\|\s*$/.test(line) && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] || '')) {
+      closeList();
+      const cells = (r) => r.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+      const head = cells(line);
+      i += 2;
+      const body = [];
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { body.push(cells(lines[i])); i += 1; }
+      out.push('<div class="doc-table-wrap"><table><thead><tr>' +
+        head.map((h) => '<th>' + inline(h) + '</th>').join('') +
+        '</tr></thead><tbody>' +
+        body.map((r) => '<tr>' + r.map((c) => '<td>' + inline(c) + '</td>').join('') + '</tr>').join('') +
+        '</tbody></table></div>');
+      continue;
+    }
+
+    // 標題
+    const h = line.match(/^(#{1,4})\s+(.*)$/);
+    if (h) {
+      closeList();
+      const lv = Math.min(h[1].length, 4);
+      out.push('<h' + lv + '>' + inline(h[2]) + '</h' + lv + '>');
+      i += 1;
+      continue;
+    }
+
+    // 引用
+    if (/^>\s?/.test(line)) {
+      closeList();
+      const buf = [];
+      while (i < lines.length && /^>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^>\s?/, '')); i += 1; }
+      out.push('<blockquote>' + inline(buf.join(' ')) + '</blockquote>');
+      continue;
+    }
+
+    // 分隔線
+    if (/^\s*([-*_])\1{2,}\s*$/.test(line)) {
+      closeList();
+      out.push('<hr style="border:none;border-top:1px solid rgba(28,26,24,.12);margin:2em 0">');
+      i += 1;
+      continue;
+    }
+
+    // 清單
+    const ul = line.match(/^\s*[-*+]\s+(.*)$/);
+    const ol = line.match(/^\s*\d+\.\s+(.*)$/);
+    if (ul || ol) {
+      const want = ul ? 'ul' : 'ol';
+      if (listType !== want) { closeList(); out.push('<' + want + '>'); listType = want; }
+      out.push('<li>' + inline((ul || ol)[1]) + '</li>');
+      i += 1;
+      continue;
+    }
+
+    // 空行
+    if (!line.trim()) { closeList(); i += 1; continue; }
+
+    // 段落
+    closeList();
+    const buf = [line];
+    i += 1;
+    while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|>|\s*[-*+]\s|\s*\d+\.\s|\s*\|)/.test(lines[i])) {
+      buf.push(lines[i]); i += 1;
+    }
+    out.push('<p>' + inline(buf.join(' ')) + '</p>');
+  }
+  closeList();
+
+  document.getElementById('docBody').innerHTML = out.join('\n');
+})();
+</script>
+</body>
+</html>

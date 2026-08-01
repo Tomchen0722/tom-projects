@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 15 課 Fork 與 Upstream：參與開源專案｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li class="active"><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元四 · 企業級開發流程</div><h1>第 15 課 · Fork 與 Upstream：參與開源專案</h1><p class="lesson-sub">當你沒有某個 repo 的寫入權限，卻想貢獻程式碼時的標準做法。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>前一課的 PR 流程，前提是你對 repo 有<strong>寫入權限</strong>（能 push 分支）——這在公司內部沒問題。但如果你想貢獻一個<strong>開源專案</strong>（例如某個知名的 Python 套件），你當然沒有它的寫入權限，不能直接 push 分支上去。</p>
+<p>這時的解法是 <strong>Fork（分叉）</strong>：把別人的 repo <strong>複製一份到你自己的 GitHub 帳號下</strong>，成為你能完全掌控的副本。你在自己的 fork 上開分支、開發、push，再對「原本的專案」開 PR，請維護者審核你的貢獻。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — Fork vs Clone 差在哪？</div><div class="callout-body"><ul>
+<li><strong>Clone</strong>：把 repo 下載到你<strong>本機電腦</strong>。</li>
+<li><strong>Fork</strong>：把 repo 複製到你<strong>自己的 GitHub 帳號</strong>（雲端，還是在 GitHub 上）。</li>
+</ul>
+<p>參與開源的完整鏈路是：原專案 →（Fork）→ 你的 GitHub 副本 →（Clone）→ 你的電腦。</p></div></div>
+<p><strong>兩個遠端：origin 與 upstream</strong></p>
+<p>Fork 後你的本地會有兩個遠端：</p>
+<ul>
+<li><code>origin</code> = <strong>你自己的 fork</strong>（你有寫入權限，push 到這裡）。</li>
+<li><code>upstream</code> = <strong>原本的專案</strong>（你只能讀，用來抓它的最新更新，保持同步）。</li>
+</ul>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>  upstream（原專案）──▶ 你 fetch 它的更新
+        ▲                        │
+        │ 你開 PR 貢獻回去          ▼
+   origin（你的 fork）◀── 你 push ── 你的電腦</code></pre></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 貢獻一個開源套件</div><div class="callout-body"><p>Tom 發現一個熱門開源工具有個小 bug，想修好回饋社群。他不能直接改人家的 repo，於是：</p>
+<ol>
+<li>在 GitHub 按 <strong>Fork</strong>，得到 <code>tom/awesome-tool</code>（他自己的副本）。</li>
+<li><code>git clone</code> 他的 fork 到電腦。</li>
+<li>加一個 <code>upstream</code> 指向原專案，方便日後同步。</li>
+<li>開分支 <code>fix/typo-in-readme</code>，修好、push 到自己的 fork（origin）。</li>
+<li>到原專案開 PR：「我修好了這個 bug」。</li>
+<li>原專案維護者 review、approve、merge。Tom 的名字進入貢獻者名單。</li>
+</ol>
+<p>幾週後原專案更新了很多，Tom 想再貢獻。他先從 <code>upstream</code> 拉最新的進來同步自己的 fork，才不會基於過時的程式碼開發。</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 1. 在 GitHub 網頁按 Fork（得到你帳號下的副本），然後 clone 你的 fork
+git clone https://github.com/你的帳號/awesome-tool.git
+cd awesome-tool
+
+# 2. 加上 upstream 指向「原本的專案」
+git remote add upstream https://github.com/原作者/awesome-tool.git
+
+# 3. 確認兩個遠端都在
+git remote -v
+#   origin    https://github.com/你的帳號/awesome-tool.git   （你的 fork）
+#   upstream  https://github.com/原作者/awesome-tool.git       （原專案）
+
+# 4. 開分支開發
+git switch -c fix/typo-in-readme
+# ...修改、commit...
+
+# 5. push 到你的 fork（origin）
+git push -u origin fix/typo-in-readme
+
+# 6. 到 GitHub 開 PR：base 選原專案的 main，compare 選你的分支</code></pre></div>
+<p><strong>保持 fork 與原專案同步（重要）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 抓原專案的最新變動
+git fetch upstream
+
+# 切到自己的 main，把原專案的 main 併進來
+git switch main
+git merge upstream/main
+
+# 更新你 fork 的 main
+git push origin main</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — GitHub 網頁有一鍵同步</div><div class="callout-body"><p>現在 GitHub 在 fork 的頁面提供 <strong>Sync fork</strong> 按鈕，能一鍵把你的 fork 更新到和原專案一致，不用打指令。但理解上面的 upstream 流程仍很重要，尤其當你有本地改動時。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 圖形化管理多個遠端</div><div class="callout-body"><ol>
+<li><strong>Fork</strong>：在 GitHub 網頁操作（VS Code 無法 fork）。</li>
+<li><strong>加 upstream</strong>：Source Control ⋯ → <strong>Remote</strong> → <strong>Add Remote</strong>，貼上原專案網址、命名為 <code>upstream</code>。</li>
+<li><strong>抓 upstream 更新</strong>：⋯ → <strong>Fetch (All Remotes)</strong>，就能看到 <code>upstream/main</code> 的最新狀態。</li>
+<li><strong>開 PR 回原專案</strong>：GitHub Pull Requests 擴充套件支援跨 fork 開 PR，選好 base repo（原專案）和你的分支即可。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>公司內部通常不用 fork</strong>：因為你對公司 repo 有寫入權限，直接開分支開 PR 即可（第 14 課的流程）。Fork 主要用於<strong>開源貢獻</strong>或<strong>你沒有寫入權限的專案</strong>。</li>
+<li><strong>貢獻開源前先讀 CONTRIBUTING.md</strong>：多數開源專案有貢獻指南，規定分支命名、commit 格式、要不要先開 issue 討論。照做能大幅提高 PR 被接受的機率。</li>
+<li><strong>開發前先同步 upstream</strong>：基於過時的程式碼開發，PR 會充滿衝突。動手前先 <code>fetch upstream</code> 並同步。</li>
+<li><strong>一個 PR 一件事</strong>：開源維護者是志工，小而清楚的 PR 才審得動。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 有些公司也用 fork 模式</div><div class="callout-body"><p>少數重視權限隔離的大型組織，即使內部也採「fork-based workflow」：一般開發者只能 fork、開 PR，只有維護者能 merge。這和開源流程一模一樣。所以學會 fork/upstream，在企業和開源兩邊都用得上。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 忘了加 upstream，fork 越來越落後</div><div class="callout-body"><p>隨時可以補加：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git remote add upstream 原專案網址.git
+git fetch upstream
+git switch main
+git merge upstream/main</code></pre></div></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 在自己 fork 的 main 上直接改了東西</div><div class="callout-body"><p>建議 fork 的 main 保持乾淨、只用來同步 upstream，開發都在 feature 分支。若已在 main 改了，把改動移到分支：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git switch -c feature/我的改動
+git switch main
+git reset --hard upstream/main    # 讓 fork 的 main 回到和原專案一致</code></pre></div></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — PR 開錯方向 / base 選錯</div><div class="callout-body"><p>開 PR 時注意 <strong>base repository</strong> 要選「原專案」、base 分支選它的 <code>main</code>；<strong>head</strong> 選你的 fork 和你的分支。方向搞反會變成「把原專案合併進你的 fork」。GitHub 介面上會清楚顯示「從哪裡合併到哪裡」，開之前看一眼。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>沒有寫入權限想貢獻，就 Fork：原專案 →（Fork）→ 你的 GitHub 副本 →（Clone）→ 電腦。兩個遠端：origin（你的 fork，可 push）、upstream（原專案，只讀、用來同步）。開發前先 <code>fetch upstream</code> 保持同步，再開分支、push 到 origin、對原專案開 PR。公司內部通常不用 fork，開源必用。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>Fork 和 Clone 差在哪？</summary><div class="qa-body"><p>Fork=把 repo 複製到你<strong>自己的 GitHub 帳號</strong>（雲端副本）；Clone=把 repo 下載到你<strong>本機電腦</strong>。參與開源的鏈路是：原專案→Fork→你的 GitHub→Clone→你的電腦。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>Fork 後本地的 `origin` 和 `upstream` 分別指向哪裡？</summary><div class="qa-body"><p><code>origin</code>=你自己的 fork（可 push）；<code>upstream</code>=原本的專案（只讀，用來抓它的最新更新保持同步）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>公司內部通常用 fork 嗎？什麼時候才需要 fork？</summary><div class="qa-body"><p>公司內部通常不用（你對公司 repo 有寫入權限，直接開分支開 PR 即可）。Fork 主要用於<strong>開源貢獻</strong>或你沒有寫入權限的專案。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>到 GitHub fork 一個你喜歡的開源專案，clone 下來，加上 <code>upstream</code> 遠端。</li>
+<li>用 <code>git remote -v</code> 確認 origin 和 upstream 都在、方向正確。</li>
+<li>用 <code>git fetch upstream</code> + <code>git merge upstream/main</code> 練習同步 fork。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-14.html"><small>← 上一課</small><span>Pull Request 與 Code Review：公司協作的心臟</span></a><a class="pg pg-next" href="lesson-16.html"><small>下一課 →</small><span>版本號、Git Tag 與 GitHub Release 發布流程</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 06 課 Commit Message 撰寫規範：Conventional Commits｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li class="active"><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元二 · 單人基本操作</div><h1>第 6 課 · Commit Message 撰寫規範：Conventional Commits</h1><p class="lesson-sub">讓每一則 commit 訊息都專業、可讀、甚至能自動產生更新日誌。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p><code>git log</code> 是團隊的「專案日記」。如果訊息都是 <code>更新</code>、<code>修改</code>、<code>fix bug</code>、<code>asdf</code>，這本日記等於廢紙——沒人知道每個 commit 到底做了什麼。</p>
+<p><strong>Conventional Commits</strong> 是業界最廣泛採用的 commit 訊息規範。它規定訊息開頭要用一個「類型」標籤，格式如下：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>類型(範圍): 簡短描述
+
+（空一行）
+可選的詳細說明
+
+（空一行）
+可選的頁尾，例如關聯的 issue 編號</code></pre></div>
+<p>例如：<code>feat(auth): 加入 Google 第三方登入</code>。</p>
+<p><strong>為什麼值得這樣做？</strong></p>
+<ul>
+<li><strong>一眼看懂</strong>：<code>fix</code> 是修 bug、<code>feat</code> 是新功能，掃過去就知道每個 commit 的性質。</li>
+<li><strong>可自動化</strong>：工具能根據這些標籤<strong>自動產生 CHANGELOG（更新日誌）</strong> 和<strong>自動決定版本號</strong>。</li>
+<li><strong>團隊一致</strong>：不會每個人各寫各的風格。</li>
+</ul>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 兩本專案日記</div><div class="callout-body"><p>Bob 的 <code>git log</code>：<code>更新</code>、<code>改一下</code>、<code>又改</code>、<code>修好了</code>、<code>test</code>。三個月後要找「登入功能是哪個 commit 加的」，Bob 翻了半小時還找不到。</p>
+<p>Tom 改用 Conventional Commits 後的 <code>git log</code>：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>feat(auth): 加入 Google 登入
+fix(auth): 修正登入後導向錯誤頁面
+docs(readme): 補充環境設定說明
+refactor(api): 抽出共用的請求函式</code></pre></div>
+<p>Alice 一眼就能篩出所有 <code>feat</code>（新功能）給主管看這個 sprint 做了什麼。這就是規範的價值。</p></div></div>
+<h2 id="3-常用類型與實際指令">3. 常用類型與實際指令</h2>
+<p><strong>核心類型（背這幾個就夠用）：</strong></p>
+<div class="tablewrap"><table><thead><tr><th>類型</th><th>用在什麼時候</th><th>範例</th></tr></thead><tbody><tr><td><code>feat</code></td><td>新增功能</td><td><code>feat: 加入購物車功能</code></td></tr><tr><td><code>fix</code></td><td>修正 bug</td><td><code>fix: 修正結帳金額計算錯誤</code></td></tr><tr><td><code>docs</code></td><td>只改文件</td><td><code>docs: 更新 API 使用說明</code></td></tr><tr><td><code>style</code></td><td>排版、空白、分號（不影響邏輯）</td><td><code>style: 統一縮排為 4 空格</code></td></tr><tr><td><code>refactor</code></td><td>重構（不改功能也不修 bug）</td><td><code>refactor: 拆分過長的函式</code></td></tr><tr><td><code>test</code></td><td>新增或修改測試</td><td><code>test: 補上登入的單元測試</code></td></tr><tr><td><code>chore</code></td><td>雜務（設定、相依套件、建置）</td><td><code>chore: 升級 React 到 18</code></td></tr><tr><td><code>perf</code></td><td>效能優化</td><td><code>perf: 快取查詢結果減少資料庫負載</code></td></tr></tbody></table></div>
+<p><strong>實際下 commit：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 最常用：一行搞定
+git commit -m "feat: 加入使用者個人頁面"
+
+# 帶範圍（scope），標明改動的模組
+git commit -m "fix(cart): 修正數量無法歸零的問題"
+
+# 需要詳細說明時，不加 -m 會打開編輯器讓你寫多行
+git commit</code></pre></div>
+<p>多行訊息的完整範例：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>feat(auth): 加入雙因素驗證 (2FA)
+
+使用者可在設定頁啟用 2FA，登入時需輸入
+驗證器 App 產生的六位數驗證碼。
+
+Closes #142</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 破壞性變更（Breaking Change）</div><div class="callout-body"><p>如果你的改動會讓舊用法失效，要特別標示，在類型後加 <code>!</code> 或在頁尾寫 <code>BREAKING CHANGE:</code>：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>feat(api)!: 移除舊版 /v1 端點
+
+BREAKING CHANGE: /v1/users 已停用，請改用 /v2/users</code></pre></div>
+<p>自動版號工具看到這個，就知道要升「主版號」（第 16 課會談版本號）。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 在 VS Code 寫規範的 commit</div><div class="callout-body"><ol>
+<li>Source Control 面板上方的訊息框，就是打 commit 訊息的地方，直接輸入 <code>feat: xxx</code> 即可。</li>
+<li>想寫多行詳細說明？點訊息框旁的展開，或直接不填、按 commit，會跳出編輯器讓你寫完整訊息（前提是第 2 課設過 <code>core.editor "code --wait"</code>）。</li>
+<li>安裝擴充套件 <strong>Conventional Commits</strong>：它會用選單引導你選類型、填 scope、寫描述，對新手很友善，不用死記格式。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>描述用祈使句、現在式</strong>：「加入登入」而非「加入了登入」或「將加入登入」。想像它在補完「這個 commit 會…」。</li>
+<li><strong>第一行控制在 50 字內</strong>：簡短、切中重點；細節留給下面的內文。</li>
+<li><strong>關聯 issue</strong>：頁尾寫 <code>Closes #123</code>，merge 後 GitHub 會自動關閉那個 issue。</li>
+<li><strong>團隊會用工具強制檢查</strong>：很多公司用 <code>commitlint</code> + Git hook，訊息不符規範根本 commit 不了。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 為什麼老闆也在乎這件事</div><div class="callout-body"><p>規範的 commit 能自動產生<strong>發布更新日誌（CHANGELOG）</strong>，也能讓 <code>semantic-release</code> 這類工具<strong>自動決定版本號並發佈</strong>。也就是說，好的 commit 訊息直接省下團隊每次發版的手動工——這是實打實的生產力。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 上一個 commit 訊息沒照規範</div><div class="callout-body"><p>只要還沒 push：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git commit --amend -m "feat: 正確的規範訊息"</code></pre></div></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 想批次改寫前幾個 commit 的訊息</div><div class="callout-body"><p>如果有好幾個 commit 訊息要改（且還沒 push 或團隊允許），用互動式 rebase：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 改寫最近 3 個 commit
+git rebase -i HEAD~3</code></pre></div>
+<p>編輯器會列出這 3 個 commit，把想改的那行前面的 <code>pick</code> 改成 <code>reword</code>，存檔關閉後 Git 會逐一讓你改訊息。<strong>注意：這會改寫歷史，已 push 且多人共用的分支要小心（第 11、20 課詳談）。</strong></p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 不要為了規範而規範</div><div class="callout-body"><p>類型選不出來時，別卡住。八成情況不是 <code>feat</code> 就是 <code>fix</code>，其餘用 <code>chore</code>。重點是「訊息能讓人看懂你做了什麼」，格式是為此服務的工具，不是目的。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>Conventional Commits = <code>類型(範圍): 描述</code>。核心類型記 <code>feat</code>、<code>fix</code>、<code>docs</code>、<code>refactor</code>、<code>chore</code>、<code>test</code>。它讓歷史可讀、可自動產生 CHANGELOG 與版號。訊息打錯用 <code>--amend</code>（單一）或 <code>rebase -i</code>（多個）修正。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>Conventional Commits 的基本格式是什麼？</summary><div class="qa-body"><p><code>類型(範圍): 簡短描述</code>，例如 <code>feat(auth): 加入 Google 登入</code>。範圍可省略。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>`feat`、`fix`、`docs`、`refactor`、`chore` 分別用在什麼時候？</summary><div class="qa-body"><p><code>feat</code>=新功能、<code>fix</code>=修 bug、<code>docs</code>=只改文件、<code>refactor</code>=重構（不改功能不修 bug）、<code>chore</code>=雜務（設定、相依套件）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>規範的 commit 訊息除了好讀，還能帶來什麼自動化好處？</summary><div class="qa-body"><p>工具能據此<strong>自動產生 CHANGELOG</strong>、<strong>自動決定版本號</strong>（<code>fix</code>→修訂號、<code>feat</code>→次版本、<code>BREAKING CHANGE</code>→主版本），甚至自動發版。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>把下面三個爛訊息改寫成 Conventional Commits：「更新」「修好了」「改一下 css」。</li>
+<li>做一個 commit 時故意違反規範，再用 <code>git commit --amend</code> 改成規範格式。</li>
+<li>想像一個「移除舊 API」的破壞性變更，寫出它完整的 commit 訊息（含 BREAKING CHANGE）。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-05.html"><small>← 上一課</small><span>.gitignore 最佳實務（Python／Node／AI 專案）</span></a><a class="pg pg-next" href="lesson-07.html"><small>下一課 →</small><span>查看歷史、比較差異、還原檔案</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>自動的小龍蝦 — AI 指揮室</title>
+<style>
+:root{--p:#6366f1;--bg:linear-gradient(135deg,#eef2ff,#fdf2f8,#ecfeff);--card:#fff;--tx:#1e293b;--mut:#64748b}
+*{box-sizing:border-box;margin:0}
+body{font-family:"Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+.wrap{display:flex;min-height:100vh}
+aside{width:200px;background:#fff;border-right:1px solid #e2e8f0;padding:16px 10px;flex-shrink:0}
+aside h1{font-size:16px;color:var(--p);margin-bottom:14px}
+aside a{display:block;padding:9px 12px;border-radius:8px;color:var(--tx);text-decoration:none;font-size:14px;margin-bottom:2px;cursor:pointer}
+aside a.on,aside a:hover{background:#eef2ff;color:var(--p);font-weight:700}
+main{flex:1;padding:22px;max-width:1200px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin:12px 0}
+.card{background:var(--card);border-radius:12px;padding:14px;border:1px solid #e2e8f0;border-top:3px solid var(--p)}
+.card .t{font-size:12px;color:var(--mut)}.card .v{font-size:22px;font-weight:800;margin-top:4px}
+.panel{background:var(--card);border-radius:14px;padding:16px;border:1px solid #e2e8f0;margin:14px 0}
+h2{font-size:18px;margin-bottom:8px}h3{font-size:15px;margin:10px 0 6px}
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.role{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px}
+.role b{font-size:14px}.role .m{font-size:11px;color:var(--mut)}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:#f1f5f9;color:var(--mut)}
+.badge.work{background:#e0f2fe;color:#0369a1}.badge.wait{background:#fef3c7;color:#b45309}
+.badge.hi{background:#fee2e2;color:#b91c1c}.badge.mid{background:#fef3c7;color:#b45309}.badge.lo{background:#dcfce7;color:#15803d}
+button{background:var(--p);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+button.gray{background:#94a3b8}button.red{background:#ef4444}button:disabled{opacity:.5}
+input,select,textarea{border:1px solid #cbd5e1;border-radius:8px;padding:8px;font-size:13px;font-family:inherit;width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}.row>*{flex:1;min-width:140px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td,th{padding:7px 8px;border-bottom:1px solid #f1f5f9;text-align:left;vertical-align:top}
+pre{white-space:pre-wrap;font-family:inherit;font-size:13px;background:#f8fafc;border-radius:8px;padding:10px;max-height:340px;overflow:auto}
+.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.mock{background:#fef3c7;color:#92400e;border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:10px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<aside>
+  <h1>🦞 自動的小龍蝦</h1>
+  <a data-p="dash" class="on">📊 儀表板</a>
+  <a data-p="roles">👥 角色設定</a>
+  <a data-p="tasks">📋 任務看板</a>
+  <a data-p="approve">✅ 審批中心</a>
+  <a data-p="finance">💰 公司財務</a>
+  <a data-p="product">🚀 產品開發部</a>
+  <a data-p="design">🎨 設計部</a>
+  <a data-p="social">📣 社群推廣部</a>
+  <a data-p="seo">🔍 SEO 分析部</a>
+  <a data-p="invest">📈 投資部(模擬)</a>
+  <a data-p="sales">🤝 業務部</a>
+  <a data-p="meeting">🗣️ Agent 會議室</a>
+  <a data-p="reports">📑 報表中心</a>
+  <a data-p="settings">⚙️ 設定</a>
+</aside>
+<main>
+  <div class="top">
+    <div id="apStat"></div>
+    <div><button id="apBtn" onclick="toggleAP()">▶ 啟動自動工作</button></div>
+  </div>
+  <div id="mockNote" class="mock hide">⚠️ 目前為模擬模式（未設定 API Key）。到「設定」頁填入 Gemini 或 Claude 金鑰後，角色會用真模型思考。</div>
+
+  <section id="p-dash">
+    <h2>小龍蝦 AI 公司 — CEO 指揮中心</h2>
+    <div class="cards" id="finCards"></div>
+    <div class="panel"><h3>任務狀態</h3><div class="cards" id="taskCards"></div></div>
+    <div class="panel"><h3>部門即時狀態</h3><div id="deptGlance"></div></div>
+  </section>
+
+  <section id="p-roles" class="hide">
+    <h2>角色設定（38 人 / 10 部門）</h2>
+    <div class="roles" id="roleGrid"></div>
+  </section>
+
+  <section id="p-tasks" class="hide">
+    <h2>任務看板</h2>
+    <div class="panel">
+      <h3>指派新任務給總經理（generic）</h3>
+      <div class="row"><input id="gTitle" placeholder="任務標題"><input id="gInput" placeholder="任務內容"></div>
+      <button onclick="addTask('generic',null,'gTitle','gInput')">建立任務</button>
+    </div>
+    <div class="panel"><table id="taskTable"></table></div>
+  </section>
+
+  <section id="p-approve" class="hide">
+    <h2>審批中心</h2>
+    <p style="color:var(--mut);font-size:13px">高風險動作只更新本地狀態並留稽核，絕不執行真實動作。</p>
+    <div class="panel" id="apprList"></div>
+    <div class="panel"><h3>稽核日誌</h3><table id="auditTable"></table></div>
+  </section>
+
+  <section id="p-finance" class="hide">
+    <h2>公司財務（TWD，固定匯率 1 USD = 33）</h2>
+    <div class="panel"><h3>設定初始資本</h3>
+      <div class="row"><input id="capAmt" type="number" placeholder="金額 TWD"><input id="capNote" placeholder="備註"></div>
+      <button onclick="setCapital()">入帳</button></div>
+    <div class="cards" id="finCards2"></div>
+    <div class="panel"><h3>帳本明細</h3><table id="ledgerTable"></table></div>
+  </section>
+
+  <section id="p-product" class="hide">
+    <h2>產品開發部 — A 穩健 / B 創意差異化 / C 快速 MVP</h2>
+    <div class="panel"><div class="row">
+      <input id="pdDir" placeholder="產品方向 *（例：LINE 貼圖產品頁）">
+      <input id="pdUser" placeholder="目標用戶"><input id="pdProb" placeholder="要解決的問題"></div>
+      <button onclick="deptTask('product','pdDir',['pdUser','pdProb'])">產生 A/B/C 三線提案</button></div>
+    <div class="panel" id="rp-product"></div>
+  </section>
+
+  <section id="p-design" class="hide">
+    <h2>設計部 — 視覺設計師 + 配色設計師</h2>
+    <div class="panel"><div class="row">
+      <input id="dsName" placeholder="專案名稱 *"><input id="dsVibe" placeholder="期望氛圍（例：可愛療癒）">
+      <input id="dsColor" placeholder="主色偏好（例：粉、#6366F1）"></div>
+      <button onclick="deptTask('design','dsName',['dsVibe','dsColor'])">產生設計報告（視覺＋配色）</button></div>
+    <div class="panel" id="rp-design"></div>
+  </section>
+
+  <section id="p-social" class="hide">
+    <h2>社群推廣部 — 只產草稿，絕不自動發布</h2>
+    <div class="panel"><div class="row">
+      <input id="cpName" placeholder="產品/專案名稱 *"><input id="cpAud" placeholder="目標受眾">
+      <input id="cpSell" placeholder="主要賣點（逗號分隔）"></div>
+      <button onclick="deptTask('copy','cpName',['cpAud','cpSell'])">產生文案（送審批）</button></div>
+    <div class="panel"><h3>貼文草稿庫</h3><table id="draftTable"></table></div>
+  </section>
+
+  <section id="p-seo" class="hide">
+    <h2>SEO 分析部 — 爬蟲 → 分析 → 趨勢 → 機會</h2>
+    <div class="panel"><div class="row"><input id="seoTopic" placeholder="研究主題 *（例：AI 貼圖工具）"></div>
+      <button onclick="deptTask('seo','seoTopic',[])">跑 SEO 流水線</button></div>
+    <div class="panel" id="rp-seo"></div>
+  </section>
+
+  <section id="p-invest" class="hide">
+    <h2>投資部（模擬盤）— 6 分析師 → 量化 → 經理 → 風控</h2>
+    <div class="panel"><div class="row"><input id="invTopic" placeholder="分析主題（留空=今日例行盤勢）"></div>
+      <button onclick="deptTask('invest','invTopic',[],true)">跑投資決策鏈</button>
+      <p style="color:#b91c1c;font-size:12px;margin-top:6px">全程模擬盤，絕不連接真實券商。交易單須經審批中心核准。</p></div>
+    <div class="panel"><h3>模擬持倉</h3><table id="posTable"></table>
+      <h3>模擬交易紀錄</h3><table id="tradeTable"></table></div>
+    <div class="panel" id="rp-invest"></div>
+  </section>
+
+  <section id="p-sales" class="hide">
+    <h2>業務部 — 策略 → 開發（草稿）→ 訂單 → 營收</h2>
+    <div class="panel"><div class="row"><input id="slInput" placeholder="銷售目標 *（例：推廣湯圓寶寶貼圖）"></div>
+      <button onclick="deptTask('sales','slInput',[])">跑銷售開發線（草稿送審批）</button></div>
+    <div class="panel"><h3>手動記一筆訂單（真實營收入帳）</h3>
+      <div class="row"><input id="odProd" placeholder="產品"><input id="odAmt" type="number" placeholder="金額 TWD"></div>
+      <button onclick="addOrder()">入帳</button></div>
+    <div class="panel"><h3>潛在客戶</h3><table id="leadTable"></table><h3>訂單</h3><table id="orderTable"></table></div>
+  </section>
+
+  <section id="p-meeting" class="hide">
+    <h2>Agent 會議室</h2>
+    <div class="panel"><div class="row"><input id="mtTopic" placeholder="會議主題與各方輸入 *"></div>
+      <button onclick="deptTask('meeting','mtTopic',[])">召開會議</button></div>
+    <div class="panel" id="rp-meeting"></div>
+  </section>
+
+  <section id="p-reports" class="hide">
+    <h2>報表中心</h2>
+    <div class="panel"><button onclick="deptTask2('finance','財務即時報告','')">產生財務報告</button></div>
+    <div class="panel" id="allReports"></div>
+  </section>
+
+  <section id="p-settings" class="hide">
+    <h2>設定</h2>
+    <div class="panel"><h3>API 金鑰（存在本機 config.json，不會上傳）</h3>
+      <div class="row"><input id="kGem" placeholder="Gemini API Key"><input id="kCla" placeholder="Anthropic API Key"></div>
+      <div class="row"><input id="kBud" type="number" placeholder="本月 API 預算 USD（預設 90）"></div>
+      <button onclick="saveKeys()">儲存</button> <span id="keyStat" class="badge"></span></div>
+  </section>
+</main>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>'NT$'+Math.round(n).toLocaleString();
+let page='dash';
+document.querySelectorAll('aside a').forEach(a=>a.onclick=()=>{
+  document.querySelectorAll('aside a').forEach(x=>x.classList.remove('on'));a.classList.add('on');
+  document.querySelectorAll('main section').forEach(s=>s.classList.add('hide'));
+  page=a.dataset.p;$('p-'+page).classList.remove('hide');refresh();});
+async function api(u,m,b){const r=await fetch('/api/'+u,{method:m||'GET',headers:{'Content-Type':'application/json'},body:b?JSON.stringify(b):undefined});return r.json();}
+let ST=null;
+async function refresh(){
+  ST=await api('state');
+  $('mockNote').classList.toggle('hide',!ST.mock_mode);
+  $('apBtn').textContent=ST.autopilot.on?'⏸ 停止自動工作':'▶ 啟動自動工作';
+  $('apBtn').className=ST.autopilot.on?'red':'';
+  $('apStat').innerHTML=`<span class="badge">${ST.autopilot.slots}/${ST.autopilot.max_slots} 執行槽</span>
+   <span class="badge">待審批 ${ST.pending_approvals}</span>
+   <span class="badge">本月 API US$${ST.api.month_usd.toFixed(2)} / ${ST.api.budget_usd}</span>`;
+  const f=ST.finance;
+  const cards=[['初始資本',f.capital],['目前現金',f.cash],['公司淨資產',f.net],['今日營收',f.revenue_today],
+    ['今日成本',f.cost_today],['已實現投資損益',f.realized],['未實現投資損益',f.unrealized]];
+  $('finCards').innerHTML=$('finCards2').innerHTML=cards.map(c=>`<div class="card"><div class="t">${c[0]}</div><div class="v">${fmt(c[1])}</div></div>`).join('');
+  const t=ST.tasks;
+  $('taskCards').innerHTML=[['待處理',t.pending],['執行中',t.running],['待審批',t.waiting_approval],['已完成',t.done],['失敗',t.failed]]
+    .map(c=>`<div class="card"><div class="t">${c[0]}</div><div class="v">${c[1]||0}</div></div>`).join('');
+  const byDept={};ST.roles.forEach(r=>{(byDept[r.dept]=byDept[r.dept]||[]).push(r);});
+  $('deptGlance').innerHTML=Object.entries(byDept).map(([d,rs])=>
+    `<div style="margin:6px 0"><b>${d}</b>：${rs.map(r=>`<span class="badge ${r.status=='工作中'?'work':r.status=='等待審批'?'wait':''}">${r.name}·${r.status}</span>`).join(' ')}</div>`).join('');
+  $('roleGrid').innerHTML=ST.roles.map(r=>`<div class="role"><b>${r.name}</b> <span class="badge ${r.status=='工作中'?'work':''}">${r.status}</span>
+    <div class="m">${r.en}<br>🏢 ${r.dept} · ${r.room}</div>
+    <select onchange="api('roles/${r.id}/model','POST',{model:this.value})">
+      <option value="gemini" ${r.model=='gemini'?'selected':''}>Gemini Flash</option>
+      <option value="claude" ${r.model=='claude'?'selected':''}>Claude</option>
+      <option value="mock" ${r.model=='mock'?'selected':''}>模擬</option></select></div>`).join('');
+  if(page=='tasks'||page=='dash'){const rows=await api('tasks');
+    $('taskTable').innerHTML='<tr><th>#</th><th>任務</th><th>部門/角色</th><th>風險</th><th>狀態</th><th></th></tr>'+rows.map(r=>
+    `<tr><td>${r.id}</td><td>${r.title}<br><span class="m" style="font-size:11px;color:#64748b">${(r.input||'').slice(0,40)}</span></td>
+     <td>${r.dept}<br>${r.role_name}</td><td><span class="badge ${r.risk=='高'?'hi':r.risk=='中'?'mid':'lo'}">${r.risk}</span></td>
+     <td>${r.status}</td><td>${r.status=='pending'?`<button onclick="api('tasks/${r.id}/run','POST',{}).then(refresh)">立即執行</button>`:''}
+     ${r.output?`<button class="gray" onclick="alert2(${r.id})">看結果</button>`:''}</td></tr>`).join('');window._tasks=rows;}
+  if(page=='approve'){const aps=await api('approvals');
+    $('apprList').innerHTML=aps.filter(a=>a.status=='pending').map(a=>{const p=JSON.parse(a.payload||'{}');
+     return `<div class="panel"><b>${a.kind}</b> <span class="badge ${a.risk=='高'?'hi':'mid'}">${a.risk}風險</span>
+      <pre>${p.trade?JSON.stringify(p.trade,null,1):(p.preview||'')}</pre>
+      <button onclick="api('approvals/${a.id}','POST',{approve:true}).then(refresh)">核准</button>
+      <button class="red" onclick="api('approvals/${a.id}','POST',{approve:false}).then(refresh)">駁回</button></div>`;}).join('')||'<p>沒有待審批項目。</p>';
+    const au=await api('audit');
+    $('auditTable').innerHTML='<tr><th>時間</th><th>行為者</th><th>動作</th><th>部門</th><th>風險</th></tr>'+au.slice(0,40).map(r=>
+     `<tr><td>${new Date(r.ts*1000).toLocaleString()}</td><td>${r.actor}</td><td>${r.action} ${r.detail||''}</td><td>${r.dept||'-'}</td><td>${r.risk}</td></tr>`).join('');}
+  if(page=='finance'){const lg=await api('ledger');
+    $('ledgerTable').innerHTML='<tr><th>時間</th><th>科目</th><th>金額</th><th>備註</th></tr>'+lg.map(r=>
+     `<tr><td>${new Date(r.ts*1000).toLocaleString()}</td><td>${r.kind}</td><td>${fmt(r.amount_twd)}</td><td>${r.note||''}</td></tr>`).join('');}
+  if(page=='invest'){const pf=await api('portfolio');
+    $('posTable').innerHTML='<tr><th>代號</th><th>名稱</th><th>股數</th><th>均價</th><th>現價</th><th>未實現</th></tr>'+pf.positions.map(p=>
+     `<tr><td>${p.symbol}</td><td>${p.name}</td><td>${p.qty}</td><td>${p.avg_price}</td><td>${p.last_price}</td><td>${fmt((p.last_price-p.avg_price)*p.qty)}</td></tr>`).join('');
+    $('tradeTable').innerHTML='<tr><th>時間</th><th>代號</th><th>方向</th><th>量</th><th>價</th><th>狀態</th></tr>'+pf.trades.map(p=>
+     `<tr><td>${new Date(p.ts*1000).toLocaleString()}</td><td>${p.symbol}</td><td>${p.side}</td><td>${p.qty}</td><td>${p.price}</td><td>${p.status}</td></tr>`).join('');}
+  if(page=='social'){const ds=await api('drafts');
+    $('draftTable').innerHTML='<tr><th>時間</th><th>標題</th><th>狀態</th><th>內容</th></tr>'+ds.map(d=>
+     `<tr><td>${new Date(d.ts*1000).toLocaleString()}</td><td>${d.title}</td><td>${d.status}</td><td><pre>${d.content.slice(0,300)}</pre></td></tr>`).join('');}
+  if(page=='sales'){const s=await api('sales');
+    $('leadTable').innerHTML='<tr><th>時間</th><th>名稱</th><th>狀態</th></tr>'+s.leads.map(l=>
+     `<tr><td>${new Date(l.ts*1000).toLocaleString()}</td><td>${l.name}</td><td>${l.status}</td></tr>`).join('');
+    $('orderTable').innerHTML='<tr><th>時間</th><th>產品</th><th>金額</th></tr>'+s.orders.map(o=>
+     `<tr><td>${new Date(o.ts*1000).toLocaleString()}</td><td>${o.product}</td><td>${fmt(o.amount_twd)}</td></tr>`).join('');}
+  if(['product','design','seo','meeting','reports'].includes(page)){const rp=await api('reports');
+    const deptMap={product:'產品開發部',design:'設計部',seo:'SEO 分析部',meeting:'代理人會議部',invest:'投資部'};
+    const el=$(page=='reports'?'allReports':'rp-'+page);
+    const list=page=='reports'?rp:rp.filter(r=>r.dept==deptMap[page]);
+    el.innerHTML=list.map(r=>`<h3>${r.title} <span class="badge">${r.dept} · ${new Date(r.ts*1000).toLocaleString()}</span></h3><pre>${r.content}</pre>`).join('')||'<p>尚無報告。</p>';}
+  if(page=='invest'){const rp=await api('reports');const list=rp.filter(r=>r.dept=='投資部');
+    $('rp-invest').innerHTML=list.map(r=>`<h3>${r.title}</h3><pre>${r.content}</pre>`).join('')||'<p>尚無報告。</p>';}
+  if(page=='settings'){const c=await api('config');
+    $('keyStat').textContent=(c.has_gemini?'Gemini ✓ ':'')+(c.has_claude?'Claude ✓':'')||'尚未設定';}
+}
+function alert2(id){const t=window._tasks.find(x=>x.id==id);if(t){const w=window.open('','_blank','width=720,height=560');
+  w.document.write('<pre style="white-space:pre-wrap;font-family:Microsoft JhengHei">'+t.output.replace(/</g,'&lt;')+'</pre>');}}
+async function toggleAP(){await api('autopilot','POST',{on:!ST.autopilot.on});refresh();}
+async function addTask(kind,role,tid,iid){const title=$(tid).value.trim();if(!title)return alert('請填標題');
+  await api('tasks','POST',{kind,role_id:role,title,input:$(iid).value});$(tid).value='';refresh();alert('任務已建立。開啟自動工作即會執行，或到任務看板按「立即執行」。');}
+async function deptTask(kind,mainId,extraIds,allowEmpty){let main=$(mainId).value.trim();
+  if(!main&&!allowEmpty)return alert('請填必填欄位');if(!main)main='今日例行盤勢';
+  const extra=extraIds.map(i=>$(i).value).filter(Boolean).join('、');
+  await api('tasks','POST',{kind,title:main,input:main+(extra?('；'+extra):'')});
+  refresh();alert('任務已建立並排入佇列。');}
+async function deptTask2(kind,title,input){await api('tasks','POST',{kind,title,input});refresh();alert('任務已建立。');}
+async function setCapital(){await api('capital','POST',{amount:parseFloat($('capAmt').value||0),note:$('capNote').value});refresh();}
+async function addOrder(){await api('orders','POST',{product:$('odProd').value,amount:parseFloat($('odAmt').value||0)});refresh();}
+async function saveKeys(){await api('config','POST',{GEMINI_API_KEY:$('kGem').value||null,ANTHROPIC_API_KEY:$('kCla').value||null,budget:$('kBud').value||null});refresh();alert('已儲存');}
+refresh();setInterval(refresh,6000);
+</script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 19 課 GitHub Actions：自動測試與自動部署（CI/CD）｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li class="active"><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元四 · 企業級開發流程</div><h1>第 19 課 · GitHub Actions：自動測試與自動部署（CI/CD）</h1><p class="lesson-sub">讓「每次 push 自動跑測試、每次發版自動部署」成真。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>想像每次有人 push，都要有人手動：跑一遍測試、檢查程式碼風格、打包、部署上線。既累又容易忘、容易出錯。<strong>CI/CD</strong> 就是把這些自動化：</p>
+<ul>
+<li><strong>CI（持續整合 Continuous Integration）</strong>：每次 push 或開 PR，自動跑測試、檢查、建置。確保「進 main 的程式碼都是能動的」。</li>
+<li><strong>CD（持續部署 Continuous Deployment）</strong>：測試通過後，自動把程式部署到伺服器 / 發佈。</li>
+</ul>
+<p><strong>GitHub Actions</strong> 是 GitHub 內建的 CI/CD 工具。你在 repo 裡放一個 YAML 設定檔，描述「什麼事件發生時（如 push），要在一台雲端機器上跑哪些步驟」。GitHub 就會在每次觸發時，自動開一台乾淨的機器執行它們。</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>你 push ──▶ 觸發 GitHub Actions ──▶ 開一台雲端機器
+                                    ├─ 裝環境
+                                    ├─ 跑測試   ✅/❌
+                                    ├─ 檢查風格
+                                    └─（通過才）部署</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 為什麼這是「企業級」的關鍵一環</div><div class="callout-body"><p>CI/CD 是現代軟體團隊的標配。它讓「壞掉的程式碼進不了主線」（配合分支保護，第 14 課），讓發版從「一個人小心翼翼手動操作一小時」變成「push 一下、幾分鐘後自動上線」。理解它，你就理解了現代軟體怎麼被交付。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 自動化守門員</div><div class="callout-body"><p>以前 Bob 常忘了跑測試就開 PR，結果壞掉的程式碼合進 main，害大家的環境都爛掉。</p>
+<p>導入 GitHub Actions 後：Tom 開 PR，Actions 自動在雲端跑完整測試。如果測試掛了，PR 上會出現紅色 ❌，而且分支保護規則讓它<strong>根本無法 merge</strong>。Tom 修好、再 push，Actions 重跑、變綠色 ✅，才能合併。合併進 main 後，另一個 Actions 自動把網站部署到正式環境。</p>
+<p>Alice 說：「現在不需要有人當糾察隊了，機器 24 小時幫我們把關，而且從不偷懶。」</p></div></div>
+<h2 id="3-實際設定-Workflow-YAML">3. 實際設定（Workflow YAML）</h2>
+<p>Workflow 檔放在專案的 <code>.github/workflows/</code> 資料夾，副檔名 <code>.yml</code>。以下是一個 <strong>Python 專案自動測試</strong> 的完整範例：</p>
+<div class="codewrap" data-lang="yaml"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># .github/workflows/ci.yml
+name: CI
+
+# 什麼時候觸發：push 到 main、或對 main 開 PR 時
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest      # 用一台乾淨的 Ubuntu 雲端機器
+    steps:
+      - name: 取出程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安裝相依套件
+        run: |
+          pip install -r requirements.txt
+
+      - name: 跑測試
+        run: |
+          pytest
+
+      - name: 檢查程式碼風格
+        run: |
+          pip install ruff
+          ruff check .</code></pre></div>
+<p><strong>YAML 結構重點：</strong></p>
+<div class="tablewrap"><table><thead><tr><th>欄位</th><th>意思</th></tr></thead><tbody><tr><td><code>name</code></td><td>這個 workflow 的名字</td></tr><tr><td><code>on</code></td><td><strong>觸發條件</strong>（push、pull_request、tag、定時 schedule 等）</td></tr><tr><td><code>jobs</code></td><td>要做的工作（可有多個，平行或有先後）</td></tr><tr><td><code>runs-on</code></td><td>在哪種機器上跑（ubuntu / windows / macos）</td></tr><tr><td><code>steps</code></td><td>一個 job 裡依序執行的步驟</td></tr><tr><td><code>uses</code></td><td>用別人寫好的現成動作（action）</td></tr><tr><td><code>run</code></td><td>執行一段 shell 指令</td></tr></tbody></table></div>
+<p><strong>一個「push tag 就自動發版」的 CD 範例片段：</strong></p>
+<div class="codewrap" data-lang="yaml"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>on:
+  push:
+    tags:
+      - 'v*'          # 只要 push 的是 v 開頭的 tag 就觸發（呼應第 16 課）
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 建立 GitHub Release
+        run: gh release create ${{ github.ref_name }} --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 機密要用 Secrets，不要寫進 YAML</div><div class="callout-body"><p>部署常需要金鑰（伺服器密碼、雲端 token）。<strong>絕對不要寫在 YAML 裡</strong>（它會進版本控制，等於外洩，呼應第 17 課）。要放進 GitHub repo 的 <strong>Settings → Secrets and variables → Actions</strong>，在 workflow 裡用 <code>${{ secrets.你的名稱 }}</code> 引用。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 在 VS Code 管理 Actions</div><div class="callout-body"><ol>
+<li>建立 <code>.github/workflows/ci.yml</code>：VS Code 有 YAML 語法高亮，裝 <strong>GitHub Actions</strong> 官方擴充套件會有欄位自動完成與驗證，減少縮排錯誤。</li>
+<li>裝 <strong>GitHub Actions</strong> 擴充套件後，左側面板能直接看到每次 workflow 的執行結果（成功/失敗）、點進去看 log，不用開瀏覽器。</li>
+<li>PR 面板（GitHub Pull Requests 擴充套件）也會顯示該 PR 的 checks 狀態（✅/❌）。</li>
+</ol></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — YAML 對縮排極度敏感</div><div class="callout-body"><p>YAML 用縮排表示層級，<strong>只能用空格、不能用 Tab</strong>，縮排錯一格整個檔案就壞。善用編輯器的 YAML 驗證，或參考現成範本（GitHub 在 Actions 頁面提供各語言的起手範本，一鍵套用）。</p></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>CI 必過才能 merge</strong>：搭配分支保護（第 14 課），把「測試通過」設為 merge 的必要條件，這是品質底線。</li>
+<li><strong>CI 要快</strong>：太慢的 CI 會拖垮開發節奏。善用快取（<code>actions/cache</code>）、平行 job、只跑受影響的測試。</li>
+<li><strong>典型 CI 內容</strong>：跑測試、程式碼風格檢查（lint/format）、型別檢查、安全掃描（含第 17 課的金鑰掃描）、建置。</li>
+<li><strong>CD 要分階段</strong>：通常先自動部署到測試環境（staging），正式環境（production）常保留人工核准的關卡，避免自動把問題直接推上線。</li>
+<li><strong>機密一律走 Secrets</strong>：再次強調，永不寫進 YAML。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — CI/CD 帶來的文化改變</div><div class="callout-body"><p>當「合併即自動測試、發版即自動部署」成為常態，團隊敢於頻繁、小步交付，因為每一步都有自動化保護網。這就是為什麼現代團隊能一天部署很多次，而不是幾個月才提心吊膽發一次版。CI/CD 不只是工具，是一種開發文化。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — workflow 沒有觸發</div><div class="callout-body"><p>檢查：(1) 檔案路徑是否正好在 <code>.github/workflows/</code> 下；(2) 副檔名是 <code>.yml</code> 或 <code>.yaml</code>；(3) <code>on:</code> 的觸發條件是否符合你的動作（例如你 push 的分支不在 <code>branches</code> 清單裡就不會觸發）；(4) YAML 語法有沒有錯（Actions 頁面會顯示解析錯誤）。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — CI 一直失敗，但本地是好的</div><div class="callout-body"><p>常見原因：本地有裝但 <code>requirements.txt</code> 沒列到的套件、路徑大小寫差異（Linux 區分大小寫、Windows 不分）、環境變數本地有但 CI 沒設。看 Actions 的 log 逐步排查，通常錯誤訊息會直指問題。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 部署步驟出錯把正式環境弄壞</div><div class="callout-body"><p>這就是為什麼正式環境部署建議加<strong>人工核准關卡</strong>（GitHub Environments 的 required reviewers），以及先部署 staging 驗證。自動化很強大，但對「正式上線」這一步要保留剎車。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>GitHub Actions 用 <code>.github/workflows/*.yml</code> 描述「什麼事件觸發、在雲端機器跑哪些步驟」。CI = 每次 push/PR 自動測試檢查；CD = 通過後自動部署。搭配分支保護讓壞程式碼進不了 main。機密一律放 Secrets、永不寫進 YAML。YAML 對縮排敏感、只用空格。單元四完成，你已掌握企業級開發全流程。最後一課，我們專攻「做錯了怎麼救」。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>CI 和 CD 分別是什麼？</summary><div class="qa-body"><p>CI（持續整合）=每次 push/PR 自動跑測試、檢查、建置，確保進 main 的程式碼能動；CD（持續部署）=測試通過後自動部署／發佈。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>GitHub Actions 的 workflow 檔要放在哪個資料夾？靠什麼決定何時執行？</summary><div class="qa-body"><p>放在 <code>.github/workflows/</code>，副檔名 <code>.yml</code>。靠 <code>on:</code> 欄位定義觸發條件（push、pull_request、tag、schedule 等）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>部署需要的金鑰該放哪裡？為什麼不能寫進 YAML？</summary><div class="qa-body"><p>放進 GitHub 的 <strong>Secrets</strong>（Settings → Secrets and variables → Actions），用 <code>${{ secrets.名稱 }}</code> 引用。寫進 YAML 等於進版本控制、等於外洩。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>在測試 repo 建立 <code>.github/workflows/ci.yml</code>，讓它在 push 時印出一句話（最小可行 workflow）。</li>
+<li>push 後到 GitHub 的 Actions 分頁，觀察 workflow 執行的 log。</li>
+<li>想像一個「push v* tag 就自動建立 Release」的流程，寫出它 <code>on:</code> 的觸發條件。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-18.html"><small>← 上一課</small><span>Git LFS：管理大型模型、圖片與影片</span></a><a class="pg pg-next" href="lesson-20.html"><small>下一課 →</small><span>Git 事故救援大全：做錯了怎麼救</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 01 課 Git 是什麼？為什麼工程師離不開它｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li class="active"><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元一 · 基礎觀念</div><h1>第 1 課 · Git 是什麼？為什麼工程師離不開它</h1><p class="lesson-sub">先理解「版本控制」要解決的真正問題，再碰指令。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>想像你在寫一份很重要的報告，你可能存過這些檔案：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>報告.docx
+報告_最終版.docx
+報告_最終版_真的最終.docx
+報告_最終版_老闆改過.docx
+報告_這次真的不改了.docx</code></pre></div>
+<p>這就是「土法煉鋼的版本控制」。它有三個致命問題：</p>
+<ul>
+<li><strong>不知道每一版到底改了什麼</strong>：兩個檔案打開來一行一行比對，很痛苦。</li>
+<li><strong>多人一起改會覆蓋彼此</strong>：Alice 把檔案寄給你，你改完寄回去，結果 Bob 同時也在改，最後有人的心血被蓋掉。</li>
+<li><strong>無法安心回到過去</strong>：你想試一個大改動，但怕改壞回不去，於是不敢動。</li>
+</ul>
+<p><strong>Git 就是專門解決這三件事的工具。</strong> 它是一套「版本控制系統（Version Control System, VCS）」，會幫你記錄專案在每個時間點的完整樣貌，讓你可以：隨時看到誰在什麼時候改了什麼、安全地多人協作、以及隨時回到任何一個過去的版本。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — Git 的核心心智模型</div><div class="callout-body"><p>Git 不是「幫你存檔」，而是「幫你拍快照（snapshot）」。每一次 commit，就像對整個專案資料夾拍一張照片，並附上一句說明「我這次做了什麼」。這些照片串成一條時間線，你可以在上面自由前進、後退、分岔。</p></div></div>
+<p><strong>Git 和 GitHub 不一樣，別搞混：</strong></p>
+<div class="tablewrap"><table><thead><tr><th>名稱</th><th>是什麼</th><th>類比</th></tr></thead><tbody><tr><td><strong>Git</strong></td><td>安裝在你電腦上的版本控制軟體</td><td>相機（拍快照的工具）</td></tr><tr><td><strong>GitHub</strong></td><td>放 Git 專案的雲端網站</td><td>相簿雲端（分享、備份、協作）</td></tr></tbody></table></div>
+<p>你可以只用 Git 不用 GitHub（純本機）；但團隊協作時，GitHub 是大家交換程式碼的「中央集合點」。</p>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<p>這套教材會用三個人貫穿所有情境，先認識他們：</p>
+<ul>
+<li><strong>Tom</strong>（就是你）：剛加入公司的新人工程師。</li>
+<li><strong>Alice</strong>：資深工程師，也是你的 Code Review 主要負責人。</li>
+<li><strong>Bob</strong>：另一位隊友，常和你改到同一個檔案。</li>
+</ul>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 沒有 Git 的悲劇</div><div class="callout-body"><p>公司要做一個網站。Tom、Alice、Bob 三人各自在自己電腦上改 <code>index.html</code>。到了下班，三人把檔案用通訊軟體丟到同一個群組。Tom 說「用我的」，於是 Alice 一整天寫的登入功能、Bob 寫的購物車，全部被 Tom 的版本蓋掉，兩人白做一天。</p>
+<p>隔天他們改用 Git + GitHub：三人各自 commit 自己的改動並 push 到 GitHub，Git 自動把三個人「不同檔案、甚至同一檔案不同行」的修改<strong>合併</strong>在一起，沒有人的工作被吃掉。這就是為什麼公司一定要用 Git。</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p>這一課還沒開始實作，但先讓你看看「Git 的一生」長什麼樣，建立整體印象（細節後面每一課都會教）：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 把一個資料夾變成 Git 專案（拍快照的能力開啟）
+git init
+
+# 看看目前有哪些檔案被改了
+git status
+
+# 把改動放進「準備拍照」的名單（暫存區）
+git add .
+
+# 正式拍一張快照，並寫下說明
+git commit -m "完成登入頁面"
+
+# 看看到目前為止拍過哪些快照
+git log</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 現在看不懂沒關係</div><div class="callout-body"><p>上面每一個指令，第 3、4 課都會逐字拆解。這裡的目的只是讓你知道：<strong>Git 的日常，就是不斷地 <code>add</code>（選要拍什麼）→ <code>commit</code>（拍下來並寫說明）</strong> 這個循環。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<p><strong>VS Code</strong> 是目前最多工程師用的免費程式編輯器，而且<strong>內建 Git 功能</strong>，很多操作完全不用打指令。</p>
+<p>左側工具列有一個像「分岔樹枝」的圖示，那就是 <strong>原始碼控制（Source Control）</strong> 面板，快捷鍵是 <code>Ctrl+Shift+G</code>。之後你會發現：</p>
+<ul>
+<li>改了哪些檔案，這個面板會像購物清單一樣列出來。</li>
+<li>打勾、按一下就能 commit，不用背指令。</li>
+<li>顏色會告訴你：綠色是新增的行、藍色是修改、紅色是刪除。</li>
+</ul>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 現在只要做一件事</div><div class="callout-body"><p>先確認你電腦有沒有裝 VS Code。沒有的話，下一課會教你安裝。這一課先知道「Git 的圖形介面就住在這個分岔圖示裡」即可。</p></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>任何專案，第一天就開 Git</strong>：不要等到寫了一堆才想補版本控制，越早越好。</li>
+<li><strong>Git 不是備份工具的替代品</strong>：它管的是「程式碼的演進」，重要資料仍要另外備份。</li>
+<li><strong>公司幾乎都用 Git</strong>：市佔率超過九成，會 Git 幾乎是工程師的基本門檻，跟會用滑鼠一樣。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 心態建議</div><div class="callout-body"><p>新人最常見的錯誤，是把 Git 當成「一堆要背的咒語」。正確心態是：<strong>先理解它在做什麼（拍快照、串時間線、合併多人改動），指令自然就記得住。</strong> 這也是這套教材每一課都從「原理」開始的原因。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<p>這一課還沒實際操作，先預告新手最常見的三個誤解，讓你提前免疫：</p>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 誤解一：「Git 會自動幫我存檔」</div><div class="callout-body"><p>不會。Git 只在你 <code>commit</code> 的那一刻拍快照。沒 commit 的改動，Git 不會記錄。養成「完成一個小段落就 commit 一次」的習慣。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 誤解二：「push 上去就會蓋掉別人」</div><div class="callout-body"><p>不會。Git 設計上會<strong>合併</strong>而非覆蓋，而且當它偵測到可能衝突時，會停下來要你確認，不會偷偷吃掉別人的工作。第 10 課會詳細教衝突怎麼解。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 誤解三：「做錯了就完蛋了」</div><div class="callout-body"><p>Git 幾乎所有操作都可以救回來。它會偷偷保留操作紀錄（reflog），連「誤刪的 commit」都常常能撈回來。第 20 課是一整課的「事故救援大全」。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>Git 是拍快照、GitHub 是雲端相簿；Git 解決的是「版本記錄 + 多人協作 + 安全回溯」三大痛點；日常就是 <code>add</code> → <code>commit</code> 的循環。下一課，我們把工具裝起來。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>Git 和 GitHub 有什麼不同？</summary><div class="qa-body"><p><strong>Git</strong> 是裝在你電腦上的版本控制軟體（拍快照的工具）；<strong>GitHub</strong> 是放 Git 專案的雲端網站（分享、備份、協作的相簿）。可以只用 Git 不用 GitHub，但團隊協作時 GitHub 是大家交換程式碼的中央集合點。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>Git 的核心心智模型是「存檔」還是「拍快照」？為什麼？</summary><div class="qa-body"><p>是<strong>拍快照</strong>。每次 <code>commit</code> 就像對整個專案拍一張照片並附上說明，這些照片串成可前進、後退、分岔的時間線。它不是單純幫你覆蓋存檔，而是保留每一個版本。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>版本控制主要解決哪三個痛點？</summary><div class="qa-body"><ol>
+<li>不知道每一版改了什麼；2. 多人協作互相覆蓋；3. 無法安心回到過去。Git 讓這三件事都變簡單。</li>
+</ol></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>用自己的話，寫一段話向朋友解釋「為什麼工程師要用 Git」，不要用專有名詞。</li>
+<li>回想你過去有沒有存過類似 <code>報告_最終版_真的最終.docx</code> 的檔案——那就是你需要版本控制的證據。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><span class="pg pg-empty"></span><a class="pg pg-next" href="lesson-02.html"><small>下一課 →</small><span>安裝 Git 與 VS Code、做好初次設定</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

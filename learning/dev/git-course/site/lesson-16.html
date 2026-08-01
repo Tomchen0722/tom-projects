@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 16 課 版本號、Git Tag 與 GitHub Release 發布流程｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li class="active"><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元四 · 企業級開發流程</div><h1>第 16 課 · 版本號、Git Tag 與 GitHub Release 發布流程</h1><p class="lesson-sub">怎麼幫專案標記 v1.0、v2.0，並在 GitHub 正式發佈一個版本。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>commit 有一長串 hash（<code>a1b2c3d</code>），人類記不住。當你要說「我們發布了 1.0 版」時，需要一個<strong>好記的標記</strong>指向「就是這個 commit 是 1.0」。這就是 <strong>Tag（標籤）</strong>。</p>
+<p>Tag 是釘在某個 commit 上的<strong>永久書籤</strong>。和分支不同，<strong>分支會一直往前移動，tag 釘上去就不動了</strong>——它永遠指向那個發布時刻的快照。</p>
+<p><strong>語意化版本號（Semantic Versioning, SemVer）</strong> 是業界標準的版本命名法，格式 <code>主版本.次版本.修訂號</code>，例如 <code>v2.4.1</code>：</p>
+<div class="tablewrap"><table><thead><tr><th>部分</th><th>什麼時候 +1</th><th>例子</th></tr></thead><tbody><tr><td><strong>主版本 MAJOR</strong></td><td>有破壞性變更，舊用法會壞</td><td><code>1.x.x → 2.0.0</code></td></tr><tr><td><strong>次版本 MINOR</strong></td><td>加了新功能，但向下相容</td><td><code>2.3.x → 2.4.0</code></td></tr><tr><td><strong>修訂號 PATCH</strong></td><td>只修 bug，沒新功能</td><td><code>2.4.0 → 2.4.1</code></td></tr></tbody></table></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 這就是為什麼 Conventional Commits 有用（第 6 課）</div><div class="callout-body"><p>還記得 commit 的 <code>feat</code>、<code>fix</code>、<code>BREAKING CHANGE</code> 嗎？工具能據此<strong>自動決定版本號</strong>：有 <code>BREAKING CHANGE</code> 就升主版本、有 <code>feat</code> 就升次版本、只有 <code>fix</code> 就升修訂號。規範的 commit + tag + release，能組成全自動的發版流水線。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 團隊發布 1.0</div><div class="callout-body"><p>專案第一個穩定版做好了。Alice 在 main 最新的 commit 打上 tag <code>v1.0.0</code>，push 到 GitHub，然後建立一個 <strong>GitHub Release</strong>：附上這一版的更新說明（新功能、修了哪些 bug）、打包好的執行檔。</p>
+<p>使用者到 Release 頁面就能下載 <code>v1.0.0</code>，也清楚知道這一版有什麼。三個月後他們發布 <code>v1.1.0</code>（加了新功能），又過陣子 <code>v1.1.1</code>（修了一個緊急 bug）。每個版本都有 tag、有 release、有說明，任何人都能精準回到任一版本。</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p><strong>建立 tag：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 附註型 tag（推薦，會記錄作者、日期、訊息）
+git tag -a v1.0.0 -m "第一個正式版本"
+
+# 輕量型 tag（只是個書籤，不記錄額外資訊）
+git tag v1.0.0
+
+# 幫「過去某個 commit」補打 tag
+git tag -a v0.9.0 a1b2c3d -m "beta 版"</code></pre></div>
+<p><strong>查看與檢視 tag：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git tag                    # 列出所有 tag
+git tag -l "v1.*"          # 篩選
+git show v1.0.0            # 看某 tag 指向的 commit 內容</code></pre></div>
+<p><strong>push tag 到 GitHub（重點：tag 不會被 <code>git push</code> 自動推上去）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git push origin v1.0.0     # 推單一 tag
+git push origin --tags     # 推所有本地 tag</code></pre></div>
+<p><strong>刪除 tag：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git tag -d v1.0.0                    # 刪本地
+git push origin --delete v1.0.0      # 刪遠端</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 最常見的坑：打了 tag 卻忘了 push</div><div class="callout-body"><p><code>git push</code> <strong>不會</strong>自動推送 tag！很多人打完 tag 以為好了，GitHub 上卻看不到。一定要另外 <code>git push origin --tags</code> 或 <code>git push origin v1.0.0</code>。</p></div></div>
+<h2 id="4-GitHub-Release-發布流程">4. GitHub Release 發布流程</h2>
+<p>Tag 是 Git 層級的書籤；<strong>Release 是 GitHub 在 tag 之上做的「正式發佈」</strong>，多了更新說明和可下載的檔案。</p>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 建立 Release 的步驟（GitHub 網頁）</div><div class="callout-body"><ol>
+<li>先確保 tag 已 push 到 GitHub（或在建 Release 時當場建立新 tag）。</li>
+<li>到 repo 頁面右側 <strong>Releases</strong> → <strong>Draft a new release</strong>。</li>
+<li>選一個 tag（或新建，如 <code>v1.0.0</code>）。</li>
+<li>填 <strong>Release title</strong>（如 <code>v1.0.0 - 首次發布</code>）。</li>
+<li>寫 <strong>Release notes</strong>：這版的新功能、修正、破壞性變更。可按 <strong>Generate release notes</strong> 讓 GitHub 依 PR 自動產生草稿。</li>
+<li>需要的話，把打包好的執行檔、安裝檔拖進附件區。</li>
+<li>按 <strong>Publish release</strong>。使用者就能在 Releases 頁看到並下載。</li>
+</ol></div></div>
+<p>VS Code 的 GitHub 擴充套件也能建立 tag（Git Graph 裡在 commit 上右鍵 → <strong>Add Tag</strong>），但完整的 Release（含 notes 和附件）通常在網頁或用 GitHub CLI（<code>gh release create</code>）做。</p>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>一律用附註型 tag（<code>-a</code>）</strong>：正式版本要記錄誰、何時、為何發布，輕量 tag 資訊太少。</li>
+<li><strong>遵守 SemVer</strong>：讓使用者光看版號就知道升級風不風險（升主版本要小心、升修訂號很安全）。</li>
+<li><strong>每個 Release 附 CHANGELOG</strong>：清楚列出這版的變更。用 Conventional Commits 可自動產生。</li>
+<li><strong>tag 命名一致</strong>：團隊統一用 <code>v1.2.3</code>（帶 v）或 <code>1.2.3</code>（不帶），別混用。</li>
+<li><strong>beta / rc 版用預發布標記</strong>：<code>v2.0.0-beta.1</code>、<code>v2.0.0-rc.1</code>，並在 GitHub Release 勾選 <strong>pre-release</strong>。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 自動化發版：tag 觸發 CI</div><div class="callout-body"><p>公司常設定「push 一個 <code>v*</code> tag 就自動觸發 GitHub Actions」：自動跑測試、打包、建立 Release、部署上線（第 19 課）。開發者只要 <code>git tag v1.2.0 &amp;&amp; git push origin v1.2.0</code>，剩下全自動。這就是現代軟體的發版方式。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — tag 打錯 commit 或打錯版號</div><div class="callout-body"><p>刪掉重打即可（本地 + 遠端都要刪）：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git tag -d v1.0.0                    # 刪本地
+git push origin --delete v1.0.0      # 刪遠端
+git tag -a v1.0.0 正確的commit -m "..." # 重打
+git push origin v1.0.0               # 重推</code></pre></div>
+<p><strong>但若已經有人下載了那個 tag，改動 tag 是壞習慣</strong>（他們的和你的會不一致）。已發布的版本最好別動，寧可發一個新的修訂版。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 別把 tag 當分支用</div><div class="callout-body"><p>tag 是不動的書籤，不能在上面開發 commit。如果你 checkout 一個 tag 想改東西，會進入 detached HEAD（第 7 課）。要基於某版本繼續開發，從那個 tag 開一條分支：<code>git switch -c hotfix/v1.0.1 v1.0.0</code>。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>Tag 是釘在 commit 上不動的版本書籤，用 SemVer 命名（主.次.修訂）。<code>git tag -a v1.0.0 -m "..."</code> 建立，<strong>記得 <code>git push origin --tags</code> 才會上 GitHub</strong>。GitHub Release 是在 tag 之上的正式發佈，附更新說明和下載檔。搭配 Conventional Commits 和 CI 可全自動發版。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>Tag 和分支有什麼不同？</summary><div class="qa-body"><p>分支會一直往前移動；tag 釘在某個 commit 上就<strong>不動了</strong>，永遠指向那個發布時刻的快照。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>語意化版本 `v2.4.1` 的三個數字分別在什麼時候 +1？</summary><div class="qa-body"><p>主版本（2）：有破壞性變更；次版本（4）：新增向下相容的功能；修訂號（1）：只修 bug。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>最常見的 tag 坑是什麼？</summary><div class="qa-body"><p><code>git push</code> <strong>不會</strong>自動推送 tag！打完 tag 要另外 <code>git push origin --tags</code>（或 <code>git push origin v1.0.0</code>），否則 GitHub 上看不到。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>對一個 commit 打附註型 tag：<code>git tag -a v1.0.0 -m "第一版"</code>，再 <code>git push origin v1.0.0</code>。</li>
+<li>到 GitHub 的 Releases 頁，用那個 tag 建立一個 Release 並寫更新說明。</li>
+<li>用 <code>git tag</code> 列出所有 tag，<code>git show v1.0.0</code> 看它指向哪個 commit。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-15.html"><small>← 上一課</small><span>Fork 與 Upstream：參與開源專案</span></a><a class="pg pg-next" href="lesson-17.html"><small>下一課 →</small><span>資安：別讓 API Key 與 .env 被推上 GitHub</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

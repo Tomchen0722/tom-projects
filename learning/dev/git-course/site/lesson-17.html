@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 17 課 資安：別讓 API Key 與 .env 被推上 GitHub｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li class="active"><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元四 · 企業級開發流程</div><h1>第 17 課 · 資安：別讓 API Key 與 .env 被推上 GitHub</h1><p class="lesson-sub">最容易發生、後果最嚴重的新手事故，這一課教你預防與善後。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>把 API 金鑰、密碼、<code>.env</code> 推上 GitHub，是新手最常犯、代價最高的錯誤之一。後果可能是：</p>
+<ul>
+<li><strong>金錢損失</strong>：外洩的雲端金鑰被爬蟲撿走，有人拿你的帳號狂跑運算，帳單暴增。</li>
+<li><strong>資料外洩</strong>：資料庫密碼外流，用戶資料被竊。</li>
+<li><strong>難以善後</strong>：就算你刪掉檔案，<strong>Git 歷史裡仍留著那把金鑰</strong>，任何人都能翻歷史找到。</li>
+</ul>
+<div class="callout danger"><div class="callout-head">🚨 危險操作 — 最重要的觀念：Git 會記住一切</div><div class="callout-body"><p>Git 的核心就是「記住每個版本」。所以「commit 了機密 → 下個 commit 刪掉」<strong>沒有用</strong>——那把金鑰永遠留在歷史的某個 commit 裡。而且 GitHub 上有無數自動爬蟲<strong>專門即時掃描新 push 的金鑰</strong>，往往你 push 後幾分鐘內金鑰就被撿走了。因此唯一可靠的善後是：<strong>假設它已外洩，立刻作廢那把金鑰。</strong></p></div></div>
+<p><strong>正確的機密管理方式</strong>：機密永遠放在 <code>.env</code>（或環境變數），並用 <code>.gitignore</code> 排除，<strong>絕不進版本控制</strong>。程式從環境讀取，而不是寫死在程式碼裡。</p>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 的金鑰事故（與正確善後）</div><div class="callout-body"><p>Tom 把 OpenAI 金鑰寫在 <code>config.py</code> 裡，<code>git push</code> 上了公司 repo。十分鐘後，Alice 收到 GitHub 的秘密掃描警告。</p>
+<p>Alice 的處理順序（<strong>注意順序</strong>）：</p>
+<ol>
+<li><strong>先作廢金鑰</strong>：到 OpenAI 後台把那把 key 撤銷、產生新的。因為金鑰一旦 push，就當它已經外洩。</li>
+<li><strong>再清理程式碼</strong>：把金鑰改成從 <code>.env</code> 讀取，<code>.env</code> 加進 <code>.gitignore</code>。</li>
+<li><strong>處理歷史</strong>：因為只有 Tom 一人的分支且剛發生，用工具把歷史裡的金鑰清掉、強制更新。</li>
+<li><strong>檢討預防</strong>：開啟 repo 的 secret scanning 和 pre-commit 檢查，避免再犯。</li>
+</ol>
+<p>Alice 說：「記住，發現外洩的第一件事永遠是<strong>換金鑰</strong>，不是刪檔案。刪檔案救不了已經外流的東西。」</p></div></div>
+<h2 id="3-實際做法與指令">3. 實際做法與指令</h2>
+<p><strong>正確的機密管理（預防）：</strong></p>
+<div class="codewrap" data-lang="gitignore"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># .gitignore —— 第一件事就排除機密
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+credentials.json</code></pre></div>
+<p>程式裡從環境變數讀取，而非寫死。Python 範例：</p>
+<div class="codewrap" data-lang="python"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>import os
+# 好：從環境變數讀
+api_key = os.environ["OPENAI_API_KEY"]
+
+# 壞：寫死在程式碼裡（絕對不要這樣）
+# api_key = "sk-abc123..."</code></pre></div>
+<p>搭配 <code>python-dotenv</code> 讀 <code>.env</code>：</p>
+<div class="codewrap" data-lang="python"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>from dotenv import load_dotenv
+load_dotenv()                         # 讀取 .env（此檔已被 gitignore）
+api_key = os.environ["OPENAI_API_KEY"]</code></pre></div>
+<p>同時 commit 一份<strong>沒有真值</strong>的範例檔給隊友參考：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># .env.example（這個可以 commit）
+OPENAI_API_KEY=你的金鑰放這
+DATABASE_URL=postgresql://...</code></pre></div>
+<p><strong>萬一機密已經 commit（善後）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 步驟 0（最重要）：立刻到服務後台作廢外洩的金鑰、產生新的！
+
+# 步驟 1：停止追蹤該檔案，但保留本地檔
+git rm --cached .env
+echo ".env" &gt;&gt; .gitignore
+git commit -m "chore: 移除 .env 並加入 gitignore"
+
+# 步驟 2：從「整個歷史」中徹底清除（用 git-filter-repo，較新且官方推薦）
+pip install git-filter-repo
+git filter-repo --path .env --invert-paths
+
+# 步驟 3：強制更新遠端（會改寫歷史，需通知所有隊友重新 clone）
+git push origin --force --all</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 清歷史是「核彈級」操作</div><div class="callout-body"><p><code>filter-repo</code> 會改寫<strong>整個歷史</strong>，所有 commit hash 都變，其他人手上的 clone 全部作廢，必須重新 clone。所以：能作廢金鑰就先作廢（多數情況這就夠了），清歷史前務必和團隊溝通。個人專案較無妨，團隊專案要非常謹慎。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作與工具">4. VS Code 圖形介面操作與工具</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 用工具在「commit 之前」就攔下來</div><div class="callout-body"><ul>
+<li><strong>檔案總管顏色</strong>：<code>.env</code> 被 gitignore 後會顯示灰色，若它是白色/綠色代表<strong>沒被忽略、有危險</strong>，立刻檢查 <code>.gitignore</code>。</li>
+<li><strong>commit 前看 diff</strong>：在 Source Control 面板逐檔看 diff，養成「看到 <code>sk-</code>、<code>password=</code>、<code>token=</code> 就停手」的敏感度。</li>
+<li><strong>裝 pre-commit 掃描</strong>：設定 <strong>gitleaks</strong> 或 <strong>git-secrets</strong> 當 pre-commit hook，commit 前自動掃描疑似金鑰，掃到就擋下 commit。這是最有效的自動防線。</li>
+</ul></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>機密一律走環境變數 / 密鑰管理服務</strong>：像 AWS Secrets Manager、HashiCorp Vault、GitHub Actions Secrets，程式碼裡永遠不出現真值。</li>
+<li><strong>開啟 GitHub Secret Scanning</strong>：GitHub 內建功能，會即時掃描並在偵測到金鑰時警告，公開 repo 免費。</li>
+<li><strong>強制 pre-commit hook</strong>：全隊統一裝 gitleaks/git-secrets，從源頭防堵。</li>
+<li><strong>定期輪換金鑰</strong>：即使沒外洩，重要金鑰也應定期更換。</li>
+<li><strong>最小權限原則</strong>：金鑰只給必要的權限，萬一外洩傷害有限。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 事故演練：如果今天金鑰外洩了，你的第一步是什麼？</div><div class="callout-body"><p>標準答案永遠是：<strong>作廢（revoke）那把金鑰，產生新的。</strong> 清歷史、刪檔案都是次要的。把這個反射動作練起來——真的出事時，速度決定損害大小。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 剛剛 push 了含金鑰的 commit（還沒被別人拉）</div><div class="callout-body"><ol>
+<li><strong>立刻作廢金鑰、換新的</strong>（假設已外洩）。</li>
+<li>若只是最後一個 commit：改掉程式碼從 env 讀 → <code>git rm --cached</code> → 用 <code>filter-repo</code> 清歷史 → <code>--force</code> 更新。</li>
+<li>開啟 secret scanning 和 pre-commit 防以後再犯。</li>
+</ol></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — .env 已經被追蹤，改了 .gitignore 也沒用</div><div class="callout-body"><p><code>.gitignore</code> 對已追蹤的檔案無效。要先解除追蹤（第 5 課也提過）：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git rm --cached .env
+git commit -m "chore: 停止追蹤 .env"</code></pre></div></div></div>
+<div class="callout danger"><div class="callout-head">🚨 危險操作 — 別以為「私有 repo 就安全」</div><div class="callout-body"><p>私有 repo 也可能因為權限誤設、成員離職、日後轉公開而外洩。<strong>機密就是機密，不論 repo 公開與否都不該進版本控制。</strong> 養成一致的習慣，不要賭。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>機密（API Key、密碼、.env）<strong>絕不進版本控制</strong>，用 <code>.gitignore</code> 排除、從環境變數讀取、附 <code>.env.example</code> 給隊友。核心觀念：Git 記住一切，刪檔案救不了外洩——<strong>外洩第一步永遠是作廢金鑰</strong>。用 gitleaks/git-secrets 在 commit 前自動攔截，開啟 GitHub Secret Scanning。清歷史是核彈級操作，團隊專案要謹慎溝通。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>為什麼「commit 了金鑰、下個 commit 刪掉」沒有用？</summary><div class="qa-body"><p>因為 Git 記住每個版本，金鑰永遠留在歷史某個 commit 裡，任何人翻歷史都找得到。而且 GitHub 上有爬蟲即時掃描新 push 的金鑰。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>發現金鑰外洩，第一步該做什麼？</summary><div class="qa-body"><p><strong>立刻作廢那把金鑰、產生新的</strong>（假設已外洩）。刪檔案、清歷史都是次要——刪檔案救不了已經外流的東西。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>機密的正確管理方式是什麼？</summary><div class="qa-body"><p>放在 <code>.env</code>／環境變數，用 <code>.gitignore</code> 排除，<strong>絕不進版本控制</strong>；程式從環境讀取而非寫死；附一份沒有真值的 <code>.env.example</code> 給隊友。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>在測試專案把一個假金鑰寫進 <code>.env</code>，並確認 <code>.gitignore</code> 有排除它（檔案總管顯示灰色）。</li>
+<li>寫一小段 Python，用 <code>os.environ[...]</code> 從環境變數讀金鑰，而不是寫死在程式裡。</li>
+<li>了解 gitleaks 或 git-secrets，思考如何在 commit 前自動攔截金鑰。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-16.html"><small>← 上一課</small><span>版本號、Git Tag 與 GitHub Release 發布流程</span></a><a class="pg pg-next" href="lesson-18.html"><small>下一課 →</small><span>Git LFS：管理大型模型、圖片與影片</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

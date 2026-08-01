@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 14 課 Pull Request 與 Code Review：公司協作的心臟｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li class="active"><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元四 · 企業級開發流程</div><h1>第 14 課 · Pull Request 與 Code Review：公司協作的心臟</h1><p class="lesson-sub">程式碼不是自己 merge，而是開 PR 請人審完再合——這是企業開發的核心儀式。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>在公司，你<strong>幾乎不會</strong>自己 <code>git merge</code> 進 main 然後 push。取而代之的流程是：</p>
+<ol>
+<li>在自己的 <code>feature</code> 分支開發、push 到 GitHub。</li>
+<li>開一個 <strong>Pull Request（PR）</strong>：正式提出「我想把這條分支合併進 main，請大家看看」。</li>
+<li>隊友做 <strong>Code Review</strong>：讀你的程式碼、留意見、要求修改或按讚。</li>
+<li>通過 review（可能還要 CI 測試通過）後，才在 GitHub 上按 <strong>Merge</strong> 合併。</li>
+</ol>
+<p><strong>為什麼要這麼麻煩？</strong> 因為 PR + Code Review 帶來四個公司極重視的價值：</p>
+<ul>
+<li><strong>品質把關</strong>：至少有第二雙眼睛看過，減少 bug 和爛設計上線。</li>
+<li><strong>知識傳遞</strong>：team 成員互相了解彼此在做什麼，不會有人變成「只有他懂的黑箱」。</li>
+<li><strong>可追溯</strong>：每個改動都有討論紀錄、關聯的 issue、為什麼這樣做的理由。</li>
+<li><strong>保護主線</strong>：搭配分支保護，沒 review 過的程式碼進不了 main。</li>
+</ul>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — PR 是 GitHub 的功能，不是 Git 指令</div><div class="callout-body"><p>Git 本身只有 branch 和 merge。<strong>Pull Request 是 GitHub（以及 GitLab 的 Merge Request）在 Git 之上加的協作機制。</strong> 它把「合併」變成一個可以討論、審查、留言、跑自動測試的流程，而不只是一個指令。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 的第一個 PR</div><div class="callout-body"><p>Tom 做完登入功能，push 了 <code>feature/login</code>。他在 GitHub 開 PR，標題 <code>feat: 加入使用者登入</code>，內文寫清楚做了什麼、怎麼測試、附上截圖，並指定 Alice 當 reviewer。</p>
+<p>Alice 逐行看，留了三個 comment：一個指出密碼沒加密、一個建議變數改名、一個純稱讚。Tom 根據意見在同一條分支再 commit、push，PR 會<strong>自動更新</strong>。Alice 再看一次，按下 <strong>Approve</strong>。CI 測試也綠燈，Tom 按 <strong>Squash and merge</strong>，登入功能正式進入 main。分支自動刪除，乾淨俐落。</p>
+<p>Bob 說：「你看，你的密碼漏洞在上線前就被擋下來了。這就是為什麼我們堅持 review。」</p></div></div>
+<h2 id="3-實際流程與指令">3. 實際流程與指令</h2>
+<p>PR 本身在 GitHub 網站上操作，但前置的 Git 動作是：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 1. 開分支開發
+git switch -c feature/login
+# ...寫程式、commit...
+
+# 2. 推到 GitHub
+git push -u origin feature/login
+
+# 3. 到 GitHub，它會跳出 "Compare &amp; pull request" 按鈕，點下去開 PR
+#    填標題、說明、reviewer
+
+# 4. 若 reviewer 要求修改，在同分支繼續改
+git add .
+git commit -m "fix: 依 review 意見加密密碼"
+git push          # PR 自動更新，不用重開
+
+# 5. 通過後在 GitHub 按 Merge，然後本地同步
+git switch main
+git pull
+git branch -d feature/login    # 刪掉本地用完的分支</code></pre></div>
+<p><strong>GitHub 上的三種合併方式（按 Merge 時可選）：</strong></p>
+<div class="tablewrap"><table><thead><tr><th>方式</th><th>效果</th><th>適合</th></tr></thead><tbody><tr><td><strong>Create a merge commit</strong></td><td>保留分支所有 commit + 一個 merge commit</td><td>想保留完整開發歷史</td></tr><tr><td><strong>Squash and merge</strong></td><td>把整條分支壓成一個乾淨 commit</td><td>最流行，主線歷史乾淨</td></tr><tr><td><strong>Rebase and merge</strong></td><td>把 commit 一直線接上，無 merge commit</td><td>想要線性歷史又保留每個 commit</td></tr></tbody></table></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 在 VS Code 裡開 PR 與做 Review</div><div class="callout-body"><p>安裝官方 <strong>GitHub Pull Requests</strong> 擴充套件後：</p>
+<ol>
+<li>push 分支後，VS Code 會跳出 <strong>Create Pull Request</strong> 按鈕，直接在編輯器裡填標題、說明、選 reviewer。</li>
+<li>左側會多一個 <strong>GitHub</strong> 面板，列出所有 PR。點開任一 PR 可看 diff、留言、Approve。</li>
+<li>身為 reviewer，你可以在程式碼的任一行直接留 comment，甚至用 <strong>Suggested Change</strong> 直接建議改法，作者一鍵就能採納。</li>
+<li>全程不用開瀏覽器，Code Review 在編輯器裡完成。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<p><strong>當 PR 作者（發起者）：</strong></p>
+<ul>
+<li><strong>PR 要小</strong>：一個 PR 專注一件事，幾百行以內最好 review。上千行的 PR 沒人想看、也看不出問題。</li>
+<li><strong>寫清楚說明</strong>：做了什麼、為什麼、怎麼測試、影響範圍。附截圖或錄影對 UI 改動特別加分。</li>
+<li><strong>自己先 review 一遍</strong>：開 PR 前先看自己的 diff，把 <code>print</code>、註解掉的爛 code、typo 清掉。</li>
+<li><strong>關聯 issue</strong>：內文寫 <code>Closes #123</code>，merge 後自動關閉。</li>
+</ul>
+<p><strong>當 Reviewer（審查者）：</strong></p>
+<ul>
+<li><strong>對事不對人</strong>：評論程式碼，不是評論人。用「這裡建議…」而非「你怎麼又…」。</li>
+<li><strong>分清「必須改」和「建議」</strong>：明確標示哪些是 blocking（一定要改）、哪些只是 nitpick（小建議）。</li>
+<li><strong>及時 review</strong>：別讓隊友的 PR 卡好幾天，會拖垮整個團隊節奏。</li>
+<li><strong>看重點</strong>：正確性、安全性、可讀性、有沒有測試。排版那種交給自動工具（formatter）。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 分支保護規則（Branch Protection）</div><div class="callout-body"><p>公司通常在 GitHub 設定裡把 main 設為受保護：<strong>禁止直接 push、PR 必須至少 N 人 approve、CI 必須通過才能 merge。</strong> 這用制度確保「沒 review、沒過測試的程式碼絕對進不了主線」，是企業品質控管的基石。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — PR 顯示一堆和我無關的 commit / 衝突</div><div class="callout-body"><p>通常是你的分支落後 main 太多。把 main 的最新變動併進你的分支再 push：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git switch feature/login
+git pull origin main      # 或 git rebase origin/main（見第 11 課鐵律）
+# 解決衝突後
+git push</code></pre></div>
+<p>PR 的 diff 就會乾淨，只剩你真正的改動。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — Reviewer 要求改，但我已經在做別的分支</div><div class="callout-body"><p>沒關係，隨時可以切回 PR 的分支修改：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git switch feature/login
+# 改、commit、push，PR 會自動更新</code></pre></div>
+<p>不用重開 PR。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 別把 review 意見當成人身攻擊</div><div class="callout-body"><p>新人常對 review 意見玻璃心。心態調整：<strong>被 review 出問題是好事，代表問題在上線前被擋下來了。</strong> 資深工程師的程式碼一樣天天被 review、被挑錯。這是團隊互相把關，不是針對你。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>企業流程：feature 分支 → push → 開 PR → Code Review → 通過 → 在 GitHub 按 Merge（常用 Squash and merge）。PR 是 GitHub 加在 Git 上的協作機制，帶來品質、知識、可追溯、保護主線四大價值。PR 要小、說明要清楚、review 對事不對人。main 用分支保護強制走這流程。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>公司裡合併進 main 的正確流程是什麼？（不是自己 git merge）</summary><div class="qa-body"><p>在 feature 分支開發 → push → 開 <strong>Pull Request</strong> → 隊友 <strong>Code Review</strong> → 通過（且 CI 綠燈）→ 在 GitHub 按 <strong>Merge</strong>。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>Pull Request 是 Git 指令還是 GitHub 功能？</summary><div class="qa-body"><p>是 <strong>GitHub 功能</strong>（GitLab 叫 Merge Request）。Git 本身只有 branch 和 merge，PR 是在其上加的「可討論、審查、跑測試」的協作機制。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>當 PR 作者，為什麼「PR 要小」很重要？</summary><div class="qa-body"><p>小 PR（幾百行內）才容易被 review、才看得出問題；上千行的 PR 沒人想看也看不出問題，品質把關會失效。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>push 一條分支，到 GitHub 開一個 PR，練習寫清楚的標題與說明（做了什麼、怎麼測）。</li>
+<li>想像你是 reviewer，對一段程式碼寫一則「對事不對人」的 comment。</li>
+<li>了解你常用 repo 的合併方式：Merge commit / Squash / Rebase，各自的差別。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-13.html"><small>← 上一課</small><span>連上 GitHub：clone、remote、push、pull、fetch</span></a><a class="pg pg-next" href="lesson-15.html"><small>下一課 →</small><span>Fork 與 Upstream：參與開源專案</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

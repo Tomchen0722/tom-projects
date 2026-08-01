@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 07 課 查看歷史、比較差異、還原檔案｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li class="active"><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元二 · 單人基本操作</div><h1>第 7 課 · 查看歷史、比較差異、還原檔案</h1><p class="lesson-sub">log、diff、restore、checkout——安全地在時間線上來回穿梭。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>Git 最大的價值之一，是<strong>你隨時可以問它「這裡到底改了什麼」和「帶我回到過去某個版本」</strong>。這一課教你四種穿梭時間的能力：</p>
+<ul>
+<li><strong>看歷史</strong>（<code>git log</code>）：這條時間線上有哪些快照。</li>
+<li><strong>比差異</strong>（<code>git diff</code>）：兩個時間點之間，到底改了哪幾行。</li>
+<li><strong>還原檔案</strong>（<code>git restore</code>）：把某個檔案退回過去的樣子。</li>
+<li><strong>看舊版本</strong>（<code>git checkout 舊commit</code>）：整個專案暫時跳回過去看看。</li>
+</ul>
+<p>理解「Git 把每個版本都完整存著」，你就會明白：<strong>回到過去不是奇蹟，是 Git 的本分。</strong></p>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 「昨天還好好的，今天壞了」</div><div class="callout-body"><p>Tom 的程式今天突然壞掉，但他不記得改了什麼。Alice 教他：「用 <code>git log</code> 看看今天的 commit，再用 <code>git diff</code> 比對昨天能動的版本和現在，差異一目了然。」</p>
+<p>Tom 一比，發現自己昨晚手滑刪掉了一行關鍵設定。他用 <code>git restore</code> 把那個檔案退回昨天的版本，程式立刻復活。整個過程不到兩分鐘——這在沒有 Git 的年代是不可能的。</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p><strong>看歷史：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git log                    # 完整歷史（按 q 離開）
+git log --oneline          # 每個 commit 一行（最常用）
+git log --oneline --graph  # 加上分支圖形
+git log -3                 # 只看最近 3 個
+git log --author="Tom"     # 只看 Tom 的 commit
+git log 檔名               # 只看某檔案的歷史</code></pre></div>
+<p><strong>比差異：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git diff                   # 工作區 vs 暫存區（還沒 add 的改動）
+git diff --staged          # 暫存區 vs 上次 commit（已 add、將被 commit 的）
+git diff HEAD              # 工作區 vs 上次 commit（所有還沒 commit 的改動）
+git diff a1b2c3d HEAD      # 某個舊 commit 和現在的差異
+git diff main feature      # 兩個分支的差異</code></pre></div>
+<p>diff 的讀法：<code>-</code> 開頭紅色行是「刪掉的」，<code>+</code> 開頭綠色行是「新增的」。</p>
+<p><strong>還原檔案（退回過去的樣子）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 丟棄工作區某檔案還沒 commit 的改動（退回上次 commit）
+git restore 檔名
+
+# 把某檔案退回「特定 commit」時的樣子
+git restore --source=a1b2c3d 檔名</code></pre></div>
+<p><strong>整個專案跳回過去看看（唯讀地參觀歷史）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 跳到某個舊 commit（會進入 detached HEAD 狀態）
+git checkout a1b2c3d
+
+# 看完要回到最新版
+git switch -    # 或 git checkout main</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — checkout 舊 commit 會進入 &quot;detached HEAD&quot;</div><div class="callout-body"><p>跳到舊 commit 時，Git 會警告你進入「detached HEAD（分離頭指標）」狀態——意思是「你正站在歷史中間，不在任何分支上」。<strong>這時只是參觀，別急著改東西</strong>。看完用 <code>git switch main</code> 回到最新即可。若真的想從這個舊點開新分支開發，用 <code>git switch -c 新分支名</code>。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 圖形化看歷史與差異（超直覺）</div><div class="callout-body"><ol>
+<li><strong>看單一檔案改了什麼</strong>：在 Source Control 面板點該檔案，右側並排顯示前後對照，紅刪綠增，比終端機清楚太多。</li>
+<li><strong>看整份歷史</strong>：安裝 <strong>GitLens</strong> 後，左側有 <strong>Commits / File History</strong> 檢視，點任一 commit 就能看它改了什麼。</li>
+<li><strong>逐行追溯</strong>：GitLens 會在每行程式碼尾端淡淡顯示「這行是誰哪個 commit 改的」，點下去看完整 commit——查「這行為什麼長這樣」神器。</li>
+<li><strong>還原檔案</strong>：在 Source Control 面板某個改動的檔案上右鍵 → <strong>Discard Changes</strong>（= <code>git restore</code>）。</li>
+<li><strong>Timeline 面板</strong>：檔案總管下方的 Timeline 會列出該檔案的所有版本，點兩個版本即可比對。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>除錯先看 diff 和 log</strong>：「什麼時候壞的、誰改的、改了什麼」通常 <code>git log</code> + <code>git diff</code> 就能回答，不用瞎猜。</li>
+<li><strong>善用 <code>git blame</code> 追來源</strong>：<code>git blame 檔名</code> 會標出每一行的最後修改者與 commit，是理解陌生程式碼的利器（VS Code 的 GitLens 把它變得無痛）。</li>
+<li><strong>參觀歷史別亂改</strong>：detached HEAD 下的改動很容易遺失，要開發就先開分支。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 進階：git bisect 二分搜尋找出問題 commit</div><div class="callout-body"><p>當「不知道哪個 commit 弄壞的」而歷史又很長時，<code>git bisect</code> 能用二分法幫你快速定位：你標一個「好」的舊版和「壞」的新版，Git 自動幫你跳到中間，你測試後回答好或壞，幾步就能找到罪魁禍首。這在大型專案除錯非常強大。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 用 restore 丟棄了不該丟的改動</div><div class="callout-body"><p>如果改動<strong>從沒 commit 過</strong>，<code>git restore</code> 丟掉後 Git 救不回來（它沒被記錄）。所以不確定時，寧可先 commit 起來。若改動<strong>曾經 commit 過</strong>，一定能從 <code>git log</code> / <code>git reflog</code> 找回來。這也是「常 commit」的好處——commit 過的東西幾乎都能救。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — checkout 舊版後回不去了 / 找不到最新</div><div class="callout-body"><p>別慌，用：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git switch main      # 回到 main 分支最新狀態</code></pre></div>
+<p>如果剛剛在 detached HEAD 改了東西還想留下，先 <code>git switch -c 暫存分支</code> 把它保存成分支，再處理。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 新舊指令對照</div><div class="callout-body"><p>Git 較新的版本把老指令 <code>git checkout</code> 的功能拆成兩個更清楚的指令：<code>git switch</code>（切換分支）和 <code>git restore</code>（還原檔案）。老教學裡的 <code>git checkout 檔名</code>＝<code>git restore 檔名</code>；<code>git checkout 分支</code>＝<code>git switch 分支</code>。兩套都能用，本教材優先教新的、比較不會誤用。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p><code>git log</code> 看歷史、<code>git diff</code> 比差異、<code>git restore</code> 還原檔案、<code>git switch/checkout</code> 切換版本。除錯的黃金組合是 log + diff + blame。VS Code + GitLens 讓這一切變得無痛。記住：commit 過的幾乎都救得回來。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>要看「還沒 add 的改動」和「已 add 待 commit 的改動」，分別用什麼指令？</summary><div class="qa-body"><p><code>git diff</code>（工作區 vs 暫存區，還沒 add 的）；<code>git diff --staged</code>（暫存區 vs 上次 commit，已 add 的）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>checkout 一個舊 commit 會進入什麼狀態？該注意什麼？</summary><div class="qa-body"><p>進入 <strong>detached HEAD（分離頭指標）</strong>——你站在歷史中間、不在任何分支上。此時只是「參觀」，別急著改東西；看完 <code>git switch main</code> 回到最新。要在此開發就先開分支。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>`git switch` 和 `git restore` 各自取代了老指令 `git checkout` 的哪個功能？</summary><div class="qa-body"><p><code>git switch</code> = 切換分支；<code>git restore</code> = 還原檔案。新指令把老 <code>checkout</code> 的兩種用途拆得更清楚、更不易誤用。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>改一個檔案但先別 add，用 <code>git diff</code> 看綠增紅刪；<code>git add</code> 後改用 <code>git diff --staged</code> 看。</li>
+<li>用 <code>git log --oneline --graph</code> 看你目前的歷史圖。</li>
+<li>checkout 一個舊 commit 感受 detached HEAD，再 <code>git switch main</code> 回來。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-06.html"><small>← 上一課</small><span>Commit Message 撰寫規範：Conventional Commits</span></a><a class="pg pg-next" href="lesson-08.html"><small>下一課 →</small><span>VS Code 圖形介面完整操作（不背指令也能用 Git）</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

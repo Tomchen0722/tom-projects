@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 18 課 Git LFS：管理大型模型、圖片與影片｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li class="active"><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元四 · 企業級開發流程</div><h1>第 18 課 · Git LFS：管理大型模型、圖片與影片</h1><p class="lesson-sub">為什麼大檔不能直接進 Git，以及 AI 專案怎麼正確處理權重和資料。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>Git 是為<strong>文字檔（程式碼）</strong>設計的，它擅長記錄「哪幾行改了」。但對於<strong>大型二進位檔</strong>（模型權重 <code>.safetensors</code>、影片、高解析圖片、資料集），Git 會出大問題：</p>
+<ul>
+<li><strong>每個版本都完整存一份</strong>：你改一次 500MB 的模型，Git 就多存一整份 500MB。改十次，repo 就肥了 5GB，而且<strong>永遠瘦不回來</strong>（歷史裡都留著）。</li>
+<li><strong>clone 變超慢</strong>：新成員 clone 要下載整個肥大歷史，等到天荒地老。</li>
+<li><strong>GitHub 有檔案大小限制</strong>：單檔超過 100MB 會被 GitHub 直接拒絕 push。</li>
+</ul>
+<p><strong>Git LFS（Large File Storage）</strong> 就是解法。它的原理很聰明：<strong>在 Git 裡只存一個很小的「指標檔」（幾百位元組，記錄這個大檔的雜湊值和大小），真正的大檔內容存到另外的 LFS 伺服器。</strong> 你 checkout 時，LFS 才把對應的大檔內容抓下來。</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>一般 Git：              Git LFS：
+repo 裡直接塞 500MB      repo 裡只有 130 bytes 的指標
+每版都存整份 →肥         大檔存 LFS 伺服器，只抓需要的版本</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 一句話：Git 存指標，LFS 存內容</div><div class="callout-body"><p>LFS 讓大檔「看起來在 Git 裡」，實際內容存在別的地方，repo 保持輕巧。你的日常操作（add/commit/push/pull）幾乎不變，LFS 在背後自動處理大檔。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — AI 專案的模型檔災難</div><div class="callout-body"><p>Tom 的團隊做 AI 專案，他把訓練好的 1.2GB 模型 <code>model.safetensors</code> 直接 <code>git add</code> 進 repo。push 時 GitHub 直接拒絕（超過 100MB）。就算沒被拒，每次重新訓練換模型，repo 就多存 1.2GB，一個月後 repo 膨脹到 30GB，Bob 新來要 clone，跑了一小時還沒好。</p>
+<p>Alice 導入 Git LFS：設定 <code>*.safetensors</code> 由 LFS 管理。從此模型檔只在 repo 留小指標，實體存 LFS。repo 回到輕巧，clone 幾秒完成，需要哪個版本的模型才抓哪個。Tom 學到：<strong>大檔要嘛用 LFS，要嘛根本不進 Git（放雲端儲存，用連結引用）。</strong></p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 1. 安裝 Git LFS（一台電腦裝一次）
+git lfs install
+
+# 2. 告訴 LFS 要管理哪些類型的檔案（會寫進 .gitattributes）
+git lfs track "*.safetensors"
+git lfs track "*.ckpt"
+git lfs track "*.pt"
+git lfs track "*.psd"
+git lfs track "*.mp4"
+
+# 3. 一定要把 .gitattributes 也 commit（隊友才會套用同樣規則）
+git add .gitattributes
+git commit -m "chore: 設定 Git LFS 管理模型與影片檔"
+
+# 4. 之後正常 add/commit/push 大檔，LFS 自動接管
+git add model.safetensors
+git commit -m "feat: 加入訓練好的模型 v1"
+git push
+
+# 查看目前被 LFS 管理的檔案
+git lfs ls-files
+
+# 查看 track 規則
+git lfs track</code></pre></div>
+<p><code>.gitattributes</code> 檔案內容長這樣（LFS 靠它判斷哪些檔案要用 LFS）：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>*.safetensors filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 順序很重要：先 track，再 add 大檔</div><div class="callout-body"><p>LFS 只會接管「設定 track 之後才加入」的檔案。如果大檔在你設定 LFS <strong>之前</strong>就已經 commit 進普通 Git 了，光設定 track 不會把它移到 LFS，還得用 <code>git lfs migrate</code> 改寫歷史。所以最佳做法是<strong>專案一開始就設好 LFS track</strong>。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — LFS 與 VS Code</div><div class="callout-body"><p>Git LFS 主要靠指令和 <code>.gitattributes</code> 設定，VS Code 沒有專門的 LFS 圖形介面，但：</p>
+<ol>
+<li>設好 LFS 後，日常在 VS Code 的 Source Control 面板 add/commit/push 大檔，LFS 會自動運作，操作和一般檔案無異。</li>
+<li>被 LFS 管理的檔案，commit 的其實是小指標檔，diff 面板會顯示 LFS 指標資訊而非二進位內容。</li>
+<li>記得確認 <code>.gitattributes</code> 有被納入版本控制（它會出現在檔案總管，別忽略它）。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>專案初期就規劃大檔策略</strong>：一開始就設好 LFS track，或決定「大檔一律不進 repo」。事後補救很痛。</li>
+<li><strong>三種大檔處置方式，依情況選</strong>：</li>
+<ul>
+<li><strong>Git LFS</strong>：需要版本控制、且和程式碼綁在一起的大檔（設計稿、必要的模型）。</li>
+<li><strong>雲端物件儲存</strong>（S3、GCS、HuggingFace Hub）：大型資料集、模型權重，用腳本或 URL 下載，repo 只存下載連結。</li>
+<li><strong>完全 gitignore</strong>：訓練產生的中間檔、快取，根本不需要版本控制。</li>
+</ul>
+<li><strong>注意 LFS 有配額</strong>：GitHub 的 LFS 免費額度有限（儲存空間與流量），超過要付費。大團隊要留意成本，很多 AI 團隊因此偏好用 HuggingFace / S3 而非 LFS。</li>
+<li><strong>commit <code>.gitattributes</code></strong>：這是 LFS 規則的來源，不 commit 的話隊友的大檔會變成普通 Git 檔。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — AI／ML 專案的典型分工</div><div class="callout-body"><ul>
+<li>程式碼、設定、<code>.gitattributes</code> → 普通 Git。</li>
+<li>少量必要的模型、設計稿 → Git LFS。</li>
+<li>大型資料集、大量 checkpoint → HuggingFace Hub 或 S3，repo 只放下載腳本。</li>
+<li>訓練輸出、log、快取 → <code>.gitignore</code> 直接排除。</li>
+</ul>
+<p>這樣 repo 輕巧、協作順暢、成本可控。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 大檔已經進了普通 Git，想改用 LFS</div><div class="callout-body"><p>用 <code>git lfs migrate</code> 把歷史裡的大檔轉成 LFS（會改寫歷史，團隊需協調、重新 clone）：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git lfs migrate import --include="*.safetensors"</code></pre></div></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — clone 下來大檔只有指標、不是真檔</div><div class="callout-body"><p>可能是 LFS 沒裝或沒抓內容。執行：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git lfs install      # 確認 LFS 已安裝
+git lfs pull         # 把 LFS 大檔的實際內容抓下來</code></pre></div></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — push 被擋：檔案超過 100MB</div><div class="callout-body"><p>代表這個大檔沒走 LFS（直接進了普通 Git）。要先設好 LFS track、把該檔改由 LFS 管理（可能需 migrate 或把它從這次 commit 移除改走 LFS），再 push。GitHub 對單檔硬性上限 100MB。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>Git 不適合大型二進位檔（每版存整份、會撐爆 repo、GitHub 限 100MB）。Git LFS 讓 repo 只存小指標、大檔內容存 LFS 伺服器。用 <code>git lfs track "*.副檔名"</code> 設定並<strong>務必 commit <code>.gitattributes</code></strong>，最好專案一開始就設好。大檔三種選擇：LFS、雲端儲存、直接 gitignore。AI 團隊常因 LFS 配額成本改用 HuggingFace / S3。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>為什麼大型二進位檔（模型、影片）不適合直接進 Git？</summary><div class="qa-body"><p>Git 每個版本都完整存一份，改一次大檔就多存一整份、且歷史裡永遠瘦不回來，會撐爆 repo、拖慢 clone；GitHub 還限制單檔 100MB。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>Git LFS 的原理是什麼？（一句話）</summary><div class="qa-body"><p>Git 裡只存一個很小的「指標檔」，真正的大檔內容存到 LFS 伺服器，checkout 時才抓下來——<strong>Git 存指標，LFS 存內容</strong>。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>設定 LFS 時，除了 `git lfs track`，還有哪個檔案一定要 commit？為什麼？</summary><div class="qa-body"><p><code>.gitattributes</code>。它記錄了 LFS 的 track 規則，不 commit 的話隊友不會套用同樣規則，大檔會變成普通 Git 檔。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>（若已裝 LFS）在測試 repo 執行 <code>git lfs track "*.mp4"</code>，觀察 <code>.gitattributes</code> 內容。</li>
+<li>列出 AI 專案的四種檔案，分別歸類該用：普通 Git / LFS / 雲端儲存 / gitignore。</li>
+<li>想想為什麼很多 AI 團隊寧可用 HuggingFace/S3 而非 LFS（提示：配額成本）。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-17.html"><small>← 上一課</small><span>資安：別讓 API Key 與 .env 被推上 GitHub</span></a><a class="pg pg-next" href="lesson-19.html"><small>下一課 →</small><span>GitHub Actions：自動測試與自動部署（CI/CD）</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

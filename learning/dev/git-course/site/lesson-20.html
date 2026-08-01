@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 20 課 Git 事故救援大全：做錯了怎麼救｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li class="active"><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元五 · 事故救援大全</div><h1>第 20 課 · Git 事故救援大全：做錯了怎麼救</h1><p class="lesson-sub">reflog 是你的時光機——push 錯分支、誤刪 commit、誤 merge、reset 弄丟東西，一課全收錄。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>這一課是整套教材的「安心保證」。學會它，你操作 Git 時就不會綁手綁腳，因為你知道<strong>幾乎所有事故都能救</strong>。</p>
+<p>救援的核心武器是 <strong><code>git reflog</code>（reference log，引用日誌）</strong>。它記錄了你在本機<strong>每一次 HEAD 的移動</strong>——每次 commit、切分支、merge、rebase、reset 都會留下一筆，附上當時的 commit hash。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — reflog 就是 Git 的「時光機黑盒子」</div><div class="callout-body"><p>即使你 <code>reset --hard</code> 把 commit「刪掉」，那個 commit 其實還在 Git 的資料庫裡（只是沒有指標指向它），而 reflog 記著它的 hash。只要知道 hash，就能把分支指標移回去、或開新分支救回來。<strong>commit 過的東西，幾乎都能靠 reflog 找回。</strong> 這是本課最重要的觀念。</p></div></div>
+<p><strong>救援的黃金三原則：</strong></p>
+<ol>
+<li><strong>先停手、別再亂操作</strong>：出事時最怕慌張地再下一堆指令，把情況弄更複雜。先深呼吸。</li>
+<li><strong>先看清楚狀態</strong>：<code>git status</code>、<code>git log --oneline</code>、<code>git reflog</code> 三連看，搞清楚現在到底在哪。</li>
+<li><strong>已 push 的用「安全」手段（revert）、沒 push 的才用「改寫」手段（reset）</strong>：不確定是否影響別人時，選不改寫歷史的做法。</li>
+</ol>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 的災難日與救援</div><div class="callout-body"><p>Tom 一個早上出了四次包，每次都以為完蛋了，結果每次都被救回來：</p>
+<ol>
+<li>把功能 push 到了錯的分支 → 用 revert / cherry-pick 搬正。</li>
+<li><code>reset --hard</code> 弄丟了兩個 commit → 用 reflog 撈回。</li>
+<li>merge 錯分支合進一堆垃圾 → 用 revert 抵銷。</li>
+<li>分支刪錯 → 用 reflog 找回 hash 重建。</li>
+</ol>
+<p>Alice 全程只說了一句話：「Git 很難真的弄丟東西，只要你 commit 過。先 <code>git reflog</code>，答案通常就在裡面。」下面把這些情境的解法逐一收錄，當成你的急救手冊。</p></div></div>
+<h2 id="3-救援手冊-常見事故逐一擊破">3. 救援手冊：常見事故逐一擊破</h2>
+<h3 id="事故-A-commit-訊息打錯-漏了檔案">事故 A：commit 訊息打錯 / 漏了檔案</h3>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 改最後一個 commit 的訊息（還沒 push）
+git commit --amend -m "正確訊息"
+
+# 補一個漏掉的檔案進上一個 commit
+git add 漏掉的檔案
+git commit --amend --no-edit</code></pre></div>
+<h3 id="事故-B-commit-了但想-反悔最後幾個-commit">事故 B：commit 了但想「反悔最後幾個 commit」</h3>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 沒 push：把最後 1 個 commit 退回工作區（改動還在，可重做）
+git reset --soft HEAD~1     # 保留在暫存區
+git reset HEAD~1            # 保留在工作區（預設）
+
+# 已 push（別人可能拉了）：用 revert 產生反向 commit，安全
+git revert HEAD</code></pre></div>
+<h3 id="事故-C-reset-hard-或誤刪-commit-不見了-reflog-救回">事故 C：<code>reset --hard</code> 或誤刪，commit 不見了 → reflog 救回</h3>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 1. 看 reflog，找到「弄丟前」那個狀態的 hash
+git reflog
+# 畫面會像：
+#   a1b2c3d HEAD@{0}: reset: moving to HEAD~2
+#   f4e5d6c HEAD@{1}: commit: 我不小心弄丟的重要功能   ← 就是這個！
+
+# 2a. 把目前分支拉回那個狀態
+git reset --hard f4e5d6c
+
+# 2b. 或更保險：從那個 hash 開一條救援分支
+git switch -c rescue f4e5d6c</code></pre></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — reflog 是誤刪 commit 的萬用解</div><div class="callout-body"><p>只要那個 commit 曾經存在於你本機（你 commit 過、或曾 checkout 過），reflog 裡就找得到它的 hash。這適用於：reset 弄丟、rebase 搞砸、分支刪錯、amend 覆蓋掉舊 commit……幾乎所有「commit 消失」的情境。</p></div></div>
+<h3 id="事故-D-push-到了錯的分支">事故 D：push 到了錯的分支</h3>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 情況：本來要 push 到 feature/login，卻 push 到了 main
+
+# 1. 切到收到錯誤 commit 的分支（main）
+git switch main
+
+# 2a. 若那些 commit 還沒被別人拉走、且 main 允許改寫：
+git reset --hard origin/main~N     # N = 誤推的 commit 數，退回乾淨狀態
+git push --force-with-lease        # 謹慎更新（共用 main 通常禁止，需先問團隊）
+
+# 2b. 若 main 是受保護 / 已被別人拉走（較安全，推薦）：
+git revert &lt;那幾個commit&gt;          # 在 main 上抵銷它們
+git push
+
+# 3. 把那些改動放回「正確的分支」
+git switch feature/login
+git cherry-pick &lt;那幾個commit&gt;     # 把它們挑到對的分支
+git push</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 在共用 main 上，優先用 revert 而非 force</div><div class="callout-body"><p>如果誤推的分支是團隊共用的 main，且別人可能已經 pull，<strong>不要 force</strong>（會把別人的歷史弄亂）。用 <code>revert</code> 抵銷、再 cherry-pick 到正確分支，是最安全的組合。</p></div></div>
+<h3 id="事故-E-誤-merge-把不該合的分支合進來了">事故 E：誤 merge（把不該合的分支合進來了）</h3>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 還沒 push：直接退回合併前
+git reset --hard HEAD~1
+
+# 已 push：用 revert 撤銷合併（合併 commit 要加 -m 1 指定保留主線那邊）
+git revert -m 1 &lt;merge-commit-hash&gt;
+git push</code></pre></div>
+<h3 id="事故-F-改到一半發現改錯檔案-想全部丟棄回到上次-commit">事故 F：改到一半發現改錯檔案，想全部丟棄回到上次 commit</h3>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 丟棄單一檔案的未commit改動
+git restore 檔名
+
+# 丟棄所有未commit改動（危險，沒commit的會消失）
+git restore .
+# 或
+git reset --hard HEAD</code></pre></div>
+<h3 id="事故-G-切分支前忘了處理改動-或想把改動移到別的分支">事故 G：切分支前忘了處理改動，或想把改動移到別的分支</h3>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 把當前未commit的改動暫存，切到對的分支再拿回來
+git stash
+git switch 正確的分支
+git stash pop</code></pre></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 圖形化救援</div><div class="callout-body"><ul>
+<li><strong>看 reflog / 歷史找回 commit</strong>：<strong>GitLens</strong> 或 <strong>Git Graph</strong> 能看到比 <code>git log</code> 更完整的歷史；Git Graph 裡在任一 commit 右鍵 → <strong>Reset to this Commit</strong> 或 <strong>Create Branch here</strong>，等於圖形化的 reflog 救援。</li>
+<li><strong>Revert</strong>：Git Graph 裡 commit 右鍵 → <strong>Revert Commit</strong>，安全撤銷。</li>
+<li><strong>Discard / Restore</strong>：Source Control 面板檔案右鍵 → Discard Changes。</li>
+<li><strong>Stash</strong>：Source Control ⋯ → Stash / Pop Stash。</li>
+<li><strong>提醒</strong>：<code>git reflog</code> 這種救命指令，終端機仍是最完整可靠的。圖形工具是輔助，出大事時別排斥打指令。</li>
+</ul></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>出事先溝通，別自己硬幹</strong>：尤其牽涉共用分支（main）時，一個人默默 force push 可能連累全隊。先在群組說一聲。</li>
+<li><strong>共用分支只用「不改寫歷史」的手段</strong>：revert 而非 reset、<code>--force-with-lease</code> 而非 <code>--force</code>、能不 force 就不 force。</li>
+<li><strong>養成小步 commit 的習慣</strong>：commit 越頻繁，reflog 的救援點越多、每次能救回的粒度越細。這是最好的「事前保險」。</li>
+<li><strong>重要操作前先備份分支</strong>：要做 rebase、reset 這類有風險的操作前，先 <code>git branch backup-今天日期</code> 開個備份分支，出事直接切回去，比 reflog 更省心。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 一個讓你永遠不怕的習慣</div><div class="callout-body"><p>在做任何「聽起來很嚇人」的操作（rebase、reset --hard、filter-repo）之前，先開一條備份分支：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git branch backup-before-rebase</code></pre></div>
+<p>這條分支釘住了你「動手前」的狀態。就算主操作全毀，<code>git switch backup-before-rebase</code> 就回到安全點。養成這個習慣，你會敢於嘗試任何進階操作。</p></div></div>
+<h2 id="6-事故對照速查表">6. 事故對照速查表</h2>
+<div class="callout danger"><div class="callout-head">🚨 危險操作 — 危險指令紅色警戒（用前三思）</div><div class="callout-body"><ul>
+<li><code>git reset --hard</code>：丟棄未 commit 的改動，沒 commit 的救不回。</li>
+<li><code>git push --force</code>：覆蓋遠端歷史，共用分支的災難。改用 <code>--force-with-lease</code>。</li>
+<li><code>git clean -fd</code>：刪除所有未追蹤的檔案，Git 完全救不回（它從沒被記錄）。</li>
+<li><code>git filter-repo</code> / 改寫歷史：影響所有隊友，需重新 clone，務必溝通。</li>
+</ul>
+<p>共通原則：<strong>這些操作前先 <code>git status</code> 看清楚、先開 backup 分支、共用分支先問團隊。</strong></p></div></div>
+<div class="tablewrap"><table><thead><tr><th>我做錯了…</th><th>救援指令</th></tr></thead><tbody><tr><td>commit 訊息打錯（沒push）</td><td><code>git commit --amend -m "..."</code></td></tr><tr><td>漏加檔案到上個 commit</td><td><code>git add x &amp;&amp; git commit --amend --no-edit</code></td></tr><tr><td>想撤銷最後 commit（沒push）</td><td><code>git reset HEAD~1</code></td></tr><tr><td>想撤銷最後 commit（已push）</td><td><code>git revert HEAD</code></td></tr><tr><td>reset/rebase 弄丟 commit</td><td><code>git reflog</code> 找 hash → <code>git reset --hard &lt;hash&gt;</code></td></tr><tr><td>push 到錯分支</td><td>錯分支 <code>revert</code> + 正確分支 <code>cherry-pick</code></td></tr><tr><td>誤 merge（已push）</td><td><code>git revert -m 1 &lt;merge-hash&gt;</code></td></tr><tr><td>刪錯分支</td><td><code>git reflog</code> 找 hash → <code>git switch -c 分支 &lt;hash&gt;</code></td></tr><tr><td>改到一半要切分支</td><td><code>git stash</code> → 切 → <code>git stash pop</code></td></tr><tr><td>丟棄所有未commit改動</td><td><code>git restore .</code>（確認後）</td></tr><tr><td>機密被 commit</td><td>先作廢金鑰 → <code>git rm --cached</code> →（必要時）清歷史</td></tr></tbody></table></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 全教材總結</div><div class="callout-body"><p>恭喜你走到最後一課！回顧你的旅程：從「Git 是什麼」與三大區域的原理，到單人的 add/commit/log、.gitignore、commit 規範；再到分支、merge、rebase、四大工具與 GitHub 遠端協作；接著是企業級的 PR/Code Review、Fork、Tag/Release、資安、LFS、CI/CD；最後這一課讓你明白——<strong>Git 幾乎難以真正弄丟東西，reflog 是你的時光機。</strong></p>
+<p>你現在具備了獨立開發、多人協作、參與開源、適應公司工作流程，以及冷靜處理事故的完整能力。剩下的，就是在真實專案裡不斷練習。祝你在工程師的路上，commit 順利、衝突好解、永遠有得救。⎇</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>救援的核心武器是什麼？它記錄了什麼？</summary><div class="qa-body"><p><code>git reflog</code>。它記錄你在本機<strong>每一次 HEAD 的移動</strong>（commit、切分支、merge、rebase、reset…），附上當時的 commit hash。commit 過的東西幾乎都能靠它找回。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>`reset --hard` 弄丟了 commit，怎麼救？</summary><div class="qa-body"><div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git reflog            # 找到弄丟前那個狀態的 hash
+git reset --hard &lt;hash&gt;   # 或 git switch -c rescue &lt;hash&gt;</code></pre></div></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>救援黃金三原則是什麼？</summary><div class="qa-body"><ol>
+<li>先停手別亂操作；2. 先看清楚狀態（status / log / reflog 三連看）；3. 已 push 用安全手段（revert），沒 push 才用改寫手段（reset）。</li>
+</ol></div></details>
+<details class="qa"><summary><span class="qnum">Q4</span>做高風險操作（rebase、reset --hard）前，最省心的保險是什麼？</summary><div class="qa-body"><p>先開一條備份分支：<code>git branch backup-今天日期</code>。出事直接 <code>git switch</code> 回去，比 reflog 更省心。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>故意 <code>git reset --hard HEAD~1</code> 弄丟一個 commit，再用 <code>git reflog</code> + <code>git reset --hard &lt;hash&gt;</code> 救回來。</li>
+<li>用 <code>git revert HEAD</code> 撤銷一個 commit，比較它和 reset 的差別（一個產生新 commit、一個移動指標）。</li>
+<li>把本課最後的「事故對照速查表」存成書籤，真的出事時直接查。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-19.html"><small>← 上一課</small><span>GitHub Actions：自動測試與自動部署（CI/CD）</span></a><a class="pg pg-next" href="index.html"><small>回到 →</small><span>課程首頁</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

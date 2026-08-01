@@ -1,0 +1,142 @@
+# -*- coding: utf-8 -*-
+"""後台分析 — 平台營運後台
+
+使用者角色:平台營運方(非房東)。四分頁對應三大工作情境 + 模型稽核:
+  🔮 模型風險預估 / 🚨 風險管理 / 💰 營收診斷與提升 / 🧪 數據分析
+設計依據:doc/07_平台後台改造設計.md
+"""
+import streamlit as st
+
+from modules import platform_analytics as pa
+from modules import ui_kit
+from modules.platform_sections import (render_market_overview,
+                                       render_risk_management)
+from modules.ui_components import ROOM_JP, inject_css, sidebar_nav
+
+st.set_page_config(page_title="後台分析 — 平台營運後台", page_icon="📊",
+                   layout="wide", initial_sidebar_state="expanded")
+inject_css()
+# 頁面上緣留白沿用全站唯一值(design_tokens.LAYOUT["page_top"] = 1.6rem);
+# 本頁原本另外覆寫成 3.5rem,導致比房東/租客入口多空一截。
+
+
+@st.cache_data(show_spinner=False)
+def _filter_options():
+    """側欄篩選選項(行政區、房型)。"""
+    from modules.feature_engineering import load_predictions
+    d = load_predictions()
+    if d is None:
+        return [], []
+    return (sorted(d["neighbourhood_cleansed"].dropna().unique().tolist()),
+            sorted(d["room_type"].dropna().unique().tolist()))
+
+
+DISTRICTS, ROOMS = _filter_options()
+
+# 四大分頁改用「有狀態切換器」而非 st.tabs:st.tabs 純前端切換,伺服器端
+# 無從得知目前分頁,側欄便無法隨分頁改變。以 segmented_control 綁 session_state,
+# 側欄與內容都能依 pf_active_tab 條件渲染。
+TAB_OVERVIEW = "🔮 模型風險預估"
+TAB_RISK = "🚨 風險管理"
+TAB_REVENUE = "💰 營收診斷與提升"
+TAB_DATA = "🧪 數據分析"
+TABS = [TAB_OVERVIEW, TAB_RISK, TAB_REVENUE, TAB_DATA]
+st.session_state.setdefault("pf_active_tab", TAB_OVERVIEW)
+
+
+def _sidebar_scope_filters():
+    """行政區 / 房型(模型風險預估、風險管理、營收診斷與提升共用的範圍篩選)。"""
+    st.multiselect("行政區", DISTRICTS, default=[], key="pf_districts",
+                   placeholder="不選＝全部行政區")
+    st.multiselect("房型", ROOMS, default=[], key="pf_rooms",
+                   format_func=lambda r: ROOM_JP.get(r, r),
+                   placeholder="不選＝全部房型")
+
+
+def _sidebar_commission():
+    """平台抽成率(僅模型風險預估、營收診斷與提升使用)。"""
+    ui_kit.filter_group("平台抽成率", icon="💰")
+    st.slider("抽成率",
+              int(round(pa.COMMISSION_MIN * 100)),
+              int(round(pa.COMMISSION_MAX * 100)),
+              int(round(pa.COMMISSION_DEFAULT * 100)),
+              1, format="%d%%",
+              key="pf_commission",
+              help="用於把房東端預估年營收換算為平台收入;調整後所有分頁金額即時連動")
+
+
+with st.sidebar:
+    sidebar_nav()
+    _active = st.session_state.get("pf_active_tab", TAB_OVERVIEW)
+
+    if _active == TAB_DATA:
+        # 數據分析為模型稽核頁,不吃任何篩選 → 側欄不放篩選器
+        ui_kit.filter_group("篩選條件", desc="數據分析頁為模型稽核，無需篩選",
+                            icon="🔍")
+    elif _active == TAB_RISK:
+        ui_kit.filter_group("範圍篩選", desc="以下篩選僅套用於「風險管理」分頁",
+                            icon="🔍")
+        _sidebar_scope_filters()
+        st.divider()
+        ui_kit.filter_group("風險篩選", icon="🚨")
+        from modules.risk_cockpit_sections import render_sidebar_filters
+        from modules.platform_sections import load_scope
+        render_sidebar_filters(load_scope())
+    else:  # 模型風險預估 / 營收診斷與提升
+        ui_kit.filter_group("範圍篩選", desc="以下篩選套用於目前分頁", icon="🔍")
+        _sidebar_scope_filters()
+        st.divider()
+        _sidebar_commission()
+
+    st.divider()
+    ui_kit.model_spec()                  # D2:三處共用同一份技術口徑
+
+ui_kit.page_header(
+    "平台營運後台", icon="📊",
+    desc="平台方視角:先看模型風險預估掌握全局，再進風險管理處理個案，"
+         "營收診斷與提升找機會，數據分析查模型可信度")
+
+# 把 segmented_control 偽裝成原本 st.tabs 的「底線分頁」外觀;scope 到本頁
+# 的容器 class(st-key-pf_tabbar),不影響其他頁面的 segmented_control。
+# 顏色全部走 token 變數,不再寫死色碼。
+st.markdown("""
+<style>
+.st-key-pf_tabbar [data-testid="stButtonGroup"]{
+  width:100% !important; border-bottom:1px solid var(--sa-border) !important;
+  margin-bottom:16px !important;}
+.st-key-pf_tabbar [data-testid="stButtonGroup"] [role="radiogroup"]{
+  gap:0 !important; border-bottom:none !important; flex-wrap:nowrap;}
+.st-key-pf_tabbar [data-testid="stButtonGroup"] [role="radiogroup"] button,
+.st-key-pf_tabbar [data-testid="stButtonGroup"] [role="radiogroup"] button *{
+  background:transparent !important; color:inherit !important;}
+.st-key-pf_tabbar [data-testid="stButtonGroup"] [role="radiogroup"] button{
+  border:none !important; border-bottom:2px solid transparent !important;
+  border-radius:0 !important; margin-bottom:-1px !important;
+  padding:9px 20px !important; color:var(--sa-muted) !important;
+  font-weight:700 !important; font-size:var(--sa-text-card-title) !important;
+  box-shadow:none !important; transition:color .2s ease,border-color .2s ease;}
+.st-key-pf_tabbar [data-testid="stButtonGroup"] [role="radiogroup"] button:hover{
+  color:var(--sa-primary) !important;}
+.st-key-pf_tabbar [data-testid="stButtonGroup"] [role="radiogroup"]
+  button[aria-checked="true"]{
+  color:var(--sa-primary) !important;
+  border-bottom:2px solid var(--sa-primary) !important;}
+</style>
+""", unsafe_allow_html=True)
+
+with st.container(key="pf_tabbar"):
+    active = st.segmented_control("分頁切換", TABS, key="pf_active_tab",
+                                  label_visibility="collapsed")
+if active is None:                       # 尚未選擇時回退到市場總覽
+    active = TAB_OVERVIEW
+
+if active == TAB_OVERVIEW:
+    render_market_overview()
+elif active == TAB_RISK:
+    render_risk_management()
+elif active == TAB_REVENUE:
+    from modules.portfolio_sections import render_portfolio_tab
+    render_portfolio_tab()
+elif active == TAB_DATA:
+    from modules.data_analysis_sections import render_data_analysis
+    render_data_analysis()

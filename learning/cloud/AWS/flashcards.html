@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS SAA-C03 互動閃卡</title>
+<style>
+  :root{--orange:#ff9900;--dark:#232f3e;--bg:#f5f6fa;--good:#1e8e3e;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);min-height:100vh;}
+  header{background:var(--dark);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  header h1{font-size:1.2rem;} header h1 span{color:var(--orange);}
+  a.back{color:#fff;text-decoration:none;font-size:.9rem;opacity:.85;}
+  .container{max-width:700px;margin:0 auto;padding:24px 16px;}
+  .cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+  .cat-btn{padding:8px 16px;border:2px solid #ccc;border-radius:20px;background:#fff;cursor:pointer;font-size:.85rem;transition:.15s;}
+  .cat-btn.active{background:var(--dark);color:#fff;border-color:var(--dark);}
+  .scene{perspective:1200px;margin-bottom:20px;}
+  .flashcard{position:relative;width:100%;min-height:320px;cursor:pointer;transform-style:preserve-3d;transition:transform .5s;}
+  .flashcard.flipped{transform:rotateY(180deg);}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;padding:32px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+  .front{background:linear-gradient(135deg,var(--dark),#37475a);color:#fff;}
+  .front .term{font-size:1.6rem;font-weight:700;line-height:1.5;}
+  .front .hint{margin-top:16px;font-size:.8rem;opacity:.6;}
+  .back{background:#fff;transform:rotateY(180deg);color:#222;}
+  .back .def{font-size:1rem;line-height:1.9;text-align:left;}
+  .cat-label{position:absolute;top:14px;left:16px;font-size:.75rem;padding:3px 12px;border-radius:20px;background:var(--orange);color:#fff;}
+  .counter{text-align:center;color:#666;font-size:.9rem;margin-bottom:12px;}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .btn{padding:10px 20px;border:none;border-radius:8px;font-size:.95rem;cursor:pointer;font-weight:600;background:#fff;border:2px solid var(--dark);color:var(--dark);}
+  .btn:hover{background:var(--dark);color:#fff;}
+  .btn.know{border-color:var(--good);color:var(--good);}
+  .btn.know:hover{background:var(--good);color:#fff;}
+  .btn.orange{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .stat-bar{text-align:center;margin-top:16px;font-size:.85rem;color:#555;}
+  .done-card{background:#fff;border-radius:16px;padding:40px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+  @media(max-width:600px){.face{padding:20px;}.front .term{font-size:1.25rem;}.back .def{font-size:.9rem;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>AWS <span>SAA-C03</span> 互動閃卡</h1>
+  <a class="back" href="index.html">← 回學習中心</a>
+</header>
+<div class="container">
+  <div class="cats" id="cats"></div>
+  <div class="counter" id="counter"></div>
+  <div id="stage"></div>
+  <div class="controls" id="controls"></div>
+  <div class="stat-bar" id="statbar"></div>
+</div>
+
+<script>
+const CARDS = [
+// 運算
+{c:"運算",t:"EC2 購買選項比較",d:"On-Demand：隨用隨付，無承諾。<br>Reserved / Savings Plans：1-3 年承諾，省最高 72%，適合穩定負載。<br>Spot：省最高 90%，可被中斷（2 分鐘通知），適合容錯批次。<br>Dedicated Host：實體主機專用，符合 BYOL 授權/合規。"},
+{c:"運算",t:"Auto Scaling 政策類型",d:"Target Tracking：維持指標於目標值（如 CPU 50%），最常考。<br>Step Scaling：依警報階梯式增減。<br>Scheduled：可預測流量前預先擴容。<br>Predictive：機器學習預測流量。"},
+{c:"運算",t:"Lambda 重要限制",d:"最長執行 15 分鐘；記憶體 128MB–10GB（CPU 隨記憶體等比增加）；暫存 /tmp 最大 10GB；同區域預設併發 1,000。<br>超過 15 分鐘的工作 → 改用 ECS/Fargate/Batch。"},
+{c:"運算",t:"ECS vs EKS vs Fargate",d:"ECS：AWS 原生容器編排，簡單。<br>EKS：受管 Kubernetes，適合已用 K8s 的團隊。<br>Fargate：無伺服器運算引擎（ECS/EKS 皆可用），免管 EC2 節點。"},
+{c:"運算",t:"Placement Groups 三種類型",d:"Cluster：同機架、低延遲高吞吐 → HPC。<br>Spread：分散於不同硬體，每 AZ 上限 7 台 → 關鍵少量執行個體。<br>Partition：分區隔離故障 → Hadoop/Kafka/Cassandra 大型分散式系統。"},
+// 儲存
+{c:"儲存",t:"S3 儲存類別總覽",d:"Standard：熱資料。<br>Intelligent-Tiering：存取模式未知，自動分層。<br>Standard-IA / One Zone-IA：低頻存取（One Zone 便宜但單 AZ）。<br>Glacier Instant / Flexible / Deep Archive：封存，取回時間毫秒 / 分鐘-小時 / 12 小時+。"},
+{c:"儲存",t:"EBS 磁碟區類型",d:"gp3：通用 SSD，基準 3,000 IOPS 可調至 16,000，比 gp2 便宜。<br>io2：關鍵資料庫，最高 64K IOPS（Block Express 256K），支援 Multi-Attach。<br>st1：吞吐型 HDD（大數據、日誌）。<br>sc1：冷資料 HDD，最便宜。"},
+{c:"儲存",t:"EBS vs EFS vs Instance Store",d:"EBS：單一執行個體區塊儲存（限同 AZ），快照到 S3。<br>EFS：跨 AZ 多執行個體共用 NFS（僅 Linux），彈性擴展。<br>Instance Store：實體暫存磁碟，效能極高，停機即消失。"},
+{c:"儲存",t:"S3 資料保護功能",d:"Versioning：保留物件所有版本，防誤刪。<br>MFA Delete：刪除需 MFA。<br>Object Lock：WORM 合規模式，指定期間內不可刪改。<br>Replication (CRR/SRR)：跨區域/同區域自動複寫。"},
+{c:"儲存",t:"Storage Gateway 三種類型",d:"File Gateway：on-prem 透過 NFS/SMB 存取 S3。<br>Volume Gateway：iSCSI 區塊儲存（Cached：主資料在 S3；Stored：主資料在本地）。<br>Tape Gateway：虛擬磁帶庫取代實體磁帶備份。"},
+{c:"儲存",t:"AWS Snow Family",d:"Snowcone：8TB，小型邊緣。<br>Snowball Edge：80TB，PB 級遷移 + 邊緣運算。<br>經驗法則：資料量若透過網路傳輸需超過一週，考慮 Snow 系列。"},
+// 資料庫
+{c:"資料庫",t:"RDS Multi-AZ vs Read Replica",d:"Multi-AZ：同步複寫到 standby，自動容錯移轉，standby 不可讀 → 高可用。<br>Read Replica：非同步複寫，可跨區域，分擔讀取 → 擴展效能。<br>兩者用途不同，常一起使用。"},
+{c:"資料庫",t:"Aurora 重點特性",d:"MySQL/PostgreSQL 相容，效能最高 5x/3x。<br>6 份資料複本跨 3 AZ；最多 15 個低延遲讀取複本。<br>Aurora Serverless：自動擴縮，適合間歇性負載。<br>Global Database：跨區域複寫延遲 <1 秒。"},
+{c:"資料庫",t:"DynamoDB 重點特性",d:"全受管 NoSQL，單位數毫秒延遲。<br>On-Demand vs Provisioned 容量模式。<br>DAX：記憶體快取，讀取降至微秒級。<br>Global Tables：多區域多主動讀寫。<br>Streams：變更事件流，可觸發 Lambda。"},
+{c:"資料庫",t:"資料庫選型速記",d:"OLTP 關聯式 → RDS / Aurora。<br>OLAP 資料倉儲 → Redshift。<br>鍵值/文件 NoSQL → DynamoDB。<br>記憶體快取 → ElastiCache。<br>圖形 → Neptune。時序 → Timestream。帳本 → QLDB。"},
+{c:"資料庫",t:"ElastiCache：Redis vs Memcached",d:"Redis：複寫、持久化、備份、Multi-AZ 容錯移轉、排序集合（排行榜）、Pub/Sub。<br>Memcached：純快取、多執行緒、無持久化、無複寫。<br>考題要 HA 或資料結構 → 選 Redis。"},
+// 網路
+{c:"網路",t:"Security Group vs Network ACL",d:"SG：執行個體層級、有狀態（回應自動放行）、僅允許規則、規則全部評估。<br>NACL：子網路層級、無狀態（進出都要開）、允許+拒絕規則、依編號順序評估。"},
+{c:"網路",t:"VPC 連線方式比較",d:"VPC Peering：兩 VPC 一對一，不可遞移。<br>Transit Gateway：中樞輻射，連接大量 VPC 與 on-prem。<br>PrivateLink / Interface Endpoint：私有存取特定服務，不暴露整個網路。<br>Site-to-Site VPN：加密走網際網路。Direct Connect：專線。"},
+{c:"網路",t:"VPC Endpoint 兩種類型",d:"Gateway Endpoint：僅 S3 與 DynamoDB，路由表指向，免費。<br>Interface Endpoint (PrivateLink)：其他多數服務，子網路內 ENI，按小時+流量計費。<br>考題見「私有存取 S3」→ 優先 Gateway Endpoint。"},
+{c:"網路",t:"Route 53 路由政策",d:"Simple：單一資源。Weighted：按比例分流（A/B 測試）。<br>Latency：導向延遲最低區域。Failover：主備容錯。<br>Geolocation：依使用者位置。Geoproximity：依地理+偏移值。<br>Multivalue：回傳多個健康 IP。"},
+{c:"網路",t:"CloudFront vs Global Accelerator",d:"CloudFront：CDN，快取 HTTP 內容於邊緣，適合網站/影音。<br>Global Accelerator：2 個固定 Anycast IP，走 AWS 骨幹，適合 TCP/UDP 非 HTTP（遊戲、VoIP）、需固定 IP 的場景。"},
+{c:"網路",t:"ALB vs NLB vs GWLB",d:"ALB：Layer 7（HTTP/HTTPS），路徑/主機路由，支援 WAF。<br>NLB：Layer 4（TCP/UDP），超高效能、超低延遲、固定 IP。<br>GWLB：Layer 3，部署第三方網路設備（防火牆/IDS）。"},
+// 安全
+{c:"安全",t:"IAM 政策評估邏輯",d:"1. 明確 Deny 永遠優先。<br>2. SCP、Permission Boundary、Session Policy 皆為上限。<br>3. 預設全部隱含拒絕，需明確 Allow。<br>資源型政策（如 Bucket Policy）與身分型政策取聯集（同帳號內）。"},
+{c:"安全",t:"KMS 金鑰類型",d:"AWS 管理金鑰：免費，AWS 自動輪換。<br>客戶管理金鑰 (CMK)：可自訂政策/輪換/停用，CloudTrail 稽核，$1/月。<br>CloudHSM：專用硬體模組，FIPS 140-2 Level 3，完全自控。"},
+{c:"安全",t:"威脅偵測與稽核服務區分",d:"GuardDuty：威脅偵測（分析 CloudTrail/VPC Flow/DNS）。<br>Inspector：EC2/ECR/Lambda 弱點掃描。<br>Macie：S3 敏感資料（PII）探索。<br>Config：資源組態合規追蹤。<br>CloudTrail：API 呼叫稽核。<br>Security Hub：彙整以上所有發現。"},
+{c:"安全",t:"Shield vs WAF",d:"Shield Standard：免費，自動 L3/L4 DDoS 防護。<br>Shield Advanced：$3,000/月，進階 DDoS + DRT 團隊支援 + 費用保障。<br>WAF：L7 規則過濾（SQLi、XSS、Rate limiting），部署於 CloudFront/ALB/API GW。"},
+{c:"安全",t:"Secrets Manager vs Parameter Store",d:"Secrets Manager：付費，內建自動輪換（RDS 等整合），跨帳號存取。<br>Parameter Store：Standard 免費，存組態與密文（SecureString），無原生自動輪換。<br>考題見「自動輪換」→ Secrets Manager。"},
+{c:"安全",t:"跨帳號存取的正確做法",d:"使用 IAM Role + STS AssumeRole：目標帳號建立角色並信任來源帳號，來源使用者暫時擔任該角色。<br>絕不共用 Access Key。External ID 可防止「混淆代理人」問題（第三方存取場景）。"},
+// 整合與分析
+{c:"整合分析",t:"SQS vs SNS vs EventBridge",d:"SQS：拉取式佇列，解耦、緩衝（Standard：至少一次；FIFO：順序+恰好一次）。<br>SNS：推播式發佈/訂閱，一對多扇出 (fan-out)。<br>EventBridge：事件匯流排，規則路由、排程、SaaS 整合。<br>經典模式：SNS + 多個 SQS = fan-out。"},
+{c:"整合分析",t:"Kinesis 家族",d:"Data Streams：即時串流，分片計費，保留 1-365 天，可重播。<br>Data Firehose：全受管遞送至 S3/Redshift/OpenSearch，近即時（緩衝約 60 秒+），免管理。<br>考題見「即時處理+自訂消費者」→ Streams；「載入資料湖免維運」→ Firehose。"},
+{c:"整合分析",t:"S3 資料分析工具",d:"Athena：無伺服器 SQL 查詢 S3，按掃描量計費。<br>Glue：無伺服器 ETL + Data Catalog。<br>EMR：受管 Hadoop/Spark 大數據框架。<br>QuickSight：BI 視覺化儀表板。"},
+{c:"整合分析",t:"Step Functions 使用時機",d:"視覺化工作流程編排多個 Lambda/服務：順序、平行、分支、重試、人工審核等待。<br>考題見「協調多步驟」「長時間工作流」「Lambda 鏈太複雜」→ Step Functions。"},
+// 成本
+{c:"成本",t:"成本管理工具區分",d:"Cost Explorer：視覺化分析歷史費用與預測。<br>AWS Budgets：預算門檻警示（可用「預測值」觸發）。<br>Cost & Usage Report (CUR)：最詳細帳單明細到 S3。<br>Compute Optimizer：右調 (right-size) 建議。<br>Trusted Advisor：成本/安全/效能檢查。"},
+{c:"成本",t:"資料傳輸費用重點",d:"傳入 AWS：免費。同 AZ 內：免費。<br>跨 AZ：每 GB 計費（HA 架構的隱藏成本）。<br>傳出網際網路：最貴。<br>省費技巧：CloudFront 傳出較便宜、Gateway Endpoint 免 NAT 費、同 AZ 部署。"},
+{c:"成本",t:"Savings Plans vs Reserved Instances",d:"Compute SP：最彈性，適用任何區域/家族的 EC2+Fargate+Lambda。<br>EC2 Instance SP：綁定區域+家族，折扣更高。<br>Standard RI：可賣二手市場。Convertible RI：可換家族。<br>新考題趨勢偏好 Savings Plans。"},
+{c:"成本",t:"S3 成本優化三板斧",d:"1. Lifecycle Policy 自動轉冷儲存與過期刪除。<br>2. Intelligent-Tiering 應對未知存取模式。<br>3. S3 Storage Lens / Storage Class Analysis 分析用量。<br>另注意：不完整的 Multipart Upload 要設定自動清理。"},
+{c:"成本",t:"災難復原四策略（成本低→高）",d:"Backup & Restore：僅備份，RTO 數小時+。<br>Pilot Light：核心常駐（DB 複寫），其餘災時啟動。<br>Warm Standby：縮小版全系統常駐，災時擴容。<br>Multi-Site Active-Active：雙站全量，RTO≈0，最貴。"}
+];
+
+const CATS = ["全部", ...new Set(CARDS.map(c=>c.c))];
+let deck=[], pos=0, flipped=false, known=JSON.parse(localStorage.getItem("saa_known")||"[]"), curCat="全部";
+
+function build(cat){
+  curCat=cat;
+  deck = CARDS.map((c,i)=>({...c,i})).filter(c=>(cat==="全部"||c.c===cat));
+  deck.sort(()=>Math.random()-.5);
+  pos=0; render();
+  document.querySelectorAll(".cat-btn").forEach(b=>b.classList.toggle("active",b.textContent.startsWith(cat)));
+}
+function render(){
+  const stage=document.getElementById("stage"), ctrl=document.getElementById("controls");
+  const remaining=deck.filter(c=>!known.includes(c.i));
+  document.getElementById("statbar").textContent=`已標記熟悉：${known.length} / ${CARDS.length} 張`;
+  if(pos>=deck.length){
+    stage.innerHTML=`<div class="done-card"><h2>🎉 本輪完成！</h2><p style="margin:12px 0;color:#666;">此分類 ${deck.length} 張已看完</p></div>`;
+    ctrl.innerHTML=`<button class="btn orange" onclick="build(curCat)">🔄 再來一輪</button><button class="btn" onclick="resetKnown()">清除熟悉標記</button>`;
+    document.getElementById("counter").textContent="";
+    return;
+  }
+  const c=deck[pos]; flipped=false;
+  document.getElementById("counter").textContent=`第 ${pos+1} / ${deck.length} 張 ${known.includes(c.i)?"（已標熟悉 ✓）":""}`;
+  stage.innerHTML=`<div class="scene"><div class="flashcard" id="fc" onclick="flip()">
+    <div class="face front"><span class="cat-label">${c.c}</span><div class="term">${c.t}</div><div class="hint">點擊卡片翻面查看說明</div></div>
+    <div class="face back"><span class="cat-label">${c.c}</span><div class="def">${c.d}</div></div>
+  </div></div>`;
+  ctrl.innerHTML=`
+    <button class="btn" onclick="prev()">← 上一張</button>
+    <button class="btn know" onclick="mark()">✓ 我熟悉了</button>
+    <button class="btn orange" onclick="next()">下一張 →</button>`;
+}
+window.flip=()=>{flipped=!flipped;document.getElementById("fc").classList.toggle("flipped",flipped);};
+window.next=()=>{pos++;render();};
+window.prev=()=>{if(pos>0){pos--;render();}};
+window.mark=()=>{const i=deck[pos].i;if(!known.includes(i))known.push(i);localStorage.setItem("saa_known",JSON.stringify(known));next();};
+window.resetKnown=()=>{known=[];localStorage.setItem("saa_known","[]");render();};
+window.build=build;
+window.curCat=curCat;
+
+document.getElementById("cats").innerHTML=CATS.map(c=>`<button class="cat-btn" onclick="build('${c}')">${c}（${c==="全部"?CARDS.length:CARDS.filter(x=>x.c===c).length}）</button>`).join("");
+document.addEventListener("keydown",e=>{if(e.key===" "){e.preventDefault();flip();}if(e.key==="ArrowRight")next();if(e.key==="ArrowLeft")prev();});
+build("全部");
+</script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

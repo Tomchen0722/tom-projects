@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 13 課 連上 GitHub：clone、remote、push、pull、fetch｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li class="active"><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元三 · 分支與遠端協作</div><h1>第 13 課 · 連上 GitHub：clone、remote、push、pull、fetch</h1><p class="lesson-sub">把本機的 Git 和雲端的 GitHub 接起來，真正開始多人協作。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>到目前為止，你的 Git 都在自己電腦裡。要和團隊協作，需要一個<strong>大家都能存取的中央倉庫</strong>——那就是 GitHub 上的 remote（遠端倉庫）。</p>
+<p>運作模型很簡單：<strong>每個人電腦裡都有一份完整的 repo（本地），GitHub 上有一份共用的（遠端）。大家把自己的 commit <code>push</code>（推）到遠端，也 <code>pull</code>（拉）別人推上去的改動下來。</strong></p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>   Tom 的電腦 ─push─▶                  ◀─pull─ Alice 的電腦
+                     GitHub（遠端 origin）
+   Tom 的電腦 ◀─pull─                  ─push─▶ Alice 的電腦</code></pre></div>
+<p><code>origin</code> 是遠端倉庫的預設名字（就是個代號）。<code>main</code> 是分支。所以 <code>git push origin main</code> = 「把 main 分支推到叫 origin 的遠端」。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本地分支 vs 遠端分支</div><div class="callout-body"><p>你電腦裡有 <code>main</code>，GitHub 上也有一個 <code>main</code>。Git 用 <code>origin/main</code> 代表「我上次看到的遠端 main 長這樣」。<code>push</code> 是把本地 main 送上去更新遠端；<code>pull</code> 是把遠端的更新抓下來併進本地。理解這個「兩份 main」是掌握協作的關鍵。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 三人透過 GitHub 協作的一天</div><div class="callout-body"><ol>
+<li>Alice 在 GitHub 建了專案 repo，Tom 和 Bob 各自 <code>git clone</code> 到自己電腦。</li>
+<li>Tom 開分支寫登入、<code>push</code> 到 GitHub。Bob 開分支修 bug、也 <code>push</code> 上去。</li>
+<li>Bob 的修正先合併進遠端 main。Tom 早上開工前先 <code>git pull</code>，把 Bob 的修正抓下來，確保自己站在最新的地基上。</li>
+<li>三人各自 push / pull，GitHub 成為三人程式碼的匯流點，沒有人再用通訊軟體傳檔案。</li>
+</ol></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p><strong>情境 A：從 GitHub 複製一個現有專案下來（最常見的開始方式）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git clone https://github.com/公司/專案.git
+cd 專案
+# clone 會自動設好 origin、抓下所有歷史、切到 main，開箱即用</code></pre></div>
+<p><strong>情境 B：把本機既有專案推上一個新的 GitHub repo：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 先在 GitHub 網站上建立一個空 repo，複製它的網址，然後：
+git remote add origin https://github.com/你的帳號/專案.git
+git branch -M main
+git push -u origin main
+# -u 記住對應關係，之後只要打 git push 就好</code></pre></div>
+<p><strong>日常最常用的四個：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git push               # 把本地 commit 推到遠端
+git pull               # 抓遠端更新並併入本地（= fetch + merge）
+git fetch              # 只抓遠端更新，先不併入（讓你先看看）
+git remote -v          # 看目前連了哪些遠端</code></pre></div>
+<p><strong>push 新分支到遠端（第一次）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git push -u origin feature/login
+# 之後在這條分支只要 git push 即可</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — pull = fetch + merge</div><div class="callout-body"><p><code>git pull</code> 其實是兩個動作的組合：<code>git fetch</code>（把遠端最新狀態抓到本地的 <code>origin/main</code>）+ <code>git merge</code>（把 <code>origin/main</code> 併進你的 <code>main</code>）。想更謹慎的人會先 <code>git fetch</code> 看看遠端有什麼變化，再決定怎麼併。想要乾淨歷史的人會用 <code>git pull --rebase</code>（用 rebase 取代 merge）。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 現在 push 需要的是 Token，不是密碼</div><div class="callout-body"><p>GitHub 早已不接受用「帳號密碼」push。第一次 push 時它會要你驗證，你需要用 <strong>Personal Access Token（PAT）</strong> 或設定 <strong>SSH 金鑰</strong>。最簡單的方式：安裝 <strong>Git Credential Manager</strong>（Windows 版 Git 通常內建），第一次會跳出瀏覽器讓你登入 GitHub 授權，之後就自動記住，不用再處理 token。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 圖形化遠端操作</div><div class="callout-body"><ul>
+<li><strong>Clone</strong>：<code>Ctrl+Shift+P</code> → 輸入 <code>Git: Clone</code> → 貼上 repo 網址 → 選存放位置。</li>
+<li><strong>登入 GitHub</strong>：VS Code 左下角人像圖示可直接登入 GitHub 帳號，登入後 push/pull 免處理 token。</li>
+<li><strong>Push / Pull</strong>：Source Control 面板 ⋯ → Push / Pull，或點左下狀態列的 <strong>Sync Changes（↻）</strong> 一次做完 pull+push。</li>
+<li><strong>狀態列的箭頭數字</strong>：左下角會顯示 <code>↓2 ↑1</code>，代表「遠端有 2 個 commit 你還沒拉、你有 1 個 commit 還沒推」，一眼掌握同步狀態。</li>
+<li><strong>Publish Branch</strong>：本地新分支還沒上遠端時，會出現 <strong>Publish Branch</strong> 按鈕，一鍵把分支推到 GitHub。</li>
+</ul></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>每天開工先 pull</strong>：站在最新的地基上開始，能大幅減少之後的衝突。</li>
+<li><strong>push 前先 pull</strong>：如果 push 被拒（remote 有你沒有的 commit），先 <code>git pull</code> 併好再 push，別急著 <code>--force</code>。</li>
+<li><strong>不要直接 push 到 main</strong>：公司的 main 通常會設<strong>分支保護（branch protection）</strong>，禁止直接 push，強制走 PR。你日常是 push 你的 feature 分支，再開 PR（第 14 課）。</li>
+<li><strong>用 SSH 或 Credential Manager</strong>：設定一次，之後 push/pull 免輸入，安全又省事。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 看懂「你的分支落後/超前遠端」</div><div class="callout-body"><p><code>git status</code> 常出現這類訊息：</p>
+<ul>
+<li><code>Your branch is ahead of 'origin/main' by 2 commits</code> → 你有 2 個 commit 還沒 push。</li>
+<li><code>Your branch is behind 'origin/main' by 3 commits</code> → 遠端有 3 個你還沒 pull。</li>
+<li><code>have diverged</code> → 兩邊都各有對方沒有的 commit，需要 pull 併起來。</li>
+</ul>
+<p>看懂這幾句，你就永遠知道自己和團隊的同步狀態。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — push 被拒：`Updates were rejected`</div><div class="callout-body"><p>最常見的原因是遠端有你本地沒有的 commit（別人先 push 了）。<strong>不要用 <code>--force</code></strong>，正確做法：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git pull            # 先把遠端的抓下來併好（可能要解衝突）
+git push            # 再推</code></pre></div></div></div>
+<div class="callout danger"><div class="callout-head">🚨 危險操作 — 絕對不要對共用分支 `git push --force`</div><div class="callout-body"><p><code>--force</code> 會用你的版本<strong>覆蓋遠端歷史</strong>，把別人已經 push 的 commit 直接抹掉，是團隊災難。若真的非改寫不可（例如自己的 feature 分支 rebase 後要更新），也請用比較安全的 <code>git push --force-with-lease</code>（它會在偵測到別人有新 push 時擋下來，避免誤蓋）。共用的 main 一律不 force。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — clone 錯 repo / 想換遠端網址</div><div class="callout-body"><div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git remote -v                                   # 看目前的遠端網址
+git remote set-url origin 新的網址.git           # 改掉 origin 指向</code></pre></div></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 認證失敗 / 一直要我輸入帳密</div><div class="callout-body"><p>代表 credential 沒設好。安裝 Git Credential Manager，或在 VS Code 左下角登入 GitHub 帳號，或改用 SSH 金鑰。設定一次之後就不會再煩你。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>遠端協作模型：本地各有完整 repo，GitHub 上有共用的 origin。<code>clone</code> 複製專案、<code>push</code> 推、<code>pull</code> 拉（=fetch+merge）、<code>fetch</code> 只抓不併。每天開工先 pull、push 前先 pull、被拒別 force。認證用 Credential Manager 或 SSH 設一次搞定。單元三完成，你已具備多人協作能力。下一單元進入真正的企業級流程。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>`git clone`、`git push`、`git pull`、`git fetch` 各做什麼？</summary><div class="qa-body"><p>clone=把整個遠端專案複製到本機；push=把本地 commit 推到遠端；pull=抓遠端更新並併入本地（=fetch+merge）；fetch=只抓遠端更新、先不併入。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>`origin` 是什麼？`git push origin main` 是什麼意思？</summary><div class="qa-body"><p><code>origin</code> 是遠端倉庫的預設代號。<code>git push origin main</code> = 把本地 main 分支推到叫 origin 的遠端。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>push 被拒（Updates were rejected）通常怎麼解？能用 `--force` 嗎？</summary><div class="qa-body"><p>通常是遠端有你沒有的 commit。<strong>不要 force</strong>，先 <code>git pull</code> 併好（可能解衝突）再 <code>git push</code>。共用分支絕不 <code>--force</code>。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>在 GitHub 建一個空 repo，把本機專案用 <code>git remote add origin</code> + <code>git push -u origin main</code> 推上去。</li>
+<li>用 <code>git remote -v</code> 確認遠端網址。</li>
+<li>改一個檔案 commit 後 push，到 GitHub 網頁確認改動出現了。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-12.html"><small>← 上一課</small><span>Stash、Cherry-pick、Revert、Reset 四大工具</span></a><a class="pg pg-next" href="lesson-14.html"><small>下一課 →</small><span>Pull Request 與 Code Review：公司協作的心臟</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

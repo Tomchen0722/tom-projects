@@ -1,0 +1,275 @@
+# -*- coding: utf-8 -*-
+"""map_view.py — 周邊房源互動地圖(Leaflet 自足元件)
+
+為什麼不用 plotly:需要 hover 連動右側列表、虛線半徑圓、本房源閃爍、
+平台分層勾選 —— 這些在 Streamlit 的 plotly 靜態渲染下做不到
+(plotly 只支援 click 選取事件,且無法回傳 hover)。
+
+做法:把地圖與列表包成同一段 HTML 放進 components.html,
+所有互動在瀏覽器端完成,零 Streamlit 往返、即時反應。
+"""
+from __future__ import annotations
+
+import html
+import json
+
+import numpy as np
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
+
+from modules import design_tokens as T
+
+# 平台識別色(依需求指定)
+PLATFORM_STYLE = {
+    "591": {"label": "591租屋網", "color": T.PLATFORM_COLOR["591"]},
+    "Booking": {"label": "Booking.com", "color": T.PLATFORM_COLOR["Booking"]},
+    "ddroom": {"label": "DD租租網", "color": T.PLATFORM_COLOR["ddroom"]},
+}
+def _risk_color(tier) -> str:
+    """點位顏色 = 三層警報等級色。
+
+    D1(2026-07-24):本檔原本自帶一組「空屋率」門檻(綠<40%/黃40–69%/紅≥70%),
+    與風險環的「機率」門檻(紅≥60%/黃≥35%)不同 —— 同一頁、同一組顏色卻是
+    兩種意思。改為直接吃上游算好的 `tier`,全站只剩 RISK_TIERS 一套門檻。
+    """
+    return T.tier_color(tier) if T.tier_key(tier) else T.COLOR["muted"]
+
+
+def _fmt(v, unit="", digits=0):
+    if v is None or (isinstance(v, float) and (np.isnan(v))):
+        return "—"
+    return f"{float(v):,.{digits}f}{unit}"
+
+
+def build_points(own, nearby: pd.DataFrame, addr_fn) -> tuple[dict, list]:
+    """整理本房源與周邊 Airbnb 房源為前端資料。"""
+    from modules.ui_components import safe_text
+    own_pt = {
+        "id": int(own["id"]),
+        "name": safe_text(own.get("name"), f"房源 {own['id']}", 40),
+        "lat": float(own["latitude"]), "lon": float(own["longitude"]),
+        "addr": addr_fn(own["latitude"], own["longitude"]) or "—",
+        "price": _fmt(own.get("price"), " 元/晚") if pd.notna(
+            own.get("price")) else "價格未提供",
+        "vac": _fmt((own.get("vac_pred") or 0) * 100, "%"),
+        "room": str(own.get("room_type") or ""),
+        "dist": 0,
+    }
+    pts = []
+    for _, r in nearby.iterrows():
+        pts.append({
+            "id": int(r["id"]),
+            "name": safe_text(r.get("name"), f"房源 {r['id']}", 40),
+            "lat": float(r["latitude"]), "lon": float(r["longitude"]),
+            "addr": addr_fn(r["latitude"], r["longitude"]) or "—",
+            "price": (_fmt(r.get("price"), " 元/晚")
+                      if pd.notna(r.get("price")) else "價格未提供"),
+            "vac": _fmt((r.get("vac_pred") or 0) * 100, "%"),
+            "vac_raw": float(r.get("vac_pred") or 0),
+            "room": str(r.get("room_type") or ""),
+            "dist": int(r.get("dist_m") or 0),
+            "tier_zh": T.tier_label(r.get("tier"), default="—"),
+            "color": _risk_color(r.get("tier")),
+        })
+    pts.sort(key=lambda x: x["dist"])
+    return own_pt, pts
+
+
+def build_competitors(comp: pd.DataFrame, own_lat: float, own_lon: float,
+                      addr_fn=None) -> dict:
+    """依平台分組整理跨平台競品。"""
+    out = {}
+    for key, style in PLATFORM_STYLE.items():
+        g = comp[comp["platform"] == key]
+        rows = []
+        for _, r in g.iterrows():
+            unit = "元/月" if r.get("price_unit") == "month" else "元/晚"
+            rows.append({
+                "name": str(r.get("title") or "")[:38],
+                "lat": float(r["lat"]), "lon": float(r["lon"]),
+                "price": _fmt(r.get("price_raw"), f" {unit}"),
+                "pp": _fmt(r.get("price_pp_day"), " 元"),
+                "cap": _fmt(r.get("capacity"), " 人"),
+                "dist": int(r.get("dist_m") or 0),
+                "addr": (addr_fn(r["lat"], r["lon"]) if addr_fn else "") or "—",
+            })
+        rows.sort(key=lambda x: x["dist"])
+        out[key] = {"label": style["label"], "color": style["color"],
+                    "points": rows}
+    return out
+
+
+_HTML = """
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+__TOKENS__
+  html,body{margin:0;padding:0;font-family:"Noto Sans TC",-apple-system,sans-serif;
+    background:var(--sa-bg);color:var(--sa-ink);}
+  .wrap{display:flex;gap:10px;height:__H__px;}
+  #map{flex:1 1 auto;border:1px solid var(--sa-border);border-radius:var(--sa-radius-sm);}
+  .side{width:308px;display:flex;flex-direction:column;
+    border:1px solid var(--sa-border);border-radius:var(--sa-radius-sm);background:#fff;overflow:hidden;}
+  .side h4{margin:0;padding:9px 13px;font-size:var(--sa-text-caption);letter-spacing:.06em;
+    color:var(--sa-muted);background:var(--sa-neutral-bg);border-bottom:1px solid var(--sa-border);font-weight:700;}
+  .list{overflow-y:auto;flex:1;}
+  .item{padding:8px 13px;border-bottom:1px solid var(--sa-neutral-bg);cursor:pointer;
+    transition:background .12s,border-left-color .12s;border-left:3px solid transparent;}
+  .item:hover{background:var(--sa-bg);}
+  .item.on{background:var(--sa-warning-bg);border-left-color:var(--sa-danger);}
+  .t{font-size:var(--sa-text-caption);font-weight:600;color:var(--sa-ink);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;}
+  .s{font-size:var(--sa-text-label);color:var(--sa-muted);margin-top:2px;line-height:1.5;}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
+    margin-right:5px;vertical-align:middle;}
+  .empty{padding:16px 13px;font-size:var(--sa-text-caption);color:var(--sa-muted);}
+  /* 本房源閃爍標記 */
+  .me-wrap{position:relative;width:20px;height:20px;}
+  .me-core{position:absolute;left:4px;top:4px;width:12px;height:12px;
+    border-radius:50%;background:var(--sa-ink);border:2px solid #fff;
+    box-shadow:0 0 0 1px var(--sa-ink);}
+  .me-ring{position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;
+    background:rgba(196,100,90,.55);animation:pulse 1.6s ease-out infinite;}
+  @keyframes pulse{0%{transform:scale(.5);opacity:.9;}
+    70%{transform:scale(2.2);opacity:0;}100%{opacity:0;}}
+  .leaflet-tooltip.zh{font-family:"Noto Sans TC",sans-serif;font-size:var(--sa-text-caption);
+    line-height:1.65;padding:7px 10px;border-radius:var(--sa-radius-sm);border:1px solid var(--sa-border2);
+    box-shadow:0 4px 14px rgba(0,0,0,.12);}
+  .tt-t{font-weight:700;color:var(--sa-ink);margin-bottom:3px;}
+  .tt-r{color:var(--sa-ink2);}
+  .tt-k{color:var(--sa-muted);}
+</style></head><body>
+<div class="wrap">
+  <div id="map"></div>
+  <div class="side">
+    <h4 id="side-title">周邊房源</h4>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<script>
+const OWN = __OWN__, PTS = __PTS__, COMP = __COMP__, RADIUS = __RADIUS__;
+
+const map = L.map('map', {zoomControl:true, scrollWheelZoom:true})
+  .setView([OWN.lat, OWN.lon], 15);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+  {attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19}).addTo(map);
+
+// 半徑虛線圓
+const ring = L.circle([OWN.lat, OWN.lon], {
+  radius: RADIUS, color:'__PRIMARY__', weight:1.6, opacity:.85,
+  dashArray:'7 7', fill:true, fillColor:'__PRIMARY__', fillOpacity:.045
+}).addTo(map);
+map.fitBounds(ring.getBounds(), {padding:[18,18]});
+
+// 本房源(閃爍)
+const meIcon = L.divIcon({className:'', iconSize:[20,20], iconAnchor:[10,10],
+  html:'<div class="me-wrap"><div class="me-ring"></div><div class="me-core"></div></div>'});
+L.marker([OWN.lat, OWN.lon], {icon:meIcon, zIndexOffset:1000})
+  .bindTooltip(`<div class="tt-t">★ 本房源｜${OWN.name}</div>
+    <div class="tt-r"><span class="tt-k">地址</span> ${OWN.addr}</div>
+    <div class="tt-r"><span class="tt-k">定價</span> ${OWN.price}
+    <span class="tt-k">預測空屋率</span> ${OWN.vac}</div>`,
+    {className:'zh', direction:'top', offset:[0,-10]}).addTo(map);
+
+// ── 周邊 Airbnb 房源 ──
+const airbnbLayer = L.layerGroup().addTo(map);
+const markers = {};
+PTS.forEach((p, i) => {
+  const m = L.circleMarker([p.lat, p.lon], {
+    radius:6, color:'#fff', weight:1.4, fillColor:p.color, fillOpacity:.9
+  }).bindTooltip(`<div class="tt-t">${p.name}</div>
+    <div class="tt-r"><span class="tt-k">地址</span> ${p.addr}</div>
+    <div class="tt-r"><span class="tt-k">距本房源</span> ${p.dist} 公尺
+      <span class="tt-k">定價</span> ${p.price}</div>
+    <div class="tt-r"><span class="tt-k">警報等級</span> ${p.tier_zh}</div>
+    <div class="tt-r"><span class="tt-k">預測空屋率</span> ${p.vac}</div>`,
+    {className:'zh', direction:'top', offset:[0,-6]});
+  m.on('mouseover', () => focusItem(i, true));
+  m.on('mouseout',  () => focusItem(i, false));
+  m.addTo(airbnbLayer);
+  markers[i] = m;
+});
+
+// ── 跨平台競品(分層)──
+const overlays = {'周邊 Airbnb 房源': airbnbLayer};
+Object.keys(COMP).forEach(k => {
+  const g = COMP[k], layer = L.layerGroup();
+  g.points.forEach(p => {
+    L.circleMarker([p.lat, p.lon], {
+      radius:5, color:'#fff', weight:1.2, fillColor:g.color, fillOpacity:.88
+    }).bindTooltip(`<div class="tt-t" style="color:${g.color}">${g.label}｜${p.name}</div>
+      <div class="tt-r"><span class="tt-k">地址</span> ${p.addr}</div>
+      <div class="tt-r"><span class="tt-k">距本房源</span> ${p.dist} 公尺
+        <span class="tt-k">掛牌價</span> ${p.price}</div>
+      <div class="tt-r"><span class="tt-k">每人每晚等效</span> ${p.pp}
+        <span class="tt-k">可住</span> ${p.cap}</div>`,
+      {className:'zh', direction:'top', offset:[0,-5]}).addTo(layer);
+  });
+  overlays[`<span style="color:${g.color};font-weight:700">●</span> ${g.label}` +
+           ` (${g.points.length})`] = layer;
+});
+L.control.layers(null, overlays, {collapsed:false, position:'topright'}).addTo(map);
+
+// ── 右側列表(與地圖 hover 雙向連動)──
+const list = document.getElementById('list');
+document.getElementById('side-title').textContent =
+  `周邊房源（${PTS.length} 間・依距離排序）`;
+if (!PTS.length) {
+  list.innerHTML = '<div class="empty">此半徑內沒有其他 Airbnb 房源。</div>';
+}
+PTS.forEach((p, i) => {
+  const d = document.createElement('div');
+  d.className = 'item'; d.id = 'it' + i;
+  d.innerHTML = `<div class="t"><span class="dot" style="background:${p.color}"></span>${p.name}</div>
+    <div class="s">${p.addr}</div>
+    <div class="s">距離 ${p.dist} 公尺・${p.price}・${p.tier_zh}・空屋率 ${p.vac}</div>`;
+  d.onmouseenter = () => { highlight(i, true);  markers[i].openTooltip(); };
+  d.onmouseleave = () => { highlight(i, false); markers[i].closeTooltip(); };
+  d.onclick = () => map.setView([p.lat, p.lon], 17);
+  list.appendChild(d);
+});
+
+function highlight(i, on) {
+  const el = document.getElementById('it' + i);
+  if (el) el.classList.toggle('on', on);
+  const m = markers[i];
+  if (m) m.setStyle(on ? {radius:10, weight:2.6, color:'__DANGER__', fillOpacity:1}
+                       : {radius:6, weight:1.4, color:'#fff', fillOpacity:.9});
+}
+function focusItem(i, on) {
+  highlight(i, on);
+  if (on) {
+    const el = document.getElementById('it' + i);
+    if (el) el.scrollIntoView({block:'nearest', behavior:'smooth'});
+  }
+}
+</script></body></html>
+"""
+
+
+def render(own, nearby: pd.DataFrame, comp: pd.DataFrame, radius_m: float,
+           addr_fn, height: int = 520):
+    """渲染互動地圖 + 連動列表。
+
+    own      本房源(Series,需含 id/name/latitude/longitude/price/vac_pred)
+             nearby 另需 `tier` 欄(點位顏色來源;缺欄位時該點顯示為灰)
+    nearby   周邊 Airbnb 房源(需含 dist_m)
+    comp     跨平台競品(需含 platform/lat/lon/title/price_raw/price_pp_day/dist_m)
+    addr_fn  逆地理函式 (lat, lon) -> 地址字串
+    """
+    own_pt, pts = build_points(own, nearby, addr_fn)
+    comps = build_competitors(comp, float(own["latitude"]),
+                              float(own["longitude"]), addr_fn)
+    page = (_HTML
+            .replace("__OWN__", json.dumps(own_pt, ensure_ascii=False))
+            .replace("__PTS__", json.dumps(pts, ensure_ascii=False))
+            .replace("__COMP__", json.dumps(comps, ensure_ascii=False))
+            .replace("__RADIUS__", str(int(radius_m)))
+            .replace("__H__", str(int(height)))
+            # iframe 有自己的文件,吃不到父頁的 :root;token 變數要一起送進去
+            .replace("__TOKENS__", T.css_variables())
+            .replace("__PRIMARY__", T.COLOR["primary"])
+            .replace("__DANGER__", T.COLOR["danger"]))
+    components.html(page, height=height + 12, scrolling=False)

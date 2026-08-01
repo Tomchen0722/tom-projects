@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 12 課 Stash、Cherry-pick、Revert、Reset 四大工具｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li class="active"><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元三 · 分支與遠端協作</div><h1>第 12 課 · Stash、Cherry-pick、Revert、Reset 四大工具</h1><p class="lesson-sub">四個名字很像但用途完全不同的實用指令，一次搞懂何時用哪個。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>這四個指令新手最容易混淆，但各有明確用途。先用一句話記住它們：</p>
+<div class="tablewrap"><table><thead><tr><th>指令</th><th>一句話</th><th>典型情境</th></tr></thead><tbody><tr><td><strong>stash</strong></td><td>「先把手上的活收進抽屜」</td><td>臨時要切分支，但改到一半不想 commit</td></tr><tr><td><strong>cherry-pick</strong></td><td>「只挑某一個 commit 過來」</td><td>別的分支有個 commit 我這也想要</td></tr><tr><td><strong>revert</strong></td><td>「做一個反向 commit 抵銷它」</td><td>要撤銷已 push 的改動，又不想改歷史</td></tr><tr><td><strong>reset</strong></td><td>「把分支指標移回過去」</td><td>撤銷還沒 push 的本地 commit</td></tr></tbody></table></div>
+<p><strong>revert 和 reset 的核心差異</strong>（最常混）：revert 是「往前走、產生一個抵銷的新 commit」（安全，適合公共分支）；reset 是「往後退、直接移動指標」（會改變歷史，適合本地）。</p>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 四種情境各來一次</div><div class="callout-body"><ul>
+<li><strong>stash</strong>：Tom 正在 <code>feature/login</code> 寫到一半，突然 Alice 說 main 有個緊急 bug 要他先修。Tom 不想把半成品 commit，於是 <code>git stash</code> 把改動收進抽屜，切去修 bug，修完再 <code>git stash pop</code> 把活拿回來繼續。</li>
+<li><strong>cherry-pick</strong>：Bob 在他的分支寫了一個好用的工具函式（某個 commit）。Tom 也想要，但不想合併 Bob 整條分支，於是只 <code>cherry-pick</code> Bob 那一個 commit 過來。</li>
+<li><strong>revert</strong>：Tom 昨天 push 的一個改動上線後出包了。因為已經 push、別人也拉了，他用 <code>git revert</code> 產生一個反向 commit 安全地撤銷。</li>
+<li><strong>reset</strong>：Tom 本地連續 commit 了三個爛東西還沒 push，他用 <code>git reset</code> 把它們一次退掉重來。</li>
+</ul></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p><strong>Stash——把未完成的改動暫存起來：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git stash                 # 把工作區改動收進抽屜，回到乾淨狀態
+git stash -m "登入寫一半"  # 收進去並加註說明
+git stash list            # 看抽屜裡有哪些暫存
+git stash pop             # 拿出最近一個並套用（同時從抽屜移除）
+git stash apply           # 拿出來套用但保留在抽屜
+git stash drop            # 丟掉最近一個暫存
+git stash clear           # 清空抽屜</code></pre></div>
+<p><strong>Cherry-pick——把指定 commit 複製到目前分支：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git cherry-pick a1b2c3d              # 挑一個 commit 過來
+git cherry-pick a1b2c3d f4e5d6c      # 一次挑多個
+git cherry-pick a1b2c3d^..f4e5d6c    # 挑一段範圍</code></pre></div>
+<p><strong>Revert——產生反向 commit 撤銷某次改動（安全、不改歷史）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git revert a1b2c3d        # 產生一個抵銷 a1b2c3d 的新 commit
+git revert HEAD           # 撤銷最後一個 commit</code></pre></div>
+<p><strong>Reset——移動分支指標，撤銷本地 commit（三種模式）：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># --soft：退回 commit，但改動留在暫存區（想重新 commit 時用）
+git reset --soft HEAD~1
+
+# --mixed（預設）：退回 commit，改動留在工作區（最常用）
+git reset HEAD~1
+
+# --hard：退回 commit，且丟棄所有改動（危險！東西會消失）
+git reset --hard HEAD~1</code></pre></div>
+<div class="callout danger"><div class="callout-head">🚨 危險操作 — `git reset --hard` 是全教材最危險的指令之一</div><div class="callout-body"><p>它會<strong>直接丟棄工作區的改動</strong>，沒 commit 過的東西救不回來。用之前務必 <code>git status</code> 確認，或先 stash/commit 備份。不確定就別用 <code>--hard</code>，改用 <code>--mixed</code>（預設）比較安全。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 圖形化操作這四個</div><div class="callout-body"><ul>
+<li><strong>Stash</strong>：Source Control 面板 ⋯ → <strong>Stash</strong>（收）/ <strong>Pop Stash</strong>（拿回）。GitLens 也有專門的 Stashes 檢視，能看抽屜內容。</li>
+<li><strong>Cherry-pick</strong>：Git Graph 裡在某個 commit 上右鍵 → <strong>Cherry Pick</strong>。</li>
+<li><strong>Revert</strong>：Git Graph 裡在 commit 上右鍵 → <strong>Revert Commit</strong>。</li>
+<li><strong>Reset</strong>：Git Graph 裡在某 commit 上右鍵 → <strong>Reset current branch to this Commit</strong>，並讓你選 soft / mixed / hard 模式（圖形化選擇很直覺）。</li>
+</ul></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>公共分支用 revert，本地用 reset</strong>：已經 push、別人拉過的東西要撤銷，<strong>一律用 <code>revert</code></strong>（不改歷史、安全）；只有自己本地還沒 push 的才用 <code>reset</code>。這是團隊協作的鐵律。</li>
+<li><strong>stash 不是長期倉庫</strong>：stash 拿來暫存幾分鐘、幾小時可以，別把重要工作長期丟 stash（容易忘記、容易弄丟）。長期保存請開分支 commit。</li>
+<li><strong>cherry-pick 用於 hotfix 回填</strong>：常見於「main 修好的緊急修正，要 cherry-pick 回正在發布的 release 分支」。但別過度使用，否則同一改動散落多處難追蹤。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 把「還沒好但要切走」變成習慣</div><div class="callout-body"><p>新人常因為「改到一半不敢切分支」而卡住。記住這個組合技：<code>git stash</code> → 去做別的事 → 回來 <code>git stash pop</code>。或更保險：直接開個 wip commit（<code>git commit -m "wip"</code>），之後用 <code>rebase -i</code> 整理掉。兩種都比把改動晾著好。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — stash pop 出現衝突</div><div class="callout-body"><p><code>stash pop</code> 時如果和目前檔案衝突，會像 merge 一樣要你解衝突。解完 <code>git add</code> 即可。注意：pop 衝突時該 stash <strong>不會</strong>自動從抽屜移除，解決後可自行 <code>git stash drop</code>。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 用了 reset --hard 把東西弄丟了</div><div class="callout-body"><p>只要那些改動<strong>曾經 commit 過</strong>，就能救。用 reflog 找回：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git reflog                   # 找到被丟掉的 commit hash
+git reset --hard a1b2c3d     # 或 git switch -c 救援分支 a1b2c3d</code></pre></div>
+<p>若那些改動<strong>從沒 commit 過</strong>（只在工作區被 --hard 清掉），則 Git 救不回，只能看編輯器有沒有本地歷史。這就是「動 --hard 前先 commit / stash」的原因。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — revert 一個 merge commit 要加參數</div><div class="callout-body"><p>撤銷普通 commit 直接 <code>git revert</code>；但撤銷「合併 commit」時 Git 需要你指定保留哪一邊，要加 <code>-m 1</code>（<code>git revert -m 1 &lt;merge-hash&gt;</code>）。這是新手常踩的坑，遇到再查即可。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>stash 收進抽屜、cherry-pick 挑單一 commit、revert 產生反向 commit（安全、公共分支用）、reset 移動指標（本地用，<code>--hard</code> 最危險）。核心口訣：<strong>已 push 用 revert，沒 push 用 reset。</strong> 弄丟東西先想 reflog。下一課終於連上 GitHub，進入真正的遠端協作。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>stash、cherry-pick、revert、reset 各用一句話描述。</summary><div class="qa-body"><p>stash=先把手上的活收進抽屜；cherry-pick=只挑某一個 commit 過來；revert=做一個反向 commit 抵銷（安全、公共分支用）；reset=移動分支指標撤銷本地 commit。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>revert 和 reset 的核心差異？分別適用什麼情境？</summary><div class="qa-body"><p>revert 往前走、產生抵銷的新 commit，<strong>不改歷史、適合已 push 的公共分支</strong>；reset 往後退、直接移動指標，<strong>會改變歷史、只適合本地還沒 push 的</strong>。口訣：已 push 用 revert，沒 push 用 reset。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>`git reset --hard` 為什麼危險？</summary><div class="qa-body"><p>它會直接丟棄工作區的改動，沒 commit 過的東西救不回來。用前務必 <code>git status</code> 確認或先備份。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>改到一半時 <code>git stash</code>，切到別的分支，再回來 <code>git stash pop</code>。</li>
+<li>在測試 repo 用 <code>git reset --soft HEAD~1</code> 撤銷一個 commit，觀察改動還留在暫存區。</li>
+<li>用 <code>git revert HEAD</code> 撤銷最後一個 commit，觀察它「產生新 commit」而非刪除。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-11.html"><small>← 上一課</small><span>Rebase 與「Merge 還是 Rebase？」的抉擇</span></a><a class="pg pg-next" href="lesson-13.html"><small>下一課 →</small><span>連上 GitHub：clone、remote、push、pull、fetch</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

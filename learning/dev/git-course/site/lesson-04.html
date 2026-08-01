@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 04 課 建立專案與你的第一個 commit｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li class="active"><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元二 · 單人基本操作</div><h1>第 4 課 · 建立專案與你的第一個 commit</h1><p class="lesson-sub">init → add → commit → log，完整走一次 Git 的日常循環。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>任何資料夾都能變成 Git 專案，只要在裡面執行 <code>git init</code>。這會建立一個隱藏的 <code>.git</code> 資料夾——<strong>那就是 Git 的大腦</strong>，所有快照、歷史、分支都存在裡面。刪掉 <code>.git</code>，這個資料夾就變回普通資料夾（歷史全消失）。</p>
+<p>有了 <code>.git</code> 之後，你就能開始 Git 的日常循環：<strong>改檔案 → <code>add</code> 挑選 → <code>commit</code> 拍快照</strong>。這一課，我們把這個循環完整走一遍。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 一個專案只要 init 一次</div><div class="callout-body"><p><code>git init</code> 只在建立專案時做一次。之後你天天都在做的是 <code>add</code> 和 <code>commit</code>，不會再 init。</p></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 建立第一個專案</div><div class="callout-body"><p>Tom 被指派做一個小工具，放在 <code>C:\AI\my-tool</code>。他打開 VS Code、開啟這個資料夾、按 <code>Ctrl+~</code> 叫出終端機，然後：</p>
+<ol>
+<li><code>git init</code> —— 資料夾左下角出現 Git 標記，Tom 知道「大腦」裝好了。</li>
+<li>建立一個 <code>README.md</code>，寫下「我的第一個工具」。</li>
+<li><code>git status</code> —— Git 說 <code>README.md</code> 是紅色的 Untracked（還沒被記錄）。</li>
+<li><code>git add README.md</code> —— 放進暫存區（紙箱）。</li>
+<li><code>git commit -m "初始化專案"</code> —— 拍下第一張快照。</li>
+</ol>
+<p>Tom 看著 <code>git log</code> 裡出現自己的名字和第一個 commit，有點感動。這是他工程師生涯的第一個快照。</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 進到你的專案資料夾
+cd C:\AI\my-tool
+
+# 1. 初始化 Git（建立 .git 大腦）
+git init
+
+# 2. 建立或修改一些檔案後，看看狀態
+git status
+
+# 3. 把改動放進暫存區
+git add README.md      # 加單一檔案
+git add .              # 一次加全部
+
+# 4. 拍下快照，附上說明
+git commit -m "初始化專案，加入 README"
+
+# 5. 查看歷史
+git log --oneline</code></pre></div>
+<p><code>git log --oneline</code> 的輸出長這樣，每一行就是一張快照：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>a1b2c3d (HEAD -&gt; main) 初始化專案，加入 README</code></pre></div>
+<ul>
+<li><code>a1b2c3d</code> 是這個 commit 的<strong>唯一編號</strong>（叫 hash / SHA，實際更長，這是縮寫）。</li>
+<li><code>HEAD -&gt; main</code> 代表你現在站在 <code>main</code> 分支的最新位置。<strong>HEAD 就是「你現在在哪」的指標。</strong></li>
+</ul>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — commit 訊息的下法（本課先簡單版）</div><div class="callout-body"><p>訊息要寫「你做了什麼」，用現在式、簡潔明確。好的：<code>加入使用者登入功能</code>。壞的：<code>更新</code>、<code>asdf</code>、<code>改一下</code>。第 6 課會教業界標準的正式規範（Conventional Commits）。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 不打指令建立第一個 commit</div><div class="callout-body"><ol>
+<li>開啟資料夾後，到原始碼控制面板（<code>Ctrl+Shift+G</code>），若還不是 Git 專案，會出現 <strong>「Initialize Repository」</strong> 按鈕，按下去 = <code>git init</code>。</li>
+<li>建立 / 修改檔案後，檔案會出現在 <strong>Changes</strong> 清單。</li>
+<li>把游標移到檔案上，按 <strong><code>+</code></strong> 加入暫存（= <code>git add</code>）。</li>
+<li>在上方訊息框輸入 commit 訊息，按 <strong>✓ Commit</strong>（= <code>git commit</code>）。</li>
+<li>想看歷史，安裝 GitLens 後左側會有 <strong>Commits</strong> 檢視，或用內建的 Timeline 面板。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>專案第一個 commit 通常是初始化</strong>：常見訊息如 <code>chore: initial commit</code> 或 <code>初始化專案</code>。</li>
+<li><strong>commit 訊息要能被未來的你看懂</strong>：三個月後你翻歷史，要一眼知道每個 commit 做了什麼。</li>
+<li><strong>不要一次塞太多改動進一個 commit</strong>：小而清楚勝過大而混亂。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 建議：先建 .gitignore 再開始</div><div class="callout-body"><p>很多老手在 <code>git init</code> 之後、第一次 commit 之前，會先建立 <code>.gitignore</code>（下一課的主題），避免一開始就把垃圾檔案 commit 進去。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 在錯的資料夾 git init 了</div><div class="callout-body"><p>如果你不小心在「上一層」或桌面這種大資料夾 init，會發現 Git 開始追蹤一堆不相干的東西。解法：刪掉那個誤建的 <code>.git</code> 資料夾即可（Git 追蹤能力隨之消失，你的檔案不受影響）：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># Windows（在該資料夾）
+rmdir /s /q .git
+# Mac / Linux / Git Bash
+rm -rf .git</code></pre></div></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — `git add .` 前先看清楚</div><div class="callout-body"><p><code>git add .</code> 會把當前資料夾所有改動都加進去，包含你可能不想要的暫存檔、密碼檔。習慣先 <code>git status</code> 看一眼，或先設好 <code>.gitignore</code>。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — commit 訊息打錯</div><div class="callout-body"><p>還沒 push 的話：<code>git commit --amend -m "新訊息"</code> 直接改寫最後一個 commit 的訊息。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p><code>git init</code> 建立專案（只做一次）；日常是 <code>status</code> → <code>add</code> → <code>commit</code> → <code>log</code> 的循環；<code>HEAD</code> 代表你現在站在哪。下一課學怎麼叫 Git「不要追蹤某些檔案」。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>`git init` 一個專案要做幾次？</summary><div class="qa-body"><p>只做一次（建立專案時）。之後天天做的是 <code>add</code> 和 <code>commit</code>，不會再 init。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>`.git` 資料夾是什麼？刪掉會怎樣？</summary><div class="qa-body"><p>它是 Git 的「大腦」，存放所有快照、歷史、分支。刪掉後資料夾變回普通資料夾，版本歷史全部消失（但你的檔案本身不受影響）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>`HEAD` 代表什麼？</summary><div class="qa-body"><p>代表「你現在站在哪裡」的指標，通常指向你目前分支的最新 commit。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>完整走一次：<code>git init</code> → 建檔 → <code>git add</code> → <code>git commit</code> → <code>git log --oneline</code>。</li>
+<li>做兩三個 commit，觀察 <code>git log --oneline</code> 裡的時間線如何增長。</li>
+<li>故意把上一個 commit 訊息打錯，再用 <code>git commit --amend -m "正確訊息"</code> 修正。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-03.html"><small>← 上一課</small><span>Git 三大區域：搞懂這個，一切都通了</span></a><a class="pg pg-next" href="lesson-05.html"><small>下一課 →</small><span>.gitignore 最佳實務（Python／Node／AI 專案）</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

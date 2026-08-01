@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 11 課 Rebase 與「Merge 還是 Rebase？」的抉擇｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li class="active"><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元三 · 分支與遠端協作</div><h1>第 11 課 · Rebase 與「Merge 還是 Rebase？」的抉擇</h1><p class="lesson-sub">讓歷史變乾淨的另一種合併方式，以及它的黃金鐵律。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p><code>merge</code> 會保留分岔的真實歷史，但分支一多，歷史圖會變成一團義大利麵。<strong><code>rebase</code>（變基）</strong> 提供另一種選擇：它把你分支上的 commit「搬家」，接到目標分支的最新位置後面，讓歷史變成一條漂亮的直線。</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>merge 的歷史（保留分岔）        rebase 的歷史（一直線）
+  o---o---M  (main)             o---o---o---o'---o'  (main)
+ /       /
+o---o---o  (feature)           （feature 的 commit 被複製、接到最新後面）</code></pre></div>
+<p><strong>關鍵理解</strong>：rebase 不是移動原本的 commit，而是<strong>用你的改動產生一組「新的 commit」接到新基底上</strong>（所以它們的 hash 會變）。這就是「rebase 會改寫歷史」的意思，也是它危險的來源。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 一句話分辨</div><div class="callout-body"><ul>
+<li><strong>merge</strong>：「把兩條線接起來」，保留真實發生的分岔，多一個 merge commit。</li>
+<li><strong>rebase</strong>：「假裝我是從最新的 main 才開始開發的」，歷史變一直線，沒有 merge commit。</li>
+</ul></div></div>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 讓自己的 PR 歷史變乾淨</div><div class="callout-body"><p>Tom 的 <code>feature/login</code> 開了三天，期間 main 被 Bob 更新了好幾次。Tom 準備開 PR，但他的分支落後 main 很多。</p>
+<p>他用 <code>git rebase main</code>，把自己的 3 個 commit 重新接到 main 的最新位置後面。現在他的分支就像「剛從最新的 main 分出來」一樣乾淨，PR 的 diff 只顯示他真正做的登入功能，沒有一堆無關的 merge 雜訊。Alice review 時清爽多了。</p>
+<p>但 Alice 提醒：「rebase 只在你<strong>自己一個人</strong>的分支上做。如果 Bob 也在用這條分支，你 rebase 會把他搞爛——因為你把歷史改掉了。」</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p><strong>用 rebase 把分支接到最新的 main：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 在你的 feature 分支上
+git switch feature/login
+git rebase main</code></pre></div>
+<p>如果 rebase 過程中遇到衝突，流程和 merge 略不同：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 1. 解決衝突的檔案（編輯內容、刪掉衝突記號）
+# 2. 加入解決結果
+git add 衝突的檔案
+# 3. 繼續 rebase（注意：不是 commit，是 --continue）
+git rebase --continue
+
+# 想放棄整個 rebase、回到原狀
+git rebase --abort</code></pre></div>
+<p><strong>互動式 rebase（整理自己的 commit）</strong>——把凌亂的 commit 合併、改序、改訊息：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git rebase -i HEAD~3    # 整理最近 3 個 commit</code></pre></div>
+<p>編輯器會列出 commit，每行前面可改的指令：</p>
+<div class="tablewrap"><table><thead><tr><th>指令</th><th>作用</th></tr></thead><tbody><tr><td><code>pick</code></td><td>保留這個 commit（預設）</td></tr><tr><td><code>reword</code></td><td>保留但改訊息</td></tr><tr><td><code>squash</code></td><td>把這個 commit 併進上一個（合併）</td></tr><tr><td><code>fixup</code></td><td>像 squash 但丟棄這個的訊息</td></tr><tr><td><code>drop</code></td><td>刪掉這個 commit</td></tr></tbody></table></div>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 超實用場景：把「wip、typo、再修一下」壓成一個乾淨 commit</div><div class="callout-body"><p>你開發時常留下 <code>wip</code>、<code>修個 typo</code>、<code>忘了存</code> 這種零碎 commit。開 PR 前用 <code>git rebase -i</code> 把它們 <code>squash</code> 成一個有意義的 commit，歷史立刻專業。很多公司甚至在 PR 合併時用 <strong>Squash and merge</strong> 自動幫你做這件事（第 14 課）。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 圖形化 rebase</div><div class="callout-body"><ol>
+<li><strong>Git Graph</strong> 擴充套件：在某個分支或 commit 上右鍵，有 <strong>Rebase current branch on this branch</strong> 選項，圖形化執行 rebase。</li>
+<li>遇到衝突時，一樣用 VS Code 的衝突解決介面處理，解完在 Source Control 面板會看到 <strong>Continue</strong> 的提示。</li>
+<li>互動式 rebase（squash 那類）圖形工具支援有限，建議還是用終端機 <code>git rebase -i</code>，搭配 VS Code 當編輯器最順。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務-Merge-vs-Rebase-怎麼選">5. 公司最佳實務：Merge vs Rebase 怎麼選</h2>
+<div class="callout danger"><div class="callout-head">🚨 危險操作 — Rebase 的黃金鐵律</div><div class="callout-body"><p><strong>永遠不要 rebase 一條「已經 push 且別人可能在用」的公共分支。</strong></p>
+<p>因為 rebase 改寫歷史（commit hash 全變），別人手上的舊歷史會和你的新歷史對不上，造成嚴重混亂。安全準則：<strong>rebase 只用在「還沒 push」或「只有你自己在用」的分支。</strong> 公共的 main、develop 絕不 rebase。</p></div></div>
+<p><strong>實務上的選擇：</strong></p>
+<div class="tablewrap"><table><thead><tr><th>情境</th><th>建議</th></tr></thead><tbody><tr><td>更新自己的 feature 分支跟上 main</td><td><code>rebase</code>（歷史乾淨）</td></tr><tr><td>把 feature 合併回公共 main</td><td><code>merge</code>（通常透過 PR，安全）</td></tr><tr><td>整理自己還沒 push 的凌亂 commit</td><td><code>rebase -i</code>（squash）</td></tr><tr><td>分支已多人共用</td><td>一律 <code>merge</code>，絕不 rebase</td></tr></tbody></table></div>
+<p>很多團隊的政策是：<strong>「本地整理用 rebase，合併進主線用 merge（PR）」</strong>，兼得乾淨歷史與安全。</p>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — rebase 到一半衝突太多、想放棄</div><div class="callout-body"><div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git rebase --abort</code></pre></div>
+<p>回到 rebase 前的原狀，什麼都沒發生。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — rebase 後發現搞砸了，想找回原本的分支</div><div class="callout-body"><p>rebase 前的舊 commit 沒有真的消失，可用 reflog 找回：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git reflog                     # 找到 rebase 前那個狀態的 hash（例如標示 "before rebase"）
+git reset --hard a1b2c3d       # 把分支拉回那個狀態</code></pre></div>
+<p>這是 rebase 出事時的救命稻草，第 20 課會再深入。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 不小心對已 push 的分支 rebase 了</div><div class="callout-body"><p>如果你 rebase 了共用分支並 push（可能要 <code>--force</code>），會影響隊友。<strong>發現時立刻通知團隊</strong>，大家協調用 <code>git pull --rebase</code> 或重新同步。預防遠勝於補救——記住黃金鐵律。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>rebase 把 commit 搬到目標分支最新處，歷史變一直線、沒有 merge commit，代價是改寫歷史（hash 變）。互動式 <code>rebase -i</code> 能 squash 整理 commit。<strong>黃金鐵律：只 rebase 沒 push 或自己專屬的分支，公共分支一律 merge。</strong> 出事用 reflog 救。下一課學四個超實用的小工具：stash、cherry-pick、revert、reset。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>merge 和 rebase 最大的差別是什麼？</summary><div class="qa-body"><p>merge 保留分岔的真實歷史、多一個 merge commit；rebase 把 commit 搬到目標分支最新處，歷史變一直線、沒有 merge commit，但<strong>會改寫歷史</strong>（commit hash 改變）。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>Rebase 的黃金鐵律是什麼？</summary><div class="qa-body"><p><strong>永遠不要 rebase 一條已經 push 且別人可能在用的公共分支</strong>（如 main）。rebase 只用在還沒 push 或只有自己在用的分支。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>互動式 rebase（`rebase -i`）的 `squash` 有什麼用？</summary><div class="qa-body"><p>把多個零碎 commit（wip、typo…）合併成一個乾淨、有意義的 commit，開 PR 前整理歷史用。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>在自己的 feature 分支上做幾個零碎 commit，用 <code>git rebase -i HEAD~3</code> 把它們 squash 成一個。</li>
+<li>背下鐵律：公共分支只 merge、私有分支才 rebase。用自己的話解釋為什麼。</li>
+<li>若 rebase 出事，寫下你會用哪個指令查找救援用的 hash（提示：reflog）。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-10.html"><small>← 上一課</small><span>合併 Merge 與解決衝突 Merge Conflict</span></a><a class="pg pg-next" href="lesson-12.html"><small>下一課 →</small><span>Stash、Cherry-pick、Revert、Reset 四大工具</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

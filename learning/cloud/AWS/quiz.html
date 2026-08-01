@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS SAA-C03 互動模擬試題</title>
+<style>
+  :root{--orange:#ff9900;--dark:#232f3e;--bg:#f5f6fa;--card:#fff;--good:#1e8e3e;--bad:#d93025;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);color:#222;min-height:100vh;}
+  header{background:var(--dark);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  header h1{font-size:1.2rem;}
+  header h1 span{color:var(--orange);}
+  .container{max-width:860px;margin:0 auto;padding:24px 16px;}
+  .card{background:var(--card);border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;}
+  .domain-tag{display:inline-block;font-size:.75rem;padding:3px 10px;border-radius:20px;background:#e8f0fe;color:#1a56db;margin-bottom:12px;}
+  .q-text{font-size:1.05rem;line-height:1.7;margin-bottom:16px;font-weight:600;}
+  .multi-hint{color:#b45309;font-size:.85rem;margin-bottom:10px;}
+  .opt{display:block;width:100%;text-align:left;padding:12px 16px;margin:8px 0;border:2px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:.95rem;line-height:1.6;transition:.15s;}
+  .opt:hover{border-color:var(--orange);background:#fff8ef;}
+  .opt.selected{border-color:#1a56db;background:#e8f0fe;}
+  .opt.correct{border-color:var(--good);background:#e6f4ea;}
+  .opt.wrong{border-color:var(--bad);background:#fce8e6;}
+  .opt:disabled{cursor:default;}
+  .explain{margin-top:16px;padding:16px;border-radius:8px;background:#fffbe6;border-left:4px solid var(--orange);line-height:1.7;font-size:.92rem;display:none;}
+  .explain.show{display:block;}
+  .explain .verdict{font-weight:700;margin-bottom:6px;}
+  .btn{padding:10px 24px;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;}
+  .btn-primary{background:var(--orange);color:#fff;}
+  .btn-primary:hover{background:#e88b00;}
+  .btn-outline{background:#fff;border:2px solid var(--dark);color:var(--dark);}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px;flex-wrap:wrap;}
+  .progress-wrap{background:#ddd;border-radius:10px;height:10px;margin-bottom:20px;overflow:hidden;}
+  .progress-bar{height:100%;background:var(--orange);width:0;transition:.3s;}
+  .stat{font-size:.9rem;color:#555;}
+  .result-big{font-size:3rem;font-weight:800;text-align:center;margin:12px 0;}
+  .pass{color:var(--good);} .fail{color:var(--bad);}
+  .domain-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.95rem;}
+  .setup-opt{padding:16px;border:2px solid #ddd;border-radius:10px;margin:10px 0;cursor:pointer;transition:.15s;}
+  .setup-opt:hover{border-color:var(--orange);}
+  .setup-opt h3{font-size:1rem;margin-bottom:4px;}
+  .setup-opt p{font-size:.85rem;color:#666;}
+  a.back{color:#fff;text-decoration:none;font-size:.9rem;opacity:.85;}
+  a.back:hover{opacity:1;}
+  @media(max-width:600px){.container{padding:16px 10px;}.card{padding:16px;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>AWS <span>SAA-C03</span> 互動模擬試題</h1>
+  <a class="back" href="index.html">← 回學習中心</a>
+</header>
+<div class="container" id="app"></div>
+
+<script>
+// ===== 題庫 =====
+// domain: 1=安全架構(30%) 2=彈性架構(26%) 3=高效能架構(24%) 4=成本優化(20%)
+// answer: 正確選項索引陣列（多選題含多個）
+const QUESTIONS = [
+// ---------- Domain 1: 設計安全架構 ----------
+{d:1,q:"公司要求 EC2 應用程式存取 S3 儲存貯體，且不得在程式碼或設定檔中儲存任何長期憑證。最安全的做法是？",o:["建立 IAM User 並將 Access Key 存於環境變數","建立 IAM Role 並附加到 EC2 執行個體的 Instance Profile","使用根帳號的 Access Key","將憑證加密後存放於 S3"],a:[1],e:"IAM Role + Instance Profile 讓 EC2 透過臨時憑證存取 AWS 服務，無需儲存長期憑證，是官方最佳實踐。Access Key 屬長期憑證，應避免。"},
+{d:1,q:"某公司需確保 S3 中所有物件在靜態時加密，且必須自行管理金鑰輪換並保留金鑰使用稽核紀錄。應選擇哪種加密方式？",o:["SSE-S3","SSE-KMS 搭配客戶管理金鑰 (CMK)","SSE-C","僅使用 HTTPS 傳輸"],a:[1],e:"SSE-KMS 客戶管理金鑰支援自訂輪換政策，且所有金鑰使用都記錄在 CloudTrail，滿足稽核需求。SSE-S3 無法提供金鑰層級稽核；SSE-C 需自行傳送金鑰、管理負擔大。"},
+{d:1,q:"安全團隊需要集中檢視多個 AWS 帳號的安全發現（如異常 API 呼叫、遭入侵的執行個體）。哪個服務組合最合適？",o:["CloudWatch + SNS","GuardDuty + Security Hub（跨帳號彙整）","AWS Config 單獨使用","Trusted Advisor"],a:[1],e:"GuardDuty 提供威脅偵測（異常 API、挖礦、入侵跡象），Security Hub 可跨帳號彙整所有安全發現並統一檢視。這是多帳號安全監控的標準組合。"},
+{d:1,q:"Web 應用程式部署在 ALB 後方，需防護 SQL Injection 與 XSS 攻擊。應使用哪個服務？",o:["AWS Shield Standard","AWS WAF 關聯至 ALB","Security Group 規則","Network ACL"],a:[1],e:"AWS WAF 可在 ALB、CloudFront、API Gateway 上過濾 Layer 7 攻擊（SQLi、XSS）。Shield 針對 DDoS；SG/NACL 只能控制 IP/Port，無法檢查封包內容。"},
+{d:1,q:"公司政策要求：開發人員只能在 us-east-1 與 ap-northeast-1 建立資源，此限制必須套用到 AWS Organizations 中所有帳號且無法被成員帳號管理員繞過。應使用？",o:["每個帳號各自設定 IAM Policy","Service Control Policy (SCP) 限制區域","AWS Config 規則","CloudTrail 監控"],a:[1],e:"SCP 是 Organizations 層級的防護欄，對成員帳號內所有使用者（含 root 與管理員）強制生效，無法被繞過。IAM Policy 可被帳號管理員修改；Config 只能偵測不能預防。"},
+{d:1,q:"應用程式需要儲存資料庫密碼，並要求每 30 天自動輪換。最合適的服務是？",o:["SSM Parameter Store (Standard)","AWS Secrets Manager","S3 + KMS","DynamoDB 加密資料表"],a:[1],e:"Secrets Manager 原生支援自動輪換（與 RDS 等整合），這是它與 Parameter Store 最大的差異。Parameter Store 免費但無內建自動輪換。"},
+{d:1,q:"VPC 中的私有子網路 EC2 需要存取 S3，但流量不得經過網際網路。最佳做法是？",o:["NAT Gateway","S3 的 Gateway VPC Endpoint","Internet Gateway","VPN 連線"],a:[1],e:"Gateway Endpoint（支援 S3 與 DynamoDB）讓私有子網路直接透過 AWS 內部網路存取 S3，免費且流量不出網際網路。NAT Gateway 會產生費用且流量仍走公有路徑。"},
+{d:1,q:"公司要求對 S3 儲存貯體的存取進行精細控制：僅允許特定 VPC Endpoint 的請求。應在哪裡設定此限制？",o:["IAM User Policy","S3 Bucket Policy 搭配 aws:SourceVpce 條件","Security Group","Route Table"],a:[1],e:"Bucket Policy 支援 Condition（如 aws:SourceVpce），可拒絕非指定 VPC Endpoint 的所有存取。這是資源型政策的典型用法。"},
+{d:1,q:"需要讓行動 App 使用者透過 Facebook/Google 登入後，取得暫時性 AWS 憑證以上傳照片至 S3。應使用？",o:["IAM Users 為每位使用者建帳號","Amazon Cognito Identity Pool（聯合身分）","共用一組 Access Key","AWS SSO"],a:[1],e:"Cognito Identity Pool 支援社交身分供應商聯合登入，並發放暫時性 AWS 憑證給用戶端直接存取 AWS 資源。為每位 App 使用者建 IAM User 不可擴展也不安全。"},
+{d:1,q:"稽核要求記錄所有 AWS 帳號中 API 呼叫的完整歷史，且日誌檔必須防竄改。應如何設計？（選兩項）",o:["啟用 CloudTrail 並寫入 S3","在 S3 啟用 MFA Delete 與 Log File Validation","使用 CloudWatch Metrics","啟用 VPC Flow Logs"],a:[0,1],e:"CloudTrail 記錄所有 API 呼叫；Log File Validation 提供數位簽章驗證日誌完整性，MFA Delete 防止日誌被刪除。CloudWatch Metrics 是效能指標、Flow Logs 是網路流量，皆非 API 稽核。"},
+{d:1,q:"某應用需加密 EBS 磁碟區。關於 EBS 加密，下列何者正確？",o:["加密後會顯著降低 IOPS 效能","加密的快照建立的磁碟區自動加密，且加密對效能影響極小","必須自行安裝加密軟體","只有 io2 類型支援加密"],a:[1],e:"EBS 加密使用 KMS，對延遲影響極小；加密快照所還原/複製的磁碟區維持加密。所有磁碟區類型皆支援，無需額外軟體。"},
+{d:1,q:"公司有一個 VPC，內含公有與私有子網路。決定子網路是否為「公有」的關鍵因素是？",o:["子網路的 CIDR 大小","路由表中是否有指向 Internet Gateway 的路由","Security Group 設定","是否啟用自動指派公有 IP"],a:[1],e:"公有子網路的定義：其路由表有 0.0.0.0/0 → IGW 的路由。自動指派公有 IP 只是輔助，沒有 IGW 路由仍無法連網。"},
+// ---------- Domain 2: 設計彈性架構 ----------
+{d:2,q:"應用程式部署於單一 AZ 的 EC2 上，公司要求達到高可用性，即使一個 AZ 故障也能繼續服務。最佳架構是？",o:["在同一 AZ 部署更多 EC2","使用 Auto Scaling Group 跨多個 AZ + ALB","定期建立 AMI 備份","改用更大的執行個體"],a:[1],e:"跨 AZ 的 ASG + ALB 是高可用標準架構：AZ 故障時 ALB 將流量導向健康 AZ，ASG 自動補充執行個體。垂直擴展與備份都無法解決 AZ 級故障。"},
+{d:2,q:"RDS MySQL 資料庫需要：(1) AZ 故障時自動容錯移轉 (2) 分擔讀取流量。應如何設計？",o:["啟用 Multi-AZ 即可同時滿足兩者","啟用 Multi-AZ（容錯移轉）+ Read Replica（讀取分流）","僅建立多個 Read Replica","使用更大的執行個體"],a:[1],e:"Multi-AZ 的 standby 不可讀，僅供容錯移轉；Read Replica 分擔讀取但預設無自動容錯移轉。兩個需求需要兩種機制並用。"},
+{d:2,q:"公司要求 RPO 5 分鐘、RTO 1 小時的災難復原策略，並希望成本低於完整雙站架構。最合適的 DR 策略是？",o:["Backup & Restore","Pilot Light","Multi-Site Active-Active","僅使用快照"],a:[1],e:"Pilot Light 在 DR 區域保留最小核心（如持續複寫的資料庫），災難時快速擴展其餘元件，可達成分鐘級 RPO 與小時級 RTO，成本遠低於 Active-Active。Backup & Restore 的 RTO 通常過長。"},
+{d:2,q:"兩個微服務間透過訊息溝通，要求：訊息不可遺失、消費者故障時訊息需保留、每則訊息只能被處理一次且需按順序。應使用？",o:["SNS","SQS Standard Queue","SQS FIFO Queue","EventBridge"],a:[2],e:"FIFO Queue 保證順序與 exactly-once 處理。Standard Queue 是 at-least-once 且盡力排序。SNS 是推播模式，訂閱者離線可能遺失訊息（除非搭配 SQS）。"},
+{d:2,q:"靜態網站部署在 S3，要求全球使用者低延遲存取且具備高可用性。應加上？",o:["在每個區域建立 S3 儲存貯體","CloudFront 發佈 S3 內容","Global Accelerator","ElastiCache"],a:[1],e:"CloudFront 透過全球邊緣節點快取靜態內容，降低延遲並提高可用性，是 S3 靜態網站的標準搭配。Global Accelerator 適用於非 HTTP/需固定 IP 的場景。"},
+{d:2,q:"應用程式使用 SQS 處理訂單，偶爾有無法處理的毒訊息 (poison message) 反覆重試導致阻塞。最佳解法是？",o:["加大 Visibility Timeout","設定 Dead-Letter Queue (DLQ) 與 maxReceiveCount","改用 SNS","增加消費者數量"],a:[1],e:"DLQ 會在訊息重試超過 maxReceiveCount 後將其移出主佇列，避免毒訊息阻塞處理，並可供後續分析。"},
+{d:2,q:"某網站流量有明顯的每日高峰（上午 9 點暴增）。Auto Scaling 應如何設定以確保高峰前已備妥容量？",o:["Simple Scaling","Scheduled Scaling（排程擴展）","僅手動調整","降低健康檢查頻率"],a:[1],e:"流量模式可預測時，Scheduled Scaling 可在高峰前預先擴容，避免反應式擴展的延遲。也可搭配 Target Tracking 處理非預期流量。"},
+{d:2,q:"公司需要將 on-premises 資料中心與 AWS VPC 建立專用、穩定頻寬、低延遲的私有連線，不經過網際網路。應使用？",o:["Site-to-Site VPN","AWS Direct Connect","VPC Peering","Transit Gateway 單獨使用"],a:[1],e:"Direct Connect 提供專線連接，頻寬穩定且不走網際網路。VPN 走網際網路（加密但頻寬/延遲不穩定）。VPC Peering 與 Transit Gateway 用於 VPC 之間。"},
+{d:2,q:"應用程式需要共用檔案系統，讓多個 AZ 中的多台 Linux EC2 同時掛載讀寫。應使用？",o:["EBS Multi-Attach","Amazon EFS","S3","Instance Store"],a:[1],e:"EFS 是全受管 NFS，支援跨 AZ 多執行個體同時掛載。EBS Multi-Attach 限同一 AZ 且僅 io1/io2；S3 不是檔案系統（無法直接掛載為 POSIX）。"},
+{d:2,q:"DynamoDB 資料表需要跨區域複寫，讓多個區域的使用者都能低延遲讀寫同一份資料。應使用？",o:["DynamoDB Streams + Lambda 自行複寫","DynamoDB Global Tables","定期匯出至 S3 再匯入","Read Replica"],a:[1],e:"Global Tables 提供全受管的多區域多主動 (multi-active) 複寫，各區域皆可讀寫。自行複寫維運成本高；DynamoDB 沒有 Read Replica 概念。"},
+{d:2,q:"Route 53 需設定：主站故障時自動將流量導向備援站點。應使用哪種路由政策？",o:["Weighted","Latency-based","Failover 搭配 Health Check","Geolocation"],a:[2],e:"Failover 路由搭配健康檢查：主要記錄不健康時自動切換至次要記錄，是 DNS 層級的主備容錯移轉。"},
+// ---------- Domain 3: 設計高效能架構 ----------
+{d:3,q:"資料庫讀取壓力大，大量重複查詢相同資料，需將讀取延遲降至次毫秒 (sub-millisecond)。應加入？",o:["Read Replica","ElastiCache (Redis/Memcached) 快取層","更大的 RDS 執行個體","S3"],a:[1],e:"ElastiCache 記憶體快取可提供次毫秒延遲並大幅減輕資料庫負載。Read Replica 仍是磁碟型讀取，延遲為毫秒級。"},
+{d:3,q:"每天需將 500 GB 影片檔從 on-premises 上傳至 S3，上傳常因網路距離而緩慢。最能加速上傳的功能是？",o:["S3 Multipart Upload 單獨使用","S3 Transfer Acceleration（搭配 Multipart Upload）","AWS Snowball 每天寄送","降低檔案解析度"],a:[1],e:"Transfer Acceleration 利用 CloudFront 邊緣節點加速遠距離上傳，搭配 Multipart Upload 平行傳輸效果最佳。Snowball 適合一次性大量遷移，不適合每日傳輸。"},
+{d:3,q:"Lambda 函數需要處理 S3 上傳的圖片並產生縮圖，偶爾冷啟動延遲影響體驗，且尖峰時併發量大。下列何者能改善冷啟動？",o:["增加函數逾時時間","設定 Provisioned Concurrency","改用更大的記憶體就能完全消除冷啟動","改用 EC2"],a:[1],e:"Provisioned Concurrency 預先初始化執行環境，消除冷啟動延遲。增加記憶體可加速初始化但無法消除冷啟動。"},
+{d:3,q:"需要對 S3 中的大量 CSV/Parquet 資料執行 ad-hoc SQL 查詢，不想建置任何伺服器或 ETL。應使用？",o:["RDS","Amazon Athena","EMR 叢集","Redshift 佈建叢集"],a:[1],e:"Athena 是無伺服器查詢服務，直接以 SQL 查詢 S3 資料，按掃描量計費，最符合 ad-hoc、免維運需求。"},
+{d:3,q:"高效能運算 (HPC) 應用需要節點間極低延遲、高吞吐的網路。EC2 應如何配置？",o:["Spread Placement Group","Cluster Placement Group + Enhanced Networking","跨多 AZ 部署","使用 T 系列執行個體"],a:[1],e:"Cluster Placement Group 將執行個體放在同一機架區域內，提供最低延遲與最高網路吞吐，是 HPC 標準配置。Spread 是為了降低相關故障、反而分散。"},
+{d:3,q:"某資料庫工作負載需要 EBS 提供穩定 64,000 IOPS。應選擇哪種磁碟區？",o:["gp2","gp3","io2 Block Express / io2","st1"],a:[2],e:"io2 支援最高 64,000 IOPS（Block Express 可達 256,000），適合關鍵資料庫。gp3 上限 16,000 IOPS；st1 是吞吐型 HDD。"},
+{d:3,q:"全球使用者存取的 TCP 遊戲伺服器（非 HTTP），需要固定的 Anycast IP 與最低網路延遲。應使用？",o:["CloudFront","AWS Global Accelerator","Route 53 Latency Routing","ALB"],a:[1],e:"Global Accelerator 提供 2 個固定 Anycast IP，流量從最近邊緣節點進入 AWS 骨幹網路，適合 TCP/UDP 非 HTTP 工作負載。CloudFront 是 HTTP 快取。"},
+{d:3,q:"Kinesis Data Streams 的消費者處理速度落後，發現分片 (shard) 吞吐量已達上限。最直接的解法是？",o:["改用 SQS","增加分片數量 (reshard)","減少生產者","加大訊息大小"],a:[1],e:"Kinesis 吞吐量以分片為單位（每分片寫入 1MB/s、讀取 2MB/s），增加分片即水平擴展吞吐量。"},
+{d:3,q:"公司的 API 流量爆增時 RDS 連線數耗盡，大量 Lambda 併發連線導致資料庫崩潰。最佳解法是？",o:["加大 RDS 執行個體","使用 RDS Proxy 管理連線池","增加 Lambda 記憶體","改用 EBS"],a:[1],e:"RDS Proxy 建立共用連線池，複用資料庫連線，專門解決 Lambda 等高併發、短生命週期連線壓垮資料庫的問題。"},
+{d:3,q:"需要一個全受管的資料倉儲對 PB 級結構化資料執行複雜分析查詢 (OLAP)。應使用？",o:["RDS MySQL","DynamoDB","Amazon Redshift","ElastiCache"],a:[2],e:"Redshift 是 PB 級 MPP 資料倉儲，專為 OLAP 分析設計。RDS 適合 OLTP；DynamoDB 是 NoSQL 鍵值存取。"},
+// ---------- Domain 4: 設計成本優化架構 ----------
+{d:4,q:"批次影像處理工作可隨時中斷並重新執行，需要大量運算且希望成本最低。應使用哪種 EC2 購買選項？",o:["On-Demand","Reserved Instances","Spot Instances","Dedicated Hosts"],a:[2],e:"Spot 執行個體最高可省 90%，適合可容錯、可中斷的批次工作。RI 適合穩定長期負載；Dedicated Hosts 最貴，用於授權/合規需求。"},
+{d:4,q:"S3 中的日誌檔前 30 天常被存取，之後很少存取但需保留 1 年供稽核，最後刪除。最省成本的設計是？",o:["全部存 S3 Standard","Lifecycle Policy：30 天後轉 S3 Standard-IA / Glacier，1 年後過期刪除","全部存 Glacier Deep Archive","手動搬移"],a:[1],e:"Lifecycle Policy 自動化分層：熱資料 Standard → 冷資料 IA/Glacier → 到期刪除，兼顧存取需求與成本。全部放 Deep Archive 會讓前 30 天存取變慢且取回費高。"},
+{d:4,q:"存取模式無法預測的 S3 資料（有些物件常存取、有些幾乎不碰），希望自動優化儲存成本且不影響效能。應使用？",o:["S3 Standard-IA","S3 Intelligent-Tiering","Glacier Instant Retrieval","One Zone-IA"],a:[1],e:"Intelligent-Tiering 依存取模式自動在存取層間搬移物件，無取回費，最適合存取模式未知的資料。Standard-IA 若頻繁存取反而更貴（有取回費）。"},
+{d:4,q:"公司的基準工作負載穩定運行 EC2 與 Fargate，希望以承諾使用量換取最大折扣且保有跨執行個體家族與區域的彈性。應購買？",o:["Standard Reserved Instances","Compute Savings Plans","Spot Instances","On-Demand Capacity Reservation"],a:[1],e:"Compute Savings Plans 承諾每小時花費，折扣適用於任何區域、家族的 EC2、Fargate 與 Lambda，彈性最高。Standard RI 綁定家族與區域。"},
+{d:4,q:"需要監控 AWS 帳單，當預測費用將超過每月 $10,000 時收到警告。應使用？",o:["Cost Explorer 手動檢查","AWS Budgets 設定預算警示","CloudWatch CPU 警報","Trusted Advisor"],a:[1],e:"AWS Budgets 可設定實際或「預測」費用門檻並透過 SNS/Email 發出警示。Cost Explorer 用於分析歷史費用，不會主動警告。"},
+{d:4,q:"NAT Gateway 的資料處理費用過高，分析後發現大部分流量是私有子網路 EC2 存取 S3。最有效的降費方式是？",o:["改用更多 NAT Gateway","建立 S3 Gateway VPC Endpoint 讓流量繞過 NAT","壓縮資料","改用公有子網路"],a:[1],e:"Gateway Endpoint 免費且讓 S3 流量不經 NAT Gateway，直接消除該部分資料處理費，是常見的成本優化考點。"},
+{d:4,q:"開發/測試環境的 EC2 只在上班時間（週一至五 9:00-18:00）使用，如何最有效降低成本？",o:["購買 3 年期 RI","以排程（如 Instance Scheduler / Lambda + EventBridge）於下班時間自動停止執行個體","改用 Spot","加大執行個體"],a:[1],e:"停止的執行個體不收運算費。自動排程開關機可省約 70% 運算成本。RI 適合 24/7 負載，對僅上班時間使用反而不划算。"},
+{d:4,q:"公司多個帳號透過 AWS Organizations 管理，希望彙整帳單以獲得量級折扣並集中付款。應使用？",o:["每個帳號分開付款","Consolidated Billing（合併帳單）","各帳號購買各自 RI","Cost Categories"],a:[1],e:"Organizations 的 Consolidated Billing 集中付款、合併用量以達到量級折扣門檻，且 RI/Savings Plans 折扣可在帳號間共享。"}
+];
+
+// ===== 應用程式 =====
+const DOMAINS = {1:"領域 1：設計安全架構 (30%)",2:"領域 2：設計彈性架構 (26%)",3:"領域 3：設計高效能架構 (24%)",4:"領域 4：設計成本優化架構 (20%)"};
+let quiz = [], idx = 0, answers = [], selected = new Set(), submitted = false, mode = "all";
+const app = document.getElementById("app");
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function renderSetup(){
+  const wrong = JSON.parse(localStorage.getItem("saa_wrong")||"[]");
+  app.innerHTML = `
+  <div class="card">
+    <h2 style="margin-bottom:8px;">選擇測驗模式</h2>
+    <p class="stat" style="margin-bottom:12px;">題庫共 ${QUESTIONS.length} 題 · 依 SAA-C03 四大領域比重出題 · 及格線 72%</p>
+    <div class="setup-opt" onclick="startQuiz('all')"><h3>📝 完整模擬考（${QUESTIONS.length} 題）</h3><p>全領域隨機出題，模擬正式考試</p></div>
+    <div class="setup-opt" onclick="startQuiz('quick')"><h3>⚡ 快速練習（15 題）</h3><p>隨機抽 15 題快速測驗</p></div>
+    ${[1,2,3,4].map(d=>`<div class="setup-opt" onclick="startQuiz(${d})"><h3>🎯 ${DOMAINS[d]}</h3><p>只練習此領域（${QUESTIONS.filter(q=>q.d===d).length} 題）</p></div>`).join("")}
+    ${wrong.length?`<div class="setup-opt" onclick="startQuiz('wrong')"><h3>🔁 錯題複習（${wrong.length} 題）</h3><p>只重做上次答錯的題目</p></div>`:""}
+  </div>`;
+}
+
+window.startQuiz = function(m){
+  mode = m;
+  if(m==="all") quiz = shuffle(QUESTIONS);
+  else if(m==="quick") quiz = shuffle(QUESTIONS).slice(0,15);
+  else if(m==="wrong"){const w=JSON.parse(localStorage.getItem("saa_wrong")||"[]");quiz=shuffle(QUESTIONS.filter((q,i)=>w.includes(i)));}
+  else quiz = shuffle(QUESTIONS.filter(q=>q.d===m));
+  idx=0; answers=[]; renderQuestion();
+};
+
+function renderQuestion(){
+  const q = quiz[idx]; selected = new Set(); submitted = false;
+  const multi = q.a.length>1;
+  app.innerHTML = `
+  <div class="progress-wrap"><div class="progress-bar" style="width:${idx/quiz.length*100}%"></div></div>
+  <div class="stat" style="margin-bottom:8px;">第 ${idx+1} / ${quiz.length} 題</div>
+  <div class="card">
+    <span class="domain-tag">${DOMAINS[q.d]}</span>
+    <div class="q-text">${q.q}</div>
+    ${multi?'<div class="multi-hint">⚠️ 多選題：請選擇 '+q.a.length+' 個答案</div>':""}
+    ${q.o.map((o,i)=>`<button class="opt" id="opt${i}" onclick="pick(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join("")}
+    <div class="explain" id="explain"></div>
+    <div class="toolbar">
+      <button class="btn btn-outline" onclick="renderSetup2()">結束測驗</button>
+      <button class="btn btn-primary" id="mainBtn" onclick="submitAnswer()">送出答案</button>
+    </div>
+  </div>`;
+}
+window.renderSetup2 = renderSetup;
+
+window.pick = function(i){
+  if(submitted) return;
+  const q = quiz[idx], multi = q.a.length>1;
+  if(!multi){selected.clear();document.querySelectorAll(".opt").forEach(b=>b.classList.remove("selected"));}
+  if(selected.has(i)){selected.delete(i);document.getElementById("opt"+i).classList.remove("selected");}
+  else{selected.add(i);document.getElementById("opt"+i).classList.add("selected");}
+};
+
+window.submitAnswer = function(){
+  const q = quiz[idx];
+  if(!submitted){
+    if(selected.size===0){alert("請先選擇答案");return;}
+    submitted = true;
+    const correct = q.a.length===selected.size && q.a.every(a=>selected.has(a));
+    answers.push({d:q.d, correct, qi:QUESTIONS.indexOf(q)});
+    q.a.forEach(a=>document.getElementById("opt"+a).classList.add("correct"));
+    selected.forEach(s=>{if(!q.a.includes(s))document.getElementById("opt"+s).classList.add("wrong");});
+    document.querySelectorAll(".opt").forEach(b=>b.disabled=true);
+    const ex = document.getElementById("explain");
+    ex.innerHTML = `<div class="verdict" style="color:${correct?'var(--good)':'var(--bad)'}">${correct?"✅ 答對了！":"❌ 答錯了。正確答案："+q.a.map(a=>String.fromCharCode(65+a)).join(", ")}</div>${q.e}`;
+    ex.classList.add("show");
+    document.getElementById("mainBtn").textContent = idx===quiz.length-1?"查看成績":"下一題";
+  } else {
+    idx++;
+    if(idx<quiz.length) renderQuestion(); else renderResult();
+  }
+};
+
+function renderResult(){
+  const total = answers.length, right = answers.filter(a=>a.correct).length;
+  const pct = Math.round(right/total*100), pass = pct>=72;
+  const wrongIdx = answers.filter(a=>!a.correct).map(a=>a.qi);
+  localStorage.setItem("saa_wrong", JSON.stringify(wrongIdx));
+  const hist = JSON.parse(localStorage.getItem("saa_history")||"[]");
+  hist.push({date:new Date().toLocaleDateString("zh-TW"), pct, total});
+  localStorage.setItem("saa_history", JSON.stringify(hist.slice(-20)));
+  let domainRows = "";
+  for(const d of [1,2,3,4]){
+    const da = answers.filter(a=>a.d===d);
+    if(!da.length) continue;
+    const dr = da.filter(a=>a.correct).length;
+    domainRows += `<div class="domain-row"><span>${DOMAINS[d]}</span><strong style="color:${dr/da.length>=0.72?'var(--good)':'var(--bad)'}">${dr}/${da.length} (${Math.round(dr/da.length*100)}%)</strong></div>`;
+  }
+  app.innerHTML = `
+  <div class="card" style="text-align:center;">
+    <h2>測驗結果</h2>
+    <div class="result-big ${pass?'pass':'fail'}">${pct}%</div>
+    <p style="font-size:1.1rem;margin-bottom:8px;">${right} / ${total} 題正確 · ${pass?"🎉 達到及格線（72%）！":"未達及格線（72%），加油！"}</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:8px;">各領域表現</h3>
+    ${domainRows}
+    <p class="stat" style="margin-top:12px;">💡 建議優先複習正確率低於 72% 的領域。</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:8px;">歷史成績</h3>
+    ${hist.slice(-5).reverse().map(h=>`<div class="domain-row"><span>${h.date}（${h.total} 題）</span><strong>${h.pct}%</strong></div>`).join("")}
+  </div>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    ${wrongIdx.length?`<button class="btn btn-primary" onclick="startQuiz('wrong')">🔁 複習 ${wrongIdx.length} 題錯題</button>`:""}
+    <button class="btn btn-outline" onclick="renderSetup2()">回到模式選擇</button>
+  </div>`;
+}
+
+renderSetup();
+</script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

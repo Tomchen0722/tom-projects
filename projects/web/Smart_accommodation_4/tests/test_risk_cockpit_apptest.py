@@ -1,0 +1,170 @@
+# -*- coding: utf-8 -*-
+"""風險管理『雙檢視』AppTest 回歸。
+
+無頭載入後台分析頁,驗證:
+  1. 預設房東檢視:0 例外、rm_view=hosts、無任何 rm_sel_* checkbox、無批次發送鈕。
+  2. 點某房東ID → rm_view=listings,出現『房東檢視』麵包屑回退鈕。
+  3. 房源檢視點某房源ID → 出現該房源『產生此房源輔導通知』單筆鈕(LIME 展開)。
+  4. 勾選某房源 → 出現『批次發送』鈕(底部浮動列現身)。
+
+需 data/_predictions.csv;缺檔時該頁只渲染警告、房東搜尋框不會出現,對應測試 skip。
+"""
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from streamlit.testing.v1 import AppTest
+
+APP = str(ROOT / "pages" / "3_📊_後台分析.py")
+
+
+def _run():
+    at = AppTest.from_file(APP, default_timeout=300)
+    at.session_state["pf_active_tab"] = "🚨 風險管理"   # 側欄/內容改為分頁條件渲染
+    at.run()
+    return at
+
+
+def _btn(at, pred):
+    return next((b for b in at.button if pred(b)), None)
+
+
+def _ready(at):
+    """象限篩選器在 = 有母體資料;否則 skip。
+
+    2026-07-25:原本判斷 rm_host_search(房東ID模糊查詢),該控制項已被
+    象限篩選器取代;不同步改這裡的話,整組 AppTest 會靜默 skip 而非真的驗證。
+    """
+    return any(r.key == "rm_host_quadrant" for r in at.radio)
+
+
+def test_預設房東檢視_無勾選無批次列():
+    at = _run()
+    assert not at.exception, at.exception
+    if not _ready(at):
+        pytest.skip("房東檢視未出現(可能缺 data/_predictions.csv)")
+    assert at.session_state["rm_view"] == "hosts"
+    assert not any(str(cb.key).startswith("rm_sel_") for cb in at.checkbox)
+    assert _btn(at, lambda b: b.key == "rm_batch_send") is None
+    # 房東檢視下：隱藏警報層級篩選器
+    assert not any(m.key == "rm_risk_levels" for m in at.multiselect)
+
+
+def test_兩頁簽恆在_且點房東ID自動跳房源管理頁簽():
+    at = _run()
+    if not _ready(at):
+        pytest.skip("房東檢視未出現")
+    # 兩個頁簽按鈕恆在
+    assert _btn(at, lambda b: b.key == "rm_tab_hosts") is not None
+    assert _btn(at, lambda b: b.key == "rm_tab_listings") is not None
+    hb = _btn(at, lambda b: str(b.key).startswith("rm_host_"))
+    if hb is None:
+        pytest.skip("排行榜無房東可點")
+    hb.click().run()
+    assert not at.exception, at.exception
+    assert at.session_state["rm_view"] == "listings"      # 自動跳頁簽
+    assert at.session_state["rm_host_filter"] != "不限"     # 已鎖定該房東
+    assert any(m.key == "rm_risk_levels" for m in at.multiselect)  # 房源管理下顯示警報層級
+    # 點回房東管理頁簽 → 還原
+    at.button(key="rm_tab_hosts").click().run()
+    assert not at.exception, at.exception
+    assert at.session_state["rm_view"] == "hosts"
+    assert not any(m.key == "rm_risk_levels" for m in at.multiselect)  # 點回房東管理後隱藏警報層級
+
+
+def test_房源管理頁簽直接看全部房源():
+    at = _run()
+    if not _ready(at):
+        pytest.skip("房東檢視未出現")
+    at.button(key="rm_tab_listings").click().run()
+    assert not at.exception, at.exception
+    assert at.session_state["rm_view"] == "listings"
+    assert at.session_state["rm_host_filter"] == "不限"     # 未選房東=全部
+    assert any(r.key == "rm_listing_quadrant" for r in at.radio)  # 象限單選按鈕列現身
+    assert any(m.key == "rm_risk_levels" for m in at.multiselect)  # 房源管理顯示警報層級
+    assert _btn(at, lambda b: str(b.key).startswith("rm_lst_")) is not None
+
+
+def test_房源檢視點房源ID_展開單筆派信鈕():
+    at = _run()
+    if not _ready(at):
+        pytest.skip("房東檢視未出現")
+    hb = _btn(at, lambda b: str(b.key).startswith("rm_host_"))
+    if hb is None:
+        pytest.skip("排行榜無房東可點")
+    hb.click().run()
+    assert not at.exception, at.exception
+    lb = _btn(at, lambda b: str(b.key).startswith("rm_lst_"))
+    if lb is None:
+        pytest.skip("該房東名下無房源列")
+    lb.click().run()
+    assert not at.exception, at.exception
+    assert _btn(at, lambda b: str(b.key).startswith("rm_send1_")) is not None
+
+
+def _checkbox(at, pred):
+    return next((cb for cb in at.checkbox if pred(cb)), None)
+
+
+def test_跳轉鎖定的房源_使用者手動點別的房源後鎖定會清除():
+    """2026-07-25:「營收與成長」跳轉來的房源會被強制固定在清單最上方。
+
+    若使用者接著自己點了別的房源 ID,代表已經在手動瀏覽,不該讓舊的
+    跳轉鎖定繼續把別的房源黏在清單最前面。
+    """
+    at = _run()
+    if not _ready(at):
+        pytest.skip("房東檢視未出現")
+    at.button(key="rm_tab_listings").click().run()
+    lb = _btn(at, lambda b: str(b.key).startswith("rm_lst_"))
+    if lb is None:
+        pytest.skip("無房源列可點")
+    lid = int(str(lb.key)[len("rm_lst_"):])
+
+    # 模擬「從營收與成長跳轉」已鎖定該房源(不必真的跨分頁,只需驗證
+    # _render_listings 讀到 rm_focus_id 時的行為)
+    at.session_state["rm_focus_id"] = lid
+    at.session_state["rm_expanded_id"] = lid
+    at.session_state["rm_focus_from"] = "營收與成長"
+    at.run()
+    assert not at.exception, at.exception
+    assert _btn(at, lambda b: b.key == "rm_clear_focus") is not None
+
+    other = _btn(at, lambda b: str(b.key).startswith("rm_lst_")
+                and b.key != f"rm_lst_{lid}")
+    if other is None:
+        pytest.skip("篩選範圍內只有一間房源,無法測試切換")
+    other.click().run()
+
+    assert not at.exception, at.exception
+    assert at.session_state["rm_focus_id"] is None
+
+
+def test_勾選房源_頂部批次列啟用():
+    """批次派信列常駐於房源表格上方(原為底部浮動列,左半會被側邊欄遮住)。
+
+    勾選前:發送鈕存在但 disabled;勾選後啟用。全選鈕恆在。
+    """
+    at = _run()
+    if not _ready(at):
+        pytest.skip("房東檢視未出現")
+    hb = _btn(at, lambda b: str(b.key).startswith("rm_host_"))
+    if hb is None:
+        pytest.skip("排行榜無房東可點")
+    hb.click().run()
+    cb = _checkbox(at, lambda c: str(c.key).startswith("rm_sel_"))
+    if cb is None:
+        pytest.skip("該房東名下無房源列")
+    # 勾選前:批次列常駐,發送鈕 disabled;全選鈕恆在
+    send = _btn(at, lambda b: b.key == "rm_batch_send")
+    assert send is not None and send.disabled is True
+    assert _btn(at, lambda b: b.key == "rm_select_all") is not None
+    # 勾選後:發送鈕啟用
+    cb.check().run()
+    assert not at.exception, at.exception
+    send2 = _btn(at, lambda b: b.key == "rm_batch_send")
+    assert send2 is not None and send2.disabled is False

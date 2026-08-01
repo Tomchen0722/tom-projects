@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 09 課 分支 Branch：多人協作的核心｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li class="active"><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元三 · 分支與遠端協作</div><h1>第 9 課 · 分支 Branch：多人協作的核心</h1><p class="lesson-sub">為什麼有了分支，三個人才能同時開發不打架。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>到目前為止，你的所有 commit 都排在同一條線上（<code>main</code>）。但真實團隊不是這樣運作的——<strong>如果三個人都直接往 main 塞 commit，會亂成一團，而且任何人推一個半成品就會弄壞大家的主線。</strong></p>
+<p><strong>分支（branch）</strong> 就是解法。它讓你從主線「分岔」出一條平行時間線，在上面安心開發，完成、測試、review 之後，再合併回主線。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 分支的本質：一個超輕量的指標</div><div class="callout-body"><p>很多人以為分支是「複製一份程式碼」，其實不是。<strong>一個分支只是一個指向某個 commit 的指標（37 個位元組）</strong>，所以 Git 建分支、切分支快到幾乎瞬間。<code>HEAD</code> 則是「你現在站在哪個分支」的指標。理解這點，分支就不神秘了。</p></div></div>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>             （feature/login 分支）
+              o---o---o
+             /
+  o---o---o---o---o   （main 主線）
+                  ↑
+                HEAD（你在這）</code></pre></div>
+<p><strong>每個功能開一條分支</strong>，是所有現代團隊的基本工作方式。你不會在 main 上直接開發，而是：從 main 開一條 <code>feature/xxx</code> → 在上面做完 → 合併回 main。</p>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — 三人三分支，互不干擾</div><div class="callout-body"><p>專案要同時做三件事。三人各開一條分支：</p>
+<ul>
+<li>Tom：<code>git switch -c feature/login</code>（做登入）</li>
+<li>Alice：<code>git switch -c feature/cart</code>（做購物車）</li>
+<li>Bob：<code>git switch -c fix/header-bug</code>（修一個 bug）</li>
+</ul>
+<p>三人在各自的分支上盡情 commit，完全不影響彼此，也不影響 main。Bob 的 bug 先修好，先合併回 main；Tom、Alice 隨後也各自完成、合併。main 始終保持「可運作」的狀態，因為半成品都在分支上，不會污染主線。</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 看目前有哪些分支（* 是你現在所在的）
+git branch
+
+# 建立並切換到新分支（一步到位，最常用）
+git switch -c feature/login
+# 舊寫法：git checkout -b feature/login
+
+# 只建立、不切換
+git branch feature/login
+
+# 切換到已存在的分支
+git switch main
+# 舊寫法：git checkout main
+
+# 切回上一個待過的分支
+git switch -
+
+# 改分支名稱（改目前所在分支）
+git branch -m 新名字
+
+# 刪除已合併的分支
+git branch -d feature/login
+
+# 強制刪除未合併的分支（小心！會丟掉還沒合併的 commit）
+git branch -D feature/login</code></pre></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 切分支前記得先處理好手上的改動</div><div class="callout-body"><p>如果你有還沒 commit 的改動，切分支可能被擋下來或把改動帶著跑。乾淨的做法：切分支前先 commit，或用 <code>git stash</code> 暫存（第 12 課）。養成「切分支前先 <code>git status</code> 看一眼」的習慣。</p></div></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — 用滑鼠管理分支</div><div class="callout-body"><ol>
+<li><strong>看/切分支</strong>：點左下角<strong>狀態列的分支名稱</strong>，會跳出所有分支清單，選一個就切過去。</li>
+<li><strong>開新分支</strong>：同一個選單裡選 <strong>Create new branch</strong>，輸入名稱。</li>
+<li><strong>看分支全貌</strong>：安裝 <strong>Git Graph</strong> 擴充套件，能用圖形看到所有分支怎麼分岔、怎麼合併，多分支專案必備。</li>
+<li><strong>刪分支</strong>：Git Graph 裡在分支上右鍵 → Delete Branch。</li>
+</ol></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<p><strong>分支命名規範</strong>——公司通常有固定格式，讓人一看就懂分支目的：</p>
+<div class="tablewrap"><table><thead><tr><th>前綴</th><th>用途</th><th>範例</th></tr></thead><tbody><tr><td><code>feature/</code></td><td>新功能</td><td><code>feature/user-profile</code></td></tr><tr><td><code>fix/</code> 或 <code>bugfix/</code></td><td>修 bug</td><td><code>fix/login-redirect</code></td></tr><tr><td><code>hotfix/</code></td><td>緊急修正上線問題</td><td><code>hotfix/payment-crash</code></td></tr><tr><td><code>refactor/</code></td><td>重構</td><td><code>refactor/api-layer</code></td></tr><tr><td><code>chore/</code></td><td>雜務</td><td><code>chore/update-deps</code></td></tr><tr><td><code>docs/</code></td><td>文件</td><td><code>docs/api-guide</code></td></tr></tbody></table></div>
+<ul>
+<li><strong>常見完整慣例</strong>：<code>feature/1234-user-login</code>（加上 issue 編號，方便追溯）。</li>
+<li><strong>用小寫加連字號</strong>：<code>feature/user-login</code>，不要空格或中文。</li>
+<li><strong>main 永遠保持可運作</strong>：不直接在 main 開發，一律開分支。</li>
+<li><strong>分支要短命</strong>：一條分支專注一件事，做完盡快合併並刪除，不要放到長滿灰塵、跟 main 差異巨大到難以合併。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — 兩種常見的團隊分支策略</div><div class="callout-body"><ul>
+<li><strong>GitHub Flow（最流行、最簡單）</strong>：只有一條長期分支 <code>main</code>，每個功能開短命的 <code>feature/*</code> 分支，透過 Pull Request 合併回 main，合併即部署。適合大多數團隊與持續部署。</li>
+<li><strong>Git Flow（較複雜、較舊）</strong>：有 <code>main</code>、<code>develop</code> 兩條長期分支，外加 <code>feature/*</code>、<code>release/*</code>、<code>hotfix/*</code>。適合有明確版本發布週期的產品。</li>
+</ul>
+<p>新手先掌握 GitHub Flow 就夠用了。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 不小心在 main 上開發了</div><div class="callout-body"><p>你本該開分支卻直接在 main 上 commit 了。別怕，把這些 commit「搬」到新分支即可：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 假設你在 main 上多 commit 了東西，還沒 push
+git switch -c feature/我剛做的東西   # 從現在位置開新分支（改動跟過來）
+git switch main                      # 回到 main
+git reset --hard origin/main         # 把 main 退回和遠端一致（乾淨）
+git switch feature/我剛做的東西       # 回到新分支繼續</code></pre></div>
+<p>若不確定，先問隊友，別對已 push 的 main 亂用 <code>reset --hard</code>。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 刪錯分支了</div><div class="callout-body"><p>用 <code>-d</code> 刪掉的分支若還沒被合併，Git 其實會擋下來提醒你。萬一你用 <code>-D</code> 強制刪了，commit 通常還能從 <code>git reflog</code> 找回來，再重建分支：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git reflog                      # 找到被刪分支最後的 commit hash
+git switch -c 分支名 a1b2c3d     # 用那個 hash 重建分支</code></pre></div></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 分支跟 main 差太多會很難合併</div><div class="callout-body"><p>分支活太久、跟 main 差異越來越大，合併時衝突會越多。解法：<strong>定期把 main 的最新變動併回你的分支</strong>（<code>git merge main</code> 或 <code>git rebase main</code>），保持同步，別讓分支孤立太久。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>分支是輕量指標，讓多人平行開發互不干擾。<code>git switch -c 名稱</code> 開新分支、<code>git switch</code> 切換。命名用 <code>feature/</code>、<code>fix/</code> 等前綴。main 永遠保持可運作、開發一律開分支、分支要短命。下一課學怎麼把分支「合併」回來。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>分支的本質是什麼？為什麼建分支、切分支這麼快？</summary><div class="qa-body"><p>分支只是一個「指向某個 commit 的輕量指標」（幾十位元組），不是複製整份程式碼，所以操作幾乎瞬間。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>為什麼團隊不直接在 main 上開發？</summary><div class="qa-body"><p>因為任何人推一個半成品就會弄壞主線。每個功能開自己的分支，做完、測試、review 後再合併回 main，能讓 main 永遠保持可運作。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>`feature/`、`fix/`、`hotfix/` 前綴分別代表什麼？</summary><div class="qa-body"><p><code>feature/</code>=新功能、<code>fix/</code>(或 bugfix/)=修 bug、<code>hotfix/</code>=緊急修正已上線的問題。用前綴讓人一眼看懂分支目的。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>用 <code>git switch -c feature/test</code> 開一條分支，做一個 commit，再 <code>git switch main</code> 觀察 main 上沒有那個改動。</li>
+<li>用 <code>git branch</code> 列出所有分支，找出 <code>*</code> 標記你目前在哪。</li>
+<li>想像三個功能同時進行，替它們各取一個符合命名規範的分支名。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-08.html"><small>← 上一課</small><span>VS Code 圖形介面完整操作（不背指令也能用 Git）</span></a><a class="pg pg-next" href="lesson-10.html"><small>下一課 →</small><span>合併 Merge 與解決衝突 Merge Conflict</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

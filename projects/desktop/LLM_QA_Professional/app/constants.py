@@ -1,0 +1,1 @@
+APP_TITLE = "LLM Professional Edition V2"

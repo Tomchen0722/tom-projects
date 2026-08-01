@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS 零基礎入門講解</title>
+<style>
+  :root{--orange:#ff9900;--dark:#232f3e;--bg:#f5f6fa;--good:#1e8e3e;--bad:#d93025;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);color:#222;}
+  header{background:var(--dark);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+  header h1{font-size:1.1rem;} header h1 span{color:var(--orange);}
+  a.back{color:#fff;text-decoration:none;font-size:.85rem;opacity:.85;}
+  .layout{display:flex;max-width:1100px;margin:0 auto;}
+  nav{width:230px;flex-shrink:0;padding:20px 8px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;}
+  nav button{display:block;width:100%;text-align:left;padding:10px 14px;margin:3px 0;border:none;background:none;border-radius:8px;cursor:pointer;font-size:.88rem;color:#444;}
+  nav button:hover{background:#e8eaf0;}
+  nav button.active{background:var(--dark);color:#fff;font-weight:600;}
+  nav button.done::after{content:" ✓";color:var(--good);font-weight:700;}
+  nav button.active.done::after{color:#7be495;}
+  main{flex:1;padding:24px 20px 60px;min-width:0;}
+  .chapter{background:#fff;border-radius:14px;padding:28px;box-shadow:0 2px 10px rgba(0,0,0,.08);line-height:1.9;}
+  .chapter h2{color:var(--dark);border-bottom:3px solid var(--orange);padding-bottom:8px;margin-bottom:16px;font-size:1.35rem;}
+  .chapter h3{margin:22px 0 8px;color:var(--dark);font-size:1.08rem;}
+  .chapter p{margin-bottom:10px;font-size:.95rem;}
+  .analogy{background:#eef7ff;border-left:4px solid #1a73e8;padding:14px 16px;border-radius:8px;margin:14px 0;font-size:.92rem;}
+  .analogy::before{content:"💡 生活比喻：";font-weight:700;color:#1a56db;}
+  .exam{background:#fff8ec;border-left:4px solid var(--orange);padding:14px 16px;border-radius:8px;margin:14px 0;font-size:.92rem;}
+  .exam::before{content:"🎯 考試重點：";font-weight:700;color:#b45309;}
+  .term{background:#f0f0f5;padding:1px 7px;border-radius:5px;font-family:Consolas,monospace;font-size:.88em;}
+  table{border-collapse:collapse;width:100%;margin:12px 0;font-size:.88rem;}
+  th,td{border:1px solid #ddd;padding:8px 10px;text-align:left;}
+  th{background:var(--dark);color:#fff;}
+  tr:nth-child(even){background:#f7f8fa;}
+  .quiz-box{background:#f4f9f4;border:2px solid #cde8cf;border-radius:10px;padding:18px;margin-top:24px;}
+  .quiz-box h4{margin-bottom:10px;}
+  .qopt{display:block;width:100%;text-align:left;padding:10px 14px;margin:6px 0;border:2px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:.9rem;}
+  .qopt:hover{border-color:var(--orange);}
+  .qopt.correct{border-color:var(--good);background:#e6f4ea;}
+  .qopt.wrong{border-color:var(--bad);background:#fce8e6;}
+  .qfb{margin-top:10px;font-size:.88rem;display:none;line-height:1.7;}
+  .pager{display:flex;justify-content:space-between;margin-top:20px;}
+  .pager button{padding:10px 22px;border:none;border-radius:8px;background:var(--orange);color:#fff;font-weight:700;cursor:pointer;font-size:.95rem;}
+  .pager button:disabled{background:#ccc;cursor:default;}
+  .diagram{background:#fafafa;border:1px dashed #bbb;border-radius:10px;padding:14px;text-align:center;font-family:Consolas,monospace;font-size:.82rem;white-space:pre;overflow-x:auto;margin:14px 0;line-height:1.6;}
+  #menuToggle{display:none;background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;}
+  @media(max-width:760px){
+    nav{position:fixed;left:-240px;top:52px;background:var(--bg);z-index:9;transition:.25s;box-shadow:2px 0 8px rgba(0,0,0,.15);}
+    nav.open{left:0;}
+    #menuToggle{display:block;}
+    .chapter{padding:18px;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="menuToggle" onclick="document.querySelector('nav').classList.toggle('open')">☰</button>
+    <h1>AWS <span>零基礎</span>入門講解</h1>
+  </div>
+  <a class="back" href="index.html">← 回學習中心</a>
+</header>
+<div class="layout">
+<nav id="nav"></nav>
+<main id="main"></main>
+</div>
+
+<script>
+const CH = [
+{t:"1. 雲端運算是什麼？",h:`
+<h2>第 1 章：雲端運算是什麼？</h2>
+<p>在雲端出現之前，公司想架網站，得自己<strong>買伺服器、租機房、拉網路、請人維護</strong>。機器買太多浪費錢，買太少網站一爆紅就掛掉。</p>
+<p><strong>雲端運算</strong>就是把這些「機器與設備」變成像水電一樣的服務：需要多少、用多少、付多少，隨時可加可減。AWS（Amazon Web Services）就是全球最大的雲端服務商。</p>
+<div class="analogy">自己買伺服器像「買房」——頭期款高、要自己修繕；用 AWS 像「住飯店」——拎包入住、退房就不用付錢，旺季還可以多訂幾間房。</div>
+<h3>雲端的六大優勢（考試會考）</h3>
+<p>① 以資本支出換營運支出（不用先砸大錢買設備）② 受益於規模經濟（AWS 大量採購比你便宜）③ 不再猜測容量（隨時擴縮）④ 提高速度與敏捷性（幾分鐘開好機器）⑤ 不用花錢維護資料中心 ⑥ 幾分鐘內部署到全球。</p>
+<h3>三種服務模式</h3>
+<table><tr><th>模式</th><th>你管什麼</th><th>例子</th></tr>
+<tr><td>IaaS 基礎設施即服務</td><td>作業系統以上全部自己管</td><td>EC2</td></tr>
+<tr><td>PaaS 平台即服務</td><td>只管程式碼和資料</td><td>Elastic Beanstalk、RDS</td></tr>
+<tr><td>SaaS 軟體即服務</td><td>只管使用</td><td>Gmail、Salesforce</td></tr></table>
+<div class="analogy">IaaS 是租空屋自己裝潢；PaaS 是租附傢俱的套房；SaaS 是住飯店，連床單都有人換。</div>
+<div class="exam">SAA 考題中「LEAST operational overhead（最少維運負擔）」的答案幾乎都是越靠近 SaaS/全受管的服務。記住這個直覺！</div>`,
+q:{q:"公司希望「不再自己維護機房、依用量付費」，這體現了雲端的哪個特性？",o:["以資本支出換取營運支出","必須簽長期合約","效能一定比自建機房好","資料絕對不會遺失"],a:0,e:"不需預先投資硬體（資本支出 CapEx），改為按用量付費（營運支出 OpEx），是雲端最核心的價值主張。"}},
+
+{t:"2. AWS 全球基礎架構",h:`
+<h2>第 2 章：AWS 全球基礎架構</h2>
+<p>AWS 在全球蓋了很多資料中心，組織成三個層級，這是理解一切的地基：</p>
+<h3>Region（區域）</h3>
+<p>一個地理區域，例如 <span class="term">us-east-1</span>（維吉尼亞）、<span class="term">ap-northeast-1</span>（東京）。每個 Region 完全獨立，你要自己選擇把資源放在哪個 Region（考量：延遲、法規、價格、服務齊全度）。</p>
+<h3>Availability Zone（可用區，AZ）</h3>
+<p>每個 Region 內有 <strong>2 個以上（通常 3+）</strong>實體隔離的資料中心群，彼此有獨立電力、網路，用高速低延遲光纖互連。一個 AZ 淹水停電，其他 AZ 不受影響。</p>
+<h3>Edge Location（邊緣節點）</h3>
+<p>全球 400+ 個小型節點，離使用者最近，用來快取內容（CloudFront）與加速（Global Accelerator）。</p>
+<div class="diagram">Region (東京)
+├── AZ-a  🏢🏢  ─┐
+├── AZ-c  🏢🏢  ─┼─ 高速光纖互連
+└── AZ-d  🏢🏢  ─┘
+Edge Locations 🌏 (台北、香港、全球 400+)</div>
+<div class="analogy">Region 像「城市」，AZ 像城市裡「不同區的分公司」，Edge Location 像遍布各地的「便利商店」——常用的東西放便利商店，拿最快。</div>
+<div class="exam">「高可用 (High Availability)」= 部署到<strong>多個 AZ</strong>；「災難復原 (DR)」= 部署到<strong>多個 Region</strong>。這是全考試最重要的一條規則。</div>`,
+q:{q:"要讓應用程式在單一資料中心故障時仍能運作，最基本的做法是？",o:["部署在多個 Availability Zone","買更貴的執行個體","部署在多個 Edge Location","每天備份一次"],a:0,e:"多 AZ 部署是高可用的基礎。Edge Location 是快取用的，不能部署 EC2。"}},
+
+{t:"3. IAM：誰可以做什麼",h:`
+<h2>第 3 章：IAM — 誰可以做什麼</h2>
+<p><span class="term">IAM</span>（Identity and Access Management）管理 AWS 帳號裡「<strong>誰</strong>（身分）可以對<strong>什麼資源</strong>做<strong>什麼動作</strong>（權限）」。免費、全球服務。</p>
+<h3>四個核心概念</h3>
+<table><tr><th>元件</th><th>是什麼</th><th>比喻</th></tr>
+<tr><td>User</td><td>一個人或一支程式的長期身分</td><td>員工證</td></tr>
+<tr><td>Group</td><td>User 的集合，方便統一給權限</td><td>部門</td></tr>
+<tr><td>Role</td><td>可被「暫時擔任」的身分，無密碼、發臨時憑證</td><td>訪客證（進門領、離開還）</td></tr>
+<tr><td>Policy</td><td>JSON 權限文件（Allow/Deny + 動作 + 資源）</td><td>門禁規則表</td></tr></table>
+<h3>最重要的三條規則</h3>
+<p>① <strong>最小權限原則</strong>：只給完成工作所需的最小權限。<br>② <strong>EC2/Lambda 要存取 AWS 服務 → 用 Role</strong>，絕不把 Access Key 寫進程式碼。<br>③ <strong>Root 帳號</strong>：只用來建帳號和極少數管理工作，開 MFA 之後鎖起來別用。</p>
+<div class="analogy">把 Access Key 寫進程式碼，就像把家門鑰匙貼在門上。Role 則像旅館房卡——自動過期，遺失也不怕。</div>
+<div class="exam">看到「EC2 應用程式需要存取 S3」→ 答案 99% 是 <strong>IAM Role + Instance Profile</strong>。看到「明確 Deny」→ 永遠優先於任何 Allow。多帳號統一管控 → SCP。</div>`,
+q:{q:"EC2 上的應用程式需要讀取 S3，最安全的做法是？",o:["附加 IAM Role 到 EC2","把 Access Key 寫在設定檔","用 root 帳號的金鑰","把 S3 設成公開"],a:0,e:"IAM Role 透過臨時憑證授權，不需儲存任何長期金鑰，是官方最佳實踐，也是超高頻考點。"}},
+
+{t:"4. EC2：雲端虛擬主機",h:`
+<h2>第 4 章：EC2 — 雲端虛擬主機</h2>
+<p><span class="term">EC2</span>（Elastic Compute Cloud）就是「租一台雲端電腦」。你選 CPU/記憶體規格（執行個體類型）、作業系統（AMI 映像檔）、硬碟（EBS），幾分鐘後開機可用。</p>
+<h3>付費方式（超高頻考點）</h3>
+<table><tr><th>選項</th><th>折扣</th><th>適合</th></tr>
+<tr><td>On-Demand 隨需</td><td>無</td><td>短期、不可預測</td></tr>
+<tr><td>Reserved / Savings Plans</td><td>最高 72%</td><td>穩定 24/7 負載（承諾 1 或 3 年）</td></tr>
+<tr><td>Spot 競價</td><td>最高 90%</td><td>可中斷的批次工作（會被收回，提前 2 分鐘通知）</td></tr>
+<tr><td>Dedicated Host 專用主機</td><td>最貴</td><td>軟體授權綁實體機、法規要求</td></tr></table>
+<div class="analogy">On-Demand 是「計程車」；Reserved 是「月租車位」；Spot 是「撿飛機艙位特價——超便宜但可能被請下機」；Dedicated Host 是「整台車買下來」。</div>
+<h3>儲存搭配</h3>
+<p><span class="term">EBS</span>：網路磁碟，關機資料還在，可拍快照（存到 S3），限同一 AZ。<br><span class="term">Instance Store</span>：機器本身的實體磁碟，超快，但停機資料就消失（適合暫存/快取）。<br><span class="term">EFS</span>：共用網路資料夾，多台 EC2 跨 AZ 同時掛載（僅 Linux）。</p>
+<div class="exam">題目說「批次運算、可容忍中斷、成本最低」→ Spot。「資料庫、穩定高 IOPS」→ EBS io2。「多台共用檔案」→ EFS。「停機資料消失也沒關係的暫存」→ Instance Store。</div>`,
+q:{q:"影片轉檔批次工作可以隨時中斷重跑，要求成本最低，選哪種 EC2？",o:["Spot Instances","On-Demand","Dedicated Host","Reserved Instances"],a:0,e:"可中斷 + 成本最低 = Spot（省最高 90%）。Reserved 適合長期穩定負載，Dedicated Host 最貴。"}},
+
+{t:"5. S3：無限物件儲存",h:`
+<h2>第 5 章：S3 — 無限的物件儲存</h2>
+<p><span class="term">S3</span>（Simple Storage Service）是存「檔案（物件）」的服務：圖片、影片、備份、日誌、網站靜態檔……容量無上限、單檔最大 5TB、耐久性 11 個 9（99.999999999%，幾乎不會壞）。</p>
+<p>檔案放在 <strong>Bucket（儲存貯體）</strong>裡，Bucket 名稱全球唯一。S3 是透過 API/網址存取的，<strong>不是</strong>可以掛載的硬碟。</p>
+<h3>儲存類別 = 依「多常拿出來看」分級收費</h3>
+<table><tr><th>類別</th><th>場景</th><th>取回</th></tr>
+<tr><td>Standard</td><td>常存取</td><td>即時</td></tr>
+<tr><td>Intelligent-Tiering</td><td>不確定多常存取（自動幫你搬）</td><td>即時</td></tr>
+<tr><td>Standard-IA</td><td>少存取但要能馬上拿</td><td>即時（有取回費）</td></tr>
+<tr><td>Glacier Flexible</td><td>封存</td><td>分鐘～小時</td></tr>
+<tr><td>Glacier Deep Archive</td><td>幾乎不拿的合規封存</td><td>12 小時+，最便宜</td></tr></table>
+<div class="analogy">Standard 是「書桌上」，IA 是「書櫃裡」，Glacier 是「倉庫紙箱」，Deep Archive 是「郊區的出租倉庫」——越遠越便宜，拿起來越慢。</div>
+<h3>常考功能</h3>
+<p><strong>Lifecycle Policy</strong>：自動搬家規則（30 天後轉 IA、1 年後刪除）。<br><strong>Versioning</strong>：保留每個版本，防誤刪。<br><strong>複寫 CRR/SRR</strong>：自動複製到另一個 Region/同 Region。<br><strong>加密</strong>：SSE-S3（AWS 全管）、SSE-KMS（可稽核可自管金鑰）。</p>
+<div class="exam">「存取模式未知」→ Intelligent-Tiering。「合規封存最省錢」→ Deep Archive。「防勒索/防刪改」→ Versioning + Object Lock。</div>`,
+q:{q:"日誌需保存 7 年供稽核，幾乎不會讀取，可接受 12 小時取回，最省錢的是？",o:["Glacier Deep Archive","S3 Standard","S3 Standard-IA","EBS 快照"],a:0,e:"Deep Archive 是最便宜的儲存類別，取回 12 小時+，專為長期合規封存設計。"}},
+
+{t:"6. VPC：你的雲端網路",h:`
+<h2>第 6 章：VPC — 你的雲端私有網路</h2>
+<p><span class="term">VPC</span>（Virtual Private Cloud）是你在 AWS 裡的一塊<strong>私有網路空間</strong>，EC2、RDS 都要放在裡面。你自訂 IP 範圍（如 10.0.0.0/16），再切成多個<strong>子網路（Subnet）</strong>，每個子網路屬於一個 AZ。</p>
+<h3>公有 vs 私有子網路</h3>
+<p><strong>公有子網路</strong>：路由表有通往 <span class="term">Internet Gateway (IGW)</span> 的路 → 可以上網（放 Web 伺服器、ALB）。<br><strong>私有子網路</strong>：沒有那條路 → 外面進不來（放資料庫、內部系統）。私有子網路要「主動出去上網」（如下載更新）→ 經過放在公有子網路的 <span class="term">NAT Gateway</span>。</p>
+<div class="diagram">VPC 10.0.0.0/16
+├─ 公有子網路 (AZ-a)   [ALB] [NAT GW] ←→ IGW ←→ 網際網路
+└─ 私有子網路 (AZ-a)   [EC2 App] [RDS]
+     └── 出網際網路走 NAT；存取 S3 走 VPC Endpoint（免費）</div>
+<div class="analogy">VPC 是「社區」，公有子網路是「臨馬路的店面」，私有子網路是「社區內棟」，IGW 是「社區大門」，NAT Gateway 是「只出不進的側門」。</div>
+<h3>兩道防火牆（必考對比）</h3>
+<table><tr><th></th><th>Security Group</th><th>Network ACL</th></tr>
+<tr><td>作用層級</td><td>執行個體</td><td>子網路</td></tr>
+<tr><td>狀態</td><td>有狀態（回應自動放行）</td><td>無狀態（進出都要開規則）</td></tr>
+<tr><td>規則</td><td>只有 Allow</td><td>Allow + Deny</td></tr></table>
+<div class="exam">「私有子網路存取 S3 不走網際網路」→ Gateway VPC Endpoint（免費，還能省 NAT 費用）。「封鎖特定 IP」→ NACL（SG 不能 Deny）。</div>`,
+q:{q:"資料庫應該放在哪裡，為什麼？",o:["私有子網路，因為外部無法直接連入","公有子網路，方便管理","Edge Location，速度快","任何地方都一樣安全"],a:0,e:"資料庫不該暴露於網際網路。放私有子網路，只允許應用層的 Security Group 連入，是標準三層架構。"}},
+
+{t:"7. 資料庫：RDS 與 DynamoDB",h:`
+<h2>第 7 章：資料庫 — RDS 與 DynamoDB</h2>
+<h3>RDS：關聯式資料庫（表格、SQL）</h3>
+<p>全受管的 MySQL/PostgreSQL/SQL Server 等——AWS 幫你備份、修補、升級。適合訂單、會員、交易等結構化資料（OLTP）。</p>
+<p>兩個必考功能，<strong>用途完全不同</strong>：</p>
+<table><tr><th></th><th>Multi-AZ</th><th>Read Replica</th></tr>
+<tr><td>目的</td><td>高可用（容錯移轉）</td><td>讀取擴展（分擔查詢）</td></tr>
+<tr><td>複寫</td><td>同步</td><td>非同步</td></tr>
+<tr><td>能讀嗎</td><td>❌ standby 平常閒置</td><td>✅ 專門給人讀</td></tr></table>
+<div class="analogy">Multi-AZ 是「備用發電機」——平常不用、停電秒切換；Read Replica 是「多開幾個櫃檯」——專門消化查詢人潮。</div>
+<p><span class="term">Aurora</span>：AWS 自研版，MySQL 相容但快 5 倍，資料自動存 6 份跨 3 AZ，可加 15 個讀取複本。考題出現「最高效能的 MySQL 相容資料庫」就是它。</p>
+<h3>DynamoDB：NoSQL（鍵值查詢）</h3>
+<p>全受管、無伺服器，毫秒級回應、幾乎無限擴展。適合購物車、遊戲狀態、IoT、session 等「用 key 直接撈」的場景。不擅長複雜 JOIN 查詢。</p>
+<p>加速器 <span class="term">DAX</span>：讀取變<strong>微秒</strong>級。<span class="term">Global Tables</span>：多區域同時讀寫。</p>
+<div class="exam">選型口訣：要 SQL/交易 → RDS/Aurora；要極致擴展的 key-value → DynamoDB；要分析 PB 級資料（OLAP）→ Redshift；要快取 → ElastiCache。</div>`,
+q:{q:"RDS 讀取流量過大拖慢效能，寫入正常。該怎麼辦？",o:["加 Read Replica 分擔讀取","啟用 Multi-AZ","改用更大的 EBS","啟用 CloudTrail"],a:0,e:"讀取壓力 → Read Replica。Multi-AZ 的 standby 不能讀，只用於容錯移轉，這是最常見的陷阱選項。"}},
+
+{t:"8. 高可用：ELB 與 Auto Scaling",h:`
+<h2>第 8 章：高可用 — ELB 與 Auto Scaling</h2>
+<p>這一章是 SAA 的靈魂：怎麼讓網站「<strong>掛不掉、忙不倒</strong>」。答案是黃金三件組：</p>
+<div class="diagram">使用者 → Route 53 (DNS)
+        → ELB 負載平衡器（分流 + 健康檢查）
+        → Auto Scaling Group（自動增減 EC2）
+           ├─ AZ-a: [EC2] [EC2]
+           └─ AZ-c: [EC2] [EC2]</div>
+<h3>ELB（Elastic Load Balancer）</h3>
+<p>把流量平均分給多台健康的機器。三種類型：<br><strong>ALB</strong>：看得懂 HTTP，能依網址路徑分流（/api → A 群、/img → B 群），可掛 WAF。<br><strong>NLB</strong>：TCP/UDP 層，效能極高、延遲極低、有固定 IP。<br><strong>GWLB</strong>：串接第三方防火牆設備用。</p>
+<h3>Auto Scaling Group（ASG）</h3>
+<p>設定最小/期望/最大台數，依指標自動加減機器：CPU 高了加機器（忙不倒）、機器壞了自動換新（掛不掉）。</p>
+<div class="analogy">ELB 像「餐廳帶位員」——只帶你去有開的桌；ASG 像「店長」——客人多就加開桌子叫人上班，客人少就收桌省成本。</div>
+<h3>無狀態設計</h3>
+<p>機器隨時會被換掉，所以<strong>東西不能存在機器裡</strong>：Session → ElastiCache/DynamoDB；檔案 → S3/EFS。這樣任何一台機器死掉，使用者完全無感。</p>
+<div class="exam">「高可用」標準答案 = ALB + 跨多 AZ 的 ASG + RDS Multi-AZ。「流量高峰可預測（如每天 9 點）」→ Scheduled Scaling 預先擴容。</div>`,
+q:{q:"網站要能承受流量暴增、且單一 AZ 故障不中斷，最佳架構是？",o:["ALB + 跨多 AZ 的 Auto Scaling Group","一台超大的 EC2","兩台 EC2 在同一 AZ","CloudFront 就夠了"],a:0,e:"跨 AZ 的 ASG 解決故障與擴展，ALB 負責分流與健康檢查。單台再大也是單點故障（且垂直擴展有上限）。"}},
+
+{t:"9. 無伺服器：Lambda 與朋友們",h:`
+<h2>第 9 章：無伺服器 — Lambda 與朋友們</h2>
+<p><strong>Serverless 不是沒有伺服器</strong>，而是「你完全不用管伺服器」——不用開機、修補、擴容，用多少付多少，沒流量就免費。</p>
+<h3>Lambda：事件驅動的函數</h3>
+<p>上傳一段程式碼，設定「什麼事件觸發它」（S3 上傳檔案、API 請求、排程……），AWS 自動執行與擴展。<br>限制（必背）：最長跑 <strong>15 分鐘</strong>、記憶體最大 10GB。超過 15 分鐘 → 改用 Fargate/Batch。</p>
+<div class="analogy">EC2 是「聘全職員工」——沒事也要付薪水；Lambda 是「叫外送」——有需求才出現，按次計費。</div>
+<h3>常見無伺服器全家桶</h3>
+<table><tr><th>服務</th><th>角色</th></tr>
+<tr><td>API Gateway</td><td>API 大門（轉發給 Lambda、限流、授權）</td></tr>
+<tr><td>SQS</td><td>佇列：排隊緩衝，削峰填谷</td></tr>
+<tr><td>SNS</td><td>廣播：一則訊息推給多個訂閱者 (fan-out)</td></tr>
+<tr><td>EventBridge</td><td>事件路由與排程</td></tr>
+<tr><td>Step Functions</td><td>把多個 Lambda 編排成工作流程</td></tr>
+<tr><td>DynamoDB / S3</td><td>無伺服器的資料與檔案</td></tr></table>
+<h3>解耦（Decoupling）思想</h3>
+<p>服務 A 直接呼叫 B，B 掛了 A 也跟著掛。中間放一個 <strong>SQS 佇列</strong>：A 丟訊息就走，B 有空再處理，B 掛了訊息也還在。這是彈性架構的核心思想。</p>
+<div class="exam">「削峰/緩衝/防止訊息遺失」→ SQS。「同一事件通知多個系統」→ SNS+SQS fan-out。「需要順序 + 不重複」→ SQS FIFO。「LEAST operational overhead」→ 通通選無伺服器。</div>`,
+q:{q:"訂單系統尖峰時下游處理不及導致訂單遺失，該加什麼？",o:["SQS 佇列做緩衝","更多 EBS","CloudFront","加大資料庫"],a:0,e:"SQS 讓訂單先排隊，下游依自己的速度消化，訊息保存不遺失——解耦與削峰的標準答案。"}},
+
+{t:"10. 監控、費用與考試攻略",h:`
+<h2>第 10 章：監控、費用與考試攻略</h2>
+<h3>監控三兄弟（先分清楚）</h3>
+<table><tr><th>服務</th><th>回答的問題</th></tr>
+<tr><td>CloudWatch</td><td>「系統健康嗎？」指標、日誌、警報、儀表板</td></tr>
+<tr><td>CloudTrail</td><td>「誰在何時做了什麼 API 操作？」稽核</td></tr>
+<tr><td>AWS Config</td><td>「資源設定合規嗎？何時被改的？」</td></tr></table>
+<div class="analogy">CloudWatch 是「健康手環」，CloudTrail 是「監視器錄影」，Config 是「定期安檢報告」。</div>
+<h3>費用管理</h3>
+<p><strong>Budgets</strong>：超過預算（或預測將超過）就警報。<strong>Cost Explorer</strong>：視覺化分析花在哪。<strong>Trusted Advisor</strong>：幫你檢查浪費與安全問題。</p>
+<p>省錢三招：① 穩定負載買 Savings Plans ② S3 設 Lifecycle 自動轉冷儲存 ③ 記得跨 AZ 流量要錢、NAT 很貴（S3 流量改走免費的 Gateway Endpoint）。</p>
+<h3>考試攻略</h3>
+<p>① 先讀題目<strong>最後一句</strong>和關鍵字：MOST cost-effective？HIGHLY available？LEAST operational overhead？關鍵字決定答案方向。<br>② 刪去法：先刪掉明顯錯的兩個。<br>③ 「全受管/無伺服器」通常贏過「自己架」。<br>④ 每題約 2 分鐘，不會就標記後跳過。<br>⑤ 這裡學完後 → 讀《四大領域重點筆記》→ 刷模擬試題 → 錯題複習到全對。</p>
+<h3>下一步</h3>
+<p>🎉 恭喜完成入門！現在你已具備看懂考題的基礎。回到<a href="index.html">學習中心</a>，按照《八週讀書計畫》繼續：用<a href="flashcards.html">閃卡</a>鞏固記憶 → 用<a href="quiz.html">模擬試題</a>檢驗實力。</p>`,
+q:{q:"想知道「某個 S3 Bucket 是誰刪掉的」，該查哪個服務？",o:["CloudTrail","CloudWatch","Cost Explorer","Trusted Advisor"],a:0,e:"「誰做了什麼操作」= API 稽核 = CloudTrail。CloudWatch 看的是效能指標與日誌。"}}
+];
+
+let cur = 0;
+let done = JSON.parse(localStorage.getItem("saa_basics_done")||"[]");
+const nav = document.getElementById("nav"), main = document.getElementById("main");
+
+function renderNav(){
+  nav.innerHTML = CH.map((c,i)=>`<button class="${i===cur?'active':''} ${done.includes(i)?'done':''}" onclick="go(${i})">${c.t}</button>`).join("");
+}
+function render(){
+  const c = CH[cur];
+  main.innerHTML = `<div class="chapter">${c.h}
+    <div class="quiz-box">
+      <h4>📝 隨堂測驗</h4>
+      <p style="margin-bottom:8px;">${c.q.q}</p>
+      ${c.q.o.map((o,i)=>`<button class="qopt" onclick="ans(this,${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join("")}
+      <div class="qfb" id="qfb"></div>
+    </div>
+    <div class="pager">
+      <button onclick="go(${cur-1})" ${cur===0?"disabled":""}>← 上一章</button>
+      <button onclick="go(${cur+1})" ${cur===CH.length-1?"disabled":""}>下一章 →</button>
+    </div>
+  </div>`;
+  renderNav();
+  window.scrollTo(0,0);
+  document.querySelector("nav").classList.remove("open");
+}
+window.go = i=>{ if(i>=0&&i<CH.length){cur=i;render();} };
+window.ans = (btn,i)=>{
+  const c=CH[cur]; const fb=document.getElementById("qfb");
+  document.querySelectorAll(".qopt").forEach(b=>b.disabled=true);
+  document.querySelectorAll(".qopt")[c.q.a].classList.add("correct");
+  if(i!==c.q.a) btn.classList.add("wrong");
+  fb.style.display="block";
+  fb.innerHTML=`<strong style="color:${i===c.q.a?'var(--good)':'var(--bad)'}">${i===c.q.a?"✅ 答對了！":"❌ 再想想～"}</strong> ${c.q.e}`;
+  if(!done.includes(cur)){done.push(cur);localStorage.setItem("saa_basics_done",JSON.stringify(done));renderNav();}
+};
+render();
+</script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

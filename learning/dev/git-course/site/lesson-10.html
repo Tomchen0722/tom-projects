@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>第 10 課 合併 Merge 與解決衝突 Merge Conflict｜Git 企業級教材</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<button id="menuToggle" onclick="toggleNav()" aria-label="選單">☰</button>
+<nav id="sidebar">
+  <a class="brand" href="index.html">
+    <span class="brand-logo">⎇</span>
+    <span class="brand-text"><b>Git 企業級教材</b><small>從零到公司實戰</small></span>
+  </a>
+  <div class="nav-scroll">
+  <div class="nav-group"><div class="nav-part">開始</div><ul>
+    <li><a href="index.html"><span class="nav-num">★</span>課程首頁</a></li>
+    <li><a href="cheatsheet.html"><span class="nav-num">⌘</span>指令速查單頁</a></li>
+  </ul></div>
+  <div class="nav-group"><div class="nav-part">單元一 · 基礎觀念</div><ul>
+<li><a href="lesson-01.html"><span class="nav-num">01</span>Git 是什麼？為什麼工程師離不開它</a></li>
+<li><a href="lesson-02.html"><span class="nav-num">02</span>安裝 Git 與 VS Code、做好初次設定</a></li>
+<li><a href="lesson-03.html"><span class="nav-num">03</span>Git 三大區域：搞懂這個，一切都通了</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元二 · 單人基本操作</div><ul>
+<li><a href="lesson-04.html"><span class="nav-num">04</span>建立專案與你的第一個 commit</a></li>
+<li><a href="lesson-05.html"><span class="nav-num">05</span>.gitignore 最佳實務（Python／Node／AI 專案）</a></li>
+<li><a href="lesson-06.html"><span class="nav-num">06</span>Commit Message 撰寫規範：Conventional Commits</a></li>
+<li><a href="lesson-07.html"><span class="nav-num">07</span>查看歷史、比較差異、還原檔案</a></li>
+<li><a href="lesson-08.html"><span class="nav-num">08</span>VS Code 圖形介面完整操作（不背指令也能用 Git）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元三 · 分支與遠端協作</div><ul>
+<li><a href="lesson-09.html"><span class="nav-num">09</span>分支 Branch：多人協作的核心</a></li>
+<li class="active"><a href="lesson-10.html"><span class="nav-num">10</span>合併 Merge 與解決衝突 Merge Conflict</a></li>
+<li><a href="lesson-11.html"><span class="nav-num">11</span>Rebase 與「Merge 還是 Rebase？」的抉擇</a></li>
+<li><a href="lesson-12.html"><span class="nav-num">12</span>Stash、Cherry-pick、Revert、Reset 四大工具</a></li>
+<li><a href="lesson-13.html"><span class="nav-num">13</span>連上 GitHub：clone、remote、push、pull、fetch</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元四 · 企業級開發流程</div><ul>
+<li><a href="lesson-14.html"><span class="nav-num">14</span>Pull Request 與 Code Review：公司協作的心臟</a></li>
+<li><a href="lesson-15.html"><span class="nav-num">15</span>Fork 與 Upstream：參與開源專案</a></li>
+<li><a href="lesson-16.html"><span class="nav-num">16</span>版本號、Git Tag 與 GitHub Release 發布流程</a></li>
+<li><a href="lesson-17.html"><span class="nav-num">17</span>資安：別讓 API Key 與 .env 被推上 GitHub</a></li>
+<li><a href="lesson-18.html"><span class="nav-num">18</span>Git LFS：管理大型模型、圖片與影片</a></li>
+<li><a href="lesson-19.html"><span class="nav-num">19</span>GitHub Actions：自動測試與自動部署（CI/CD）</a></li>
+</ul></div>
+<div class="nav-group"><div class="nav-part">單元五 · 事故救援大全</div><ul>
+<li><a href="lesson-20.html"><span class="nav-num">20</span>Git 事故救援大全：做錯了怎麼救</a></li>
+</ul></div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓 切換深/淺色</button>
+</nav>
+<div id="overlay" onclick="toggleNav()"></div>
+<main>
+<div class="content">
+<div class="lesson-head"><div class="lesson-part">單元三 · 分支與遠端協作</div><h1>第 10 課 · 合併 Merge 與解決衝突 Merge Conflict</h1><p class="lesson-sub">把分支的成果併回主線，並學會冷靜處理「衝突」這件新手最怕的事。</p></div><h2 id="1-為什麼要這樣做-原理">1. 為什麼要這樣做（原理）</h2>
+<p>功能在分支上做完了，要讓它進入主線，就要<strong>合併（merge）</strong>。合併就是「把某分支的改動，融合進你目前所在的分支」。</p>
+<p>大多數時候，Git 會自動完成合併，你什麼都不用做。但當<strong>兩個分支改到「同一個檔案的同一行」</strong>，Git 無法判斷該聽誰的，就會停下來說：「這裡我不敢決定，你來。」——這就是<strong>合併衝突（merge conflict）</strong>。</p>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 衝突不是錯誤，是 Git 在保護你</div><div class="callout-body"><p>新手看到 CONFLICT 會嚇到，以為壞了。其實相反：<strong>衝突代表 Git 很負責，它寧可停下來問你，也不願自作主張蓋掉某個人的心血。</strong> 解衝突就是「告訴 Git 這幾行最後要長怎樣」，是完全正常的日常操作。</p></div></div>
+<p><strong>兩種合併方式：</strong></p>
+<ul>
+<li><strong>Fast-forward（快轉）</strong>：如果主線從你分岔後就沒動過，合併只是把 main 指標往前移，不產生新 commit。</li>
+<li><strong>三方合併（產生 merge commit）</strong>：如果兩邊都有新 commit，Git 會做一個「合併 commit」把兩條線接起來。</li>
+</ul>
+<h2 id="2-完整實戰情境-Tom-Alice-Bob">2. 完整實戰情境：Tom、Alice、Bob</h2>
+<div class="callout story"><div class="callout-head">🎬 實戰情境 — Tom 與 Bob 撞在同一行</div><div class="callout-body"><p>Tom 在 <code>feature/login</code> 把首頁標題從 <code>歡迎</code> 改成 <code>歡迎登入</code>。同時 Bob 在 <code>main</code> 把同一行改成 <code>歡迎光臨</code>。</p>
+<p>Bob 先合併進 main。輪到 Tom 要把他的分支合併時，Git 發現同一行有兩種版本，跳出衝突。Tom 打開檔案，看到 Git 用特殊記號標出「你的版本」和「Bob 的版本」，他和 Bob 討論後決定用 <code>歡迎登入</code>，刪掉記號、留下正確內容、commit，衝突解決。</p>
+<p>Alice 說：「看，衝突沒有很可怕吧？它只是要你們兩個人類決定該聽誰的，因為機器不知道。」</p></div></div>
+<h2 id="3-實際-Git-指令">3. 實際 Git 指令</h2>
+<p><strong>基本合併流程：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 1. 先切到「要接收改動」的分支（通常是 main）
+git switch main
+
+# 2. 先確保 main 是最新的（多人協作時）
+git pull
+
+# 3. 把 feature 分支合併進來
+git merge feature/login
+
+# 4. 合併完、確認沒問題，刪掉用完的分支
+git branch -d feature/login</code></pre></div>
+<p><strong>遇到衝突時，Git 會這樣提示：</strong></p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.</code></pre></div>
+<p>打開衝突的檔案，你會看到 Git 插入的記號：</p>
+<div class="codewrap" data-lang="text"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+歡迎光臨          （這是目前分支 main 的版本，Bob 的）
+=======
+歡迎登入          （這是要併進來 feature/login 的版本，Tom 的）
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login</code></pre></div>
+<p><strong>解衝突三步驟：</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code># 1. 編輯檔案：刪掉 &lt;&lt;&lt;&lt;&lt;&lt;&lt;、=======、&gt;&gt;&gt;&gt;&gt;&gt;&gt; 三行記號，
+#    只留下你最終要的內容（可以是其中一邊，或兩邊融合）
+
+# 2. 告訴 Git 這個檔案解好了
+git add index.html
+
+# 3. 完成合併
+git commit         # 會自動帶好合併訊息，直接存檔即可</code></pre></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 解衝突時務必刪乾淨那三行記號</div><div class="callout-body"><p><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>、<code>=======</code>、<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 這三種記號<strong>一定要全部刪掉</strong>，只留真正要的程式碼。忘了刪會讓程式語法錯誤。解完後搜尋一下專案還有沒有殘留的 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>，是很好的習慣。</p></div></div>
+<p><strong>想放棄這次合併、回到合併前？</strong></p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git merge --abort     # 取消合併，回到乾淨的合併前狀態</code></pre></div>
+<h2 id="4-VS-Code-圖形介面操作">4. VS Code 圖形介面操作</h2>
+<div class="callout vscode"><div class="callout-head">🖱️ VS Code 圖形操作 — VS Code 的衝突解決介面（比手改記號好用太多）</div><div class="callout-body"><p>發生衝突時，VS Code 會把衝突的檔案標紅，打開後每一段衝突上方會出現四個藍色小按鈕：</p>
+<ul>
+<li><strong>Accept Current Change</strong>：採用目前分支（HEAD）的版本。</li>
+<li><strong>Accept Incoming Change</strong>：採用要併進來的版本。</li>
+<li><strong>Accept Both Changes</strong>：兩邊都留。</li>
+<li><strong>Compare Changes</strong>：並排比較兩邊。</li>
+</ul>
+<p>點一下就解決一段，不用手動刪記號。全部解完後，到 Source Control 面板把檔案 Stage、Commit 即可。VS Code 還有 <strong>Merge Editor</strong>（三欄式：左邊你的、右邊對方的、中間結果），對複雜衝突特別清楚。</p></div></div>
+<h2 id="5-公司最佳實務">5. 公司最佳實務</h2>
+<ul>
+<li><strong>合併前先更新目標分支</strong>：合併進 main 前先 <code>git pull</code> 確保 main 最新，減少意外。</li>
+<li><strong>公司幾乎都透過 Pull Request 合併</strong>：不會有人在自己電腦上 <code>git merge</code> 進 main 直接 push。而是 push 分支 → 開 PR → Code Review → 在 GitHub 上按「Merge」（第 14 課）。本課的指令是幫你理解底層原理。</li>
+<li><strong>衝突當面/線上溝通</strong>：撞到同一行時，別自己猜對方要什麼，直接問寫另一邊的人。</li>
+<li><strong>小步、常合併</strong>：分支越小、越常和 main 同步，衝突越少越好解。</li>
+</ul>
+<div class="callout best"><div class="callout-head">🏢 公司最佳實務 — Merge commit 訊息別亂寫</div><div class="callout-body"><p>自動合併產生的 merge commit 通常保留預設訊息即可。但公司若要求，可加上這次合併了什麼、關聯哪個 PR。有些團隊為了歷史乾淨會選擇 rebase 或 squash（下一課、第 14 課會談），減少 merge commit。</p></div></div>
+<h2 id="6-常見錯誤與救援方法">6. 常見錯誤與救援方法</h2>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 衝突解到一半，越解越亂</div><div class="callout-body"><p>別硬撐，直接放棄重來：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git merge --abort</code></pre></div>
+<p>這會回到合併前的乾淨狀態，你可以喘口氣、想清楚再重新 <code>git merge</code>。</p></div></div>
+<div class="callout rescue"><div class="callout-head">🛟 救援方法 — 合併完才發現合錯了 / 合進一堆不該進的東西</div><div class="callout-body"><p>如果這個 merge commit 還沒 push：</p>
+<div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git reset --hard HEAD~1    # 退回合併前（注意會丟棄合併，確認後再用）</code></pre></div>
+<p>如果已經 push 且別人可能已經拉走了，改用 <code>git revert</code>（產生一個「反向 commit」抵銷合併，安全不改歷史，第 12、20 課詳談）。</p></div></div>
+<div class="callout warn"><div class="callout-head">⚠️ 注意 — 「Already up to date」是正常的</div><div class="callout-body"><p>執行 <code>git merge</code> 出現 <code>Already up to date</code>，代表要合併的分支沒有比目前分支多任何東西，不是錯誤，只是沒事可合。</p></div></div>
+<div class="callout tip"><div class="callout-head">💡 觀念重點 — 本課重點回顧</div><div class="callout-body"><p>merge 把分支改動融合進目前分支。撞到同一行會產生衝突——這是 Git 在保護你，不是壞掉。解衝突 = 編輯檔案留下正確內容（刪掉 <code>&lt;&lt;&lt;</code>/<code>===</code>/<code>&gt;&gt;&gt;</code> 記號）→ <code>add</code> → <code>commit</code>。想反悔用 <code>git merge --abort</code>。VS Code 的衝突介面讓這件事變簡單。下一課學 merge 的替代方案：rebase。</p></div></div><div class="quiz">
+<h2 class="quiz-title">🧠 自我檢核</h2>
+<p class="quiz-hint">先自己想過答案，再點開對照。答得出來代表這一課掌握了。</p>
+<details class="qa"><summary><span class="qnum">Q1</span>合併衝突（merge conflict）發生的原因是什麼？它是錯誤嗎？</summary><div class="qa-body"><p>當兩個分支改到「同一檔案的同一行」，Git 無法判斷聽誰的就會停下來要你決定。它<strong>不是錯誤</strong>，而是 Git 在保護你、不自作主張蓋掉某人的心血。</p></div></details>
+<details class="qa"><summary><span class="qnum">Q2</span>解衝突的三個步驟是什麼？</summary><div class="qa-body"><ol>
+<li>編輯檔案，刪掉 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>、<code>=======</code>、<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 三種記號，只留最終要的內容；2. <code>git add 檔名</code>；3. <code>git commit</code> 完成合併。</li>
+</ol></div></details>
+<details class="qa"><summary><span class="qnum">Q3</span>合併解到一半越弄越亂，怎麼放棄重來？</summary><div class="qa-body"><div class="codewrap" data-lang="bash"><button class="copybtn" onclick="copyCode(this)">複製</button><pre><code>git merge --abort</code></pre></div>
+<p>回到合併前的乾淨狀態。</p></div></details>
+<h2 class="quiz-title">⌨️ 動手練習</h2>
+<p class="quiz-hint">建議開一個測試用資料夾實際操作，做錯也不怕（你已經學過怎麼救）。</p>
+<ol class="practice-list">
+<li>刻意製造衝突：開兩條分支改同一檔案的同一行，合併時觀察衝突記號。</li>
+<li>用 VS Code 的衝突解決按鈕（Accept Current / Incoming / Both）解一次衝突。</li>
+<li>再製造一次衝突，這次用 <code>git merge --abort</code> 放棄，感受「隨時可以反悔」。</li>
+</ol>
+</div>
+</div>
+<div class="pager"><a class="pg pg-prev" href="lesson-09.html"><small>← 上一課</small><span>分支 Branch：多人協作的核心</span></a><a class="pg pg-next" href="lesson-11.html"><small>下一課 →</small><span>Rebase 與「Merge 還是 Rebase？」的抉擇</span></a></div>
+<footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
+</main>
+<script src="assets/script.js"></script>
+
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
+  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>
