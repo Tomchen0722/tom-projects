@@ -40,8 +40,16 @@ SNIPPET_TEMPLATE = """
 <script>
 (function(){{
   if (document.getElementById('tom-hub-return')) return;
-  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
-  var href = local ? 'http://127.0.0.1:7000' : '{prefix}index.html';
+  // 依所在環境決定回哪裡：
+  //   本機          → 本機的 Project Hub
+  //   作品集站台內  → 用相對路徑，換網域也不會壞
+  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
+  //                   只能用完整網址連回作品集
+  var host = location.hostname;
+  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
+  var onSite = {site_host_check};
+  var href = local ? 'http://127.0.0.1:7000'
+           : (onSite ? '{prefix}index.html' : '{site_url}');
   var label = local ? '回 Hub' : '回作品集';
   function mount() {{
     if (!document.body) return;
@@ -107,7 +115,41 @@ def relative_prefix(path: Path) -> str:
     return "../" * depth if depth else "./"
 
 
-def inject(path: Path) -> str:
+def site_config() -> tuple[str, str]:
+    """從 projects.json 取出作品集網址與它的主機名稱。"""
+    import json
+
+    try:
+        data = json.loads((ROOT / "projects.json").read_text(encoding="utf-8"))
+        url = (data.get("site") or {}).get("url", "").strip()
+    except Exception:  # noqa: BLE001
+        url = ""
+
+    if not url:
+        return "", ""
+
+    from urllib.parse import urlparse
+
+    return url, (urlparse(url).hostname or "")
+
+
+def build_snippet(path: Path, site_url: str, site_host: str) -> str:
+    """組出要注入的腳本。"""
+    if site_host:
+        # 用 indexOf 判斷主機名稱，避免把 xxx.github.io.evil.com 也算進來
+        host_check = f"host === {site_host!r}"
+    else:
+        # 還沒設定作品集網址時，非本機一律走相對路徑（原本的行為）
+        host_check = "true"
+
+    return SNIPPET_TEMPLATE.format(
+        prefix=relative_prefix(path),
+        site_url=site_url or "/",
+        site_host_check=host_check,
+    )
+
+
+def inject(path: Path, site_url: str, site_host: str) -> str:
     """回傳 injected / updated / no-body。"""
     text = path.read_text(encoding="utf-8", errors="replace")
 
@@ -120,7 +162,7 @@ def inject(path: Path) -> str:
     if idx == -1:
         return "no-body"
 
-    snippet = SNIPPET_TEMPLATE.format(prefix=relative_prefix(path))
+    snippet = build_snippet(path, site_url, site_host)
     path.write_text(text[:idx] + snippet + text[idx:], encoding="utf-8")
     return "updated" if had_old else "injected"
 
@@ -142,8 +184,18 @@ def check_template_safe(snippet: str) -> list[str]:
 def main() -> int:
     counts = {"injected": 0, "updated": 0, "no-body": 0, "missing": 0}
 
+    site_url, site_host = site_config()
+    if site_host:
+        print(f"  作品集網址：{site_url}")
+    else:
+        print("  projects.json 沒有設定 site.url，"
+              "部署在其他網域的專案將無法正確返回作品集")
+    print()
+
     # 先驗證要注入的內容本身是安全的，不要等到頁面 500 才發現
-    sample = SNIPPET_TEMPLATE.format(prefix="../")
+    sample = SNIPPET_TEMPLATE.format(
+        prefix="../", site_url=site_url or "/", site_host_check="true"
+    )
     problems = check_template_safe(sample)
     if problems:
         print("注入內容含有會破壞 Jinja2 模板的標記，已中止：")
@@ -158,7 +210,7 @@ def main() -> int:
             counts["missing"] += 1
             continue
         for f in files:
-            counts[inject(f)] += 1
+            counts[inject(f, site_url, site_host)] += 1
 
     print()
     print(f"新注入 {counts['injected']} 個、更新 {counts['updated']} 個、"

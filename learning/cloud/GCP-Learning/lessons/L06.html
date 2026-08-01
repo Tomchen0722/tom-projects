@@ -71,12 +71,21 @@ gcloud compute instances get-serial-port-output web-auto --zone=asia-east1-b</co
 
 
 
+
 <!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
 <script>
 (function(){
   if (document.getElementById('tom-hub-return')) return;
-  var local = ['127.0.0.1','localhost',''].indexOf(location.hostname) >= 0;
-  var href = local ? 'http://127.0.0.1:7000' : '../../../../index.html';
+  // 依所在環境決定回哪裡：
+  //   本機          → 本機的 Project Hub
+  //   作品集站台內  → 用相對路徑，換網域也不會壞
+  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
+  //                   只能用完整網址連回作品集
+  var host = location.hostname;
+  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
+  var onSite = host === 'tomchen0722.github.io';
+  var href = local ? 'http://127.0.0.1:7000'
+           : (onSite ? '../../../../index.html' : 'https://tomchen0722.github.io/tom-projects/');
   var label = local ? '回 Hub' : '回作品集';
   function mount() {
     if (!document.body) return;
