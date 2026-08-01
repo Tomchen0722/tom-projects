@@ -187,7 +187,11 @@ def set_config():
 
 
 if __name__ == "__main__":
-    engine.start_autopilot_thread()
+    # 自動駕駛已停用。它是一個 while True 迴圈，每 8 秒呼叫一次 LLM，
+    # 放在雲端 24 小時執行會持續產生 API 費用。
+    # 要在本機試用時再把下面這行的井號拿掉。
+    # engine.start_autopilot_thread()
+
     # 由 Project Hub 啟動時會指派 PORT；單獨執行則沿用 config.json 的設定
     port = int(os.environ.get("PORT") or load_config().get("PORT", 5566))
     print("自動的小龍蝦已啟動 → http://localhost:%s" % port)
