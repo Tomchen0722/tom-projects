@@ -228,13 +228,21 @@ a{color:inherit}
       .replace(/"/g, '&quot;');
   }
 
+  // 已經部署好、可以直接點開的專案
+  function isLive(d) {
+    if (!d) return false;
+    if (d.type === 'static') return true;
+    // streamlit 與 external 都要填了網址才算真的上線
+    return (d.type === 'streamlit' || d.type === 'external') && !!d.url;
+  }
+
   function badge(deploy) {
     var t = deploy && deploy.type;
-    if (t === 'static') return '<span class="badge live"><span class="dot"></span>可線上瀏覽</span>';
-    if (t === 'streamlit') {
-      return deploy.url
-        ? '<span class="badge live"><span class="dot"></span>可線上瀏覽</span>'
-        : '<span class="badge soon"><span class="dot"></span>準備部署中</span>';
+    if (isLive(deploy)) {
+      return '<span class="badge live"><span class="dot"></span>可線上瀏覽</span>';
+    }
+    if (t === 'streamlit' || t === 'external') {
+      return '<span class="badge soon"><span class="dot"></span>準備部署中</span>';
     }
     return '<span class="badge local"><span class="dot"></span>需本機執行</span>';
   }
@@ -244,7 +252,7 @@ a{color:inherit}
     if (d.type === 'static' && d.path) {
       return '<a class="btn btn-primary" href="' + esc(d.path) + '">開啟專案</a>';
     }
-    if (d.type === 'streamlit') {
+    if (d.type === 'streamlit' || d.type === 'external') {
       return d.url
         ? '<a class="btn btn-primary" href="' + esc(d.url) + '" rel="noopener">開啟專案</a>'
         : '<span class="btn btn-disabled">尚未部署</span>';
@@ -254,7 +262,7 @@ a{color:inherit}
 
   function cardHTML(app) {
     var d = app.deploy || {};
-    var live = d.type === 'static' || (d.type === 'streamlit' && d.url);
+    var live = isLive(d);
     var tags = (app.tags || []).map(function (t) {
       return '<span class="tag">' + esc(t) + '</span>';
     }).join('');
@@ -277,10 +285,7 @@ a{color:inherit}
     var apps = data.apps || [];
     var cats = data.categories || [];
 
-    var liveCount = apps.filter(function (a) {
-      var d = a.deploy || {};
-      return d.type === 'static' || (d.type === 'streamlit' && d.url);
-    }).length;
+    var liveCount = apps.filter(function (a) { return isLive(a.deploy); }).length;
 
     var stats = '<div class="stat"><b>' + apps.length + '</b><span>Projects</span></div>';
     cats.forEach(function (c) {
