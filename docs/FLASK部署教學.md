@@ -176,9 +176,22 @@ gunicorn>=21.0
 | 欄位 | 填什麼 |
 |---|---|
 | Root Directory | `projects/web/QR_order` |
-| Start Command | `gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120` |
+| Start Command | `gunicorn app:app --bind 0.0.0.0:$PORT --worker-class gthread --threads 8 --timeout 120` |
 
-（`--timeout 120` 是因為它有即時推播，連線要撐久一點）
+### Start Command 為什麼要加 `--worker-class gthread --threads 8`
+
+**這一段很重要，少了它整個網站會卡死。**
+
+廚房看板用 SSE（伺服器主動推播）做即時更新，那是一條**永遠不結束**的連線。
+
+gunicorn 預設只開 **1 個同步 worker**，一次只能處理一個請求。
+SSE 一連上就把它永久佔住，之後點任何頁面都會排隊等待，看起來就像「按鈕沒反應」。
+
+`--worker-class gthread --threads 8` 讓那個 worker 有 8 條執行緒：
+SSE 佔一條，剩下 7 條照常服務其他請求。
+
+> 本機不會有這個問題，因為 `app.run(threaded=True)` 本來就是多執行緒。
+> 那行設定對 gunicorn 沒有作用。
 
 ### 還要設定環境變數
 
@@ -195,6 +208,13 @@ gunicorn>=21.0
 | `ADMIN_SECRET` | 你的 session 金鑰 |
 | `PUBLIC_URL` | `https://你的服務名.onrender.com` |
 | `PAYMENT_PROVIDER` | `mock` |
+| `SSE_MAX_SECONDS` | `25` |
+
+`SSE_MAX_SECONDS` 是即時推播的單次連線上限。時間到會自動斷開，
+前端的 EventSource 會立刻重連，使用者完全感覺不到。
+
+這是第二道保險：就算同時有很多人開著廚房看板，連線也會定期釋放，
+不會慢慢把 8 條執行緒吃光。不設定的話連線永不結束（本機執行時的行為）。
 
 > `PUBLIC_URL` 要填部署後的網址，因為 QR Code 裡面會包含這個網址，
 > 客人掃碼才連得到正確的地方。可以先隨便填，服務建好後再回來改。

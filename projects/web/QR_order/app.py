@@ -351,9 +351,28 @@ def api_events():
     def stream():
         q = events.subscribe()
         start_time = time.time()
-        # Vercel 雲端環境限制單次請求時間，故設定最多運行 10 秒後自動安全斷開並由前端自動重連
-        max_duration = 10 if os.environ.get("VERCEL") else float("inf")
-        
+
+        # 單次連線的最長時間。時間到就安全斷開，前端的 EventSource 會自動重連。
+        #
+        # 為什麼需要這個：雲端平台的 worker 數量有限，一條永不結束的 SSE 會把
+        # worker 佔住，導致同一個網站的其他頁面全部排隊等待。本機用 Flask
+        # 開發伺服器（threaded=True）不會有這個問題，雲端才會。
+        #
+        #   SSE_MAX_SECONDS  自訂秒數，部署到任何平台都可以用
+        #   VERCEL           Vercel 有單次請求時間上限，沿用原本的 10 秒
+        #   都沒設定          維持不限時（本機執行的行為）
+        custom = os.environ.get("SSE_MAX_SECONDS")
+        if custom:
+            try:
+                max_duration = float(custom)
+            except ValueError:
+                max_duration = float("inf")
+        elif os.environ.get("VERCEL"):
+            max_duration = 10
+        else:
+            max_duration = float("inf")
+
+
         try:
             yield f"event: ready\ndata: {json.dumps({'ok': True, 'version': events.current_version()}, ensure_ascii=False)}\n\n"
             while time.time() - start_time < max_duration:
