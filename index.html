@@ -247,14 +247,32 @@ a{color:inherit}
     return '<span class="badge local"><span class="dot"></span>需本機執行</span>';
   }
 
+  // 外部連結圖示，讓人一眼看出會開新分頁
+  var ICON_EXTERNAL =
+    '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+    + ' stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>'
+    + '<polyline points="15 3 21 3 21 9"></polyline>'
+    + '<line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+
+  function openLink(href, name) {
+    // rel="noopener noreferrer" 是必要的：少了它，新開的頁面可以透過
+    // window.opener 操控這一頁（例如把作品集導向釣魚網站）。
+    // aria-label 明講會開新視窗，否則螢幕閱讀器使用者會不知道焦點為何跑掉。
+    return '<a class="btn btn-primary" href="' + esc(href) + '"'
+      + ' target="_blank" rel="noopener noreferrer"'
+      + ' aria-label="開啟 ' + esc(name) + '（在新分頁）">'
+      + '開啟專案' + ICON_EXTERNAL + '</a>';
+  }
+
   function actions(app) {
     var d = app.deploy || {};
     if (d.type === 'static' && d.path) {
-      return '<a class="btn btn-primary" href="' + esc(d.path) + '">開啟專案</a>';
+      return openLink(d.path, app.name);
     }
     if (d.type === 'streamlit' || d.type === 'external') {
       return d.url
-        ? '<a class="btn btn-primary" href="' + esc(d.url) + '" rel="noopener">開啟專案</a>'
+        ? openLink(d.url, app.name)
         : '<span class="btn btn-disabled">尚未部署</span>';
     }
     return '<span class="btn btn-disabled">需在本機執行</span>';
@@ -266,8 +284,14 @@ a{color:inherit}
     var tags = (app.tags || []).map(function (t) {
       return '<span class="tag">' + esc(t) + '</span>';
     }).join('');
-    var note = (d.type === 'local' && d.reason)
-      ? '<div class="card-note">' + esc(d.reason) + '。可下載原始碼後在本機執行。</div>' : '';
+    var note = '';
+    if (d.type === 'local' && d.reason) {
+      note = '<div class="card-note">' + esc(d.reason) + '。可下載原始碼後在本機執行。</div>';
+    } else if (d.type === 'external' && d.url) {
+      // 免費方案閒置會休眠，先講清楚，訪客才不會以為壞了
+      note = '<div class="card-note">部署在免費方案，閒置一段時間後'
+           + '首次開啟需要約 50 秒喚醒，請稍候。</div>';
+    }
 
     return '<article class="card' + (live ? ' is-live' : '') + '">'
       + '<div class="card-top"><div class="card-title">'
