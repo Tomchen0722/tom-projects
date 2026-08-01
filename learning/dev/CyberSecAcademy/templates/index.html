@@ -100,64 +100,6 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="/static/js/app.js"></script>
-
-
-
-
-<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
-<script>
-(function(){
-  if (document.getElementById('tom-hub-return')) return;
-  // 依所在環境決定回哪裡：
-  //   本機          → 本機的 Project Hub
-  //   作品集站台內  → 用相對路徑，換網域也不會壞
-  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
-  //                   只能用完整網址連回作品集
-  var host = location.hostname;
-  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
-  var onSite = host === 'tomchen0722.github.io';
-  var href = local ? 'http://127.0.0.1:7000'
-           : (onSite ? '../../../../index.html' : 'https://tomchen0722.github.io/tom-projects/');
-  var label = local ? '回 Hub' : '回作品集';
-  function mount() {
-    if (!document.body) return;
-    var s = document.createElement('style');
-    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
-      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
-      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
-      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
-      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
-      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
-      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
-      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
-      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
-      + '#tom-hub-return:hover::after{opacity:0;}'
-      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
-      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
-      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
-      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
-      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
-      + '@media print{ #tom-hub-return{display:none;}}';
-    document.head.appendChild(s);
-    var a = document.createElement('a');
-    a.id = 'tom-hub-return';
-    a.href = href;
-    a.title = label;
-    a.setAttribute('aria-label', label);
-    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
-      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
-      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
-    document.body.appendChild(a);
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
-  } else {
-    mount();
-  }
-})();
-</script>
-<!-- TOM_HUB_RETURN end -->
 </body>
 </html>
 

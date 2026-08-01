@@ -17,27 +17,6 @@ from utils.ui import inject_css  # noqa: E402
 
 inject_css()
 
-# ── Project Hub 返回按鈕 ────────────────────────────────────────
-# 由 tom-projects Hub 加入。單獨執行本專案時按鈕依然會顯示，
-# 只是點擊後需要 Hub 有在執行才連得上，不影響本專案的任何功能。
-st.markdown("""
-<style>
-  #tom-hub-return{
-    position:fixed; left:18px; bottom:18px; z-index:999990;
-    display:inline-flex; align-items:center; gap:8px;
-    min-height:44px; padding:11px 18px;
-    background:#1C1A18; color:#FEFEF9 !important;
-    font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;
-    font-size:13px; font-weight:500; letter-spacing:.03em; line-height:1;
-    text-decoration:none !important;
-    box-shadow:0 6px 24px rgba(28,26,24,.22);
-    transition:background .25s, transform .25s;
-  }
-  #tom-hub-return:hover{ background:#3A68AD; transform:translateY(-2px); }
-</style>
-<a id="tom-hub-return" href="http://127.0.0.1:7000" target="_self">&#8592; 回 Hub</a>
-""", unsafe_allow_html=True)
-
 PAGES = {
     "開始": [
         st.Page("views/home.py", title="學習地圖", icon="🗺️", default=True),

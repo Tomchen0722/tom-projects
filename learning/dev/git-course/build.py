@@ -252,8 +252,6 @@ PAGE = """<!DOCTYPE html>
 <footer>Git 企業級教材 · 用 Python 產生的純靜態網站 · 可自由離線閱讀</footer>
 </main>
 <script src="assets/script.js"></script>
-<!-- TOM_HUB_RETURN：由 Project Hub 注入的返回按鈕。單獨開啟本教材時載入失敗會自動略過，不影響閱讀。 -->
-<script src="http://127.0.0.1:7000/shared/hub-return.js" defer></script>
 </body>
 </html>"""
 

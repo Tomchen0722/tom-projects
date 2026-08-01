@@ -12,7 +12,8 @@
 
 這支腳本可以重複執行：已注入的舊版會被替換成新版，不會疊加。
 
-執行：  python hub/tools/inject_return.py
+執行：  python hub/tools/inject_return.py            注入或更新
+        python hub/tools/inject_return.py --remove   全部移除
 """
 from __future__ import annotations
 
@@ -167,6 +168,19 @@ def inject(path: Path, site_url: str, site_host: str) -> str:
     return "updated" if had_old else "injected"
 
 
+def remove(path: Path) -> str:
+    """把注入的返回按鈕整段拿掉。回傳 removed / clean。"""
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if MARKER not in text:
+        return "clean"
+
+    cleaned = OLD_BLOCK.sub("\n", text)
+    # 移除後可能留下連續空行，收斂成一行，避免檔案愈改愈鬆散
+    cleaned = re.sub(r"\n{3,}(?=</body>)", "\n", cleaned, flags=re.IGNORECASE)
+    path.write_text(cleaned, encoding="utf-8")
+    return "removed"
+
+
 def check_template_safe(snippet: str) -> list[str]:
     """檢查產生的內容有沒有會讓 Jinja2 誤判的標記。
 
@@ -182,6 +196,21 @@ def check_template_safe(snippet: str) -> list[str]:
 
 
 def main() -> int:
+    if "--remove" in sys.argv:
+        counts = {"removed": 0, "clean": 0, "missing": 0}
+        for pattern in TARGETS:
+            files = expand(pattern)
+            if not files:
+                counts["missing"] += 1
+                continue
+            for f in files:
+                counts[remove(f)] += 1
+        print()
+        print(f"移除 {counts['removed']} 個檔案的返回按鈕，"
+              f"{counts['clean']} 個本來就沒有。")
+        print("要加回來的話，執行不帶 --remove 的同一支腳本即可。")
+        return 0
+
     counts = {"injected": 0, "updated": 0, "no-body": 0, "missing": 0}
 
     site_url, site_host = site_config()
