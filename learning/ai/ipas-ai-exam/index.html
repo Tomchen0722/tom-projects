@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iPAS AI 應用規劃師 — 模擬測驗系統</title>
+<meta name="description" content="iPAS AI 應用規劃師初級與中級模擬測驗，含情境題、詳細解析與倒數計時，依照官方考試規章設計。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   Design System
+   ═══════════════════════════════════════════════ */
+:root {
+  --bg: #0f1117;
+  --bg-card: #1a1d28;
+  --bg-card-hover: #22263a;
+  --bg-glass: rgba(26,29,40,.85);
+  --border: rgba(255,255,255,.08);
+  --border-active: rgba(99,140,255,.45);
+  --text: #e8eaf0;
+  --text-dim: #8b93a8;
+  --text-muted: #555d72;
+  --accent: #638cff;
+  --accent-glow: rgba(99,140,255,.25);
+  --accent2: #00d4aa;
+  --accent2-glow: rgba(0,212,170,.2);
+  --correct: #22c55e;
+  --correct-bg: rgba(34,197,94,.12);
+  --wrong: #ef4444;
+  --wrong-bg: rgba(239,68,68,.12);
+  --warn: #f59e0b;
+  --warn-bg: rgba(245,158,11,.12);
+  --gradient: linear-gradient(135deg, #638cff, #00d4aa);
+  --gradient-warm: linear-gradient(135deg, #ff6b6b, #ffa94d);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,.35);
+  --shadow-glow: 0 0 30px rgba(99,140,255,.15);
+  --ease: cubic-bezier(.22,1,.36,1);
+  --container: 1080px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans TC', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--accent); color: #fff; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(99,140,255,.3); border-radius: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.wrap { max-width: var(--container); margin: 0 auto; padding: 0 20px; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ═══════════ Animations ═══════════ */
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+@keyframes slideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:none; } }
+@keyframes glow { 0%,100% { box-shadow: 0 0 20px rgba(99,140,255,.2); } 50% { box-shadow: 0 0 40px rgba(99,140,255,.4); } }
+@keyframes shake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-5px); } 75% { transform:translateX(5px); } }
+@keyframes confetti { 0% { transform:translateY(0) rotate(0); opacity:1; } 100% { transform:translateY(-200px) rotate(720deg); opacity:0; } }
+
+/* ═══════════ Header ═══════════ */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(15,17,23,.88);
+  backdrop-filter: blur(20px) saturate(1.2);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  display: flex; align-items: center; gap: 16px;
+  height: 64px; max-width: var(--container);
+  margin: 0 auto; padding: 0 20px;
+}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 900; font-size: 16px;
+  text-decoration: none; color: var(--text);
+  margin-right: auto; white-space: nowrap;
+}
+.logo-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gradient);
+  box-shadow: 0 0 12px rgba(99,140,255,.5);
+}
+.logo em { font-style: normal; background: var(--gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav-links button {
+  background: transparent; border: 0; color: var(--text-dim);
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: all .2s var(--ease);
+  font-family: inherit;
+}
+.nav-links button:hover { color: var(--text); background: rgba(255,255,255,.06); }
+.nav-links button.active {
+  color: #fff;
+  background: var(--gradient);
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--text-dim); font-size: 13px; text-decoration: none;
+  padding: 6px 12px; border-radius: 8px;
+  transition: all .2s;
+}
+.back-link:hover { color: var(--accent); background: rgba(99,140,255,.08); text-decoration: none; }
+
+/* ═══════════ Pages ═══════════ */
+.page { display: none; padding: 32px 0 80px; }
+.page.active { display: block; animation: fadeIn .4s var(--ease); }
+
+/* ═══════════ Hero ═══════════ */
+.hero {
+  text-align: center; padding: 48px 24px;
+  background: linear-gradient(135deg, rgba(99,140,255,.08), rgba(0,212,170,.05));
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  position: relative; overflow: hidden;
+  margin-bottom: 32px;
+}
+.hero::before {
+  content: ''; position: absolute;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(99,140,255,.15), transparent 70%);
+  top: -100px; right: -50px;
+  animation: pulse 4s ease-in-out infinite;
+}
+.hero h1 {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  background: var(--gradient);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  position: relative;
+}
+.hero .sub { color: var(--text-dim); font-size: 15px; margin-top: 8px; position: relative; }
+.pill {
+  display: inline-block;
+  background: rgba(99,140,255,.12);
+  border: 1px solid rgba(99,140,255,.25);
+  border-radius: 999px; padding: 6px 18px;
+  font-size: 13px; font-weight: 600;
+  color: var(--accent); margin-bottom: 12px;
+  position: relative;
+}
+
+/* ═══════════ Cards ═══════════ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  transition: all .3s var(--ease);
+}
+.card:hover { border-color: var(--border-active); }
+
+/* ═══════════ Buttons ═══════════ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px; border: 0; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: all .25s var(--ease);
+  font-family: inherit; text-decoration: none;
+}
+.btn-primary {
+  background: var(--gradient); color: #fff;
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--accent-glow); filter: brightness(1.1); }
+.btn-ghost {
+  background: transparent; color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: rgba(99,140,255,.06); }
+.btn-sm { padding: 8px 16px; font-size: 13px; }
+.btn-danger { background: var(--wrong); color: #fff; }
+.btn-success { background: var(--correct); color: #fff; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ═══════════ Grid ═══════════ */
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+/* ═══════════ Section Titles ═══════════ */
+h2 {
+  font-size: 22px; font-weight: 900;
+  display: flex; align-items: center; gap: 12px;
+  margin: 36px 0 20px;
+}
+h2 .bar {
+  width: 4px; height: 22px; border-radius: 2px;
+  background: var(--gradient);
+}
+
+/* ═══════════ Mode Cards (Home) ═══════════ */
+.mode-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  cursor: pointer;
+  transition: all .35s var(--ease);
+  position: relative; overflow: hidden;
+}
+.mode-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity .35s;
+}
+.mode-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-glow);
+}
+.mode-card:hover::before { opacity: .06; }
+.mode-card .icon { font-size: 36px; margin-bottom: 12px; position: relative; }
+.mode-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 6px; position: relative; }
+.mode-card p { font-size: 13.5px; color: var(--text-dim); position: relative; line-height: 1.7; }
+.mode-card .badge-info {
+  display: inline-block; margin-top: 10px;
+  padding: 4px 12px; border-radius: 6px;
+  font-size: 11px; font-weight: 700; position: relative;
+}
+.mode-card .badge-beginner { background: rgba(99,140,255,.15); color: var(--accent); }
+.mode-card .badge-intermediate { background: rgba(0,212,170,.15); color: var(--accent2); }
+
+/* ═══════════ Exam Setup ═══════════ */
+.setup-row {
+  display: flex; gap: 12px; align-items: center;
+  margin: 12px 0; flex-wrap: wrap;
+}
+.setup-row label { font-weight: 600; font-size: 14px; min-width: 60px; }
+select, input[type="text"] {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  font-size: 14px; font-family: inherit;
+}
+select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+select option { background: var(--bg-card); color: var(--text); }
+
+/* ═══════════ Timer ═══════════ */
+.timer-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  flex-wrap: wrap; gap: 12px;
+}
+.timer-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px; font-weight: 700;
+  color: var(--accent);
+}
+.timer-display.warning { color: var(--warn); animation: pulse 1s infinite; }
+.timer-display.danger { color: var(--wrong); animation: pulse .5s infinite; }
+.progress-wrap { width: 100%; }
+.progress-bar {
+  height: 6px; background: rgba(255,255,255,.06);
+  border-radius: 3px; overflow: hidden;
+}
+.progress-bar .fill {
+  height: 100%;
+  background: var(--gradient);
+  transition: width .3s;
+  border-radius: 3px;
+}
+
+/* ═══════════ Question ═══════════ */
+.question-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+  animation: slideUp .4s var(--ease);
+}
+.q-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+}
+.q-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--accent);
+  background: rgba(99,140,255,.12);
+  padding: 4px 10px; border-radius: 6px;
+  font-weight: 700;
+}
+.q-tag {
+  font-size: 11px; padding: 3px 10px;
+  border-radius: 6px; font-weight: 600;
+  background: rgba(255,255,255,.06);
+  color: var(--text-dim);
+}
+.q-tag.scenario { background: rgba(245,158,11,.12); color: var(--warn); }
+.q-stem {
+  font-size: 16px; font-weight: 700;
+  line-height: 1.8; margin-bottom: 16px;
+  color: var(--text);
+}
+.q-scenario {
+  background: rgba(245,158,11,.06);
+  border-left: 3px solid var(--warn);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px 16px; margin-bottom: 16px;
+  font-size: 14px; color: var(--text-dim);
+  line-height: 1.8;
+}
+
+/* ═══════════ Options ═══════════ */
+.option-btn {
+  display: block; width: 100%; text-align: left;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px 18px; border-radius: var(--radius-sm);
+  margin: 8px 0; cursor: pointer;
+  font-size: 14.5px; font-family: inherit;
+  transition: all .2s var(--ease);
+  line-height: 1.7;
+}
+.option-btn:hover:not(.locked) {
+  border-color: var(--accent);
+  background: rgba(99,140,255,.06);
+  transform: translateX(4px);
+}
+.option-btn .opt-label {
+  font-weight: 800; color: var(--accent);
+  margin-right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.option-btn.selected {
+  border-color: var(--accent);
+  background: rgba(99,140,255,.1);
+}
+.option-btn.correct {
+  border-color: var(--correct);
+  background: var(--correct-bg);
+}
+.option-btn.correct .opt-label { color: var(--correct); }
+.option-btn.wrong {
+  border-color: var(--wrong);
+  background: var(--wrong-bg);
+  animation: shake .3s;
+}
+.option-btn.wrong .opt-label { color: var(--wrong); }
+.option-btn.locked { cursor: default; }
+
+/* ═══════════ Explanation ═══════════ */
+.explanation {
+  display: none; margin-top: 16px;
+  padding: 18px;
+  background: rgba(99,140,255,.04);
+  border: 1px solid rgba(99,140,255,.15);
+  border-radius: var(--radius-sm);
+  font-size: 14px; line-height: 1.85;
+}
+.explanation.show { display: block; animation: fadeIn .3s var(--ease); }
+.explanation h4 { color: var(--accent); font-size: 14px; margin-bottom: 10px; }
+.exp-option { margin: 8px 0; padding: 8px 12px; border-radius: 8px; }
+.exp-option.is-correct { background: var(--correct-bg); border-left: 3px solid var(--correct); }
+.exp-option.is-wrong { background: rgba(255,255,255,.02); border-left: 3px solid var(--text-muted); }
+.exp-option b { display: block; margin-bottom: 4px; }
+.exp-option b.correct-label { color: var(--correct); }
+.exp-option b.wrong-label { color: var(--text-dim); }
+
+/* ═══════════ Navigation Buttons ═══════════ */
+.nav-btns {
+  display: flex; gap: 12px; justify-content: space-between;
+  margin-top: 20px; flex-wrap: wrap;
+}
+
+/* ═══════════ Results ═══════════ */
+.result-hero {
+  text-align: center; padding: 40px 24px;
+  background: linear-gradient(135deg, rgba(99,140,255,.06), rgba(0,212,170,.04));
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  margin-bottom: 24px;
+}
+.score-big {
+  font-size: 72px; font-weight: 900;
+  background: var(--gradient);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  line-height: 1.1;
+}
+.score-big.fail {
+  background: var(--gradient-warm);
+  -webkit-background-clip: text; background-clip: text;
+}
+.result-msg { font-size: 18px; font-weight: 700; margin: 8px 0; }
+.result-stats {
+  display: flex; gap: 24px; justify-content: center;
+  flex-wrap: wrap; margin-top: 16px;
+}
+.stat-item { text-align: center; }
+.stat-value { font-size: 28px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.stat-value.good { color: var(--correct); }
+.stat-value.bad { color: var(--wrong); }
+.stat-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+/* ═══════════ Review Wrong ═══════════ */
+.review-section { margin-top: 24px; }
+
+/* ═══════════ Question Map ═══════════ */
+.q-map {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: 12px 0;
+}
+.q-map-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; border: 1px solid var(--border);
+  background: rgba(255,255,255,.03);
+  color: var(--text-dim);
+  font-size: 12px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; transition: all .2s;
+}
+.q-map-btn:hover { border-color: var(--accent); color: var(--accent); }
+.q-map-btn.answered { background: rgba(99,140,255,.15); color: var(--accent); border-color: rgba(99,140,255,.3); }
+.q-map-btn.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ═══════════ Exam Info Cards ═══════════ */
+.info-kv { padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; gap: 12px; }
+.info-kv:last-child { border-bottom: 0; }
+.info-kv b { min-width: 70px; color: var(--accent); font-size: 14px; }
+.info-kv span { color: var(--text-dim); font-size: 14px; }
+
+/* ═══════════ Footer ═══════════ */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 24px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ═══════════ Responsive ═══════════ */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .nav-inner { height: 56px; }
+  .hero { padding: 32px 16px; }
+  .card { padding: 16px; }
+  .question-card { padding: 16px; }
+  .timer-display { font-size: 22px; }
+  .score-big { font-size: 56px; }
+}
+/* Mobile nav toggle */
+.nav-toggle {
+  display: none; background: none; border: 0;
+  color: var(--text); font-size: 24px; cursor: pointer;
+  padding: 4px;
+}
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .nav-links.open { display: flex; flex-basis: 100%; }
+}
+
+/* ═══════════ Confetti Container ═══════════ */
+#confetti-container {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 9999; overflow: hidden;
+}
+.confetti-piece {
+  position: absolute; bottom: -20px;
+  width: 10px; height: 10px;
+  animation: confetti 2s ease-out forwards;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a class="logo" href="#">
+      <span class="logo-dot"></span>
+      iPAS <em>AI</em> 模擬測驗
+    </a>
+    <a class="back-link" href="../../index.html">← 返回作品集</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">☰</button>
+    <nav class="nav-links">
+      <button data-page="home" class="active">首頁</button>
+      <button data-page="exam-beginner">初級測驗</button>
+      <button data-page="exam-intermediate">中級測驗</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ═══════════════════════════════════════════
+     HOME PAGE
+     ═══════════════════════════════════════════ -->
+<section id="page-home" class="page active">
+  <div class="hero">
+    <div class="pill">📋 依據 iPAS 115年度考試規章設計</div>
+    <h1>iPAS AI 應用規劃師<br>模擬測驗系統</h1>
+    <p class="sub">涵蓋初級與中級完整題庫，含情境應用題、詳細四選項解析、倒數計時與自動批閱</p>
+  </div>
+
+  <h2><span class="bar"></span>選擇測驗模式</h2>
+  <div class="grid g2">
+    <div class="mode-card" onclick="goPage('exam-beginner')">
+      <div class="icon">🎯</div>
+      <h3>初級測驗（Associate）</h3>
+      <p>適合非技術背景入門者。涵蓋 AI 基礎概論、生成式 AI 應用與規劃兩大科目，共 50 題隨機出題，限時 75 分鐘。</p>
+      <span class="badge-info badge-beginner">初級 · 50題 · 75分鐘</span>
+    </div>
+    <div class="mode-card" onclick="goPage('exam-intermediate')">
+      <div class="icon">🚀</div>
+      <h3>中級測驗（Specialist）</h3>
+      <p>適合有技術背景實作者。涵蓋 AI 技術應用與規劃（必考）、大數據處理分析、機器學習技術與應用，共 50 題隨機出題，限時 90 分鐘。</p>
+      <span class="badge-info badge-intermediate">中級 · 50題 · 90分鐘</span>
+    </div>
+  </div>
+
+  <h2><span class="bar"></span>考試資訊速覽</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:12px;color:var(--accent)">📘 初級（Associate）</h3>
+      <div class="info-kv"><b>科目</b><span>科目一：人工智慧基礎概論<br>科目二：生成式 AI 應用與規劃</span></div>
+      <div class="info-kv"><b>題型</b><span>全部單選題，每科 50 題</span></div>
+      <div class="info-kv"><b>時間</b><span>每科 75 分鐘</span></div>
+      <div class="info-kv"><b>及格</b><span>兩科平均 ≥ 70 分，單科 ≥ 60 分</span></div>
+      <div class="info-kv"><b>證書</b><span>永久有效</span></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:12px;color:var(--accent2)">📗 中級（Specialist）</h3>
+      <div class="info-kv"><b>科目</b><span>科目一（必考）+ 科目二或三（擇一）</span></div>
+      <div class="info-kv"><b>題型</b><span>單選題為主，含 Python 程式邏輯題</span></div>
+      <div class="info-kv"><b>時間</b><span>每科 90 分鐘</span></div>
+      <div class="info-kv"><b>及格</b><span>每科均須 ≥ 70 分，成績保留 3 年</span></div>
+      <div class="info-kv"><b>證書</b><span>有效期 5 年</span></div>
+    </div>
+  </div>
+
+  <h2><span class="bar"></span>題庫範圍</h2>
+  <div class="card">
+    <p style="color:var(--text-dim);font-size:14px;line-height:1.85;">
+      本題庫依據 iPAS 官方《評鑑內容範圍參考》與歷屆考題風格編寫，涵蓋以下重點領域：
+    </p>
+    <div class="grid g3" style="margin-top:16px;">
+      <div style="padding:12px;background:rgba(99,140,255,.04);border-radius:10px;border:1px solid rgba(99,140,255,.1);">
+        <b style="color:var(--accent);font-size:13px;">AI 基礎</b>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">AI 定義與分類、鑑別式 vs 生成式、AI 發展歷程</p>
+      </div>
+      <div style="padding:12px;background:rgba(0,212,170,.04);border-radius:10px;border:1px solid rgba(0,212,170,.1);">
+        <b style="color:var(--accent2);font-size:13px;">機器學習</b>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">監督式/非監督式/強化學習、模型評估、過擬合處理</p>
+      </div>
+      <div style="padding:12px;background:rgba(245,158,11,.04);border-radius:10px;border:1px solid rgba(245,158,11,.1);">
+        <b style="color:var(--warn);font-size:13px;">生成式 AI</b>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">Prompt Engineering、RAG、Fine-tuning、LLM 應用</p>
+      </div>
+      <div style="padding:12px;background:rgba(99,140,255,.04);border-radius:10px;border:1px solid rgba(99,140,255,.1);">
+        <b style="color:var(--accent);font-size:13px;">資料處理</b>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">ETL 流程、特徵工程、資料清洗、視覺化</p>
+      </div>
+      <div style="padding:12px;background:rgba(0,212,170,.04);border-radius:10px;border:1px solid rgba(0,212,170,.1);">
+        <b style="color:var(--accent2);font-size:13px;">AI 倫理與治理</b>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">歐盟 AI 法案、偏誤與公平性、XAI、隱私法規</p>
+      </div>
+      <div style="padding:12px;background:rgba(245,158,11,.04);border-radius:10px;border:1px solid rgba(245,158,11,.1);">
+        <b style="color:var(--warn);font-size:13px;">企業導入</b>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:4px;">需求評估、成本效益、導入風險、MLOps 部署</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     BEGINNER EXAM PAGE
+     ═══════════════════════════════════════════ -->
+<section id="page-exam-beginner" class="page">
+  <div class="hero" style="padding:28px 24px;">
+    <div class="pill">🎯 初級（Associate）</div>
+    <h1>初級模擬測驗</h1>
+    <p class="sub">人工智慧基礎概論 ＋ 生成式 AI 應用與規劃</p>
+  </div>
+
+  <!-- Setup -->
+  <div id="b-setup" class="card">
+    <h3 style="font-size:16px;margin-bottom:16px;">測驗設定</h3>
+    <div class="setup-row">
+      <label>科目範圍：</label>
+      <select id="b-scope">
+        <option value="all" selected>兩科混合（50 題）</option>
+        <option value="s1">科目一：人工智慧基礎概論</option>
+        <option value="s2">科目二：生成式 AI 應用與規劃</option>
+      </select>
+    </div>
+    <div class="setup-row">
+      <label>計時模式：</label>
+      <select id="b-timer">
+        <option value="75">正式考試（75 分鐘）</option>
+        <option value="60">快速模式（60 分鐘）</option>
+        <option value="0">不計時（練習模式）</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="margin-top:16px;width:100%;" onclick="startExam('beginner')">
+      🚀 開始測驗
+    </button>
+  </div>
+
+  <!-- Running -->
+  <div id="b-running" style="display:none;">
+    <div class="timer-bar">
+      <div>
+        第 <b id="b-qidx">1</b> / <span id="b-qtotal">50</span> 題
+        <span style="color:var(--text-muted);font-size:13px;margin-left:8px;" id="b-scope-label"></span>
+      </div>
+      <div class="timer-display" id="b-timer-display">75:00</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="fill" id="b-progress"></div></div>
+    </div>
+    <!-- Question Map -->
+    <div class="card" style="margin:12px 0;padding:14px;">
+      <div class="q-map" id="b-qmap"></div>
+    </div>
+    <div id="b-question-area"></div>
+    <div class="nav-btns">
+      <button class="btn btn-ghost btn-sm" id="b-prev" onclick="navQuestion('beginner',-1)">← 上一題</button>
+      <button class="btn btn-primary btn-sm" id="b-next" onclick="navQuestion('beginner',1)">下一題 →</button>
+      <button class="btn btn-success btn-sm" id="b-submit" onclick="submitExam('beginner')" style="margin-left:auto;">📝 交卷</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="b-result" style="display:none;"></div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     INTERMEDIATE EXAM PAGE
+     ═══════════════════════════════════════════ -->
+<section id="page-exam-intermediate" class="page">
+  <div class="hero" style="padding:28px 24px;">
+    <div class="pill" style="background:rgba(0,212,170,.12);border-color:rgba(0,212,170,.25);color:var(--accent2);">🚀 中級（Specialist）</div>
+    <h1 style="background:linear-gradient(135deg,#00d4aa,#638cff);-webkit-background-clip:text;background-clip:text;">中級模擬測驗</h1>
+    <p class="sub">AI 技術應用與規劃 ＋ 大數據 / 機器學習</p>
+  </div>
+
+  <div id="i-setup" class="card">
+    <h3 style="font-size:16px;margin-bottom:16px;">測驗設定</h3>
+    <div class="setup-row">
+      <label>科目範圍：</label>
+      <select id="i-scope">
+        <option value="all" selected>三科混合（50 題）</option>
+        <option value="s1">科目一：AI 技術應用與規劃（必考）</option>
+        <option value="s2">科目二：大數據處理分析與應用</option>
+        <option value="s3">科目三：機器學習技術與應用</option>
+      </select>
+    </div>
+    <div class="setup-row">
+      <label>計時模式：</label>
+      <select id="i-timer">
+        <option value="90">正式考試（90 分鐘）</option>
+        <option value="60">快速模式（60 分鐘）</option>
+        <option value="0">不計時（練習模式）</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" style="margin-top:16px;width:100%;background:linear-gradient(135deg,#00d4aa,#638cff);" onclick="startExam('intermediate')">
+      🚀 開始測驗
+    </button>
+  </div>
+
+  <div id="i-running" style="display:none;">
+    <div class="timer-bar">
+      <div>
+        第 <b id="i-qidx">1</b> / <span id="i-qtotal">50</span> 題
+        <span style="color:var(--text-muted);font-size:13px;margin-left:8px;" id="i-scope-label"></span>
+      </div>
+      <div class="timer-display" id="i-timer-display">90:00</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="fill" id="i-progress"></div></div>
+    </div>
+    <div class="card" style="margin:12px 0;padding:14px;">
+      <div class="q-map" id="i-qmap"></div>
+    </div>
+    <div id="i-question-area"></div>
+    <div class="nav-btns">
+      <button class="btn btn-ghost btn-sm" id="i-prev" onclick="navQuestion('intermediate',-1)">← 上一題</button>
+      <button class="btn btn-primary btn-sm" id="i-next" onclick="navQuestion('intermediate',1)">下一題 →</button>
+      <button class="btn btn-success btn-sm" id="i-submit" onclick="submitExam('intermediate')" style="margin-left:auto;">📝 交卷</button>
+    </div>
+  </div>
+
+  <div id="i-result" style="display:none;"></div>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="wrap">
+    iPAS AI 應用規劃師模擬測驗系統 · 僅供學習參考，正式考試資訊請以 <a href="https://www.ipas.org.tw/" target="_blank">iPAS 官網</a> 為準
+  </div>
+</footer>
+
+<div id="confetti-container"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   iPAS AI 應用規劃師模擬測驗系統 — 核心邏輯
+   ══════════════════════════════════════════════════════════════ */
+'use strict';
+
+let QUESTIONS_BEGINNER = [];
+let QUESTIONS_INTERMEDIATE = [];
+
+// ─── Load Questions ───
+async function loadQuestions() {
+  try {
+    const res = await fetch('questions_data.json');
+    if (!res.ok) throw new Error('Network response was not ok');
+    const data = await res.json();
+    QUESTIONS_BEGINNER = data.beginner || [];
+    QUESTIONS_INTERMEDIATE = data.intermediate || [];
+    
+    // 更新首頁的題庫資訊標籤
+    const heroPill = document.querySelector('.hero .pill');
+    if (heroPill) {
+      heroPill.textContent = `📋 題庫載入完成：初級 ${QUESTIONS_BEGINNER.length} 題 / 中級 ${QUESTIONS_INTERMEDIATE.length} 題`;
+    }
+  } catch (err) {
+    console.error('Failed to load questions:', err);
+    alert('題庫載入失敗！請確認檔案是否存在或使用伺服器模式開啟。');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadQuestions);
+
+// ─── Page Navigation ───
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-links button').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === id);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.nav-links button').forEach(b => {
+  b.addEventListener('click', () => goPage(b.dataset.page));
+});
+
+// ─── Exam State ───
+const examState = {
+  beginner: { questions: [], answers: [], current: 0, timer: null, timeLeft: 0, totalTime: 0 },
+  intermediate: { questions: [], answers: [], current: 0, timer: null, timeLeft: 0, totalTime: 0 }
+};
+
+// ─── Shuffle Array ───
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ─── Start Exam ───
+function startExam(level) {
+  const prefix = level === 'beginner' ? 'b' : 'i';
+  const scope = document.getElementById(prefix + '-scope').value;
+  const timerMin = parseInt(document.getElementById(prefix + '-timer').value);
+  const totalQuestions = 50;
+
+  // Filter questions by scope
+  let pool = [];
+  const bank = level === 'beginner' ? QUESTIONS_BEGINNER : QUESTIONS_INTERMEDIATE;
+  
+  if (bank.length === 0) {
+    alert('題庫尚未載入完成或無題目，請稍後再試。');
+    return;
+  }
+
+  if (scope === 'all') {
+    pool = shuffle(bank);
+  } else {
+    pool = shuffle(bank.filter(q => q.subject === scope));
+  }
+
+  // Take the required number of questions
+  const selected = pool.slice(0, Math.min(totalQuestions, pool.length));
+
+  const state = examState[level];
+  state.questions = selected;
+  state.answers = new Array(selected.length).fill(null);
+  state.current = 0;
+  state.totalTime = timerMin * 60;
+  state.timeLeft = state.totalTime;
+
+  // Update scope label
+  const scopeLabels = {
+    all: level === 'beginner' ? '兩科混合' : '三科混合',
+    s1: level === 'beginner' ? '科目一：AI 基礎概論' : '科目一：AI 技術應用與規劃',
+    s2: level === 'beginner' ? '科目二：生成式 AI 應用與規劃' : '科目二：大數據處理分析',
+    s3: '科目三：機器學習技術與應用'
+  };
+  document.getElementById(prefix + '-scope-label').textContent = '(' + scopeLabels[scope] + ')';
+  document.getElementById(prefix + '-qtotal').textContent = selected.length;
+
+  // Show running
+  document.getElementById(prefix + '-setup').style.display = 'none';
+  document.getElementById(prefix + '-running').style.display = 'block';
+  document.getElementById(prefix + '-result').style.display = 'none';
+
+  // Build question map
+  buildQMap(level);
+
+  // Show first question
+  showQuestion(level);
+
+  // Start timer
+  if (timerMin > 0) {
+    startTimer(level);
+  } else {
+    document.getElementById(prefix + '-timer-display').textContent = '不限時';
+    document.getElementById(prefix + '-timer-display').style.color = 'var(--text-muted)';
+  }
+}
+
+// ─── Question Map ───
+function buildQMap(level) {
+  const prefix = level === 'beginner' ? 'b' : 'i';
+  const state = examState[level];
+  const map = document.getElementById(prefix + '-qmap');
+  map.innerHTML = '';
+  state.questions.forEach((_, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'q-map-btn';
+    btn.textContent = idx + 1;
+    btn.onclick = () => { state.current = idx; showQuestion(level); };
+    map.appendChild(btn);
+  });
+}
+
+function updateQMap(level) {
+  const prefix = level === 'beginner' ? 'b' : 'i';
+  const state = examState[level];
+  const btns = document.querySelectorAll('#' + prefix + '-qmap .q-map-btn');
+  btns.forEach((btn, idx) => {
+    btn.classList.toggle('answered', state.answers[idx] !== null);
+    btn.classList.toggle('current', idx === state.current);
+  });
+}
+
+// ─── Show Question ───
+function showQuestion(level) {
+  const prefix = level === 'beginner' ? 'b' : 'i';
+  const state = examState[level];
+  const q = state.questions[state.current];
+  const area = document.getElementById(prefix + '-question-area');
+
+  document.getElementById(prefix + '-qidx').textContent = state.current + 1;
+
+  const isScenario = !!q.scenario;
+  const subjectLabel = q.subjectLabel || '';
+
+  let html = '<div class="question-card">';
+  html += '<div class="q-meta">';
+  html += '<span class="q-number">Q' + (state.current + 1) + '</span>';
+  if (subjectLabel) html += '<span class="q-tag">' + esc(subjectLabel) + '</span>';
+  if (isScenario) html += '<span class="q-tag scenario">📋 情境題</span>';
+  html += '</div>';
+
+  if (isScenario) {
+    html += '<div class="q-scenario">' + esc(q.scenario) + '</div>';
+  }
+
+  html += '<div class="q-stem">' + esc(q.stem) + '</div>';
+
+  const labels = ['A', 'B', 'C', 'D'];
+  q.options.forEach((opt, oi) => {
+    const selected = state.answers[state.current] === oi ? ' selected' : '';
+    html += '<button class="option-btn' + selected + '" onclick="selectAnswer(\'' + level + '\',' + oi + ')">';
+    html += '<span class="opt-label">' + labels[oi] + '</span>';
+    html += esc(opt);
+    html += '</button>';
+  });
+
+  html += '</div>';
+  area.innerHTML = html;
+
+  // Update nav buttons
+  document.getElementById(prefix + '-prev').disabled = state.current === 0;
+  document.getElementById(prefix + '-next').disabled = state.current === state.questions.length - 1;
+
+  // Update progress
+  const answered = state.answers.filter(a => a !== null).length;
+  document.getElementById(prefix + '-progress').style.width = (answered / state.questions.length * 100) + '%';
+
+  updateQMap(level);
+}
+
+// ─── Select Answer ───
+function selectAnswer(level, idx) {
+  const state = examState[level];
+  state.answers[state.current] = idx;
+  showQuestion(level);
+}
+
+// ─── Navigate ───
+function navQuestion(level, dir) {
+  const state = examState[level];
+  state.current = Math.max(0, Math.min(state.questions.length - 1, state.current + dir));
+  showQuestion(level);
+}
+
+// ─── Timer ───
+function startTimer(level) {
+  const prefix = level === 'beginner' ? 'b' : 'i';
+  const state = examState[level];
+  const el = document.getElementById(prefix + '-timer-display');
+
+  if (state.timer) clearInterval(state.timer);
+
+  updateTimerDisplay(el, state.timeLeft, state.totalTime);
+
+  state.timer = setInterval(() => {
+    state.timeLeft--;
+    updateTimerDisplay(el, state.timeLeft, state.totalTime);
+
+    if (state.timeLeft <= 0) {
+      clearInterval(state.timer);
+      submitExam(level, true);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(el, timeLeft, totalTime) {
+  const min = Math.floor(timeLeft / 60);
+  const sec = timeLeft % 60;
+  el.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+
+  el.classList.remove('warning', 'danger');
+  if (timeLeft <= 60) el.classList.add('danger');
+  else if (timeLeft <= 300) el.classList.add('warning');
+}
+
+// ─── Submit Exam ───
+function submitExam(level, autoSubmit = false) {
+  const state = examState[level];
+  const prefix = level === 'beginner' ? 'b' : 'i';
+  const unanswered = state.answers.filter(a => a === null).length;
+
+  if (!autoSubmit && unanswered > 0) {
+    if (!confirm('還有 ' + unanswered + ' 題未作答，確定要交卷嗎？')) return;
+  }
+
+  if (state.timer) clearInterval(state.timer);
+
+  // Calculate score
+  let correct = 0;
+  const wrongList = [];
+
+  state.questions.forEach((q, idx) => {
+    if (state.answers[idx] === q.answer) {
+      correct++;
+    } else {
+      wrongList.push({ index: idx, question: q, userAnswer: state.answers[idx] });
+    }
+  });
+
+  const total = state.questions.length;
+  const score = Math.round((correct / total) * 100);
+  const passed = score >= 70;
+  const timeUsed = state.totalTime - state.timeLeft;
+
+  // Show confetti if passed
+  if (passed) showConfetti();
+
+  // Render result
+  const resultEl = document.getElementById(prefix + '-result');
+  let html = '<div class="result-hero">';
+  html += '<div class="score-big' + (passed ? '' : ' fail') + '">' + score + '</div>';
+  html += '<div style="font-size:14px;color:var(--text-dim);">分</div>';
+  html += '<div class="result-msg">' + (passed ? '🎉 恭喜通過！' : '💪 繼續加油！') + '</div>';
+  html += '<div class="result-stats">';
+  html += '<div class="stat-item"><div class="stat-value good">' + correct + '</div><div class="stat-label">答對</div></div>';
+  html += '<div class="stat-item"><div class="stat-value bad">' + (total - correct) + '</div><div class="stat-label">答錯</div></div>';
+  html += '<div class="stat-item"><div class="stat-value">' + total + '</div><div class="stat-label">總題數</div></div>';
+  if (state.totalTime > 0) {
+    const usedMin = Math.floor(timeUsed / 60);
+    const usedSec = timeUsed % 60;
+    html += '<div class="stat-item"><div class="stat-value">' + usedMin + ':' + String(usedSec).padStart(2,'0') + '</div><div class="stat-label">用時</div></div>';
+  }
+  html += '</div>';
+  html += '<div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">';
+  html += '<button class="btn btn-primary" onclick="resetExam(\'' + level + '\')">🔄 重新測驗</button>';
+  if (wrongList.length > 0) {
+    html += '<button class="btn btn-ghost" onclick="document.getElementById(\'' + prefix + '-review-area\').scrollIntoView({behavior:\'smooth\'})">📖 檢討錯題</button>';
+  }
+  html += '</div>';
+  html += '</div>';
+
+  // Wrong answers review
+  if (wrongList.length > 0) {
+    html += '<div class="review-section" id="' + prefix + '-review-area">';
+    html += '<h2><span class="bar"></span>錯題詳細解析（共 ' + wrongList.length + ' 題）</h2>';
+
+    wrongList.forEach(item => {
+      const q = item.question;
+      const labels = ['A', 'B', 'C', 'D'];
+      const isScenario = !!q.scenario;
+
+      html += '<div class="question-card">';
+      html += '<div class="q-meta">';
+      html += '<span class="q-number">Q' + (item.index + 1) + '</span>';
+      if (q.subjectLabel) html += '<span class="q-tag">' + esc(q.subjectLabel) + '</span>';
+      if (isScenario) html += '<span class="q-tag scenario">📋 情境題</span>';
+      html += '</div>';
+
+      if (isScenario) {
+        html += '<div class="q-scenario">' + esc(q.scenario) + '</div>';
+      }
+
+      html += '<div class="q-stem">' + esc(q.stem) + '</div>';
+
+      q.options.forEach((opt, oi) => {
+        let cls = 'option-btn locked';
+        if (oi === q.answer) cls += ' correct';
+        else if (oi === item.userAnswer) cls += ' wrong';
+        html += '<div class="' + cls + '">';
+        html += '<span class="opt-label">' + labels[oi] + '</span>';
+        html += esc(opt);
+        if (oi === q.answer) html += ' ✅';
+        if (oi === item.userAnswer && oi !== q.answer) html += ' ❌ 你的答案';
+        html += '</div>';
+      });
+
+      // Detailed explanation
+      html += '<div class="explanation show">';
+      html += '<h4>📝 詳細解析</h4>';
+      q.explanations.forEach((exp, ei) => {
+        const isCorrect = ei === q.answer;
+        html += '<div class="exp-option ' + (isCorrect ? 'is-correct' : 'is-wrong') + '">';
+        html += '<b class="' + (isCorrect ? 'correct-label' : 'wrong-label') + '">';
+        html += labels[ei] + '. ' + esc(q.options[ei]);
+        html += (isCorrect ? ' ✅ 正確答案' : '') + '</b>';
+        html += '<div style="margin-top:4px;color:var(--text-dim);font-size:13px;line-height:1.8;">' + esc(exp) + '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+
+      html += '</div>';
+    });
+
+    html += '</div>';
+  }
+
+  resultEl.innerHTML = html;
+
+  document.getElementById(prefix + '-running').style.display = 'none';
+  resultEl.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Reset Exam ───
+function resetExam(level) {
+  const prefix = level === 'beginner' ? 'b' : 'i';
+  document.getElementById(prefix + '-setup').style.display = 'block';
+  document.getElementById(prefix + '-running').style.display = 'none';
+  document.getElementById(prefix + '-result').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── Confetti ───
+function showConfetti() {
+  const container = document.getElementById('confetti-container');
+  const colors = ['#638cff','#00d4aa','#f59e0b','#ef4444','#ec4899','#8b5cf6'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = Math.random() * 1.5 + 's';
+    piece.style.animationDuration = 1.5 + Math.random() * 1 + 's';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.width = 6 + Math.random() * 8 + 'px';
+    piece.style.height = 6 + Math.random() * 8 + 'px';
+    container.appendChild(piece);
+    setTimeout(() => piece.remove(), 3000);
+  }
+}
+
+// ─── Escape HTML ───
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
