@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一章：網路基礎概念 — CCNA／CCNP</title>
+<style>
+:root{--sand:#FDFBF7;--terracotta:#C2410C;--amber:#D97706;--cream:#FEF3C7;--stone:#78716C;--ink:#1C1917;--border:#E7E5E4;--code-bg:#1C1917;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","Microsoft JhengHei",sans-serif;background:var(--sand);color:var(--ink);line-height:1.8;}
+.topbar{background:#1C1917;padding:14px 24px;display:flex;align-items:center;gap:16px;}
+.topbar a{color:#A8A29E;text-decoration:none;font-size:.82rem;transition:.15s;}
+.topbar a:hover{color:#FCD34D;}
+.topbar .sep{color:#57534E;}
+.topbar .cur{color:#FCD34D;font-weight:600;}
+.hero{background:linear-gradient(135deg,#D97706,#C2410C);color:#fff;padding:48px 24px 60px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.2);padding:4px 14px;border-radius:12px;font-size:.78rem;margin-bottom:14px;letter-spacing:.08em;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:10px;}
+.hero p{opacity:.88;max-width:540px;margin:0 auto;font-size:.95rem;}
+.container{max-width:820px;margin:-24px auto 0;padding:0 16px 64px;}
+.nav-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;}
+.nav-pills a{background:#fff;border:1px solid var(--border);padding:6px 14px;border-radius:20px;text-decoration:none;font-size:.8rem;color:var(--stone);transition:.15s;}
+.nav-pills a:hover,.nav-pills a.active{background:var(--terracotta);color:#fff;border-color:var(--terracotta);}
+
+/* CONTENT */
+.card{background:#fff;border-radius:14px;padding:28px 32px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:20px;}
+h2{font-size:1.25rem;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--cream);}
+h2 .icon{margin-right:8px;}
+h3{font-size:1rem;color:var(--terracotta);margin:20px 0 10px;font-weight:700;}
+p{font-size:.9rem;color:#44403C;line-height:1.85;margin-bottom:12px;}
+ul,ol{padding-left:1.4em;margin-bottom:12px;}
+li{font-size:.88rem;color:#57534E;line-height:1.85;margin-bottom:3px;}
+strong{color:var(--ink);}
+
+/* ANALOGY BOX */
+.analogy{background:var(--cream);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.88rem;color:#78350F;line-height:1.8;}
+.analogy strong{color:#92400E;}
+
+/* CODE BLOCK */
+pre{background:var(--code-bg);border-radius:10px;padding:18px 20px;overflow-x:auto;margin:14px 0;}
+code{font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#E7E5E4;}
+pre code .comment{color:#6B7280;}
+pre code .cmd{color:#FCD34D;}
+pre code .val{color:#86EFAC;}
+pre code .kw{color:#F9A8D4;}
+.inline-code{background:#F5F5F4;border:1px solid var(--border);padding:1px 7px;border-radius:5px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#C2410C;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;margin:14px 0;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th{background:#F5F5F4;padding:10px 14px;text-align:left;font-weight:600;color:var(--stone);font-size:.78rem;letter-spacing:.04em;border-bottom:2px solid var(--border);}
+td{padding:10px 14px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#FAFAF9;}
+
+/* LAYER DIAGRAM */
+.layers{display:grid;gap:4px;margin:14px 0;}
+.layer{display:flex;align-items:center;gap:0;border-radius:8px;overflow:hidden;}
+.layer-num{width:40px;background:var(--amber);color:#fff;font-size:.78rem;font-weight:700;padding:10px 0;text-align:center;flex-shrink:0;}
+.layer-name{width:140px;background:#FEF3C7;font-size:.82rem;font-weight:600;color:#92400E;padding:10px 12px;flex-shrink:0;}
+.layer-desc{background:#fff;border:1px solid var(--border);font-size:.8rem;color:#57534E;padding:10px 14px;flex:1;}
+.layer-ex{width:140px;background:#F5F5F4;font-size:.75rem;color:#A8A29E;padding:10px 10px;flex-shrink:0;}
+
+/* NOTE */
+.note{background:#F5F5F4;border-radius:10px;padding:14px 18px;margin:14px 0;font-size:.85rem;color:var(--stone);display:flex;gap:10px;}
+.note::before{content:'💡';flex-shrink:0;}
+
+/* SUBNET DEMO */
+.subnet-demo{background:#1C1917;border-radius:10px;padding:18px 20px;margin:14px 0;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#E7E5E4;line-height:2;}
+.subnet-demo .c1{color:#FCD34D;} .subnet-demo .c2{color:#86EFAC;} .subnet-demo .c3{color:#F9A8D4;} .subnet-demo .c4{color:#60A5FA;}
+
+/* NAV BOTTOM */
+.page-nav{display:flex;justify-content:space-between;margin-top:32px;}
+.page-nav a{display:inline-flex;align-items:center;gap:6px;color:var(--stone);text-decoration:none;font-size:.85rem;padding:10px 18px;border:1px solid var(--border);border-radius:8px;background:#fff;transition:.15s;}
+.page-nav a:hover{color:var(--terracotta);border-color:var(--terracotta);}
+
+footer{text-align:center;padding:20px;font-size:.78rem;color:#A8A29E;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a>
+  <span class="sep">/</span>
+  <span class="cur">第一章：網路基礎概念</span>
+</div>
+
+<div class="hero">
+  <div class="badge">CHAPTER 1 · 入門必讀</div>
+  <h1>🏗️ 網路基礎概念</h1>
+  <p>OSI 七層模型、IP 位址、子網路遮罩，以及 DHCP、DNS、ARP 的實際運作原理。</p>
+</div>
+
+<div class="container">
+  <div class="nav-pills" style="margin-top:24px;">
+    <a href="index.html">← 章節總覽</a>
+    <a href="#osi" class="active">OSI 模型</a>
+    <a href="#ip">IP 位址</a>
+    <a href="#subnet">子網路</a>
+    <a href="#protocols">關鍵協定</a>
+  </div>
+
+  <!-- OSI -->
+  <div class="card" id="osi">
+    <h2><span class="icon">🏛️</span>OSI 七層模型 vs TCP/IP 四層</h2>
+
+    <p>OSI（開放系統互連）模型是理解網路的「骨架」。現實世界用的是 TCP/IP，但考試和工程師討論問題時，都用 OSI 的語言。</p>
+
+    <div class="analogy">
+      <strong>比喻：</strong>想像你寄一封快遞。你填寫收件人（應用層）→ 裝箱（表達層）→ 確認對方有沒有空（會話層）→ 決定切幾包（傳輸層）→ 寫上貨車路線（網路層）→ 交給貨車司機（資料鏈路層）→ 貨車在公路上跑（實體層）。每一層只做自己的事，不管別層怎麼實作。
+    </div>
+
+    <div class="layers">
+      <div class="layer"><div class="layer-num">7</div><div class="layer-name">應用層</div><div class="layer-desc">使用者直接互動的服務：瀏覽器、郵件用戶端、FTP</div><div class="layer-ex">HTTP、FTP、SMTP</div></div>
+      <div class="layer"><div class="layer-num">6</div><div class="layer-name">表達層</div><div class="layer-desc">資料格式轉換、加密解密、壓縮</div><div class="layer-ex">SSL/TLS、JPEG</div></div>
+      <div class="layer"><div class="layer-num">5</div><div class="layer-name">會話層</div><div class="layer-desc">建立、維持、終止兩端的通訊會話</div><div class="layer-ex">NetBIOS、RPC</div></div>
+      <div class="layer" style="--amber:#B45309;"><div class="layer-num" style="background:#B45309;">4</div><div class="layer-name" style="background:#FDE8D8;color:#7C2D12;">傳輸層</div><div class="layer-desc">端到端可靠性（TCP）或速度優先（UDP），Port 號在這層</div><div class="layer-ex">TCP、UDP</div></div>
+      <div class="layer"><div class="layer-num" style="background:#C2410C;">3</div><div class="layer-name" style="background:#FEE2E2;color:#991B1B;">網路層</div><div class="layer-desc">IP 位址定位、路由決策，資料叫做「封包（Packet）」</div><div class="layer-ex">IP、ICMP、OSPF</div></div>
+      <div class="layer"><div class="layer-num" style="background:#7C2D12;">2</div><div class="layer-name" style="background:#3B1F0C;color:#FCD34D;">資料鏈路層</div><div class="layer-desc">MAC 位址定位，同一區域網路內移動，資料叫「訊框（Frame）」</div><div class="layer-ex">Ethernet、802.1Q</div></div>
+      <div class="layer"><div class="layer-num" style="background:#57534E;">1</div><div class="layer-name" style="background:#F5F5F4;">實體層</div><div class="layer-desc">電、光、無線電訊號，訊號叫「位元（Bit）」</div><div class="layer-ex">RJ-45、光纖</div></div>
+    </div>
+
+    <h3>考試重點：各層的設備對應</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>設備</th><th>運作在哪層</th><th>識別依據</th><th>主要功能</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Hub（集線器）</strong></td><td>第 1 層</td><td>無識別</td><td>把訊號廣播給所有 Port</td></tr>
+          <tr><td><strong>Switch（交換器）</strong></td><td>第 2 層</td><td>MAC 位址</td><td>依 MAC 表只傳給對的 Port</td></tr>
+          <tr><td><strong>Router（路由器）</strong></td><td>第 3 層</td><td>IP 位址</td><td>跨網段傳送、決定最佳路徑</td></tr>
+          <tr><td><strong>Layer 3 Switch</strong></td><td>第 2+3 層</td><td>MAC + IP</td><td>同時做交換和路由（企業常用）</td></tr>
+          <tr><td><strong>Firewall（防火牆）</strong></td><td>第 3-7 層</td><td>IP + Port + 應用</td><td>依規則允許或拒絕流量</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">記憶口訣：<strong>「All People Seem To Need Data Processing」</strong>（Application、Presentation、Session、Transport、Network、Data Link、Physical）從上到下背。</div>
+  </div>
+
+  <!-- IP -->
+  <div class="card" id="ip">
+    <h2><span class="icon">🔢</span>IP 位址結構</h2>
+
+    <p>IPv4 位址由 <strong>32 個 bit</strong> 組成，分成 4 個「十進位數字」（每組 0–255），例如 <span class="inline-code">192.168.1.100</span>。</p>
+
+    <h3>公有 IP vs 私有 IP</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>類型</th><th>範圍</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><strong>私有 IP</strong>（Class A）</td><td>10.0.0.0 – 10.255.255.255</td><td>大型企業內網</td></tr>
+          <tr><td><strong>私有 IP</strong>（Class B）</td><td>172.16.0.0 – 172.31.255.255</td><td>中型企業</td></tr>
+          <tr><td><strong>私有 IP</strong>（Class C）</td><td>192.168.0.0 – 192.168.255.255</td><td>家用路由器</td></tr>
+          <tr><td>Loopback</td><td>127.0.0.0 – 127.255.255.255</td><td>本機測試（ping 127.0.0.1）</td></tr>
+          <tr><td>APIPA（自動配置）</td><td>169.254.0.0 – 169.254.255.255</td><td>DHCP 失敗時自動取得，無法上網</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="analogy">
+      <strong>比喻：</strong>私有 IP 就像公司的內線分機號碼（1001、1002...），私有 IP 只在公司內部有效。要和外面通話，要透過總機（NAT/路由器）轉換成對外的公有號碼。
+    </div>
+  </div>
+
+  <!-- SUBNET -->
+  <div class="card" id="subnet">
+    <h2><span class="icon">✂️</span>子網路切割（Subnetting）</h2>
+
+    <p>子網路遮罩（Subnet Mask）告訴裝置哪些 bit 是「網路位址」、哪些是「主機位址」。<span class="inline-code">/24</span> 是 CIDR 表示法，代表前 24 個 bit 是網路部分。</p>
+
+    <div class="subnet-demo">
+      <span class="c1">IP 位址：</span>  192.168.1.<span class="c2">100</span><br>
+      <span class="c1">子網路遮罩：</span>255.255.255.<span class="c3">0</span>   (= /24)<br>
+      <span class="c1">網路位址：</span>  192.168.1.<span class="c4">0</span>     ← 這個子網的「名稱」<br>
+      <span class="c1">廣播位址：</span>  192.168.1.<span class="c4">255</span>   ← 最後一個，傳給所有人<br>
+      <span class="c1">可用主機：</span>  192.168.1.<span class="c2">1</span> ~ <span class="c2">254</span>  ← 共 254 台
+    </div>
+
+    <h3>常見遮罩速查</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>CIDR</th><th>遮罩</th><th>可用主機數</th><th>常見用途</th></tr></thead>
+        <tbody>
+          <tr><td><strong>/30</strong></td><td>255.255.255.252</td><td>2</td><td>路由器對接（點對點鏈路）</td></tr>
+          <tr><td><strong>/29</strong></td><td>255.255.255.248</td><td>6</td><td>小型 DMZ</td></tr>
+          <tr><td><strong>/28</strong></td><td>255.255.255.240</td><td>14</td><td>小辦公室</td></tr>
+          <tr><td><strong>/27</strong></td><td>255.255.255.224</td><td>30</td><td>部門子網</td></tr>
+          <tr><td><strong>/24</strong></td><td>255.255.255.0</td><td>254</td><td>標準 LAN（家用/辦公室）</td></tr>
+          <tr><td><strong>/16</strong></td><td>255.255.0.0</td><td>65,534</td><td>大型企業 / 172.16.x.x</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>VLSM（可變長子網路遮罩）— CCNA 必考</h3>
+    <p>VLSM 讓你用不同大小的子網路，把 IP 空間切得恰到好處，不浪費。</p>
+    <pre><code><span class="comment"># 需求：一個 /24 網段，要切成：</span>
+<span class="comment"># 部門 A：50 台主機  → 需要 /26（62 台）</span>
+<span class="comment"># 部門 B：25 台主機  → 需要 /27（30 台）</span>
+<span class="comment"># 點對點鏈路：2 台   → 需要 /30（2 台）</span>
+
+<span class="val">部門 A</span>: 192.168.1.0/26    (192.168.1.1 - 192.168.1.62)
+<span class="val">部門 B</span>: 192.168.1.64/27   (192.168.1.65 - 192.168.1.94)
+<span class="val">鏈路</span>:   192.168.1.96/30   (192.168.1.97 - 192.168.1.98)</code></pre>
+  </div>
+
+  <!-- PROTOCOLS -->
+  <div class="card" id="protocols">
+    <h2><span class="icon">📡</span>三個關鍵協定：DHCP、DNS、ARP</h2>
+
+    <h3>DHCP — 自動發 IP 的機器</h3>
+    <div class="analogy">
+      <strong>比喻：</strong>就像飯店 Check-in，你不需要自己決定住哪號房，前台（DHCP Server）會自動分配給你一個房號（IP 位址），並告訴你早餐在哪（Default Gateway）、叫什麼名字可以找到人（DNS Server）。
+    </div>
+    <p>DHCP 四步驟：<strong>DORA</strong>（Discover → Offer → Request → Acknowledge）</p>
+
+    <h3>DNS — 把域名翻成 IP 的字典</h3>
+    <p>你輸入 <span class="inline-code">google.com</span>，電腦不認識這個名字，DNS 幫你查出對應的 IP（如 <span class="inline-code">142.250.1.14</span>），然後才能連過去。</p>
+    <pre><code><span class="comment"># 測試 DNS 解析（Windows / Linux 都可用）</span>
+<span class="cmd">nslookup</span> google.com
+<span class="cmd">nslookup</span> google.com 8.8.8.8     <span class="comment"># 指定用 Google DNS</span></code></pre>
+
+    <h3>ARP — 問鄰居「你是哪台電腦？」</h3>
+    <p>你知道對方的 IP，但不知道 MAC 位址，無法直接傳訊框。ARP 廣播問：「誰是 192.168.1.1？」，那台機器回答：「我是，我的 MAC 是 AA:BB:CC:DD:EE:FF」。</p>
+    <pre><code><span class="comment"># 查看本機 ARP 快取表</span>
+<span class="cmd">arp</span> -a
+
+<span class="comment"># Cisco 路由器：查 ARP 表</span>
+<span class="cmd">show</span> ip arp</code></pre>
+
+    <div class="note">ARP 只在同一個廣播域（同一個 VLAN / 子網）有效。跨子網要靠路由器，路由器會回應自己的 MAC（Proxy ARP）或靠 Default Gateway。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="index.html">← 章節總覽</a>
+    <a href="02-switching.html">第二章：交換技術 →</a>
+  </div>
+</div>
+
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · 第一章</footer>
+</body>
+</html>
