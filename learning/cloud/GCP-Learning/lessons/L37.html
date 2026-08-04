@@ -80,4 +80,178 @@ gcloud sql instances failover prod-db
 tc qdisc add dev eth0 root netem delay 500ms 100ms</code></pre></div><div class="box tip"><div class="box-t">實務提醒</div><strong>演練要記錄的三件事</strong>：<br>① <u>實際花了多久</u>（跟 RTO 目標比對）<br>② <u>哪一步卡住了</u>（通常是文件過時、權限不足、或某個人才知道的隱性知識）<br>③ <u>有誰不知道該做什麼</u>（訓練缺口）<br><br><em>第一次演練幾乎必定會超過 RTO 目標，這很正常——重點是每次演練後改善，讓時間逐次縮短。</em></div><h2>六、災難復原手冊（Runbook）該包含什麼</h2><ol><li><strong>觸發條件</strong>——什麼情況下啟動 DR？誰有權決定？<em>（模糊的決策權會浪費最多時間）</em></li><li><strong>聯絡清單</strong>——含備援聯絡人與外部廠商，且要在<u>系統掛掉時也拿得到</u>（不要只存在內部 Wiki）</li><li><strong>逐步操作指令</strong>——可以複製貼上的具體指令，不是「切換資料庫」這種描述</li><li><strong>驗證步驟</strong>——怎麼確認恢復成功？有哪些檢查點？</li><li><strong>回切計畫</strong>——主要 Region 恢復後，怎麼切回去？<em>（這一步最常被遺漏，而且比切過去更難）</em></li><li><strong>對外溝通範本</strong>——給客戶、給主管的訊息草稿</li></ol><h2>七、本課檢核</h2><ul class="checklist"><li>能定義自己系統的 RPO 與 RTO</li><li>知道四種 DR 策略的成本與能力取捨</li><li>理解大多數服務停在「跨 Zone」層級即可</li><li>知道備份要與正式環境隔離並用 Bucket Lock 保護</li><li>有排定的演練節奏，且演練過至少一次還原</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>你的備份跑了兩年從沒失敗過。可以信任它嗎？</summary><div class="ans"><strong>不行。「備份成功」和「能還原」是兩件事。</strong><br><br>真實發生過的失敗模式：<br>• 備份的是<u>錯誤的資料庫</u>（改過名字後腳本沒更新）<br>• 備份檔案<u>損毀</u>但備份程序回報成功<br>• 備份有加密，但<u>金鑰已經遺失或輪換過</u><br>• 備份存在同一個帳號，帳號被入侵時一起被刪<br>• 還原需要的相依項目（schema、設定、憑證）沒有一起備份<br>• 資料量成長後，<u>還原時間從 30 分鐘變成 8 小時</u>，遠超 RTO<br><br><strong>唯一的驗證方法是實際還原</strong>：<br>① 每月自動還原到隔離的測試環境<br>② 執行資料完整性檢查（筆數、關鍵資料抽樣比對）<br>③ 記錄還原耗時，追蹤趨勢<br>④ 把這整套自動化，讓它變成 CI 的一部分<br><br><em>格言：<strong>「你沒有備份系統，你只有還原系統——而且它的狀態是未知的，直到你測試它。」</strong></em></div></details><details class="qa"><summary>電商網站，老闆說「絕對不能停機」。你怎麼設計？</summary><div class="ans"><strong>先把「絕對不能停機」翻譯成可執行的數字與預算。</strong><br><br>① <strong>釐清需求</strong>——「不能停機」通常指的是<u>結帳流程</u>，而不是後台報表。先做<strong>業務衝擊分析</strong>：停機一小時損失多少營收？哪些功能停了會損失最大？<br><br>② <strong>分級設計</strong>（把錢花在刀口上）：<br>&nbsp;&nbsp;• <u>結帳與付款</u>：跨 Region 雙活，RTO < 1 分鐘<br>&nbsp;&nbsp;• <u>商品瀏覽</u>：跨 Zone + CDN 快取，即使後端全掛，CDN 仍能提供靜態內容<br>&nbsp;&nbsp;• <u>推薦、評論</u>：可降級（服務不可用時隱藏該區塊，不影響主流程）<br>&nbsp;&nbsp;• <u>後台管理</u>：跨 Zone 即可<br><br>③ <strong>技術配置</strong>：<br>&nbsp;&nbsp;• 全域 LB + 多 Region 後端<br>&nbsp;&nbsp;• 庫存與訂單用 <strong>Spanner</strong>（多 Region 強一致，這是唯一能同時滿足「雙活」與「不能超賣」的選擇）<br>&nbsp;&nbsp;• 靜態資源全上 CDN<br>&nbsp;&nbsp;• 所有服務實作<strong>優雅降級</strong>與<strong>斷路器</strong><br><br>④ <strong>誠實說明限制</strong>——即使做到這樣，仍會有：部署期間的短暫異常、DNS 傳播延遲、以及使用者端的網路問題。<u>「絕對不能停機」在物理上不存在</u>。<br><br><em>最後要提醒：<strong>大多數停機不是來自基礎設施故障，而是來自變更（部署、設定改動）。</strong>把錢花在部署流程與測試上，投報率往往高於多買一個 Region。</em></div></details><details class="qa"><summary>Region 完全故障，你切換到 DR Region。三小時後主 Region 恢復了。怎麼切回去？</summary><div class="ans"><strong>切回去（failback）通常比切過去更危險，因為此時兩邊的資料都不完整。</strong><br><br><strong>核心問題：這三小時的新資料只存在 DR Region，而主 Region 停留在故障前的狀態。</strong>如果直接切回去，這三小時的訂單就消失了。<br><br><strong>正確步驟</strong>：<br>① <strong>不要急</strong>——DR Region 正常服務中就先讓它繼續跑。<u>failback 應該安排在計畫性的低流量時段</u>，不是恢復後立刻做。<br><br>② <strong>資料同步</strong>——把 DR Region 的資料反向複製回主 Region，並持續同步直到延遲趨近於零。這一步可能需要數小時。<br><br>③ <strong>驗證資料一致性</strong>——比對兩邊的關鍵資料（筆數、金額總和、最新交易時間）。<u>如果故障期間主 Region 曾短暫接受過寫入（腦裂），這裡會發現衝突，需要人工處理</u>。<br><br>④ <strong>計畫性切換</strong>——公告維護視窗 → 停止 DR 寫入 → 等待同步完成 → 切換 DNS/LB → 驗證 → 恢復服務。<br><br>⑤ <strong>觀察期</strong>——切回後保持 DR Region 待命至少 24 小時，確認穩定再縮容。<br><br><strong>要事先準備的</strong>：<br>• 雙向複製的能力（不是只有單向）<br>• 資料一致性檢查工具<br>• 明確的「誰有權決定 failback」<br><br><em>經驗談：<strong>很多團隊的 DR 計畫只寫了怎麼切過去，沒寫怎麼切回來。</strong>結果切過去之後在 DR Region 待了三個月，因為沒人知道怎麼安全地切回去。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L37">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L36.html"><span>← 上一課</span>L36 成本管理：從看得懂帳單到主動控制</a><a class="next" href="L38.html"><span>下一課 →</span>L38 上雲遷移：策略、評估與實際步驟</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

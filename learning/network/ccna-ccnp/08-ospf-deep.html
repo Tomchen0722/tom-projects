@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSPF 深入解析 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.fsm{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:16px 0;}
+.fsm-node{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.8rem;font-weight:600;color:var(--terracotta);}
+.fsm-node.key{background:#FFFBEB;border-color:var(--amber);}
+.fsm-arrow{color:var(--stone);font-size:.9rem;}
+.lsa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:16px 0;}
+.lsa-card{border:1px solid var(--border);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;}
+.lsa-card b{display:block;color:var(--terracotta);font-size:.86rem;margin-bottom:4px;}
+.lsa-card span{font-size:.78rem;color:var(--stone);line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第三章</a><span class="sep">/</span>
+  <span class="cur">CH 3-2 · OSPF 深入解析</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">CH 3-2 · 路由技術核心 · 高頻考點</div>
+  <h1>OSPF 深入解析</h1>
+  <p>OSPF 是 CCNA 佔比最重的單一主題，也是企業內網最常見的路由協定。這章從鄰居怎麼建立、LSA 怎麼傳播、SPF 怎麼算，一路做到多區域、認證、彙總與排錯。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">連結狀態 vs 距離向量</a></li>
+      <li><a href="#tables">三張表與五種封包</a></li>
+      <li><a href="#fsm">鄰居建立的七個狀態</a></li>
+      <li><a href="#rid">Router ID 的選擇順序</a></li>
+      <li><a href="#nettype">網路類型與 DR/BDR</a></li>
+      <li><a href="#cost">Cost 計算與參考頻寬</a></li>
+      <li><a href="#config">實作一：單區域 OSPF</a></li>
+      <li><a href="#area">多區域架構與 LSA 六種類型</a></li>
+      <li><a href="#areatype">特殊區域：Stub / Totally Stubby / NSSA</a></li>
+      <li><a href="#config2">實作二：多區域 + 彙總 + 預設路由</a></li>
+      <li><a href="#secure">實作三：認證與加固</a></li>
+      <li><a href="#tune">收斂調校</a></li>
+      <li><a href="#trouble">故障排除：鄰居建不起來的八個原因</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="why">
+    <h2>1. 連結狀態 vs 距離向量</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>距離向量（RIP、EIGRP）</th><th>連結狀態（OSPF、IS-IS）</th></tr>
+        <tr><td>知道什麼</td><td>只知道「往那個方向走 N 跳會到」</td><td><b>知道整個網路的完整地圖</b></td></tr>
+        <tr><td>交換什麼</td><td>自己的<b>路由表</b></td><td>自己的<b>鏈路狀態</b>（我有哪些介面、接到誰、成本多少）</td></tr>
+        <tr><td>怎麼算路徑</td><td>相信鄰居說的（rumor by routing）</td><td>自己跑 <b>Dijkstra SPF</b> 演算法算出最短路徑樹</td></tr>
+        <tr><td>迴圈風險</td><td>高，需要毒性反轉、抑制計時器等機制</td><td><b>區域內天生無迴圈</b></td></tr>
+        <tr><td>收斂速度</td><td>慢</td><td><b>快</b></td></tr>
+        <tr><td>CPU／記憶體</td><td>低</td><td>高（要存整張地圖 + 跑演算法）</td></tr>
+      </table>
+    </div>
+
+    <div class="analogy"><strong>比喻：</strong>距離向量像問路——「往前走遇到紅綠燈右轉」，你只知道下一步，完全信任告訴你的人。連結狀態像拿到一整張地圖——每個路口、每條路的距離你都知道，<b>自己算出最短路線</b>。地圖大所以要花記憶體，但你不會被錯誤的指路害到。</div>
+
+    <div class="ok"><strong>OSPF 的核心運作可以濃縮成四句話：</strong>
+      <ol style="margin:8px 0 0">
+        <li>每台路由器把「我有哪些鏈路、成本多少」寫成 <b>LSA</b></li>
+        <li>LSA 在區域內<b>氾濫（flooding）</b>給每一台路由器</li>
+        <li>每台路由器把收到的 LSA 存進 <b>LSDB（連結狀態資料庫）</b>——同區域內每台的 LSDB <b>完全相同</b></li>
+        <li>每台路由器以自己為根跑 <b>SPF</b>，算出到每個目的地的最短路徑，放進路由表</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="tables">
+    <h2>2. 三張表與五種封包</h2>
+
+    <h3>三張表</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>表</th><th>指令</th><th>內容</th></tr>
+        <tr><td><b>鄰居表</b></td><td><span class="inline-code">show ip ospf neighbor</span></td><td>我跟誰建立了關係、現在什麼狀態</td></tr>
+        <tr><td><b>拓樸表（LSDB）</b></td><td><span class="inline-code">show ip ospf database</span></td><td>整個區域的地圖，<b>同區域內每台都一樣</b></td></tr>
+        <tr><td><b>路由表</b></td><td><span class="inline-code">show ip route ospf</span></td><td>SPF 算完的結果，<b>每台不同</b>（因為根不同）</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>排錯的黃金順序：鄰居表 → 拓樸表 → 路由表。</strong>鄰居建不起來，後面兩張表一定空。鄰居 Full 但路由表沒東西，就去查 LSDB 和 area 設定。這個順序能省下大量時間。</div>
+
+    <h3>五種 OSPF 封包（協定號 89）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>Type</th><th>名稱</th><th>做什麼</th></tr>
+        <tr><td>1</td><td><b>Hello</b></td><td>找鄰居、維持鄰居關係、選 DR/BDR。送到 <span class="inline-code">224.0.0.5</span></td></tr>
+        <tr><td>2</td><td><b>DBD</b>（Database Description）</td><td>「我的 LSDB 裡有這些 LSA 的摘要」——只有標題，不含內容</td></tr>
+        <tr><td>3</td><td><b>LSR</b>（Link-State Request）</td><td>「你剛剛提到的那幾筆我沒有，給我完整內容」</td></tr>
+        <tr><td>4</td><td><b>LSU</b>（Link-State Update）</td><td>真正夾帶 LSA 的封包</td></tr>
+        <tr><td>5</td><td><b>LSAck</b></td><td>確認收到 LSU。OSPF 靠它做可靠傳輸</td></tr>
+      </table>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>群播位址</th><th>誰在聽</th></tr>
+        <tr><td><span class="inline-code">224.0.0.5</span></td><td>AllSPFRouters — 所有 OSPF 路由器</td></tr>
+        <tr><td><span class="inline-code">224.0.0.6</span></td><td>AllDRouters — 只有 DR 和 BDR</td></tr>
+      </table>
+    </div>
+
+    <div class="note">Hello 封包裡帶著八個欄位，其中<b>五個必須完全一致</b>才能成為鄰居——這是第 13 節排錯的核心，先記住有這件事。</div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="fsm">
+    <h2>3. 鄰居建立的七個狀態</h2>
+
+    <div class="fsm">
+      <span class="fsm-node">Down</span><span class="fsm-arrow">→</span>
+      <span class="fsm-node">Init</span><span class="fsm-arrow">→</span>
+      <span class="fsm-node key">2-Way</span><span class="fsm-arrow">→</span>
+      <span class="fsm-node">ExStart</span><span class="fsm-arrow">→</span>
+      <span class="fsm-node">Exchange</span><span class="fsm-arrow">→</span>
+      <span class="fsm-node">Loading</span><span class="fsm-arrow">→</span>
+      <span class="fsm-node key">Full</span>
+    </div>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>Down</b>還沒收到任何 Hello。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>Init</b>我收到對方的 Hello 了，但那個 Hello 裡<b>沒有列出我的 Router ID</b>——代表對方還沒聽到我。單向。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>2-Way</b>對方的 Hello 裡<b>有我的 Router ID</b> → 雙向確認。<b>DR/BDR 選舉就在這一刻進行</b>。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>ExStart</b>用 DBD 決定誰是 Master、誰是 Slave（<b>Router ID 大的當 Master</b>），並協調序號。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>Exchange</b>互相交換 DBD——只有 LSA 的<b>摘要</b>，比對彼此少了什麼。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>Loading</b>用 LSR 索取缺少的 LSA，對方用 LSU 回覆，自己回 LSAck。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>Full</b>LSDB 完全同步。<b>這才是正常的最終狀態。</b></div></div>
+    </div>
+
+    <div class="note">有些教材說「OSPF 有 <b>8</b> 個狀態」，多的那個是 <b>Attempt</b>——只出現在 <b>NBMA</b>（Frame Relay）網路上，代表「我依設定主動對這個鄰居發單播 Hello，但還沒收到回應」。乙太網路和點對點鏈路<b>永遠不會</b>出現 Attempt，所以實務上只會看到上面這 7 個。考試看到 Attempt，答案一定跟 NBMA 有關。</div>
+
+    <div class="warn"><strong>2-Way 不一定是錯的。</strong>在<b>廣播型網路</b>（乙太網路）上，DROther 之間<b>永遠停在 2-Way</b>——這是設計如此，不是故障。<br><br>
+      規則：
+      <ul style="margin:8px 0 0">
+        <li>DROther ↔ DR：<b>Full</b></li>
+        <li>DROther ↔ BDR：<b>Full</b></li>
+        <li>DROther ↔ DROther：<b>2-Way</b>（正常！）</li>
+        <li>點對點鏈路上：一定要 <b>Full</b>，卡在 2-Way 就是有問題</li>
+      </ul>
+      這樣設計是為了避免 N 台路由器建立 N(N−1)/2 個完整鄰接關係——10 台就要 45 組，LSDB 同步的流量會爆掉。
+    </div>
+
+    <div class="warn"><strong>卡在特定狀態的常見原因：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>卡在</th><th>最可能的原因</th></tr>
+          <tr><td><b>Init</b></td><td>單向通訊——對方收不到我的 Hello。查 ACL、查該介面是否 passive、查單向鏈路</td></tr>
+          <tr><td><b>ExStart / Exchange</b></td><td><b>MTU 不一致</b>（最經典）。或 Router ID 重複</td></tr>
+          <tr><td><b>Loading</b></td><td>LSA 損毀或記憶體不足，罕見</td></tr>
+          <tr><td><b>不斷 Full ↔ Down 跳動</b></td><td>Dead Timer 太短、線路不穩、CPU 過載</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <pre><code>R1# <span class="cmd">show ip ospf neighbor</span>
+Neighbor ID     Pri   State           Dead Time   Address         Interface
+2.2.2.2           1   <span class="val">FULL/DR</span>         00:00:33    10.0.0.2        GigabitEthernet0/1
+3.3.3.3           1   <span class="val">FULL/BDR</span>        00:00:35    10.0.0.3        GigabitEthernet0/1
+4.4.4.4           0   <span class="kw">2WAY/DROTHER</span>    00:00:31    10.0.0.4        GigabitEthernet0/1
+
+<span class="comment">! Dead Time 應該在 30~40 秒之間跳動（每收到 Hello 就重置回 40）</span>
+<span class="comment">! 如果數字一直往下掉到 0，代表 Hello 收不到了</span></code></pre>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="rid">
+    <h2>4. Router ID 的選擇順序</h2>
+
+    <p>Router ID 是 OSPF 裡每台路由器的唯一身分，格式長得像 IP 但<b>它不是 IP</b>，只是一個 32 位元的識別碼。</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>手動設定的 <span class="inline-code">router-id</span></b>最高優先。<b>企業一律手動設。</b></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>最高的 Loopback 介面 IP</b>沒手動設就看這個。Loopback 永遠不會 down，所以比實體介面穩定。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>最高的實體介面 IP</b>最後才用這個。而且只看 <b>up 狀態</b>的介面。</div></div>
+    </div>
+
+    <pre><code><span class="comment">! 標準做法：Loopback + 手動 Router ID，兩個都設且一致</span>
+R1(config)# <span class="cmd">interface loopback 0</span>
+R1(config-if)# <span class="cmd">ip address 1.1.1.1 255.255.255.255</span>
+R1(config-if)# <span class="cmd">exit</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">router-id 1.1.1.1</span></code></pre>
+
+    <div class="warn"><strong>改了 Router ID 不會立刻生效。</strong>必須重啟 OSPF 程序：
+      <pre style="margin:8px 0 0"><code>R1# <span class="cmd">clear ip ospf process</span>
+Reset ALL OSPF processes? [no]: <span class="val">yes</span></code></pre>
+      這會讓<b>所有鄰居關係重建</b>，流量中斷數秒到數十秒。<b>絕對不要在上班時間做</b>。
+    </div>
+
+    <div class="warn"><strong>Router ID 重複的後果非常難查。</strong>兩台路由器 RID 相同時，症狀是：鄰居一直在 ExStart/Exchange 之間跳、LSDB 內容錯亂、路由時有時無。log 會出現：
+      <pre style="margin:8px 0 0"><code>%OSPF-4-DUP_RTRID_NBR: OSPF detected duplicate router-id 2.2.2.2
+from 10.0.0.5 on interface GigabitEthernet0/1</code></pre>
+    </div>
+
+    <div class="note"><strong>命名慣例：</strong>企業通常讓 Router ID 有意義，例如 <span class="inline-code">10.255.1.1</span> 代表「區域 1 的第 1 台」，或直接用 Loopback0 的位址。統一規則能讓你光看 <span class="inline-code">show ip ospf neighbor</span> 就知道是哪台機器。</div>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="nettype">
+    <h2>5. 網路類型與 DR/BDR</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>網路類型</th><th>預設用在</th><th>選 DR/BDR？</th><th>Hello / Dead</th><th>要不要手動設鄰居</th></tr>
+        <tr><td><b>Broadcast</b></td><td>乙太網路</td><td><b>要</b></td><td>10 / 40 秒</td><td>不用</td></tr>
+        <tr><td><b>Point-to-Point</b></td><td>Serial、PPP、子介面</td><td>不要</td><td>10 / 40 秒</td><td>不用</td></tr>
+        <tr><td>Non-Broadcast (NBMA)</td><td>Frame Relay 主介面</td><td>要</td><td><b>30 / 120 秒</b></td><td><b>要</b></td></tr>
+        <tr><td>Point-to-Multipoint</td><td>FR 多點子介面</td><td>不要</td><td>30 / 120 秒</td><td>不用</td></tr>
+        <tr><td>Loopback</td><td>Loopback 介面</td><td>—</td><td>—</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>兩邊的網路類型不同 → Hello/Dead 計時器不同 → 鄰居建不起來。</strong>這是很常見的故障，尤其在把 Serial 換成乙太網路、或用 GRE Tunnel 的時候。用 <span class="inline-code">show ip ospf interface gi0/1</span> 看 <b>Network Type</b> 欄位。</div>
+
+    <h3>為什麼需要 DR/BDR</h3>
+    <div class="formula"><code>N 台路由器在同一個乙太網段全互連 → <b>N(N−1)/2</b> 組鄰接<br>10 台 → 45 組。每次拓樸變動要氾濫 45 次。</code></div>
+    <p>DR 的做法：<b>大家只跟 DR 和 BDR 建立完整鄰接</b>，變成 <b>N−1</b> 組。DR 負責把 LSA 轉發給所有人，等於一個中央集散點。</p>
+
+    <h3>選舉規則</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>比 OSPF Interface Priority</b>預設 1，範圍 0–255，<b>大的贏</b>。設成 <b>0 就是放棄參選</b>。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>Priority 相同 → 比 Router ID</b><b>大的贏</b>。<span style="color:#DC2626">注意方向和 STP 相反</span>——STP 是 Bridge ID 小的贏。</div></div>
+    </div>
+
+    <div class="warn"><strong>DR 選舉是「非搶佔式」（non-preemptive）。</strong>選出來之後，就算來了一台 Priority 更高的路由器，<b>也不會重選</b>。只有在 DR 掛掉時，BDR 才升上來，然後重新選一個新的 BDR。<br><br>
+      這代表：<b>開機順序決定了誰是 DR</b>。想指定特定機器當 DR，設完 priority 後要 <span class="inline-code">clear ip ospf process</span> 才會生效。
+    </div>
+
+    <pre><code><span class="comment">! 讓核心路由器當 DR</span>
+R-CORE(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R-CORE(config-if)# <span class="cmd">ip ospf priority 255</span>
+
+<span class="comment">! 讓分公司路由器完全不參選</span>
+R-BRANCH(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R-BRANCH(config-if)# <span class="cmd">ip ospf priority 0</span>
+
+<span class="comment">! 把乙太介面改成點對點，直接跳過 DR 選舉（兩台對接時最推薦）</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip ospf network point-to-point</span></code></pre>
+
+    <div class="ok"><strong>實務技巧：兩台路由器用一條線直連時，把網路類型改成 point-to-point。</strong>好處：不用選 DR（省 40 秒收斂時間）、LSDB 少一筆 Type-2 LSA、設定更單純。這在資料中心和點對點骨幹上是標準做法。</div>
+
+    <pre><code>R1# <span class="cmd">show ip ospf interface gigabitEthernet 0/1</span>
+GigabitEthernet0/1 is up, line protocol is up
+  Internet Address 10.0.0.1/30, Area <span class="val">0</span>
+  Process ID 1, Router ID <span class="val">1.1.1.1</span>, Network Type <span class="val">BROADCAST</span>, Cost: <span class="val">1</span>
+  Transmit Delay is 1 sec, State <span class="val">BDR</span>, Priority 1
+  Designated Router (ID) 2.2.2.2, Interface address 10.0.0.2
+  Backup Designated router (ID) 1.1.1.1, Interface address 10.0.0.1
+  Timer intervals configured, Hello <span class="val">10</span>, Dead <span class="val">40</span>, Wait 40, Retransmit 5
+  Neighbor Count is 1, Adjacent neighbor count is 1</code></pre>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="cost">
+    <h2>6. Cost 計算與參考頻寬</h2>
+
+    <div class="formula"><code>Cost = <b>參考頻寬 ÷ 介面頻寬</b>　（結果無條件捨去，最小值為 1）<br>預設參考頻寬 = <b>100 Mbps</b></code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>介面速率</th><th>預設 Cost（參考 100M）</th><th>參考頻寬改成 100000 後</th></tr>
+        <tr><td>T1 (1.544 Mbps)</td><td>64</td><td>64766</td></tr>
+        <tr><td>10 Mbps</td><td>10</td><td>10000</td></tr>
+        <tr><td>100 Mbps</td><td><b>1</b></td><td>1000</td></tr>
+        <tr><td>1 Gbps</td><td><b>1</b> ⚠</td><td><b>100</b></td></tr>
+        <tr><td>10 Gbps</td><td><b>1</b> ⚠</td><td><b>10</b></td></tr>
+        <tr><td>100 Gbps</td><td><b>1</b> ⚠</td><td><b>1</b></td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>預設值在現代網路完全失效。</strong>100M、1G、10G 的 cost 全部都是 1，OSPF <b>分不出哪條線比較快</b>，可能把 10 Gbps 骨幹和 100 Mbps 備線視為等價，做等價負載分擔——一半的流量塞進慢線。</div>
+
+    <pre><code><span class="comment">! 解法 1：把參考頻寬提高（推薦，且必須全網一致）</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">auto-cost reference-bandwidth 100000</span>   <span class="comment">← 單位 Mbps，即 100 Gbps</span>
+
+<span class="comment">! 解法 2：介面上直接指定 cost（覆蓋計算結果）</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip ospf cost 20</span></code></pre>
+
+    <div class="warn"><strong>參考頻寬必須<u>全網統一</u>。</strong>只改一台，那台算出來的路徑成本跟別人不同，會產生<b>次佳路徑甚至路由迴圈</b>。IOS 會警告你：
+      <pre style="margin:8px 0 0"><code>% OSPF: Reference bandwidth is changed.
+        Please ensure reference bandwidth is consistent across all routers.</code></pre>
+    </div>
+
+    <div class="note"><strong>Cost 是「出去的介面」在累加</strong>，跟 STP 的「進來的埠累加」方向相反。從 R1 到某網段，累加的是 R1 出口、R2 出口、R3 出口……<b>最後那台連接目的網段的介面 cost 也要算</b>。</div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="config">
+    <h2>7. 實作一：單區域 OSPF</h2>
+
+    <h3>方法 A：network 指令（傳統，考試常考）</h3>
+    <pre><code>R1(config)# <span class="cmd">router ospf 1</span>              <span class="comment">← 這個 1 是 Process ID，只有本機意義</span>
+R1(config-router)# <span class="cmd">router-id 1.1.1.1</span>
+R1(config-router)# <span class="cmd">network 192.168.10.0 0.0.0.255 area 0</span>
+R1(config-router)# <span class="cmd">network 10.0.0.0 0.0.0.3 area 0</span></code></pre>
+
+    <div class="warn"><strong>三個必須釐清的觀念：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>Process ID 只有本機意義。</b>R1 用 1、R2 用 100，照樣能建立鄰居。這跟 EIGRP 的 AS 號完全不同（那個必須一致）。</li>
+        <li><b>network 用的是 wildcard mask（反向遮罩），不是子網路遮罩。</b>/24 → <span class="inline-code">0.0.0.255</span>，/30 → <span class="inline-code">0.0.0.3</span>。算法：<span class="inline-code">255.255.255.255 − 子網路遮罩</span>。</li>
+        <li><b>network 的真正意義是「哪些<u>介面</u>要跑 OSPF」</b>，不是「宣告哪些網段」。它比對的是介面的 IP 位址。</li>
+      </ul>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">network 的精確與寬鬆寫法</div>
+      <pre style="margin:10px 0 0"><code><span class="comment">! 精確：只匹配 10.0.0.1 這一個介面（推薦，語意清楚）</span>
+R1(config-router)# <span class="cmd">network 10.0.0.1 0.0.0.0 area 0</span>
+
+<span class="comment">! 網段：匹配 10.0.0.0/30 內的介面</span>
+R1(config-router)# <span class="cmd">network 10.0.0.0 0.0.0.3 area 0</span>
+
+<span class="comment">! 全匹配：所有介面都跑 OSPF（危險，會把 WAN 介面也丟進去）</span>
+R1(config-router)# <span class="cmd">network 0.0.0.0 255.255.255.255 area 0</span></code></pre>
+    </div>
+
+    <h3>方法 B：介面模式（現代，推薦）</h3>
+    <pre><code>R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">router-id 1.1.1.1</span>
+R1(config-router)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">ip ospf 1 area 0</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip ospf 1 area 0</span></code></pre>
+
+    <div class="ok"><strong>為什麼推薦介面模式？</strong>不用算 wildcard mask、不會誤把不該加的介面加進去、看介面設定就知道它在哪個 area。實務上新建網路幾乎都用這種。<b>但考試還是會考 network 指令，兩種都要會。</b></div>
+
+    <h3>passive-interface：不要對使用者網段送 Hello</h3>
+    <pre><code><span class="comment">! 單獨設定某個介面</span>
+R1(config-router)# <span class="cmd">passive-interface gigabitEthernet 0/0</span>
+
+<span class="comment">! 推薦做法：全部 passive，再把需要建鄰居的挑出來</span>
+R1(config-router)# <span class="cmd">passive-interface default</span>
+R1(config-router)# <span class="cmd">no passive-interface gigabitEthernet 0/1</span>
+R1(config-router)# <span class="cmd">no passive-interface gigabitEthernet 0/2</span></code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>passive-interface 的效果</th><th></th></tr>
+        <tr><td>該網段還會不會被<b>宣告</b>出去</td><td><b>會</b>（路由資訊照常傳播）</td></tr>
+        <tr><td>該介面還會不會<b>送 Hello</b></td><td><b>不會</b></td></tr>
+        <tr><td>該介面能不能建立<b>鄰居</b></td><td>不能</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>為什麼一定要設 passive？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>資安：</b>使用者網段上有人跑一個假 OSPF 就能注入惡意路由，把流量導到自己機器上（中間人攻擊）</li>
+        <li><b>效能：</b>對著 200 台電腦每 10 秒廣播一次 Hello，純粹浪費</li>
+      </ul>
+      這是 CCNA 考試和資安稽核都會檢查的項目。
+    </div>
+
+    <h3>驗證</h3>
+    <pre><code>R1# <span class="cmd">show ip protocols</span>
+Routing Protocol is "ospf 1"
+  Router ID <span class="val">1.1.1.1</span>
+  Number of areas in this router is 1. 1 normal 0 stub 0 nssa
+  Routing for Networks:
+    10.0.0.0 0.0.0.3 area 0
+    192.168.10.0 0.0.0.255 area 0
+  Passive Interface(s):
+    GigabitEthernet0/0
+  Routing Information Sources:
+    Gateway         Distance      Last Update
+    2.2.2.2              110      00:12:33
+
+R1# <span class="cmd">show ip route ospf</span>
+O     192.168.20.0/24 [110/2] via 10.0.0.2, 00:12:33, GigabitEthernet0/1
+O IA  192.168.30.0/24 [110/3] via 10.0.0.2, 00:11:02, GigabitEthernet0/1</code></pre>
+    <p><b>O</b> = 同區域內學到的；<b>O IA</b> = Inter-Area，從別的區域來的；<b>O E1 / O E2</b> = 從 OSPF 外部重分佈進來的。</p>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="area">
+    <h2>8. 多區域架構與 LSA 六種類型</h2>
+
+    <p>單一區域的問題：拓樸一變，<b>整個區域每台路由器都要重跑 SPF</b>。100 台路由器的網路，任何一條線閃一下，全部 CPU 一起飆。多區域把爆炸範圍切開。</p>
+
+    <div class="formula"><code>Area 0 = Backbone（骨幹區域）<br><b>所有其他區域都必須直接連到 Area 0</b></code></div>
+
+    <h3>四種路由器角色</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>角色</th><th>全名</th><th>定義</th></tr>
+        <tr><td><b>Internal Router</b></td><td>內部路由器</td><td>所有介面都在同一個區域</td></tr>
+        <tr><td><b>Backbone Router</b></td><td>骨幹路由器</td><td>至少一個介面在 Area 0</td></tr>
+        <tr><td><b>ABR</b></td><td>Area Border Router</td><td><b>同時連接 Area 0 和其他區域</b>。負責產生 Type-3 LSA</td></tr>
+        <tr><td><b>ASBR</b></td><td>AS Boundary Router</td><td>把<b>外部路由</b>（靜態、BGP、其他協定）重分佈進 OSPF。產生 Type-5 LSA</td></tr>
+      </table>
+    </div>
+
+    <h3>LSA 六種類型（CCNP 必考，CCNA 考 1/2/3/5）</h3>
+    <div class="lsa-grid">
+      <div class="lsa-card"><b>Type 1 · Router LSA</b><span>每台路由器描述「我有哪些鏈路、成本多少、接到誰」。<b>只在本區域內氾濫</b>，不跨區。每台都會產生。</span></div>
+      <div class="lsa-card"><b>Type 2 · Network LSA</b><span><b>由 DR 產生</b>，描述「這個多重存取網段上有哪些路由器」。只在本區域內氾濫。點對點鏈路不會有。</span></div>
+      <div class="lsa-card"><b>Type 3 · Summary LSA</b><span><b>由 ABR 產生</b>，把區域 A 的網段告訴區域 B。<b>只傳前綴和成本，不傳拓樸細節</b>——這是多區域省 CPU 的關鍵。</span></div>
+      <div class="lsa-card"><b>Type 4 · ASBR Summary LSA</b><span>由 ABR 產生，告訴其他區域「要去 ASBR 該往哪走」。因為 Type-5 不含到 ASBR 的路徑資訊。</span></div>
+      <div class="lsa-card"><b>Type 5 · External LSA</b><span><b>由 ASBR 產生</b>，描述 OSPF 以外的路由（靜態、BGP、RIP 重分佈進來的）。<b>氾濫到整個 OSPF 網域</b>（Stub 區域除外）。</span></div>
+      <div class="lsa-card"><b>Type 7 · NSSA External LSA</b><span>只存在於 NSSA 區域內。到了 ABR 會被<b>轉換成 Type 5</b> 再往外傳。用來解決「Stub 區域裡有 ASBR」的矛盾。</span></div>
+    </div>
+
+    <div class="ok"><strong>速記：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>1 = 我自己</b>（每台都發）</li>
+        <li><b>2 = 這個網段</b>（DR 發）</li>
+        <li><b>3 = 隔壁區域有什麼</b>（ABR 發）</li>
+        <li><b>4 = ASBR 在那邊</b>（ABR 發）</li>
+        <li><b>5 = 外面的世界</b>（ASBR 發）</li>
+        <li><b>7 = NSSA 版的 5</b>（NSSA 內的 ASBR 發）</li>
+      </ul>
+    </div>
+
+    <h3>E1 vs E2：外部路由的兩種成本計算</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>E2（<b>預設</b>）</th><th>E1</th></tr>
+        <tr><td>成本怎麼算</td><td><b>只算外部成本</b>，內部路徑成本忽略</td><td><b>外部成本 + 內部路徑成本</b></td></tr>
+        <tr><td>結果</td><td>不管離 ASBR 多遠，成本都一樣</td><td>離 ASBR 愈近成本愈低</td></tr>
+        <tr><td>什麼時候用</td><td>只有一個出口，簡單</td><td><b>有多個 ASBR</b> 時，才選得出最近的那個</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>雙 ISP 出口一定要改成 E1。</strong>用預設的 E2，兩個出口的成本都一樣，路由器<b>無法判斷哪個 ISP 比較近</b>，可能把流量送去繞遠路那台。<span class="inline-code">default-information originate metric-type 1</span>。</div>
+
+    <pre><code>R1# <span class="cmd">show ip ospf database</span>
+            OSPF Router with ID (1.1.1.1) (Process ID 1)
+
+                Router Link States (Area 0)
+Link ID         ADV Router      Age    Seq#       Checksum Link count
+1.1.1.1         1.1.1.1         412    0x80000005 0x00A1B2 3
+2.2.2.2         2.2.2.2         389    0x80000007 0x003C4D 4
+
+                Net Link States (Area 0)
+Link ID         ADV Router      Age    Seq#       Checksum
+10.0.0.2        2.2.2.2         389    0x80000002 0x005E6F
+
+                Summary Net Link States (Area 0)
+Link ID         ADV Router      Age    Seq#       Checksum
+192.168.30.0    2.2.2.2         201    0x80000003 0x00778A
+
+<span class="comment">! 看某一筆的完整內容</span>
+R1# <span class="cmd">show ip ospf database router 2.2.2.2</span></code></pre>
+
+    <div class="note"><strong>Age 超過 3600 秒（1 小時）的 LSA 會被清除。</strong>正常情況下每 30 分鐘（LSRefreshTime）原始產生者會刷新一次，Age 歸零。如果看到 Age 一直逼近 3600 沒被刷新，代表產生者可能失聯了。</div>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="areatype">
+    <h2>9. 特殊區域：Stub / Totally Stubby / NSSA</h2>
+
+    <p>分公司通常只有一條線出去，卻要背負整個公司的完整 LSDB，浪費記憶體和 CPU。特殊區域的做法是：<b>擋掉某些 LSA，改用一條預設路由代替</b>。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>區域類型</th><th>Type 3<br>（跨區）</th><th>Type 4/5<br>（外部）</th><th>Type 7</th><th>ABR 注入預設路由</th></tr>
+        <tr><td><b>Normal</b></td><td>✅</td><td>✅</td><td>❌</td><td>否</td></tr>
+        <tr><td><b>Stub</b></td><td>✅</td><td><b>❌ 擋掉</b></td><td>❌</td><td><b>是</b>（0.0.0.0）</td></tr>
+        <tr><td><b>Totally Stubby</b><br>（Cisco 專有）</td><td><b>❌ 擋掉</b></td><td><b>❌ 擋掉</b></td><td>❌</td><td><b>是</b></td></tr>
+        <tr><td><b>NSSA</b></td><td>✅</td><td>❌ 擋掉</td><td><b>✅</b></td><td>可選</td></tr>
+        <tr><td><b>Totally NSSA</b></td><td>❌ 擋掉</td><td>❌ 擋掉</td><td>✅</td><td>是</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>怎麼選？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>分公司只有一條線出去、沒有外部路由</b> → <b>Totally Stubby</b>（LSDB 最小）</li>
+        <li><b>分公司有自己的外部路由要注入</b>（例如接了另一家 ISP、或有靜態路由要宣告）→ <b>NSSA</b></li>
+        <li><b>不確定就用 Stub</b>，相容性最好（Totally Stubby 是 Cisco 專有）</li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment">! ── Stub：區域內每一台都要設，包含 ABR ──</span>
+R-ABR(config)# <span class="cmd">router ospf 1</span>
+R-ABR(config-router)# <span class="cmd">area 10 stub</span>
+R-BRANCH(config-router)# <span class="cmd">area 10 stub</span>
+
+<span class="comment">! ── Totally Stubby：只有 ABR 多加 no-summary ──</span>
+R-ABR(config-router)# <span class="cmd">area 10 stub no-summary</span>       <span class="comment">← ABR 才要加</span>
+R-BRANCH(config-router)# <span class="cmd">area 10 stub</span>                <span class="comment">← 內部路由器一樣只寫 stub</span>
+
+<span class="comment">! ── NSSA ──</span>
+R-ABR(config-router)# <span class="cmd">area 20 nssa</span>
+R-BRANCH(config-router)# <span class="cmd">area 20 nssa</span>
+
+<span class="comment">! ── NSSA 內的 ASBR 把靜態路由注入（會變成 Type 7）──</span>
+R-BRANCH(config-router)# <span class="cmd">redistribute static subnets</span></code></pre>
+
+    <div class="warn"><strong>Stub 區域的三個硬性限制：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>區域內每一台路由器都必須設成 stub</b>，漏一台就建不起鄰居——因為 Hello 封包裡的 <b>E bit</b> 必須一致</li>
+        <li><b>Area 0 不能是 Stub</b>（骨幹必須能傳遞所有資訊）</li>
+        <li><b>Stub 區域內不能有 ASBR</b>（要有的話就得改用 NSSA）</li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment">! 驗證：分公司路由器的路由表應該只剩一條預設路由</span>
+R-BRANCH# <span class="cmd">show ip route ospf</span>
+O*IA  0.0.0.0/0 [110/2] via 10.0.10.1, 00:03:11, GigabitEthernet0/0
+
+<span class="comment">! LSDB 應該小很多</span>
+R-BRANCH# <span class="cmd">show ip ospf database database-summary</span></code></pre>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="config2">
+    <h2>10. 實作二：多區域 + 彙總 + 預設路由</h2>
+
+    <h3>多區域設定</h3>
+    <pre><code><span class="comment">! ═══ R-ABR：一腳在 Area 0，一腳在 Area 10 ═══</span>
+R-ABR(config)# <span class="cmd">router ospf 1</span>
+R-ABR(config-router)# <span class="cmd">router-id 2.2.2.2</span>
+R-ABR(config-router)# <span class="cmd">exit</span>
+
+R-ABR(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R-ABR(config-if)# <span class="cmd">ip ospf 1 area 0</span>          <span class="comment">← 往骨幹</span>
+R-ABR(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R-ABR(config-if)# <span class="cmd">ip ospf 1 area 10</span>         <span class="comment">← 往分公司</span></code></pre>
+
+    <h3>區域間彙總（在 ABR 上做）</h3>
+    <pre><code><span class="comment">! Area 10 裡有 192.168.16.0/24 ~ 192.168.23.0/24 共 8 個網段</span>
+<span class="comment">! 彙總成一條再送進 Area 0</span>
+R-ABR(config-router)# <span class="cmd">area 10 range 192.168.16.0 255.255.248.0</span></code></pre>
+
+    <h3>外部路由彙總（在 ASBR 上做）</h3>
+    <pre><code>R-ASBR(config-router)# <span class="cmd">summary-address 172.16.0.0 255.255.0.0</span></code></pre>
+
+    <div class="warn"><strong>兩個彙總指令用錯地方是常見錯誤：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>指令</th><th>在哪台</th><th>彙總什麼</th></tr>
+          <tr><td><span class="inline-code">area X range</span></td><td><b>ABR</b></td><td>Type 3（區域之間）</td></tr>
+          <tr><td><span class="inline-code">summary-address</span></td><td><b>ASBR</b></td><td>Type 5（外部重分佈進來的）</td></tr>
+        </table>
+      </div>
+      在 ABR 上打 summary-address 不會有效果，也不會報錯——這種「打了但沒作用」的情況最難查。
+    </div>
+
+    <div class="note"><strong>彙總的副作用：ABR 會自動產生一條指向 Null0 的路由。</strong>這是防迴圈設計——彙總範圍內若有網段不存在，流量會被丟進 Null0 而不是繞回來。看到 <span class="inline-code">O 192.168.16.0/21 is directly connected, Null0</span> 是正常的。</div>
+
+    <h3>注入預設路由</h3>
+    <pre><code><span class="comment">! ASBR 上：把預設路由宣告給整個 OSPF 網域</span>
+R-EDGE(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 203.0.113.1</span>
+R-EDGE(config)# <span class="cmd">router ospf 1</span>
+R-EDGE(config-router)# <span class="cmd">default-information originate</span>
+
+<span class="comment">! always：就算自己沒有預設路由也照樣宣告（謹慎使用）</span>
+R-EDGE(config-router)# <span class="cmd">default-information originate always</span>
+
+<span class="comment">! 雙出口環境：改成 E1 讓成本可比較</span>
+R-EDGE(config-router)# <span class="cmd">default-information originate metric 10 metric-type 1</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">always</span> 的風險：</strong>就算這台自己上不了網，它還是會跟全公司說「往我這走可以出去」。結果全公司流量湧向一台不通的路由器，形成黑洞。<b>只有在你另外用 IP SLA 確認過線路狀態時才加 always。</b></div>
+
+    <h3>重分佈（把其他協定引進 OSPF）</h3>
+    <pre><code>R-ASBR(config-router)# <span class="cmd">redistribute static subnets metric 20 metric-type 1</span>
+R-ASBR(config-router)# <span class="cmd">redistribute connected subnets</span>
+R-ASBR(config-router)# <span class="cmd">redistribute eigrp 100 subnets metric 30</span></code></pre>
+
+    <div class="warn"><strong>忘記 <span class="inline-code">subnets</span> 關鍵字是經典陷阱。</strong>不加的話，<b>只有主類別網路（classful）會被重分佈</b>，所有 /24、/30 這種子網路都會被默默忽略。設定看起來完全正確，但路由就是不出現。</div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="secure">
+    <h2>11. 實作三：認證與加固</h2>
+
+    <div class="warn"><strong>沒有認證的 OSPF 是開放的。</strong>任何人接進網路、跑一個 OSPF 程序，就能：宣告自己有最短路徑把流量吸過來（中間人）、注入大量假路由塞爆 LSDB（阻斷服務）、或宣告一條假的預設路由把全公司流量導向自己。</div>
+
+    <h3>方法 A：介面層級 MD5（傳統，考試考這個）</h3>
+    <pre><code>R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip ospf authentication message-digest</span>
+R1(config-if)# <span class="cmd">ip ospf message-digest-key 1 md5 Str0ngOspfKey!</span>
+
+<span class="comment">! 或整個區域一次開</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">area 0 authentication message-digest</span></code></pre>
+
+    <h3>方法 B：SHA 金鑰鏈（現代，推薦）</h3>
+    <pre><code>R1(config)# <span class="cmd">key chain OSPF-KEYS</span>
+R1(config-keychain)# <span class="cmd">key 1</span>
+R1(config-keychain-key)# <span class="cmd">key-string Str0ngOspfKey2025!</span>
+R1(config-keychain-key)# <span class="cmd">cryptographic-algorithm hmac-sha-256</span>
+R1(config-keychain-key)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip ospf authentication key-chain OSPF-KEYS</span></code></pre>
+
+    <div class="warn"><strong>認證不一致 = 鄰居直接建不起來，而且沒有明顯錯誤。</strong>啟用認證時<b>兩邊要同時做</b>，或先用 <span class="inline-code">debug ip ospf adj</span> 確認。遠端操作時，只在一邊開會立刻失去該路由器的連線。<br><br>
+      看得到的線索：
+      <pre style="margin:8px 0 0"><code>%OSPF-4-BADLSATYPE 或
+OSPF: Rcv pkt from 10.0.0.2 : Mismatch Authentication type</code></pre>
+    </div>
+
+    <h3>其他加固項目</h3>
+    <pre><code><span class="comment">! 1. 全部介面 passive，只開需要的（第 7 節講過，再強調一次）</span>
+R1(config-router)# <span class="cmd">passive-interface default</span>
+R1(config-router)# <span class="cmd">no passive-interface gigabitEthernet 0/1</span>
+
+<span class="comment">! 2. 限制 LSDB 大小，防止有人灌爆你的記憶體</span>
+R1(config-router)# <span class="cmd">max-lsa 12000</span>
+
+<span class="comment">! 3. 記錄鄰居變化（排錯時非常有用）</span>
+R1(config-router)# <span class="cmd">log-adjacency-changes detail</span>
+
+<span class="comment">! 4. 用 ACL 只允許已知鄰居的 OSPF 封包</span>
+R1(config)# <span class="cmd">ip access-list extended OSPF-PEERS</span>
+R1(config-ext-nacl)# <span class="cmd">permit ospf host 10.0.0.2 any</span>
+R1(config-ext-nacl)# <span class="cmd">deny ospf any any log</span>
+R1(config-ext-nacl)# <span class="cmd">permit ip any any</span></code></pre>
+
+    <pre><code>R1# <span class="cmd">show ip ospf interface gi0/1 | include authentication|Message</span>
+  Message digest authentication enabled
+    Youngest key id is 1</code></pre>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="tune">
+    <h2>12. 收斂調校</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>參數</th><th>預設</th><th>調校後</th><th>效果</th></tr>
+        <tr><td>Hello / Dead</td><td>10 / 40 秒</td><td>1 / 4 秒 或用 BFD</td><td>更快發現鄰居掛掉</td></tr>
+        <tr><td>SPF 計算延遲</td><td>5000 / 10000 ms</td><td>50 / 200 / 5000 ms</td><td>第一次變動立刻算，連續變動才退避</td></tr>
+        <tr><td>LSA 產生間隔</td><td>—</td><td>10 / 100 / 5000 ms</td><td>更快把變動傳出去</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment">! ── 調整 Hello/Dead（兩邊必須一致）──</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip ospf hello-interval 1</span>
+R1(config-if)# <span class="cmd">ip ospf dead-interval 4</span>
+
+<span class="comment">! ── SPF 節流：初始 50ms、遞增 200ms、上限 5000ms ──</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">timers throttle spf 50 200 5000</span>
+R1(config-router)# <span class="cmd">timers throttle lsa 10 100 5000</span></code></pre>
+
+    <div class="ok"><strong>比調計時器更好的方案：BFD。</strong>Hello 調到 1 秒會讓 CPU 一直忙。<b>BFD（Bidirectional Forwarding Detection）</b>是專門做「快速偵測鏈路死亡」的輕量協定，可以在<b>毫秒級</b>發現故障，然後通知 OSPF。而且一個 BFD session 可以同時服務 OSPF、BGP、EIGRP。
+      <pre style="margin:8px 0 0"><code>R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">bfd interval 50 min_rx 50 multiplier 3</span>
+R1(config-if)# <span class="cmd">exit</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">bfd all-interfaces</span></code></pre>
+    </div>
+
+    <div class="warn"><strong>不要盲目把計時器調到最短。</strong>線路輕微抖動就會觸發全網重新收斂，反而比慢一點更不穩定。企業實務的順序是：<b>先用 BFD → 不支援才調 SPF throttle → 最後才動 Hello/Dead</b>。</div>
+  </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="trouble">
+    <h2>13. 故障排除：鄰居建不起來的八個原因</h2>
+
+    <div class="warn"><strong>Hello 封包裡這五個欄位必須<u>完全一致</u>，否則絕不成為鄰居：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>Area ID</b></li>
+        <li><b>Hello Interval</b></li>
+        <li><b>Dead Interval</b></li>
+        <li><b>認證類型與密碼</b></li>
+        <li><b>Stub Flag（E bit）</b></li>
+      </ol>
+      另外 <b>子網路遮罩</b>也必須一致（點對點鏈路除外）。
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>#</th><th>原因</th><th>怎麼確認</th></tr>
+        <tr><td>1</td><td><b>介面 down</b></td><td><span class="inline-code">show ip interface brief</span></td></tr>
+        <tr><td>2</td><td><b>介面沒被 OSPF 啟用</b></td><td><span class="inline-code">show ip ospf interface brief</span> 看有沒有那個介面</td></tr>
+        <tr><td>3</td><td><b>設成 passive-interface</b></td><td><span class="inline-code">show ip protocols</span> 的 Passive Interface(s) 清單</td></tr>
+        <tr><td>4</td><td><b>Area ID 不一致</b></td><td><span class="inline-code">show ip ospf interface gi0/1 | include Area</span> 兩邊比對</td></tr>
+        <tr><td>5</td><td><b>Hello/Dead 不一致</b></td><td>同上，看 Timer intervals</td></tr>
+        <tr><td>6</td><td><b>認證不一致</b></td><td><span class="inline-code">debug ip ospf adj</span> 會直接說 Mismatch Authentication</td></tr>
+        <tr><td>7</td><td><b>子網路遮罩不一致</b></td><td>一邊 /24 一邊 /25 → Hello 被丟棄</td></tr>
+        <tr><td>8</td><td><b>MTU 不一致</b></td><td>卡在 <b>ExStart/Exchange</b>。<span class="inline-code">show interfaces gi0/1 | include MTU</span></td></tr>
+      </table>
+    </div>
+
+    <h3>MTU 不一致的細節</h3>
+    <pre><code><span class="comment">! 症狀：鄰居永遠在 EXSTART 或 EXCHANGE 之間反覆</span>
+R1# <span class="cmd">show ip ospf neighbor</span>
+Neighbor ID     Pri   State      Dead Time   Address     Interface
+2.2.2.2           1   <span class="kw">EXSTART/DR</span>  00:00:36    10.0.0.2    Gi0/1
+
+<span class="comment">! log 訊息</span>
+%OSPF-5-ADJCHG: Process 1, Nbr 2.2.2.2 on Gi0/1 from EXCHANGE to DOWN,
+Neighbor Down: Too many retransmissions
+
+<span class="comment">! 正解：把 MTU 改一致</span>
+R1(config-if)# <span class="cmd">mtu 1500</span>
+
+<span class="comment">! 應急解（不建議，只是繞過檢查，實際仍可能丟大封包）</span>
+R1(config-if)# <span class="cmd">ip ospf mtu-ignore</span></code></pre>
+
+    <h3>排錯指令清單</h3>
+    <pre><code>R1# <span class="cmd">show ip ospf neighbor</span>                    <span class="comment">! 第一站</span>
+R1# <span class="cmd">show ip ospf interface brief</span>             <span class="comment">! 哪些介面在跑、在哪個 area</span>
+R1# <span class="cmd">show ip protocols</span>                        <span class="comment">! RID、network 語句、passive 清單</span>
+R1# <span class="cmd">show ip ospf database database-summary</span>   <span class="comment">! 各類 LSA 數量，一眼看出異常</span>
+R1# <span class="cmd">show ip ospf border-routers</span>              <span class="comment">! 到 ABR/ASBR 的路徑</span>
+R1# <span class="cmd">show ip ospf statistics</span>                  <span class="comment">! SPF 跑了幾次、多久跑一次</span>
+
+<span class="comment">! debug 前先開時間戳記，並確認 CPU 有餘裕</span>
+R1(config)# <span class="cmd">service timestamps debug datetime msec</span>
+R1# <span class="cmd">debug ip ospf adj</span>          <span class="comment">! 鄰居建立過程</span>
+R1# <span class="cmd">debug ip ospf hello</span>        <span class="comment">! Hello 封包內容</span>
+R1# <span class="cmd">undebug all</span>                <span class="comment">! 用完一定要關</span></code></pre>
+
+    <div class="warn"><strong>正式環境 debug 前務必先看 CPU。</strong><span class="inline-code">show processes cpu sorted | include CPU</span>。CPU 已經 60% 以上就不要開 debug——大量除錯訊息可能直接把路由器打掛。真的需要就配 ACL 限制範圍：<span class="inline-code">debug ip ospf adj</span> 前先 <span class="inline-code">debug condition interface gi0/1</span>。</div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「新接的分公司路由器一直建不起鄰居」</div>
+      <p><b>症狀：</b>兩邊介面都 up/up，能互相 ping 通，但 <span class="inline-code">show ip ospf neighbor</span> 是空的。</p>
+      <p><b>排查：</b><span class="inline-code">show ip ospf interface gi0/1</span> 兩邊比對 → 總部是 <b>Area 0</b>，分公司打成了 <b>Area 10</b>。</p>
+      <p style="margin-bottom:0"><b>原因：</b>Area ID 不一致，Hello 直接被丟棄，連 Init 都到不了。<b>啟示：</b>能 ping 通完全不代表 OSPF 會建立——它們是不同層次的檢查。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「加了 GRE Tunnel 之後 OSPF 卡在 EXSTART」</div>
+      <p><b>排查：</b><span class="inline-code">show interfaces tunnel0 | include MTU</span> → 一邊 1476、另一邊 1400（對方多套了 IPsec）。</p>
+      <p style="margin-bottom:0"><b>原因：</b>MTU 不一致，DBD 封包大小協商失敗。<b>修法：</b>兩邊統一 <span class="inline-code">ip mtu 1400</span>，並加 <span class="inline-code">ip tcp adjust-mss 1360</span>。</p>
+    </div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：三區域 OSPF + 認證 + 彙總 + 外部路由</h3>
+    <p>Packet Tracer 或 GNS3，約 100 分鐘。這個 Lab 涵蓋 CCNA OSPF 的全部考點。</p>
+
+    <h4>拓樸</h4>
+    <pre><code>                       [ ISP ] 203.0.113.1
+                          │
+                   [ R1 = ASBR ]  Lo0 1.1.1.1
+                          │ Area 0
+                   [ R2 = 骨幹 ]  Lo0 2.2.2.2
+              Area 0 ┌────┴────┐ Area 0
+        [ R3 = ABR ]           [ R4 = ABR ]
+         Lo0 3.3.3.3            Lo0 4.4.4.4
+              │ Area 10              │ Area 20 (NSSA)
+        [ R5 台北 ]              [ R6 台中 ]
+         Lo0 5.5.5.5             Lo0 6.6.6.6
+      192.168.16-23.0/24      192.168.32.0/24
+                              + 一條靜態路由要注入</code></pre>
+
+    <h4>步驟</h4>
+    <ol>
+      <li>每台都設 <strong>Loopback0</strong> 並手動指定 <strong>router-id</strong>（1.1.1.1 ~ 6.6.6.6）</li>
+      <li>全部改用<strong>介面模式</strong>啟用 OSPF（<span class="inline-code">ip ospf 1 area X</span>）</li>
+      <li>全網統一 <strong>auto-cost reference-bandwidth 100000</strong></li>
+      <li>所有 LAN 介面設 <strong>passive-interface</strong>（用 default 再挑出例外）</li>
+      <li>R2–R3、R2–R4 的鏈路改成 <strong>ip ospf network point-to-point</strong></li>
+      <li>Area 0 開啟 <strong>MD5 認證</strong>，所有相關介面都要設</li>
+      <li>R3 把 <strong>Area 10 設成 Totally Stubby</strong>（R3 加 no-summary，R5 只寫 stub）</li>
+      <li>R3 上做<strong>區域彙總</strong>：把 192.168.16.0 ~ 192.168.23.0 合成一條（自己算遮罩）</li>
+      <li>R4 把 <strong>Area 20 設成 NSSA</strong>，R6 上 <strong>redistribute static subnets</strong></li>
+      <li>R1 設靜態預設路由到 ISP，並 <strong>default-information originate metric-type 1</strong></li>
+      <li>全網開啟 <strong>log-adjacency-changes detail</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>所有鄰居都是 <strong>FULL</strong>（點對點鏈路上不能有 2WAY）</li>
+      <li>R5 的 <span class="inline-code">show ip route ospf</span> <strong>只有一條 O*IA 0.0.0.0/0</strong></li>
+      <li>R2 的路由表看得到<strong>彙總後的 /21</strong>，看不到 8 條 /24 明細</li>
+      <li>R3 上有一條 <span class="inline-code">O 192.168.16.0/21 is directly connected, Null0</span></li>
+      <li>R2 上 <span class="inline-code">show ip ospf database nssa-external</span> 是空的（Type 7 沒有跨出 Area 20）</li>
+      <li>R2 上看得到 R6 注入的路由，代碼是 <strong>O E1</strong> 或 <strong>O E2</strong>（已被 R4 轉換成 Type 5）</li>
+      <li>R5、R6 都 ping 得到 8.8.8.8</li>
+      <li><span class="inline-code">show ip ospf database database-summary</span> 在 R5 上的總數明顯小於 R2</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>把 R3 的 Area 10 介面 MTU 改成 1400，觀察鄰居卡在 <b>EXSTART</b>，用 <span class="inline-code">debug ip ospf adj</span> 確認訊息後改回來。</li>
+      <li>故意把 R5 的 router-id 改成 3.3.3.3（跟 R3 重複），觀察 log 出現什麼、鄰居行為如何異常。</li>
+      <li>把 R2–R3 的 cost 手動調高，用 <span class="inline-code">show ip route</span> 觀察 R2 到 Area 10 的路徑是否改走 R4 繞路。</li>
+      <li>在 R5 上算出「到 192.168.32.0/24 的完整 cost 累加過程」，並用 <span class="inline-code">show ip ospf database</span> 逐段驗證你的計算。</li>
+      <li>把 Area 10 從 Totally Stubby 改成一般區域，比較 R5 的 <span class="inline-code">show ip ospf database database-summary</span> 數字差多少。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>OSPF 是<strong>連結狀態</strong>協定：交換 LSA → 建立相同的 LSDB → 各自跑 SPF</li>
+      <li>三張表順序排錯：<strong>鄰居 → 拓樸 → 路由</strong></li>
+      <li>狀態機：Down → Init → <strong>2-Way（選 DR）</strong> → ExStart → Exchange → Loading → <strong>Full</strong></li>
+      <li>廣播網路上 <strong>DROther 之間停在 2-Way 是正常的</strong></li>
+      <li>Router ID：手動 &gt; 最高 Loopback &gt; 最高實體介面。<strong>改了要 clear ip ospf process</strong></li>
+      <li>DR 選舉：<strong>Priority 大的贏，其次 Router ID 大的贏</strong>（跟 STP 方向相反），且<strong>不搶佔</strong></li>
+      <li>Cost = 參考頻寬 ÷ 介面頻寬。<strong>預設 100M 在現代網路失效，必須全網一起調高</strong></li>
+      <li>LSA：<strong>1 我自己、2 這網段、3 隔壁區、4 ASBR 在那、5 外面世界、7 NSSA 版的 5</strong></li>
+      <li>Stub 擋 4/5，Totally Stubby 連 3 也擋，NSSA 允許區域內有 ASBR</li>
+      <li><span class="inline-code">area X range</span> 用在 <strong>ABR</strong>；<span class="inline-code">summary-address</span> 用在 <strong>ASBR</strong></li>
+      <li>鄰居建不起來先查五要素：<strong>Area、Hello、Dead、認證、Stub flag</strong>；卡 ExStart 就查 <strong>MTU</strong></li>
+    </ul>
+    <div class="note">OSPF 是 CCNA 的最大單一考點。去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 選「路由技術」練到全對，尤其是 DR 選舉和 LSA 類型的題目。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="07-static-routing.html">← CH 3-1：路由基礎與靜態路由</a>
+    <a href="09-bgp-policy.html">CH 3-3：BGP 與路由政策 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 3-2</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

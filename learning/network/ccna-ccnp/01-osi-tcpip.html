@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSI 模型與 TCP/IP — CCNA／CCNP</title>
+<style>
+:root{--sand:#FDFBF7;--terracotta:#C2410C;--amber:#D97706;--brown:#B45309;--cream:#FEF3C7;--stone:#78716C;--ink:#1C1917;--border:#E7E5E4;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","Microsoft JhengHei",sans-serif;background:var(--sand);color:var(--ink);line-height:1.8;}
+.topbar{background:#1C1917;padding:14px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.topbar a{color:#A8A29E;text-decoration:none;font-size:.82rem;}.topbar a:hover{color:#FCD34D;}
+.topbar .sep{color:#57534E;}.topbar .cur{color:#FCD34D;font-weight:600;}
+.hero{background:linear-gradient(135deg,#D97706,#B45309);color:#fff;padding:48px 24px 60px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.2);padding:4px 14px;border-radius:12px;font-size:.78rem;margin-bottom:14px;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:10px;}
+.hero p{opacity:.88;max-width:540px;margin:0 auto;font-size:.95rem;}
+.container{max-width:860px;margin:-24px auto 0;padding:0 16px 72px;}
+.toc{background:#fff;border-radius:14px;padding:20px 24px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin:24px 0;}
+.toc h2{font-size:.82rem;font-weight:700;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.toc ol{padding-left:1.4em;}.toc li{font-size:.84rem;margin-bottom:3px;}
+.toc a{color:var(--amber);text-decoration:none;}.toc a:hover{color:var(--terracotta);}
+.card{background:#fff;border-radius:14px;padding:28px 32px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:24px;scroll-margin-top:20px;}
+h2{font-size:1.25rem;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--cream);}
+h3{font-size:1rem;color:var(--terracotta);margin:20px 0 10px;font-weight:700;}
+h4{font-size:.92rem;color:var(--brown);margin:14px 0 8px;font-weight:700;}
+p{font-size:.9rem;color:#44403C;line-height:1.9;margin-bottom:12px;}
+ul,ol{padding-left:1.5em;margin-bottom:12px;}
+li{font-size:.88rem;color:#57534E;line-height:1.85;margin-bottom:3px;}
+strong{color:var(--ink);}
+.analogy{background:var(--cream);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.88rem;color:#78350F;line-height:1.8;}
+.analogy strong{color:#92400E;}
+pre{background:#1C1917;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:14px 0;}
+code{font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#E7E5E4;}
+pre code .comment{color:#6B7280;}pre code .cmd{color:#FCD34D;}pre code .val{color:#86EFAC;}pre code .kw{color:#F9A8D4;}
+.inline-code{background:#F5F5F4;border:1px solid var(--border);padding:1px 7px;border-radius:5px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#C2410C;}
+.tbl-wrap{overflow-x:auto;margin:14px 0;}
+table.t{width:100%;border-collapse:collapse;font-size:.84rem;}
+table.t th{background:#F5F5F4;padding:9px 14px;text-align:left;font-weight:600;color:var(--stone);font-size:.76rem;letter-spacing:.04em;border-bottom:2px solid var(--border);}
+table.t td{padding:9px 14px;border-bottom:1px solid var(--border);}
+table.t tr:hover td{background:#FAFAF9;}
+.note{background:#F5F5F4;border-radius:10px;padding:13px 18px;margin:14px 0;font-size:.85rem;color:var(--stone);display:flex;gap:10px;}
+.note::before{content:'💡';flex-shrink:0;}
+.warn{background:#FEF2F2;border-left:4px solid #EF4444;border-radius:0 10px 10px 0;padding:13px 18px;margin:14px 0;font-size:.87rem;color:#991B1B;}
+
+/* OSI LAYERS */
+.layer-stack{margin:16px 0;}
+.osi-layer{display:grid;grid-template-columns:40px 140px 1fr 160px;gap:0;border-bottom:1px solid var(--border);transition:.15s;}
+.osi-layer:last-child{border-bottom:none;}
+.osi-layer:hover{background:#FAFAF9;}
+.osi-num{display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:#fff;padding:14px 0;}
+.osi-name{display:flex;align-items:center;padding:14px 12px;font-weight:600;font-size:.88rem;}
+.osi-desc{display:flex;align-items:center;padding:12px 14px;font-size:.83rem;color:#57534E;line-height:1.65;}
+.osi-ex{display:flex;align-items:center;padding:12px 10px;font-size:.76rem;color:#A8A29E;font-family:"Cascadia Code","Consolas",monospace;}
+.l7{background:#FEF3C7;} .l7 .osi-num{background:#D97706;} .l7 .osi-name{color:#92400E;}
+.l6{background:#FEF9EE;} .l6 .osi-num{background:#B45309;} .l6 .osi-name{color:#7C2D12;}
+.l5{background:#FFF7ED;} .l5 .osi-num{background:#C2410C;} .l5 .osi-name{color:#9A3412;}
+.l4{background:#FEF2F2;} .l4 .osi-num{background:#DC2626;} .l4 .osi-name{color:#B91C1C;}
+.l3{background:#EFF6FF;} .l3 .osi-num{background:#2563EB;} .l3 .osi-name{color:#1D4ED8;}
+.l2{background:#F0FDF4;} .l2 .osi-num{background:#16A34A;} .l2 .osi-name{color:#15803D;}
+.l1{background:#F5F5F4;} .l1 .osi-num{background:#57534E;} .l1 .osi-name{color:#44403C;}
+
+/* TCP HANDSHAKE */
+.handshake{display:flex;gap:0;margin:16px 0;align-items:flex-start;}
+.hs-col{flex:1;}
+.hs-header{background:#1C1917;color:#FCD34D;font-size:.78rem;font-weight:700;padding:10px 14px;letter-spacing:.05em;}
+.hs-step{padding:10px 14px;border-bottom:1px solid var(--border);font-size:.83rem;background:#fff;}
+.hs-step .s-num{font-weight:700;color:var(--terracotta);margin-right:6px;}
+.hs-arrow{width:60px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;padding-top:36px;}
+.hs-arrow .arr{font-size:1.4rem;color:var(--amber);}
+.hs-arrow .lbl{font-size:.68rem;color:var(--stone);text-align:center;}
+
+/* PORT TABLE */
+.port-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:14px 0;}
+.port-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.port-num{font-family:"Cascadia Code","Consolas",monospace;font-size:1.05rem;font-weight:700;color:var(--terracotta);margin-bottom:2px;}
+.port-name{font-size:.85rem;font-weight:600;color:var(--ink);}
+.port-proto{font-size:.75rem;color:var(--stone);}
+
+.page-nav{display:flex;justify-content:space-between;margin-top:36px;}
+.page-nav a{display:inline-flex;align-items:center;gap:6px;color:var(--stone);text-decoration:none;font-size:.85rem;padding:10px 18px;border:1px solid var(--border);border-radius:8px;background:#fff;transition:.15s;}
+.page-nav a:hover{color:var(--terracotta);border-color:var(--terracotta);}
+footer{text-align:center;padding:20px;font-size:.78rem;color:#A8A29E;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第一章</a><span class="sep">/</span>
+  <span class="cur">CH 1-1 · OSI 模型與 TCP/IP</span>
+</div>
+<div class="hero">
+  <div class="badge">CH 1-1 · 理論基礎</div>
+  <h1>🏛️ OSI 模型與 TCP/IP</h1>
+  <p>七層模型每層的職責、封裝解封過程、TCP 三向交握，以及常用 Port 號一次整理。</p>
+</div>
+<div class="container">
+  <div class="toc">
+    <h2>本篇目錄</h2>
+    <ol>
+      <li><a href="#osi">OSI 七層模型詳解</a></li>
+      <li><a href="#encap">封裝（Encapsulation）與解封過程</a></li>
+      <li><a href="#tcpip">TCP/IP 四層對照</a></li>
+      <li><a href="#tcp-udp">TCP vs UDP 完整對比</a></li>
+      <li><a href="#handshake">TCP 三向交握 + 四次揮手</a></li>
+      <li><a href="#ports">重要 Port 號速查</a></li>
+      <li><a href="#verify">Wireshark 觀察實驗指引</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="osi">
+    <h2>🏛️ OSI 七層模型</h2>
+    <p>OSI（Open Systems Interconnection）是 1984 年 ISO 制定的網路通訊標準架構。現實世界用 TCP/IP，但 OSI 提供了一套精確的語言讓工程師溝通。當你說「這是 Layer 3 的問題」，全世界的工程師都懂你的意思。</p>
+    <div class="analogy">
+      <strong>比喻：</strong>把 OSI 想成一份快遞的生命週期。你寫信（應用層），信紙封好信封（表達層），確認對方有沒有空收（會話層），決定要用航空還是船運（傳輸層），在信封上寫城市/國家（網路層），交給快遞公司處理包裹（資料鏈路層），最後司機開車送達（實體層）。
+    </div>
+    <div class="layer-stack">
+      <div class="osi-layer l7">
+        <div class="osi-num">7</div>
+        <div class="osi-name">應用層<br><small>Application</small></div>
+        <div class="osi-desc">直接提供服務給使用者應用程式。負責資料的最終意義，例如「這是一個 HTTP GET 請求」。<br><strong>PDU：訊息（Message）</strong></div>
+        <div class="osi-ex">HTTP HTTPS FTP SMTP POP3 IMAP DNS DHCP Telnet SSH SNMP</div>
+      </div>
+      <div class="osi-layer l6">
+        <div class="osi-num">6</div>
+        <div class="osi-name">表達層<br><small>Presentation</small></div>
+        <div class="osi-desc">資料格式轉換（ASCII ↔ EBCDIC）、加密/解密（TLS）、壓縮（gzip）。讓雙方使用共同語言。<br><strong>PDU：訊息（Message）</strong></div>
+        <div class="osi-ex">SSL TLS JPEG PNG MPEG ASCII EBCDIC</div>
+      </div>
+      <div class="osi-layer l5">
+        <div class="osi-num">5</div>
+        <div class="osi-name">會話層<br><small>Session</small></div>
+        <div class="osi-desc">建立、管理、終止兩個應用程式之間的對話（Session）。例如一次 Web 連線從開始到結束。<br><strong>PDU：訊息（Message）</strong></div>
+        <div class="osi-ex">NetBIOS RPC SQL NFS SIP</div>
+      </div>
+      <div class="osi-layer l4">
+        <div class="osi-num">4</div>
+        <div class="osi-name">傳輸層<br><small>Transport</small></div>
+        <div class="osi-desc">端到端（End-to-End）的可靠傳輸。用 <strong>Port 號</strong>識別上層應用，TCP 保證可靠，UDP 追求速度。<br><strong>PDU：片段（Segment）</strong></div>
+        <div class="osi-ex">TCP UDP SCTP Port 號</div>
+      </div>
+      <div class="osi-layer l3">
+        <div class="osi-num">3</div>
+        <div class="osi-name">網路層<br><small>Network</small></div>
+        <div class="osi-desc">跨網段的邏輯定址（IP 位址）和路徑選擇（路由）。Router 在這層工作。<br><strong>PDU：封包（Packet）</strong></div>
+        <div class="osi-ex">IPv4 IPv6 ICMP OSPF BGP EIGRP ARP（功能上）</div>
+      </div>
+      <div class="osi-layer l2">
+        <div class="osi-num">2</div>
+        <div class="osi-name">資料鏈路層<br><small>Data Link</small></div>
+        <div class="osi-desc">同一個區域網路內，用 <strong>MAC 位址</strong>定址，Switch 在這層工作。偵測並可能修正實體層錯誤（CRC）。<br><strong>PDU：訊框（Frame）</strong></div>
+        <div class="osi-ex">Ethernet 802.3 Wi-Fi 802.11 PPP HDLC 802.1Q VLAN</div>
+      </div>
+      <div class="osi-layer l1">
+        <div class="osi-num">1</div>
+        <div class="osi-name">實體層<br><small>Physical</small></div>
+        <div class="osi-desc">實際的電壓、光脈衝、無線電訊號傳輸。定義接頭規格、線材類型、傳輸速率。<br><strong>PDU：位元（Bit）</strong></div>
+        <div class="osi-ex">RJ-45 光纖 同軸 Wi-Fi 藍牙 USB RS-232</div>
+      </div>
+    </div>
+    <div class="note">考試記憶口訣（由上到下）：<strong>「All People Seem To Need Data Processing」</strong>（Application / Presentation / Session / Transport / Network / Data Link / Physical）</div>
+  </div>
+
+  <div class="card" id="encap">
+    <h2>📦 封裝（Encapsulation）與解封過程</h2>
+    <p>資料從上層往下傳時，每一層都會加上自己的<strong>標頭（Header）</strong>，這個過程叫封裝。到了對方後，從下往上把標頭一層一層剝掉，叫解封（Decapsulation）。</p>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>層</th><th>加上什麼</th><th>稱為</th><th>內容</th></tr></thead>
+        <tbody>
+          <tr><td>應用層 (L7-5)</td><td>應用資料</td><td>資料（Data）</td><td>HTTP 請求、郵件內容等</td></tr>
+          <tr><td>傳輸層 (L4)</td><td>TCP/UDP 標頭</td><td>片段（Segment）</td><td>來源/目的 Port、序號、ACK</td></tr>
+          <tr><td>網路層 (L3)</td><td>IP 標頭</td><td>封包（Packet）</td><td>來源/目的 IP 位址、TTL</td></tr>
+          <tr><td>資料鏈路 (L2)</td><td>乙太網路標頭 + 尾部</td><td>訊框（Frame）</td><td>來源/目的 MAC、EtherType、CRC</td></tr>
+          <tr><td>實體層 (L1)</td><td>編碼為訊號</td><td>位元（Bit）</td><td>電壓高低、光脈衝</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <pre><code><span class="comment"># 封裝後的實際大小（以 1 個 HTTP GET 為例）</span>
+<span class="kw">應用資料：</span>   "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n"   <span class="comment">約 40 bytes</span>
+<span class="kw">TCP 標頭：</span>   20 bytes（來源Port 55000, 目的Port 80, 序號, ACK...）
+<span class="kw">IP 標頭：</span>    20 bytes（來源IP, 目的IP, TTL=64, Protocol=6...）
+<span class="kw">以太網標頭：</span> 14 bytes（MAC×2, EtherType）+ 4 bytes CRC
+<span class="val">總計：</span>       約 98 bytes（原始 40 bytes 資料 + 58 bytes 標頭）</code></pre>
+    <div class="note">封裝的開銷（Overhead）讓每個封包都有額外的「空白」。這就是為什麼 1000Mbps 的網路實際吞吐量大約只有 950Mbps，小封包（如 VoIP）的有效載荷比例更低。</div>
+  </div>
+
+  <div class="card" id="tcpip">
+    <h2>🔗 TCP/IP 四層 vs OSI 七層</h2>
+    <p>實際網際網路使用的是 TCP/IP 模型，比 OSI 更簡化。</p>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>TCP/IP 四層</th><th>對應 OSI 層</th><th>主要協定</th></tr></thead>
+        <tbody>
+          <tr><td><strong>應用層</strong></td><td>OSI 5、6、7 層合併</td><td>HTTP、FTP、DNS、DHCP、SSH、SMTP</td></tr>
+          <tr><td><strong>傳輸層</strong></td><td>OSI 第 4 層</td><td>TCP、UDP</td></tr>
+          <tr><td><strong>網際網路層</strong></td><td>OSI 第 3 層</td><td>IPv4、IPv6、ICMP、OSPF、BGP</td></tr>
+          <tr><td><strong>網路存取層</strong></td><td>OSI 第 1、2 層合併</td><td>Ethernet、Wi-Fi、PPP</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="tcp-udp">
+    <h2>⚖️ TCP vs UDP 完整對比</h2>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>特性</th><th>TCP</th><th>UDP</th></tr></thead>
+        <tbody>
+          <tr><td><strong>連線方式</strong></td><td>面向連線（需要先三向交握）</td><td>無連線（直接傳送）</td></tr>
+          <tr><td><strong>可靠性</strong></td><td>保證送達（ACK 確認，遺失重傳）</td><td>不保證（送出去就算）</td></tr>
+          <tr><td><strong>順序</strong></td><td>保證按順序到達（序號機制）</td><td>不保證順序</td></tr>
+          <tr><td><strong>流量控制</strong></td><td>有（滑動視窗 Sliding Window）</td><td>無</td></tr>
+          <tr><td><strong>壅塞控制</strong></td><td>有（慢啟動、擁塞避免）</td><td>無</td></tr>
+          <tr><td><strong>速度</strong></td><td>較慢（有確認機制）</td><td>較快（直接傳）</td></tr>
+          <tr><td><strong>標頭大小</strong></td><td>20 bytes（最小）</td><td>8 bytes</td></tr>
+          <tr><td><strong>適合場景</strong></td><td>網頁、email、檔案傳輸（要求正確）</td><td>VoIP、視訊直播、DNS 查詢（要求快速）</td></tr>
+          <tr><td><strong>代表協定</strong></td><td>HTTP、FTP、SMTP、SSH、Telnet</td><td>DNS、DHCP、TFTP、VoIP（RTP）、SNMP</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="analogy">
+      <strong>TCP 比喻：</strong>掛號信。你寄出去，對方要簽收確認，如果沒收到會補寄，絕對保證送達，但比較慢。<br>
+      <strong>UDP 比喻：</strong>廣播廣告。一次對所有人說，不知道誰有沒有聽到，也不管，但夠快。VoIP 晚 0.5 秒傳到比重傳還糟，所以用 UDP。
+    </div>
+  </div>
+
+  <div class="card" id="handshake">
+    <h2>🤝 TCP 三向交握 + 四次揮手</h2>
+    <h3>三向交握（建立連線）</h3>
+    <p>每一次 TCP 連線開始前，Client 和 Server 要先完成三步驟的「握手」，確認雙方都準備好了，也交換初始的序號（Sequence Number）。</p>
+
+    <div class="handshake">
+      <div class="hs-col">
+        <div class="hs-header">Client（瀏覽器）</div>
+        <div class="hs-step"><span class="s-num">Step 1</span>傳送 <strong>SYN</strong><br><small>Seq=1000, SYN=1, ACK=0</small><br><small>「我想連線，我的起始序號是 1000」</small></div>
+        <div class="hs-step" style="background:#FAFAF9;"> </div>
+        <div class="hs-step"><span class="s-num">Step 3</span>傳送 <strong>ACK</strong><br><small>Seq=1001, ACK=2001</small><br><small>「收到！連線建立，可以開始傳資料了」</small></div>
+      </div>
+      <div class="hs-arrow"><div class="arr">→</div><div class="lbl">SYN</div><div class="arr" style="margin-top:20px;">←</div><div class="lbl">SYN-ACK</div><div class="arr" style="margin-top:20px;">→</div><div class="lbl">ACK</div></div>
+      <div class="hs-col">
+        <div class="hs-header">Server（網站）</div>
+        <div class="hs-step" style="background:#FAFAF9;"> </div>
+        <div class="hs-step"><span class="s-num">Step 2</span>回應 <strong>SYN-ACK</strong><br><small>Seq=2000, ACK=1001, SYN=1</small><br><small>「同意！我的序號是 2000，確認收到你的 1000」</small></div>
+        <div class="hs-step" style="background:#FAFAF9;"><small>連線建立，開始傳資料</small></div>
+      </div>
+    </div>
+
+    <h3>四次揮手（斷開連線）</h3>
+    <p>任何一方都可以主動關閉，但因為 TCP 是全雙工（雙向），所以雙方各要自己發一個 FIN 和收到對方的 ACK，共 4 次。</p>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>步驟</th><th>方向</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Client → Server</td><td><strong>FIN</strong>：「我沒有資料要傳了，想關閉」</td></tr>
+          <tr><td>2</td><td>Server → Client</td><td><strong>ACK</strong>：「收到，但我可能還有資料要傳給你」</td></tr>
+          <tr><td>3</td><td>Server → Client</td><td><strong>FIN</strong>：「我也傳完了，可以關閉了」</td></tr>
+          <tr><td>4</td><td>Client → Server</td><td><strong>ACK</strong>：「確認，等 2MSL 後正式關閉」</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">TIME_WAIT 狀態：Client 發完最後一個 ACK 後，要等 2MSL（Maximum Segment Lifetime，約 60-120 秒）才正式關閉，確保這個 ACK 有送到 Server。這就是為什麼關閉連線後，Port 不能立刻重用。</div>
+  </div>
+
+  <div class="card" id="ports">
+    <h2>🚪 重要 Port 號速查</h2>
+    <p>Port 號範圍 0–65535。0–1023 是<strong>知名 Port</strong>（Well-Known），由 IANA 分配給常用服務；1024–49151 是已登記 Port；49152–65535 是動態/私人 Port（Client 端隨機使用）。</p>
+    <div class="port-grid">
+      <div class="port-item"><div class="port-num">20 / 21</div><div class="port-name">FTP</div><div class="port-proto">TCP · 檔案傳輸（21 指令，20 資料）</div></div>
+      <div class="port-item"><div class="port-num">22</div><div class="port-name">SSH</div><div class="port-proto">TCP · 加密遠端登入（取代 Telnet）</div></div>
+      <div class="port-item"><div class="port-num">23</div><div class="port-name">Telnet</div><div class="port-proto">TCP · 明文遠端登入（不安全）</div></div>
+      <div class="port-item"><div class="port-num">25</div><div class="port-name">SMTP</div><div class="port-proto">TCP · 發送郵件</div></div>
+      <div class="port-item"><div class="port-num">53</div><div class="port-name">DNS</div><div class="port-proto">UDP（查詢）/ TCP（區域傳輸）</div></div>
+      <div class="port-item"><div class="port-num">67 / 68</div><div class="port-name">DHCP</div><div class="port-proto">UDP · 67 Server，68 Client</div></div>
+      <div class="port-item"><div class="port-num">69</div><div class="port-name">TFTP</div><div class="port-proto">UDP · 簡化版 FTP，用於 IOS 更新</div></div>
+      <div class="port-item"><div class="port-num">80</div><div class="port-name">HTTP</div><div class="port-proto">TCP · 網頁（明文）</div></div>
+      <div class="port-item"><div class="port-num">110</div><div class="port-name">POP3</div><div class="port-proto">TCP · 收取郵件</div></div>
+      <div class="port-item"><div class="port-num">143</div><div class="port-name">IMAP</div><div class="port-proto">TCP · 收取郵件（可在伺服器管理）</div></div>
+      <div class="port-item"><div class="port-num">161 / 162</div><div class="port-name">SNMP</div><div class="port-proto">UDP · 網路設備監控</div></div>
+      <div class="port-item"><div class="port-num">443</div><div class="port-name">HTTPS</div><div class="port-proto">TCP · 加密網頁（TLS）</div></div>
+      <div class="port-item"><div class="port-num">514</div><div class="port-name">Syslog</div><div class="port-proto">UDP · 系統日誌</div></div>
+      <div class="port-item"><div class="port-num">3389</div><div class="port-name">RDP</div><div class="port-proto">TCP · Windows 遠端桌面</div></div>
+    </div>
+    <pre><code><span class="comment"># 在 Cisco 路由器上查看 TCP 連線狀態</span>
+Router# <span class="cmd">show</span> tcp brief
+Router# <span class="cmd">show</span> ip socket</code></pre>
+  </div>
+
+  <div class="card" id="verify">
+    <h2>🔬 Wireshark 觀察實驗</h2>
+    <p>理論要配合實際封包才能真正理解。Wireshark 是免費的封包分析工具，可以讓你親眼看到三向交握、IP 標頭、TCP 序號。</p>
+    <h3>實驗步驟</h3>
+    <ol>
+      <li>下載並安裝 Wireshark（wireshark.org，完全免費）</li>
+      <li>選擇你的網路介面（通常是 Wi-Fi 或乙太網路）開始捕捉</li>
+      <li>在瀏覽器輸入任何 HTTP 網站（如 <span class="inline-code">http://neverssl.com</span>，這個網站故意不用 HTTPS）</li>
+      <li>在 Wireshark 過濾框輸入 <span class="inline-code">tcp.port == 80</span>，只看 HTTP 流量</li>
+      <li>找到三個 TCP 封包：SYN、SYN-ACK、ACK，分別點開看標頭</li>
+    </ol>
+    <pre><code><span class="comment"># Wireshark 常用過濾語法</span>
+<span class="val">ip.addr == 8.8.8.8</span>          <span class="comment"># 只看和 8.8.8.8 相關的封包</span>
+<span class="val">tcp.port == 80</span>               <span class="comment"># HTTP 流量</span>
+<span class="val">udp.port == 53</span>               <span class="comment"># DNS 查詢</span>
+<span class="val">tcp.flags.syn == 1</span>           <span class="comment"># 只看 SYN 封包（連線建立）</span>
+<span class="val">tcp.flags.fin == 1</span>           <span class="comment"># 只看 FIN 封包（連線關閉）</span>
+<span class="val">http</span>                         <span class="comment"># 只看 HTTP 封包</span>
+<span class="val">dns</span>                          <span class="comment"># 只看 DNS 查詢</span></code></pre>
+  </div>
+
+  <div class="page-nav">
+    <a href="index.html">← 章節總覽</a>
+    <a href="02-ip-subnetting.html">CH 1-2：IP 位址與子網路 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 1-1</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

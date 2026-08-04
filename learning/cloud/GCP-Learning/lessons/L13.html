@@ -84,4 +84,178 @@ gcloud compute firewall-policies associations create \
   --folder=FOLDER_ID</code></pre></div><p>評估順序：<em>Organization 政策 → Folder 政策 → VPC 防火牆規則</em>。上層的 deny 下層無法解除。</p><h2>七、本課檢核</h2><ul class="checklist"><li>知道 GCP 防火牆是 stateful 且套用在 VM 上</li><li>理解優先度數字越小越優先</li><li>知道用服務帳號綁定比用 tag 更安全</li><li>能設計三層式架構的防火牆規則</li><li>會用 Connectivity Tests 排查問題</li><li>知道 Egress 規則也需要管理</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>你設了 priority=1000 的 ALLOW 規則和 priority=500 的 DENY 規則，兩者都符合某個封包。結果是？</summary><div class="ans"><strong>被拒絕。</strong>因為 priority=500 數字較小，先被評估，一旦符合就直接決定結果，不再往下比對。<br><em>常見誤解：以為 DENY 一定優先於 ALLOW。實際上 GCP 純粹看優先度數字，跟動作類型無關。</em><br>實務建議：把「基礎拒絕規則」放在很大的數字（如 65000），把「特例允許」放在中間（1000），把「絕對禁止」放在很小的數字（100）。</div></details><details class="qa"><summary>開發者抱怨「我 VM 上的服務連不到另一台 VM，但兩台都在同一個 VPC 同一個子網路」。可能原因？</summary><div class="ans">同 VPC 內<u>網路層是通的</u>（子網路路由自動存在），所以問題在防火牆或 OS 層：<br>① <strong>沒有允許內部流量的 ingress 規則</strong>——這是最常見的。GCP 預設拒絕所有 ingress，包括同 VPC 內部。custom mode VPC 不會自動幫你建 allow-internal 規則。<br>② <strong>目標機器的 OS 防火牆</strong>（ufw / firewalld / Windows Defender）擋著。<br>③ <strong>服務綁在 127.0.0.1 而非 0.0.0.0</strong>。<br>用 <code>gcloud network-management connectivity-tests</code> 可以一秒區分是①還是②③——如果測試說 REACHABLE 但實際連不上，那就是 OS 層問題。</div></details><details class="qa"><summary>資安稽核要求「資料庫伺服器絕對不能主動連上網際網路」。但資料庫需要定期更新套件。怎麼設計？</summary><div class="ans">分三步：<br>① <strong>Egress DENY 全部</strong>：<code>--direction=EGRESS --action=DENY --destination-ranges=0.0.0.0/0 --target-tags=db</code>，優先度 1000。<br>② <strong>ALLOW 特定目的地</strong>，優先度設更小（如 900）：Private Google Access 的端點 <code>199.36.153.8/30</code>（連 GCP API 與 GCS）。<br>③ <strong>套件更新改走內部鏡像</strong>：在 VPC 內架一台 apt/yum 鏡像伺服器，或把套件放 Cloud Storage，資料庫透過 Private Google Access 抓。<br><br><em>關鍵洞察：「不能上網」和「不能更新」不是同一件事。把外部依賴內部化，就能同時滿足兩個需求。這也是所有高安全環境的標準做法。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L13">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L12.html"><span>← 上一課</span>L12 VPC：你在雲上的私人網路</a><a class="next" href="L14.html"><span>下一課 →</span>L14 對外連線：Cloud NAT、外部 IP 與 Cloud DNS</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

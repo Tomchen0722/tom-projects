@@ -180,4 +180,178 @@ requireApproval: true          # 進 prod 需要核准
 run: {location: projects/PROJ/locations/asia-east1}</code></pre></div><h2>六、CI/CD 的六個實務原則</h2><ol><li><strong>建置一次，到處部署。</strong>同一個映像從 dev 一路推到 prod，只有設定不同。<em>絕不為不同環境重新建置</em>——那樣就無法保證測過的東西跟上線的東西一樣。</li><li><strong>快速失敗。</strong>把最快的檢查（lint、型別）放最前面。測試跑 20 分鐘才發現拼字錯誤是浪費。</li><li><strong>流水線要在 10 分鐘內完成。</strong>超過這個時間開發者會開始繞過它。</li><li><strong>每個部署都要可回滾。</strong>不只是技術上可以，而是<u>有人演練過、知道怎麼做、且指令寫在 runbook 裡</u>。</li><li><strong>資料庫遷移要向後相容。</strong>新版程式要能配舊 schema 跑，舊版程式要能配新 schema 跑——否則回滾時資料庫會爆。</li><li><strong>把部署變成無聊的事。</strong>如果每次部署都讓人緊張，那是流程有問題，不是人的問題。</li></ol><h2>七、本課檢核</h2><ul class="checklist"><li>能寫出一份含測試、建置、掃描、部署的 cloudbuild.yaml</li><li>知道要授予 Cloud Build 服務帳號部署權限</li><li>能說出四種部署策略的取捨</li><li>理解「建置一次、到處部署」的原則</li><li>知道資料庫遷移需要向後相容</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>你的 CI 流水線要跑 35 分鐘，團隊開始手動部署繞過它。怎麼改善？</summary><div class="ans">先承認問題的本質：<strong>35 分鐘的流水線是壞掉的工具，開發者繞過它是理性反應。</strong><br><br><strong>優化手段（按效果排序）</strong>：<br>① <strong>平行化</strong>——Cloud Build 的 step 可以用 <code>waitFor: ['-']</code> 讓不相依的步驟同時跑。lint、單元測試、建置常常可以並行。<br>② <strong>善用快取</strong>——<code>--cache-from</code> 重用上一版映像層；依賴套件的安裝層獨立出來。這通常能省 50%+。<br>③ <strong>測試分層</strong>——PR 只跑<u>單元測試</u>（2 分鐘），合併到 main 才跑<u>整合測試</u>，夜間跑<u>完整的 E2E 測試</u>。<br>④ <strong>加大建置機器</strong>——<code>machineType: E2_HIGHCPU_32</code>，成本增加但時間大減。<em>工程師的時間比機器貴得多。</em><br>⑤ <strong>只測改動的部分</strong>——monorepo 用路徑篩選，只跑受影響的模組。<br><br><em>目標：PR 檢查 < 5 分鐘，完整部署 < 15 分鐘。</em></div></details><details class="qa"><summary>部署新版後，你需要回滾，但新版已經對資料庫做了 <code>ALTER TABLE DROP COLUMN</code>。怎麼辦？</summary><div class="ans"><strong>你回不去了——這是最痛的部署事故之一。</strong>舊版程式碼會因為找不到欄位而全面崩潰。<br><br><strong>當下的處置</strong>：只能往前修（roll forward），緊急發一個修正版，而不是回滾。<br><br><strong>正確的預防做法：擴充-收縮模式（expand-contract）</strong>，把 schema 變更拆成多次部署：<br>• <u>第 1 次部署</u>：新增欄位（不刪舊的）。新舊程式都能跑。<br>• <u>第 2 次部署</u>：程式改成<strong>同時寫入</strong>新舊欄位，讀取仍用舊欄位。<br>• <u>第 3 次部署</u>：程式改成<strong>讀取新欄位</strong>。此時仍可回滾到第 2 次。<br>• <u>資料遷移</u>：把歷史資料補到新欄位。<br>• <u>第 4 次部署</u>：程式停止寫入舊欄位。<br>• <u>第 5 次部署</u>：確認一段時間（如兩週）無問題後，才 DROP 舊欄位。<br><br><em>麻煩，但每一步都可以安全回滾。<strong>破壞性的 schema 變更永遠要跟程式碼部署分開，且延後執行。</strong></em></div></details><details class="qa"><summary>團隊想「每次 push 到 main 就自動部署到正式環境」。你同意嗎？</summary><div class="ans"><strong>取決於三個前提條件是否具備。</strong>持續部署（continuous deployment）是好目標，但沒有這些基礎就是災難：<br><br><strong>必要條件</strong>：<br>① <strong>可信的自動化測試</strong>——測試覆蓋率與品質要足以攔下大部分問題。如果測試常常「紅了但其實沒事」，團隊會習慣性忽略，那自動部署就等於沒有把關。<br>② <strong>漸進式發布 + 自動回滾</strong>——金絲雀部署，配合明確的指標門檻自動判斷。<br>③ <strong>完整的可觀測性</strong>——出事時能在幾分鐘內發現並定位。<br><br><strong>務實的推進路徑</strong>：<br>• <u>階段一</u>：main → 自動部署 staging，prod 需要人工核准。<br>• <u>階段二</u>：累積信心後，prod 改成自動金絲雀 + 人工確認擴大。<br>• <u>階段三</u>：指標門檻明確且驗證過後，才全自動。<br><br><em>另外考慮業務因素：電商在雙十一期間應該有<strong>變更凍結期</strong>，這與技術成熟度無關，是風險管理。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L27">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L26.html"><span>← 上一課</span>L26 GKE 實戰：部署一個可擴充的服務</a><a class="next" href="L28.html"><span>下一課 →</span>L28 Terraform：用程式碼管理基礎設施</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

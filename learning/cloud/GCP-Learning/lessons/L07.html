@@ -54,4 +54,178 @@ gcloud compute disks add-resource-policies my-disk \
   --resource-policies=daily-backup --zone=asia-east1-b</code></pre></div><div class="box tip"><div class="box-t">實務提醒</div><strong>自訂映像 vs 開機腳本，該用哪個？</strong><br>開機腳本<u>彈性高但開機慢</u>（每次都要重跑安裝）；自訂映像<u>開機快但要維護版本</u>。<br>實務常見組合：<em>把不常變的東西（OS 調校、系統套件、監控代理）烤進映像，把常變的東西（應用程式版本、設定）留在開機腳本。</em>這樣自動擴充時新機器 30 秒內就能上線。</div><h2>六、本課檢核</h2><ul class="checklist"><li>能說出 E2 / N2 / C3 / M3 各適合什麼</li><li>知道 standard / highmem / highcpu 的差別</li><li>理解 Spot VM 的省錢幅度與必要的容錯設計</li><li>知道 PD 的效能隨容量成長、只能擴大不能縮小</li><li>知道擴大磁碟後還要在 OS 內 resize 檔案系統</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>每晚 2 點跑一次、需時 3 小時的資料轉檔工作，怎麼配置最省？</summary><div class="ans"><strong>Spot VM + 自動化排程</strong>。<br>① 用 Cloud Scheduler 在 2 點觸發 → ② 建立 Spot VM（省 60～91%）→ ③ 開機腳本自動跑工作 → ④ 完成後<code>gcloud compute instances delete 自己</code>。<br>因為是離峰批次、可重跑、無狀態，完美符合 Spot 的適用條件。<br><em>再進一步可以用 Batch 或 Cloud Run Jobs，連機器管理都省了。</em></div></details><details class="qa"><summary>正式環境資料庫抱怨磁碟 I/O 慢，但空間只用了 40%。你的第一個處置是？</summary><div class="ans"><strong>把磁碟容量調大</strong>（例如 200GB → 1TB），即使空間根本用不完。<br>因為 GCP 的 Persistent Disk <u>IOPS 和吞吐量與容量線性相關</u>。500GB 的 pd-balanced 大約有 240 MB/s，而 100GB 只有 48 MB/s。<br>其次才考慮換 <code>pd-ssd</code> 或 <code>hyperdisk</code>。<br><em>這是 GCP 特有的行為，從 AWS 過來的人常常想不到。</em></div></details><details class="qa"><summary>公司要求「未來一年成本降 30%，但不能影響服務穩定性」。你會怎麼組合？</summary><div class="ans">四層依序處理，風險由低到高：<br>① <strong>Rightsizing</strong>——先砍過大的機器。通常這一項就有 15～25%，且零風險。<br>② <strong>承諾使用折扣</strong>——只對「過去一年最低水位的 70%」下 1 年約，可再省 25%。留 buffer 是為了避免業務萎縮時被綁約。<br>③ <strong>非正式環境用 Spot</strong>——dev / CI Runner 全部改 Spot。<br>④ <strong>排程關機</strong>——dev 環境下班自動關，週末不開，等於省 65% 的執行時數。<br><em>注意順序：先把浪費砍掉再談承諾折扣，否則你會對著浪費簽三年約。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L07">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L06.html"><span>← 上一課</span>L06 Compute Engine：開你的第一台虛擬機</a><a class="next" href="L08.html"><span>下一課 →</span>L08 執行個體群組與自動擴充</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

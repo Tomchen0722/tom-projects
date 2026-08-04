@@ -69,4 +69,178 @@ gcloud sql instances create prod-db \
   --region=asia-east1</code></pre></div><div class="box info"><div class="box-t">補充</div><strong>三種「私有連線」名詞很容易混淆，一次釐清：</strong><br><br><strong>Private Google Access</strong>：讓沒有外部 IP 的 VM 能存取 <u>Google 的公開 API</u>（GCS、BigQuery）。子網路層級開關。<br><br><strong>Private Service Access</strong>：讓你的 VPC 能用<u>內部 IP 連到 Google 託管的服務實例</u>（Cloud SQL、Memorystore）。用 VPC Peering 實作。<br><br><strong>Private Service Connect</strong>：更新的機制，讓你用<u>自己 VPC 內的 IP</u>連到 Google API 或第三方服務，不需要 Peering，且能跨專案、跨組織發布服務。<em>新專案優先考慮這個。</em></div><h2>四、遷移期間的網路策略</h2><p>實務上的混合雲不是永久狀態，而是遷移過程。建議的推進順序：</p><ol><li><strong>第 1 階段：建立連線</strong>。HA VPN 打通，確認雙向 ping 得到、DNS 互相解析得到。</li><li><strong>第 2 階段：搬無狀態的東西</strong>。前端、API 伺服器先上雲，資料庫留地端。此時流量會頻繁跨越 VPN——<em>要監控頻寬與延遲，這通常是第一個瓶頸</em>。</li><li><strong>第 3 階段：搬資料</strong>。用 Database Migration Service 做持續複製，最後切換時只需要短暫停機。</li><li><strong>第 4 階段：斷開</strong>。確認地端沒有任何東西被依賴後，才拆 VPN。<em>這一步常常拖好幾年，因為總有某個沒人記得的系統還在用。</em></li></ol><div class="box tip"><div class="box-t">實務提醒</div><strong>遷移期最大的成本陷阱：跨 VPN 的資料庫查詢。</strong><br>應用程式在雲端、資料庫在地端，每一次查詢都要跨 VPN 來回。原本 1ms 的查詢變成 30ms，一個頁面如果有 50 次查詢，回應時間從 50ms 變成 1.5 秒。<br><em>所以「應用先搬、資料庫後搬」雖然風險低，但要有心理準備效能會暫時變差。反過來「資料庫先搬」則風險高但效能好。這是真實的取捨，沒有標準答案。</em></div><h2>五、本課檢核</h2><ul class="checklist"><li>能說出 VPN / Partner IC / Dedicated IC 的取捨</li><li>知道 HA VPN 拿到 99.99% SLA 的必要條件</li><li>理解網段重疊沒有好的事後解法</li><li>能區分 Private Google Access / Private Service Access / Private Service Connect</li><li>知道遷移期跨 VPN 查詢的效能陷阱</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>公司要求「雲端與地端連線不得中斷超過 5 分鐘/月」。用 HA VPN 夠嗎？</summary><div class="ans">5 分鐘/月 ≈ <strong>99.99% 可用性</strong>。HA VPN 的 SLA 正好是 99.99%（約 4.3 分鐘/月），<u>理論上剛好卡在邊緣</u>。<br><br>但要滿足這個 SLA 有嚴格條件：<br>① 兩條通道必須接到<strong>兩台不同的地端設備</strong>；<br>② 地端設備本身也要有 99.99% 以上的可用性（<em>SLA 是取最弱環節</em>）；<br>③ 網際網路路徑的品質不在 Google SLA 保障範圍。<br><br><strong>務實建議</strong>：如果這是硬性合約要求，用 <strong>99.99% SLA 的 Interconnect</strong>（需要兩個不同 metro 的連接埠），或 <strong>Interconnect + VPN 備援</strong>的組合。純 VPN 在合約層面說得過去，但實務上公網品質不可控。</div></details><details class="qa"><summary>地端和 GCP 都用了 <code>172.16.0.0/12</code>，現在要接 VPN。有什麼選項？</summary><div class="ans">沒有輕鬆的解法，三個選項依痛苦程度排序：<br><br>① <strong>重新規劃 GCP 端網段（推薦）</strong>——GCP 端通常比地端年輕、機器少、自動化程度高。建新的 VPC 用不衝突的網段，逐步搬遷。痛苦但乾淨。<br>② <strong>只讓不重疊的子網段互通</strong>——如果實際使用的部分不重疊（例如地端用 172.16.x、GCP 用 172.20.x），可以只通告這些具體網段而非整個 /12。<u>這是最快的權宜之計</u>。<br>③ <strong>加 NAT 轉換</strong>——在 VPN 兩端做位址轉換。技術上可行，但會讓所有的日誌、追蹤、防火牆規則變得極難理解，長期維護成本很高。<br><br><em>我的判斷：選①或②。選③的團隊通常在兩年後會後悔。</em></div></details><details class="qa"><summary>遷移到一半，應用在 GCP、資料庫在地端，使用者抱怨網站很慢。有哪些做法？</summary><div class="ans">按「效果 / 代價」排序：<br>① <strong>加快取層</strong>（Memorystore Redis 放在 GCP）——把讀取密集的查詢擋在雲端，命中率 80% 的話跨 VPN 查詢就減少 80%。<u>最快見效，改動小</u>。<br>② <strong>減少查詢次數</strong>——檢查有沒有 N+1 查詢問題，合併查詢、加 eager loading。<em>經常能發現一個頁面打了 200 次 DB 的驚人事實</em>。<br>③ <strong>把唯讀副本放到 GCP</strong>——地端主庫、GCP 唯讀副本，讀取走本地。寫入仍跨 VPN 但通常量少。<br>④ <strong>升級到 Interconnect</strong>——降低延遲，但成本高且要數週。<br>⑤ <strong>加速資料庫遷移</strong>——治本，但風險最高。<br><br><em>正確順序是 ①②（幾天內完成）→ ③（幾週）→ ⑤（幾個月）。④ 只在前面都做完還不夠時才考慮。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L15">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L14.html"><span>← 上一課</span>L14 對外連線：Cloud NAT、外部 IP 與 Cloud DNS</a><a class="next" href="L16.html"><span>下一課 →</span>L16 Shared VPC 與多專案網路架構</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

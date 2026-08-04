@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>瀏覽統計 — Tom Chen 作品集</title>
+<link rel="stylesheet" href="shared/analytics.css">
+<style>
+:root{--sand:#FDFBF7;--terracotta:#C2410C;--amber:#D97706;--cream:#FEF3C7;--stone:#78716C;--ink:#1C1917;--border:#E7E5E4;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","Microsoft JhengHei",sans-serif;background:var(--sand);color:var(--ink);line-height:1.8;}
+.topbar{background:#1C1917;padding:14px 24px;display:flex;align-items:center;gap:12px;}
+.topbar a{color:#A8A29E;text-decoration:none;font-size:.82rem;}
+.topbar a:hover{color:#FCD34D;}
+.topbar .cur{color:#FCD34D;font-weight:600;}
+.hero{background:linear-gradient(135deg,#D97706,#9A3412);color:#fff;padding:44px 24px 56px;text-align:center;}
+.hero h1{font-size:1.9rem;font-weight:700;margin-bottom:8px;}
+.hero p{opacity:.88;font-size:.92rem;}
+.container{max-width:1000px;margin:-24px auto 0;padding:0 16px 64px;}
+.card{background:#fff;border-radius:14px;padding:26px 30px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:22px;}
+h2{font-size:1.15rem;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--cream);}
+h3{font-size:.95rem;color:var(--terracotta);margin:18px 0 10px;}
+p{font-size:.88rem;color:#44403C;}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px;}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px 20px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+.kpi .n{font-size:2rem;font-weight:800;color:var(--terracotta);line-height:1.2;font-variant-numeric:tabular-nums;}
+.kpi .l{font-size:.78rem;color:var(--stone);margin-top:4px;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th{background:#F5F5F4;padding:10px 14px;text-align:left;font-size:.76rem;color:var(--stone);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap;}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:#57534E;}
+tr:hover td{background:#FAFAF9;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);}
+.bar{height:8px;background:#F5F5F4;border-radius:4px;overflow:hidden;min-width:70px;}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#D97706,#C2410C);border-radius:4px;}
+.pname{font-weight:600;color:var(--ink);}
+.pid{font-size:.72rem;color:#A8A29E;font-family:Consolas,monospace;}
+.chart{width:100%;height:210px;}
+.chart .grid{stroke:#E7E5E4;stroke-width:1;}
+.chart .line{fill:none;stroke:#C2410C;stroke-width:2.5;stroke-linejoin:round;}
+.chart .area{fill:url(#g1);}
+.chart .lbl{font-size:10px;fill:#A8A29E;}
+.chart .dot{fill:#C2410C;}
+.setup{background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:20px 24px;margin-bottom:22px;}
+.setup h3{margin-top:0;color:#92400E;}
+.setup ol{padding-left:1.3em;}
+.setup li{font-size:.86rem;color:#78350F;margin-bottom:6px;line-height:1.8;}
+.setup code{background:#FEF3C7;border:1px solid #FDE68A;padding:1px 7px;border-radius:5px;font-family:Consolas,monospace;font-size:.8rem;color:#92400E;}
+.empty{text-align:center;padding:40px 20px;color:#A8A29E;font-size:.88rem;}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.ctrl button{background:#fff;border:1px solid var(--border);border-radius:20px;padding:6px 15px;font-size:.8rem;color:var(--stone);cursor:pointer;font-family:inherit;}
+.ctrl button.on{background:#C2410C;border-color:#C2410C;color:#fff;}
+footer{text-align:center;padding:22px;font-size:.78rem;color:#A8A29E;}
+@media(max-width:640px){.card{padding:18px 16px;}.hero h1{font-size:1.4rem;}}
+</style>
+</head>
+<body>
+<div class="topbar"><a href="index.html">← 回作品集首頁</a><span class="cur">　瀏覽統計</span></div>
+<div class="hero">
+  <h1>📊 瀏覽統計儀表板</h1>
+  <p>每個專案的今日、本月與總計瀏覽數</p>
+</div>
+<div class="container">
+  <div id="setup-hint"></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <h2>近 30 天瀏覽趨勢</h2>
+    <div class="ctrl" id="range-ctrl">
+      <button data-d="7">近 7 天</button>
+      <button data-d="30" class="on">近 30 天</button>
+      <button data-d="90">近 90 天</button>
+    </div>
+    <div id="chart-box"></div>
+  </div>
+
+  <div class="card">
+    <h2>各專案瀏覽數</h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>專案</th><th style="text-align:right">今日</th><th style="text-align:right">本月</th><th style="text-align:right">總計</th><th style="width:130px">佔比</th></tr></thead>
+      <tbody id="proj-rows"><tr><td colspan="5" class="empty">載入中…</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h2>每月統計</h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>月份</th><th style="text-align:right">瀏覽數</th><th style="text-align:right">不重複訪客</th><th style="width:150px"></th></tr></thead>
+      <tbody id="month-rows"><tr><td colspan="4" class="empty">載入中…</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · 資料由 Supabase 提供 · 時區 Asia/Taipei</footer>
+
+<script src="shared/analytics-config.js"></script>
+<script src="shared/analytics.js" data-project="stats"></script>
+<script>
+var NAMES = {};
+
+function fmt(n){ return (n||0).toLocaleString('zh-TW'); }
+
+function setupHint(){
+  document.getElementById('setup-hint').innerHTML =
+    '<div class="setup"><h3>⚙️ 還沒接上 Supabase</h3>'
+  + '<p style="color:#78350F;font-size:.86rem;margin-bottom:10px;">目前顯示的是本機 localStorage 計數，只反映你自己這台瀏覽器。要看真實的跨裝置統計，請完成下面三步：</p>'
+  + '<ol>'
+  + '<li>到 Supabase 後台 → <b>SQL Editor</b>，貼上並執行 <code>shared/analytics-schema.sql</code></li>'
+  + '<li>到 <b>Project Settings → API</b>，複製 <code>Project URL</code> 和 <code>anon public</code> 金鑰</li>'
+  + '<li>填進 <code>shared/analytics-config.js</code> 的 <code>url</code> 和 <code>key</code>，然後 commit + push</li>'
+  + '</ol>'
+  + '<p style="color:#991B1B;font-size:.82rem;margin-top:10px;"><b>注意：</b>只能用 anon public 那把金鑰，不要用 service_role。</p></div>';
+}
+
+function drawChart(rows, days){
+  var box = document.getElementById('chart-box');
+  var byDay = {};
+  rows.forEach(function(r){ byDay[r.day] = (byDay[r.day]||0) + (+r.views||0); });
+
+  var pts = [], today = new Date();
+  for (var i = days-1; i >= 0; i--){
+    var d = new Date(today.getTime() - i*86400000).toISOString().slice(0,10);
+    pts.push({ d: d, v: byDay[d] || 0 });
+  }
+  var max = Math.max.apply(null, pts.map(function(p){return p.v;}).concat([1]));
+  var W = 900, H = 190, PL = 40, PR = 12, PT = 12, PB = 26;
+  var iw = W - PL - PR, ih = H - PT - PB;
+  var x = function(i){ return PL + (pts.length<2?iw/2:i/(pts.length-1)*iw); };
+  var y = function(v){ return PT + ih - (v/max)*ih; };
+
+  var line = pts.map(function(p,i){ return (i?'L':'M')+x(i).toFixed(1)+','+y(p.v).toFixed(1); }).join(' ');
+  var area = line + ' L'+x(pts.length-1).toFixed(1)+','+(PT+ih)+' L'+x(0).toFixed(1)+','+(PT+ih)+' Z';
+
+  var g = '';
+  for (var k = 0; k <= 4; k++){
+    var yy = PT + ih - k/4*ih, val = Math.round(max*k/4);
+    g += '<line class="grid" x1="'+PL+'" y1="'+yy.toFixed(1)+'" x2="'+(W-PR)+'" y2="'+yy.toFixed(1)+'"/>'
+       + '<text class="lbl" x="'+(PL-8)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end">'+val+'</text>';
+  }
+  var step = Math.max(1, Math.ceil(pts.length/8));
+  pts.forEach(function(p,i){
+    if (i % step === 0 || i === pts.length-1)
+      g += '<text class="lbl" x="'+x(i).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle">'+p.d.slice(5)+'</text>';
+  });
+
+  var total = pts.reduce(function(s,p){return s+p.v;},0);
+  box.innerHTML =
+    '<svg class="chart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'
+  + '<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">'
+  + '<stop offset="0%" stop-color="#D97706" stop-opacity=".22"/>'
+  + '<stop offset="100%" stop-color="#D97706" stop-opacity="0"/></linearGradient></defs>'
+  + g + '<path class="area" d="'+area+'"/><path class="line" d="'+line+'"/>'
+  + pts.map(function(p,i){ return p.v ? '<circle class="dot" cx="'+x(i).toFixed(1)+'" cy="'+y(p.v).toFixed(1)+'" r="2.5"/>' : ''; }).join('')
+  + '</svg>'
+  + '<p style="text-align:center;color:#A8A29E;font-size:.8rem;margin-top:6px;">這段期間共 '+fmt(total)+' 次瀏覽</p>';
+}
+
+function renderProjects(rows){
+  var tb = document.getElementById('proj-rows');
+  if (!rows.length){ tb.innerHTML = '<tr><td colspan="5" class="empty">還沒有任何瀏覽紀錄</td></tr>'; return; }
+  var max = Math.max.apply(null, rows.map(function(r){return +r.total_views||0;}).concat([1]));
+  tb.innerHTML = rows.map(function(r){
+    var pct = Math.round((+r.total_views||0)/max*100);
+    return '<tr><td><span class="pname">'+(NAMES[r.project_id]||r.project_id)+'</span><br><span class="pid">'+r.project_id+'</span></td>'
+      + '<td class="num">'+fmt(r.today_views)+'</td>'
+      + '<td class="num">'+fmt(r.month_views)+'</td>'
+      + '<td class="num">'+fmt(r.total_views)+'</td>'
+      + '<td><div class="bar"><i style="width:'+pct+'%"></i></div></td></tr>';
+  }).join('');
+}
+
+function renderKpis(rows){
+  var t = rows.reduce(function(s,r){return s+(+r.total_views||0);},0);
+  var d = rows.reduce(function(s,r){return s+(+r.today_views||0);},0);
+  var m = rows.reduce(function(s,r){return s+(+r.month_views||0);},0);
+  var v = rows.reduce(function(s,r){return s+(+r.total_visitors||0);},0);
+  document.getElementById('kpis').innerHTML =
+    [[d,'今日瀏覽'],[m,'本月瀏覽'],[t,'累計瀏覽'],[v,'不重複訪客'],[rows.length,'有紀錄的專案']]
+    .map(function(k){ return '<div class="kpi"><div class="n">'+fmt(k[0])+'</div><div class="l">'+k[1]+'</div></div>'; }).join('');
+}
+
+function renderMonths(rows){
+  var by = {};
+  rows.forEach(function(r){
+    by[r.month] = by[r.month] || {v:0,u:0};
+    by[r.month].v += +r.views||0;
+    by[r.month].u += +r.visitors||0;
+  });
+  var ks = Object.keys(by).sort().reverse();
+  var tb = document.getElementById('month-rows');
+  if (!ks.length){ tb.innerHTML = '<tr><td colspan="4" class="empty">還沒有資料</td></tr>'; return; }
+  var max = Math.max.apply(null, ks.map(function(k){return by[k].v;}).concat([1]));
+  tb.innerHTML = ks.map(function(k){
+    return '<tr><td><b>'+k+'</b></td><td class="num">'+fmt(by[k].v)+'</td><td class="num">'+fmt(by[k].u)+'</td>'
+      + '<td><div class="bar"><i style="width:'+Math.round(by[k].v/max*100)+'%"></i></div></td></tr>';
+  }).join('');
+}
+
+function loadRange(days){
+  PortfolioAnalytics.daily(null, days).then(function(rows){ drawChart(rows, days); });
+}
+
+(function init(){
+  var A = window.PortfolioAnalytics;
+  if (!A.live) setupHint();
+
+  fetch('projects.json').then(function(r){return r.json();}).then(function(j){
+    (j.apps||[]).forEach(function(a){ NAMES[a.id] = a.name; });
+    NAMES.hub = '作品集首頁';
+    NAMES.stats = '統計儀表板';
+  }).catch(function(){}).then(function(){
+    A.allSummary().then(function(rows){
+      renderKpis(rows); renderProjects(rows);
+    });
+    A.monthly(null).then(renderMonths);
+    loadRange(30);
+  });
+
+  document.getElementById('range-ctrl').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    loadRange(+b.getAttribute('data-d'));
+  });
+})();
+</script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="stats">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

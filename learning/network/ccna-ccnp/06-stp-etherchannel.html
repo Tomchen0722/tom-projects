@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STP 與 EtherChannel 完全解析 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.bid{display:flex;flex-wrap:wrap;gap:2px;margin:14px 0;font-family:"Cascadia Code",monospace;font-size:.7rem;}
+.bseg{padding:10px 8px;border-radius:5px;text-align:center;color:#fff;line-height:1.35;}
+.bseg small{display:block;opacity:.75;font-size:.62rem;}
+.role-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0;}
+.role-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:#fff;}
+.role-card b{display:block;color:var(--terracotta);font-size:.86rem;margin-bottom:3px;}
+.role-card span{font-size:.78rem;color:var(--stone);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第二章</a><span class="sep">/</span>
+  <span class="cur">CH 2-3 · STP 與 EtherChannel</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">CH 2-3 · 交換技術核心</div>
+  <h1>STP 與 EtherChannel 完全解析</h1>
+  <p>為什麼交換器接成環狀會讓整個網路在三秒內癱瘓？STP 怎麼自動找出並封鎖多餘路徑？以及當你想「兩條線一起用」時，EtherChannel 該怎麼設才不會踩雷。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#loop">迴圈為什麼是二層的死刑</a></li>
+      <li><a href="#bpdu">BPDU 與 Bridge ID 的結構</a></li>
+      <li><a href="#elect">四步驟選舉：Root Bridge → Root Port → Designated Port</a></li>
+      <li><a href="#cost">路徑成本表（必背）</a></li>
+      <li><a href="#state">埠狀態與計時器</a></li>
+      <li><a href="#flavor">STP 家族：PVST+ / RPVST+ / MST</a></li>
+      <li><a href="#rstp">RSTP 快在哪裡</a></li>
+      <li><a href="#config">實作一：手動指定 Root Bridge</a></li>
+      <li><a href="#guard">實作二：五道保護機制</a></li>
+      <li><a href="#stptrouble">STP 故障排除</a></li>
+      <li><a href="#ec">EtherChannel：把多條線綁成一條</a></li>
+      <li><a href="#ecconfig">實作三：LACP 與 L3 EtherChannel</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="loop">
+    <h2>1. 迴圈為什麼是二層的死刑</h2>
+
+    <p>企業網路一定會有備援線路——SW1 接 SW2，SW2 接 SW3，SW3 再接回 SW1。任何一條線斷了還有另一條可以走。但這個「環」在第二層會造成災難。</p>
+
+    <div class="warn"><strong>關鍵原因：乙太訊框的表頭裡沒有 TTL。</strong><br><br>
+      IP 封包有 TTL（存活時間），每經過一台路由器就減 1，減到 0 就丟掉，所以三層的迴圈頂多繞 255 次就自己停了。<br><br>
+      <b>乙太訊框沒有這個欄位</b>。一個訊框進入環狀拓樸，會以線速永遠繞下去，直到你把線拔掉為止。
+    </div>
+
+    <h3>三個同時發生的災難</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>災難</th><th>成因</th><th>觀察到的症狀</th></tr>
+        <tr><td><b>廣播風暴</b></td><td>廣播訊框在環裡無限複製、無限繞</td><td>所有交換器 CPU 100%、指令輸入沒反應、埠燈全部狂閃</td></tr>
+        <tr><td><b>MAC 表震盪</b><br>（MAC Flapping）</td><td>同一個來源 MAC 一下從 Gi0/1 進來、一下從 Gi0/2 進來，交換器不斷改寫 MAC 表</td><td>log 出現 <span class="inline-code">%MAC_MOVE</span> 或 <span class="inline-code">HOST_FLAPPING</span></td></tr>
+        <tr><td><b>單播訊框重複</b></td><td>同一個封包從兩條路徑都送到目的地</td><td>TCP 大量重傳、應用層資料錯亂</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment">! 迴圈發生時，log 會長這樣</span>
+%SW_MATM-4-MACFLAP_NOTIF: Host 0050.56c0.0001 in vlan 10 is flapping
+between port Gi0/1 and port Gi0/2</code></pre>
+
+    <div class="analogy"><strong>比喻：</strong>兩個人在走廊兩端互相傳話，中間有兩條走廊都通。A 喊一句話，兩條走廊各傳一份給 B，B 又把兩份各傳回兩條走廊……三秒之內整棟樓只剩尖叫聲。STP 做的事，就是<b>先把其中一條走廊的門鎖起來</b>，只留一條路。等到主要走廊塌了，再把備用那扇門打開。</div>
+
+    <div class="ok"><strong>STP 的一句話定義：</strong>在有實體備援的二層拓樸上，<b>自動計算出一棵無迴圈的樹</b>，把不在樹上的埠設成 Blocking。主路徑斷掉時，自動把備援埠打開。標準是 IEEE <b>802.1D</b>。</div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="bpdu">
+    <h2>2. BPDU 與 Bridge ID 的結構</h2>
+
+    <p>交換器之間靠 <b>BPDU（Bridge Protocol Data Unit）</b>互相自我介紹，決定誰當老大。BPDU 每 <b>2 秒</b>從所有埠送出一次，目的 MAC 是保留的群播位址 <span class="inline-code">01:80:C2:00:00:00</span>。</p>
+
+    <h3>Bridge ID：8 個位元組決定一切</h3>
+    <div class="bid">
+      <div class="bseg" style="background:#C2410C;flex:1.1">Bridge Priority<small>4 bits · 0–61440，以 4096 為級距</small></div>
+      <div class="bseg" style="background:#D97706;flex:.9">Extended System ID<small>12 bits · = VLAN ID</small></div>
+      <div class="bseg" style="background:#78716C;flex:1.6">MAC Address<small>48 bits · 交換器自己的基底 MAC</small></div>
+    </div>
+
+    <div class="formula"><code>實際 Priority = 設定的 Priority + VLAN ID<br>例：priority 24576 在 VLAN 10 → <b>24586</b></code></div>
+
+    <p>這就是為什麼 <span class="inline-code">show spanning-tree</span> 顯示的優先權常常是 <b>32778</b> 而不是 32768——因為 32768 + VLAN 10 = 32778。很多人第一次看到會以為設定跑掉了。</p>
+
+    <div class="warn"><strong>Priority 只能是 4096 的倍數。</strong>因為欄位只有 4 個位元，能表達的是 0、4096、8192、12288 … 61440 共 16 個值。打 <span class="inline-code">spanning-tree vlan 10 priority 20000</span> 會被 IOS 拒絕。預設值是 <b>32768</b>（正中間，方便往上往下調）。</div>
+
+    <h3>BPDU 裡帶什麼資訊</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>欄位</th><th>意義</th></tr>
+        <tr><td><b>Root Bridge ID</b></td><td>「我認為的老大是誰」</td></tr>
+        <tr><td><b>Root Path Cost</b></td><td>「從我這裡走到老大要花多少成本」</td></tr>
+        <tr><td><b>Sender Bridge ID</b></td><td>「我是誰」</td></tr>
+        <tr><td><b>Port ID</b></td><td>「這個 BPDU 是從我的哪個埠送出的」（Port Priority + Port Number）</td></tr>
+        <tr><td><b>Message Age / Max Age / Hello / Forward Delay</b></td><td>計時器參數，由 Root Bridge 統一決定，全網路跟著它</td></tr>
+      </table>
+    </div>
+
+    <div class="note">計時器由 <b>Root Bridge 決定並廣播給全網</b>，所以你只需要在 Root 上調整。這也是「一定要明確指定誰是 Root」的原因之一——不然你不知道現在全網用的是誰的參數。</div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="elect">
+    <h2>3. 四步驟選舉</h2>
+
+    <p>STP 收斂的過程可以拆成四個步驟，順序固定，考試和實務都是照這個順序推。</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>選出唯一一台 Root Bridge</b>整個網路（每個 VLAN 各一棵樹）只有一台。比較規則：<b>Bridge ID 最小的贏</b>。先比 Priority，Priority 一樣就比 MAC，MAC 小的贏。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>每一台非 Root 交換器選一個 Root Port（RP）</b>「離老大最近的那個埠」。所有非 Root 的交換器<b>都一定有且只有一個</b> RP。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>每一個網段選一個 Designated Port（DP）</b>「這個網段上負責往下轉發的那個埠」。Root Bridge 上<b>所有埠都是 DP</b>。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>剩下的埠通通變成 Blocking</b>既不是 RP 也不是 DP 的埠 → Non-Designated / Blocking，只收 BPDU、不轉發任何資料。迴圈就是在這裡被切斷的。</div></div>
+    </div>
+
+    <h3>Root Port 的比較順序（四層 tiebreaker，必背）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>順序</th><th>比什麼</th><th>誰贏</th></tr>
+        <tr><td>1</td><td><b>Root Path Cost</b> 累加成本</td><td>小的贏</td></tr>
+        <tr><td>2</td><td><b>對端的 Bridge ID</b>（上游鄰居是誰）</td><td>小的贏</td></tr>
+        <tr><td>3</td><td><b>對端的 Port Priority</b>（預設 128）</td><td>小的贏</td></tr>
+        <tr><td>4</td><td><b>對端的 Port Number</b></td><td>小的贏</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>第 3、4 項比的是「對面的」，不是自己的。</strong>這是 CCNA 最經典的陷阱題。當 SW2 有兩條線都接到同一台 SW1，成本一樣、對端 Bridge ID 也一樣（都是 SW1），這時要看 <b>SW1 那兩個埠的 Port ID</b>，不是 SW2 自己的。所以要改變選擇結果，得去 <b>SW1</b> 上調 <span class="inline-code">spanning-tree port-priority</span>。</div>
+
+    <div class="ex-box">
+      <div class="ex-title">推演範例</div>
+      <pre style="margin:10px 0"><code>SW1  priority 32768  MAC 0011.1111.1111   ← 三台裡 MAC 最小
+SW2  priority 32768  MAC 0022.2222.2222
+SW3  priority 32768  MAC 0033.3333.3333
+
+三台互相用 1 Gbps 連成三角形</code></pre>
+      <ul style="margin-bottom:0">
+        <li><b>步驟 1：</b>Priority 全部一樣 → 比 MAC → <b>SW1 是 Root Bridge</b></li>
+        <li><b>步驟 2：</b>SW2 到 SW1 直連成本 4；繞 SW3 是 4+4=8 → <b>SW2 的 RP 是直連 SW1 那個埠</b>。SW3 同理。</li>
+        <li><b>步驟 3：</b>SW1 兩個埠都是 DP。SW2↔SW3 這個網段，兩邊到 Root 的成本都是 4，平手 → 比 Bridge ID → SW2 較小 → <b>SW2 那端是 DP</b>。</li>
+        <li><b>步驟 4：</b>SW3 接 SW2 的那個埠 → <b>Blocking</b>。迴圈解除。</li>
+      </ul>
+    </div>
+
+    <div class="role-grid">
+      <div class="role-card"><b>Root Port (RP)</b><span>非 Root 交換器上，往 Root 最近的埠。Forwarding。每台一個。</span></div>
+      <div class="role-card"><b>Designated Port (DP)</b><span>每個網段一個，負責往該網段轉發。Forwarding。</span></div>
+      <div class="role-card"><b>Non-Designated</b><span>都不是 → Blocking。只收 BPDU，不轉發資料。</span></div>
+    </div>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="cost">
+    <h2>4. 路徑成本表（必背）</h2>
+
+    <p>成本是「頻寬愈大、成本愈低」。要注意 <b>成本是「進來的埠」在累加</b>——訊框每進入一台交換器的一個埠，就把那個埠的成本加上去。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>速率</th><th>舊標準成本（預設，考試考這個）</th><th>Long Mode 成本</th></tr>
+        <tr><td>10 Mbps</td><td><b>100</b></td><td>2,000,000</td></tr>
+        <tr><td>100 Mbps</td><td><b>19</b></td><td>200,000</td></tr>
+        <tr><td>1 Gbps</td><td><b>4</b></td><td>20,000</td></tr>
+        <tr><td>10 Gbps</td><td><b>2</b></td><td>2,000</td></tr>
+        <tr><td>100 Gbps</td><td>1（會撞在一起）</td><td>200</td></tr>
+      </table>
+    </div>
+
+    <div class="note">舊標準在 10 Gbps 以上就開始擠在一起（10G=2、40G=1、100G=1），完全分不出優劣。所以現代資料中心要開 <span class="inline-code">spanning-tree pathcost method long</span>。<b>注意：要全網一起改</b>，混用會造成計算錯亂。</div>
+
+    <h3>手動調整成本</h3>
+    <pre><code><span class="comment">! 針對特定介面、特定 VLAN 調成本（值愈小愈優先）</span>
+SW2(config)# <span class="cmd">interface gigabitEthernet 0/2</span>
+SW2(config-if)# <span class="cmd">spanning-tree vlan 10 cost 100</span>
+
+<span class="comment">! 調 Port Priority（影響對端的 RP 選擇，預設 128，級距 16）</span>
+SW1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+SW1(config-if)# <span class="cmd">spanning-tree vlan 10 port-priority 64</span></code></pre>
+
+    <div class="ok"><strong>實務上調成本比調優先權常見。</strong>因為成本改的是「我自己這端」，直覺、好維護。Port Priority 要跑去對端改，容易改錯機器。</div>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="state">
+    <h2>5. 埠狀態與計時器</h2>
+
+    <h3>傳統 802.1D 的五種狀態</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>狀態</th><th>學 MAC？</th><th>轉發資料？</th><th>收送 BPDU？</th><th>停留時間</th></tr>
+        <tr><td><b>Disabled</b></td><td>否</td><td>否</td><td>否</td><td>被 shutdown</td></tr>
+        <tr><td><b>Blocking</b></td><td>否</td><td>否</td><td><b>只收</b></td><td>最多 20 秒（Max Age）</td></tr>
+        <tr><td><b>Listening</b></td><td>否</td><td>否</td><td>收+送</td><td>15 秒（Forward Delay）</td></tr>
+        <tr><td><b>Learning</b></td><td><b>是</b></td><td>否</td><td>收+送</td><td>15 秒（Forward Delay）</td></tr>
+        <tr><td><b>Forwarding</b></td><td>是</td><td><b>是</b></td><td>收+送</td><td>穩定狀態</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code>從 Blocking 到 Forwarding = 20 + 15 + 15 = <b>50 秒</b><br>從線路剛插上（Listening 開始）= 15 + 15 = <b>30 秒</b></code></div>
+
+    <div class="warn"><strong>這 30 秒就是使用者抱怨的來源。</strong>電腦開機、網路線重插，要等 30 秒才拿得到 DHCP。很多 Windows 的 DHCP 請求在 30 秒內就逾時了，結果拿到 169.254 的自動位址。解法是接末端裝置的埠一律開 <b>PortFast</b>（第 9 節）。</div>
+
+    <h3>三個計時器</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>計時器</th><th>預設</th><th>作用</th></tr>
+        <tr><td><b>Hello Time</b></td><td>2 秒</td><td>Root 發送 BPDU 的間隔</td></tr>
+        <tr><td><b>Max Age</b></td><td>20 秒</td><td>沒收到 BPDU 多久後判定上游掛了（= 10 個 Hello）</td></tr>
+        <tr><td><b>Forward Delay</b></td><td>15 秒</td><td>Listening 和 Learning 各停留多久</td></tr>
+      </table>
+    </div>
+
+    <div class="note"><strong>不要手動改計時器。</strong>Cisco 官方建議用 <span class="inline-code">spanning-tree vlan 10 root primary diameter 5</span> 這種方式讓 IOS 自己算，或乾脆改用 RSTP。手動縮短 Max Age 常導致網路在高負載時誤判鄰居掛掉，反而不穩。</div>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="flavor">
+    <h2>6. STP 家族：PVST+ / RPVST+ / MST</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>版本</th><th>標準</th><th>每個 VLAN 一棵樹？</th><th>收斂速度</th><th>CPU 負擔</th></tr>
+        <tr><td><b>STP</b></td><td>802.1D</td><td>否（全網一棵）</td><td>30–50 秒</td><td>低</td></tr>
+        <tr><td><b>PVST+</b></td><td>Cisco 專有</td><td><b>是</b></td><td>30–50 秒</td><td>高（VLAN 多會爆）</td></tr>
+        <tr><td><b>RSTP</b></td><td>802.1w</td><td>否</td><td><b>&lt; 1 秒</b></td><td>低</td></tr>
+        <tr><td><b>Rapid PVST+</b></td><td>Cisco 專有</td><td><b>是</b></td><td><b>&lt; 1 秒</b></td><td>高</td></tr>
+        <tr><td><b>MST</b></td><td>802.1s</td><td>多個 VLAN 對應到一個 Instance</td><td><b>&lt; 1 秒</b></td><td><b>低</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>怎麼選？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>VLAN 少於 ~100 個、全 Cisco 設備</b> → <span class="inline-code">Rapid PVST+</span>，設定簡單，每 VLAN 可以獨立做負載分擔</li>
+        <li><b>VLAN 上百個、或混廠牌</b> → <span class="inline-code">MST</span>，把 100 個 VLAN 對應到 2~3 個 Instance，CPU 省非常多</li>
+        <li><b>不要留在預設的 PVST+</b>，收斂 50 秒在現代網路是無法接受的</li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment">! 切換到 Rapid PVST+（最常見的第一步）</span>
+SW1(config)# <span class="cmd">spanning-tree mode rapid-pvst</span>
+
+<span class="comment">! MST 設定：把 VLAN 分組到 Instance</span>
+SW1(config)# <span class="cmd">spanning-tree mode mst</span>
+SW1(config)# <span class="cmd">spanning-tree mst configuration</span>
+SW1(config-mst)# <span class="cmd">name CORP-REGION</span>
+SW1(config-mst)# <span class="cmd">revision 1</span>
+SW1(config-mst)# <span class="cmd">instance 1 vlan 10,20,30</span>
+SW1(config-mst)# <span class="cmd">instance 2 vlan 40,50,99</span>
+SW1(config-mst)# <span class="cmd">show pending</span>          <span class="comment">← 套用前先看一次</span>
+SW1(config-mst)# <span class="cmd">exit</span>
+
+<span class="comment">! 兩個 Instance 各指定不同 Root，達成負載分擔</span>
+SW1(config)# <span class="cmd">spanning-tree mst 1 root primary</span>
+SW1(config)# <span class="cmd">spanning-tree mst 2 root secondary</span></code></pre>
+
+    <div class="warn"><strong>MST 的致命前提：同一個 Region 的三個參數必須完全一致</strong>——<b>name、revision、VLAN 對 Instance 的對應表</b>。任何一台打錯一個字，它就會被視為在不同 Region，退化成一棵大樹，設計整個失效。而且錯誤不會有明顯報錯，要用 <span class="inline-code">show spanning-tree mst configuration digest</span> 比對雜湊值才看得出來。</div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="rstp">
+    <h2>7. RSTP 快在哪裡</h2>
+
+    <p>RSTP（802.1w）把收斂從 50 秒縮到 1 秒以內，靠三個改變。</p>
+
+    <h3>改變一：埠狀態簡化成三種</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>802.1D</th><th>802.1w</th></tr>
+        <tr><td>Disabled / Blocking / Listening</td><td><b>Discarding</b></td></tr>
+        <tr><td>Learning</td><td>Learning</td></tr>
+        <tr><td>Forwarding</td><td>Forwarding</td></tr>
+      </table>
+    </div>
+
+    <h3>改變二：多了兩個「預備」角色</h3>
+    <div class="role-grid">
+      <div class="role-card"><b>Alternate Port</b><span>Root Port 的備胎。RP 一掛，它<b>立刻</b>接手，不用等計時器。</span></div>
+      <div class="role-card"><b>Backup Port</b><span>Designated Port 的備胎，只出現在接集線器這種共享媒介上，實務罕見。</span></div>
+    </div>
+
+    <h3>改變三：Proposal / Agreement 握手</h3>
+    <p>802.1D 是「等計時器過完，賭沒問題了才轉發」。RSTP 改成兩台交換器直接<b>對話確認</b>：</p>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>上游送出 Proposal</b>「我想讓這個埠變成 Designated 並開始轉發，可以嗎？」</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>下游執行 Sync</b>把自己其他所有非邊緣埠先設成 Discarding，確保不會產生迴圈。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>下游回 Agreement</b>「我這邊安全了，你可以轉發。」</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>上游立刻進入 Forwarding</b>整個過程數十毫秒，然後這個流程往下一台交換器逐跳傳遞。</div></div>
+    </div>
+
+    <h3>Link Type 的關鍵影響</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>Link Type</th><th>判定依據</th><th>能不能快速收斂</th></tr>
+        <tr><td><b>Point-to-Point</b></td><td>全雙工</td><td><b>可以</b>（能做 Proposal/Agreement）</td></tr>
+        <tr><td><b>Shared</b></td><td>半雙工</td><td>不行，退化成 802.1D 的慢速收斂</td></tr>
+        <tr><td><b>Edge</b></td><td>設了 PortFast</td><td>直接 Forwarding，完全不參與</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Duplex Mismatch 會讓 RSTP 悄悄失效。</strong>一邊自動協商成半雙工，RSTP 就把那條線判定為 Shared，收斂時間從 1 秒退回 30 秒。而且不會有任何錯誤訊息，只會有人抱怨「切換備援好像變慢了」。用 <span class="inline-code">show spanning-tree interface gi0/1 detail</span> 看 <b>Link type</b> 欄位確認。必要時手動指定：<span class="inline-code">spanning-tree link-type point-to-point</span>。</div>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="config">
+    <h2>8. 實作一：手動指定 Root Bridge</h2>
+
+    <div class="warn"><strong>絕對不要讓 STP 自己選 Root。</strong>預設 Priority 全部一樣，最後是「<b>MAC 位址最小的贏</b>」。MAC 小通常代表<b>機器最老</b>——結果你花大錢買的核心交換器在旁邊納涼，五年前的邊緣小交換器變成全網流量的中心點。這是真實世界最常見的效能問題之一。</div>
+
+    <h3>方法 A：用 root primary（推薦，IOS 自己算）</h3>
+    <pre><code><span class="comment">! 核心交換器 SW-CORE1 當所有 VLAN 的主 Root</span>
+SW-CORE1(config)# <span class="cmd">spanning-tree vlan 1-100 root primary</span>
+
+<span class="comment">! SW-CORE2 當備援 Root（主的掛了它接手）</span>
+SW-CORE2(config)# <span class="cmd">spanning-tree vlan 1-100 root secondary</span></code></pre>
+    <p><span class="inline-code">root primary</span> 的實際行為：IOS 先看目前 Root 的優先權，把自己設成比它<b>低 4096</b>；如果目前 Root 已經是 24576 以下，就直接設成 24576。<span class="inline-code">root secondary</span> 一律設成 <b>28672</b>。</p>
+
+    <h3>方法 B：手動指定 Priority（可預測，大型網路推薦）</h3>
+    <pre><code>SW-CORE1(config)# <span class="cmd">spanning-tree vlan 10,30,50 priority 4096</span>    <span class="comment">← 奇數 VLAN 的主 Root</span>
+SW-CORE1(config)# <span class="cmd">spanning-tree vlan 20,40,99 priority 8192</span>    <span class="comment">← 偶數 VLAN 的備 Root</span>
+
+SW-CORE2(config)# <span class="cmd">spanning-tree vlan 20,40,99 priority 4096</span>    <span class="comment">← 偶數 VLAN 的主 Root</span>
+SW-CORE2(config)# <span class="cmd">spanning-tree vlan 10,30,50 priority 8192</span>    <span class="comment">← 奇數 VLAN 的備 Root</span></code></pre>
+
+    <div class="ok"><strong>這叫 STP 負載分擔（Load Balancing）。</strong>PVST+ 每個 VLAN 有自己的樹，所以可以讓一半的 VLAN 走 SW-CORE1、另一半走 SW-CORE2，兩台核心和兩條上行線<b>同時在做事</b>，而不是一台閒置。這是企業設計的標準做法。</div>
+
+    <h3>驗證</h3>
+    <pre><code>SW2# <span class="cmd">show spanning-tree vlan 10</span>
+
+VLAN0010
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    4106                <span class="comment">← 4096 + VLAN 10</span>
+             Address     0011.1111.1111
+             Cost        4
+             Port        1 (GigabitEthernet0/1)
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32778  (priority 32768 sys-id-ext 10)
+             Address     0022.2222.2222
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- ----------------
+Gi0/1            <span class="val">Root FWD</span> 4         128.1    P2p
+Gi0/2            <span class="kw">Altn BLK</span> 4         128.2    P2p
+Fa0/1            Desg FWD 19        128.3    P2p Edge</code></pre>
+
+    <div class="ok"><strong>三個快速判讀點：</strong>
+      <ul style="margin:8px 0 0">
+        <li>沒有出現 <span class="inline-code">This bridge is the root</span> → 這台不是 Root</li>
+        <li><b>Root ID 的 Address 就是真正 Root 的 MAC</b>，拿它去比對是不是你想要的那台</li>
+        <li>Type 欄位有 <b>P2p</b> 才能快速收斂；出現 <b>Shr</b> 代表雙工協商有問題</li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment">! 全網一次看有沒有異常（最實用的一行）</span>
+SW1# <span class="cmd">show spanning-tree summary</span>
+Switch is in rapid-pvst mode
+Root bridge for: VLAN0010, VLAN0030
+EtherChannel misconfig guard      is enabled
+Extended system ID                is enabled
+Portfast Default                  is disabled
+PortFast BPDU Guard Default       is enabled
+Loopguard Default                 is disabled
+
+Name       Blocking Listening Learning Forwarding STP Active
+---------- -------- --------- -------- ---------- ----------
+VLAN0010          1         0        0          8          9
+VLAN0020          1         0        0          8          9</code></pre>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="guard">
+    <h2>9. 實作二：五道保護機制</h2>
+
+    <p>STP 本身會運作，但它太信任別人——任何送 BPDU 的設備都能參與選舉。以下五個機制是企業網路的標準配備。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>機制</th><th>用在哪種埠</th><th>防什麼</th><th>觸發後的動作</th></tr>
+        <tr><td><b>PortFast</b></td><td>接末端裝置的 Access 埠</td><td>省掉 30 秒等待</td><td>直接 Forwarding</td></tr>
+        <tr><td><b>BPDU Guard</b></td><td>同上（配 PortFast 一起用）</td><td>有人偷接交換器</td><td><b>err-disable 關埠</b></td></tr>
+        <tr><td><b>BPDU Filter</b></td><td>特殊情境</td><td>不送也不收 BPDU</td><td>安靜忽略（<b>危險</b>）</td></tr>
+        <tr><td><b>Root Guard</b></td><td>接下游／接分公司的埠</td><td>下游設備搶當 Root</td><td>設成 root-inconsistent</td></tr>
+        <tr><td><b>Loop Guard</b></td><td>Root Port 和 Alternate Port</td><td>單向鏈路造成 BPDU 消失</td><td>設成 loop-inconsistent</td></tr>
+      </table>
+    </div>
+
+    <h3>PortFast + BPDU Guard（最基本、一定要做）</h3>
+    <pre><code><span class="comment">! 方法 1：一個一個介面設</span>
+SW1(config)# <span class="cmd">interface range fa0/1 - 24</span>
+SW1(config-if-range)# <span class="cmd">spanning-tree portfast</span>
+SW1(config-if-range)# <span class="cmd">spanning-tree bpduguard enable</span>
+
+<span class="comment">! 方法 2：全域預設（推薦，新埠自動套用，不會漏設）</span>
+SW1(config)# <span class="cmd">spanning-tree portfast default</span>
+SW1(config)# <span class="cmd">spanning-tree portfast bpduguard default</span>
+<span class="comment">! 注意：全域版只對「access 模式」的埠生效，trunk 埠不受影響</span></code></pre>
+
+    <div class="warn"><strong>PortFast 千萬不要設在 Trunk 埠上。</strong>Trunk 接的是另一台交換器，PortFast 讓它跳過 Listening/Learning 直接轉發，<b>會在收斂完成前就製造出迴圈</b>。IOS 會警告你，但不會阻止你。（例外：接 VMware ESXi 主機的 Trunk 可用 <span class="inline-code">spanning-tree portfast trunk</span>，因為虛擬交換器不送 BPDU。）</div>
+
+    <h3>err-disable 之後怎麼恢復</h3>
+    <pre><code><span class="comment">! 查是誰、為什麼被關</span>
+SW1# <span class="cmd">show interfaces status err-disabled</span>
+Port      Name               Status       Reason
+Fa0/7     MEETING-ROOM       err-disabled bpduguard
+
+<span class="comment">! 手動恢復：進去 shut / no shut</span>
+SW1(config)# <span class="cmd">interface fa0/7</span>
+SW1(config-if)# <span class="cmd">shutdown</span>
+SW1(config-if)# <span class="cmd">no shutdown</span>
+
+<span class="comment">! 自動恢復（實務常設，避免半夜被叫起來）</span>
+SW1(config)# <span class="cmd">errdisable recovery cause bpduguard</span>
+SW1(config)# <span class="cmd">errdisable recovery cause psecure-violation</span>
+SW1(config)# <span class="cmd">errdisable recovery interval 300</span>       <span class="comment">← 5 分鐘後自己試著開回來</span>
+
+SW1# <span class="cmd">show errdisable recovery</span></code></pre>
+
+    <h3>Root Guard：不准下游搶當老大</h3>
+    <pre><code><span class="comment">! 設在「面向下游／面向外部」的埠上</span>
+SW-CORE1(config)# <span class="cmd">interface gi0/5</span>
+SW-CORE1(config-if)# <span class="cmd">spanning-tree guard root</span></code></pre>
+    <p>行為：如果這個埠收到「比目前 Root 更優的 BPDU」，就把它設成 <b>root-inconsistent</b>（等同 Blocking）。等對方不再送優越 BPDU，會自動恢復，不需要人工介入。</p>
+    <pre><code>SW1# <span class="cmd">show spanning-tree inconsistentports</span>
+Name                 Interface              Inconsistency
+-------------------- ---------------------- ------------------
+VLAN0010             GigabitEthernet0/5     Root Inconsistent</code></pre>
+
+    <h3>Loop Guard 與 UDLD：對付單向鏈路</h3>
+    <div class="analogy"><strong>什麼是單向鏈路？</strong>光纖有兩芯，一收一發。如果收的那芯斷了、發的還好著，<b>實體層看起來是 up，但只有單向能通</b>。這時 Blocking 的埠收不到 BPDU，會以為「上游沒有更好的路徑了」，於是<b>自己轉成 Forwarding</b>——迴圈就這樣產生了，而且沒有任何警訊。</div>
+
+    <pre><code><span class="comment">! Loop Guard：收不到 BPDU 時，不要轉 Forwarding，改成 loop-inconsistent</span>
+SW1(config)# <span class="cmd">spanning-tree loopguard default</span>      <span class="comment">← 全域，只影響 RP/Alternate</span>
+
+<span class="comment">! UDLD：主動偵測單向鏈路（光纖鏈路一定要開）</span>
+SW1(config)# <span class="cmd">udld aggressive</span>                       <span class="comment">← 全域，只對光纖埠生效</span>
+SW1(config)# <span class="cmd">interface gi0/1</span>
+SW1(config-if)# <span class="cmd">udld port aggressive</span>               <span class="comment">← 銅線埠要個別開</span>
+
+SW1# <span class="cmd">show udld gi0/1</span></code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Loop Guard</th><th>UDLD</th></tr>
+        <tr><td>偵測方式</td><td>被動（發現 BPDU 不見了）</td><td>主動（互相打招呼）</td></tr>
+        <tr><td>層級</td><td>只保護 STP</td><td>保護所有流量</td></tr>
+        <tr><td>觸發後</td><td>loop-inconsistent（自動恢復）</td><td>err-disable（aggressive 模式）</td></tr>
+        <tr><td>建議</td><td colspan="2"><b>兩個一起開</b>，它們互補而非替代</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>BPDU Filter 是把雙面刃，非必要不要用。</strong>它讓埠<b>完全不送也不收 BPDU</b>。設在介面層級時，那個埠等於脫離 STP 保護——有人在那裡接一台交換器造成迴圈，<b>沒有任何機制會發現</b>。只有在「連到不受信任的第三方、且不能讓他們看到我們的拓樸」這種特殊需求下才用，而且要搭配 Port Security。</div>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="stptrouble">
+    <h2>10. STP 故障排除</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>Root 是不是你要的那台？</b><span class="inline-code">show spanning-tree vlan 10 | include Root ID</span> 在每一台上跑，看 Address 是否一致且是核心那台。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>有沒有埠一直在跳？</b><span class="inline-code">show spanning-tree detail | include ieee|occurr</span> 看 topology change 次數。數字持續增加代表某條線在閃斷。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>誰造成 TCN？</b><span class="inline-code">show spanning-tree vlan 10 detail</span> 裡的 <span class="inline-code">from GigabitEthernet0/2</span> 告訴你 TCN 從哪個埠進來，順著查上游。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>有沒有不一致的埠？</b><span class="inline-code">show spanning-tree inconsistentports</span>，一行就看出 Root Guard / Loop Guard 有沒有觸發。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>Link type 對嗎？</b><span class="inline-code">show spanning-tree interface gi0/1 detail | include Link</span>。出現 Shr 就去查 duplex。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>全網 STP 模式一致嗎？</b>一台跑 MST、旁邊跑 Rapid PVST+，邊界行為會非常難預測。<span class="inline-code">show spanning-tree summary | include mode</span>。</div></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「每天下午三點網路卡一下」</div>
+      <p><b>症狀：</b>使用者反映每天固定時段會斷線 1~2 秒，VoIP 通話會掉。</p>
+      <p><b>排查：</b><span class="inline-code">show spanning-tree detail | include occurred</span> → topology change 次數每天穩定增加。追 TCN 來源 → 某台邊緣交換器的 Fa0/18。</p>
+      <p style="margin-bottom:0"><b>原因：</b>那個埠接會議室投影機，<b>沒有設 PortFast</b>。有人下午開會插拔線，每次插拔都觸發一次 TCN，全網 MAC 表被清空重學。<b>修法：</b>該埠加 PortFast + BPDU Guard，TCN 不再產生。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「新分公司接上總部後，總部整個變慢」</div>
+      <p><b>症狀：</b>接了分公司的線之後，總部核心交換器 CPU 飆高，跨 VLAN 流量變慢。</p>
+      <p><b>排查：</b><span class="inline-code">show spanning-tree vlan 10</span> → Root ID 的 MAC 變成一台沒看過的位址。</p>
+      <p style="margin-bottom:0"><b>原因：</b>分公司那台舊交換器 MAC 位址比總部核心小，<b>把 Root 搶走了</b>，全公司流量都繞去分公司那條慢速線再繞回來。<b>修法：</b>總部核心設 <span class="inline-code">root primary</span>，並在對外埠加 <span class="inline-code">spanning-tree guard root</span>。</p>
+    </div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="ec">
+    <h2>11. EtherChannel：把多條線綁成一條</h2>
+
+    <p>STP 有個副作用：<b>備援線路是被 Blocking 的，等於花錢買了一條線但平常完全不用</b>。EtherChannel 解決這個問題——把 2~8 條實體線<b>綁成一個邏輯介面</b>，STP 只看到一條線，所以不會 Blocking，頻寬直接相加。</p>
+
+    <div class="formula"><code>4 條 1 Gbps 綁成 EtherChannel → STP 眼中是 <b>一條 4 Gbps 的線</b><br>其中一條斷了 → 自動變 3 Gbps，<b>STP 完全不用重新收斂</b></code></div>
+
+    <h3>三種協商模式</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>協定</th><th>標準</th><th>模式關鍵字</th></tr>
+        <tr><td><b>Static / ON</b></td><td>不協商</td><td><span class="inline-code">on</span></td></tr>
+        <tr><td><b>PAgP</b></td><td>Cisco 專有</td><td><span class="inline-code">desirable</span>（主動）／<span class="inline-code">auto</span>（被動）</td></tr>
+        <tr><td><b>LACP</b></td><td><b>IEEE 802.3ad</b></td><td><span class="inline-code">active</span>（主動）／<span class="inline-code">passive</span>（被動）</td></tr>
+      </table>
+    </div>
+
+    <h3>模式相容矩陣（必背）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>本端</th><th>對端</th><th>結果</th></tr>
+        <tr><td>on</td><td>on</td><td>✅ 成功</td></tr>
+        <tr><td>on</td><td>active / passive / desirable / auto</td><td>❌ <b>失敗</b></td></tr>
+        <tr><td>active</td><td>active</td><td>✅ 成功</td></tr>
+        <tr><td>active</td><td>passive</td><td>✅ 成功</td></tr>
+        <tr><td>passive</td><td>passive</td><td>❌ <b>失敗</b>（兩邊都在等）</td></tr>
+        <tr><td>desirable</td><td>desirable / auto</td><td>✅ 成功</td></tr>
+        <tr><td>auto</td><td>auto</td><td>❌ <b>失敗</b></td></tr>
+        <tr><td>LACP 任一</td><td>PAgP 任一</td><td>❌ <b>失敗</b>（協定不同）</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>記憶法跟 DTP 一樣：兩個「被動」湊在一起就失敗。</strong>passive+passive、auto+auto 都不成。<b>企業實務一律用 LACP <span class="inline-code">active</span> 兩端都設</b>——它是 IEEE 標準，跨廠牌相容，而且會主動偵測對端狀態。</div>
+
+    <div class="warn"><strong><span class="inline-code">on</span> 模式為什麼危險？</strong>它完全不協商，直接強制綁定。如果對面忘了設、或設錯，你這端還是會把流量往多條線送，<b>對面看到的是多條獨立的線，STP 來不及反應 → 立刻產生迴圈</b>。LACP 至少會因為協商失敗而不啟用，安全得多。</div>
+
+    <h3>八個必須一致的參數</h3>
+    <p>成員埠的以下設定<b>只要有一項不同，該埠就會被踢出 Channel</b>：</p>
+    <ol>
+      <li>速率（speed）</li>
+      <li>雙工（duplex）</li>
+      <li>Access 或 Trunk 模式</li>
+      <li>Access VLAN（若為 Access）</li>
+      <li>Native VLAN（若為 Trunk）</li>
+      <li>Allowed VLAN 清單（若為 Trunk）</li>
+      <li>STP 相關參數（cost、port-priority）</li>
+      <li>MTU</li>
+    </ol>
+
+    <h3>負載分擔：不是「平均分配」</h3>
+    <div class="warn"><strong>EtherChannel 不會把單一條連線切開來傳。</strong>它用雜湊演算法（依 MAC 或 IP 或 Port）決定「這個流量走哪一條實體線」，<b>同一條 TCP 連線永遠只走同一條線</b>。所以：4 條 1 Gbps 綁起來，<b>單一檔案傳輸最快還是只有 1 Gbps</b>。要總量 4 Gbps 必須有夠多的不同來源／目的組合。</div>
+
+    <pre><code><span class="comment">! 查目前用什麼演算法</span>
+SW1# <span class="cmd">show etherchannel load-balance</span>
+  Source XOR Destination IP address
+
+<span class="comment">! 調整（選項依機型不同）</span>
+SW1(config)# <span class="cmd">port-channel load-balance src-dst-ip</span>
+<span class="comment">! 可選：src-mac / dst-mac / src-dst-mac / src-ip / dst-ip / src-dst-ip
+!       src-port / dst-port / src-dst-port（L4，分散最均勻）</span></code></pre>
+
+    <div class="note"><strong>怎麼選演算法？</strong>看流量特性。伺服器區有大量不同 IP 互連 → <span class="inline-code">src-dst-ip</span>。若流量集中在少數幾對 IP（例如都連同一台備份主機）→ 用 <span class="inline-code">src-dst-port</span> 把 TCP 埠也納入雜湊，分散度才會夠。</div>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="ecconfig">
+    <h2>12. 實作三：LACP 與 L3 EtherChannel</h2>
+
+    <h3>二層 EtherChannel（Trunk）</h3>
+    <pre><code><span class="comment">! ═══ SW1：注意設定順序 ═══</span>
+SW1(config)# <span class="cmd">interface range gigabitEthernet 0/1 - 2</span>
+SW1(config-if-range)# <span class="cmd">shutdown</span>                             <span class="comment">← 先關，避免綁定過程產生迴圈</span>
+SW1(config-if-range)# <span class="cmd">switchport mode trunk</span>
+SW1(config-if-range)# <span class="cmd">switchport trunk native vlan 999</span>
+SW1(config-if-range)# <span class="cmd">switchport trunk allowed vlan 10,20,30,50,99</span>
+SW1(config-if-range)# <span class="cmd">channel-group 1 mode active</span>          <span class="comment">← LACP 主動</span>
+SW1(config-if-range)# <span class="cmd">no shutdown</span>
+
+<span class="comment">! 設定 Port-channel 邏輯介面（設定會自動同步給成員埠）</span>
+SW1(config)# <span class="cmd">interface port-channel 1</span>
+SW1(config-if)# <span class="cmd">description == LACP TO SW2 ==</span>
+SW1(config-if)# <span class="cmd">switchport mode trunk</span>
+SW1(config-if)# <span class="cmd">switchport trunk allowed vlan 10,20,30,50,99</span></code></pre>
+
+    <div class="ok"><strong>設定順序的鐵則：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>先 shutdown</b> 所有要綁的實體埠</li>
+        <li>把 VLAN / Trunk 設定弄成完全一致</li>
+        <li>下 <span class="inline-code">channel-group</span></li>
+        <li><b>兩邊都設定完</b>才 no shutdown</li>
+      </ol>
+      跳過第 1 步，在綁定的空窗期就可能形成迴圈，讓網路癱瘓幾十秒。
+    </div>
+
+    <h3>三層 EtherChannel（核心對核心，跑路由）</h3>
+    <pre><code>SW-CORE1(config)# <span class="cmd">interface port-channel 10</span>
+SW-CORE1(config-if)# <span class="cmd">no switchport</span>                      <span class="comment">← 關鍵：變成三層介面</span>
+SW-CORE1(config-if)# <span class="cmd">ip address 10.0.0.1 255.255.255.252</span>
+SW-CORE1(config-if)# <span class="cmd">exit</span>
+
+SW-CORE1(config)# <span class="cmd">interface range ten 1/1/1 - 2</span>
+SW-CORE1(config-if-range)# <span class="cmd">no switchport</span>                 <span class="comment">← 成員埠也要先變三層</span>
+SW-CORE1(config-if-range)# <span class="cmd">no ip address</span>
+SW-CORE1(config-if-range)# <span class="cmd">channel-group 10 mode active</span>
+SW-CORE1(config-if-range)# <span class="cmd">no shutdown</span></code></pre>
+
+    <div class="warn"><strong>三層 EtherChannel 的順序不能反。</strong>必須<b>先</b>在成員埠下 <span class="inline-code">no switchport</span>，<b>再</b>下 <span class="inline-code">channel-group</span>。順序反了，Port-channel 會被建成二層介面，之後再改會出現各種奇怪的殘留設定，通常只能砍掉重建。</div>
+
+    <h3>驗證</h3>
+    <pre><code>SW1# <span class="cmd">show etherchannel summary</span>
+Flags:  D - down        P - bundled in port-channel
+        I - stand-alone s - suspended
+        H - Hot-standby (LACP only)
+        R - Layer3      S - Layer2
+        U - in use      f - failed to allocate aggregator
+
+Number of channel-groups in use: 1
+Number of aggregators:           1
+
+Group  Port-channel  Protocol    Ports
+------+-------------+-----------+-----------------------------------
+1      Po1(<span class="val">SU</span>)         LACP        Gi0/1(<span class="val">P</span>)    Gi0/2(<span class="val">P</span>)</code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>看到什麼</th><th>代表</th><th>怎麼修</th></tr>
+        <tr><td><b>Po1(SU)</b> + 全部 <b>(P)</b></td><td>✅ 完全正常</td><td>—</td></tr>
+        <tr><td>成員顯示 <b>(I)</b> stand-alone</td><td>協商失敗，這條線在<b>單獨運作</b></td><td>檢查對端模式（active/passive 組合）</td></tr>
+        <tr><td>成員顯示 <b>(s)</b> suspended</td><td>參數不一致被暫停</td><td><span class="inline-code">show interfaces gi0/2 | include duplex|MTU</span> 逐項比對</td></tr>
+        <tr><td>成員顯示 <b>(D)</b> down</td><td>實體層問題</td><td>查線材、SFP</td></tr>
+        <tr><td><b>Po1(RU)</b></td><td>這是三層 EtherChannel</td><td>正常（若你要的是二層就是設錯了）</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment">! 看 LACP 鄰居細節：確認對端真的在跑 LACP</span>
+SW1# <span class="cmd">show lacp neighbor</span>
+Flags:  S - Device is requesting Slow LACPDUs
+        F - Device is requesting Fast LACPDUs
+        A - Device is in Active mode    P - Device is in Passive mode
+
+Channel group 1 neighbors
+                  LACP port                        Admin  Oper
+Port      Flags   Priority  Dev ID          Age    Key    Key
+Gi0/1     <span class="val">SA</span>      32768     0022.2222.2222  12s    0x0    0x1
+Gi0/2     <span class="val">SA</span>      32768     0022.2222.2222  15s    0x0    0x1
+
+<span class="comment">! 確認 STP 只看到「一條線」</span>
+SW1# <span class="cmd">show spanning-tree vlan 10 | include Po|Gi</span>
+Po1              Root FWD 3         128.65   P2p    <span class="comment">← 成本 3（比單條 4 更低）</span></code></pre>
+
+    <div class="note"><strong>成本會自動下降</strong>：2 條 1G 綁起來成本從 4 變 3，4 條變 2。這代表 EtherChannel 路徑在 STP 眼中<b>自動比單條線更優先</b>，符合直覺。</div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：雙核心 + LACP + STP 負載分擔</h3>
+    <p>Packet Tracer 或 GNS3，約 75 分鐘。做完你就理解了企業匯聚層的標準設計。</p>
+
+    <h4>拓樸</h4>
+    <pre><code>   [ SW-CORE1 ]═══ Po10 (2×1G LACP) ═══[ SW-CORE2 ]
+       ║  ║                                ║  ║
+       ║  ╚════════ Po1 ══════════╗        ║  ║
+       ║                          ║        ║  ║
+    Po2║                       Po3║        ║  ║
+       ▼                          ▼        ║  ║
+    [ SW1 ]════════════════════[ SW2 ]═════╝  ║
+      Fa0/1-8 VLAN 10           Fa0/1-8 VLAN 20</code></pre>
+
+    <h4>步驟</h4>
+    <ol>
+      <li>四台全部切換到 <strong>spanning-tree mode rapid-pvst</strong></li>
+      <li>建立 VLAN 10、20、30、99、999</li>
+      <li>SW-CORE1：<strong>VLAN 10,30 priority 4096</strong>、<strong>VLAN 20,99 priority 8192</strong></li>
+      <li>SW-CORE2：<strong>VLAN 20,99 priority 4096</strong>、<strong>VLAN 10,30 priority 8192</strong></li>
+      <li>兩台核心之間用 <strong>Po10，LACP active，兩條 1G</strong></li>
+      <li>每台接入交換器各用 <strong>2 條線</strong>綁成 Port-channel 上行到核心（記得先 shutdown 再綁）</li>
+      <li>所有 Port-channel 設成 Trunk，<strong>native vlan 999，allowed 10,20,30,99</strong></li>
+      <li>所有接電腦的埠：<strong>portfast + bpduguard</strong></li>
+      <li>兩台核心的下行埠：<strong>spanning-tree guard root</strong></li>
+      <li>全域開啟 <strong>spanning-tree loopguard default</strong> 與 <strong>udld aggressive</strong></li>
+      <li>設定 <strong>errdisable recovery cause bpduguard</strong>，interval 300</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li><span class="inline-code">show spanning-tree vlan 10 | include This bridge</span> → 只有 SW-CORE1 顯示是 Root</li>
+      <li><span class="inline-code">show spanning-tree vlan 20 | include This bridge</span> → 只有 SW-CORE2 顯示是 Root</li>
+      <li><span class="inline-code">show etherchannel summary</span> → 所有 Port-channel 都是 <strong>SU</strong>，成員全 <strong>(P)</strong></li>
+      <li>在 SW1 上 <span class="inline-code">show spanning-tree vlan 10</span>，Po 的 Type 欄位必須是 <strong>P2p</strong>，不能是 Shr</li>
+      <li>拔掉 Po10 其中一條線 → 流量不中斷，<span class="inline-code">show etherchannel summary</span> 少一個成員但 Po 仍是 SU</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>把一台電腦換成交換器接進 Fa0/3，觀察 BPDU Guard 觸發，再用 <span class="inline-code">show interfaces status err-disabled</span> 確認，等 300 秒看它自動恢復。</li>
+      <li>故意把 SW1 的 priority 設成 0，觀察 SW-CORE1 對下埠的 Root Guard 觸發，並用 <span class="inline-code">show spanning-tree inconsistentports</span> 驗證。</li>
+      <li>把 Po1 一邊改成 <span class="inline-code">mode passive</span>、另一邊也是 passive，觀察 <span class="inline-code">show etherchannel summary</span> 出現什麼旗標。</li>
+      <li>把其中一條成員埠的 allowed vlan 改掉，觀察它被踢成 <b>(s) suspended</b>。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>乙太訊框<strong>沒有 TTL</strong>，所以二層迴圈會無限繞 → 廣播風暴 + MAC 震盪 + 訊框重複</li>
+      <li>Bridge ID = <strong>Priority(4b) + VLAN ID(12b) + MAC(48b)</strong>；Priority 只能是 4096 的倍數</li>
+      <li>選舉順序：<strong>Root Bridge → Root Port → Designated Port → 其餘 Blocking</strong></li>
+      <li>成本速記：<strong>10M=100、100M=19、1G=4、10G=2</strong></li>
+      <li>802.1D 收斂 <strong>30~50 秒</strong>；RSTP 靠 Proposal/Agreement 壓到 <strong>1 秒內</strong></li>
+      <li><strong>一定要手動指定 Root</strong>，否則 MAC 最小（= 最老的機器）會當選</li>
+      <li>接末端的埠 <strong>PortFast + BPDU Guard</strong>；對外埠 <strong>Root Guard</strong>；光纖 <strong>UDLD + Loop Guard</strong></li>
+      <li>EtherChannel 兩邊都用 <strong>LACP active</strong>；兩個被動湊一起會失敗；<span class="inline-code">on</span> 模式容易造成迴圈</li>
+      <li>EtherChannel <strong>單一連線不會跨線分流</strong>，4×1G 的單檔傳輸上限仍是 1 Gbps</li>
+    </ul>
+    <div class="note">學完這章，去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 選「交換技術」主題，STP 的計算題是 CCNA 的高頻考點，務必練到能在紙上推出 Blocking 埠。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="05-vlan-trunk.html">← CH 2-2：VLAN 與 Trunk</a>
+    <a href="07-static-routing.html">CH 3-1：路由基礎與靜態路由 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 2-3</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACL 與 NAT 實戰 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.wc{font-family:"Cascadia Code",monospace;font-size:.78rem;background:#1C1917;color:#E7E5E4;border-radius:10px;padding:16px 20px;overflow-x:auto;margin:14px 0;line-height:1.9;}
+.wc .y{color:#FCD34D;}
+.wc .g{color:#86EFAC;}
+.wc .r{color:#FCA5A5;}
+.nat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:16px 0;}
+.nat-card{border:1px solid var(--border);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;}
+.nat-card b{display:block;color:var(--terracotta);font-size:.85rem;margin-bottom:4px;}
+.nat-card span{font-size:.78rem;color:var(--stone);line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第三章</a><span class="sep">/</span>
+  <span class="cur">CH 3-4 · ACL 與 NAT</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">CH 3-4 · 路由技術核心</div>
+  <h1>ACL 與 NAT 實戰</h1>
+  <p>ACL 是網路的守門員，NAT 是私有位址通往網際網路的翻譯官。這兩個功能設錯的後果最直接——不是全公司斷網，就是資安門戶洞開。這章把每個細節講透。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#acl-basic">ACL 的運作原理與三條鐵則</a></li>
+      <li><a href="#wildcard">Wildcard Mask 完全拆解</a></li>
+      <li><a href="#std">實作一：標準 ACL</a></li>
+      <li><a href="#ext">實作二：延伸 ACL</a></li>
+      <li><a href="#place">放置位置的判斷法</a></li>
+      <li><a href="#edit">編輯與序號管理</a></li>
+      <li><a href="#advanced">進階：時間型、物件群組、反射式</a></li>
+      <li><a href="#vty">保護 VTY 與管理平面</a></li>
+      <li><a href="#ipv6acl">IPv6 ACL 的差異</a></li>
+      <li><a href="#nat-basic">NAT 四個術語與運作</a></li>
+      <li><a href="#nat-config">實作三：靜態、動態、PAT</a></li>
+      <li><a href="#portfwd">實作四：埠轉發與伺服器對外</a></li>
+      <li><a href="#nat-trouble">故障排除</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="acl-basic">
+    <h2>1. ACL 的運作原理與三條鐵則</h2>
+
+    <p><b>ACL（Access Control List，存取控制清單）</b>是一串「條件 + 動作」的規則，路由器拿封包去逐條比對，決定放行還是丟棄。</p>
+
+    <div class="warn"><strong>三條鐵則，違反任何一條都會出事：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>由上往下逐條比對，一旦匹配就停止。</b>後面的規則完全不會被看到。</li>
+        <li><b>每個 ACL 結尾都有一條看不見的 <span class="inline-code">deny any any</span>。</b>所以只寫 permit 的 ACL，會擋掉其他所有東西。</li>
+        <li><b>每個介面、每個方向、每個協定，只能套用一個 ACL。</b>三個維度：in/out × IPv4/IPv6 × 介面。</li>
+      </ol>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">鐵則一的經典錯誤</div>
+      <pre style="margin:10px 0 0"><code><span class="comment">! ✗ 錯誤：第二行永遠不會被執行</span>
+access-list 100 permit ip 192.168.10.0 0.0.0.255 any
+access-list 100 deny   ip host 192.168.10.66 any        <span class="comment">← 已經被上一行放行了</span>
+
+<span class="comment">! ✓ 正確：具體的規則放前面</span>
+access-list 100 deny   ip host 192.168.10.66 any
+access-list 100 permit ip 192.168.10.0 0.0.0.255 any</code></pre>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">鐵則二的經典錯誤</div>
+      <pre style="margin:10px 0"><code><span class="comment">! 需求：只擋掉業務部連財務伺服器</span>
+access-list 100 deny ip 192.168.10.0 0.0.0.255 host 192.168.30.10
+<span class="comment">! ← 就寫這一行，然後套到介面上</span></code></pre>
+      <p style="margin-bottom:0"><b>結果：全公司斷網。</b>因為隱含的 <span class="inline-code">deny any any</span> 把其他所有流量也擋了。<b>正確做法要補上：</b></p>
+      <pre style="margin:8px 0 0"><code>access-list 100 deny   ip 192.168.10.0 0.0.0.255 host 192.168.30.10
+access-list 100 <span class="cmd">permit ip any any</span>          <span class="comment">← 這行不能忘</span></code></pre>
+    </div>
+
+    <h3>兩種 ACL 的能力差異</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>標準 ACL</th><th>延伸 ACL</th></tr>
+        <tr><td>編號範圍</td><td>1–99、1300–1999</td><td>100–199、2000–2699</td></tr>
+        <tr><td>能比對</td><td><b>只有來源 IP</b></td><td>來源 IP、目的 IP、協定、埠號、旗標</td></tr>
+        <tr><td>放在哪</td><td><b>愈靠近目的地愈好</b></td><td><b>愈靠近來源愈好</b></td></tr>
+        <tr><td>實務使用</td><td>少（多半用在路由過濾、VTY）</td><td><b>絕大多數情況</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>為什麼放置位置相反？</strong>標準 ACL 只能看來源，放太前面會把「這個來源去所有地方」都擋掉，所以要放靠近目的地才不會誤傷。延伸 ACL 能精確指定目的地，放靠近來源可以<b>及早丟棄，不浪費中間的頻寬</b>。</div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="wildcard">
+    <h2>2. Wildcard Mask 完全拆解</h2>
+
+    <div class="formula"><code><b>0 = 必須完全相同</b>（檢查這一位）<br><b>1 = 不管</b>（忽略這一位）<br><br>跟子網路遮罩<b>剛好相反</b></code></div>
+
+    <div class="ex-box">
+      <div class="ex-title">最快的算法</div>
+      <div class="formula" style="margin:10px 0"><code>Wildcard = 255.255.255.255 − 子網路遮罩</code></div>
+      <div class="tbl-wrap" style="margin-bottom:0">
+        <table class="t">
+          <tr><th>CIDR</th><th>子網路遮罩</th><th>Wildcard Mask</th><th>涵蓋幾個位址</th></tr>
+          <tr><td>/24</td><td>255.255.255.0</td><td><b>0.0.0.255</b></td><td>256</td></tr>
+          <tr><td>/25</td><td>255.255.255.128</td><td>0.0.0.127</td><td>128</td></tr>
+          <tr><td>/26</td><td>255.255.255.192</td><td>0.0.0.63</td><td>64</td></tr>
+          <tr><td>/27</td><td>255.255.255.224</td><td>0.0.0.31</td><td>32</td></tr>
+          <tr><td>/28</td><td>255.255.255.240</td><td>0.0.0.15</td><td>16</td></tr>
+          <tr><td>/30</td><td>255.255.255.252</td><td>0.0.0.3</td><td>4</td></tr>
+          <tr><td>/32</td><td>255.255.255.255</td><td><b>0.0.0.0</b></td><td>1（＝ host）</td></tr>
+          <tr><td>/16</td><td>255.255.0.0</td><td>0.0.255.255</td><td>65536</td></tr>
+          <tr><td>/0</td><td>0.0.0.0</td><td><b>255.255.255.255</b></td><td>全部（＝ any）</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <h3>兩個簡寫關鍵字</h3>
+    <pre><code><span class="comment">! 這三行意思完全一樣</span>
+access-list 1 permit 192.168.10.5 0.0.0.0
+access-list 1 permit <span class="cmd">host</span> 192.168.10.5
+
+<span class="comment">! 這兩行意思完全一樣</span>
+access-list 1 permit 0.0.0.0 255.255.255.255
+access-list 1 permit <span class="cmd">any</span></code></pre>
+
+    <h3>進階：不連續的 Wildcard</h3>
+    <p>Wildcard 不像子網路遮罩必須是連續的 1，它可以跳著寫，用來一次匹配特定模式的位址。</p>
+
+    <div class="wc">
+需求：一次匹配 192.168.<span class="y">10</span>.0/24、192.168.<span class="y">11</span>.0/24、192.168.<span class="y">12</span>.0/24、192.168.<span class="y">13</span>.0/24<br><br>
+10 = 0000<span class="g">10</span>10<br>
+11 = 0000<span class="g">10</span>11<br>
+12 = 0000<span class="g">11</span>00<br>
+13 = 0000<span class="g">11</span>01<br>
+　　 <span class="r">↑↑↑↑</span>　<span class="r">↑↑</span>　　前四位相同(0000)，第 5、6 位不同，第 7、8 位不同<br><br>
+但 10~13 是連續的 → 直接用 <span class="y">192.168.10.0 0.0.3.255</span>（涵蓋 10,11,12,13）
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真正需要不連續 Wildcard 的情境：只匹配奇數網段</div>
+      <pre style="margin:10px 0 0"><code><span class="comment">! 匹配 192.168.1.0、192.168.3.0、192.168.5.0 ... 所有奇數第三段</span>
+<span class="comment">! 1 = 00000001、3 = 00000011、5 = 00000101 ... 最後一位都是 1</span>
+<span class="comment">! 前 7 位不管(1111111=254)、最後一位必須相同(0)</span>
+access-list 10 permit 192.168.1.0 <span class="cmd">0.0.254.255</span></code></pre>
+      <p style="margin:8px 0 0">實務上很少用到，但 CCNA 考試喜歡考。<b>看到不連續的 wildcard，就把它轉成二進位找規律。</b></p>
+    </div>
+
+    <div class="warn"><strong>OSPF 的 network 也用 wildcard，但意義不同。</strong>ACL 的 wildcard 是「比對封包的來源／目的 IP」，OSPF 的 wildcard 是「比對本機介面的 IP」。同樣的寫法，用途完全不同，別混淆。</div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="std">
+    <h2>3. 實作一：標準 ACL</h2>
+
+    <div class="formula"><code>access-list &lt;1-99&gt; { permit | deny } &lt;來源&gt; [wildcard]</code></div>
+
+    <h3>編號式</h3>
+    <pre><code><span class="comment">! 需求：只允許 192.168.10.0/24 存取，其他全擋</span>
+R1(config)# <span class="cmd">access-list 10 permit 192.168.10.0 0.0.0.255</span>
+R1(config)# <span class="cmd">access-list 10 deny any log</span>          <span class="comment">← 明確寫出來，log 可看到被擋的紀錄</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip access-group 10 out</span></code></pre>
+
+    <h3>具名式（推薦）</h3>
+    <pre><code>R1(config)# <span class="cmd">ip access-list standard MGMT-ALLOW</span>
+R1(config-std-nacl)# <span class="cmd">10 permit 192.168.99.0 0.0.0.255</span>
+R1(config-std-nacl)# <span class="cmd">20 permit host 203.0.113.50</span>
+R1(config-std-nacl)# <span class="cmd">30 deny any log</span>
+R1(config-std-nacl)# <span class="cmd">exit</span></code></pre>
+
+    <div class="ok"><strong>具名式的三個優勢：</strong>名字有意義（半年後看得懂）、可以用序號插入或刪除單一條目、不會用光編號。<b>新設定一律用具名式。</b></div>
+
+    <div class="warn"><strong>標準 ACL 要放靠近目的地。</strong>
+      <div class="ex-box" style="margin-top:10px;background:#fff">
+        <p style="margin-bottom:6px">需求：擋掉 192.168.10.0/24 存取 192.168.30.0/24，但它還是要能上網。</p>
+        <p style="margin-bottom:6px"><b>放錯（靠近來源，在 R1 的 Gi0/0 in）：</b>192.168.10.0 的所有流量都被擋，連上網都不行。</p>
+        <p style="margin-bottom:0"><b>放對（靠近目的地，在 R3 連接 192.168.30.0 的介面 out）：</b>只有去 192.168.30.0 的被擋，其他照常。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="ext">
+    <h2>4. 實作二：延伸 ACL</h2>
+
+    <div class="formula"><code>access-list &lt;100-199&gt; { permit | deny } &lt;協定&gt;<br>&lt;來源&gt; [wildcard] [運算子 埠]<br>&lt;目的&gt; [wildcard] [運算子 埠] [選項]</code></div>
+
+    <h3>常用協定與埠</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>協定</th><th>常用埠關鍵字</th><th>埠號</th></tr>
+        <tr><td rowspan="6"><b>tcp</b></td><td>ssh</td><td>22</td></tr>
+        <tr><td>telnet</td><td>23</td></tr>
+        <tr><td>www / http</td><td>80</td></tr>
+        <tr><td>443（沒有關鍵字，直接寫數字）</td><td>443</td></tr>
+        <tr><td>ftp / ftp-data</td><td>21 / 20</td></tr>
+        <tr><td>1433（SQL Server）</td><td>1433</td></tr>
+        <tr><td rowspan="3"><b>udp</b></td><td>domain</td><td>53</td></tr>
+        <tr><td>bootps / bootpc</td><td>67 / 68</td></tr>
+        <tr><td>snmp</td><td>161</td></tr>
+        <tr><td><b>icmp</b></td><td>echo / echo-reply / unreachable</td><td>—</td></tr>
+        <tr><td><b>ip</b></td><td>（所有 IP 流量，不能指定埠）</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <h3>四個運算子</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>運算子</th><th>意義</th><th>範例</th></tr>
+        <tr><td><span class="inline-code">eq</span></td><td>等於</td><td><span class="inline-code">eq 443</span></td></tr>
+        <tr><td><span class="inline-code">neq</span></td><td>不等於</td><td><span class="inline-code">neq 22</span></td></tr>
+        <tr><td><span class="inline-code">gt</span> / <span class="inline-code">lt</span></td><td>大於 / 小於</td><td><span class="inline-code">gt 1023</span></td></tr>
+        <tr><td><span class="inline-code">range</span></td><td>範圍</td><td><span class="inline-code">range 8000 8080</span></td></tr>
+      </table>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">完整範例：財務伺服器的存取控制</div>
+      <pre style="margin:10px 0 0"><code>R1(config)# <span class="cmd">ip access-list extended FINANCE-PROTECT</span>
+
+<span class="comment">! 1. 財務部自己完全放行</span>
+R1(config-ext-nacl)# <span class="cmd">permit ip 192.168.30.0 0.0.0.63 any</span>
+
+<span class="comment">! 2. 業務部只能連 ERP 的 SQL 埠</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp 192.168.10.0 0.0.0.255 host 192.168.30.10 eq 1433</span>
+
+<span class="comment">! 3. 工程部可以 SSH 進去維護（來源限定跳板機）</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp host 192.168.20.5 192.168.30.0 0.0.0.63 eq 22</span>
+
+<span class="comment">! 4. 允許回應封包進來（重要！沒這行外面回不來）</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp any 192.168.30.0 0.0.0.63 established</span>
+
+<span class="comment">! 5. 允許 DNS 查詢</span>
+R1(config-ext-nacl)# <span class="cmd">permit udp 192.168.30.0 0.0.0.63 any eq 53</span>
+
+<span class="comment">! 6. 允許 ping 回應（方便排錯）</span>
+R1(config-ext-nacl)# <span class="cmd">permit icmp any 192.168.30.0 0.0.0.63 echo-reply</span>
+
+<span class="comment">! 7. 其他全部拒絕並記錄</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip any any log</span>
+R1(config-ext-nacl)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface vlan 30</span>
+R1(config-if)# <span class="cmd">ip access-group FINANCE-PROTECT in</span></code></pre>
+    </div>
+
+    <h3>established 這個關鍵字的意義</h3>
+    <div class="warn"><strong>ACL 是無狀態的（stateless）。</strong>它不知道「這個回應封包是對應到剛剛某個請求」。所以你放行了「內網 → 外網」，<b>回程的封包還是會被 deny any 擋掉</b>，結果就是「什麼都連不上」。<br><br>
+      <span class="inline-code">established</span> 的做法：檢查 TCP 表頭的 <b>ACK 或 RST 旗標</b>。有這些旗標代表「這是既有連線的一部分」，不是新的連線請求。<br><br>
+      <b>限制：只對 TCP 有效。</b>UDP 沒有旗標，所以 DNS、DHCP 這些要另外開規則。真正需要狀態追蹤要用防火牆或 <b>Reflexive ACL / CBAC / ZBF</b>（第 7 節）。
+    </div>
+
+    <h3>驗證與命中統計</h3>
+    <pre><code>R1# <span class="cmd">show access-lists FINANCE-PROTECT</span>
+Extended IP access list FINANCE-PROTECT
+    10 permit ip 192.168.30.0 0.0.0.63 any (<span class="val">14203 matches</span>)
+    20 permit tcp 192.168.10.0 0.0.0.255 host 192.168.30.10 eq 1433 (<span class="val">892 matches</span>)
+    30 permit tcp host 192.168.20.5 192.168.30.0 0.0.0.63 eq 22 (<span class="val">12 matches</span>)
+    40 permit tcp any 192.168.30.0 0.0.0.63 established (8241 matches)
+    50 permit udp 192.168.30.0 0.0.0.63 any eq domain (1502 matches)
+    60 permit icmp any 192.168.30.0 0.0.0.63 echo-reply (44 matches)
+    70 deny ip any any log (<span class="kw">317 matches</span>)
+
+<span class="comment">! 歸零計數器，方便測試某條規則有沒有被命中</span>
+R1# <span class="cmd">clear access-list counters FINANCE-PROTECT</span></code></pre>
+
+    <div class="ok"><strong>命中數是排錯的關鍵線索。</strong>某條 permit 規則命中數是 0 → 那條規則寫錯了或被前面的規則吃掉了。最後的 deny 命中數一直暴增 → 有正常流量被誤擋，配合 <span class="inline-code">show logging</span> 看被擋的是誰。</div>
+
+    <div class="warn"><strong><span class="inline-code">log</span> 關鍵字要謹慎用。</strong>每一筆被記錄的封包都會<b>從硬體交換路徑掉到 CPU 處理</b>（process switching），高流量下可能把 CPU 打滿。正式環境只在<b>最後那條 deny</b> 加 log，而且要搭配 <span class="inline-code">ip access-list logging interval 1000</span> 限制頻率。</div>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="place">
+    <h2>5. 放置位置的判斷法</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>先問：這是標準還是延伸？</b>標準 → 靠近目的地。延伸 → 靠近來源。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>再問：流量的方向是什麼？</b>站在<b>路由器的角度</b>想，不是站在使用者角度。封包「進入」介面是 in，「離開」介面是 out。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>優先選 in。</b>in 方向的 ACL 在路由查表<b>之前</b>執行，被擋的封包不會浪費路由器的處理資源。out 方向要先查完路由才過濾。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>畫圖確認。</b>把來源、目的、經過的介面畫出來，標上箭頭方向。這一步不能省。</div></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">方向判斷練習</div>
+      <pre style="margin:10px 0"><code>[PC-A 192.168.10.5]──Gi0/0──[ R1 ]──Gi0/1──[Server 192.168.30.10]</code></pre>
+      <div class="tbl-wrap" style="margin-bottom:0">
+        <table class="t">
+          <tr><th>需求</th><th>放哪</th><th>方向</th></tr>
+          <tr><td>擋 PC-A 去 Server</td><td>Gi0/0</td><td><b>in</b>（封包從 PC 進入 R1）</td></tr>
+          <tr><td>擋 Server 回 PC-A</td><td>Gi0/1</td><td><b>in</b>（封包從 Server 進入 R1）</td></tr>
+          <tr><td>擋所有東西去 Server</td><td>Gi0/1</td><td><b>out</b>（封包從 R1 出去給 Server）</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="warn"><strong>套在介面上的 ACL <u>不會</u>過濾路由器自己產生的流量。</strong>Gi0/1 的 out 方向 ACL 擋不住路由器自己發出的 ping、SNMP trap、syslog。要控制路由器自己的流量要用 <b>Control Plane Policing</b> 或在對方的入口擋。</div>
+
+    <div class="warn"><strong>遠端設定 ACL 的自保流程：</strong>
+      <ol style="margin:8px 0 0">
+        <li>先下 <span class="inline-code">reload in 10</span>（10 分鐘後自動重開，回到未存檔的設定）</li>
+        <li>套用 ACL</li>
+        <li>確認自己還連得上、業務正常</li>
+        <li><span class="inline-code">reload cancel</span> 取消重開</li>
+        <li><span class="inline-code">write memory</span> 存檔</li>
+      </ol>
+      如果第 3 步就斷線了，10 分鐘後路由器自己重開，設定回到套用前——你不用開車去機房。
+    </div>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="edit">
+    <h2>6. 編輯與序號管理</h2>
+
+    <div class="warn"><strong>編號式 ACL 不能刪除單一條目。</strong><span class="inline-code">no access-list 100 deny ...</span> 會<b>把整個 ACL 100 刪光</b>。這是機房事故的常見來源。<b>具名式 ACL 才能單條編輯。</b></div>
+
+    <pre><code><span class="comment">! ── 看目前的序號 ──</span>
+R1# <span class="cmd">show access-lists FINANCE-PROTECT</span>
+    10 permit ip 192.168.30.0 0.0.0.63 any
+    20 permit tcp 192.168.10.0 0.0.0.255 host 192.168.30.10 eq 1433
+    30 deny ip any any log
+
+<span class="comment">! ── 在 20 和 30 之間插入一條 ──</span>
+R1(config)# <span class="cmd">ip access-list extended FINANCE-PROTECT</span>
+R1(config-ext-nacl)# <span class="cmd">25 permit tcp host 192.168.20.5 any eq 22</span>
+
+<span class="comment">! ── 刪除單一條目 ──</span>
+R1(config-ext-nacl)# <span class="cmd">no 25</span>
+
+<span class="comment">! ── 序號用完了？重新編號（間隔 10，從 10 開始）──</span>
+R1(config)# <span class="cmd">ip access-list resequence FINANCE-PROTECT 10 10</span></code></pre>
+
+    <div class="ok"><strong>建議做法：新建 ACL 時序號用 10、20、30…間隔 10。</strong>這樣中間永遠有空間插入。IOS 預設就是這樣自動編號的，但如果你手動指定成 1、2、3，之後就沒地方插了。</div>
+
+    <h3>安全的修改流程（正式環境）</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>建立一個新名字的 ACL</b>例如 <span class="inline-code">FINANCE-PROTECT-V2</span>，完整寫好所有規則。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>設 reload in 10 保險</b>萬一改壞了會自己回復。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>一行指令切換</b><span class="inline-code">ip access-group FINANCE-PROTECT-V2 in</span>。套新的會自動取代舊的，<b>沒有空窗期</b>。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>驗證後 reload cancel + write</b>確認業務正常再取消重開並存檔。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>觀察幾天再刪舊的</b>確定沒問題才 <span class="inline-code">no ip access-list extended FINANCE-PROTECT</span>。</div></div>
+    </div>
+
+    <div class="warn"><strong>不要用「先移除舊 ACL 再套新 ACL」的做法。</strong>中間那幾秒鐘介面是<b>完全沒有保護</b>的。直接套新的會原子性地取代。</div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="advanced">
+    <h2>7. 進階：時間型、物件群組、反射式</h2>
+
+    <h3>Time-based ACL：上班時間才開放</h3>
+    <pre><code><span class="comment">! 定義時間範圍</span>
+R1(config)# <span class="cmd">time-range WORK-HOURS</span>
+R1(config-time-range)# <span class="cmd">periodic weekdays 08:30 to 18:30</span>
+R1(config-time-range)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">time-range MAINTENANCE</span>
+R1(config-time-range)# <span class="cmd">absolute start 02:00 15 March 2026 end 06:00 15 March 2026</span>
+R1(config-time-range)# <span class="cmd">exit</span>
+
+<span class="comment">! 套用到 ACL 條目</span>
+R1(config)# <span class="cmd">ip access-list extended GUEST-WIFI</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp 192.168.40.0 0.0.0.255 any eq 443 time-range WORK-HOURS</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip any any</span></code></pre>
+
+    <div class="warn"><strong>Time-based ACL 完全依賴路由器的時間。</strong>沒設 NTP 的話，時間可能停在 1993 年，整條規則永遠不生效或永遠生效。<b>用之前一定要先設好 NTP 和時區：</b>
+      <pre style="margin:8px 0 0"><code>R1(config)# <span class="cmd">clock timezone CST 8</span>
+R1(config)# <span class="cmd">ntp server 118.163.81.61</span>       <span class="comment">← 台灣的 NTP</span>
+R1# <span class="cmd">show ntp status</span>
+R1# <span class="cmd">show clock detail</span></code></pre>
+    </div>
+
+    <h3>Object Group：規則多的時候救命</h3>
+    <pre><code><span class="comment">! 定義網路群組</span>
+R1(config)# <span class="cmd">object-group network TRUSTED-ADMINS</span>
+R1(config-network-group)# <span class="cmd">host 192.168.20.5</span>
+R1(config-network-group)# <span class="cmd">host 192.168.20.6</span>
+R1(config-network-group)# <span class="cmd">192.168.99.0 255.255.255.0</span>
+R1(config-network-group)# <span class="cmd">exit</span>
+
+<span class="comment">! 定義服務群組</span>
+R1(config)# <span class="cmd">object-group service MGMT-PORTS</span>
+R1(config-service-group)# <span class="cmd">tcp eq 22</span>
+R1(config-service-group)# <span class="cmd">tcp eq 443</span>
+R1(config-service-group)# <span class="cmd">udp eq 161</span>
+R1(config-service-group)# <span class="cmd">exit</span>
+
+<span class="comment">! 一行取代原本要寫 9 行（3 來源 × 3 埠）</span>
+R1(config)# <span class="cmd">ip access-list extended MGMT-ACL</span>
+R1(config-ext-nacl)# <span class="cmd">permit object-group MGMT-PORTS object-group TRUSTED-ADMINS any</span></code></pre>
+
+    <div class="ok"><strong>Object Group 的最大價值是維護。</strong>新增一台管理主機時，只要在 object-group 裡加一行，<b>所有引用它的 ACL 自動生效</b>，不用去改十幾條規則。企業環境強烈建議使用。</div>
+
+    <h3>Reflexive ACL：模擬狀態追蹤</h3>
+    <pre><code><span class="comment">! 出去的流量建立一個暫時的「反射項目」</span>
+R1(config)# <span class="cmd">ip access-list extended OUTBOUND</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp any any reflect TCP-SESSIONS timeout 300</span>
+R1(config-ext-nacl)# <span class="cmd">permit udp any any reflect UDP-SESSIONS timeout 60</span>
+R1(config-ext-nacl)# <span class="cmd">permit icmp any any reflect ICMP-SESSIONS timeout 10</span>
+R1(config-ext-nacl)# <span class="cmd">exit</span>
+
+<span class="comment">! 進來的流量比對那些反射項目</span>
+R1(config)# <span class="cmd">ip access-list extended INBOUND</span>
+R1(config-ext-nacl)# <span class="cmd">evaluate TCP-SESSIONS</span>
+R1(config-ext-nacl)# <span class="cmd">evaluate UDP-SESSIONS</span>
+R1(config-ext-nacl)# <span class="cmd">evaluate ICMP-SESSIONS</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip any any log</span>
+R1(config-ext-nacl)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip access-group OUTBOUND out</span>
+R1(config-if)# <span class="cmd">ip access-group INBOUND in</span>
+
+R1# <span class="cmd">show ip access-lists TCP-SESSIONS</span>       <span class="comment">! 看目前有哪些活躍 session</span></code></pre>
+
+    <div class="note"><strong>Reflexive ACL 比 <span class="inline-code">established</span> 好在哪？</strong>它對 <b>UDP 和 ICMP 也有效</b>，而且是真的追蹤「這個回應是對應到哪個請求」，不是只看 ACK 旗標。缺點是不懂應用層協定（例如 FTP 主動模式的資料通道會被擋）。要處理那種情況需要 <b>ZBF（Zone-Based Firewall）</b>，那是 CCNP Security 的範圍。</div>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="vty">
+    <h2>8. 保護 VTY 與管理平面</h2>
+
+    <div class="warn"><strong>路由器暴露 SSH／Telnet 給整個網路是重大資安缺口。</strong>就算有密碼，暴力破解和已知漏洞掃描也是實際威脅。<b>限制來源是最有效的一道防線。</b></div>
+
+    <pre><code><span class="comment">! ── 1. 定義誰可以連進來 ──</span>
+R1(config)# <span class="cmd">ip access-list standard VTY-ACCESS</span>
+R1(config-std-nacl)# <span class="cmd">permit 192.168.99.0 0.0.0.255</span>       <span class="comment">← 管理網段</span>
+R1(config-std-nacl)# <span class="cmd">permit host 203.0.113.50</span>              <span class="comment">← 遠端維護跳板機</span>
+R1(config-std-nacl)# <span class="cmd">deny any log</span>
+R1(config-std-nacl)# <span class="cmd">exit</span>
+
+<span class="comment">! ── 2. 套用到 VTY（注意是 access-class，不是 access-group）──</span>
+R1(config)# <span class="cmd">line vty 0 15</span>
+R1(config-line)# <span class="cmd">access-class VTY-ACCESS in</span>
+R1(config-line)# <span class="cmd">transport input ssh</span>                     <span class="comment">← 只准 SSH，關掉 Telnet</span>
+R1(config-line)# <span class="cmd">exec-timeout 10 0</span>                       <span class="comment">← 閒置 10 分鐘自動登出</span>
+R1(config-line)# <span class="cmd">login local</span>
+R1(config-line)# <span class="cmd">logging synchronous</span></code></pre>
+
+    <div class="warn"><strong>介面用 <span class="inline-code">ip access-group</span>，VTY 用 <span class="inline-code">access-class</span>。</strong>這是考試必考的區別，也是實務上打錯會被 IOS 拒絕的地方。</div>
+
+    <h3>完整的 SSH 加固</h3>
+    <pre><code>R1(config)# <span class="cmd">hostname R1</span>
+R1(config)# <span class="cmd">ip domain-name corp.local</span>
+R1(config)# <span class="cmd">crypto key generate rsa modulus 2048</span>      <span class="comment">← 至少 2048</span>
+R1(config)# <span class="cmd">ip ssh version 2</span>
+R1(config)# <span class="cmd">ip ssh time-out 60</span>
+R1(config)# <span class="cmd">ip ssh authentication-retries 3</span>
+R1(config)# <span class="cmd">username admin privilege 15 secret Str0ng-P@ssw0rd</span>
+R1(config)# <span class="cmd">service password-encryption</span>
+
+<span class="comment">! 登入失敗自動封鎖</span>
+R1(config)# <span class="cmd">login block-for 120 attempts 3 within 60</span>
+<span class="comment">! ↑ 60 秒內失敗 3 次 → 封鎖 120 秒</span>
+R1(config)# <span class="cmd">login on-failure log</span>
+R1(config)# <span class="cmd">login on-success log</span>
+
+R1# <span class="cmd">show ip ssh</span>
+R1# <span class="cmd">show login</span></code></pre>
+
+    <div class="note">路由器的密碼建議搭配 <b>TACACS+ 或 RADIUS</b> 集中管理。用本機帳號的話，員工離職時你要一台一台改密碼；集中認證只要在一個地方停用帳號。這在有稽核需求的企業是必要的。</div>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="ipv6acl">
+    <h2>9. IPv6 ACL 的差異</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>IPv4 ACL</th><th>IPv6 ACL</th></tr>
+        <tr><td>編號式</td><td>有</td><td><b>沒有，只有具名式</b></td></tr>
+        <tr><td>遮罩表示</td><td>wildcard mask</td><td><b>CIDR 前綴長度</b>（/64）</td></tr>
+        <tr><td>套用指令</td><td><span class="inline-code">ip access-group</span></td><td><span class="inline-code">ipv6 traffic-filter</span></td></tr>
+        <tr><td>VTY 套用</td><td><span class="inline-code">access-class X in</span></td><td><span class="inline-code">ipv6 access-class X in</span></td></tr>
+        <tr><td>隱含結尾</td><td>deny any any</td><td><b>permit icmp any any nd-na</b><br><b>permit icmp any any nd-ns</b><br>deny ipv6 any any</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>IPv6 的隱含規則多了兩條，這是關鍵設計。</strong>IPv6 用 <b>NDP（Neighbor Discovery Protocol）</b>取代 ARP，nd-na／nd-ns 就是 NDP 的訊息。如果沒有這兩條隱含放行，套上 ACL 之後<b>整個網段會立刻失去鄰居解析能力</b>，所有裝置都無法通訊。<br><br>
+      <b>但是：如果你自己在 ACL 結尾寫了明確的 <span class="inline-code">deny ipv6 any any</span>，隱含規則就不會生效</b>——你必須自己補上 NDP 放行：
+      <pre style="margin:8px 0 0"><code>R1(config-ipv6-acl)# <span class="cmd">permit icmp any any nd-na</span>
+R1(config-ipv6-acl)# <span class="cmd">permit icmp any any nd-ns</span>
+R1(config-ipv6-acl)# <span class="cmd">deny ipv6 any any log</span></code></pre>
+    </div>
+
+    <pre><code>R1(config)# <span class="cmd">ipv6 access-list BLOCK-GUEST</span>
+R1(config-ipv6-acl)# <span class="cmd">permit tcp 2001:db8:0:40::/64 any eq 443</span>
+R1(config-ipv6-acl)# <span class="cmd">permit udp 2001:db8:0:40::/64 any eq 53</span>
+R1(config-ipv6-acl)# <span class="cmd">permit icmp any any nd-na</span>
+R1(config-ipv6-acl)# <span class="cmd">permit icmp any any nd-ns</span>
+R1(config-ipv6-acl)# <span class="cmd">deny ipv6 any any log</span>
+R1(config-ipv6-acl)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/2</span>
+R1(config-if)# <span class="cmd">ipv6 traffic-filter BLOCK-GUEST in</span>
+
+R1# <span class="cmd">show ipv6 access-list</span></code></pre>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="nat-basic">
+    <h2>10. NAT 四個術語與運作</h2>
+
+    <p><b>NAT（Network Address Translation）</b>把私有 IP 換成公有 IP，讓內網可以上網。它解決了 IPv4 位址不足的問題，也順便提供了一層隱藏內網結構的保護。</p>
+
+    <div class="nat-grid">
+      <div class="nat-card"><b>Inside Local</b><span>內部主機的<b>真實私有位址</b>。<br>例：192.168.10.5</span></div>
+      <div class="nat-card"><b>Inside Global</b><span>內部主機在外面<b>看起來的公有位址</b>。<br>例：203.0.113.10</span></div>
+      <div class="nat-card"><b>Outside Local</b><span>外部主機在<b>內網看起來的位址</b>。<br>通常等於 Outside Global</span></div>
+      <div class="nat-card"><b>Outside Global</b><span>外部主機的<b>真實公有位址</b>。<br>例：8.8.8.8</span></div>
+    </div>
+
+    <div class="ok"><strong>記憶法，拆成兩個字來看：</strong>
+      <div class="formula" style="margin-top:10px"><code><b>Inside / Outside</b> → 這台機器<b>實際在哪一邊</b><br>
+      <b>Local / Global</b> → 從<b>內網</b>看到的名字 / 從<b>外網</b>看到的名字</code></div>
+      所以 <b>Inside Local</b> = 內部機器、內網看到的位址 = 它的真實私有 IP。<br>
+      <b>Inside Global</b> = 內部機器、外網看到的位址 = 轉換後的公有 IP。
+    </div>
+
+    <h3>三種 NAT</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類型</th><th>對應關係</th><th>用途</th></tr>
+        <tr><td><b>Static NAT</b></td><td>1 對 1，<b>固定</b></td><td>對外提供服務的伺服器</td></tr>
+        <tr><td><b>Dynamic NAT</b></td><td>多對多，從位址池<b>動態取用</b></td><td>公有位址夠多的情況（現在很少）</td></tr>
+        <tr><td><b>PAT / NAT Overload</b></td><td><b>多對一</b>，靠埠號區分</td><td><b>99% 的企業和家用場景</b></td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>PAT 的理論上限與實際上限。</strong>理論上一個公有 IP 有 65535 個埠，但實際可用的動態埠範圍約 <b>1024–65535，即 6 萬多個</b>。而且：
+      <ul style="margin:8px 0 0">
+        <li>現代網頁一次可能開 <b>10–20 個並行連線</b></li>
+        <li>手機 App 背景同步也在佔用</li>
+        <li>轉換項目有逾時時間（TCP 預設 24 小時），不會馬上釋放</li>
+      </ul>
+      <b>經驗值：一個公有 IP 大約支撐 200–500 個使用者</b>。超過就要準備位址池。
+    </div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="nat-config">
+    <h2>11. 實作三：靜態、動態、PAT</h2>
+
+    <h3>共同的第一步：標記介面</h3>
+    <pre><code>R1(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">ip nat inside</span>                    <span class="comment">← 面向內網</span>
+R1(config-if)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip nat outside</span>                   <span class="comment">← 面向外網</span></code></pre>
+
+    <div class="warn"><strong>忘記標記 inside/outside 是最常見的 NAT 故障。</strong>設定全部正確、<span class="inline-code">show ip nat translations</span> 卻永遠是空的，八成就是這兩行沒下。而且<b>如果有多個內網介面（多個 VLAN），每一個都要標 inside</b>。</div>
+
+    <h3>PAT：最常用的設定</h3>
+    <pre><code><span class="comment">! ── 步驟 1：定義「哪些內網位址要被轉換」──</span>
+R1(config)# <span class="cmd">ip access-list standard NAT-INSIDE</span>
+R1(config-std-nacl)# <span class="cmd">permit 192.168.10.0 0.0.0.255</span>
+R1(config-std-nacl)# <span class="cmd">permit 192.168.20.0 0.0.0.255</span>
+R1(config-std-nacl)# <span class="cmd">permit 192.168.30.0 0.0.0.63</span>
+R1(config-std-nacl)# <span class="cmd">exit</span>
+
+<span class="comment">! ── 步驟 2：用出口介面的 IP 做 overload ──</span>
+R1(config)# <span class="cmd">ip nat inside source list NAT-INSIDE interface gigabitEthernet 0/1 overload</span></code></pre>
+
+    <div class="warn"><strong>這個 ACL 的 <span class="inline-code">deny</span> 意義跟過濾時<u>完全不同</u>。</strong>在 NAT 裡：
+      <ul style="margin:8px 0 0">
+        <li><b>permit</b> = 「這些位址<b>要</b>被轉換」</li>
+        <li><b>deny</b> = 「這些位址<b>不要</b>被轉換」（不是「擋掉」！）</li>
+      </ul>
+      這在有 VPN 的環境非常重要——要去 VPN 對端的流量必須 <b>deny</b>（不轉換），否則封包被 NAT 掉就進不了 VPN 通道。這叫 <b>NAT Exemption</b>。
+    </div>
+
+    <pre><code><span class="comment">! VPN 環境的正確寫法（延伸 ACL 才能指定目的地）</span>
+R1(config)# <span class="cmd">ip access-list extended NAT-INSIDE</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip 192.168.10.0 0.0.0.255 172.16.0.0 0.0.255.255</span>   <span class="comment">← 去分公司的不轉換</span>
+R1(config-ext-nacl)# <span class="cmd">permit ip 192.168.10.0 0.0.0.255 any</span>                    <span class="comment">← 其他的轉換</span></code></pre>
+
+    <h3>PAT 用位址池（使用者多的時候）</h3>
+    <pre><code>R1(config)# <span class="cmd">ip nat pool PUBLIC-POOL 203.0.113.10 203.0.113.14 netmask 255.255.255.248</span>
+R1(config)# <span class="cmd">ip nat inside source list NAT-INSIDE pool PUBLIC-POOL overload</span></code></pre>
+
+    <h3>Static NAT：伺服器對外</h3>
+    <pre><code><span class="comment">! 整台機器 1 對 1 對應</span>
+R1(config)# <span class="cmd">ip nat inside source static 192.168.30.10 203.0.113.20</span></code></pre>
+
+    <h3>Dynamic NAT（不 overload）</h3>
+    <pre><code>R1(config)# <span class="cmd">ip nat pool DYN-POOL 203.0.113.30 203.0.113.39 netmask 255.255.255.240</span>
+R1(config)# <span class="cmd">ip nat inside source list NAT-INSIDE pool DYN-POOL</span>
+<span class="comment">! 沒有 overload → 位址用完了，第 11 個使用者就上不了網</span></code></pre>
+
+    <h3>驗證</h3>
+    <pre><code>R1# <span class="cmd">show ip nat translations</span>
+Pro  Inside global      Inside local       Outside local      Outside global
+tcp  203.0.113.2:<span class="val">1055</span>   192.168.10.5:<span class="val">1055</span>   142.250.1.1:443    142.250.1.1:443
+tcp  203.0.113.2:<span class="val">1056</span>   192.168.10.8:<span class="val">1055</span>   142.250.1.1:443    142.250.1.1:443
+<span class="comment">!                  ↑ 兩台不同電腦用了相同的來源埠，PAT 改寫其中一個以區分</span>
+---  203.0.113.20       192.168.30.10      ---                ---
+<span class="comment">!    ↑ Static NAT 沒有協定和埠，永久存在</span>
+
+R1# <span class="cmd">show ip nat statistics</span>
+Total active translations: 47 (1 static, 46 dynamic; 46 extended)
+Outside interfaces: GigabitEthernet0/1
+Inside interfaces: GigabitEthernet0/0
+Hits: 28492  Misses: 0
+Expired translations: 1204
+
+<span class="comment">! 清除（Static 不會被清掉）</span>
+R1# <span class="cmd">clear ip nat translation *</span></code></pre>
+
+    <h3>調整逾時（NAT 表滿了的時候）</h3>
+    <pre><code>R1(config)# <span class="cmd">ip nat translation timeout 3600</span>          <span class="comment">! 一般，預設 86400（24 小時）</span>
+R1(config)# <span class="cmd">ip nat translation tcp-timeout 3600</span>
+R1(config)# <span class="cmd">ip nat translation udp-timeout 300</span>       <span class="comment">! 預設 300</span>
+R1(config)# <span class="cmd">ip nat translation icmp-timeout 60</span>
+R1(config)# <span class="cmd">ip nat translation max-entries 20000</span>     <span class="comment">! 上限保護</span></code></pre>
+
+    <div class="ok"><strong>什麼時候該調 timeout？</strong><span class="inline-code">show ip nat statistics</span> 的 <b>Misses</b> 一直增加，或 active translations 逼近上限時。預設的 24 小時 TCP timeout 在使用者多的環境會累積大量殭屍項目，調成 1 小時通常就解決了。</div>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="portfwd">
+    <h2>12. 實作四：埠轉發與伺服器對外</h2>
+
+    <p>公司只有一個公有 IP，但要對外提供網站（80/443）和郵件（25）——這些服務在不同的內部伺服器上。解法是<b>依埠號轉發</b>。</p>
+
+    <pre><code><span class="comment">! ── 網站：外部連 203.0.113.2:443 → 內部 192.168.30.20:443 ──</span>
+R1(config)# <span class="cmd">ip nat inside source static tcp 192.168.30.20 443 interface gi0/1 443</span>
+
+<span class="comment">! ── 換埠也可以：外部 8443 → 內部 443 ──</span>
+R1(config)# <span class="cmd">ip nat inside source static tcp 192.168.30.20 443 interface gi0/1 8443</span>
+
+<span class="comment">! ── 郵件在另一台 ──</span>
+R1(config)# <span class="cmd">ip nat inside source static tcp 192.168.30.25 25 interface gi0/1 25</span>
+
+<span class="comment">! ── UDP 也可以（例如 VPN）──</span>
+R1(config)# <span class="cmd">ip nat inside source static udp 192.168.30.30 500 interface gi0/1 500</span></code></pre>
+
+    <div class="warn"><strong>NAT 和 ACL 的執行順序決定你的 ACL 該怎麼寫。</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>方向</th><th>執行順序</th><th>ACL 該用哪個位址</th></tr>
+          <tr><td><b>Inside → Outside</b></td><td>先 ACL（in），再<b>路由</b>，再 NAT</td><td><b>私有位址</b>（192.168.x.x）</td></tr>
+          <tr><td><b>Outside → Inside</b></td><td>先 NAT，再 ACL，再路由</td><td><b>私有位址</b>（NAT 已經轉換完了）</td></tr>
+        </table>
+      </div>
+      <b>結論：兩個方向的 ACL 都用私有位址寫。</b>很多人在 outside in 的 ACL 裡寫公有位址，結果永遠不匹配。
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">完整的對外服務保護</div>
+      <pre style="margin:10px 0 0"><code><span class="comment">! 埠轉發</span>
+R1(config)# <span class="cmd">ip nat inside source static tcp 192.168.30.20 443 interface gi0/1 443</span>
+
+<span class="comment">! 外部進來的 ACL —— 注意用「私有位址」當目的地</span>
+R1(config)# <span class="cmd">ip access-list extended FROM-INTERNET</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp any host 192.168.30.20 eq 443</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp any any established</span>
+R1(config-ext-nacl)# <span class="cmd">permit icmp any any echo-reply</span>
+R1(config-ext-nacl)# <span class="cmd">permit icmp any any packet-too-big</span>       <span class="comment">← PMTUD 需要，別擋</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip 10.0.0.0 0.255.255.255 any log</span>      <span class="comment">← 擋偽造私有來源</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip 172.16.0.0 0.15.255.255 any log</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip 192.168.0.0 0.0.255.255 any log</span>
+R1(config-ext-nacl)# <span class="cmd">deny ip any any log</span>
+R1(config-ext-nacl)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ip access-group FROM-INTERNET in</span></code></pre>
+    </div>
+
+    <div class="warn"><strong>不要擋掉 <span class="inline-code">icmp packet-too-big</span>（IPv4 是 unreachable 的一種）。</strong>它是 <b>Path MTU Discovery</b> 的核心。擋掉之後症狀是「小封包通、大檔案傳到一半卡住」——這種問題可以查上一整天。</div>
+
+    <h3>NAT 迴環（Hairpin）：內部用網域名稱連自家伺服器</h3>
+    <div class="warn"><strong>常見抱怨：「在公司內網打 www.company.com 連不上，用手機 4G 就可以」。</strong><br><br>
+      原因：內網 DNS 回傳的是公有 IP 203.0.113.2。封包從內網送出，目的地是自己路由器的外部 IP——路由器不會把它繞回內網。<br><br>
+      <b>三種解法（由好到差）：</b>
+      <ol style="margin:8px 0 0">
+        <li><b>Split DNS</b>（推薦）：內部 DNS 直接回傳私有 IP 192.168.30.20。最乾淨、沒有效能損失。</li>
+        <li><b>NAT hairpin</b>：在路由器上做迴環轉換，設定複雜且吃 CPU。</li>
+        <li>叫使用者記私有 IP。（不要這樣做）</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="nat-trouble">
+    <h2>13. 故障排除</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>介面標記了嗎？</b><span class="inline-code">show ip nat statistics</span> 看 Inside/Outside interfaces 兩行。空的就是沒標。<b>多 VLAN 環境每個內網介面都要標。</b></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>轉換有產生嗎？</b><span class="inline-code">show ip nat translations</span>。空的 → ACL 沒匹配到，或介面沒標。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>ACL 匹配了嗎？</b><span class="inline-code">show access-lists NAT-INSIDE</span> 看命中數。0 就是 wildcard 寫錯或網段不對。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>路由通嗎？</b>NAT 只負責改位址，<b>路由是另一回事</b>。<span class="inline-code">show ip route 0.0.0.0</span> 確認有預設路由。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>對外的位址池有效嗎？</b>公有 IP 必須是 ISP 真的路由給你的。用了不屬於自己的位址，封包出去了回不來。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>ACL 擋住了嗎？</b>注意上一節講的順序——outside in 的 ACL 要用<b>私有位址</b>。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>轉換表滿了嗎？</b><span class="inline-code">show ip nat statistics</span> 的 Misses 一直增加就是。調 timeout 或加位址池。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>用 debug 追</b><span class="inline-code">debug ip nat</span>，但<b>一定要先用 ACL 限制範圍</b>，不然訊息量會把路由器打掛。</div></div>
+    </div>
+
+    <pre><code><span class="comment">! 安全的 NAT debug</span>
+R1(config)# <span class="cmd">access-list 199 permit ip host 192.168.10.5 any</span>
+R1# <span class="cmd">debug ip nat 199</span>
+R1# <span class="cmd">undebug all</span>            <span class="comment">← 用完立刻關</span>
+
+<span class="comment">! 逐跳確認轉換有沒有發生</span>
+R1# <span class="cmd">show ip nat translations verbose</span></code></pre>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「新加的 VLAN 上不了網，舊的都正常」</div>
+      <p><b>排查：</b><span class="inline-code">show ip nat statistics</span> → Inside interfaces 只列了 Vlan10、Vlan20，<b>沒有新加的 Vlan40</b>。</p>
+      <p style="margin-bottom:0"><b>原因：</b>新建 SVI 時忘了下 <span class="inline-code">ip nat inside</span>。<b>啟示：</b>每次新增內網介面都要記得標記，這個檢查應該寫進部署清單。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「VPN 建起來了，但兩邊互相 ping 不到」</div>
+      <p><b>排查：</b><span class="inline-code">show ip nat translations</span> → 看到去分公司 172.16.x.x 的流量<b>被 NAT 成公有 IP 了</b>。</p>
+      <p style="margin-bottom:0"><b>原因：</b>NAT ACL 用 <span class="inline-code">permit 192.168.10.0 0.0.0.255</span>（標準 ACL，看不到目的地），所以去 VPN 的流量也被轉換。<b>修法：</b>改成延伸 ACL 並在最前面加 <span class="inline-code">deny ip 192.168.10.0 0.0.0.255 172.16.0.0 0.0.255.255</span>。</p>
+    </div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：分段防護 + PAT + 對外服務</h3>
+    <p>Packet Tracer 或 GNS3，約 80 分鐘。</p>
+
+    <h4>拓樸</h4>
+    <pre><code>                    [ Internet ]  8.8.8.8
+                          │ 203.0.113.1
+                       Gi0/1 (outside) 203.0.113.2/30
+                       [ R1 ]
+                       Gi0/0 (inside) trunk
+                          │
+                    [ SW-L3 ]
+        ┌───────┬─────────┼─────────┬────────┐
+     VLAN10   VLAN20   VLAN30    VLAN40   VLAN99
+      業務     工程      財務      訪客      管理
+   .10.0/24 .20.0/24 .30.0/26  .40.0/24 .99.0/28
+                        └ Web 30.20
+                        └ SQL 30.10</code></pre>
+
+    <h4>步驟</h4>
+    <ol>
+      <li>建立所有 VLAN 與 SVI，R1 用單臂路由或三層交換器都可以</li>
+      <li>R1 的 Gi0/0 標 <strong>ip nat inside</strong>、Gi0/1 標 <strong>ip nat outside</strong>（若用 SVI 則每個 SVI 都要標）</li>
+      <li>設定 <strong>PAT</strong>：VLAN 10/20/30 可以上網，<strong>VLAN 99 不可以</strong>（管理網段不該對外）</li>
+      <li>VLAN 40 訪客<strong>只能</strong>走 tcp/443 和 udp/53，且限定<strong>上班時間</strong>（time-range）</li>
+      <li>寫 <strong>FINANCE-PROTECT</strong>：業務部只能連 30.10 的 1433；工程部跳板機 20.5 可以 SSH 進 VLAN 30；訪客完全不能碰 VLAN 30</li>
+      <li>設定<strong>埠轉發</strong>：外部 443 → 192.168.30.20:443</li>
+      <li>寫 <strong>FROM-INTERNET</strong> ACL 套在 Gi0/1 in，記得用<strong>私有位址</strong>，並放行 established 與 packet-too-big</li>
+      <li>建立 <strong>VTY-ACCESS</strong>，只允許 VLAN 99 SSH，套用 <strong>access-class</strong></li>
+      <li>設定 <strong>NTP + timezone</strong>（time-range 的前提）</li>
+      <li>建立 <strong>object-group</strong> 管理跳板機清單</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>VLAN 10/20/30 的 PC 都能 ping 8.8.8.8；<strong>VLAN 99 不能</strong></li>
+      <li><span class="inline-code">show ip nat translations</span> 看得到各 VLAN 的轉換項目</li>
+      <li>VLAN 10 的 PC 能連 30.10:1433，<strong>但 ping 不到 30.10</strong>（ACL 只放行 tcp/1433）</li>
+      <li>VLAN 40 訪客在上班時間能開 https 網站，<strong>改路由器時間到半夜後就不行</strong></li>
+      <li>從外部（模擬 Internet 的 PC）連 203.0.113.2:443 能到 Web 伺服器</li>
+      <li>從 VLAN 10 SSH 到 R1 <strong>被拒絕</strong>；從 VLAN 99 可以</li>
+      <li><span class="inline-code">show access-lists</span> 每條 permit 的命中數都 &gt; 0（代表規則都有用到，沒有死規則）</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>把 FINANCE-PROTECT 最後的 <span class="inline-code">permit ip any any</span> 拿掉，觀察多少服務瞬間中斷，體會隱含 deny。</li>
+      <li>把 NAT 的 ACL 從標準改成延伸，加上 <span class="inline-code">deny ip 192.168.10.0 0.0.0.255 172.16.0.0 0.0.255.255</span>，驗證去 172.16.x.x 的流量<strong>不會出現在 NAT 表裡</strong>。</li>
+      <li>在 FROM-INTERNET 裡故意用<strong>公有位址</strong> 203.0.113.2 當目的地，觀察為什麼永遠不匹配。</li>
+      <li>設定 Reflexive ACL 取代 <span class="inline-code">established</span>，測試 UDP（DNS）在兩種做法下的差異。</li>
+      <li>把 R1 的時間改到半夜，用 <span class="inline-code">show access-lists</span> 觀察 time-range 那條規則消失。</li>
+      <li>用 <span class="inline-code">ip access-list resequence</span> 把某個 ACL 重新編號，然後在中間插入一條新規則。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>ACL 三鐵則：<strong>由上往下、隱含 deny any、每介面每方向每協定只能一個</strong></li>
+      <li>Wildcard = <strong>255.255.255.255 − 子網路遮罩</strong>；0 = 要相同，1 = 不管</li>
+      <li><strong>標準 ACL 靠近目的地，延伸 ACL 靠近來源</strong>；優先選 in 方向</li>
+      <li>只寫 deny 而忘了補 <span class="inline-code">permit ip any any</span> = 全公司斷網</li>
+      <li>ACL 是<strong>無狀態</strong>的，回程要靠 <span class="inline-code">established</span>（僅 TCP）或 Reflexive ACL（含 UDP/ICMP）</li>
+      <li>編號式 ACL <strong>不能刪單條</strong>；一律用具名式，序號間隔 10</li>
+      <li>介面用 <span class="inline-code">ip access-group</span>，VTY 用 <span class="inline-code">access-class</span></li>
+      <li>IPv6 ACL 隱含放行 <strong>nd-na / nd-ns</strong>，自己寫 deny 就要手動補回來</li>
+      <li>NAT 四術語：<strong>Inside/Outside 是機器在哪邊，Local/Global 是從哪邊看</strong></li>
+      <li>NAT 的 ACL 裡 <strong>deny = 不轉換</strong>，不是「擋掉」——VPN 環境的關鍵</li>
+      <li>兩個方向的 ACL 都用<strong>私有位址</strong>寫；別擋 <strong>packet-too-big</strong></li>
+      <li>忘記 <span class="inline-code">ip nat inside/outside</span> 是最常見的 NAT 故障</li>
+    </ul>
+    <div class="note">ACL 和 NAT 在 CCNA 佔比很高，而且題目常是「給一段設定，問哪個封包會被擋」。去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 選「網路資安」和「IP 服務」兩個主題各練一輪。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="09-bgp-policy.html">← CH 3-3：BGP 與路由政策</a>
+    <a href="11-qos-sdwan.html">CH 4-1：QoS 與 SD-WAN →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 3-4</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

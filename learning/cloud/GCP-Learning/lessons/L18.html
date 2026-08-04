@@ -83,4 +83,178 @@ gcloud sql instances patch lab-pg --no-deletion-protection
 gcloud sql instances delete lab-pg --quiet</code></pre></div><h2>七、本課檢核</h2><ul class="checklist"><li>能建立一個含備份、PITR、維護時段的執行個體</li><li>知道正式環境要用私有 IP + Cloud SQL Auth Proxy</li><li>能區分 HA 與唯讀副本的用途</li><li>知道磁碟自動擴充要設上限</li><li>已實際做過一次還原演練</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>Cloud SQL 的 CPU 一直在 90%，你的第一個動作是升級規格嗎？</summary><div class="ans"><strong>不是。</strong>升級規格是最貴、也最可能治標不治本的做法。正確順序：<br>① <strong>找出慢查詢</strong>——用 Query Insights 或 <code>pg_stat_statements</code>，看是哪幾個查詢吃掉 CPU。通常 80% 的負載來自 2～3 個查詢。<br>② <strong>檢查索引</strong>——<code>EXPLAIN ANALYZE</code> 看有沒有全表掃描。加一個索引可能讓 CPU 從 90% 掉到 10%。<br>③ <strong>檢查連線數</strong>——連線過多本身就會吃 CPU。<br>④ <strong>加唯讀副本</strong>——如果是讀取為主。<br>⑤ <strong>最後才升級規格</strong>。<br><em>我見過把資料庫從 4 核升到 32 核（成本 8 倍）結果只快 20% 的案例——因為瓶頸是缺索引導致的磁碟 I/O，加 CPU 完全沒用。</em></div></details><details class="qa"><summary>公司要求 RPO（可容忍資料遺失）< 5 分鐘、RTO（可容忍停機）< 30 分鐘。Cloud SQL 怎麼配置？</summary><div class="ans"><strong>RPO < 5 分鐘</strong>：<br>• 開啟 <strong>Point-in-Time Recovery</strong>（PITR），可還原到任意秒。<br>• 開啟 <strong>REGIONAL 高可用</strong>——同步複製，Zone 故障時 RPO = 0。<br><br><strong>RTO < 30 分鐘</strong>：<br>• HA 自動故障轉移約 60～120 秒 ✅ 遠優於需求。<br>• 但如果是<u>整個 Region 故障</u>，要靠跨區唯讀副本手動提升，通常 5～15 分鐘。<br><br><strong>完整配置</strong>：REGIONAL HA + PITR + 跨 Region 唯讀副本 + <u>事先寫好且演練過的提升腳本</u>。<br><em>最後那一項最重要——RTO 的瓶頸從來不是技術，是「半夜三點誰知道該做什麼」。</em></div></details><details class="qa"><summary>開發者想用 PostgreSQL 的 pg_cron 外掛做排程任務，但 Cloud SQL 不支援。有什麼替代方案？</summary><div class="ans">這正是託管服務的取捨——你不能裝任意外掛。三個替代方案：<br>① <strong>Cloud Scheduler + Cloud Run Job</strong>（推薦）——把排程邏輯搬到資料庫外面。優點是可觀測、可版控、失敗會告警，而且不佔資料庫資源。<br>② <strong>Cloud Scheduler + Cloud Functions</strong>——輕量任務適用。<br>③ <strong>改用 AlloyDB 或自架</strong>——如果真的非某個外掛不可。<br><br><em>更深一層的思考：把排程放在資料庫裡（pg_cron）本來就不是好設計——它讓排程邏輯藏在資料庫裡難以版控、難以監控、且會跟著資料庫一起故障。被迫搬出來反而是好事。</em><br>先查 <a href="https://cloud.google.com/sql/docs/postgres/extensions" target="_blank">Cloud SQL 支援的外掛清單</a>，很多常用外掛（PostGIS、pgvector、pg_stat_statements）其實都有支援。</div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L18">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L17.html"><span>← 上一課</span>L17 Cloud Storage：物件儲存的一切</a><a class="next" href="L19.html"><span>下一課 →</span>L19 Firestore、Memorystore 與 NoSQL 選擇</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

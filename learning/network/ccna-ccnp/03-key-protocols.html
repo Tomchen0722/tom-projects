@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核心協定：DHCP、DNS、ARP、NAT — CCNA／CCNP</title>
+<style>
+:root{--sand:#FDFBF7;--terracotta:#C2410C;--amber:#D97706;--brown:#B45309;--cream:#FEF3C7;--stone:#78716C;--ink:#1C1917;--border:#E7E5E4;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","Microsoft JhengHei",sans-serif;background:var(--sand);color:var(--ink);line-height:1.8;}
+.topbar{background:#1C1917;padding:14px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.topbar a{color:#A8A29E;text-decoration:none;font-size:.82rem;}.topbar a:hover{color:#FCD34D;}
+.topbar .sep{color:#57534E;}.topbar .cur{color:#FCD34D;font-weight:600;}
+.hero{background:linear-gradient(135deg,#D97706,#9A3412);color:#fff;padding:48px 24px 60px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.2);padding:4px 14px;border-radius:12px;font-size:.78rem;margin-bottom:14px;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:10px;}
+.hero p{opacity:.88;max-width:560px;margin:0 auto;font-size:.95rem;}
+.container{max-width:860px;margin:-24px auto 0;padding:0 16px 72px;}
+.toc{background:#fff;border-radius:14px;padding:20px 24px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin:24px 0;}
+.toc h2{font-size:.82rem;font-weight:700;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.toc ol{padding-left:1.4em;}.toc li{font-size:.84rem;margin-bottom:3px;}
+.toc a{color:var(--amber);text-decoration:none;}.toc a:hover{color:var(--terracotta);}
+.card{background:#fff;border-radius:14px;padding:28px 32px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:24px;scroll-margin-top:20px;}
+h2{font-size:1.25rem;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--cream);}
+h3{font-size:1rem;color:var(--terracotta);margin:20px 0 10px;font-weight:700;}
+h4{font-size:.92rem;color:var(--brown);margin:14px 0 8px;font-weight:700;}
+p{font-size:.9rem;color:#44403C;line-height:1.9;margin-bottom:12px;}
+ul,ol{padding-left:1.5em;margin-bottom:12px;}
+li{font-size:.88rem;color:#57534E;line-height:1.85;margin-bottom:3px;}
+strong{color:var(--ink);}
+.analogy{background:var(--cream);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.88rem;color:#78350F;line-height:1.8;}
+.analogy strong{color:#92400E;}
+pre{background:#1C1917;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:14px 0;}
+code{font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#E7E5E4;}
+pre code .comment{color:#6B7280;}pre code .cmd{color:#FCD34D;}pre code .val{color:#86EFAC;}pre code .kw{color:#F9A8D4;}
+.inline-code{background:#F5F5F4;border:1px solid var(--border);padding:1px 7px;border-radius:5px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#C2410C;}
+.tbl-wrap{overflow-x:auto;margin:14px 0;}
+table.t{width:100%;border-collapse:collapse;font-size:.84rem;}
+table.t th{background:#F5F5F4;padding:9px 14px;text-align:left;font-weight:600;color:var(--stone);font-size:.76rem;border-bottom:2px solid var(--border);}
+table.t td{padding:9px 14px;border-bottom:1px solid var(--border);}
+table.t tr:hover td{background:#FAFAF9;}
+.note{background:#F5F5F4;border-radius:10px;padding:13px 18px;margin:14px 0;font-size:.85rem;color:var(--stone);display:flex;gap:10px;}
+.note::before{content:'💡';flex-shrink:0;}
+.warn{background:#FEF2F2;border-left:4px solid #EF4444;border-radius:0 10px 10px 0;padding:13px 18px;margin:14px 0;font-size:.87rem;color:#991B1B;}
+.warn strong{color:#7F1D1D;}
+/* DORA FLOW */
+.dora{margin:16px 0;}
+.dora-step{display:grid;grid-template-columns:44px 1fr;gap:14px;margin-bottom:12px;align-items:start;}
+.dora-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:#fff;}
+.d1{background:#D97706;}.d2{background:#B45309;}.d3{background:#C2410C;}.d4{background:#7C2D12;}
+.dora-body{background:#F5F5F4;border-radius:10px;padding:12px 16px;}
+.dora-body .dt{font-size:.9rem;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.dora-body .dd{font-size:.83rem;color:#57534E;line-height:1.75;}
+.dora-body .dpkt{font-family:"Cascadia Code","Consolas",monospace;font-size:.75rem;color:#92400E;background:#FEF3C7;padding:4px 8px;border-radius:5px;display:inline-block;margin-top:6px;}
+/* LAB */
+.lab-box{background:linear-gradient(135deg,#1C1917,#3B1F0C);border-radius:14px;padding:24px 28px;margin:20px 0;color:#fff;}
+.lab-box h3{color:#FCD34D;margin-top:0;}
+.lab-box p{font-size:.87rem;color:rgba(255,255,255,.8);}
+.lab-box ol li{font-size:.85rem;color:rgba(255,255,255,.75);}
+.lab-box pre{background:rgba(0,0,0,.4);}
+.page-nav{display:flex;justify-content:space-between;margin-top:36px;}
+.page-nav a{display:inline-flex;align-items:center;gap:6px;color:var(--stone);text-decoration:none;font-size:.85rem;padding:10px 18px;border:1px solid var(--border);border-radius:8px;background:#fff;transition:.15s;}
+.page-nav a:hover{color:var(--terracotta);border-color:var(--terracotta);}
+footer{text-align:center;padding:20px;font-size:.78rem;color:#A8A29E;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第一章</a><span class="sep">/</span>
+  <span class="cur">CH 1-3 · 核心協定</span>
+</div>
+<div class="hero">
+  <div class="badge">CH 1-3 · 實務必備</div>
+  <h1>📡 核心協定：DHCP、DNS、ARP、NAT</h1>
+  <p>四個每天都在運作但你可能沒注意的協定，從封包層級完整拆解，含 Cisco 設定與故障排除。</p>
+</div>
+<div class="container">
+  <div class="toc">
+    <h2>本篇目錄</h2>
+    <ol>
+      <li><a href="#dhcp">DHCP：DORA 四步驟與 Relay 設定</a></li>
+      <li><a href="#dns">DNS：遞迴 vs 疊代查詢、紀錄類型</a></li>
+      <li><a href="#arp">ARP：運作原理與 ARP 欺騙防護</a></li>
+      <li><a href="#nat">NAT/PAT：三種類型完整設定</a></li>
+      <li><a href="#trouble">故障排除完整流程</a></li>
+      <li><a href="#lab">實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="dhcp">
+    <h2>🏨 DHCP — 動態主機設定協定</h2>
+    <p>DHCP 讓設備自動取得 IP 位址、子網路遮罩、預設閘道、DNS 伺服器四項資訊，不需要人工設定。企業環境中 99% 的用戶端設備都用 DHCP。</p>
+    <div class="analogy">
+      <strong>比喻：</strong>飯店 Check-in。你不用自己挑房號，櫃檯（DHCP Server）分配一間空房（IP）給你，並告訴你電梯在哪（Gateway）、餐廳分機幾號（DNS）。退房後房間回收給下一位客人（Lease 到期釋放）。
+    </div>
+
+    <h3>DORA 四步驟（考試必背）</h3>
+    <div class="dora">
+      <div class="dora-step">
+        <div class="dora-badge d1">D</div>
+        <div class="dora-body">
+          <div class="dt">Discover — 客戶端廣播尋找</div>
+          <div class="dd">剛開機的電腦沒有 IP，用來源 0.0.0.0 向 255.255.255.255 廣播「有 DHCP Server 嗎？」。這是 UDP 封包，來源 Port 68，目的 Port 67。</div>
+          <div class="dpkt">Src: 0.0.0.0:68 → Dst: 255.255.255.255:67　| 廣播</div>
+        </div>
+      </div>
+      <div class="dora-step">
+        <div class="dora-badge d2">O</div>
+        <div class="dora-body">
+          <div class="dt">Offer — 伺服器提供 IP</div>
+          <div class="dd">DHCP Server 從位址池挑一個未使用的 IP，連同遮罩、閘道、DNS、租約時間一起回覆。如果有多台 DHCP Server，客戶端會收到多個 Offer。</div>
+          <div class="dpkt">Src: 192.168.1.1:67 → Dst: 255.255.255.255:68　| 含 IP + Mask + GW + DNS</div>
+        </div>
+      </div>
+      <div class="dora-step">
+        <div class="dora-badge d3">R</div>
+        <div class="dora-body">
+          <div class="dt">Request — 客戶端正式請求</div>
+          <div class="dd">客戶端選定其中一個 Offer（通常是第一個收到的），再次<strong>廣播</strong>宣告「我要用 192.168.1.100，是 A 伺服器給的」。廣播的目的是讓其他 DHCP Server 知道它們的 Offer 被拒絕，可以把 IP 收回位址池。</div>
+          <div class="dpkt">Src: 0.0.0.0:68 → Dst: 255.255.255.255:67　| 廣播，含選定的 Server ID</div>
+        </div>
+      </div>
+      <div class="dora-step">
+        <div class="dora-badge d4">A</div>
+        <div class="dora-body">
+          <div class="dt">Acknowledge — 伺服器確認</div>
+          <div class="dd">Server 確認分配，記錄租約（Lease）到資料庫。客戶端收到後才正式設定 IP，並開始計算租約時間。</div>
+          <div class="dpkt">Src: 192.168.1.1:67 → Dst: 255.255.255.255:68　| 租約成立</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>租約續約（Renewal）機制</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>時間點</th><th>行為</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td><strong>T1（50% 租約）</strong></td><td>單播續約給原 Server</td><td>例如租約 8 天，第 4 天直接跟原 Server 要求延長</td></tr>
+          <tr><td><strong>T2（87.5% 租約）</strong></td><td>廣播續約給任何 Server</td><td>原 Server 沒回應，第 7 天改用廣播找任何 Server</td></tr>
+          <tr><td><strong>100%</strong></td><td>放棄 IP，重新 DORA</td><td>沒續約成功，IP 失效，回到 Discover</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Cisco Router 當 DHCP Server</h3>
+    <pre><code><span class="comment"># 步驟 1：排除不要分配的 IP（通常是伺服器和網路設備）</span>
+Router(config)# <span class="cmd">ip dhcp excluded-address</span> <span class="val">192.168.10.1 192.168.10.20</span>
+Router(config)# <span class="cmd">ip dhcp excluded-address</span> <span class="val">192.168.10.250 192.168.10.254</span>
+
+<span class="comment"># 步驟 2：建立位址池</span>
+Router(config)# <span class="cmd">ip dhcp pool</span> <span class="val">SALES_POOL</span>
+Router(dhcp-config)# <span class="cmd">network</span> <span class="val">192.168.10.0 255.255.255.0</span>
+Router(dhcp-config)# <span class="cmd">default-router</span> <span class="val">192.168.10.1</span>      <span class="comment"># 預設閘道</span>
+Router(dhcp-config)# <span class="cmd">dns-server</span> <span class="val">8.8.8.8 8.8.4.4</span>        <span class="comment"># DNS 伺服器</span>
+Router(dhcp-config)# <span class="cmd">domain-name</span> <span class="val">company.local</span>
+Router(dhcp-config)# <span class="cmd">lease</span> <span class="val">7</span>                          <span class="comment"># 租約 7 天</span>
+
+<span class="comment"># 步驟 3：驗證</span>
+Router# <span class="cmd">show</span> ip dhcp binding          <span class="comment"># 已分配的 IP 清單</span>
+Router# <span class="cmd">show</span> ip dhcp pool             <span class="comment"># 位址池使用狀況</span>
+Router# <span class="cmd">show</span> ip dhcp conflict         <span class="comment"># IP 衝突紀錄</span>
+Router# <span class="cmd">debug</span> ip dhcp server events   <span class="comment"># 即時除錯（正式環境慎用）</span></code></pre>
+
+    <h3>DHCP Relay（跨網段轉發）</h3>
+    <p><strong>問題：</strong>DHCP Discover 是廣播，路由器預設不轉發廣播。所以如果 DHCP Server 在別的網段，客戶端拿不到 IP。<br>
+    <strong>解法：</strong>在客戶端所在網段的路由器介面上設 <span class="inline-code">ip helper-address</span>，把廣播轉成單播送給指定的 Server。</p>
+    <pre><code><span class="comment"># 客戶端在 192.168.20.0/24，DHCP Server 在 10.1.1.100</span>
+Router(config)# <span class="cmd">interface</span> GigabitEthernet0/1
+Router(config-if)# <span class="cmd">ip address</span> <span class="val">192.168.20.1 255.255.255.0</span>
+Router(config-if)# <span class="cmd">ip helper-address</span> <span class="val">10.1.1.100</span>
+
+<span class="comment"># ip helper-address 預設也會轉發這幾種 UDP 廣播：</span>
+<span class="comment">#   TFTP(69) DNS(53) Time(37) NetBIOS(137/138) TACACS(49) DHCP(67/68)</span>
+<span class="comment"># 想關掉不需要的可以用 no ip forward-protocol udp <port></span></code></pre>
+    <div class="warn"><strong>常見錯誤：</strong>ip helper-address 要設在<strong>客戶端所在的介面</strong>，不是靠近 Server 的介面。設錯位置是新手最常犯的錯。</div>
+  </div>
+
+  <div class="card" id="dns">
+    <h2>📖 DNS — 網域名稱系統</h2>
+    <p>DNS 把人類記得住的名字（google.com）翻譯成電腦用的 IP（142.250.1.14）。它是一個<strong>分散式階層資料庫</strong>，全球有 13 組根伺服器。</p>
+
+    <h3>DNS 查詢的完整流程</h3>
+    <pre><code><span class="comment"># 你在瀏覽器輸入 www.example.com 時發生的事：</span>
+
+<span class="kw">1.</span> 檢查瀏覽器快取         → 有 → 直接用
+<span class="kw">2.</span> 檢查作業系統快取       → 有 → 直接用（Windows: ipconfig /displaydns）
+<span class="kw">3.</span> 檢查 hosts 檔案        → 有 → 直接用
+<span class="kw">4.</span> 問本地 DNS Server（通常是 ISP 或 8.8.8.8）
+   ↓ 如果本地 DNS 沒有快取，開始<span class="val">遞迴查詢</span>：
+<span class="kw">5.</span>   問根伺服器 (.)         → 回：「去問 .com 的伺服器」
+<span class="kw">6.</span>   問 .com TLD 伺服器     → 回：「去問 example.com 的權威伺服器」
+<span class="kw">7.</span>   問 example.com 權威伺服器 → 回：「www.example.com = 93.184.216.34」
+<span class="kw">8.</span> 本地 DNS 快取結果並回傳給你</code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>查詢類型</th><th>誰做</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td><strong>遞迴查詢（Recursive）</strong></td><td>客戶端 → 本地 DNS</td><td>「幫我查到底，直接給我答案」，本地 DNS 負責跑完全程</td></tr>
+          <tr><td><strong>疊代查詢（Iterative）</strong></td><td>本地 DNS → 各層伺服器</td><td>「我不知道，但你可以去問它」，一層一層問下去</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>DNS 紀錄類型（考試常考）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>類型</th><th>用途</th><th>範例</th></tr></thead>
+        <tbody>
+          <tr><td><strong>A</strong></td><td>網域 → IPv4 位址</td><td>example.com → 93.184.216.34</td></tr>
+          <tr><td><strong>AAAA</strong></td><td>網域 → IPv6 位址</td><td>example.com → 2606:2800:220:1:248:1893::</td></tr>
+          <tr><td><strong>CNAME</strong></td><td>別名（指向另一個網域）</td><td>www.example.com → example.com</td></tr>
+          <tr><td><strong>MX</strong></td><td>郵件伺服器（含優先權）</td><td>example.com → 10 mail.example.com</td></tr>
+          <tr><td><strong>NS</strong></td><td>該網域的權威 DNS 伺服器</td><td>example.com → ns1.example.com</td></tr>
+          <tr><td><strong>PTR</strong></td><td>反解（IP → 網域）</td><td>34.216.184.93.in-addr.arpa → example.com</td></tr>
+          <tr><td><strong>TXT</strong></td><td>任意文字（SPF、DKIM、網域驗證）</td><td>"v=spf1 include:_spf.google.com ~all"</td></tr>
+          <tr><td><strong>SOA</strong></td><td>區域起始授權（序號、更新頻率）</td><td>每個 Zone 必有一筆</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>實作：DNS 查詢與故障排除</h3>
+    <pre><code><span class="comment"># === Windows ===</span>
+<span class="cmd">nslookup</span> google.com                 <span class="comment"># 基本查詢</span>
+<span class="cmd">nslookup</span> -type=MX gmail.com         <span class="comment"># 查郵件伺服器</span>
+<span class="cmd">nslookup</span> google.com 1.1.1.1         <span class="comment"># 指定用 Cloudflare DNS</span>
+<span class="cmd">ipconfig</span> /displaydns                <span class="comment"># 顯示本機 DNS 快取</span>
+<span class="cmd">ipconfig</span> /flushdns                  <span class="comment"># 清除 DNS 快取（改 DNS 後必做）</span>
+
+<span class="comment"># === Linux / macOS ===</span>
+<span class="cmd">dig</span> google.com                      <span class="comment"># 詳細查詢（推薦）</span>
+<span class="cmd">dig</span> +trace google.com               <span class="comment"># 顯示完整查詢路徑（從根開始）</span>
+<span class="cmd">dig</span> -x 8.8.8.8                      <span class="comment"># 反解查詢</span>
+<span class="cmd">host</span> google.com                     <span class="comment"># 簡易查詢</span>
+
+<span class="comment"># === Cisco Router ===</span>
+Router(config)# <span class="cmd">ip domain-lookup</span>              <span class="comment"># 啟用 DNS 解析</span>
+Router(config)# <span class="cmd">ip name-server</span> <span class="val">8.8.8.8 8.8.4.4</span>
+Router(config)# <span class="cmd">ip domain-name</span> <span class="val">company.local</span>
+Router(config)# <span class="cmd">ip host</span> <span class="val">SERVER1 10.1.1.50</span>       <span class="comment"># 靜態對應（類似 hosts 檔）</span>
+Router# <span class="cmd">show</span> hosts                            <span class="comment"># 查看已知的主機名稱</span></code></pre>
+    <div class="note">實務技巧：如果在 Cisco 設備上打錯指令（例如打成 <span class="inline-code">shwo</span>），設備會誤以為那是主機名稱，開始做 DNS 查詢，卡住 30 秒。用 <span class="inline-code">no ip domain-lookup</span> 關掉就不會有這個困擾（Lab 環境必設）。</div>
+  </div>
+
+  <div class="card" id="arp">
+    <h2>🔍 ARP — 位址解析協定</h2>
+    <p>你有對方的 IP，但要傳訊框需要 MAC 位址。ARP 就是廣播問「誰是 192.168.1.1？把你的 MAC 告訴我」。</p>
+
+    <h3>ARP 完整流程</h3>
+    <pre><code><span class="comment"># PC-A（192.168.1.10）要 ping PC-B（192.168.1.20），同一網段</span>
+
+<span class="kw">1.</span> PC-A 檢查自己的 ARP 快取表 → 沒有 192.168.1.20 的記錄
+<span class="kw">2.</span> PC-A <span class="val">廣播 ARP Request</span>：
+     來源 MAC: AA:AA:AA:AA:AA:AA
+     目的 MAC: <span class="val">FF:FF:FF:FF:FF:FF</span>（廣播）
+     內容: "Who has 192.168.1.20? Tell 192.168.1.10"
+<span class="kw">3.</span> 同網段所有設備都收到，只有 192.168.1.20 回應
+<span class="kw">4.</span> PC-B <span class="val">單播 ARP Reply</span>：
+     來源 MAC: BB:BB:BB:BB:BB:BB
+     目的 MAC: AA:AA:AA:AA:AA:AA（單播回給 PC-A）
+     內容: "192.168.1.20 is at BB:BB:BB:BB:BB:BB"
+<span class="kw">5.</span> PC-A 記入 ARP 快取（預設保存 4 小時，Cisco 是 4 小時）
+<span class="kw">6.</span> 現在可以組裝訊框並送出 ICMP Echo Request</code></pre>
+
+    <h3>跨網段時的 ARP</h3>
+    <div class="analogy">
+      <strong>關鍵觀念：</strong>如果目的 IP 不在同一網段，PC 不會 ARP 目的 IP，而是 ARP <strong>預設閘道</strong>的 MAC。因為封包要先送到路由器，由路由器負責後續轉發。<br>
+      這是新手最容易搞混的地方：<strong>IP 位址是端到端不變的，MAC 位址是逐跳（hop-by-hop）改變的。</strong>
+    </div>
+
+    <h3>ARP 相關指令</h3>
+    <pre><code><span class="comment"># === Windows ===</span>
+<span class="cmd">arp</span> -a                              <span class="comment"># 顯示 ARP 快取表</span>
+<span class="cmd">arp</span> -d *                            <span class="comment"># 清除所有 ARP 快取（需管理員權限）</span>
+<span class="cmd">arp</span> -s 192.168.1.1 aa-bb-cc-dd-ee-ff <span class="comment"># 靜態綁定（防 ARP 欺騙）</span>
+
+<span class="comment"># === Cisco ===</span>
+Router# <span class="cmd">show</span> ip arp                    <span class="comment"># 查看 ARP 表</span>
+Router# <span class="cmd">show</span> ip arp <span class="val">192.168.1.20</span>       <span class="comment"># 查特定 IP</span>
+Router# <span class="cmd">clear</span> arp-cache                <span class="comment"># 清除 ARP 快取</span>
+Router(config)# <span class="cmd">arp</span> <span class="val">192.168.1.50 aabb.ccdd.eeff arpa</span>  <span class="comment"># 靜態 ARP</span>
+Router(config-if)# <span class="cmd">arp timeout</span> <span class="val">300</span>       <span class="comment"># 修改老化時間（秒）</span></code></pre>
+
+    <h3>ARP 欺騙（ARP Spoofing）與防護</h3>
+    <p><strong>攻擊原理：</strong>攻擊者持續發送假的 ARP Reply，宣稱「我是預設閘道」，讓受害者把流量送給攻擊者，形成中間人攻擊（MITM）。ARP 沒有任何認證機制，任何人都可以宣稱自己是任何 IP。</p>
+    <pre><code><span class="comment"># === 防護方法 1：Dynamic ARP Inspection（DAI）===</span>
+<span class="comment"># 依 DHCP Snooping 資料庫驗證 ARP 封包的合法性</span>
+Switch(config)# <span class="cmd">ip dhcp snooping</span>
+Switch(config)# <span class="cmd">ip dhcp snooping vlan</span> <span class="val">10</span>
+Switch(config)# <span class="cmd">ip arp inspection vlan</span> <span class="val">10</span>
+
+<span class="comment"># 信任的 Port（通往合法 DHCP Server 和上游 Switch）</span>
+Switch(config)# <span class="cmd">interface</span> GigabitEthernet0/24
+Switch(config-if)# <span class="cmd">ip dhcp snooping trust</span>
+Switch(config-if)# <span class="cmd">ip arp inspection trust</span>
+
+<span class="comment"># 驗證</span>
+Switch# <span class="cmd">show</span> ip arp inspection
+Switch# <span class="cmd">show</span> ip dhcp snooping binding
+
+<span class="comment"># === 防護方法 2：Port Security（限制每個 Port 的 MAC 數量）===</span>
+Switch(config-if)# <span class="cmd">switchport port-security</span>
+Switch(config-if)# <span class="cmd">switchport port-security maximum</span> <span class="val">2</span>
+Switch(config-if)# <span class="cmd">switchport port-security violation</span> <span class="val">restrict</span>
+Switch(config-if)# <span class="cmd">switchport port-security mac-address sticky</span></code></pre>
+  </div>
+
+  <div class="card" id="nat">
+    <h2>🔄 NAT / PAT — 網路位址轉換</h2>
+    <p>NAT 讓內部私有 IP 能存取網際網路。因為 IPv4 位址不夠用，NAT 成為必要技術。企業防火牆、家用路由器全都在做 NAT。</p>
+
+    <h3>四個關鍵術語（考試必考）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>術語</th><th>意義</th><th>範例</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Inside Local</strong></td><td>內部設備的真實私有 IP</td><td>192.168.1.10（PC 自己的 IP）</td></tr>
+          <tr><td><strong>Inside Global</strong></td><td>內部設備對外呈現的公有 IP</td><td>203.0.113.5（NAT 後的 IP）</td></tr>
+          <tr><td><strong>Outside Local</strong></td><td>外部設備在內部看到的 IP</td><td>通常和 Outside Global 相同</td></tr>
+          <tr><td><strong>Outside Global</strong></td><td>外部設備的真實公有 IP</td><td>8.8.8.8（Google DNS）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">記憶技巧：<strong>Inside/Outside</strong> 指的是「這台設備在網路哪一邊」；<strong>Local/Global</strong> 指的是「從內部視角看還是從外部視角看」。</div>
+
+    <h3>三種 NAT 完整設定</h3>
+
+    <h4>1. Static NAT（一對一固定對應）</h4>
+    <p>用途：對外提供服務的伺服器，需要固定的公有 IP。</p>
+    <pre><code><span class="comment"># 把內部 Web Server 192.168.1.100 固定對應到公有 IP 203.0.113.10</span>
+Router(config)# <span class="cmd">ip nat inside source static</span> <span class="val">192.168.1.100 203.0.113.10</span>
+
+<span class="comment"># 指定介面角色（不設這兩行 NAT 不會生效！）</span>
+Router(config)# <span class="cmd">interface</span> GigabitEthernet0/0
+Router(config-if)# <span class="cmd">ip nat inside</span>          <span class="comment"># 連向內網的介面</span>
+Router(config)# <span class="cmd">interface</span> GigabitEthernet0/1
+Router(config-if)# <span class="cmd">ip nat outside</span>         <span class="comment"># 連向網際網路的介面</span>
+
+<span class="comment"># 只轉發特定 Port（Port Forwarding / PAT 靜態）</span>
+Router(config)# <span class="cmd">ip nat inside source static tcp</span> <span class="val">192.168.1.100 80 203.0.113.10 80</span></code></pre>
+
+    <h4>2. Dynamic NAT（動態從位址池取）</h4>
+    <pre><code><span class="comment"># 建立公有 IP 位址池</span>
+Router(config)# <span class="cmd">ip nat pool</span> <span class="val">PUBLIC_POOL 203.0.113.10 203.0.113.20 netmask 255.255.255.0</span>
+
+<span class="comment"># 定義哪些內部 IP 可以做 NAT</span>
+Router(config)# <span class="cmd">access-list</span> <span class="val">1</span> permit <span class="val">192.168.1.0 0.0.0.255</span>
+
+<span class="comment"># 綁定 ACL 和位址池</span>
+Router(config)# <span class="cmd">ip nat inside source list</span> <span class="val">1</span> pool <span class="val">PUBLIC_POOL</span></code></pre>
+
+    <h4>3. PAT / NAT Overload（多對一，最常用）</h4>
+    <p>所有內部設備共用一個公有 IP，靠不同的 Port 號區分。這是家用路由器和大多數企業的做法。</p>
+    <pre><code><span class="comment"># 方法 A：共用外部介面的 IP（最常見）</span>
+Router(config)# <span class="cmd">access-list</span> <span class="val">1</span> permit <span class="val">192.168.0.0 0.0.255.255</span>
+Router(config)# <span class="cmd">ip nat inside source list</span> <span class="val">1</span> interface GigabitEthernet0/1 <span class="val">overload</span>
+
+<span class="comment"># 方法 B：共用位址池（多個公有 IP 輪流用）</span>
+Router(config)# <span class="cmd">ip nat pool</span> <span class="val">POOL2 203.0.113.10 203.0.113.12 netmask 255.255.255.248</span>
+Router(config)# <span class="cmd">ip nat inside source list</span> <span class="val">1</span> pool <span class="val">POOL2 overload</span>
+
+<span class="comment"># 介面設定同上（inside / outside）</span></code></pre>
+
+    <h3>NAT 驗證與故障排除</h3>
+    <pre><code><span class="comment"># 查看目前的 NAT 轉換表（最重要的指令）</span>
+Router# <span class="cmd">show</span> ip nat translations
+<span class="comment">
+Pro Inside global      Inside local       Outside local      Outside global
+tcp 203.0.113.5:1024   192.168.1.10:52341 8.8.8.8:53         8.8.8.8:53
+tcp 203.0.113.5:1025   192.168.1.11:49832 142.250.1.14:443   142.250.1.14:443
+    ^^^^^^^^^^^^^^     ^^^^^^^^^^^^^^^^^^
+    對外呈現的 IP:Port  內部真實 IP:Port    ← PAT 靠 Port 區分不同主機
+</span>
+<span class="comment"># 查看 NAT 統計（轉換次數、命中率）</span>
+Router# <span class="cmd">show</span> ip nat statistics
+
+<span class="comment"># 清除轉換表（改設定後必做）</span>
+Router# <span class="cmd">clear</span> ip nat translation *
+
+<span class="comment"># 即時除錯（正式環境慎用，會拖慢設備）</span>
+Router# <span class="cmd">debug</span> ip nat
+Router# <span class="cmd">undebug</span> all                   <span class="comment"># 記得關掉</span></code></pre>
+
+    <div class="warn">
+      <strong>NAT 三大常見錯誤：</strong><br>
+      1. 忘記在介面上設 <span class="inline-code">ip nat inside</span> / <span class="inline-code">ip nat outside</span> — NAT 完全不會運作<br>
+      2. ACL 用 <span class="inline-code">deny</span> 反向思考 — NAT 的 ACL 是「permit 的才做 NAT」，不是防火牆邏輯<br>
+      3. 改了設定但沒 <span class="inline-code">clear ip nat translation *</span> — 舊的轉換記錄還在，看起來像沒生效
+    </div>
+  </div>
+
+  <div class="card" id="trouble">
+    <h2>🔧 故障排除完整流程</h2>
+    <p>「連不上網」是最常見的申告。用這個由下而上的流程逐層排查，不要亂猜。</p>
+    <pre><code><span class="comment"># ═══ Layer 1：實體層 ═══</span>
+□ 網路線有插好嗎？Switch Port 燈有亮嗎？
+Switch# <span class="cmd">show</span> interfaces status                <span class="comment"># 看 Port 是 connected 還是 notconnect</span>
+Router# <span class="cmd">show</span> ip interface brief             <span class="comment"># Status/Protocol 都要是 up</span>
+
+<span class="comment"># ═══ Layer 2：資料鏈路層 ═══</span>
+□ MAC 位址學到了嗎？VLAN 對嗎？
+Switch# <span class="cmd">show</span> mac address-table
+Switch# <span class="cmd">show</span> vlan brief
+Switch# <span class="cmd">show</span> interfaces trunk
+
+<span class="comment"># ═══ Layer 3：網路層 ═══</span>
+□ 步驟 1：ping 自己（127.0.0.1）→ TCP/IP 堆疊正常？
+□ 步驟 2：ping 自己的 IP → 網卡正常？
+□ 步驟 3：ping 同網段其他主機 → Layer 2 通嗎？
+□ 步驟 4：ping 預設閘道 → 到路由器通嗎？
+□ 步驟 5：ping 外部 IP（8.8.8.8）→ 路由設定對嗎？
+□ 步驟 6：ping 外部網域（google.com）→ 只有 DNS 有問題？
+
+<span class="cmd">tracert</span> 8.8.8.8                            <span class="comment"># Windows：看在哪一跳斷掉</span>
+<span class="cmd">traceroute</span> 8.8.8.8                         <span class="comment"># Linux/Cisco</span>
+
+<span class="comment"># ═══ 常見結論 ═══</span>
+ping IP 通 + ping 網域不通  → <span class="val">DNS 問題</span>
+ping 閘道通 + ping 外網不通 → <span class="val">路由或 NAT 問題</span>
+ping 同網段不通            → <span class="val">VLAN 或實體層問題</span>
+ping 自己不通             → <span class="val">網卡驅動或 TCP/IP 堆疊問題</span></code></pre>
+  </div>
+
+  <div class="lab-box" id="lab">
+    <h3>🔬 Packet Tracer 實作 Lab</h3>
+    <p><strong>目標：</strong>建立一個完整的企業小型網路，包含 DHCP、DNS、NAT，並驗證每個協定的運作。</p>
+    <h4 style="color:#FCD34D;margin-top:16px;">拓樸</h4>
+    <pre><code>[PC1] [PC2] ─── [Switch] ─── [Router] ─── [Internet Cloud] ─── [DNS Server 8.8.8.8]
+ 192.168.10.x (DHCP)         Gi0/0        Gi0/1
+                          192.168.10.1   203.0.113.2</code></pre>
+    <h4 style="color:#FCD34D;">步驟</h4>
+    <ol>
+      <li><strong>設定 Router 介面：</strong>Gi0/0 為 192.168.10.1/24，Gi0/1 為 203.0.113.2/30</li>
+      <li><strong>設定 DHCP Pool：</strong>排除 .1 到 .10，池範圍 192.168.10.0/24，DNS 指向 8.8.8.8</li>
+      <li><strong>PC 設為 DHCP：</strong>觀察 PC 是否自動取得 IP，在 Simulation 模式下觀察 DORA 四個封包</li>
+      <li><strong>設定 PAT：</strong>ACL permit 192.168.10.0/24，overload 到 Gi0/1</li>
+      <li><strong>驗證：</strong>從 PC ping 8.8.8.8，在 Router 上執行 <span class="inline-code">show ip nat translations</span> 看到轉換記錄</li>
+      <li><strong>觀察 ARP：</strong>PC1 ping PC2，用 Simulation 模式看 ARP Request 廣播和 Reply 單播</li>
+      <li><strong>加分挑戰：</strong>把 DHCP Server 移到另一個網段，設定 <span class="inline-code">ip helper-address</span> 讓它仍然運作</li>
+    </ol>
+  </div>
+
+  <div class="page-nav">
+    <a href="02-ip-subnetting.html">← CH 1-2：IP 與子網路</a>
+    <a href="04-ethernet-switching.html">CH 2-1：乙太網路與交換 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 1-3</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

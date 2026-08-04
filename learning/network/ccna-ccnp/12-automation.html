@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>網路自動化 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.verb-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:16px 0;}
+.verb{border-radius:9px;padding:11px 13px;color:#fff;font-size:.78rem;line-height:1.5;}
+.verb b{display:block;font-size:.88rem;margin-bottom:2px;font-family:"Cascadia Code",monospace;}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+@media(max-width:640px){.cmp{grid-template-columns:1fr;}}
+.cmp>div{border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:#fff;}
+.cmp h4{margin-top:0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第四章</a><span class="sep">/</span>
+  <span class="cur">CH 4-2 · 網路自動化</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 4-2 · 企業架構 · 最終章</div>
+  <h1>網路自動化</h1>
+  <p>一個人管 500 台設備靠 SSH 是不可能的。這章講清楚 API、資料格式、NETCONF/RESTCONF，以及怎麼用 Python 和 Ansible 真正把設定推出去——每段程式碼都可以直接跑。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼要自動化</a></li>
+      <li><a href="#paradigm">命令式 vs 宣告式</a></li>
+      <li><a href="#format">三種資料格式：JSON、XML、YAML</a></li>
+      <li><a href="#rest">REST API 與 HTTP</a></li>
+      <li><a href="#protocol">NETCONF / RESTCONF / gNMI</a></li>
+      <li><a href="#yang">YANG 資料模型</a></li>
+      <li><a href="#restconf-lab">實作一：用 RESTCONF 讀寫設定</a></li>
+      <li><a href="#netmiko">實作二：Python + Netmiko</a></li>
+      <li><a href="#napalm">實作三：NAPALM 跨廠牌</a></li>
+      <li><a href="#ansible">實作四：Ansible Playbook</a></li>
+      <li><a href="#git">用 Git 管理網路設定</a></li>
+      <li><a href="#telemetry">模型驅動遙測</a></li>
+      <li><a href="#controller">控制器：DNA Center 與 SDN</a></li>
+      <li><a href="#practice">導入的實務建議</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="why">
+    <h2>1. 為什麼要自動化</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>手動作業的問題</th><th>實際會發生什麼</th></tr>
+        <tr><td><b>慢</b></td><td>50 台交換器改一條 ACL，SSH 進去一台台改，要一整天</td></tr>
+        <tr><td><b>會出錯</b></td><td>複製貼上時漏了一行、貼到錯的機器、VLAN 號打錯一位數</td></tr>
+        <tr><td><b>不一致</b></td><td>同型號的交換器，設定卻各不相同，因為每次都是「手動微調」</td></tr>
+        <tr><td><b>沒有稽核軌跡</b></td><td>「這條規則是誰加的、什麼時候加的、為什麼？」沒人知道</td></tr>
+        <tr><td><b>無法測試</b></td><td>改設定前無法驗證，只能上線後祈禱</td></tr>
+      </table>
+    </div>
+
+    <div class="analogy"><strong>比喻：</strong>手動設定像每次都手寫一份合約——寫 50 份會有 50 種細微差異，而且沒人記得改過哪些條款。自動化像<b>用 Word 範本 + 版本控制</b>——範本改一次，50 份全部一致，而且每次修改都有紀錄可以回溯。</div>
+
+    <div class="ok"><strong>自動化真正的價值不是「快」，是「<u>一致</u>和<u>可回溯</u>」。</strong>
+      <ul style="margin:8px 0 0">
+        <li>設定存在 Git 裡 → 誰在什麼時候改了什麼，一目瞭然</li>
+        <li>設定即程式碼（Infrastructure as Code）→ 可以先在測試環境驗證</li>
+        <li>出事可以 <span class="inline-code">git revert</span> → 幾秒鐘回到已知的良好狀態</li>
+        <li>新人接手看 Git 就知道現況，不用逐台 <span class="inline-code">show run</span> 拼湊</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="paradigm">
+    <h2>2. 命令式 vs 宣告式</h2>
+
+    <div class="cmp">
+      <div>
+        <h4>命令式（Imperative）</h4>
+        <p style="font-size:.85rem">告訴系統<b>「怎麼做」</b>——一步一步的指令。</p>
+        <pre style="margin:0"><code><span class="comment"># 傳統 CLI / Netmiko</span>
+conf t
+vlan 10
+ name SALES
+interface fa0/1
+ switchport mode access
+ switchport access vlan 10
+end</code></pre>
+        <p style="font-size:.82rem;margin-bottom:0;margin-top:10px"><b>問題：</b>重複執行可能出錯；不知道目前狀態就不知道該下什麼指令。</p>
+      </div>
+      <div>
+        <h4>宣告式（Declarative）</h4>
+        <p style="font-size:.85rem">告訴系統<b>「我要什麼結果」</b>——它自己想辦法達成。</p>
+        <pre style="margin:0"><code><span class="comment"># Ansible / RESTCONF</span>
+vlans:
+  - id: 10
+    name: SALES
+interfaces:
+  - name: FastEthernet0/1
+    mode: access
+    access_vlan: 10</code></pre>
+        <p style="font-size:.82rem;margin-bottom:0;margin-top:10px"><b>優點：</b><b>冪等性</b>——跑一次和跑一百次結果相同。</p>
+      </div>
+    </div>
+
+    <div class="ok"><strong>冪等性（Idempotency）是自動化最重要的概念。</strong>
+      <div class="formula" style="margin-top:10px"><code>執行 1 次的結果 = 執行 N 次的結果</code></div>
+      有冪等性，你可以<b>放心地重複執行</b>——已經符合期望狀態的設備會被跳過（Ansible 顯示 <span class="inline-code">ok</span>），只有不符合的才會被修改（顯示 <span class="inline-code">changed</span>）。<br><br>
+      沒有冪等性的腳本，第二次執行可能會重複加規則、或因為「VLAN 已存在」而報錯中斷。
+    </div>
+
+    <div class="warn"><strong>Netmiko 本身<u>沒有</u>冪等性。</strong>它只是幫你自動打字。要有冪等性，你得自己寫「先檢查現況、不符合才改」的邏輯，或改用 NAPALM／Ansible 這類本身就處理好的工具。</div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="format">
+    <h2>3. 三種資料格式：JSON、XML、YAML</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>JSON</th><th>XML</th><th>YAML</th></tr>
+        <tr><td>主要用在</td><td><b>REST API</b></td><td><b>NETCONF</b></td><td><b>Ansible</b>、設定檔</td></tr>
+        <tr><td>人類可讀性</td><td>中</td><td>低</td><td><b>高</b></td></tr>
+        <tr><td>結構表示</td><td><span class="inline-code">{ }</span> 物件、<span class="inline-code">[ ]</span> 陣列</td><td>成對標籤</td><td><b>縮排</b></td></tr>
+        <tr><td>支援註解</td><td><b>不支援</b></td><td>支援</td><td><b>支援</b>（#）</td></tr>
+        <tr><td>檔案大小</td><td>小</td><td>大</td><td>最小</td></tr>
+      </table>
+    </div>
+
+    <h4>同一份資料的三種寫法</h4>
+    <pre><code><span class="comment">// ── JSON ──</span>
+{
+  "device": {
+    "hostname": "SW1",
+    "vlans": [
+      { "id": 10, "name": "SALES" },
+      { "id": 20, "name": "ENG" }
+    ],
+    "enabled": true,
+    "uptime": 84200
+  }
+}</code></pre>
+
+    <pre><code><span class="comment">&lt;!-- ── XML ── --&gt;</span>
+&lt;device&gt;
+  &lt;hostname&gt;SW1&lt;/hostname&gt;
+  &lt;vlans&gt;
+    &lt;vlan&gt;&lt;id&gt;10&lt;/id&gt;&lt;name&gt;SALES&lt;/name&gt;&lt;/vlan&gt;
+    &lt;vlan&gt;&lt;id&gt;20&lt;/id&gt;&lt;name&gt;ENG&lt;/name&gt;&lt;/vlan&gt;
+  &lt;/vlans&gt;
+  &lt;enabled&gt;true&lt;/enabled&gt;
+  &lt;uptime&gt;84200&lt;/uptime&gt;
+&lt;/device&gt;</code></pre>
+
+    <pre><code><span class="comment"># ── YAML ──</span>
+device:
+  hostname: SW1
+  vlans:
+    - id: 10
+      name: SALES
+    - id: 20
+      name: ENG
+  enabled: true
+  uptime: 84200</code></pre>
+
+    <div class="warn"><strong>JSON 的四個常見錯誤（考試會考）：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>最後一個元素後面不能有逗號</b>（trailing comma）</li>
+        <li><b>key 一定要用雙引號</b>，不能用單引號，也不能不加</li>
+        <li><b>不支援註解</b>——加了 <span class="inline-code">//</span> 就會解析失敗</li>
+        <li>布林值是小寫 <span class="inline-code">true</span> / <span class="inline-code">false</span>，不是 True/False</li>
+      </ul>
+    </div>
+
+    <div class="warn"><strong>YAML 的三個地雷：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>絕對不能用 Tab 縮排</b>，只能用空格。這是最常見的錯誤</li>
+        <li>冒號後面<b>要有空格</b>：<span class="inline-code">key: value</span>，不是 <span class="inline-code">key:value</span></li>
+        <li><span class="inline-code">yes</span>、<span class="inline-code">no</span>、<span class="inline-code">on</span>、<span class="inline-code">off</span> 會被當成布林值。VLAN 名稱叫 <span class="inline-code">NO</span> 要加引號</li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment"># Python 裡的轉換</span>
+import json, yaml
+
+data = json.loads(json_string)          <span class="comment"># JSON 字串 → Python dict</span>
+json_string = json.dumps(data, indent=2) <span class="comment"># dict → JSON 字串</span>
+
+data = yaml.safe_load(yaml_string)      <span class="comment"># YAML → dict（用 safe_load，不要用 load）</span>
+yaml_string = yaml.dump(data)           <span class="comment"># dict → YAML</span></code></pre>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="rest">
+    <h2>4. REST API 與 HTTP</h2>
+
+    <p><b>REST API</b> 是用 HTTP 來操作資源的一種風格。網路設備把每個設定項目當成一個「資源」，用不同的 HTTP 動詞去操作它。</p>
+
+    <div class="verb-grid">
+      <div class="verb" style="background:#166534"><b>GET</b>讀取資源<br>安全、冪等</div>
+      <div class="verb" style="background:#B45309"><b>POST</b>新增資源<br><b>非冪等</b></div>
+      <div class="verb" style="background:#C2410C"><b>PUT</b>整個取代<br>冪等</div>
+      <div class="verb" style="background:#D97706"><b>PATCH</b>局部修改<br>冪等</div>
+      <div class="verb" style="background:#991B1B"><b>DELETE</b>刪除資源<br>冪等</div>
+    </div>
+
+    <div class="warn"><strong>PUT 和 PATCH 的差別會害你刪掉設定。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>PUT</b> = <b>整個取代</b>。送出的內容裡沒有的欄位，<b>會被清空</b></li>
+        <li><b>PATCH</b> = 只改送出的欄位，其他保持不變</li>
+      </ul>
+      <b>實例：</b>介面目前有 IP、description、ACL。你用 PUT 只送了 IP → <b>description 和 ACL 會消失</b>。要改單一項目<b>永遠用 PATCH</b>。
+    </div>
+
+    <h3>HTTP 狀態碼</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>碼</th><th>意義</th><th>網路自動化情境</th></tr>
+        <tr><td><b>200 OK</b></td><td>成功</td><td>GET 成功拿到資料</td></tr>
+        <tr><td><b>201 Created</b></td><td>建立成功</td><td>POST 成功建立新設定</td></tr>
+        <tr><td><b>204 No Content</b></td><td>成功但無回應內容</td><td><b>PUT/PATCH/DELETE 成功</b></td></tr>
+        <tr><td><b>400 Bad Request</b></td><td>請求格式錯</td><td>JSON 語法錯或欄位不合法</td></tr>
+        <tr><td><b>401 Unauthorized</b></td><td>沒有認證</td><td>帳密錯或 token 過期</td></tr>
+        <tr><td><b>403 Forbidden</b></td><td>認證了但沒權限</td><td>帳號權限等級不足</td></tr>
+        <tr><td><b>404 Not Found</b></td><td>資源不存在</td><td><b>URL 路徑打錯，最常見</b></td></tr>
+        <tr><td><b>409 Conflict</b></td><td>衝突</td><td>POST 建立已存在的資源</td></tr>
+        <tr><td><b>500 Internal Server Error</b></td><td>伺服器出錯</td><td>設備端的問題</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>速記：</strong><b>2xx 成功、3xx 重導向、4xx 是<u>你的</u>錯、5xx 是<u>對方的</u>錯</b>。看到 4xx 先檢查自己的 URL、JSON 格式、帳密權限。</div>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="protocol">
+    <h2>5. NETCONF / RESTCONF / gNMI</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>NETCONF</th><th>RESTCONF</th><th>gNMI</th></tr>
+        <tr><td>傳輸</td><td><b>SSH（830）</b></td><td><b>HTTPS（443）</b></td><td><b>gRPC / HTTP2</b></td></tr>
+        <tr><td>資料格式</td><td>XML</td><td>JSON 或 XML</td><td>Protobuf</td></tr>
+        <tr><td>資料模型</td><td>YANG</td><td>YANG</td><td>YANG</td></tr>
+        <tr><td>交易（Transaction）</td><td><b>支援</b></td><td>不支援</td><td>部分</td></tr>
+        <tr><td>設定回滾</td><td><b>支援</b></td><td>不支援</td><td>不支援</td></tr>
+        <tr><td>串流遙測</td><td>有限</td><td>不支援</td><td><b>強項</b></td></tr>
+        <tr><td>學習難度</td><td>高</td><td><b>低</b></td><td>中</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>怎麼選？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>剛開始學／簡單任務</b> → <b>RESTCONF</b>，就是一般的 HTTP + JSON，用 <span class="inline-code">requests</span> 就能操作</li>
+        <li><b>需要「全部成功或全部回滾」</b> → <b>NETCONF</b>，它有 candidate config 和 commit/rollback</li>
+        <li><b>要即時監控大量設備</b> → <b>gNMI</b>，串流遙測效能遠勝輪詢 SNMP</li>
+      </ul>
+    </div>
+
+    <h3>NETCONF 的三種資料儲存區</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>Datastore</th><th>意義</th></tr>
+        <tr><td><b>running</b></td><td>目前生效的設定（等同 running-config）</td></tr>
+        <tr><td><b>candidate</b></td><td><b>草稿區</b>——改完之後 commit 才生效，可以先 validate</td></tr>
+        <tr><td><b>startup</b></td><td>開機時載入的設定（等同 startup-config）</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>candidate + commit 是 NETCONF 最大的優勢。</strong>你可以一次改十個項目、驗證過再一起套用。中間出錯就整批放棄，<b>不會留下改了一半的殘破設定</b>。傳統 CLI 是打一行生效一行，改到一半斷線就慘了。</div>
+
+    <pre><code><span class="comment">! ── 設備端啟用（IOS-XE）──</span>
+R1(config)# <span class="cmd">netconf-yang</span>
+R1(config)# <span class="cmd">restconf</span>
+R1(config)# <span class="cmd">ip http secure-server</span>
+R1(config)# <span class="cmd">username api-user privilege 15 secret ApiP@ss123</span>
+R1(config)# <span class="cmd">aaa new-model</span>
+R1(config)# <span class="cmd">aaa authentication login default local</span>
+R1(config)# <span class="cmd">aaa authorization exec default local</span>
+
+<span class="comment">! ── 驗證 ──</span>
+R1# <span class="cmd">show netconf-yang sessions</span>
+R1# <span class="cmd">show platform software yang-management process</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">aaa authorization exec default local</span> 這行不能少。</strong>沒有它，RESTCONF 會回 401 或 403，而且錯誤訊息不會告訴你原因。這是 IOS-XE 上最常見的 RESTCONF 卡關點。</div>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="yang">
+    <h2>6. YANG 資料模型</h2>
+
+    <p><b>YANG</b> 是一種「描述設定長什麼樣子」的語言。它定義了資料的階層、型別、限制——像是資料庫的 schema。</p>
+
+    <div class="analogy"><strong>比喻：</strong>YANG 是<b>表格的欄位定義</b>，NETCONF/RESTCONF 是<b>填表和送件的方式</b>。有了統一的表格定義，不同廠牌的設備才能用同一套程式操作。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>模型類型</th><th>誰定義</th><th>跨廠牌</th><th>範例</th></tr>
+        <tr><td><b>IETF 標準模型</b></td><td>IETF</td><td><b>可以</b></td><td><span class="inline-code">ietf-interfaces</span></td></tr>
+        <tr><td><b>OpenConfig 模型</b></td><td>Google 等業者聯盟</td><td><b>可以</b></td><td><span class="inline-code">openconfig-interfaces</span></td></tr>
+        <tr><td><b>廠商原生模型</b></td><td>Cisco / Juniper 等</td><td>不行</td><td><span class="inline-code">Cisco-IOS-XE-native</span></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>取捨很明確：</strong>標準模型可以跨廠牌但功能有限；原生模型能碰到每一個設定項目但綁死廠商。<b>實務建議：能用標準模型就用，需要特殊功能才用原生。</b></div>
+
+    <pre><code><span class="comment"># 查設備支援哪些 YANG 模型</span>
+R1# <span class="cmd">show netconf-yang datastores</span>
+
+<span class="comment"># 用 pyang 檢視模型結構（先 pip install pyang）</span>
+$ <span class="cmd">pyang -f tree ietf-interfaces.yang</span>
+
+module: ietf-interfaces
+  +--rw interfaces
+     +--rw interface* [name]
+        +--rw name           string
+        +--rw description?   string
+        +--rw type           identityref
+        +--rw enabled?       boolean
+
+<span class="comment"># rw = 可讀可寫    ro = 唯讀
+# *  = list（可以有多筆）    ? = optional</span></code></pre>
+
+    <div class="note"><strong>Cisco 的 YANG 模型全部公開在 GitHub</strong>（<span class="inline-code">YangModels/yang</span>）。實務上找路徑最快的方法是：先用 <span class="inline-code">GET</span> 撈整份設定下來，看 JSON 的 key 長什麼樣，再照著寫 PATCH。<b>不需要背模型。</b></div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="restconf-lab">
+    <h2>7. 實作一：用 RESTCONF 讀寫設定</h2>
+
+    <h3>URL 結構</h3>
+    <div class="formula"><code>https://&lt;設備IP&gt;/restconf/data/&lt;YANG模型&gt;:&lt;容器&gt;/&lt;節點&gt;</code></div>
+
+    <pre><code><span class="comment"># ── 讀取所有介面 ──</span>
+GET https://192.168.1.1/restconf/data/ietf-interfaces:interfaces
+
+<span class="comment"># ── 讀取單一介面（注意 %2F 是斜線的編碼）──</span>
+GET https://192.168.1.1/restconf/data/ietf-interfaces:interfaces/interface=GigabitEthernet1
+
+<span class="comment"># ── Cisco 原生模型：讀取所有 VLAN ──</span>
+GET https://192.168.1.1/restconf/data/Cisco-IOS-XE-native:native/vlan</code></pre>
+
+    <h3>用 curl 快速測試</h3>
+    <pre><code>$ <span class="cmd">curl -k -u api-user:ApiP@ss123 \
+    -H "Accept: application/yang-data+json" \
+    https://192.168.1.1/restconf/data/ietf-interfaces:interfaces</span></code></pre>
+
+    <h3>Python 完整範例</h3>
+    <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> json
+<span class="kw">import</span> urllib3
+urllib3.disable_warnings()   <span class="comment"># 實驗室用自簽憑證才關，正式環境要驗證</span>
+
+HOST = <span class="val">"192.168.1.1"</span>
+AUTH = (<span class="val">"api-user"</span>, <span class="val">"ApiP@ss123"</span>)
+HEADERS = {
+    <span class="val">"Accept"</span>: <span class="val">"application/yang-data+json"</span>,
+    <span class="val">"Content-Type"</span>: <span class="val">"application/yang-data+json"</span>,
+}
+BASE = <span class="val">f"https://{HOST}/restconf/data"</span>
+
+
+<span class="kw">def</span> get_interfaces():
+    <span class="val">"""讀取所有介面"""</span>
+    r = requests.get(<span class="val">f"{BASE}/ietf-interfaces:interfaces"</span>,
+                     auth=AUTH, headers=HEADERS, verify=<span class="kw">False</span>, timeout=10)
+    r.raise_for_status()
+    <span class="kw">return</span> r.json()
+
+
+<span class="kw">def</span> set_description(ifname, desc):
+    <span class="val">"""改介面描述 —— 用 PATCH，不會動到其他欄位"""</span>
+    url = <span class="val">f"{BASE}/ietf-interfaces:interfaces/interface={ifname}"</span>
+    payload = {
+        <span class="val">"ietf-interfaces:interface"</span>: {
+            <span class="val">"name"</span>: ifname,
+            <span class="val">"description"</span>: desc,
+        }
+    }
+    r = requests.patch(url, auth=AUTH, headers=HEADERS,
+                       data=json.dumps(payload), verify=<span class="kw">False</span>, timeout=10)
+    <span class="comment"># 204 = 成功且沒有回應內容</span>
+    <span class="kw">if</span> r.status_code == 204:
+        print(<span class="val">f"  ✅ {ifname} 描述已更新"</span>)
+    <span class="kw">else</span>:
+        print(<span class="val">f"  ❌ {ifname} 失敗 {r.status_code}: {r.text}"</span>)
+
+
+<span class="kw">def</span> create_vlan(vid, name):
+    <span class="val">"""建立 VLAN（Cisco 原生模型）"""</span>
+    url = <span class="val">f"{BASE}/Cisco-IOS-XE-native:native/vlan"</span>
+    payload = {
+        <span class="val">"Cisco-IOS-XE-vlan:vlan-list"</span>: [
+            {<span class="val">"id"</span>: vid, <span class="val">"name"</span>: name}
+        ]
+    }
+    r = requests.patch(url, auth=AUTH, headers=HEADERS,
+                       data=json.dumps(payload), verify=<span class="kw">False</span>, timeout=10)
+    print(<span class="val">f"  VLAN {vid} → {r.status_code}"</span>)
+
+
+<span class="kw">if</span> __name__ == <span class="val">"__main__"</span>:
+    data = get_interfaces()
+    <span class="kw">for</span> intf <span class="kw">in</span> data[<span class="val">"ietf-interfaces:interfaces"</span>][<span class="val">"interface"</span>]:
+        print(<span class="val">f"  {intf['name']:&lt;28} enabled={intf.get('enabled')}"</span>)
+
+    set_description(<span class="val">"GigabitEthernet2"</span>, <span class="val">"== MANAGED BY PYTHON =="</span>)
+    create_vlan(<span class="val">110</span>, <span class="val">"AUTOMATION-TEST"</span>)</code></pre>
+
+    <div class="warn"><strong><span class="inline-code">verify=False</span> 只能用在實驗室。</strong>它關掉 TLS 憑證驗證，等於接受任何中間人。正式環境要在設備上裝正式憑證，並用 <span class="inline-code">verify="/path/to/ca.pem"</span> 指定 CA。<br><br>
+      同理，<b>帳密不要寫死在程式裡</b>。用環境變數或 <span class="inline-code">python-dotenv</span>，並確保 <span class="inline-code">.env</span> 有寫進 <span class="inline-code">.gitignore</span>——把設備密碼推上 GitHub 是真實發生過的事故。
+    </div>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="netmiko">
+    <h2>8. 實作二：Python + Netmiko</h2>
+
+    <p>不是所有設備都支援 RESTCONF——舊的 IOS 交換器只有 CLI。<b>Netmiko</b> 是幫你自動 SSH 進去打指令的函式庫，是網路工程師最實用的入門工具。</p>
+
+    <pre><code>$ <span class="cmd">pip install netmiko</span></code></pre>
+
+    <h3>單台設備</h3>
+    <pre><code><span class="kw">from</span> netmiko <span class="kw">import</span> ConnectHandler
+
+device = {
+    <span class="val">"device_type"</span>: <span class="val">"cisco_ios"</span>,
+    <span class="val">"host"</span>: <span class="val">"192.168.1.1"</span>,
+    <span class="val">"username"</span>: <span class="val">"admin"</span>,
+    <span class="val">"password"</span>: <span class="val">"P@ssw0rd"</span>,
+    <span class="val">"secret"</span>: <span class="val">"EnableP@ss"</span>,     <span class="comment"># enable 密碼</span>
+    <span class="val">"fast_cli"</span>: <span class="kw">False</span>,
+}
+
+<span class="kw">with</span> ConnectHandler(**device) <span class="kw">as</span> conn:
+    conn.enable()
+
+    <span class="comment"># 查詢類指令</span>
+    print(conn.send_command(<span class="val">"show ip interface brief"</span>))
+
+    <span class="comment"># 自動解析成 Python 結構（需 pip install ntc-templates）</span>
+    intfs = conn.send_command(<span class="val">"show ip interface brief"</span>, use_textfsm=<span class="kw">True</span>)
+    <span class="kw">for</span> i <span class="kw">in</span> intfs:
+        <span class="kw">if</span> i[<span class="val">"status"</span>] != <span class="val">"up"</span>:
+            print(<span class="val">f"  ⚠ {i['interface']} 是 {i['status']}"</span>)
+
+    <span class="comment"># 設定類指令</span>
+    cmds = [
+        <span class="val">"vlan 110"</span>,
+        <span class="val">" name AUTOMATION-TEST"</span>,
+        <span class="val">"interface range fa0/10 - 12"</span>,
+        <span class="val">" switchport mode access"</span>,
+        <span class="val">" switchport access vlan 110"</span>,
+        <span class="val">" spanning-tree portfast"</span>,
+    ]
+    print(conn.send_config_set(cmds))
+    print(conn.save_config())          <span class="comment"># 等同 write memory</span></code></pre>
+
+    <div class="ok"><strong><span class="inline-code">use_textfsm=True</span> 是 Netmiko 最有用的功能。</strong>它把 <span class="inline-code">show</span> 指令的文字輸出<b>自動解析成 list of dict</b>，你就不用自己寫正規表示式去切字串。支援上百個常用指令。</div>
+
+    <h3>批次處理 50 台設備（含平行執行）</h3>
+    <pre><code><span class="kw">from</span> netmiko <span class="kw">import</span> ConnectHandler
+<span class="kw">from</span> netmiko.exceptions <span class="kw">import</span> NetmikoTimeoutException, NetmikoAuthenticationException
+<span class="kw">from</span> concurrent.futures <span class="kw">import</span> ThreadPoolExecutor, as_completed
+<span class="kw">import</span> csv, os, datetime
+
+USER = os.environ[<span class="val">"NET_USER"</span>]      <span class="comment"># 從環境變數讀，不寫死</span>
+PASS = os.environ[<span class="val">"NET_PASS"</span>]
+
+
+<span class="kw">def</span> load_inventory(path=<span class="val">"devices.csv"</span>):
+    <span class="val">"""devices.csv: hostname,ip,device_type"""</span>
+    <span class="kw">with</span> open(path, newline=<span class="val">""</span>, encoding=<span class="val">"utf-8"</span>) <span class="kw">as</span> f:
+        <span class="kw">return</span> list(csv.DictReader(f))
+
+
+<span class="kw">def</span> backup_one(row):
+    <span class="val">"""備份單台設備的設定，回傳 (hostname, 成功與否, 訊息)"""</span>
+    dev = {
+        <span class="val">"device_type"</span>: row[<span class="val">"device_type"</span>],
+        <span class="val">"host"</span>: row[<span class="val">"ip"</span>],
+        <span class="val">"username"</span>: USER,
+        <span class="val">"password"</span>: PASS,
+        <span class="val">"conn_timeout"</span>: 15,
+    }
+    <span class="kw">try</span>:
+        <span class="kw">with</span> ConnectHandler(**dev) <span class="kw">as</span> conn:
+            cfg = conn.send_command(<span class="val">"show running-config"</span>)
+        stamp = datetime.date.today().isoformat()
+        os.makedirs(<span class="val">f"backups/{stamp}"</span>, exist_ok=<span class="kw">True</span>)
+        <span class="kw">with</span> open(<span class="val">f"backups/{stamp}/{row['hostname']}.cfg"</span>, <span class="val">"w"</span>, encoding=<span class="val">"utf-8"</span>) <span class="kw">as</span> f:
+            f.write(cfg)
+        <span class="kw">return</span> (row[<span class="val">"hostname"</span>], <span class="kw">True</span>, <span class="val">f"{len(cfg)} bytes"</span>)
+
+    <span class="kw">except</span> NetmikoAuthenticationException:
+        <span class="kw">return</span> (row[<span class="val">"hostname"</span>], <span class="kw">False</span>, <span class="val">"帳號密碼錯誤"</span>)
+    <span class="kw">except</span> NetmikoTimeoutException:
+        <span class="kw">return</span> (row[<span class="val">"hostname"</span>], <span class="kw">False</span>, <span class="val">"連線逾時"</span>)
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="kw">return</span> (row[<span class="val">"hostname"</span>], <span class="kw">False</span>, str(e))
+
+
+<span class="kw">if</span> __name__ == <span class="val">"__main__"</span>:
+    devices = load_inventory()
+    ok = fail = 0
+
+    <span class="comment"># 平行 10 條連線，50 台從 10 分鐘變 1 分鐘</span>
+    <span class="kw">with</span> ThreadPoolExecutor(max_workers=10) <span class="kw">as</span> pool:
+        futures = {pool.submit(backup_one, d): d <span class="kw">for</span> d <span class="kw">in</span> devices}
+        <span class="kw">for</span> fut <span class="kw">in</span> as_completed(futures):
+            host, success, msg = fut.result()
+            <span class="kw">if</span> success:
+                ok += 1
+                print(<span class="val">f"  ✅ {host:&lt;20} {msg}"</span>)
+            <span class="kw">else</span>:
+                fail += 1
+                print(<span class="val">f"  ❌ {host:&lt;20} {msg}"</span>)
+
+    print(<span class="val">f"\n  完成：成功 {ok} 台，失敗 {fail} 台"</span>)</code></pre>
+
+    <div class="warn"><strong>平行數不要開太大。</strong><span class="inline-code">max_workers</span> 設 50 同時連 50 台，可能觸發設備的 VTY 上限（預設只有 16 條）或 TACACS 伺服器的速率限制。<b>10–20 是安全值。</b></div>
+
+    <div class="warn"><strong>寫入類的腳本一定要有「先看再做」模式。</strong>加一個 <span class="inline-code">--dry-run</span> 參數，先印出「我打算對哪幾台下哪些指令」，人工確認後才真的執行。<b>一個沒測試過的迴圈可以在三十秒內毀掉整個網路。</b></div>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="napalm">
+    <h2>9. 實作三：NAPALM 跨廠牌</h2>
+
+    <p><b>NAPALM</b>（Network Automation and Programmability Abstraction Layer with Multivendor support）在各廠牌之上包了一層統一介面——<b>同一段程式碼可以操作 Cisco、Juniper、Arista</b>。</p>
+
+    <pre><code>$ <span class="cmd">pip install napalm</span></code></pre>
+
+    <pre><code><span class="kw">import</span> napalm
+
+driver = napalm.get_network_driver(<span class="val">"ios"</span>)    <span class="comment"># 或 "junos" / "eos" / "nxos"</span>
+device = driver(hostname=<span class="val">"192.168.1.1"</span>,
+                username=<span class="val">"admin"</span>,
+                password=<span class="val">"P@ssw0rd"</span>,
+                optional_args={<span class="val">"secret"</span>: <span class="val">"EnableP@ss"</span>})
+
+device.open()
+
+<span class="comment"># ── 統一格式的查詢（不管什麼廠牌，回傳結構都一樣）──</span>
+print(device.get_facts())          <span class="comment"># 型號、序號、版本、uptime</span>
+print(device.get_interfaces())     <span class="comment"># 介面狀態</span>
+print(device.get_arp_table())
+print(device.get_bgp_neighbors())
+print(device.get_lldp_neighbors())
+
+device.close()</code></pre>
+
+    <h3>NAPALM 最強的功能：設定差異比對與回滾</h3>
+    <pre><code><span class="kw">import</span> napalm
+
+driver = napalm.get_network_driver(<span class="val">"ios"</span>)
+device = driver(<span class="val">"192.168.1.1"</span>, <span class="val">"admin"</span>, <span class="val">"P@ssw0rd"</span>)
+device.open()
+
+<span class="comment"># 1. 載入候選設定（此時還沒生效）</span>
+device.load_merge_candidate(filename=<span class="val">"new_vlans.cfg"</span>)
+
+<span class="comment"># 2. 看看到底會改什麼 —— 這一步是關鍵</span>
+diff = device.compare_config()
+print(<span class="val">"預計變更：\n"</span>, diff)
+
+<span class="comment"># 3. 人工確認後才套用</span>
+<span class="kw">if</span> diff <span class="kw">and</span> input(<span class="val">"確認套用？(yes/no) "</span>) == <span class="val">"yes"</span>:
+    device.commit_config()
+    print(<span class="val">"  ✅ 已套用"</span>)
+<span class="kw">else</span>:
+    device.discard_config()
+    print(<span class="val">"  已放棄變更"</span>)
+
+<span class="comment"># 4. 事後發現有問題 → 一行回滾</span>
+<span class="comment"># device.rollback()</span>
+
+device.close()</code></pre>
+
+    <div class="ok"><strong><span class="inline-code">compare_config()</span> 是 NAPALM 存在的理由。</strong>它讓你在<b>套用之前</b>就看到完整的差異，像 <span class="inline-code">git diff</span> 一樣。這是 Netmiko 完全做不到的——Netmiko 只會照你的指令打字，打完你才知道結果。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Netmiko</th><th>NAPALM</th><th>Ansible</th></tr>
+        <tr><td>抽象層級</td><td>低（就是自動打字）</td><td>中</td><td>高</td></tr>
+        <tr><td>跨廠牌</td><td>需自己處理</td><td><b>統一介面</b></td><td>模組化支援</td></tr>
+        <tr><td>冪等性</td><td>沒有</td><td>部分</td><td><b>有</b></td></tr>
+        <tr><td>差異比對</td><td>沒有</td><td><b>有</b></td><td>有</td></tr>
+        <tr><td>回滾</td><td>沒有</td><td><b>有</b></td><td>有（透過 NAPALM）</td></tr>
+        <tr><td>彈性</td><td><b>最高</b>（任何指令都能打）</td><td>中</td><td>中</td></tr>
+        <tr><td>適合</td><td>臨時任務、特殊指令</td><td>跨廠牌查詢與設定</td><td><b>大規模、常態部署</b></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="ansible">
+    <h2>10. 實作四：Ansible Playbook</h2>
+
+    <p>Ansible 是<b>宣告式</b>的組態管理工具，<b>無代理程式</b>（agentless）——不用在設備上裝任何東西，靠 SSH 或 API 就能操作。</p>
+
+    <pre><code>$ <span class="cmd">pip install ansible ansible-pylibssh</span>
+$ <span class="cmd">ansible-galaxy collection install cisco.ios</span></code></pre>
+
+    <h3>清單檔 inventory.yml</h3>
+    <pre><code>all:
+  children:
+    access_switches:
+      hosts:
+        SW1: { ansible_host: 192.168.1.11 }
+        SW2: { ansible_host: 192.168.1.12 }
+        SW3: { ansible_host: 192.168.1.13 }
+      vars:
+        ansible_network_os: cisco.ios.ios
+        ansible_connection: ansible.netcommon.network_cli
+        ansible_user: <span class="val">"{{ lookup('env', 'NET_USER') }}"</span>
+        ansible_password: <span class="val">"{{ lookup('env', 'NET_PASS') }}"</span>
+
+    core_switches:
+      hosts:
+        CORE1: { ansible_host: 192.168.1.1 }
+        CORE2: { ansible_host: 192.168.1.2 }</code></pre>
+
+    <h3>Playbook：一次部署 VLAN 到所有接入層交換器</h3>
+    <pre><code>---
+- name: 部署標準 VLAN 與埠設定
+  hosts: access_switches
+  gather_facts: no
+
+  vars:
+    standard_vlans:
+      - { id: 10, name: SALES }
+      - { id: 20, name: ENGINEERING }
+      - { id: 30, name: FINANCE }
+      - { id: 50, name: VOICE }
+      - { id: 99, name: MGMT }
+      - { id: 999, name: BLACKHOLE }
+
+  tasks:
+    - name: 備份目前設定
+      cisco.ios.ios_config:
+        backup: yes
+        backup_options:
+          dir_path: ./backups
+          filename: <span class="val">"{{ inventory_hostname }}.cfg"</span>
+
+    - name: 建立 VLAN
+      cisco.ios.ios_vlans:
+        config: <span class="val">"{{ standard_vlans | map('combine', {}) | list }}"</span>
+        state: merged
+
+    - name: 設定使用者埠
+      cisco.ios.ios_config:
+        lines:
+          - switchport mode access
+          - switchport access vlan 10
+          - switchport nonegotiate
+          - spanning-tree portfast
+          - spanning-tree bpduguard enable
+        parents: <span class="val">"interface {{ item }}"</span>
+      loop:
+        - FastEthernet0/1
+        - FastEthernet0/2
+        - FastEthernet0/3
+
+    - name: 關閉未使用的埠並隔離
+      cisco.ios.ios_config:
+        lines:
+          - switchport access vlan 999
+          - shutdown
+          - description == UNUSED ==
+        parents: <span class="val">"interface {{ item }}"</span>
+      loop: <span class="val">"{{ range(13, 25) | map('regex_replace', '^', 'FastEthernet0/') | list }}"</span>
+
+    - name: 存檔
+      cisco.ios.ios_config:
+        save_when: modified</code></pre>
+
+    <pre><code><span class="comment"># ── 先看會改什麼，不真的執行（最重要的習慣）──</span>
+$ <span class="cmd">ansible-playbook -i inventory.yml deploy_vlans.yml --check --diff</span>
+
+<span class="comment"># ── 只對一台測試 ──</span>
+$ <span class="cmd">ansible-playbook -i inventory.yml deploy_vlans.yml --limit SW1</span>
+
+<span class="comment"># ── 確認沒問題後全部執行 ──</span>
+$ <span class="cmd">ansible-playbook -i inventory.yml deploy_vlans.yml</span></code></pre>
+
+    <div class="ok"><strong><span class="inline-code">--check --diff</span> 是 Ansible 的救命符。</strong>它模擬執行並印出差異，<b>完全不碰設備</b>。任何正式環境的變更都應該先跑這個。搭配 <span class="inline-code">--limit</span> 先對一台試，確認無誤再全推。</div>
+
+    <h3>執行結果怎麼讀</h3>
+    <pre><code>PLAY RECAP
+SW1  : ok=5  <span class="val">changed=3</span>  unreachable=0  <span class="val">failed=0</span>
+SW2  : ok=5  <span class="val">changed=0</span>  unreachable=0  failed=0    <span class="comment">← 已經符合期望，沒改（冪等性）</span>
+SW3  : ok=2  changed=0  <span class="kw">unreachable=1</span>  failed=0    <span class="comment">← 連不上</span></code></pre>
+
+    <div class="ok"><strong>第二次執行時 <span class="inline-code">changed</span> 應該全部是 0。</strong>如果重複執行還是一直 changed，代表某個 task 沒有冪等性（通常是用了 <span class="inline-code">ios_config</span> 的 <span class="inline-code">lines</span> 但比對邏輯不對）。<b>這是檢查 playbook 品質的最快方法。</b></div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="git">
+    <h2>11. 用 Git 管理網路設定</h2>
+
+    <div class="ok"><strong>Infrastructure as Code：把網路設定當程式碼管理。</strong>
+      <ul style="margin:8px 0 0">
+        <li>每次變更都有 commit 紀錄——<b>誰、什麼時候、為什麼</b></li>
+        <li>可以開 branch 測試新設定，確認後才 merge</li>
+        <li>Pull Request 就是變更審查流程</li>
+        <li>出事 <span class="inline-code">git revert</span>，幾秒鐘回到已知良好狀態</li>
+      </ul>
+    </div>
+
+    <pre><code>network-configs/
+├── .gitignore              <span class="comment"># 一定要有：*.env、secrets.yml、*.key</span>
+├── inventory/
+│   ├── production.yml
+│   └── lab.yml
+├── playbooks/
+│   ├── deploy_vlans.yml
+│   ├── backup_configs.yml
+│   └── audit_compliance.yml
+├── templates/
+│   ├── access_switch.j2    <span class="comment"># Jinja2 範本</span>
+│   └── branch_router.j2
+├── backups/
+│   └── 2026-08-05/
+└── README.md</code></pre>
+
+    <h3>Jinja2 範本：一份範本產生 50 份設定</h3>
+    <pre><code><span class="comment">{# templates/access_switch.j2 #}</span>
+hostname {{ hostname }}
+!
+{% <span class="kw">for</span> vlan <span class="kw">in</span> vlans %}
+vlan {{ vlan.id }}
+ name {{ vlan.name }}
+{% <span class="kw">endfor</span> %}
+!
+{% <span class="kw">for</span> intf <span class="kw">in</span> user_ports %}
+interface {{ intf }}
+ switchport mode access
+ switchport access vlan {{ user_vlan }}
+ switchport nonegotiate
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+{% <span class="kw">endfor</span> %}
+!
+interface {{ uplink }}
+ switchport mode trunk
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan {{ vlans | map(attribute='id') | join(',') }}
+ switchport nonegotiate
+!
+interface vlan 99
+ ip address {{ mgmt_ip }} 255.255.255.240
+ no shutdown
+!
+ip default-gateway {{ mgmt_gw }}</code></pre>
+
+    <pre><code><span class="kw">from</span> jinja2 <span class="kw">import</span> Environment, FileSystemLoader
+<span class="kw">import</span> yaml
+
+env = Environment(loader=FileSystemLoader(<span class="val">"templates"</span>), trim_blocks=<span class="kw">True</span>)
+tpl = env.get_template(<span class="val">"access_switch.j2"</span>)
+
+<span class="kw">with</span> open(<span class="val">"inventory/switches.yml"</span>, encoding=<span class="val">"utf-8"</span>) <span class="kw">as</span> f:
+    devices = yaml.safe_load(f)
+
+<span class="kw">for</span> dev <span class="kw">in</span> devices:
+    config = tpl.render(**dev)
+    <span class="kw">with</span> open(<span class="val">f"generated/{dev['hostname']}.cfg"</span>, <span class="val">"w"</span>, encoding=<span class="val">"utf-8"</span>) <span class="kw">as</span> f:
+        f.write(config)
+    print(<span class="val">f"  ✅ 已產生 {dev['hostname']}.cfg"</span>)</code></pre>
+
+    <div class="warn"><strong>絕對不要把設備密碼 commit 進 Git。</strong>
+      <ul style="margin:8px 0 0">
+        <li><span class="inline-code">.gitignore</span> 要包含 <span class="inline-code">*.env</span>、<span class="inline-code">secrets.yml</span>、<span class="inline-code">*.key</span>、<span class="inline-code">*.pem</span></li>
+        <li>密碼用 <b>Ansible Vault</b>（<span class="inline-code">ansible-vault encrypt secrets.yml</span>）或環境變數</li>
+        <li><b>備份的 running-config 裡面有加密後的密碼雜湊</b>——推到公開 repo 等於送人破解材料。備份 repo 一定要設為 private</li>
+        <li>已經推上去了？改密碼比清歷史更實際——git 歷史很難完全清乾淨</li>
+      </ul>
+    </div>
+
+    <h3>CI/CD：自動檢查與部署</h3>
+    <pre><code><span class="comment"># .github/workflows/network-ci.yml</span>
+name: Network Config CI
+
+on: [pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 檢查 YAML 語法
+        run: yamllint inventory/ playbooks/
+
+      - name: Ansible 語法檢查
+        run: ansible-playbook --syntax-check playbooks/*.yml
+
+      - name: 對測試環境做 dry-run
+        run: ansible-playbook -i inventory/lab.yml playbooks/deploy_vlans.yml --check --diff</code></pre>
+
+    <div class="note">這樣一來，任何人送 Pull Request，CI 就自動檢查語法並在實驗室環境跑 dry-run。<b>錯誤在 merge 之前就被攔下來</b>，而不是上線後才發現。這是軟體工程的標準做法，網路領域正在快速跟上。</div>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="telemetry">
+    <h2>12. 模型驅動遙測</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>SNMP（傳統輪詢）</th><th>Model-Driven Telemetry</th></tr>
+        <tr><td>模式</td><td><b>Pull</b>——監控系統定時去問</td><td><b>Push</b>——設備主動送</td></tr>
+        <tr><td>頻率</td><td>通常 5 分鐘</td><td><b>可到秒級</b></td></tr>
+        <tr><td>設備負擔</td><td>高（每次都要處理查詢）</td><td>低（只在變化或排程時送）</td></tr>
+        <tr><td>資料格式</td><td>MIB / OID（難懂）</td><td><b>YANG</b>（結構化）</td></tr>
+        <tr><td>擴展性</td><td>設備多了輪詢就來不及</td><td><b>好</b></td></tr>
+      </table>
+    </div>
+
+    <div class="analogy"><strong>比喻：</strong>SNMP 像每五分鐘打電話問「你還好嗎」——問的時候正常，掛掉電話後出事你完全不知道。Telemetry 像設備<b>主動回報</b>——「我的 CPU 剛剛跳到 90%」，即時而且不用你問。</div>
+
+    <pre><code><span class="comment">! ── IOS-XE 的訂閱設定 ──</span>
+R1(config)# <span class="cmd">telemetry ietf subscription 101</span>
+R1(config-mdt-subs)# <span class="cmd">encoding encode-kvgpb</span>
+R1(config-mdt-subs)# <span class="cmd">filter xpath /interfaces-ios-xe-oper:interfaces/interface</span>
+R1(config-mdt-subs)# <span class="cmd">stream yang-push</span>
+R1(config-mdt-subs)# <span class="cmd">update-policy periodic 1000</span>        <span class="comment">← 每 10 秒（單位 centisecond）</span>
+R1(config-mdt-subs)# <span class="cmd">receiver ip address 192.168.1.100 57500 protocol grpc-tcp</span>
+
+R1# <span class="cmd">show telemetry ietf subscription 101 detail</span></code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>更新模式</th><th>行為</th><th>適合</th></tr>
+        <tr><td><b>periodic</b></td><td>固定間隔送一次</td><td>介面流量、CPU、記憶體</td></tr>
+        <tr><td><b>on-change</b></td><td><b>只有值改變才送</b></td><td>介面狀態、鄰居關係、路由變動</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>典型的現代監控堆疊：</strong>設備 → <b>Telegraf</b>（收集）→ <b>InfluxDB / Prometheus</b>（時序資料庫）→ <b>Grafana</b>（視覺化）。全部開源，是目前業界最常見的組合。</div>
+  </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="controller">
+    <h2>13. 控制器：DNA Center 與 SDN</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>介面</th><th>方向</th><th>誰跟誰溝通</th><th>用什麼</th></tr>
+        <tr><td><b>Northbound API</b></td><td>控制器 → 上層應用</td><td>你的程式 / 監控系統 ↔ 控制器</td><td><b>REST API</b>（JSON）</td></tr>
+        <tr><td><b>Southbound API</b></td><td>控制器 → 設備</td><td>控制器 ↔ 交換器 / 路由器</td><td>NETCONF、OpenFlow、CLI、SNMP</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>方向記法：</strong>把控制器畫在中間，<b>應用程式在上面（North）、設備在下面（South）</b>。你寫的自動化腳本呼叫的是 <b>Northbound API</b>。</div>
+
+    <h3>Cisco DNA Center 的能力</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>能力</th><th>做什麼</th></tr>
+        <tr><td><b>Design</b></td><td>定義站點階層、IP 位址池、設備設定範本</td></tr>
+        <tr><td><b>Policy</b></td><td>用「群組」而非 IP 定義存取政策（SGT / TrustSec）</td></tr>
+        <tr><td><b>Provision</b></td><td>Plug-and-Play：新設備上電自動取得設定</td></tr>
+        <tr><td><b>Assurance</b></td><td>健康度評分、自動根因分析、「為什麼這位使用者連不上」</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># DNA Center Northbound API 範例</span>
+<span class="kw">import</span> requests, urllib3
+urllib3.disable_warnings()
+
+DNAC = <span class="val">"https://sandboxdnac.cisco.com"</span>     <span class="comment"># Cisco DevNet 公開沙箱</span>
+
+<span class="comment"># 1. 取得 token（有效期通常 1 小時）</span>
+r = requests.post(<span class="val">f"{DNAC}/dna/system/api/v1/auth/token"</span>,
+                  auth=(<span class="val">"devnetuser"</span>, <span class="val">"Cisco123!"</span>), verify=<span class="kw">False</span>)
+token = r.json()[<span class="val">"Token"</span>]
+
+headers = {<span class="val">"X-Auth-Token"</span>: token, <span class="val">"Content-Type"</span>: <span class="val">"application/json"</span>}
+
+<span class="comment"># 2. 列出所有網路設備</span>
+r = requests.get(<span class="val">f"{DNAC}/dna/intent/api/v1/network-device"</span>,
+                 headers=headers, verify=<span class="kw">False</span>)
+
+<span class="kw">for</span> d <span class="kw">in</span> r.json()[<span class="val">"response"</span>]:
+    print(<span class="val">f"  {d['hostname']:&lt;24} {d['platformId']:&lt;18} {d['softwareVersion']}"</span>)</code></pre>
+
+    <div class="note"><strong>Cisco DevNet Sandbox 是免費的。</strong>提供 Always-On 的 DNA Center、IOS-XE（含 RESTCONF/NETCONF）、Meraki、ACI 等環境，不用自己買設備就能練 API。<b>準備 CCNA 的自動化考題，這是最實際的練習場</b>——網址搜尋「Cisco DevNet Sandbox」即可。</div>
+  </div>
+
+  <!-- ============ 14 ============ -->
+  <div class="card" id="practice">
+    <h2>14. 導入的實務建議</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>先做「唯讀」的自動化</b>設定備份、狀態盤點、合規稽核。<b>零風險</b>，而且立刻能證明價值。這一步就能省掉大量人工。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>建立設備清單的單一真實來源</b>CSV 或 YAML 都好，重點是<b>只有一份</b>。清單不準確，後面全部白搭。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>所有東西進 Git</b>包含腳本、範本、清單、備份。從第一天就養成 commit 訊息寫清楚的習慣。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>才開始做「寫入」，而且從最無害的開始</b>先自動化 <span class="inline-code">description</span>、NTP、syslog 這種改壞了也不會斷網的項目。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>永遠先 dry-run，先 limit 一台</b><span class="inline-code">--check --diff</span> 加 <span class="inline-code">--limit</span>。這兩個參數會救你很多次。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>寫回滾腳本，而且測試過它</b>「出事怎麼回去」要在動手前就想好，不是出事才想。沒測試過的回滾等於沒有回滾。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>建立實驗室環境</b>GNS3、CML、EVE-NG 或 Containerlab。所有腳本先在這裡跑過。</div></div>
+    </div>
+
+    <div class="warn"><strong>自動化最大的風險：錯誤也會被自動化。</strong>手動改設定，改壞一台你就會發現。<b>自動化改設定，30 秒改壞 200 台。</b><br><br>
+      三個必要的保險：
+      <ul style="margin:8px 0 0">
+        <li><b>先備份</b>，每次執行前自動存一份現況</li>
+        <li><b>分批執行</b>，Ansible 的 <span class="inline-code">serial: 5</span> 一次只做 5 台，出錯就停</li>
+        <li><b>設定 fail-fast</b>，第一台失敗就中止整個 playbook（<span class="inline-code">any_errors_fatal: true</span>）</li>
+      </ul>
+    </div>
+
+    <div class="ok"><strong>學習路徑建議：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>Python 基礎</b>（變數、迴圈、函式、dict/list）</li>
+        <li><b>JSON / YAML</b> 讀寫</li>
+        <li><b>Netmiko</b> 做備份與盤點 ← 最快看到成果</li>
+        <li><b>Jinja2</b> 產生設定</li>
+        <li><b>Ansible</b> 做部署</li>
+        <li><b>RESTCONF / NETCONF</b> 操作現代設備</li>
+        <li><b>Git + CI/CD</b> 建立流程</li>
+      </ol>
+      每一步都能獨立產生價值，<b>不用全部學完才開始用</b>。
+    </div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：從備份到自動部署</h3>
+    <p>需要 Python 3.10+ 與至少 2 台可 SSH 的設備（GNS3／CML／DevNet Sandbox 都可以）。約 120 分鐘。</p>
+
+    <h4>階段一：唯讀（零風險）</h4>
+    <ol>
+      <li>建立 <strong>devices.csv</strong>（hostname, ip, device_type）</li>
+      <li>用 <strong>Netmiko + ThreadPoolExecutor</strong> 寫備份腳本，存成 <span class="inline-code">backups/YYYY-MM-DD/hostname.cfg</span></li>
+      <li>加上完整的例外處理：認證失敗、逾時、其他錯誤要分開回報</li>
+      <li>用 <strong>use_textfsm=True</strong> 撈 <span class="inline-code">show ip interface brief</span>，列出所有非 up 的介面</li>
+      <li>寫合規稽核：檢查每台是否有 <span class="inline-code">service password-encryption</span>、<span class="inline-code">ip ssh version 2</span>、<span class="inline-code">no ip http server</span></li>
+    </ol>
+
+    <h4>階段二：範本與版本控制</h4>
+    <ol start="6">
+      <li>寫 <strong>Jinja2 範本</strong> access_switch.j2</li>
+      <li>寫 <strong>switches.yml</strong> 存各台的變數（hostname、mgmt_ip、user_vlan）</li>
+      <li>用 Python 產生所有設定檔到 <span class="inline-code">generated/</span></li>
+      <li><strong>git init</strong>，寫好 <span class="inline-code">.gitignore</span>（排除 .env、secrets、backups），commit 全部</li>
+    </ol>
+
+    <h4>階段三：寫入（有風險，先在實驗室）</h4>
+    <ol start="10">
+      <li>安裝 Ansible 與 <strong>cisco.ios</strong> collection</li>
+      <li>寫 <strong>inventory.yml</strong>，帳密用 <span class="inline-code">lookup('env', ...)</span></li>
+      <li>寫 playbook：備份 → 建 VLAN → 設埠 → 存檔</li>
+      <li>用 <strong>--check --diff --limit SW1</strong> 驗證</li>
+      <li>正式執行，然後<strong>再執行一次</strong>，確認 changed=0（冪等性）</li>
+    </ol>
+
+    <h4>階段四：API</h4>
+    <ol start="15">
+      <li>在一台 IOS-XE 上啟用 <strong>restconf + netconf-yang</strong>（別忘了 aaa authorization）</li>
+      <li>用 <strong>curl</strong> 測試 GET <span class="inline-code">ietf-interfaces:interfaces</span></li>
+      <li>用 <strong>Python requests</strong> 寫 GET + PATCH，修改介面描述</li>
+      <li>登入 <strong>Cisco DevNet Sandbox</strong>，取得 DNA Center token 並列出設備</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>備份腳本對 3 台以上設備平行執行，總時間 &lt; 30 秒</li>
+      <li>故意把一台的密碼改錯，腳本能<strong>正確報出「帳號密碼錯誤」而不是崩潰</strong></li>
+      <li>Jinja2 產生的設定檔跟手寫的一字不差</li>
+      <li><span class="inline-code">git log</span> 至少有 5 個有意義的 commit</li>
+      <li><span class="inline-code">git status</span> 看不到任何含密碼的檔案</li>
+      <li>Ansible playbook <strong>第二次執行 changed=0</strong></li>
+      <li>RESTCONF PATCH 回傳 <strong>204</strong>，且 <span class="inline-code">show run</span> 看得到變更</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>幫備份腳本加 <span class="inline-code">--dry-run</span> 參數，只印出會連哪些設備而不真的連。</li>
+      <li>用 <strong>NAPALM 的 compare_config()</strong> 在套用前印出差異，做出「人工確認才 commit」的流程。</li>
+      <li>寫一個腳本比對今天和昨天的備份，用 <span class="inline-code">difflib</span> 印出<strong>哪些設備的設定被改過</strong>——這是很實用的變更偵測。</li>
+      <li>設定 <strong>GitHub Actions</strong>，PR 時自動跑 <span class="inline-code">yamllint</span> 和 <span class="inline-code">--syntax-check</span>。</li>
+      <li>在 playbook 加上 <span class="inline-code">serial: 1</span> 和 <span class="inline-code">any_errors_fatal: true</span>，故意讓第二台失敗，觀察它是否正確中止。</li>
+      <li>用 <strong>Containerlab</strong> 或 <strong>CML</strong> 建一個 5 台設備的拓樸，把整套流程跑一遍。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>自動化的價值是<strong>一致性和可回溯</strong>，不只是快</li>
+      <li><strong>冪等性</strong>：執行 1 次和 N 次結果相同。Netmiko 沒有，Ansible / NAPALM 有</li>
+      <li>JSON 用在 REST、XML 用在 NETCONF、YAML 用在 Ansible</li>
+      <li>JSON <strong>不能有尾逗號、不能有註解、key 要雙引號</strong>；YAML <strong>不能用 Tab</strong></li>
+      <li><strong>PUT 整個取代（會清掉沒送的欄位）、PATCH 只改送的</strong>——改單項一律用 PATCH</li>
+      <li>狀態碼：<strong>2xx 成功、204 是 PATCH/DELETE 成功、4xx 是你的錯、5xx 是對方的錯</strong></li>
+      <li>NETCONF 走 SSH 830 + XML，<strong>有 candidate/commit/rollback</strong>；RESTCONF 走 HTTPS + JSON，最好上手</li>
+      <li>IOS-XE 開 RESTCONF 別忘了 <span class="inline-code">aaa authorization exec default local</span></li>
+      <li>YANG 是資料模型；標準模型跨廠牌、原生模型功能全</li>
+      <li><strong>Netmiko 彈性最高、NAPALM 能 diff 與 rollback、Ansible 適合大規模</strong></li>
+      <li>Ansible <strong>--check --diff --limit</strong> 是正式環境的必要習慣</li>
+      <li>Git 管設定，<strong>密碼絕不 commit</strong>，備份 repo 一定要 private</li>
+      <li>Telemetry 是 <strong>push</strong>、SNMP 是 <strong>pull</strong>；Northbound 給應用、Southbound 給設備</li>
+      <li>導入順序：<strong>唯讀 → 版本控制 → 低風險寫入 → 全面部署</strong></li>
+    </ul>
+    <div class="note">恭喜完成全部 12 章。去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 跑一次完整的 40 題模擬考，連續三次 90 分以上再考慮報名 CCNA。自動化在 CCNA 200-301 佔 10%，而且是<b>未來十年最保值的技能</b>。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="11-qos-sdwan.html">← CH 4-1：QoS 與 SD-WAN</a>
+    <a href="quiz.html">前往模擬試題 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 4-2</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

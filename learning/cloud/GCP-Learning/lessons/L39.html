@@ -107,4 +107,178 @@
    └─ Vertex AI（進階模型訓練與部署）</code></pre></div><h3>關鍵設計要點</h3><ol><li><strong>邊緣要有離線緩衝</strong>——工廠網路會斷，資料不能丟。閘道端要能暫存並在恢復後補傳。</li><li><strong>補傳會造成重複</strong>——所以下游必須冪等。用 <code>機台ID + 時間戳</code> 當唯一鍵。</li><li><strong>熱冷分層</strong>——Bigtable 服務即時儀表板（毫秒級），BigQuery 服務歷史分析（秒級）。<em>試圖用一個系統同時滿足兩者會兩邊都不好</em>。</li><li><strong>Row key 設計</strong>——用 <code>機台ID#(MAX-時間戳)</code>，避免熱點且最新資料排前面。</li><li><strong>用 Pub/Sub 原生 BigQuery 訂閱寫 RAW 層</strong>——零程式碼、零維護，Dataflow 只處理需要轉換的部分。</li></ol><h2>四、三個案例的共通模式</h2><p>看完三個差異極大的架構，你會發現有些東西<strong>永遠都在</strong>：</p><div class="tbl"><table><thead><tr><th>共通元件</th><th>為什麼永遠需要</th></tr></thead><tbody><tr><td><b>Terraform 管理全部資源</b></td><td>可重現、可審閱、可回滾</td></tr><tr><td><b>CI/CD 自動化部署</b></td><td>手動部署遲早出事</td></tr><tr><td><b>Cloud Logging + Monitoring + 告警</b></td><td>看不見就管不動</td></tr><tr><td><b>Secret Manager</b></td><td>憑證絕不落地</td></tr><tr><td><b>私有網路 + 最小權限 IAM</b></td><td>縱深防禦的基礎</td></tr><tr><td><b>備份 + 演練過的 DR 計畫</b></td><td>不是「會不會出事」，是「什麼時候」</td></tr><tr><td><b>成本標籤與預算警報</b></td><td>成本要能歸因才能控制</td></tr><tr><td><b>OLTP 與 OLAP 分離</b></td><td>交易與分析是不同的工作負載</td></tr></tbody></table></div><p><em>如果你的架構圖上少了這八項中的任何一項，那不是「簡化」，是「還沒做完」。</em></p><h2>五、本課檢核</h2><ul class="checklist"><li>能看懂並解釋三個架構圖中每個元件的角色</li><li>能說明為什麼案例二需要 Spanner 而案例一不需要</li><li>理解熱冷資料分層的設計理由</li><li>能列出所有架構都需要的八個共通元件</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>案例一的電商，黑色星期五流量預估是平常的 20 倍。要調整什麼？</summary><div class="ans"><strong>逐層檢查瓶頸，重點是「哪些會自動擴、哪些不會」。</strong><br><br>① <strong>Cloud Run（會自動擴，但要調上限）</strong>——<code>max-instances</code> 從 100 調到 500；<u>提前設定 <code>min-instances</code> 預熱</u>（例如活動前一小時調到 20），避免冷啟動。<br><br>② <strong>Cloud SQL（不會自動擴，最大瓶頸）</strong>——這是最需要注意的一層：<br>&nbsp;&nbsp;• 提前<u>垂直擴充</u>（需要短暫重啟，要在活動前做）<br>&nbsp;&nbsp;• <u>增加唯讀副本</u>，把讀取分流<br>&nbsp;&nbsp;• <strong>務必加連線池</strong>——500 個 Cloud Run 實例 × 每個 10 條連線 = 5000 條，會直接打爆資料庫。用 PgBouncer 或 Cloud SQL Auth Proxy 的連線池。<br><br>③ <strong>Memorystore</strong>——擴大記憶體，並<u>預熱快取</u>（活動前把熱門商品資料先載入）。<br><br>④ <strong>CDN</strong>——延長靜態資源的 TTL，最大化命中率。<br><br>⑤ <strong>配額檢查</strong>——<u>提前兩週向 GCP 申請提高配額</u>（CPU、IP、連線數）。這一步最常被忘記，而且臨時申請可能來不及。<br><br>⑥ <strong>非同步化</strong>——把「寄確認信、更新推薦、寫分析」等非關鍵路徑全部丟進 Pub/Sub，讓結帳路徑最短。<br><br>⑦ <strong>降級預案</strong>——準備好功能開關，必要時關閉推薦、評論等非核心功能。<br><br><em>最後：<strong>活動前一週做一次真實的壓力測試</strong>。沒測過的容量規劃只是猜測。</em></div></details><details class="qa"><summary>案例三的 IoT 平台，資料量三年後成長到 10 倍。架構要重做嗎？</summary><div class="ans"><strong>不用重做，但要調整幾個參數與策略。</strong>這個架構的可擴充性本來就不錯：<br><br>① <strong>Pub/Sub</strong>——完全託管，自動擴充。<u>不用改</u>。<br>② <strong>Dataflow</strong>——調高 <code>max-num-workers</code>，它會自動擴。<u>不用改架構</u>。<br>③ <strong>Bigtable</strong>——增加節點數即可線性擴充。<u>但要檢查 row key 有沒有熱點</u>——資料量大時熱點的影響會被放大。用 Key Visualizer 確認。<br>④ <strong>BigQuery</strong>——這是要注意的一層：<br>&nbsp;&nbsp;• 儲存成本會線性成長 → <u>加強分區到期政策</u>，把超過 1 年的資料匯出到 GCS 用外部表查詢<br>&nbsp;&nbsp;• 查詢成本可能非線性成長 → <u>建立具體化檢視表</u>，讓常用報表不再掃原始資料<br>&nbsp;&nbsp;• 考慮從隨用隨付切換到<u>容量定價</u><br><br>⑤ <strong>成本結構要重新檢視</strong>——10 倍資料量下，<u>原本佔比小的項目可能變成主要成本</u>。例如 Dataflow 的常駐 worker、Bigtable 的節點數。<br><br><strong>真正需要重新設計的訊號</strong>：<br>• 如果查詢模式改變了（例如從「查單一機台」變成「跨全廠即時比對」），那 Bigtable 的 row key 設計可能不再適用。<br>• 如果需要跨廠區的即時關聯分析，可能要引入串流 JOIN。<br><br><em>好架構的特徵：<strong>擴充時調參數，不是改設計。</strong>這個架構的每一層都是水平可擴充的託管服務，這就是為什麼它撐得住。</em></div></details><details class="qa"><summary>你要向沒有技術背景的 CTO 說明為什麼案例二比案例一貴 10 倍。怎麼講？</summary><div class="ans"><strong>用「保險」的比喻，並把成本對應到具體的業務風險。</strong><br><br>「兩套系統的差別，就像<u>一般汽車保險</u>和<u>運鈔車的保全規格</u>。」<br><br><strong>① 資料一致性的代價</strong><br>「電商如果庫存算錯，最壞的情況是超賣一件商品，我們道歉退款，損失幾千元。<br>帳務系統如果算錯，就是<u>某個客戶的錢憑空消失或憑空出現</u>——這會是金管會的重大裁罰、上新聞、失去營業許可。<br>為了保證『三個國家的機房同時運作，但帳目永遠一致』，我們必須用 Spanner——這是全世界少數幾個做得到的技術，Google 為此在機房裡裝了原子鐘。<u>這項技術本身就佔了成本差距的一半以上</u>。」<br><br><strong>② 法規遵循的代價</strong><br>「7 年不可竄改的稽核紀錄、客戶自持的加密金鑰、每一次資料存取都要留證——這些不會讓系統跑得更快，但少了任何一項，稽核就過不了。<u>這是營業執照的成本，不是技術的成本</u>。」<br><br><strong>③ 停機的代價</strong><br>「電商停機一小時，損失是那一小時的營業額。<br>帳務系統停機一小時，是客戶無法轉帳、無法交易——那是信任的損失，而信任一旦失去，客戶不會回來。」<br><br><strong>④ 給出對比數字</strong><br>「這套系統每月多花的錢，大約等於<u>一次資安事故的公關費用</u>，或<u>一次法規裁罰的十分之一</u>。」<br><br><em>關鍵技巧：不要講技術規格，講「如果不這樣做會發生什麼」。決策者需要的是風險與代價的對照，不是架構圖。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L39">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L38.html"><span>← 上一課</span>L38 上雲遷移：策略、評估與實際步驟</a><a class="next" href="L40.html"><span>下一課 →</span>L40 認證路線圖與考前衝刺</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BGP 與路由政策 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.bgp-order{counter-reset:bo;margin:16px 0;}
+.bgp-item{display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.bgp-item.key{border-color:var(--amber);background:#FFFBEB;}
+.bgp-badge{width:36px;height:26px;border-radius:6px;background:var(--stone);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.72rem;font-family:"Cascadia Code",monospace;}
+.bgp-item.key .bgp-badge{background:var(--amber);}
+.bgp-body b{display:block;font-size:.87rem;color:var(--ink);margin-bottom:2px;}
+.bgp-body span{font-size:.8rem;color:var(--stone);line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第三章</a><span class="sep">/</span>
+  <span class="cur">CH 3-3 · BGP 與路由政策</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">CH 3-3 · 路由技術核心 · CCNP 重點</div>
+  <h1>BGP 與路由政策</h1>
+  <p>OSPF 找最短路徑，BGP 找「符合商業政策的路徑」。這章講清楚 BGP 為什麼跟其他協定完全不同、十一步選路順序怎麼記，以及企業雙 ISP 該怎麼設計進出流量。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">BGP 為什麼跟其他協定不一樣</a></li>
+      <li><a href="#as">AS 號與公私有範圍</a></li>
+      <li><a href="#ebgp">eBGP vs iBGP</a></li>
+      <li><a href="#session">Session 建立與四種訊息</a></li>
+      <li><a href="#config">實作一：基本 eBGP 設定</a></li>
+      <li><a href="#nexthop">next-hop-self 與同步問題</a></li>
+      <li><a href="#rr">iBGP 全網狀與 Route Reflector</a></li>
+      <li><a href="#path">十一步選路順序（核心）</a></li>
+      <li><a href="#attr">屬性詳解與影響方向</a></li>
+      <li><a href="#policy">實作二：用屬性控制流量</a></li>
+      <li><a href="#filter">實作三：路由過濾</a></li>
+      <li><a href="#multihome">雙 ISP 設計實務</a></li>
+      <li><a href="#trouble">故障排除</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="why">
+    <h2>1. BGP 為什麼跟其他協定不一樣</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>IGP（OSPF、EIGRP）</th><th>BGP</th></tr>
+        <tr><td>目標</td><td>找<b>最快</b>的路徑</td><td>找<b>符合政策</b>的路徑</td></tr>
+        <tr><td>範圍</td><td>單一組織內部</td><td><b>組織之間</b>（網際網路的骨幹）</td></tr>
+        <tr><td>類型</td><td>連結狀態 / 距離向量</td><td><b>路徑向量</b>（Path Vector）</td></tr>
+        <tr><td>傳輸</td><td>自己的封包格式（協定 89 / 88）</td><td><b>TCP port 179</b></td></tr>
+        <tr><td>鄰居</td><td>自動發現</td><td><b>必須手動指定</b></td></tr>
+        <tr><td>metric</td><td>單一數值</td><td><b>一整套屬性</b>，十一步比較</td></tr>
+        <tr><td>路由數量</td><td>數百到數千</td><td><b>全網際網路約 95 萬條以上</b></td></tr>
+        <tr><td>收斂</td><td>秒級</td><td>分鐘級（刻意設計得慢而穩）</td></tr>
+      </table>
+    </div>
+
+    <div class="analogy"><strong>比喻：</strong>OSPF 像 Google Maps——「哪條路最快就走哪條」。BGP 像貨運公司排路線——「這家客戶跟我們有合約，走他們的路便宜；那家是競爭對手，就算比較近也不走」。<b>BGP 的決策是商業的，不是技術的。</b></div>
+
+    <div class="ok"><strong>路徑向量是什麼意思？</strong>BGP 宣告路由時會帶上「這條路經過了哪些 AS」的清單（AS_PATH）。這有兩個作用：
+      <ul style="margin:8px 0 0">
+        <li><b>防迴圈：</b>收到的路由如果 AS_PATH 裡已經有自己的 AS 號，直接丟棄</li>
+        <li><b>選路：</b>AS_PATH 愈短通常代表跳過愈少家業者，是選路順序中很重要的一項</li>
+      </ul>
+    </div>
+
+    <div class="warn"><strong>什麼時候<u>不</u>該用 BGP？</strong>只有一條對外線路的公司，<b>一條靜態預設路由就夠了</b>。導入 BGP 意味著：要跟 ISP 申請 AS 號和自有 IP、路由器要有足夠記憶體吃下全表（至少 4 GB）、要有人懂得維護。<b>沒有雙 ISP 或多出口需求，BGP 純粹是自找麻煩。</b></div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="as">
+    <h2>2. AS 號與公私有範圍</h2>
+
+    <p><b>AS（Autonomous System，自治系統）</b>是「由同一個組織統一管理路由政策的一群路由器」。每家 ISP、每家有自己對外政策的大企業，都有自己的 AS 號。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>範圍</th><th>類型</th><th>用途</th></tr>
+        <tr><td>1 – 64495</td><td>公有 16 bit</td><td>網際網路上使用，向 RIR（亞太是 APNIC）申請</td></tr>
+        <tr><td><b>64512 – 65534</b></td><td><b>私有 16 bit</b></td><td>企業內部、實驗室。<b>不能出現在網際網路上</b></td></tr>
+        <tr><td>65535</td><td>保留</td><td>—</td></tr>
+        <tr><td>65536 – 4199999999</td><td>公有 32 bit</td><td>16 bit 快用完了，新申請多是這個範圍</td></tr>
+        <tr><td><b>4200000000 – 4294967294</b></td><td><b>私有 32 bit</b></td><td>大型企業內部多 AS 設計</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment">! 32 bit AS 號的表示法：asplain 或 asdot</span>
+R1(config)# <span class="cmd">router bgp 65536</span>              <span class="comment">← asplain（現行標準）</span>
+R1(config)# <span class="cmd">bgp asnotation dot</span>            <span class="comment">← 改成顯示 1.0 這種格式</span></code></pre>
+
+    <div class="note"><strong>台灣的實務：</strong>要申請公有 AS 號和自有 IP 位址段，需要向 <b>TWNIC</b>（APNIC 的下級單位）提出申請，通常要求「有兩家以上的上游 ISP」作為理由。單一 ISP 的企業申請不會過——因為那種情況根本不需要 BGP。</div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="ebgp">
+    <h2>3. eBGP vs iBGP</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>eBGP（外部）</th><th>iBGP（內部）</th></tr>
+        <tr><td>鄰居的 AS</td><td><b>不同</b> AS</td><td><b>相同</b> AS</td></tr>
+        <tr><td>AD</td><td><b>20</b></td><td><b>200</b></td></tr>
+        <tr><td>預設 TTL</td><td><b>1</b>（必須直連）</td><td>255</td></tr>
+        <tr><td>AS_PATH</td><td>宣告時<b>加上自己的 AS</b></td><td><b>不改</b></td></tr>
+        <tr><td>Next-Hop</td><td>宣告時<b>改成自己</b></td><td><b>不改</b>（所以要 next-hop-self）</td></tr>
+        <tr><td>路由再傳播</td><td>學到的可以傳給任何鄰居</td><td><b>從 iBGP 學到的不能再傳給其他 iBGP</b></td></tr>
+        <tr><td>拓樸需求</td><td>直連</td><td><b>邏輯全網狀</b>或 Route Reflector</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>iBGP 水平分割規則（最重要的一條）：</strong>
+      <div class="formula" style="margin-top:10px"><code>從 <b>iBGP</b> 鄰居學到的路由，<b>不會</b>再宣告給其他 iBGP 鄰居</code></div>
+      為什麼？因為 iBGP 之間 AS_PATH 不變，沒有防迴圈機制。所以只能靠這條規則。<br><br>
+      <b>後果：</b>AS 內有 N 台 BGP 路由器，就需要 <b>N(N−1)/2</b> 條 iBGP session。10 台 = 45 條，50 台 = 1225 條。這就是為什麼需要 Route Reflector（第 7 節）。
+    </div>
+
+    <h3>eBGP 的 TTL 限制與 multihop</h3>
+    <pre><code><span class="comment">! eBGP 預設 TTL=1，代表鄰居必須直連。</span>
+<span class="comment">! 如果要用 Loopback 建立 eBGP（中間隔了一跳），必須加 multihop</span>
+R1(config-router)# <span class="cmd">neighbor 2.2.2.2 ebgp-multihop 2</span>
+R1(config-router)# <span class="cmd">neighbor 2.2.2.2 update-source loopback 0</span>
+
+<span class="comment">! 較新的做法：ttl-security，比 multihop 安全</span>
+R1(config-router)# <span class="cmd">neighbor 2.2.2.2 ttl-security hops 2</span></code></pre>
+
+    <div class="note"><strong>什麼時候用 Loopback 建 eBGP？</strong>當兩台路由器之間有<b>多條實體線路</b>時。用實體介面 IP 建 session，那條線斷了 session 就掉；用 Loopback，只要還有任何一條路能通，session 就活著。單一線路的情況<b>不要</b>用 Loopback，反而增加複雜度。</div>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="session">
+    <h2>4. Session 建立與四種訊息</h2>
+
+    <h3>六個狀態</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>狀態</th><th>意義</th><th>卡住的原因</th></tr>
+        <tr><td><b>Idle</b></td><td>還沒開始，或剛失敗退回來</td><td>沒有到鄰居 IP 的路由；或 session 一直失敗被退避</td></tr>
+        <tr><td><b>Connect</b></td><td>正在等 TCP 三次握手完成</td><td>TCP 179 被防火牆擋</td></tr>
+        <tr><td><b>Active</b></td><td>TCP 失敗了，正在<b>主動重試</b></td><td><b>最常見的卡住狀態</b>：IP 打錯、對方沒設定、ACL 擋住</td></tr>
+        <tr><td><b>OpenSent</b></td><td>送出 Open 訊息，等對方回應</td><td>AS 號不符、Router ID 重複</td></tr>
+        <tr><td><b>OpenConfirm</b></td><td>等 Keepalive 確認</td><td>認證密碼不符</td></tr>
+        <tr><td><b>Established</b></td><td><b>正常狀態</b>，開始交換路由</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>「Active」不是好事。</strong>名字聽起來很正面，實際上代表 <b>TCP 連不上，正在一直重試</b>。在 <span class="inline-code">show ip bgp summary</span> 裡看到 Active 或 Idle，就是 session 沒建起來。<b>Established 才是唯一正常的狀態。</b></div>
+
+    <h3>四種訊息</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>訊息</th><th>做什麼</th></tr>
+        <tr><td><b>OPEN</b></td><td>自我介紹：我的 AS 號、Router ID、Hold Time、支援的能力</td></tr>
+        <tr><td><b>UPDATE</b></td><td>宣告新路由（含屬性）或撤銷路由（Withdrawn Routes）</td></tr>
+        <tr><td><b>KEEPALIVE</b></td><td>每 <b>60 秒</b>一次，維持 session。Hold Time 預設 <b>180 秒</b></td></tr>
+        <tr><td><b>NOTIFICATION</b></td><td>出錯了，<b>送完就關閉 session</b>。錯誤碼會告訴你原因</td></tr>
+      </table>
+    </div>
+
+    <div class="note">Hold Time 會取<b>兩邊較小的那個</b>。所以你設 90 秒、對方設 180 秒，實際生效的是 90 秒。Keepalive 通常是 Hold Time 的三分之一。</div>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="config">
+    <h2>5. 實作一：基本 eBGP 設定</h2>
+
+    <pre><code><span class="comment">! ═══ 我方 AS 65001，ISP 是 AS 64500 ═══</span>
+R1(config)# <span class="cmd">router bgp 65001</span>
+R1(config-router)# <span class="cmd">bgp router-id 1.1.1.1</span>
+R1(config-router)# <span class="cmd">bgp log-neighbor-changes</span>
+
+<span class="comment">! ── 定義鄰居 ──</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 remote-as 64500</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 description == ISP-A HINET ==</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 password S3cureBGP!</span>
+
+<span class="comment">! ── 宣告自己的網段 ──</span>
+R1(config-router)# <span class="cmd">network 198.51.100.0 mask 255.255.255.0</span></code></pre>
+
+    <div class="warn"><strong>BGP 的 <span class="inline-code">network</span> 跟 OSPF 完全不同！</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th></th><th>OSPF 的 network</th><th>BGP 的 network</th></tr>
+          <tr><td>意義</td><td>「這些<b>介面</b>要跑 OSPF」</td><td>「<b>宣告</b>這個網段給鄰居」</td></tr>
+          <tr><td>遮罩</td><td><b>wildcard</b>（0.0.0.255）</td><td><b>正常遮罩</b>（mask 255.255.255.0）</td></tr>
+          <tr><td>前提</td><td>介面要 up</td><td><b>路由表裡必須有<u>完全一致</u>的這條路由</b></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="warn"><strong>最常見的「宣告了但對方看不到」原因：路由表裡沒有精確匹配的路由。</strong><br><br>
+      你打 <span class="inline-code">network 198.51.100.0 mask 255.255.255.0</span>，但路由表裡只有 <span class="inline-code">198.51.100.0/25</span> 和 <span class="inline-code">198.51.100.128/25</span> 兩條 → <b>BGP 不會宣告</b>，因為沒有一條剛好是 /24。<br><br>
+      <b>標準解法：加一條指向 Null0 的靜態路由</b>，讓路由表裡確實存在那個前綴：
+      <pre style="margin:8px 0 0"><code>R1(config)# <span class="cmd">ip route 198.51.100.0 255.255.255.0 null 0</span></code></pre>
+      這條路由不會造成問題——更精確的 /25 路由會因為最長前綴匹配而優先，Null0 只是讓 BGP 有東西可以宣告。
+    </div>
+
+    <h3>Peer Group 與 Peer Template（鄰居多的時候）</h3>
+    <pre><code><span class="comment">! 傳統 peer-group</span>
+R1(config-router)# <span class="cmd">neighbor IBGP-PEERS peer-group</span>
+R1(config-router)# <span class="cmd">neighbor IBGP-PEERS remote-as 65001</span>
+R1(config-router)# <span class="cmd">neighbor IBGP-PEERS update-source loopback 0</span>
+R1(config-router)# <span class="cmd">neighbor IBGP-PEERS next-hop-self</span>
+R1(config-router)# <span class="cmd">neighbor 2.2.2.2 peer-group IBGP-PEERS</span>
+R1(config-router)# <span class="cmd">neighbor 3.3.3.3 peer-group IBGP-PEERS</span></code></pre>
+
+    <h3>驗證</h3>
+    <pre><code>R1# <span class="cmd">show ip bgp summary</span>
+BGP router identifier 1.1.1.1, local AS number 65001
+BGP table version is 42, main routing table version 42
+
+Neighbor        V  AS   MsgRcvd MsgSent  TblVer  InQ OutQ Up/Down  State/PfxRcd
+203.0.113.1     4  64500   1284    1190      42    0    0 02:14:33      <span class="val">12</span>
+198.51.100.5    4  65001    892     901      42    0    0 01:55:02      <span class="val">4</span>
+10.0.0.9        4  64600      0       0       1    0    0 never    <span class="kw">Active</span></code></pre>
+
+    <div class="ok"><strong>怎麼判讀最後一欄：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>數字</b>（12、4）= session 正常，收到幾條前綴。<b>這才是 Established</b></li>
+        <li><b>Active / Idle / Connect</b> = session <b>沒建起來</b></li>
+        <li><b>0</b> = session 建起來了但一條路由都沒收到 → 查對方有沒有宣告、查自己的 filter</li>
+      </ul>
+    </div>
+
+    <pre><code>R1# <span class="cmd">show ip bgp</span>
+   Network          Next Hop      Metric LocPrf Weight Path
+*&gt; 198.51.100.0/24  0.0.0.0            0         32768 i
+*&gt; 203.0.113.0/24   203.0.113.1        0             0 64500 i
+*  172.16.0.0/16    198.51.100.5       0    100      0 64600 64700 i
+*&gt;                  203.0.113.1                      0 64500 64700 i</code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>符號</th><th>意義</th></tr>
+        <tr><td><b>*</b></td><td>valid，這條路由是有效的（下一跳可達）</td></tr>
+        <tr><td><b>&gt;</b></td><td><b>best</b>，選路的贏家，會被放進路由表</td></tr>
+        <tr><td><b>i</b>（在最前面）</td><td>從 iBGP 學來的</td></tr>
+        <tr><td><b>i</b>（在最後面）</td><td>Origin = IGP（用 network 宣告的）</td></tr>
+        <tr><td><b>?</b>（在最後面）</td><td>Origin = incomplete（重分佈進來的）</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="nexthop">
+    <h2>6. next-hop-self 與同步問題</h2>
+
+    <div class="ex-box">
+      <div class="ex-title">問題場景</div>
+      <pre style="margin:10px 0"><code>[ ISP 64500 ]───203.0.113.1
+                     │
+                 203.0.113.2
+              [ R1 ]────iBGP────[ R2 ]
+                    10.0.0.1  10.0.0.2</code></pre>
+      <ol style="margin-bottom:0">
+        <li>R1 從 ISP 學到路由，Next-Hop = <b>203.0.113.1</b></li>
+        <li>R1 把路由傳給 R2（iBGP）。<b>iBGP 不改 Next-Hop</b>，所以 R2 收到的還是 203.0.113.1</li>
+        <li>R2 的路由表裡<b>沒有 203.0.113.0/24 這個網段</b>（那是 R1 對外的線）</li>
+        <li>結果：R2 認為這條路由的下一跳<b>不可達</b>，標成 inaccessible，<b>不會放進路由表</b></li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment">! 解法：R1 在傳給 iBGP 鄰居時，把 Next-Hop 改成自己</span>
+R1(config-router)# <span class="cmd">neighbor 10.0.0.2 next-hop-self</span></code></pre>
+
+    <div class="ok"><strong>規則很簡單：所有 iBGP 鄰居都加 <span class="inline-code">next-hop-self</span>。</strong>這幾乎沒有例外，是 BGP 設定的標準動作。忘記加就會出現「BGP 表裡有路由但路由表裡沒有」的困惑。</div>
+
+    <pre><code><span class="comment">! 症狀長這樣：BGP 表裡有，但沒有 &gt; 符號</span>
+R2# <span class="cmd">show ip bgp</span>
+   Network          Next Hop         Metric LocPrf Weight Path
+*  172.16.0.0/16    <span class="kw">203.0.113.1</span>           0    100      0 64500 i
+                    ↑ 沒有 &gt;，代表沒被選為 best
+
+R2# <span class="cmd">show ip bgp 172.16.0.0</span>
+  64500
+    203.0.113.1 (<span class="kw">inaccessible</span>) from 10.0.0.1 (1.1.1.1)</code></pre>
+
+    <div class="note"><strong>另一種解法：把連接 ISP 的網段用 IGP 宣告出去。</strong>這樣 R2 就知道怎麼到 203.0.113.1。但一般不建議——你把對外網段丟進內部 IGP，等於多了一個攻擊面，而且 <span class="inline-code">next-hop-self</span> 一行就解決了。</div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="rr">
+    <h2>7. iBGP 全網狀與 Route Reflector</h2>
+
+    <div class="formula"><code>N 台 iBGP 路由器 → 需要 <b>N(N−1)/2</b> 條 session<br>10 台 = 45 條　　50 台 = <b>1225 條</b></code></div>
+
+    <p>維護 1225 條 session 是不可能的。<b>Route Reflector（RR，路由反射器）</b>打破 iBGP 水平分割規則：RR 可以把從一個 iBGP 鄰居學到的路由，反射給其他 iBGP 鄰居。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>角色</th><th>設定</th><th>行為</th></tr>
+        <tr><td><b>Route Reflector</b></td><td>在 RR 上設 <span class="inline-code">route-reflector-client</span></td><td>會反射路由</td></tr>
+        <tr><td><b>Client</b></td><td><b>不用設定</b>，是被 RR 指定的</td><td>只跟 RR 建 session</td></tr>
+        <tr><td><b>Non-Client</b></td><td>一般 iBGP 鄰居</td><td>跟 RR 和其他 Non-Client 都要全網狀</td></tr>
+      </table>
+    </div>
+
+    <h3>反射規則</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>路由來自</th><th>反射給 Client</th><th>反射給 Non-Client</th><th>反射給 eBGP</th></tr>
+        <tr><td><b>Client</b></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td><b>Non-Client</b></td><td>✅</td><td>❌</td><td>✅</td></tr>
+        <tr><td><b>eBGP</b></td><td>✅</td><td>✅</td><td>✅</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment">! ═══ 在 RR 上設定（R2 當 RR）═══</span>
+R2(config)# <span class="cmd">router bgp 65001</span>
+R2(config-router)# <span class="cmd">neighbor 1.1.1.1 remote-as 65001</span>
+R2(config-router)# <span class="cmd">neighbor 1.1.1.1 update-source loopback 0</span>
+R2(config-router)# <span class="cmd">neighbor 1.1.1.1 next-hop-self</span>
+R2(config-router)# <span class="cmd">neighbor 1.1.1.1 route-reflector-client</span>
+R2(config-router)# <span class="cmd">neighbor 3.3.3.3 route-reflector-client</span>
+R2(config-router)# <span class="cmd">neighbor 4.4.4.4 route-reflector-client</span>
+
+<span class="comment">! ═══ Client 端（R1）：完全是一般的 iBGP 設定 ═══</span>
+R1(config-router)# <span class="cmd">neighbor 2.2.2.2 remote-as 65001</span>
+R1(config-router)# <span class="cmd">neighbor 2.2.2.2 update-source loopback 0</span>
+R1(config-router)# <span class="cmd">neighbor 2.2.2.2 next-hop-self</span></code></pre>
+
+    <h3>RR 的防迴圈機制</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>屬性</th><th>作用</th></tr>
+        <tr><td><b>Originator-ID</b></td><td>記錄「這條路由原本是誰宣告的」。路由器看到自己的 RID 就丟棄</td></tr>
+        <tr><td><b>Cluster-List</b></td><td>記錄「經過了哪些 RR Cluster」。看到自己的 Cluster-ID 就丟棄</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>RR 一定要做<u>冗餘</u>。</strong>只有一台 RR，它掛了整個 AS 的 iBGP 路由傳播就斷了。標準做法是<b>兩台 RR 放在同一個 Cluster</b>，所有 Client 同時跟兩台建 session：
+      <pre style="margin:8px 0 0"><code>R2(config-router)# <span class="cmd">bgp cluster-id 10.0.0.1</span>
+R3(config-router)# <span class="cmd">bgp cluster-id 10.0.0.1</span>   <span class="comment">← 兩台用同一個 cluster-id</span></code></pre>
+    </div>
+
+    <div class="note"><strong>另一個方案：Confederation（聯盟）。</strong>把一個大 AS 切成好幾個「子 AS」，子 AS 之間跑 eBGP 規則（所以沒有水平分割問題），對外看起來仍是一個 AS。設定比 RR 複雜很多，實務上 <b>95% 的網路都選 RR</b>。CCNP 考試會問差異，知道概念即可。</div>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="path">
+    <h2>8. 十一步選路順序（核心）</h2>
+
+    <p>當同一個前綴有多條路徑時，BGP 依序比較以下項目，<b>一旦分出勝負就停止</b>。</p>
+
+    <div class="bgp-order">
+      <div class="bgp-item key"><div class="bgp-badge">W</div><div class="bgp-body"><b>Weight — 大的贏</b><span>Cisco 專有，<b>只有本機意義</b>，不會傳給任何鄰居。預設：自己產生的 32768，學來的 0。<b>最快速的本機覆寫手段</b>。</span></div></div>
+      <div class="bgp-item key"><div class="bgp-badge">L</div><div class="bgp-body"><b>Local Preference — 大的贏</b><span>預設 100。<b>在整個 AS 內部傳播</b>，用來統一決定「本 AS 的流量要從哪個出口出去」。<b>控制出方向流量的首選工具</b>。</span></div></div>
+      <div class="bgp-item"><div class="bgp-badge">L</div><div class="bgp-body"><b>Locally originated — 自己起源的贏</b><span>用 <span class="inline-code">network</span> 或 <span class="inline-code">redistribute</span> 或 <span class="inline-code">aggregate-address</span> 產生的路由，優先於學來的。</span></div></div>
+      <div class="bgp-item key"><div class="bgp-badge">A</div><div class="bgp-body"><b>AS_PATH — 短的贏</b><span>經過的 AS 數量。<b>控制入方向流量最常用的工具</b>（用 AS-PATH prepending 把自己的路徑加長，讓別人不想走）。</span></div></div>
+      <div class="bgp-item"><div class="bgp-badge">O</div><div class="bgp-body"><b>Origin — IGP &gt; EGP &gt; Incomplete</b><span>i（network 宣告）優於 e（老舊 EGP，幾乎絕跡）優於 ?（重分佈進來）。</span></div></div>
+      <div class="bgp-item key"><div class="bgp-badge">M</div><div class="bgp-body"><b>MED — 小的贏</b><span>Multi-Exit Discriminator。<b>送給鄰居 AS 的建議</b>：「你要進我的網路，走這個入口比較好」。預設只在<b>同一個鄰居 AS</b> 之間比較。</span></div></div>
+      <div class="bgp-item"><div class="bgp-badge">e</div><div class="bgp-body"><b>eBGP 優於 iBGP</b><span>外部學來的優先於內部學來的。</span></div></div>
+      <div class="bgp-item"><div class="bgp-badge">I</div><div class="bgp-body"><b>IGP metric to next-hop — 小的贏</b><span>到下一跳的 IGP 成本。這叫「熱馬鈴薯路由」——把流量儘快丟出自己的網路。</span></div></div>
+      <div class="bgp-item"><div class="bgp-badge">R</div><div class="bgp-body"><b>最老的 eBGP 路徑贏</b><span>穩定性優先，避免頻繁切換。</span></div></div>
+      <div class="bgp-item"><div class="bgp-badge">R</div><div class="bgp-body"><b>Router ID — 小的贏</b><span>純粹的破平手規則。</span></div></div>
+      <div class="bgp-item"><div class="bgp-badge">R</div><div class="bgp-body"><b>鄰居 IP 位址 — 小的贏</b><span>最後手段。</span></div></div>
+    </div>
+
+    <div class="formula"><code><b>W – L – L – A – O – M – e – I – R – R – R</b><br><br>
+    「<b>W</b>e <b>L</b>ove <b>L</b>ow <b>A</b>S <b>O</b>rigin <b>M</b>ED <b>e</b>BGP <b>I</b>GP <b>R</b>outer-ID <b>R</b>ecent <b>R</b>eachability」</code></div>
+
+    <div class="note">有些教材寫「BGP 選路 <b>13</b> 步驟」，那是把幾個項目拆得更細（例如把 AS_PATH 的 AS_SET／AS_CONFED 分開算、把 multipath 判定獨立成一步）。<b>順序和結論完全相同</b>，記 11 步這版就夠應付考試和實務。</div>
+
+    <div class="ok"><strong>實務上你只會用到前四項。</strong>Weight（本機臨時覆寫）、Local Preference（決定出方向）、AS_PATH（影響入方向）、MED（給鄰居的建議）。剩下七項是破平手用的，考試要記，實務很少主動去調。</div>
+
+    <pre><code><span class="comment">! 直接看某條前綴的完整比較過程</span>
+R1# <span class="cmd">show ip bgp 172.16.0.0/16</span>
+BGP routing table entry for 172.16.0.0/16, version 15
+Paths: (2 available, best #2, table default)
+  64600 64700
+    198.51.100.5 from 198.51.100.5 (5.5.5.5)
+      Origin IGP, metric 0, localpref 100, valid, internal
+  64500 64700
+    203.0.113.1 from 203.0.113.1 (11.11.11.11)
+      Origin IGP, metric 0, localpref 100, valid, external, <span class="val">best</span>
+      <span class="comment">← 兩條 AS_PATH 都是 2 個 AS，平手 → 比到第 7 項 eBGP &gt; iBGP，external 贏</span></code></pre>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="attr">
+    <h2>9. 屬性詳解與影響方向</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>屬性</th><th>類別</th><th>傳播範圍</th><th>影響哪個方向的流量</th></tr>
+        <tr><td><b>Weight</b></td><td>Cisco 專有</td><td><b>只有本機</b></td><td>出方向（僅這台）</td></tr>
+        <tr><td><b>Local Preference</b></td><td>Well-known discretionary</td><td><b>整個 AS 內</b></td><td><b>出方向</b>（全 AS 統一）</td></tr>
+        <tr><td><b>AS_PATH</b></td><td>Well-known mandatory</td><td>全球</td><td><b>入方向</b>（用 prepend）</td></tr>
+        <tr><td><b>Next-Hop</b></td><td>Well-known mandatory</td><td>視 eBGP/iBGP</td><td>—</td></tr>
+        <tr><td><b>Origin</b></td><td>Well-known mandatory</td><td>全球</td><td>—</td></tr>
+        <tr><td><b>MED</b></td><td>Optional non-transitive</td><td><b>只到鄰居 AS</b></td><td>入方向（建議性質）</td></tr>
+        <tr><td><b>Community</b></td><td>Optional transitive</td><td>可跨 AS</td><td>視 ISP 政策</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>記住這條原則：</strong>
+      <div class="formula" style="margin-top:10px"><code><b>出方向流量</b>（我要怎麼出去）→ 我自己說了算 → 用 <b>Local Preference</b><br><br>
+      <b>入方向流量</b>（別人怎麼進來）→ 別人說了算，我只能<b>影響</b> → 用 <b>AS_PATH prepend</b></code></div>
+      這是 BGP 最重要的觀念之一：<b>你無法命令別人怎麼把流量送給你，只能讓某條路徑看起來比較差。</b>
+    </div>
+
+    <h3>MED 的兩個陷阱</h3>
+    <div class="warn">
+      <ol style="margin:0">
+        <li><b>MED 預設只在同一個鄰居 AS 的路徑之間比較。</b>兩條路徑分別來自 AS 100 和 AS 200，MED 根本不會被拿來比。要跨 AS 比較必須開 <span class="inline-code">bgp always-compare-med</span>（全網要一致，否則會造成路由震盪）。</li>
+        <li><b>MED 只是建議，對方可以完全無視。</b>大多數 ISP 會在收到路由時就把 MED 清掉，改用自己的 Local Preference。所以<b>別指望用 MED 精確控制入方向流量</b>。</li>
+      </ol>
+    </div>
+
+    <h3>BGP Community：跟 ISP 溝通的暗號</h3>
+    <pre><code><span class="comment">! 格式：AS:VALUE，例如 64500:120</span>
+<span class="comment">! 每家 ISP 自己定義意義，要查他們的文件</span>
+
+<span class="comment">! 知名的保留 community</span>
+<span class="comment">!   no-export      → 不要傳給 eBGP 鄰居（可傳給同聯盟）</span>
+<span class="comment">!   no-advertise   → 不要傳給任何鄰居</span>
+<span class="comment">!   local-as       → 不要傳出本地子 AS</span>
+
+R1(config)# <span class="cmd">route-map SET-COMM permit 10</span>
+R1(config-route-map)# <span class="cmd">set community 64500:120 no-export</span>
+R1(config-route-map)# <span class="cmd">exit</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 route-map SET-COMM out</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 send-community</span>       <span class="comment">← 忘了這行 community 不會被送出去</span></code></pre>
+
+    <div class="note"><strong>Community 的實際用途：</strong>ISP 常提供類似「打上 64500:120 我就幫你把 Local Preference 設成 120」或「打上 64500:666 我就幫你黑洞掉這個前綴（DDoS 緊急處理）」的服務。這比自己做 prepend 精準得多，<b>導入 BGP 前一定要跟 ISP 要一份 community 對照表</b>。</div>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="policy">
+    <h2>10. 實作二：用屬性控制流量</h2>
+
+    <h3>情境：主線走 ISP-A，備線 ISP-B</h3>
+
+    <h4>控制出方向：Local Preference</h4>
+    <pre><code><span class="comment">! 對 ISP-A 學到的路由，Local Pref 設 200（預設 100）</span>
+R1(config)# <span class="cmd">route-map ISP-A-IN permit 10</span>
+R1(config-route-map)# <span class="cmd">set local-preference 200</span>
+R1(config-route-map)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">router bgp 65001</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 route-map ISP-A-IN in</span>
+
+<span class="comment">! ISP-B 那邊維持預設 100 → 全 AS 的流量都會優先走 ISP-A</span></code></pre>
+
+    <h4>控制入方向：AS_PATH Prepending</h4>
+    <pre><code><span class="comment">! 對 ISP-B 宣告時，把自己的 AS 重複三次</span>
+<span class="comment">! 別人看到的 AS_PATH 從「65001」變成「65001 65001 65001」</span>
+R1(config)# <span class="cmd">route-map ISP-B-OUT permit 10</span>
+R1(config-route-map)# <span class="cmd">set as-path prepend 65001 65001 65001</span>
+R1(config-route-map)# <span class="cmd">exit</span>
+
+R1(config-router)# <span class="cmd">neighbor 198.51.100.1 route-map ISP-B-OUT out</span></code></pre>
+
+    <div class="warn"><strong>Prepend 不保證有效。</strong>因為 AS_PATH 只是選路順序的<b>第 4 項</b>——如果對方的 ISP 用 Local Preference（第 2 項）強制走 ISP-B，你 prepend 十次也沒用。<b>prepend 通常 3 次就夠了</b>，加更多只是浪費，還會讓某些 ISP 的過濾規則把你的路由當異常丟掉。</div>
+
+    <h4>臨時覆寫：Weight</h4>
+    <pre><code><span class="comment">! 只影響這一台，馬上生效，不傳播</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 weight 100</span>
+
+<span class="comment">! 或用 route-map 精細控制</span>
+R1(config)# <span class="cmd">route-map SET-WEIGHT permit 10</span>
+R1(config-route-map)# <span class="cmd">match ip address prefix-list IMPORTANT</span>
+R1(config-route-map)# <span class="cmd">set weight 500</span></code></pre>
+
+    <h3>套用政策變更（不要重啟 session）</h3>
+    <pre><code><span class="comment">! ✗ 這會斷線重建，全部路由重新學一次</span>
+R1# clear ip bgp 203.0.113.1
+
+<span class="comment">! ✓ Soft Reset：只重新套用政策，session 不斷</span>
+R1# <span class="cmd">clear ip bgp 203.0.113.1 soft in</span>
+R1# <span class="cmd">clear ip bgp 203.0.113.1 soft out</span>
+
+<span class="comment">! 需要 soft in 的前提：對方支援 route-refresh（現代設備都支援）</span>
+R1# <span class="cmd">show ip bgp neighbors 203.0.113.1 | include Route refresh</span>
+  Route refresh: advertised and received(old & new)
+
+<span class="comment">! 若對方不支援，要先開 soft-reconfiguration（會多耗記憶體）</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 soft-reconfiguration inbound</span></code></pre>
+
+    <div class="warn"><strong>正式環境絕對不要打 <span class="inline-code">clear ip bgp *</span>。</strong>那會重建所有 session，全表重新收斂需要好幾分鐘，這段期間對外流量會中斷。<b>永遠先用 soft。</b></div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="filter">
+    <h2>11. 實作三：路由過濾</h2>
+
+    <div class="warn"><strong>沒有過濾的 BGP 是危險的。</strong>2008 年巴基斯坦電信誤宣告了 YouTube 的前綴，因為上游沒有過濾，<b>全球有一大部分的 YouTube 流量被導向巴基斯坦</b>，持續兩小時。2021 年也有類似的大規模事件。<b>入方向和出方向都必須過濾。</b></div>
+
+    <h3>方法 A：Prefix-list（最常用）</h3>
+    <pre><code><span class="comment">! 只宣告自己的網段出去（防止變成中轉路由器）</span>
+R1(config)# <span class="cmd">ip prefix-list MY-NETS permit 198.51.100.0/24</span>
+R1(config)# <span class="cmd">ip prefix-list MY-NETS permit 198.51.101.0/24</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 prefix-list MY-NETS out</span>
+
+<span class="comment">! 入方向：擋掉私有網段、預設路由、過長過短的前綴</span>
+R1(config)# <span class="cmd">ip prefix-list BOGONS deny 0.0.0.0/0</span>
+R1(config)# <span class="cmd">ip prefix-list BOGONS deny 10.0.0.0/8 le 32</span>
+R1(config)# <span class="cmd">ip prefix-list BOGONS deny 172.16.0.0/12 le 32</span>
+R1(config)# <span class="cmd">ip prefix-list BOGONS deny 192.168.0.0/16 le 32</span>
+R1(config)# <span class="cmd">ip prefix-list BOGONS deny 127.0.0.0/8 le 32</span>
+R1(config)# <span class="cmd">ip prefix-list BOGONS deny 0.0.0.0/0 ge 25</span>      <span class="comment">← 比 /24 更細的不收</span>
+R1(config)# <span class="cmd">ip prefix-list BOGONS permit 0.0.0.0/0 le 24</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 prefix-list BOGONS in</span></code></pre>
+
+    <div class="ok"><strong><span class="inline-code">ge</span> 和 <span class="inline-code">le</span> 怎麼讀：</strong>
+      <ul style="margin:8px 0 0">
+        <li><span class="inline-code">10.0.0.0/8 le 32</span> = 「10.0.0.0/8 這個範圍內，遮罩從 /8 到 /32 的<b>全部</b>」</li>
+        <li><span class="inline-code">0.0.0.0/0 ge 25</span> = 「任何網段，但遮罩必須 /25 或更細」</li>
+        <li><span class="inline-code">0.0.0.0/0 le 24</span> = 「任何網段，遮罩 /24 或更粗」</li>
+      </ul>
+      <b>ISP 普遍不接受比 /24 更細的前綴</b>，因為那會讓全球路由表爆炸。
+    </div>
+
+    <h3>方法 B：AS-PATH 過濾（用正規表示式）</h3>
+    <pre><code><span class="comment">! ^$ = 空的 AS_PATH，代表「只有自己起源的路由」</span>
+R1(config)# <span class="cmd">ip as-path access-list 1 permit ^$</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 filter-list 1 out</span>
+
+<span class="comment">! ^64500_ = 直接鄰居是 AS 64500 的路由</span>
+R1(config)# <span class="cmd">ip as-path access-list 2 permit ^64500_</span>
+
+<span class="comment">! _64700$ = 起源自 AS 64700 的路由</span>
+R1(config)# <span class="cmd">ip as-path access-list 3 permit _64700$</span>
+
+<span class="comment">! .* = 全部</span>
+R1(config)# <span class="cmd">ip as-path access-list 4 permit .*</span></code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>符號</th><th>意義</th></tr>
+        <tr><td><span class="inline-code">^</span></td><td>字串開頭（= 直接鄰居）</td></tr>
+        <tr><td><span class="inline-code">$</span></td><td>字串結尾（= 起源 AS）</td></tr>
+        <tr><td><span class="inline-code">_</span></td><td>分隔符（空格、開頭、結尾、逗號、括號）</td></tr>
+        <tr><td><span class="inline-code">.</span></td><td>任一字元</td></tr>
+        <tr><td><span class="inline-code">*</span></td><td>前一項出現 0 次以上</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong><span class="inline-code">^$</span> 是最重要的一個。</strong>企業對 ISP 宣告時，加上 <span class="inline-code">filter-list permit ^$</span> 表示「只宣告我自己的網段」。<b>這能防止你意外變成兩家 ISP 之間的中轉站</b>——那會讓別人的流量塞爆你的線路，而且你要付錢。</div>
+
+    <h3>方法 C：Route-map（最靈活，可以邊過濾邊改屬性）</h3>
+    <pre><code>R1(config)# <span class="cmd">ip prefix-list CUSTOMER-A permit 172.16.0.0/16</span>
+
+R1(config)# <span class="cmd">route-map ISP-A-IN permit 10</span>
+R1(config-route-map)# <span class="cmd">match ip address prefix-list CUSTOMER-A</span>
+R1(config-route-map)# <span class="cmd">set local-preference 200</span>
+R1(config-route-map)# <span class="cmd">set community 65001:100</span>
+R1(config-route-map)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">route-map ISP-A-IN permit 20</span>          <span class="comment">← 其他的照收但不改屬性</span>
+R1(config-route-map)# <span class="cmd">exit</span></code></pre>
+
+    <div class="warn"><strong>route-map 結尾有隱含的 <span class="inline-code">deny any</span>。</strong>只寫 permit 10 而沒有寫 permit 20，<b>所有不匹配的路由都會被丟棄</b>。這是最常見的 route-map 事故——設定完之後路由突然全部消失。<b>永遠記得補一個空的 permit 在最後。</b></div>
+
+    <h3>限制接收的前綴數量（防止對方誤宣告全表）</h3>
+    <pre><code><span class="comment">! 超過 1000 條就警告，超過 1200 條就斷開 session</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 maximum-prefix 1200 80</span>
+<span class="comment">!                                          ↑    ↑ 到 80% (960 條) 時發警告</span>
+
+<span class="comment">! 只警告不斷線</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 maximum-prefix 1200 warning-only</span>
+
+<span class="comment">! 斷線後 5 分鐘自動重連</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 maximum-prefix 1200 restart 5</span></code></pre>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="multihome">
+    <h2>12. 雙 ISP 設計實務</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>設計</th><th>收到的路由</th><th>記憶體需求</th><th>適合誰</th></tr>
+        <tr><td><b>只收預設路由</b></td><td>1 條</td><td><b>極低</b></td><td>大多數企業</td></tr>
+        <tr><td><b>預設路由 + 部分路由</b></td><td>數千條</td><td>中</td><td>需要對特定目的地優化的企業</td></tr>
+        <tr><td><b>收全表</b></td><td>95 萬條以上</td><td><b>4 GB 以上</b></td><td>ISP、大型內容業者</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>99% 的企業應該選第一種。</strong>你不需要知道全世界的路由，你只需要知道「哪個出口比較好」。收全表的路由器成本可能是收預設路由的十倍，而且收斂時間長很多。</div>
+
+    <pre><code><span class="comment">! ═══ 只跟 ISP 要預設路由 ═══</span>
+R1(config)# <span class="cmd">ip prefix-list DEFAULT-ONLY permit 0.0.0.0/0</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 prefix-list DEFAULT-ONLY in</span>
+R1(config-router)# <span class="cmd">neighbor 198.51.100.1 prefix-list DEFAULT-ONLY in</span>
+
+<span class="comment">! ═══ 出方向：只宣告自己的網段 ═══</span>
+R1(config)# <span class="cmd">ip as-path access-list 1 permit ^$</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 filter-list 1 out</span>
+R1(config-router)# <span class="cmd">neighbor 198.51.100.1 filter-list 1 out</span>
+
+<span class="comment">! ═══ 出方向流量偏好 ISP-A ═══</span>
+R1(config)# <span class="cmd">route-map PREFER-A permit 10</span>
+R1(config-route-map)# <span class="cmd">set local-preference 200</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 route-map PREFER-A in</span>
+
+<span class="comment">! ═══ 入方向流量偏好 ISP-A（對 B prepend）═══</span>
+R1(config)# <span class="cmd">route-map PREPEND-B permit 10</span>
+R1(config-route-map)# <span class="cmd">set as-path prepend 65001 65001 65001</span>
+R1(config-router)# <span class="cmd">neighbor 198.51.100.1 route-map PREPEND-B out</span>
+
+<span class="comment">! ═══ 安全上限 ═══</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.1 maximum-prefix 10 restart 5</span></code></pre>
+
+    <div class="warn"><strong>導入 BGP 前的行政準備（跟錢和合約有關，先確認再動手）：</strong>
+      <ul style="margin:8px 0 0">
+        <li>向 <b>TWNIC</b> 申請自有 AS 號與 IP 位址段（有年費、需要文件證明）</li>
+        <li>兩家 ISP 都要簽 BGP peering 的合約條款，通常比一般固接方案貴</li>
+        <li>建立 <b>RPKI ROA</b>（路由起源授權），現在多數大型 ISP 會驗證，沒有 ROA 的前綴可能被丟棄</li>
+        <li>把前綴登錄到 <b>IRR</b>（Internet Routing Registry），ISP 會依此產生過濾清單</li>
+      </ul>
+      這些流程通常要 <b>4 到 8 週</b>，不是設定完就能上線。
+    </div>
+  </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="trouble">
+    <h2>13. 故障排除</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>Session 建起來了嗎？</b><span class="inline-code">show ip bgp summary</span>。State/PfxRcd 是數字才算 Established。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>卡在 Active？</b>先 <span class="inline-code">ping &lt;鄰居IP&gt;</span>，通不了就是三層問題。通了就查 TCP 179 有沒有被 ACL 或防火牆擋。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>AS 號打對了嗎？</b><span class="inline-code">show ip bgp neighbors x.x.x.x | include remote AS</span>。打錯會卡在 OpenSent 並收到 NOTIFICATION。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>iBGP 用 Loopback？</b>那必須有 <span class="inline-code">update-source loopback 0</span>，而且 IGP 要能通到對方的 Loopback。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>路由收到了但沒進路由表？</b>看 <span class="inline-code">show ip bgp</span> 有沒有 <b>&gt;</b>。沒有的話多半是 <b>Next-Hop inaccessible</b> → 忘了 next-hop-self。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>宣告了但對方看不到？</b>查 <span class="inline-code">show ip bgp neighbors x.x.x.x advertised-routes</span>。空的就是被 out 方向的 filter 擋了。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>network 指令沒生效？</b><span class="inline-code">show ip route &lt;前綴&gt;</span> 確認路由表裡有<b>完全一致</b>的那條。沒有就加 Null0 靜態路由。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>選路結果不如預期？</b><span class="inline-code">show ip bgp &lt;前綴&gt;</span> 看每條路徑的屬性，照 W-L-L-A-O-M 順序自己比一次。</div></div>
+    </div>
+
+    <pre><code><span class="comment">! 三個方向的路由都要能查</span>
+R1# <span class="cmd">show ip bgp neighbors 203.0.113.1 received-routes</span>   <span class="comment">! 對方送來的原始路由（需 soft-reconfiguration）</span>
+R1# <span class="cmd">show ip bgp neighbors 203.0.113.1 routes</span>            <span class="comment">! 通過 in filter 之後留下的</span>
+R1# <span class="cmd">show ip bgp neighbors 203.0.113.1 advertised-routes</span> <span class="comment">! 我送出去的</span>
+
+<span class="comment">! 看 session 細節與錯誤原因</span>
+R1# <span class="cmd">show ip bgp neighbors 203.0.113.1</span>
+  Last reset 00:04:11, due to <span class="kw">BGP Notification sent, hold time expired</span>
+
+R1# <span class="cmd">debug ip bgp 203.0.113.1 updates</span>        <span class="comment">! 一定要指定鄰居，不然訊息量會爆</span></code></pre>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「iBGP session 建起來了，但一條路由都沒有」</div>
+      <p><b>排查：</b><span class="inline-code">show ip bgp summary</span> → PfxRcd = 0。到對面 <span class="inline-code">show ip bgp neighbors x advertised-routes</span> → 有 12 條。</p>
+      <p style="margin-bottom:0"><b>原因：</b>對面是從<b>另一個 iBGP 鄰居</b>學到那些路由的，受 iBGP 水平分割限制不會再傳。<b>修法：</b>改成 Route Reflector 架構，或補上缺少的 iBGP session 湊成全網狀。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「改了 route-map 之後路由全部消失」</div>
+      <p><b>排查：</b><span class="inline-code">show route-map ISP-A-IN</span> → 只有一個 permit 10 且有 match 條件。</p>
+      <p style="margin-bottom:0"><b>原因：</b>route-map 結尾隱含 <b>deny any</b>，不匹配 permit 10 的路由全被丟掉。<b>修法：</b>加一個空的 <span class="inline-code">route-map ISP-A-IN permit 99</span> 放行其餘。</p>
+    </div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：雙 ISP + Route Reflector + 政策控制</h3>
+    <p>GNS3 或 CML（Packet Tracer 的 BGP 功能有限），約 90 分鐘。</p>
+
+    <h4>拓樸</h4>
+    <pre><code>  [ ISP-A 64500 ]              [ ISP-B 64600 ]
+    203.0.113.1                  198.51.100.1
+         │                             │
+    [ R1 邊界 ]                   [ R4 邊界 ]
+    Lo0 1.1.1.1                   Lo0 4.4.4.4
+         └──────┐            ┌─────────┘
+                │            │
+             [ R2 = RR ]  [ R3 = RR ]
+             Lo0 2.2.2.2  Lo0 3.3.3.3
+                  同一個 cluster-id
+
+              本地 AS 65001
+         自有網段 198.51.101.0/24</code></pre>
+
+    <h4>步驟</h4>
+    <ol>
+      <li>先跑 <strong>OSPF Area 0</strong> 讓所有 Loopback 互通（iBGP 的前提）</li>
+      <li>四台都設 <strong>bgp router-id</strong> 與 <strong>log-neighbor-changes</strong></li>
+      <li>R2、R3 設成 <strong>Route Reflector</strong>，<strong>cluster-id 相同</strong>；R1、R4 是 Client</li>
+      <li>所有 iBGP session 用 <strong>update-source loopback 0</strong> + <strong>next-hop-self</strong></li>
+      <li>R1 對 ISP-A、R4 對 ISP-B 建立 <strong>eBGP</strong>，兩邊都設 <strong>password</strong></li>
+      <li>宣告 <strong>198.51.101.0/24</strong>，並在 R1、R4 各加一條 <strong>Null0 靜態路由</strong>撐住這個前綴</li>
+      <li>入方向：兩家 ISP 都只收 <strong>預設路由</strong>（prefix-list DEFAULT-ONLY）</li>
+      <li>出方向：<strong>filter-list permit ^$</strong>，只宣告自己的網段</li>
+      <li>出方向流量偏好 ISP-A：對 ISP-A 學到的路由 <strong>set local-preference 200</strong></li>
+      <li>入方向流量偏好 ISP-A：對 ISP-B 宣告時 <strong>as-path prepend 三次</strong></li>
+      <li>兩個 eBGP 鄰居都設 <strong>maximum-prefix 10 restart 5</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>所有 session 的 State/PfxRcd 欄位都是<strong>數字</strong>，沒有 Active 或 Idle</li>
+      <li>R2、R3 的 <span class="inline-code">show ip bgp</span> 都看得到 198.51.101.0/24（RR 反射成功）</li>
+      <li>R1 上的預設路由 <strong>Local Pref 是 200</strong>，R4 上的是 100</li>
+      <li>R4 上 <span class="inline-code">show ip bgp neighbors 198.51.100.1 advertised-routes</span> 的 AS_PATH 有<strong>三個 65001</strong></li>
+      <li>每台的 <span class="inline-code">show ip bgp</span> 都<strong>只有兩三條</strong>，沒有全表</li>
+      <li>把 R1 的 eBGP <span class="inline-code">shutdown</span> → 流量在 3 分鐘內切到 R4／ISP-B</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>拿掉一台 RR 的 <span class="inline-code">next-hop-self</span>，觀察 <span class="inline-code">show ip bgp</span> 出現 <b>inaccessible</b>，再改回來。</li>
+      <li>把出方向的 <span class="inline-code">filter-list ^$</span> 拿掉，觀察你是否開始把 ISP-A 的路由宣告給 ISP-B（＝變成中轉站）。</li>
+      <li>寫一個 route-map 只有 <span class="inline-code">permit 10 + match</span>，觀察路由全部消失，然後加上空的 permit 99 修好它。</li>
+      <li>建立一個 community 標記，用 <span class="inline-code">show ip bgp community 65001:100</span> 驗證，並確認忘記 <span class="inline-code">send-community</span> 時對方收不到。</li>
+      <li>用 <span class="inline-code">clear ip bgp x.x.x.x soft in</span> 與 <span class="inline-code">clear ip bgp x.x.x.x</span> 各做一次，比較 <span class="inline-code">show ip bgp summary</span> 的 Up/Down 計時器差異。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>BGP 是<strong>路徑向量</strong>協定，跑在 <strong>TCP 179</strong>，鄰居必須<strong>手動指定</strong></li>
+      <li>eBGP AD <strong>20</strong>、TTL <strong>1</strong>、會改 AS_PATH 和 Next-Hop；iBGP AD <strong>200</strong>、都不改</li>
+      <li><strong>iBGP 水平分割</strong>：從 iBGP 學到的不再傳給其他 iBGP → 需要全網狀或 <strong>Route Reflector</strong></li>
+      <li>所有 iBGP 鄰居都要 <strong>next-hop-self</strong>，不然路由會 inaccessible</li>
+      <li>BGP 的 <span class="inline-code">network</span> 用<strong>正常遮罩</strong>，而且<strong>路由表必須有完全一致的前綴</strong>（常用 Null0 撐住）</li>
+      <li>選路口訣 <strong>W-L-L-A-O-M-e-I-R-R-R</strong>，實務只用前四項</li>
+      <li><strong>出方向用 Local Preference，入方向用 AS_PATH prepend</strong></li>
+      <li>MED 只在同一鄰居 AS 之間比較，而且對方可以無視</li>
+      <li>過濾是必要的：出方向 <span class="inline-code">^$</span> 防中轉，入方向擋私有網段和過細前綴</li>
+      <li>route-map 結尾有隱含 <strong>deny any</strong>，永遠補一個空的 permit</li>
+      <li>套用政策用 <strong>soft reset</strong>，不要 <span class="inline-code">clear ip bgp *</span></li>
+    </ul>
+    <div class="note">BGP 在 CCNA 只考基本概念（AS、eBGP/iBGP 差異、選路前幾項），CCNP ENCOR 才會深入考屬性和政策。去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 選「路由技術」並勾選 CCNP 難度。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="08-ospf-deep.html">← CH 3-2：OSPF 深入解析</a>
+    <a href="10-acl-nat-detail.html">CH 3-4：ACL 與 NAT 實戰 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 3-3</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

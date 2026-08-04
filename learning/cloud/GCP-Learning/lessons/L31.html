@@ -83,4 +83,178 @@ gcloud ai endpoints deploy-model ENDPOINT_ID \
   --dataset=bq://PROJ.ml.churn_features</code></pre></div><h2>六、成本注意事項</h2><div class="box warn"><div class="box-t">小心踩雷</div><strong>Vertex AI 的端點是本教材裡最容易產生意外帳單的服務。</strong><br>• 部署的模型端點<u>只要存在就收費</u>，即使完全沒有請求。一個 n1-standard-4 端點約 <strong>$150/月</strong>。<br>• GPU 訓練工作忘記停止 → 一台 A100 每小時約 $3.9，一週就是 $650。<br><br><strong>必做的防護</strong>：<br>① 實驗完立即 <code>undeploy-model</code> 並刪除端點。<br>② 訓練工作設定 <code>--timeout</code>。<br>③ 不需要即時預測就用 <strong>Batch Prediction</strong>——它跑完就結束，不會常駐收費。<br>④ 設定嚴格的預算警報。</div><h2>七、本課檢核</h2><ul class="checklist"><li>能依需求選擇正確的 ML 抽象層</li><li>會用 BigQuery ML 訓練並評估一個模型</li><li>理解資料漂移、概念漂移、訓練/服務偏斜的差異</li><li>知道 Feature Store 解決什麼問題</li><li>知道 Vertex AI 端點的常駐成本</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>業務要「用 AI 自動分類客服工單」。你的第一步是什麼？</summary><div class="ans"><strong>先做一個不用 ML 的基準線。</strong>寫 20 條關鍵字規則，測一下準確率。<br><br>為什麼：<br>• 如果規則就有 85% 準確率，而 ML 只能到 88%，那 ML 增加的維運成本可能不划算。<br>• 這個過程會逼你<u>把問題定義清楚</u>：有幾個類別？類別互斥嗎？準確率要多高才有價值？錯誤的代價是什麼？<br>• 你會得到一批標註資料，這正是 ML 需要的。<br><br><strong>然後依序嘗試</strong>：<br>① <strong>Gemini API + 提示工程</strong>——現在這往往是最快的方案，不用訓練、不用標註大量資料，幾小時就能驗證可行性。<br>② <strong>AutoML 文字分類</strong>——如果需要更穩定、更便宜的推論。<br>③ <strong>自訂模型</strong>——只有在前兩者都不夠時。<br><br><em>核心原則：<strong>ML 是達成目標的手段，不是目標。</strong>「用 AI」這個需求本身應該被翻譯成可衡量的業務指標。</em></div></details><details class="qa"><summary>模型上線三個月後，客訴增加。離線測試準確率仍然很高。為什麼？</summary><div class="ans"><strong>這個症狀直指「訓練/服務偏斜」或「漂移」。</strong>離線測試用的是訓練時的資料分布，所以看不出問題。<br><br><strong>診斷順序</strong>：<br>① <strong>比對特徵分布</strong>——把線上預測時實際收到的特徵值，跟訓練資料的分布做比較。如果某個特徵的平均值差很多，就找到方向了。<br>② <strong>檢查特徵計算邏輯</strong>——訓練用 SQL、線上用 Python 的話，逐一驗證每個特徵在兩邊算出來是否相同。<u>用同一筆資料跑兩邊，比對結果</u>。<br>③ <strong>檢查上游資料變更</strong>——是不是某個欄位改了格式、某個 API 改了回傳值、某個系統升級後語意變了。<br>④ <strong>用近期真實資料重新評估</strong>——如果拿最近一個月的真實標籤來評估，準確率就掉了，那是概念漂移，需要重新訓練。<br><br><strong>長期修正</strong>：導入 <strong>Feature Store</strong>（消除偏斜）+ <strong>Model Monitoring</strong>（自動偵測漂移）+ <strong>定期重訓管線</strong>。</div></details><details class="qa"><summary>團隊想自己訓練一個大型語言模型。你的評估？</summary><div class="ans"><strong>幾乎確定不該做，除非有極特殊的理由。</strong><br><br><strong>成本現實</strong>：從頭預訓練一個有競爭力的 LLM 需要數千張 GPU、數月時間、數百萬到數千萬美元，加上一支有經驗的研究團隊。這不是「有預算就能做」的事。<br><br><strong>依需求的正確路徑</strong>：<br>① <strong>需要特定領域知識</strong> → <u>RAG（檢索增強生成）</u>。把你的文件放進向量資料庫，讓 Gemini 檢索後回答。成本低、資料可即時更新、可追溯來源。<u>90% 的「我們需要自己的 AI」實際上需要的是這個</u>。<br>② <strong>需要特定的輸出格式或風格</strong> → <u>提示工程</u> 或 <u>微調（fine-tuning）</u>。Vertex AI 支援對 Gemini 做監督式微調，成本是預訓練的萬分之一。<br>③ <strong>資料絕對不能離開內部</strong> → 用<u>開源模型</u>（Llama、Gemma）在自己的 GKE 上部署，或用 Vertex AI 的私有端點。<br>④ <strong>真的需要從頭訓練</strong> → 通常只有兩種情況：極特殊的語言/領域（例如蛋白質序列），或者你本身就是 AI 研究機構。<br><br><em>建議的提問：「我們想解決什麼問題，是現有模型解決不了的？」如果答不出具體的技術差距，那答案就是不要自己訓練。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L31">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L30.html"><span>← 上一課</span>L30 BigQuery 進階：分區、成本與資料建模</a><a class="next" href="L32.html"><span>下一課 →</span>L32 生成式 AI：Gemini API 與 RAG 架構</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

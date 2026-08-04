@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>路由基礎與靜態路由 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.rt-line{font-family:"Cascadia Code",monospace;font-size:.8rem;background:#1C1917;color:#E7E5E4;padding:16px 20px;border-radius:10px;overflow-x:auto;margin:14px 0;}
+.rt-line .hl{background:rgba(217,119,6,.28);border-radius:3px;padding:0 3px;}
+.match-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:16px 0;}
+.match-card{border:1px solid var(--border);border-radius:10px;padding:12px 14px;background:#fff;}
+.match-card b{display:block;font-size:.85rem;color:var(--terracotta);margin-bottom:3px;}
+.match-card span{font-size:.78rem;color:var(--stone);}
+.match-card.win{border-color:var(--amber);background:#FFFBEB;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第三章</a><span class="sep">/</span>
+  <span class="cur">CH 3-1 · 路由基礎與靜態路由</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">CH 3-1 · 路由技術核心</div>
+  <h1>路由基礎與靜態路由</h1>
+  <p>路由器收到一個封包，到底是怎麼決定往哪送？路由表裡每一個欄位代表什麼？以及靜態路由的四種寫法，各自在什麼情況該用哪一種。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#how">路由器轉發封包的完整流程</a></li>
+      <li><a href="#lpm">最長前綴匹配（Longest Prefix Match）</a></li>
+      <li><a href="#table">路由表逐欄拆解</a></li>
+      <li><a href="#ad">管理距離 AD 完整表</a></li>
+      <li><a href="#source">路由來源：直連、靜態、動態</a></li>
+      <li><a href="#static">實作一：靜態路由的四種寫法</a></li>
+      <li><a href="#default">實作二：預設路由與 Gateway of Last Resort</a></li>
+      <li><a href="#floating">實作三：浮動靜態路由（備援）</a></li>
+      <li><a href="#summary">實作四：彙總靜態路由</a></li>
+      <li><a href="#ipv6">IPv6 靜態路由</a></li>
+      <li><a href="#recursive">遞迴查詢與 CEF</a></li>
+      <li><a href="#trouble">故障排除</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="how">
+    <h2>1. 路由器轉發封包的完整流程</h2>
+
+    <p>一個封包從進到出，路由器做了七件事。理解這七步，之後所有的路由故障你都能自己推。</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>收到訊框，檢查 FCS</b>錯誤就直接丟掉並累加 input errors 計數器。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>檢查目的 MAC 是不是自己</b>不是自己也不是廣播 → 丟掉。路由器不像交換器會 flooding。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>剝掉二層表頭，取出 IP 封包</b>這步之後，原本的乙太表頭就<b>永遠不存在了</b>。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>檢查 TTL</b>TTL 減 1。減完變 0 → 丟棄並回送 ICMP Time Exceeded（traceroute 就是靠這個運作的）。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>查路由表，用最長前綴匹配</b>找出「下一跳 IP」和「出口介面」。查不到 → 丟棄並回 ICMP Destination Unreachable。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>查 ARP 表取得下一跳的 MAC</b>ARP 表沒有就先發 ARP 請求，封包暫存等待。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>封裝新的二層表頭並送出</b>來源 MAC 改成出口介面自己的，目的 MAC 是下一跳的。<b>重算 FCS</b>。</div></div>
+    </div>
+
+    <div class="ok"><strong>一句話總結（CH 1-3 講過，這裡再強調一次）：</strong>
+      <div class="formula" style="margin-top:10px"><code>IP 位址 = 端到端不變<br>MAC 位址 = 逐跳改變<br>TTL = 每跳減 1</code></div>
+    </div>
+
+    <div class="warn"><strong>第 5 步是關鍵分歧點。</strong>路由表查不到就是丟棄——路由器<b>不會猜、不會廣播、不會問別人</b>。「ping 不通」的問題有八成是因為某台路由器的表裡沒有回程路由。<b>永遠記得檢查雙向</b>：去程有路由，回程也要有。</div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="lpm">
+    <h2>2. 最長前綴匹配（Longest Prefix Match）</h2>
+
+    <p>路由表裡可能同時有好幾條路由都「涵蓋」目的地。規則只有一條：<b>前綴最長（遮罩最精確）的那條贏</b>，跟 AD、跟 metric 都無關。</p>
+
+    <div class="ex-box">
+      <div class="ex-title">推演：目的地 172.16.20.130，路由表裡有四條</div>
+      <div class="match-grid">
+        <div class="match-card"><b>0.0.0.0/0</b><span>預設路由，涵蓋全世界。前綴長度 0</span></div>
+        <div class="match-card"><b>172.16.0.0/16</b><span>涵蓋 172.16.0.0 – 172.16.255.255。長度 16</span></div>
+        <div class="match-card"><b>172.16.20.0/24</b><span>涵蓋 172.16.20.0 – 172.16.20.255。長度 24</span></div>
+        <div class="match-card win"><b>172.16.20.128/26 ✅</b><span>涵蓋 172.16.20.128 – 172.16.20.191。長度 26 → <b>最長，贏</b></span></div>
+      </div>
+      <p style="margin-bottom:0">四條都匹配，但 <b>/26 最精確</b>，所以封包走 /26 那條的下一跳。即使 /24 那條的 AD 更低、metric 更小，也完全不影響——<b>前綴長度優先於一切</b>。</p>
+    </div>
+
+    <div class="warn"><strong>最常被誤解的一點：AD 和 metric 只在「前綴長度相同」時才拿出來比。</strong>
+      <div class="formula" style="margin-top:10px"><code>1. 先比前綴長度 → 長的贏<br>2. 長度相同 → 比 AD → 小的贏<br>3. AD 也相同（同一種協定）→ 比 metric → 小的贏<br>4. metric 也相同 → <b>等價負載分擔（ECMP）</b></code></div>
+    </div>
+
+    <pre><code><span class="comment">! 直接問路由器「172.16.20.130 這個目的地你會怎麼走」</span>
+R1# <span class="cmd">show ip route 172.16.20.130</span>
+Routing entry for <span class="val">172.16.20.128/26</span>
+  Known via "static", distance 1, metric 0
+  Routing Descriptor Blocks:
+  * 10.0.0.2
+      Route metric is 0, traffic share count is 1</code></pre>
+
+    <div class="note">這個指令是排錯神器。與其自己盯著整張路由表推，不如直接問路由器。它會告訴你<b>實際選中的是哪一條</b>，省下大量猜測。</div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="table">
+    <h2>3. 路由表逐欄拆解</h2>
+
+    <div class="rt-line">R1# show ip route<br><br>
+Codes: L - local, C - connected, S - static, R - RIP, M - mobile, B - BGP<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; * - candidate default<br><br>
+Gateway of last resort is 203.0.113.1 to network 0.0.0.0<br><br>
+<span class="hl">S*</span>&nbsp;&nbsp;&nbsp; <span class="hl">0.0.0.0/0</span> <span class="hl">[1/0]</span> via <span class="hl">203.0.113.1</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp; 10.0.0.0/8 is variably subnetted, 4 subnets, 2 masks<br>
+<span class="hl">C</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10.0.0.0/30 is directly connected, GigabitEthernet0/1<br>
+<span class="hl">L</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10.0.0.1/32 is directly connected, GigabitEthernet0/1<br>
+<span class="hl">O</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10.1.1.0/24 [110/2] via 10.0.0.2, 00:14:22, GigabitEthernet0/1<br>
+<span class="hl">D</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 10.2.2.0/24 [90/30720] via 10.0.0.2, 01:02:11, GigabitEthernet0/1<br>
+&nbsp;&nbsp;&nbsp;&nbsp; 192.168.10.0/24 is directly connected, GigabitEthernet0/0<br>
+<span class="hl">S</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 192.168.30.0/24 [1/0] via 10.0.0.2</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>欄位</th><th>意義</th></tr>
+        <tr><td><b>代碼</b>（C / L / S / O / D / B）</td><td>這條路由怎麼來的</td></tr>
+        <tr><td><b>*</b></td><td>candidate default，這是預設路由</td></tr>
+        <tr><td><b>網路/遮罩</b></td><td>目的網段</td></tr>
+        <tr><td><b>[110/2]</b></td><td><b>[管理距離 / metric]</b>——前面是 AD，後面是該協定的成本</td></tr>
+        <tr><td><b>via 10.0.0.2</b></td><td>下一跳 IP</td></tr>
+        <tr><td><b>00:14:22</b></td><td>這條路由存在多久了。數字一直歸零 = 路由在震盪</td></tr>
+        <tr><td><b>GigabitEthernet0/1</b></td><td>出口介面</td></tr>
+      </table>
+    </div>
+
+    <h3>C 和 L 有什麼不同？</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>C（Connected）</th><th>L（Local）</th></tr>
+        <tr><td>代表</td><td>整個直連網段</td><td><b>路由器自己那個 IP</b></td></tr>
+        <tr><td>遮罩</td><td>介面設定的遮罩</td><td>永遠 <b>/32</b></td></tr>
+        <tr><td>範例</td><td>10.0.0.0/30</td><td>10.0.0.1/32</td></tr>
+        <tr><td>作用</td><td>知道「這個網段從這個介面出去」</td><td>知道「送給我自己的封包，交給上層處理」</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>C 和 L 出現的前提：介面必須 up/up 而且有 IP。</strong>
+      <ul style="margin:8px 0 0">
+        <li>介面被 <span class="inline-code">shutdown</span> → C 和 L 都消失</li>
+        <li>線拔掉（protocol down）→ C 和 L 都消失</li>
+        <li><b>連帶效應：</b>所有以那個介面為出口的靜態路由，也會一起從路由表消失</li>
+      </ul>
+      這個連帶效應是浮動靜態路由能運作的基礎（第 8 節）。
+    </div>
+
+    <pre><code><span class="comment">! 只看某一種來源</span>
+R1# <span class="cmd">show ip route static</span>
+R1# <span class="cmd">show ip route ospf</span>
+R1# <span class="cmd">show ip route connected</span>
+
+<span class="comment">! 只看特定網段（比 | include 準確，會做最長匹配）</span>
+R1# <span class="cmd">show ip route 192.168.30.0 255.255.255.0</span>
+
+<span class="comment">! 統計有幾條路由（大型網路很有用）</span>
+R1# <span class="cmd">show ip route summary</span></code></pre>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="ad">
+    <h2>4. 管理距離 AD 完整表</h2>
+
+    <p><b>AD（Administrative Distance）</b>是「可信度」，數字愈小愈可信。當兩種不同來源都學到<b>同一個前綴長度</b>的路由時，AD 小的那條被放進路由表，另一條被丟棄。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>來源</th><th>AD</th><th>備註</th></tr>
+        <tr><td><b>Connected（直連）</b></td><td><b>0</b></td><td>親眼看到的，最可信</td></tr>
+        <tr><td><b>Static（靜態）</b></td><td><b>1</b></td><td>人設定的</td></tr>
+        <tr><td>EIGRP Summary</td><td>5</td><td></td></tr>
+        <tr><td>eBGP（外部）</td><td><b>20</b></td><td>比 IGP 都低，跨自治系統的資訊優先</td></tr>
+        <tr><td><b>EIGRP（內部）</b></td><td><b>90</b></td><td>Cisco 專有</td></tr>
+        <tr><td>IGRP</td><td>100</td><td>已淘汰</td></tr>
+        <tr><td><b>OSPF</b></td><td><b>110</b></td><td>業界標準 IGP</td></tr>
+        <tr><td>IS-IS</td><td>115</td><td>電信業常用</td></tr>
+        <tr><td><b>RIP</b></td><td><b>120</b></td><td></td></tr>
+        <tr><td>EIGRP External</td><td>170</td><td>從別的協定重分佈進來的</td></tr>
+        <tr><td>iBGP（內部）</td><td><b>200</b></td><td>刻意設高，避免蓋掉 IGP</td></tr>
+        <tr><td>Unknown / 不可達</td><td><b>255</b></td><td><b>永遠不會被放進路由表</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>速記口訣：</strong><span class="inline-code">0-1-20-90-110-115-120-170-200</span>——直連 0、靜態 1、eBGP 20、EIGRP 90、OSPF 110、IS-IS 115、RIP 120、EIGRP 外部 170、iBGP 200。CCNA 一定會考「同時學到 OSPF 和 EIGRP 的同一條路由，哪個進表」→ EIGRP 90 &lt; OSPF 110，EIGRP 贏。</div>
+
+    <div class="warn"><strong>AD 255 = 直接丟棄。</strong>這個設計是浮動靜態路由的極端用法，也是某些「先設好但先不生效」技巧的基礎。不要誤以為 255 是「最不優先但還是會用」——它是<b>完全不會用</b>。</div>
+
+    <h3>手動修改 AD</h3>
+    <pre><code><span class="comment">! 靜態路由改 AD（最後那個數字就是 AD）</span>
+R1(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 10.0.0.2 200</span>
+
+<span class="comment">! 整個協定改 AD（謹慎使用，會影響全部路由）</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">distance 95</span>
+
+<span class="comment">! 只改特定來源學到的路由的 AD</span>
+R1(config-router)# <span class="cmd">distance 95 10.0.0.2 0.0.0.0</span></code></pre>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="source">
+    <h2>5. 路由來源：直連、靜態、動態</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>直連</th><th>靜態</th><th>動態</th></tr>
+        <tr><td>怎麼產生</td><td>介面設 IP 且 up 就自動有</td><td>人工一條條打</td><td>路由器之間自動交換</td></tr>
+        <tr><td>會不會自動繞路</td><td>—</td><td><b>不會</b></td><td><b>會</b></td></tr>
+        <tr><td>CPU／頻寬負擔</td><td>無</td><td>無</td><td>有</td></tr>
+        <tr><td>規模上限</td><td>—</td><td>小型（&lt; 10 台路由器）</td><td>無上限</td></tr>
+        <tr><td>可預測性</td><td>高</td><td><b>最高</b></td><td>中</td></tr>
+        <tr><td>典型用途</td><td>—</td><td>末端網路、對 ISP 的預設路由、備援</td><td>企業內部主要路由</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>企業實務怎麼混用？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>內部網段之間</b> → OSPF 或 EIGRP（自動收斂）</li>
+        <li><b>對 ISP</b> → 一條靜態預設路由（沒必要跟 ISP 跑動態）</li>
+        <li><b>末端分公司</b>（只有一條線出去）→ 靜態，跑動態協定是浪費</li>
+        <li><b>備援線路</b> → 浮動靜態路由（第 8 節）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="static">
+    <h2>6. 實作一：靜態路由的四種寫法</h2>
+
+    <div class="formula"><code>ip route &lt;目的網路&gt; &lt;遮罩&gt; { &lt;下一跳 IP&gt; | &lt;出口介面&gt; } [AD] [name 說明]</code></div>
+
+    <h3>寫法 A：指定下一跳 IP（最常用，推薦）</h3>
+    <pre><code>R1(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 10.0.0.2</span></code></pre>
+    <ul>
+      <li>優點：語意清楚、在乙太網路上行為正確</li>
+      <li>路由器需要做<b>遞迴查詢</b>：先查「10.0.0.2 怎麼去」，再決定出口介面</li>
+      <li><b>乙太網路（多重存取）上一定要用這種或寫法 C</b></li>
+    </ul>
+
+    <h3>寫法 B：指定出口介面</h3>
+    <pre><code>R1(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 gigabitEthernet 0/1</span></code></pre>
+    <div class="warn"><strong>在乙太網路上這樣寫會出大問題。</strong>路由器會認為「這個網段直接掛在 Gi0/1 上」，於是<b>對每一個目的 IP 都發 ARP 請求</b>。<br><br>
+      症狀：ARP 表爆量成長、CPU 升高、有時通有時不通。<br><br>
+      這種寫法<b>只適合點對點鏈路</b>（Serial、PPP、GRE Tunnel）——那種線的對面只有一個人，不需要 ARP。
+    </div>
+
+    <h3>寫法 C：兩個都寫（Fully Specified，最穩）</h3>
+    <pre><code>R1(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 gigabitEthernet 0/1 10.0.0.2</span></code></pre>
+    <div class="ok"><strong>這是企業環境的最佳寫法。</strong>
+      <ul style="margin:8px 0 0">
+        <li>不需要遞迴查詢，效率最好</li>
+        <li>不會濫發 ARP</li>
+        <li><b>介面一 down，這條路由立刻消失</b>——備援切換最快</li>
+        <li>一個介面上有多個下一跳時（例如接到交換器再連多台路由器），語意毫無歧義</li>
+      </ul>
+    </div>
+
+    <h3>寫法 D：加上 AD 與說明</h3>
+    <pre><code>R1(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 10.0.0.2 name TO-BRANCH-TAIPEI</span>
+R1(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 10.0.1.2 210 name BACKUP-4G</span></code></pre>
+    <p><span class="inline-code">name</span> 只是註解，但在有 50 條靜態路由的路由器上，它能救你的命。<span class="inline-code">show ip route static</span> 不會顯示 name，要用 <span class="inline-code">show running-config | include ip route</span> 才看得到。</p>
+
+    <h3>刪除靜態路由</h3>
+    <pre><code><span class="comment">! 要把整行原封不動地加 no 前綴，多一個字少一個字都不會刪掉</span>
+R1(config)# <span class="cmd">no ip route 192.168.30.0 255.255.255.0 10.0.0.2</span></code></pre>
+
+    <div class="ex-box">
+      <div class="ex-title">完整範例：三台路由器串聯</div>
+      <pre style="margin:10px 0"><code>[LAN 192.168.10.0/24]--R1--10.0.0.0/30--R2--10.0.1.0/30--R3--[LAN 192.168.30.0/24]</code></pre>
+      <pre style="margin:0"><code><span class="comment">! R1：要去 R2 的 LAN 和 R3 的 LAN 和中間那段</span>
+R1(config)# <span class="cmd">ip route 10.0.1.0 255.255.255.252 gi0/1 10.0.0.2</span>
+R1(config)# <span class="cmd">ip route 192.168.20.0 255.255.255.0 gi0/1 10.0.0.2</span>
+R1(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 gi0/1 10.0.0.2</span>
+
+<span class="comment">! R2：兩邊都要寫</span>
+R2(config)# <span class="cmd">ip route 192.168.10.0 255.255.255.0 gi0/0 10.0.0.1</span>
+R2(config)# <span class="cmd">ip route 192.168.30.0 255.255.255.0 gi0/1 10.0.1.2</span>
+
+<span class="comment">! R3：回程路由（最常被忘記的一台）</span>
+R3(config)# <span class="cmd">ip route 10.0.0.0 255.255.255.252 gi0/0 10.0.1.1</span>
+R3(config)# <span class="cmd">ip route 192.168.10.0 255.255.255.0 gi0/0 10.0.1.1</span>
+R3(config)# <span class="cmd">ip route 192.168.20.0 255.255.255.0 gi0/0 10.0.1.1</span></code></pre>
+      <p style="margin:10px 0 0"><b>觀察：</b>3 台路由器就要寫 8 條。10 台就是幾十條，而且任何一條線路變動都要手動改全部。<b>這就是為什麼要有動態路由協定</b>——下一章 OSPF 只要幾行設定就能取代這一切。</p>
+    </div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="default">
+    <h2>7. 實作二：預設路由與 Gateway of Last Resort</h2>
+
+    <p><b>預設路由</b>是 <span class="inline-code">0.0.0.0/0</span>——遮罩全 0，代表「涵蓋所有目的地」。因為前綴長度是 0，它<b>永遠是最短的匹配</b>，所以只有在其他所有路由都不匹配時才會用到。這就是「最後手段的閘道」（Gateway of Last Resort）的意思。</p>
+
+    <pre><code><span class="comment">! 對 ISP 的標準寫法</span>
+R1(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 203.0.113.1 name TO-ISP-HINET</span>
+
+<span class="comment">! 用出口介面（點對點 WAN 才這樣寫）</span>
+R1(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 serial 0/0/0</span>
+
+<span class="comment">! 交換器（二層）用另一個指令，不是 ip route</span>
+SW1(config)# <span class="cmd">ip default-gateway 192.168.99.1</span></code></pre>
+
+    <div class="warn"><strong>三個容易混淆的指令：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>指令</th><th>用在</th><th>前提</th></tr>
+          <tr><td><span class="inline-code">ip route 0.0.0.0 0.0.0.0 x.x.x.x</span></td><td>路由器、三層交換器</td><td>有開 <span class="inline-code">ip routing</span></td></tr>
+          <tr><td><span class="inline-code">ip default-gateway</span></td><td><b>二層</b>交換器</td><td><b>沒有</b>開 ip routing 時才有效</td></tr>
+          <tr><td><span class="inline-code">ip default-network</span></td><td>舊式，配 RIP/EIGRP</td><td>幾乎已淘汰</td></tr>
+        </table>
+      </div>
+      三層交換器開了 <span class="inline-code">ip routing</span> 之後，<b><span class="inline-code">ip default-gateway</span> 就完全失效了</b>——這是很多人設定三層交換器管理位址時的困惑點。
+    </div>
+
+    <pre><code>R1# <span class="cmd">show ip route | include Gateway|0.0.0.0</span>
+Gateway of last resort is 203.0.113.1 to network 0.0.0.0
+S*    0.0.0.0/0 [1/0] via 203.0.113.1</code></pre>
+
+    <div class="note">看到 <span class="inline-code">Gateway of last resort is not set</span> 就代表沒有預設路由，任何不在路由表裡的目的地都會被丟棄。分公司路由器最常見的「內網通、上不了網」就是這個原因。</div>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="floating">
+    <h2>8. 實作三：浮動靜態路由（備援）</h2>
+
+    <p>公司有兩條對外線路：主線是光纖，備線是 4G。平常只走光纖，光纖斷了自動切 4G。做法是給備援路由一個<b>比較大的 AD</b>，讓它平常「浮」在路由表外面。</p>
+
+    <pre><code><span class="comment">! 主線：AD 使用預設值 1</span>
+R1(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 gi0/1 203.0.113.1 name PRIMARY-FIBER</span>
+
+<span class="comment">! 備線：AD 設 100，平常不會進路由表</span>
+R1(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 gi0/2 198.51.100.1 100 name BACKUP-4G</span></code></pre>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>平常狀態</b>兩條前綴長度都是 /0，比 AD → 1 &lt; 100，<b>只有主線在路由表裡</b>。備線存在 running-config 但不在 routing table。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>Gi0/1 斷線</b>介面變 down，C 和 L 路由消失，<b>連帶讓主線靜態路由失效</b>（因為寫法 C 綁定了介面）。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>備線自動上場</b>剩下 AD 100 那條，它被裝進路由表，流量改走 4G。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>光纖修好</b>Gi0/1 恢復 up，AD 1 那條回來、蓋掉 AD 100 那條，流量自動切回光纖。</div></div>
+    </div>
+
+    <div class="warn"><strong>浮動靜態路由有個大坑：介面 up 不代表線路通。</strong><br><br>
+      如果 ISP 那端的設備掛了，但你和 ISP 之間的<b>實體線路還在</b>（例如中間隔了一台媒體轉換器或交換器），你的介面會一直是 up/up，<b>主線路由永遠不會消失，備援永遠不會切換</b>。使用者會抱怨「網路斷了但路由器顯示一切正常」。<br><br>
+      解法是 <b>IP SLA + Track</b>：主動 ping 一個遠端目標，ping 不到就把路由撤下來。
+    </div>
+
+    <h3>IP SLA + Object Tracking（企業標準做法）</h3>
+    <pre><code><span class="comment">! ── 步驟 1：建立一個 ICMP 探測，每 5 秒 ping 一次 8.8.8.8 ──</span>
+R1(config)# <span class="cmd">ip sla 1</span>
+R1(config-ip-sla)# <span class="cmd">icmp-echo 8.8.8.8 source-interface gigabitEthernet 0/1</span>
+R1(config-ip-sla-echo)# <span class="cmd">frequency 5</span>
+R1(config-ip-sla-echo)# <span class="cmd">threshold 1000</span>          <span class="comment">← 超過 1000ms 算異常</span>
+R1(config-ip-sla-echo)# <span class="cmd">timeout 2000</span>
+R1(config-ip-sla-echo)# <span class="cmd">exit</span>
+
+<span class="comment">! ── 步驟 2：讓探測立刻開始、永久執行 ──</span>
+R1(config)# <span class="cmd">ip sla schedule 1 life forever start-time now</span>
+
+<span class="comment">! ── 步驟 3：建立追蹤物件，延遲避免線路抖動造成頻繁切換 ──</span>
+R1(config)# <span class="cmd">track 1 ip sla 1 reachability</span>
+R1(config-track)# <span class="cmd">delay down 10 up 30</span>            <span class="comment">← 掛 10 秒才切走，好 30 秒才切回</span>
+R1(config-track)# <span class="cmd">exit</span>
+
+<span class="comment">! ── 步驟 4：把主線路由綁上追蹤物件 ──</span>
+R1(config)# <span class="cmd">no ip route 0.0.0.0 0.0.0.0 gi0/1 203.0.113.1</span>
+R1(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 gi0/1 203.0.113.1 track 1 name PRIMARY-FIBER</span></code></pre>
+
+    <pre><code><span class="comment">! 驗證</span>
+R1# <span class="cmd">show ip sla statistics 1</span>
+IPSLA operation id: 1
+        Latest RTT: 12 milliseconds
+Latest operation return code: <span class="val">OK</span>
+Number of successes: 847
+Number of failures: 0
+
+R1# <span class="cmd">show track 1</span>
+Track 1
+  IP SLA 1 reachability
+  Reachability is <span class="val">Up</span>
+    1 change, last change 02:14:07
+  Delay up 30 secs, down 10 secs</code></pre>
+
+    <div class="ok"><strong><span class="inline-code">delay down 10 up 30</span> 為什麼要不對稱？</strong>「切走」要快（10 秒），使用者才不會斷太久；「切回」要慢（30 秒），因為剛修好的線路常常會再抖幾次，太快切回會造成流量反覆震盪。</div>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="summary">
+    <h2>9. 實作四：彙總靜態路由</h2>
+
+    <p>如果總部要去分公司的四個網段，可以寫四條路由，也可以<b>合併成一條</b>。這叫路由彙總（Route Summarization）。</p>
+
+    <div class="ex-box">
+      <div class="ex-title">推演：把四個 /24 合併</div>
+      <pre style="margin:10px 0"><code>192.168.<span class="val">8</span>.0/24   →  11000000.10101000.0000<b>1000</b>.00000000
+192.168.<span class="val">9</span>.0/24   →  11000000.10101000.0000<b>1001</b>.00000000
+192.168.<span class="val">10</span>.0/24  →  11000000.10101000.0000<b>1010</b>.00000000
+192.168.<span class="val">11</span>.0/24  →  11000000.10101000.0000<b>1011</b>.00000000
+                                              ↑↑
+                            前 22 位元完全相同，第 23、24 位元才不同</code></pre>
+      <div class="formula" style="margin:10px 0"><code>共同前綴 = 22 位元 → <b>192.168.8.0/22</b></code></div>
+      <pre style="margin:0"><code><span class="comment">! 四條變一條</span>
+R1(config)# <span class="cmd">ip route 192.168.8.0 255.255.252.0 10.0.0.2 name BRANCH-ALL</span></code></pre>
+    </div>
+
+    <h3>怎麼手算彙總</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>把所有網段轉成二進位</b>只需要轉「有變化的那個位元組」，前面相同的直接跳過。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>從左往右找出共同前綴的長度</b>一路對齊到第一個不同的位元為止。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>共同位元數 = 新的遮罩長度</b>剩下的位元全補 0，就是彙總後的網路位址。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>驗算：這個彙總有沒有多涵蓋不該涵蓋的網段？</b>192.168.8.0/22 涵蓋 8、9、10、11 四個。如果 192.168.11.0 其實是別家公司的，你就<b>把流量吸過來丟掉了</b>。</div></div>
+    </div>
+
+    <div class="warn"><strong>彙總的代價：範圍會擴大。</strong>只要彙總範圍內有任何一個網段其實不在那個方向，流量就會被錯誤地送過去然後被丟棄——而且<b>路由表看起來完全正常</b>，非常難查。彙總前務必確認整個範圍都屬於同一個方向。</div>
+
+    <div class="ok"><strong>彙總的好處：</strong>路由表變小 → 查表快、記憶體省；而且<b>單一分公司網段變動不會傳播出去</b>，上游路由器完全不需要重新收斂。大型網路的穩定性有很大一部分來自良好的彙總設計。</div>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="ipv6">
+    <h2>10. IPv6 靜態路由</h2>
+
+    <pre><code><span class="comment">! ── 先開啟 IPv6 路由功能（預設是關的，最常忘記的一行）──</span>
+R1(config)# <span class="cmd">ipv6 unicast-routing</span>
+
+<span class="comment">! ── 介面設定 ──</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">ipv6 address 2001:db8:0:1::1/64</span>
+R1(config-if)# <span class="cmd">ipv6 enable</span>                      <span class="comment">← 自動產生 link-local 位址</span>
+
+<span class="comment">! ── 寫法 A：全域單播位址當下一跳 ──</span>
+R1(config)# <span class="cmd">ipv6 route 2001:db8:0:30::/64 2001:db8:0:1::2</span>
+
+<span class="comment">! ── 寫法 B：link-local 當下一跳（必須同時指定介面）──</span>
+R1(config)# <span class="cmd">ipv6 route 2001:db8:0:30::/64 gigabitEthernet 0/1 fe80::2</span>
+
+<span class="comment">! ── 預設路由 ──</span>
+R1(config)# <span class="cmd">ipv6 route ::/0 2001:db8:0:1::2</span>
+
+<span class="comment">! ── 浮動備援 ──</span>
+R1(config)# <span class="cmd">ipv6 route ::/0 2001:db8:0:2::2 100</span></code></pre>
+
+    <div class="warn"><strong>用 link-local 當下一跳時，<u>一定</u>要同時寫出口介面。</strong>因為 link-local 位址（fe80::/10）在<b>每一個介面上都可能重複</b>——它只在該鏈路內有意義。不寫介面，路由器不知道要從哪個埠出去，指令會被拒絕。</div>
+
+    <pre><code>R1# <span class="cmd">show ipv6 route static</span>
+IPv6 Routing Table - default - 6 entries
+S   2001:DB8:0:30::/64 [1/0]
+     via FE80::2, GigabitEthernet0/1
+S   ::/0 [1/0]
+     via 2001:DB8:0:1::2
+
+R1# <span class="cmd">show ipv6 interface brief</span></code></pre>
+
+    <div class="note">IPv4 和 IPv6 的路由表是<b>完全獨立</b>的兩張表，互不影響。這叫 Dual Stack（雙協定堆疊），是目前企業過渡到 IPv6 的主流做法——兩套並存，應用程式自己選要用哪個。</div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="recursive">
+    <h2>11. 遞迴查詢與 CEF</h2>
+
+    <p>當靜態路由只寫了下一跳 IP（寫法 A），路由器必須做<b>兩次以上的查表</b>：</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>第一次查</b>「192.168.30.0/24 → via 10.0.0.2」。但 10.0.0.2 要從哪個介面出去？不知道。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>第二次查</b>「10.0.0.0/30 → directly connected, Gi0/1」。現在知道出口是 Gi0/1 了。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>查 ARP</b>取得 10.0.0.2 的 MAC，封裝送出。</div></div>
+    </div>
+
+    <div class="warn"><strong>遞迴失敗的情境：</strong>如果第二次查也查不到 10.0.0.2 怎麼去（例如那條直連路由消失了），整條靜態路由會<b>從路由表裡消失</b>。用 <span class="inline-code">show ip route static</span> 明明設定了卻看不到，八成就是遞迴解析失敗。</div>
+
+    <h3>CEF：把遞迴的結果先算好</h3>
+    <p><b>CEF（Cisco Express Forwarding）</b>是現代 Cisco 設備的預設轉發引擎。它<b>預先把路由表和 ARP 表整合成兩張表</b>，封包來的時候直接查一次就得到答案，不用每次遞迴。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>表</th><th>內容</th><th>對應的原始資料</th></tr>
+        <tr><td><b>FIB</b>（Forwarding Information Base）</td><td>前綴 → 下一跳</td><td>由路由表產生</td></tr>
+        <tr><td><b>Adjacency Table</b></td><td>下一跳 → 完整的二層表頭</td><td>由 ARP 表產生</td></tr>
+      </table>
+    </div>
+
+    <pre><code>R1# <span class="cmd">show ip cef 192.168.30.130</span>
+192.168.30.0/24
+  nexthop 10.0.0.2 GigabitEthernet0/1
+
+R1# <span class="cmd">show adjacency gigabitEthernet 0/1 detail</span>
+Protocol Interface       Address
+IP       GigabitEthernet0/1  10.0.0.2(7)
+                             0 packets, 0 bytes
+                             <span class="val">00505600000200505600000108 00</span>   <span class="comment">← 預先算好的二層表頭</span>
+
+R1# <span class="cmd">show ip cef summary</span></code></pre>
+
+    <div class="ok"><strong>為什麼要知道 CEF？</strong>當你改了路由但流量沒改變、或 ping 通但實際流量走錯方向時，問題常常出在 <b>FIB 和路由表不同步</b>。這時查 <span class="inline-code">show ip cef</span> 而不是 <span class="inline-code">show ip route</span>，才看得到路由器<b>實際上</b>怎麼轉發。必要時 <span class="inline-code">clear ip cef *</span> 重建（會短暫影響流量，別在尖峰做）。</div>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="trouble">
+    <h2>12. 故障排除</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>介面 up/up 嗎？</b><span class="inline-code">show ip interface brief</span>。administratively down = 忘了 no shutdown；up/down = 實體層通但協定不通（封裝或時脈問題）。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>直連路由在嗎？</b><span class="inline-code">show ip route connected</span>。連 C 都沒有，靜態路由再怎麼寫都沒用。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>去程路由在嗎？</b><span class="inline-code">show ip route &lt;目的IP&gt;</span>。直接問路由器它會走哪條，比自己盯整張表快。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>回程路由在嗎？</b>到<b>對方那台</b>路由器上查<span class="inline-code">show ip route &lt;來源IP&gt;</span>。這是最常被忽略的一步，「單向不通」幾乎都是這個原因。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>逐跳定位</b><span class="inline-code">traceroute &lt;目的IP&gt;</span>。看到連續的 <span class="inline-code">* * *</span> 就是斷在那一跳，去那台路由器查。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>指定來源測試</b><span class="inline-code">ping 192.168.30.10 source 192.168.10.1</span>。路由器預設用出口介面 IP 當來源，不指定的話你測的不是使用者實際的路徑。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>ARP 通嗎？</b><span class="inline-code">show ip arp</span>。下一跳的 MAC 是 Incomplete 就是 ARP 沒解析成功，往二層查。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>ACL 擋住了嗎？</b><span class="inline-code">show ip interface gi0/1 | include access list</span>，再 <span class="inline-code">show access-lists</span> 看命中數。</div></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「分公司 ping 得到總部路由器，但 ping 不到總部電腦」</div>
+      <p><b>排查：</b>分公司 R3 上 <span class="inline-code">ping 10.0.0.1</span> 通、<span class="inline-code">ping 192.168.10.10</span> 不通。到總部 R1 上查 <span class="inline-code">show ip route 192.168.30.0</span> → <b>沒有這條路由</b>。</p>
+      <p style="margin-bottom:0"><b>原因：</b>去程有（R3 寫了到總部的路由），但 R1 沒寫回分公司的路由。ping 路由器會通是因為那是直連網段。<b>修法：</b>R1 補上 <span class="inline-code">ip route 192.168.30.0 255.255.255.0 gi0/1 10.0.0.2</span>。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「換了 ISP 之後，只有部分網站開不了」</div>
+      <p><b>排查：</b><span class="inline-code">ping 8.8.8.8</span> 通、<span class="inline-code">ping -l 1472 8.8.8.8</span>（大封包）不通。</p>
+      <p style="margin-bottom:0"><b>原因：</b>新 ISP 用 PPPoE，MTU 只有 1492，小封包過得去大封包被丟。<b>修法：</b>在 WAN 介面設 <span class="inline-code">ip mtu 1492</span> 和 <span class="inline-code">ip tcp adjust-mss 1452</span>。這跟 CH 2-2 的 Baby Giant 是同一類問題。</p>
+    </div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：總部 + 兩分公司 + 雙 ISP 備援</h3>
+    <p>Packet Tracer 或 GNS3，約 70 分鐘。</p>
+
+    <h4>拓樸</h4>
+    <pre><code>                    [ ISP-A ]        [ ISP-B ]
+                  203.0.113.1      198.51.100.1
+                        │                │
+                     Gi0/1            Gi0/2
+                       [ R1 總部 ]
+                     Gi0/0 │ 192.168.10.1/24
+                  ┌────────┴────────┐
+               Gi0/3            Gi0/4
+          10.0.0.0/30        10.0.1.0/30
+               │                  │
+          [ R2 台北 ]         [ R3 台中 ]
+        192.168.20.0/24     192.168.30.0/26</code></pre>
+
+    <h4>步驟</h4>
+    <ol>
+      <li>所有介面設 IP 並 <strong>no shutdown</strong>，確認 <span class="inline-code">show ip int brief</span> 全是 up/up</li>
+      <li>R1 用 <strong>fully specified</strong> 寫法，加到兩個分公司網段的靜態路由</li>
+      <li>R2、R3 各寫一條<strong>預設路由</strong>指向 R1（分公司只有一條出口，不需要細寫）</li>
+      <li>R1 設主線預設路由指向 ISP-A（AD 預設 1）</li>
+      <li>R1 設備援預設路由指向 ISP-B，<strong>AD 100</strong></li>
+      <li>設定 <strong>IP SLA 1</strong> 每 5 秒 ping 8.8.8.8，source 為 Gi0/1</li>
+      <li>建立 <strong>track 1</strong>，<strong>delay down 10 up 30</strong>，並把主線路由綁上去</li>
+      <li>R1 對兩個分公司的路由改成一條<strong>彙總路由</strong>（自己算出正確的遮罩）</li>
+      <li>全部加上 <strong>name</strong> 註解</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>台北 PC ping 得到台中 PC</li>
+      <li>兩地 PC 都 ping 得到 8.8.8.8</li>
+      <li><span class="inline-code">show ip route</span> 在 R1 上，<strong>只能看到 ISP-A 那條預設路由</strong></li>
+      <li>把 Gi0/1 <span class="inline-code">shutdown</span> → 10 秒內流量切到 ISP-B，<span class="inline-code">show track 1</span> 顯示 Down</li>
+      <li>把 Gi0/1 開回來 → 30 秒後切回 ISP-A</li>
+      <li><span class="inline-code">show ip route 192.168.20.10</span> 命中的是彙總那條，不是明細</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>把 R1 到 R2 的靜態路由改成<b>只寫出口介面</b>（寫法 B），然後在 R1 上 <span class="inline-code">show ip arp</span>，觀察 ARP 表項目數量的變化，體會第 6 節的警告。</li>
+      <li>故意在 R3 上刪掉回程路由，用 <span class="inline-code">traceroute</span> 找出斷點在哪一跳。</li>
+      <li>算出「涵蓋 192.168.16.0/24 到 192.168.23.0/24 共 8 個網段」的最小彙總，並驗證它不會多涵蓋 192.168.24.0/24。</li>
+      <li>在 R1 加一條 <span class="inline-code">ip route 192.168.20.0 255.255.255.0 null 0 250</span>，觀察它在什麼情況下才會被用到，思考這種「黑洞路由」的用途。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>轉發七步驟：<strong>檢查 FCS → 檢查目的 MAC → 剝表頭 → TTL−1 → 查路由 → 查 ARP → 重新封裝</strong></li>
+      <li><strong>最長前綴匹配優先於一切</strong>；長度相同才比 AD，AD 相同才比 metric</li>
+      <li>AD 速記：<strong>0 / 1 / 20 / 90 / 110 / 115 / 120 / 170 / 200</strong>，255 = 永不使用</li>
+      <li><strong>C</strong> 是整個直連網段，<strong>L</strong> 是路由器自己那個 /32</li>
+      <li>乙太網路上的靜態路由用 <strong>fully specified</strong>（出口介面 + 下一跳）最穩</li>
+      <li>只寫出口介面在乙太網路上會<strong>濫發 ARP</strong>，只適合點對點鏈路</li>
+      <li>浮動靜態路由靠 <strong>大 AD</strong> 待命，但必須配 <strong>IP SLA + Track</strong> 才防得住「介面 up 但線路不通」</li>
+      <li>IPv6 別忘了 <span class="inline-code">ipv6 unicast-routing</span>；link-local 當下一跳<strong>必須</strong>同時寫介面</li>
+      <li>查不到問題時，記得 <strong>回程路由</strong>和 <strong><span class="inline-code">show ip cef</span></strong></li>
+    </ul>
+    <div class="note">學完這章，去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 選「路由技術」主題。下一章開始進入 OSPF，那是 CCNA 佔比最重的單一主題。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="06-stp-etherchannel.html">← CH 2-3：STP 與 EtherChannel</a>
+    <a href="08-ospf-deep.html">CH 3-2：OSPF 深入解析 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 3-1</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

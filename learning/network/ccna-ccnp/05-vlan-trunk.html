@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VLAN 與 Trunk 完全解析 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.tag-frame{display:flex;flex-wrap:wrap;gap:2px;margin:16px 0;font-family:"Cascadia Code",monospace;font-size:.7rem;}
+.tseg{padding:9px 6px;border-radius:5px;text-align:center;color:#fff;line-height:1.35;}
+.tseg small{display:block;opacity:.75;font-size:.62rem;}
+.vlan-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:16px 0;}
+.vlan-chip{border-radius:10px;padding:12px 14px;border:1px solid var(--border);background:#fff;}
+.vlan-chip b{display:block;font-size:.86rem;color:var(--terracotta);margin-bottom:3px;}
+.vlan-chip span{font-size:.78rem;color:var(--stone);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第二章</a><span class="sep">/</span>
+  <span class="cur">CH 2-2 · VLAN 與 Trunk</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">CH 2-2 · 交換技術核心</div>
+  <h1>VLAN 與 Trunk 完全解析</h1>
+  <p>一台交換器怎麼切成好幾個獨立的網路？兩台交換器之間又怎麼只用一條線就同時傳很多個 VLAN 的流量？這章把每個指令、每個欄位、每個常見故障都拆開講。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼要有 VLAN</a></li>
+      <li><a href="#types">VLAN 的種類與編號範圍</a></li>
+      <li><a href="#access">實作一：建立 VLAN 與 Access Port</a></li>
+      <li><a href="#dot1q">802.1Q 標籤到底加了什麼</a></li>
+      <li><a href="#trunk">實作二：設定 Trunk 幹線</a></li>
+      <li><a href="#native">Native VLAN 與它的資安地雷</a></li>
+      <li><a href="#dtp">DTP 協商模式對照表</a></li>
+      <li><a href="#allowed">修剪 Trunk：allowed vlan 清單</a></li>
+      <li><a href="#voice">Voice VLAN：一條線接電話又接電腦</a></li>
+      <li><a href="#vtp">VTP：方便但會炸掉整個機房</a></li>
+      <li><a href="#inter">實作三：VLAN 之間怎麼互通（三種做法）</a></li>
+      <li><a href="#trouble">故障排除十個檢查點</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="why">
+    <h2>1. 為什麼要有 VLAN</h2>
+
+    <p>先回到上一章的結論：<strong>交換器切碰撞域，路由器切廣播域</strong>。這句話有個很現實的問題——如果一家公司有 200 台電腦全接在同一組交換器上，它們就全在同一個廣播域。任何一台電腦發 ARP 廣播，其他 199 台都要收、都要拆封包判斷「是不是問我」。</p>
+
+    <div class="analogy">
+      <strong>用辦公室來想：</strong>整層樓是一個大開放空間，任何人要找同事都得站起來大喊。人少的時候還好，200 個人同時這樣做，整層樓就只剩噪音。<br><br>
+      VLAN 做的事，就是<strong>在同一層樓裡拉起隔音牆</strong>，把業務部、工程部、財務部隔開。喊話只在自己的區域內傳，跨區要找人得走正式管道（路由器）。而且隔音牆是「用軟體畫的」——要調整部門位置，改設定就好，不用真的拆牆。
+    </div>
+
+    <h3>沒有 VLAN 的四個問題</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>問題</th><th>實際會發生什麼</th><th>VLAN 怎麼解</th></tr>
+        <tr><td><b>廣播風暴放大</b></td><td>一個迴圈或一張壞網卡狂發廣播，整棟樓網路全掛</td><td>爆炸範圍被限制在單一 VLAN 內</td></tr>
+        <tr><td><b>沒有資安邊界</b></td><td>訪客筆電插上會議室網路孔，就跟財務部同網段，可以直接掃描</td><td>訪客丟到 VLAN 40，跨 VLAN 要過 ACL</td></tr>
+        <tr><td><b>實體位置綁死邏輯分組</b></td><td>工程師換座位到三樓，IP 網段就得跟著改</td><td>把那個埠設成 VLAN 20，IP 完全不用動</td></tr>
+        <tr><td><b>沒辦法差別對待流量</b></td><td>VoIP 電話跟下載大檔案的電腦搶頻寬，通話就會斷斷續續</td><td>語音獨立 VLAN，搭配 QoS 優先處理</td></tr>
+      </table>
+    </div>
+
+    <div class="note">VLAN 的完整定義：<b>一個 VLAN 就是一個廣播域，也就是一個 IP 子網路</b>。這兩件事在企業網路裡幾乎永遠是 1:1 對應。所以規劃 VLAN 的同時就是在規劃子網路——上一章 CH 1-2 的 VLSM 切法，這裡直接派上用場。</div>
+
+    <div class="ex-box">
+      <div class="ex-title">實務範例：一家 180 人公司的 VLAN 規劃</div>
+      <div class="vlan-map">
+        <div class="vlan-chip"><b>VLAN 10 · 業務部</b><span>192.168.10.0/24 · 60 人</span></div>
+        <div class="vlan-chip"><b>VLAN 20 · 工程部</b><span>192.168.20.0/24 · 80 人</span></div>
+        <div class="vlan-chip"><b>VLAN 30 · 財務部</b><span>192.168.30.0/26 · 12 人</span></div>
+        <div class="vlan-chip"><b>VLAN 40 · 訪客</b><span>192.168.40.0/24 · 隔離</span></div>
+        <div class="vlan-chip"><b>VLAN 50 · 語音</b><span>192.168.50.0/24 · IP 電話</span></div>
+        <div class="vlan-chip"><b>VLAN 99 · 管理</b><span>192.168.99.0/28 · 設備自己</span></div>
+      </div>
+      <p style="margin-bottom:0">注意財務部只有 12 人卻不給 /24——用 /26（62 個可用）就夠了，剩下的位址留給未來其他部門。這就是 VLSM 的用途。管理 VLAN 更只給 /28（14 個），因為那裡面只有交換器和路由器自己的管理位址。</p>
+    </div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="types">
+    <h2>2. VLAN 的種類與編號範圍</h2>
+
+    <h3>五種角色不同的 VLAN</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>種類</th><th>做什麼用</th><th>會不會被打標籤</th><th>典型設定</th></tr>
+        <tr><td><b>Default VLAN</b></td><td>VLAN 1。交換器出廠時所有埠都在這裡</td><td>視情況</td><td>實務上<b>不要用它承載使用者流量</b></td></tr>
+        <tr><td><b>Data VLAN</b></td><td>一般電腦、印表機的流量</td><td>Trunk 上會加標籤</td><td><span class="inline-code">switchport access vlan 10</span></td></tr>
+        <tr><td><b>Voice VLAN</b></td><td>IP 電話專用，通常搭 QoS</td><td>一定加標籤</td><td><span class="inline-code">switchport voice vlan 50</span></td></tr>
+        <tr><td><b>Native VLAN</b></td><td>Trunk 上唯一「不加標籤」通過的 VLAN</td><td><b>不加</b></td><td><span class="inline-code">switchport trunk native vlan 999</span></td></tr>
+        <tr><td><b>Management VLAN</b></td><td>交換器自己的 IP，給 SSH / SNMP 用</td><td>看放哪</td><td>設在 <span class="inline-code">interface vlan 99</span></td></tr>
+      </table>
+    </div>
+
+    <h3>VLAN ID 的合法範圍</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>範圍</th><th>名稱</th><th>可否刪除</th><th>存在哪裡</th></tr>
+        <tr><td><b>0、4095</b></td><td>保留，完全不能用</td><td>—</td><td>—</td></tr>
+        <tr><td><b>1</b></td><td>Default VLAN</td><td><b>不能刪</b></td><td>vlan.dat</td></tr>
+        <tr><td><b>2 – 1005</b></td><td>Normal Range（常用範圍）</td><td>可以</td><td>快閃記憶體的 <b>vlan.dat</b></td></tr>
+        <tr><td><b>1002 – 1005</b></td><td>FDDI / Token Ring 舊技術保留</td><td>不能刪</td><td>vlan.dat</td></tr>
+        <tr><td><b>1006 – 4094</b></td><td>Extended Range（延伸範圍）</td><td>可以</td><td><b>running-config</b>（需 VTP transparent 或 v3）</td></tr>
+      </table>
+    </div>
+
+    <div class="warn">
+      <strong>考試最愛考、實務最容易踩的陷阱：VLAN 設定不在 running-config 裡。</strong><br><br>
+      Normal Range 的 VLAN 存在一個叫 <span class="inline-code">vlan.dat</span> 的獨立檔案，放在 flash。所以：
+      <ul style="margin:8px 0 0">
+        <li><span class="inline-code">write erase</span> + reload <b>清不掉 VLAN</b>，交換器重開後 VLAN 還在</li>
+        <li>真正要清乾淨必須加上 <span class="inline-code">delete flash:vlan.dat</span></li>
+        <li>備份 config 的時候如果只存 running-config，<b>VLAN 資料庫沒被備份到</b></li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment">! 把一台二手交換器徹底恢復原廠（實驗室交接標準流程）</span>
+Switch# <span class="cmd">write erase</span>
+Switch# <span class="cmd">delete flash:vlan.dat</span>
+Delete filename [vlan.dat]? <span class="val">&lt;Enter&gt;</span>
+Delete flash:/vlan.dat? [confirm] <span class="val">&lt;Enter&gt;</span>
+Switch# <span class="cmd">reload</span>
+System configuration has been modified. Save? [yes/no]: <span class="val">no</span>   <span class="comment">← 一定要 no</span></code></pre>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="access">
+    <h2>3. 實作一：建立 VLAN 與 Access Port</h2>
+
+    <p><b>Access Port（存取埠）</b>是接末端裝置的埠——電腦、印表機、監視器。它的規則很單純：<b>一個 Access Port 只屬於一個 Data VLAN，進出的訊框都不帶標籤</b>。電腦完全不知道 VLAN 存在，交換器自己在內部記住「這個埠是 VLAN 10」。</p>
+
+    <h3>步驟拆解</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>建立 VLAN 並命名</b>名稱只是給人看的備註，不影響運作，但沒有名稱的 VLAN 半年後你會看不懂。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>把埠改成 Access 模式</b>不寫這行，埠會停留在預設的 <span class="inline-code">dynamic auto</span>，有機會被對面協商成 Trunk。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>指定埠屬於哪個 VLAN</b>如果指定一個還不存在的 VLAN，IOS 會自動幫你建立（但沒有名稱）。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>關掉 DTP 協商</b><span class="inline-code">switchport nonegotiate</span>。接電腦的埠不需要協商，關掉可以省一點時間也少一個攻擊面。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>開啟 PortFast + BPDU Guard</b>讓埠插上線立刻可用（不用等 STP 30 秒），同時防止有人偷接交換器。細節在 CH 2-3。</div></div>
+    </div>
+
+    <pre><code><span class="comment">! ── 步驟 1：建立 VLAN ──────────────────────</span>
+Switch# <span class="cmd">configure terminal</span>
+Switch(config)# <span class="cmd">vlan 10</span>
+Switch(config-vlan)# <span class="cmd">name SALES</span>
+Switch(config-vlan)# <span class="cmd">exit</span>
+Switch(config)# <span class="cmd">vlan 20</span>
+Switch(config-vlan)# <span class="cmd">name ENGINEERING</span>
+Switch(config-vlan)# <span class="cmd">exit</span>
+Switch(config)# <span class="cmd">vlan 30</span>
+Switch(config-vlan)# <span class="cmd">name FINANCE</span>
+Switch(config-vlan)# <span class="cmd">exit</span>
+
+<span class="comment">! ── 步驟 2~5：一次設定一整排埠 ──────────────</span>
+Switch(config)# <span class="cmd">interface range fastEthernet 0/1 - 8</span>
+Switch(config-if-range)# <span class="cmd">switchport mode access</span>
+Switch(config-if-range)# <span class="cmd">switchport access vlan 10</span>
+Switch(config-if-range)# <span class="cmd">switchport nonegotiate</span>
+Switch(config-if-range)# <span class="cmd">spanning-tree portfast</span>
+Switch(config-if-range)# <span class="cmd">spanning-tree bpduguard enable</span>
+Switch(config-if-range)# <span class="cmd">description == SALES USER PORTS ==</span>
+Switch(config-if-range)# <span class="cmd">no shutdown</span></code></pre>
+
+    <div class="note"><span class="inline-code">interface range fa0/1 - 8</span> 一次設定 8 個埠。不連續的埠可以用逗號：<span class="inline-code">interface range fa0/1 - 4 , fa0/9 , fa0/12 - 15</span>。注意逗號和減號<b>前後都要有空格</b>，這是 IOS 的怪規則。</div>
+
+    <h3>驗證：三個必看指令</h3>
+    <pre><code>Switch# <span class="cmd">show vlan brief</span>
+VLAN Name                  Status    Ports
+---- ---------------------- --------- -------------------------------
+1    default                active    Fa0/9, Fa0/10, Fa0/11, Fa0/12
+10   SALES                  active    Fa0/1, Fa0/2, Fa0/3, Fa0/4
+                                      Fa0/5, Fa0/6, Fa0/7, Fa0/8
+20   ENGINEERING            active
+30   FINANCE                active
+1002 fddi-default           act/unsup</code></pre>
+    <p>看到 <span class="inline-code">active</span> 就代表 VLAN 正常。<b>注意 Trunk 埠不會出現在這張表裡</b>——這是新手最常誤判的地方，看不到 Gi0/1 不代表它壞了，而是因為它是 Trunk。</p>
+
+    <pre><code>Switch# <span class="cmd">show interfaces fastEthernet 0/1 switchport</span>
+Name: Fa0/1
+Switchport: Enabled
+Administrative Mode: <span class="val">static access</span>        <span class="comment">← 我設定的模式</span>
+Operational Mode: <span class="val">static access</span>           <span class="comment">← 實際生效的模式（重點）</span>
+Administrative Trunking Encapsulation: dot1q
+Negotiation of Trunking: <span class="val">Off</span>              <span class="comment">← nonegotiate 生效了</span>
+Access Mode VLAN: <span class="val">10 (SALES)</span>
+Trunking Native Mode VLAN: 1 (default)
+Voice VLAN: none</code></pre>
+
+    <div class="ok"><strong>判讀重點：Administrative 是「你設的」，Operational 是「實際跑的」。</strong>兩個不一致就是問題所在。例如 Administrative 寫 <span class="inline-code">dynamic desirable</span>、Operational 卻是 <span class="inline-code">static access</span>，代表協商失敗，Trunk 沒起來。</div>
+
+    <pre><code>Switch# <span class="cmd">show mac address-table dynamic vlan 10</span>
+          Mac Address Table
+-------------------------------------------
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+  10    0050.56c0.0001    DYNAMIC     Fa0/1
+  10    0050.56c0.0008    DYNAMIC     Fa0/3</code></pre>
+    <p>這張表可以直接確認「某台電腦到底接在哪個埠、被歸在哪個 VLAN」。查故障時比什麼都直接。</p>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="dot1q">
+    <h2>4. 802.1Q 標籤到底加了什麼</h2>
+
+    <p>問題來了：兩台交換器之間只有一條線，Sales（VLAN 10）和 Engineering（VLAN 20）的流量都要走。訊框到了對面，對面交換器怎麼知道這個訊框屬於哪個 VLAN？</p>
+
+    <p>答案是 <b>IEEE 802.1Q</b>：在原本的乙太訊框裡<b>插入 4 個位元組的標籤</b>，位置就在來源 MAC 之後、型態欄位之前。</p>
+
+    <h4>原本的訊框</h4>
+    <div class="tag-frame">
+      <div class="tseg" style="background:#78716C;flex:1.2">目的 MAC<small>6 bytes</small></div>
+      <div class="tseg" style="background:#78716C;flex:1.2">來源 MAC<small>6 bytes</small></div>
+      <div class="tseg" style="background:#A8A29E;flex:.8">Type<small>2 bytes</small></div>
+      <div class="tseg" style="background:#57534E;flex:2.4">資料<small>46–1500 bytes</small></div>
+      <div class="tseg" style="background:#A8A29E;flex:.7">FCS<small>4 bytes</small></div>
+    </div>
+
+    <h4>加上 802.1Q 標籤之後</h4>
+    <div class="tag-frame">
+      <div class="tseg" style="background:#78716C;flex:1.2">目的 MAC<small>6 bytes</small></div>
+      <div class="tseg" style="background:#78716C;flex:1.2">來源 MAC<small>6 bytes</small></div>
+      <div class="tseg" style="background:#C2410C;flex:.75">TPID<small>0x8100</small></div>
+      <div class="tseg" style="background:#D97706;flex:.45">PCP<small>3 bits</small></div>
+      <div class="tseg" style="background:#B45309;flex:.3">DEI<small>1 bit</small></div>
+      <div class="tseg" style="background:#EA580C;flex:.75">VLAN ID<small>12 bits</small></div>
+      <div class="tseg" style="background:#A8A29E;flex:.7">Type<small>2 bytes</small></div>
+      <div class="tseg" style="background:#57534E;flex:2">資料<small>46–1500 bytes</small></div>
+      <div class="tseg" style="background:#A8A29E;flex:.6">FCS<small>重算</small></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>欄位</th><th>長度</th><th>值</th><th>意義</th></tr>
+        <tr><td><b>TPID</b></td><td>16 bits</td><td>固定 <span class="inline-code">0x8100</span></td><td>告訴接收端「我後面有 VLAN 標籤，別照一般訊框解讀」</td></tr>
+        <tr><td><b>PCP</b></td><td>3 bits</td><td>0 – 7</td><td>優先權，也叫 <b>CoS</b>。QoS 就是靠這 3 個位元分等級，語音通常設 5</td></tr>
+        <tr><td><b>DEI</b></td><td>1 bit</td><td>0 / 1</td><td>壅塞時這個訊框可不可以先丟掉。舊名 CFI</td></tr>
+        <tr><td><b>VLAN ID</b></td><td>12 bits</td><td>0 – 4095</td><td>這個訊框屬於哪個 VLAN</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code>2<sup>12</sup> = 4096 → 扣掉保留的 0 和 4095 → <b>可用 VLAN 共 4094 個</b></code></div>
+
+    <p>這就是為什麼 VLAN 最多只能到 4094——不是廠商小氣，是標籤欄位就只有 12 個位元。也正因為這個上限，雲端資料中心才需要 <b>VXLAN</b>（24 bits，1600 萬個），那是 CCNP 的內容，會在 CH 4-1 講。</p>
+
+    <div class="warn"><strong>MTU 的連鎖反應。</strong>標準乙太訊框最大 1518 bytes，加了 4 bytes 標籤變成 <b>1522</b>，這叫 Baby Giant。現代交換器都支援，但如果中間有老舊設備或某些 WAN 線路，就會看到「小封包通、大封包不通、ping 得到但網頁開不了」這種詭異症狀。解法是把路徑上的介面 MTU 調大，或在端點降低 TCP MSS。</div>
+
+    <div class="note">還有一個舊協定叫 <b>ISL</b>，是 Cisco 自家的，做法是把整個訊框「包起來」（封裝 26 bytes 前綴 + 4 bytes CRC）而不是插入。現在所有新設備都不支援了，考試只要記得「ISL 是 Cisco 專有、802.1Q 是業界標準、實務一律用 802.1Q」。</div>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="trunk">
+    <h2>5. 實作二：設定 Trunk 幹線</h2>
+
+    <p><b>Trunk（幹線埠）</b>就是能同時承載多個 VLAN 的埠，用在交換器對交換器、交換器對路由器、交換器對虛擬機主機。</p>
+
+    <div class="analogy"><strong>比喻：</strong>Access Port 像公司內線分機——一個分機對應一個人。Trunk 像總機的主幹電話線——一條線進來，靠「分機號碼」（VLAN 標籤）判斷該轉給誰。</div>
+
+    <h3>設定步驟（兩邊都要做）</h3>
+    <pre><code><span class="comment">! ═══ SW1 的 Gi0/1 ═══</span>
+SW1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+SW1(config-if)# <span class="cmd">description == TRUNK TO SW2 ==</span>
+SW1(config-if)# <span class="cmd">switchport trunk encapsulation dot1q</span>   <span class="comment">← 老機型才需要，新機型只支援 dot1q 會報錯，跳過即可</span>
+SW1(config-if)# <span class="cmd">switchport mode trunk</span>
+SW1(config-if)# <span class="cmd">switchport trunk native vlan 999</span>
+SW1(config-if)# <span class="cmd">switchport trunk allowed vlan 10,20,30,50,99</span>
+SW1(config-if)# <span class="cmd">switchport nonegotiate</span>
+SW1(config-if)# <span class="cmd">no shutdown</span>
+
+<span class="comment">! ═══ SW2 的 Gi0/1（設定必須完全對稱）═══</span>
+SW2(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+SW2(config-if)# <span class="cmd">description == TRUNK TO SW1 ==</span>
+SW2(config-if)# <span class="cmd">switchport mode trunk</span>
+SW2(config-if)# <span class="cmd">switchport trunk native vlan 999</span>
+SW2(config-if)# <span class="cmd">switchport trunk allowed vlan 10,20,30,50,99</span>
+SW2(config-if)# <span class="cmd">switchport nonegotiate</span></code></pre>
+
+    <div class="warn"><strong>兩個致命的順序問題：</strong>
+      <ul style="margin:8px 0 0">
+        <li>某些機型必須<b>先</b> <span class="inline-code">switchport trunk encapsulation dot1q</span>，<b>後</b> <span class="inline-code">switchport mode trunk</span>。順序反了會出現 <span class="inline-code">Command rejected: An interface whose trunk encapsulation is "Auto" can not be configured to "trunk" mode</span>。</li>
+        <li>如果你是<b>遠端 SSH 進去設定</b>，先打 <span class="inline-code">switchport trunk allowed vlan 10</span> 這種只留一個 VLAN 的指令，而你的管理流量走 VLAN 99，<b>你會當場斷線</b>。遠端改 Trunk 之前先設 <span class="inline-code">reload in 5</span>，設定成功再 <span class="inline-code">reload cancel</span>。</li>
+      </ul>
+    </div>
+
+    <h3>驗證</h3>
+    <pre><code>SW1# <span class="cmd">show interfaces trunk</span>
+
+Port        Mode         Encapsulation  Status        Native vlan
+Gi0/1       on           802.1q         <span class="val">trunking</span>      999
+
+Port        Vlans allowed on trunk
+Gi0/1       10,20,30,50,99                          <span class="comment">← 我允許的清單</span>
+
+Port        Vlans allowed and active in management domain
+Gi0/1       10,20,30,50,99                          <span class="comment">← 允許 且 這台真的有建立的</span>
+
+Port        Vlans in spanning tree forwarding state and not pruned
+Gi0/1       10,20,30,50,99                          <span class="comment">← 最終真的在傳的（重點看這行）</span></code></pre>
+
+    <div class="ok"><strong>三段清單要一起看。</strong>如果第一段有 VLAN 40，第二段卻沒有 → 這台交換器上根本沒建立 VLAN 40。如果第二段有、第三段沒有 → 被 STP 擋住（Blocking 狀態）或被 VTP Pruning 修掉了。這個判讀順序可以省下大量猜測時間。</div>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="native">
+    <h2>6. Native VLAN 與它的資安地雷</h2>
+
+    <p>802.1Q 有個歷史包袱：早期網路上有些設備看不懂標籤（例如舊的集線器、某些無線橋接器）。所以標準保留了一個「例外」——<b>Native VLAN 的訊框在 Trunk 上不加標籤，直接裸傳</b>。</p>
+
+    <p>預設的 Native VLAN 是 <b>VLAN 1</b>。這帶來兩個問題。</p>
+
+    <h3>問題一：Native VLAN Mismatch</h3>
+    <p>如果 SW1 的 Trunk Native 是 VLAN 1，SW2 是 VLAN 99：</p>
+    <ul>
+      <li>SW1 的 VLAN 1 流量不加標籤送出</li>
+      <li>SW2 收到沒有標籤的訊框，依自己的設定判定「這是 VLAN 99」</li>
+      <li>結果：<b>VLAN 1 和 VLAN 99 被接通了</b>，兩個本該隔離的網段變成同一個廣播域</li>
+    </ul>
+    <pre><code><span class="comment">! CDP 會在 log 裡直接吼你</span>
+%CDP-4-NATIVE_VLAN_MISMATCH: Native VLAN mismatch discovered on
+GigabitEthernet0/1 (1), with SW2 GigabitEthernet0/1 (99).</code></pre>
+    <p>要注意：如果你把 CDP 關掉（<span class="inline-code">no cdp run</span>，有些公司基於資安會這樣做），<b>這個警告就不會出現了</b>，錯誤會靜靜地留在網路上。</p>
+
+    <h3>問題二：VLAN Hopping 雙標籤攻擊</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>攻擊者接在 VLAN 1（= Native VLAN）的埠上</b>他想打進 VLAN 30 財務部。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>送出一個帶「兩層標籤」的訊框</b>外層標 VLAN 1，內層標 VLAN 30。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>第一台交換器剝掉外層</b>因為外層是 Native VLAN，出 Trunk 時本來就不加標籤，等於把外層丟掉。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>第二台交換器看到內層標籤 VLAN 30</b>它完全不知道發生過什麼，老實地把封包送進財務部網段。</div></div>
+    </div>
+
+    <div class="warn"><strong>三道防線（企業標準做法，三個都要做）：</strong>
+      <ol style="margin:8px 0 0">
+        <li>把 Native VLAN 改成一個<b>完全沒有任何裝置</b>的閒置 VLAN，例如 999</li>
+        <li>把 999 從 allowed 清單裡拿掉（<span class="inline-code">switchport trunk allowed vlan 10,20,30,50,99</span> 就是這個意思——沒寫 999）</li>
+        <li>所有沒在用的埠 <span class="inline-code">shutdown</span> 並丟進一個黑洞 VLAN</li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment">! ── 完整的 Native VLAN 加固 ──</span>
+SW1(config)# <span class="cmd">vlan 999</span>
+SW1(config-vlan)# <span class="cmd">name BLACKHOLE-NATIVE</span>
+SW1(config-vlan)# <span class="cmd">exit</span>
+
+SW1(config)# <span class="cmd">interface gi0/1</span>
+SW1(config-if)# <span class="cmd">switchport trunk native vlan 999</span>
+SW1(config-if)# <span class="cmd">switchport trunk allowed vlan 10,20,30,50,99</span>
+
+<span class="comment">! ── 未使用的埠全部關閉並隔離 ──</span>
+SW1(config)# <span class="cmd">interface range fa0/13 - 24</span>
+SW1(config-if-range)# <span class="cmd">switchport mode access</span>
+SW1(config-if-range)# <span class="cmd">switchport access vlan 999</span>
+SW1(config-if-range)# <span class="cmd">shutdown</span>
+SW1(config-if-range)# <span class="cmd">description == UNUSED - DISABLED ==</span></code></pre>
+
+    <div class="note">另一種 VLAN Hopping 是 <b>Switch Spoofing</b>：攻擊者的電腦假裝成交換器，發 DTP 封包跟交換器協商，把自己的埠變成 Trunk，就能看到所有 VLAN。防法就是下一節的 <span class="inline-code">switchport nonegotiate</span>。</div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="dtp">
+    <h2>7. DTP 協商模式對照表</h2>
+
+    <p><b>DTP（Dynamic Trunking Protocol）</b>是 Cisco 專有協定，讓兩台交換器自己講好要不要當 Trunk。方便，但也是安全漏洞。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>模式</th><th>指令</th><th>行為</th></tr>
+        <tr><td><b>access</b></td><td><span class="inline-code">switchport mode access</span></td><td>永遠是 Access，不協商</td></tr>
+        <tr><td><b>trunk</b></td><td><span class="inline-code">switchport mode trunk</span></td><td>永遠是 Trunk，但仍會發 DTP 封包（除非加 nonegotiate）</td></tr>
+        <tr><td><b>dynamic desirable</b></td><td><span class="inline-code">switchport mode dynamic desirable</span></td><td><b>主動</b>發 DTP 求對方一起當 Trunk</td></tr>
+        <tr><td><b>dynamic auto</b></td><td><span class="inline-code">switchport mode dynamic auto</span></td><td><b>被動</b>等對方來邀請，自己不主動</td></tr>
+      </table>
+    </div>
+
+    <h3>協商結果矩陣（必背）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>本端 ＼ 對端</th><th>access</th><th>dynamic auto</th><th>dynamic desirable</th><th>trunk</th></tr>
+        <tr><td><b>access</b></td><td>Access</td><td>Access</td><td>Access</td><td>⚠ 不一致</td></tr>
+        <tr><td><b>dynamic auto</b></td><td>Access</td><td><b>Access</b></td><td>Trunk</td><td>Trunk</td></tr>
+        <tr><td><b>dynamic desirable</b></td><td>Access</td><td>Trunk</td><td>Trunk</td><td>Trunk</td></tr>
+        <tr><td><b>trunk</b></td><td>⚠ 不一致</td><td>Trunk</td><td>Trunk</td><td>Trunk</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>記憶技巧：</strong>只有<b>兩邊都是 auto</b>（兩個都在等對方開口）才會協商失敗變成 Access。其他只要有一邊是 desirable 或 trunk，就會成為 Trunk。</div>
+
+    <div class="warn"><strong>企業實務結論：把 DTP 全部關掉。</strong>Cisco 官方硬化指引明確建議所有埠手動指定 access 或 trunk，並一律加上 <span class="inline-code">switchport nonegotiate</span>。理由：一台筆電裝上 Yersinia 這類工具就能偽造 DTP 封包，把自己的埠協商成 Trunk，然後整個公司所有 VLAN 的流量都看得到。</div>
+
+    <pre><code><span class="comment">! 檢查全公司還有哪些埠開著 DTP</span>
+SW1# <span class="cmd">show interfaces switchport | include Name|Negotiation</span>
+Name: Fa0/1
+Negotiation of Trunking: <span class="val">Off</span>      <span class="comment">← 安全</span>
+Name: Fa0/2
+Negotiation of Trunking: <span class="kw">On</span>       <span class="comment">← 這個要修</span></code></pre>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="allowed">
+    <h2>8. 修剪 Trunk：allowed vlan 清單</h2>
+
+    <p>Trunk 預設會放行 <b>1 – 4094 全部的 VLAN</b>。這代表財務部的廣播封包，會被送到一台根本沒有財務部使用者的邊緣交換器上，白白浪費頻寬，也擴大了資安曝險。</p>
+
+    <h3>四個容易搞混的指令</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>指令</th><th>效果</th><th>危險度</th></tr>
+        <tr><td><span class="inline-code">switchport trunk allowed vlan 10,20</span></td><td><b>整個取代</b>成只剩 10 和 20</td><td>高 · 遠端下會斷線</td></tr>
+        <tr><td><span class="inline-code">switchport trunk allowed vlan add 30</span></td><td>在現有清單<b>加上</b> 30</td><td>低</td></tr>
+        <tr><td><span class="inline-code">switchport trunk allowed vlan remove 30</span></td><td>從現有清單<b>移除</b> 30</td><td>中</td></tr>
+        <tr><td><span class="inline-code">switchport trunk allowed vlan all</span></td><td>恢復成放行全部</td><td>低（但不建議）</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>最經典的機房事故：</strong>工程師想「再多放行一個 VLAN 40」，直覺打了 <span class="inline-code">switchport trunk allowed vlan 40</span>——結果不是「加上 40」，而是「<b>只剩 40</b>」，原本的 10、20、30 全被砍掉，整棟樓斷線。要加 VLAN <b>永遠要記得寫 add</b>。</div>
+
+    <pre><code><span class="comment">! ✗ 錯誤：這會清掉所有原本允許的 VLAN</span>
+SW1(config-if)# switchport trunk allowed vlan 40
+
+<span class="comment">! ✓ 正確：只是新增</span>
+SW1(config-if)# <span class="cmd">switchport trunk allowed vlan add 40</span>
+
+<span class="comment">! 用範圍也可以，逗號和減號混用</span>
+SW1(config-if)# <span class="cmd">switchport trunk allowed vlan 10,20,30-35,50,99</span>
+
+<span class="comment">! 除了某幾個以外全放行</span>
+SW1(config-if)# <span class="cmd">switchport trunk allowed vlan except 1,1002-1005</span></code></pre>
+
+    <div class="note">還有一種自動修剪叫 <b>VTP Pruning</b>（<span class="inline-code">vtp pruning</span>），它會自動判斷「下游沒人用 VLAN 30，那就不要送過去」。省事，但只在 VTP Server/Client 模式下有效，而且無法修剪 VLAN 1。企業實務上多數人選擇<b>手動 allowed 清單</b>，因為行為可預測、可稽核。</div>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="voice">
+    <h2>9. Voice VLAN：一條線接電話又接電腦</h2>
+
+    <p>辦公桌上通常只有一個網路孔。IP 電話的解法是：牆上的線接進電話，電話上再有一個孔接電腦。電話內部其實就是一台迷你三埠交換器。</p>
+
+    <div class="formula"><code>牆上網路孔 ──► IP 電話（Voice VLAN 50，<b>有標籤</b>）<br>　　　　　　　　└──► 電腦（Data VLAN 10，<b>無標籤</b>）</code></div>
+
+    <p>所以這個埠有點特別：它<b>看起來是 Access Port，但實際上會傳兩個 VLAN</b>——一個帶標籤（語音）、一個不帶（資料）。Cisco 有時稱它 Mini-Trunk。</p>
+
+    <pre><code>SW1(config)# <span class="cmd">vlan 50</span>
+SW1(config-vlan)# <span class="cmd">name VOICE</span>
+SW1(config-vlan)# <span class="cmd">exit</span>
+
+SW1(config)# <span class="cmd">interface fastEthernet 0/5</span>
+SW1(config-if)# <span class="cmd">switchport mode access</span>
+SW1(config-if)# <span class="cmd">switchport access vlan 10</span>       <span class="comment">← 電腦走這個，不帶標籤</span>
+SW1(config-if)# <span class="cmd">switchport voice vlan 50</span>        <span class="comment">← 電話走這個，帶標籤</span>
+SW1(config-if)# <span class="cmd">mls qos trust cos</span>               <span class="comment">← 信任電話標的優先權</span>
+SW1(config-if)# <span class="cmd">spanning-tree portfast</span>
+SW1(config-if)# <span class="cmd">power inline auto</span>               <span class="comment">← PoE 供電給電話</span></code></pre>
+
+    <h3>驗證</h3>
+    <pre><code>SW1# <span class="cmd">show interfaces fa0/5 switchport | include VLAN</span>
+Access Mode VLAN: <span class="val">10 (SALES)</span>
+Voice VLAN: <span class="val">50 (VOICE)</span>
+
+SW1# <span class="cmd">show power inline fa0/5</span>
+Interface Admin  Oper       Power   Device              Class Max
+--------- ------ ---------- ------- ------------------- ----- ----
+Fa0/5     auto   <span class="val">on</span>         6.3     IP Phone 7945       2     15.4
+
+SW1# <span class="cmd">show cdp neighbors fa0/5 detail | include Phone|IP address</span>
+Platform: Cisco IP Phone 7945,  Capabilities: Host Phone
+  IP address: 192.168.50.31</code></pre>
+
+    <div class="note">電話怎麼知道自己該用 VLAN 50？靠 <b>CDP</b>（Cisco 電話）或 <b>LLDP-MED</b>（其他廠牌）。交換器會透過這兩個協定告訴電話「你的語音 VLAN 是 50」。所以如果用非 Cisco 電話而 CDP 又關掉了，記得開 <span class="inline-code">lldp run</span>，否則電話拿不到 VLAN 資訊，會一直停在開機畫面。</div>
+
+    <div class="warn"><strong>常見故障：電話正常、電腦上不了網。</strong>八成是這個埠只設了 <span class="inline-code">switchport voice vlan 50</span> 卻忘了 <span class="inline-code">switchport access vlan 10</span>。電腦的不帶標籤流量會掉進 VLAN 1，而 VLAN 1 通常沒有 DHCP 也沒有閘道。</div>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="vtp">
+    <h2>10. VTP：方便但會炸掉整個機房</h2>
+
+    <p><b>VTP（VLAN Trunking Protocol）</b>讓你在一台交換器上建立 VLAN，自動同步給全公司其他交換器。聽起來很棒，但它是網路工程界最有名的地雷之一。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>模式</th><th>能不能建 / 改 VLAN</th><th>會不會轉發 VTP 通告</th><th>會不會同步別人的</th></tr>
+        <tr><td><b>Server</b>（預設）</td><td>可以</td><td>會</td><td>會</td></tr>
+        <tr><td><b>Client</b></td><td><b>不行</b></td><td>會</td><td>會</td></tr>
+        <tr><td><b>Transparent</b></td><td>可以（只影響自己）</td><td>會（只是轉手）</td><td><b>不會</b></td></tr>
+        <tr><td><b>Off</b>（v3 才有）</td><td>可以</td><td><b>不會</b></td><td>不會</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>VTP 大災難是怎麼發生的：</strong>
+      <ol style="margin:8px 0 0">
+        <li>VTP 靠一個叫 <b>Revision Number（版本序號）</b>的計數器判斷「誰的資料比較新」。每改一次 VLAN，序號 +1。</li>
+        <li>某工程師拿一台<b>實驗室用過的舊交換器</b>來擴充機房。那台在實驗室被反覆改設定，序號已經衝到 87。</li>
+        <li>正式環境的序號只有 12。</li>
+        <li>舊交換器一插上 Trunk，其他所有交換器看到「87 &gt; 12，他的比較新」，<b>全部把自己的 VLAN 資料庫換成實驗室那份</b>。</li>
+        <li>全公司 VLAN 瞬間消失，所有使用者的埠掉回 VLAN 1，整棟樓斷線。</li>
+      </ol>
+    </div>
+
+    <div class="ok"><strong>接新交換器進網路前的鐵則（三選一，一定要做）：</strong>
+      <ol style="margin:8px 0 0">
+        <li>先設成 <span class="inline-code">vtp mode transparent</span>，序號會被歸零</li>
+        <li>或改一個假的 VTP domain 名稱再改回來，序號同樣歸零</li>
+        <li>或 <span class="inline-code">delete flash:vlan.dat</span> + reload，徹底清空</li>
+      </ol>
+      做完後用 <span class="inline-code">show vtp status</span> 確認 Revision 是 0 再接線。
+    </div>
+
+    <pre><code>SW1# <span class="cmd">show vtp status</span>
+VTP Version capable             : 1 to 3
+VTP version running             : <span class="val">1</span>
+VTP Domain Name                 : <span class="val">CORP</span>
+VTP Pruning Mode                : Disabled
+VTP Traps Generation            : Disabled
+Device ID                       : 0c11.6789.aa00
+Configuration last modified by 192.168.99.2 at 3-1-25 09:14:22
+Local updater ID is 192.168.99.2
+Feature VLAN:
+--------------
+VTP Operating Mode              : <span class="val">Server</span>
+Maximum VLANs supported locally : 1005
+Number of existing VLANs        : 8
+Configuration Revision          : <span class="kw">12</span>       <span class="comment">← 就是這個數字會害死人</span></code></pre>
+
+    <h3>安全的 VTP 設定</h3>
+    <pre><code><span class="comment">! 加密碼，沒密碼的設備無法加入 domain</span>
+SW1(config)# <span class="cmd">vtp domain CORP</span>
+SW1(config)# <span class="cmd">vtp password Str0ng-VTP-Pass</span>
+SW1(config)# <span class="cmd">vtp version 3</span>
+
+<span class="comment">! v3 最大的改良：必須明確指定「誰是主要伺服器」，</span>
+<span class="comment">! 沒被指定的機器就算 revision 再高也蓋不掉別人</span>
+SW1# <span class="cmd">vtp primary vlan</span></code></pre>
+
+    <div class="note"><strong>企業實務怎麼選？</strong>多數大型網路直接<b>不用 VTP</b>——全部設成 <span class="inline-code">vtp mode transparent</span>（或 v3 的 off），VLAN 用 Ansible／Python 腳本推送。理由是「自動同步」帶來的方便，遠遠比不上「一台舊機器毀掉整個網路」的風險。這也連結到 CH 4-2 的網路自動化。</div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="inter">
+    <h2>11. 實作三：VLAN 之間怎麼互通（三種做法）</h2>
+
+    <p>VLAN 把網路切開了，但業務部還是需要連財務部的 ERP 系統。跨 VLAN 通訊必須經過<b>第三層設備</b>——這叫 Inter-VLAN Routing。有三種做法。</p>
+
+    <h3>做法 A：Legacy Router（每個 VLAN 一條實體線）</h3>
+    <p>路由器上每個 VLAN 接一個實體介面。概念最單純，但 VLAN 一多路由器的埠就不夠用，實務上早就淘汰。<b>只有考試會問，知道有這回事就好。</b></p>
+
+    <h3>做法 B：Router-on-a-Stick（單臂路由）</h3>
+    <p>路由器只用<b>一個</b>實體介面接交換器，這條線設成 Trunk，然後在路由器上為每個 VLAN 建立一個「子介面」。</p>
+
+    <pre><code><span class="comment">! ═══ 交換器端：接路由器的埠設成 Trunk ═══</span>
+SW1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+SW1(config-if)# <span class="cmd">switchport mode trunk</span>
+SW1(config-if)# <span class="cmd">switchport trunk allowed vlan 10,20,30</span>
+SW1(config-if)# <span class="cmd">switchport nonegotiate</span>
+
+<span class="comment">! ═══ 路由器端：實體介面只開起來，不給 IP ═══</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">no ip address</span>
+R1(config-if)# <span class="cmd">no shutdown</span>
+R1(config-if)# <span class="cmd">exit</span>
+
+<span class="comment">! ═══ 每個 VLAN 一個子介面 ═══</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0.10</span>
+R1(config-subif)# <span class="cmd">description == SALES GATEWAY ==</span>
+R1(config-subif)# <span class="cmd">encapsulation dot1Q 10</span>              <span class="comment">← 這行告訴路由器：這個子介面處理標籤 10</span>
+R1(config-subif)# <span class="cmd">ip address 192.168.10.1 255.255.255.0</span>
+R1(config-subif)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0.20</span>
+R1(config-subif)# <span class="cmd">encapsulation dot1Q 20</span>
+R1(config-subif)# <span class="cmd">ip address 192.168.20.1 255.255.255.0</span>
+R1(config-subif)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0.30</span>
+R1(config-subif)# <span class="cmd">encapsulation dot1Q 30</span>
+R1(config-subif)# <span class="cmd">ip address 192.168.30.1 255.255.255.192</span>   <span class="comment">← /26，配合 VLSM 規劃</span></code></pre>
+
+    <div class="warn"><strong>子介面編號和 VLAN ID 沒有任何關聯。</strong>你可以寫 <span class="inline-code">gi0/0.777</span> 然後 <span class="inline-code">encapsulation dot1Q 10</span>，功能完全一樣。真正決定 VLAN 的是 <span class="inline-code">encapsulation</span> 那行。但實務上<b>一律讓兩個數字一致</b>，不然半年後接手的人會瘋掉。</div>
+
+    <div class="ex-box">
+      <div class="ex-title">Native VLAN 在單臂路由的特殊寫法</div>
+      <p>如果 Trunk 上的 Native VLAN 是 99，而 99 也需要路由，子介面要加 <span class="inline-code">native</span> 關鍵字，否則路由器不知道要處理沒有標籤的訊框：</p>
+      <pre style="margin-bottom:0"><code>R1(config)# <span class="cmd">interface gi0/0.99</span>
+R1(config-subif)# <span class="cmd">encapsulation dot1Q 99 native</span>
+R1(config-subif)# <span class="cmd">ip address 192.168.99.1 255.255.255.240</span></code></pre>
+    </div>
+
+    <div class="note"><strong>單臂路由的天花板：</strong>所有跨 VLAN 流量都要從那一條線出去、再從同一條線回來，等於頻寬<b>對折</b>。一條 1 Gbps 的線，實際跨 VLAN 吞吐量大約只有 500 Mbps。小辦公室夠用，超過 100 人就該換做法 C。</div>
+
+    <h3>做法 C：三層交換器 SVI（企業標準答案）</h3>
+    <p>三層交換器（Layer 3 Switch）內建路由功能，用 <b>SVI（Switched Virtual Interface）</b>直接在交換器內部完成路由。速度是硬體 ASIC 處理，遠快過路由器的軟體轉發。</p>
+
+    <pre><code><span class="comment">! ═══ 第一步：開啟路由功能（很多人忘記這行）═══</span>
+SW-L3(config)# <span class="cmd">ip routing</span>
+
+<span class="comment">! ═══ 第二步：為每個 VLAN 建立 SVI ═══</span>
+SW-L3(config)# <span class="cmd">interface vlan 10</span>
+SW-L3(config-if)# <span class="cmd">description == SALES GATEWAY ==</span>
+SW-L3(config-if)# <span class="cmd">ip address 192.168.10.1 255.255.255.0</span>
+SW-L3(config-if)# <span class="cmd">no shutdown</span>
+SW-L3(config-if)# <span class="cmd">exit</span>
+
+SW-L3(config)# <span class="cmd">interface vlan 20</span>
+SW-L3(config-if)# <span class="cmd">ip address 192.168.20.1 255.255.255.0</span>
+SW-L3(config-if)# <span class="cmd">no shutdown</span>
+SW-L3(config-if)# <span class="cmd">exit</span>
+
+SW-L3(config)# <span class="cmd">interface vlan 30</span>
+SW-L3(config-if)# <span class="cmd">ip address 192.168.30.1 255.255.255.192</span>
+SW-L3(config-if)# <span class="cmd">no shutdown</span>
+
+<span class="comment">! ═══ 第三步：接對外路由器的埠改成「路由埠」═══</span>
+SW-L3(config)# <span class="cmd">interface gigabitEthernet 0/24</span>
+SW-L3(config-if)# <span class="cmd">no switchport</span>                  <span class="comment">← 這行把它從二層埠變成三層埠</span>
+SW-L3(config-if)# <span class="cmd">ip address 10.0.0.2 255.255.255.252</span>
+SW-L3(config-if)# <span class="cmd">no shutdown</span>
+
+<span class="comment">! ═══ 第四步：預設路由指向對外路由器 ═══</span>
+SW-L3(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 10.0.0.1</span></code></pre>
+
+    <div class="warn"><strong>SVI 起不來的三個條件（考試必考）。</strong>SVI 的狀態要變成 up/up，必須同時滿足：
+      <ol style="margin:8px 0 0">
+        <li>該 VLAN 已經在 VLAN 資料庫裡建立，而且是 active</li>
+        <li>至少有<b>一個實體埠屬於該 VLAN 且是 up</b>，或有一條 Trunk 允許該 VLAN 通過</li>
+        <li>SVI 本身沒有 <span class="inline-code">shutdown</span></li>
+      </ol>
+      只建立 <span class="inline-code">interface vlan 20</span> 給 IP，但沒有任何一台電腦接在 VLAN 20 的埠上 → SVI 會是 down/down，ping 不到自己的閘道。
+    </div>
+
+    <h3>三種做法比較</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>比較項目</th><th>Legacy Router</th><th>Router-on-a-Stick</th><th>三層交換器 SVI</th></tr>
+        <tr><td>需要的實體埠</td><td>每 VLAN 一個</td><td>1 個</td><td>0（內部處理）</td></tr>
+        <tr><td>轉發方式</td><td>軟體</td><td>軟體</td><td><b>硬體 ASIC</b></td></tr>
+        <tr><td>效能</td><td>低</td><td>低（頻寬對折）</td><td><b>線速</b></td></tr>
+        <tr><td>成本</td><td>高</td><td>低</td><td>中～高</td></tr>
+        <tr><td>適用規模</td><td>已淘汰</td><td>小型辦公室</td><td><b>企業標準</b></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="trouble">
+    <h2>12. 故障排除十個檢查點</h2>
+
+    <p>使用者說「連不上」，按這個順序查，九成的問題會在前五步就找到。</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>埠是不是 up？</b><span class="inline-code">show interfaces status</span>。看到 notconnect 就是線或對面的問題，跟 VLAN 無關，先去查線。err-disabled 通常是 Port Security 或 BPDU Guard 觸發。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>埠在正確的 VLAN 嗎？</b><span class="inline-code">show vlan brief</span>。如果那個埠不在任何 VLAN 的列表裡，它很可能是 Trunk 或處於 err-disabled。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>VLAN 本身是 active 還是 suspended？</b><span class="inline-code">show vlan id 20</span>。VTP 同步異常時會出現 suspended。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>Trunk 兩邊模式一致嗎？</b><span class="inline-code">show interfaces trunk</span> 在兩台上都跑一次。一邊 trunking、一邊沒出現在清單裡 = 沒協商成功。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>Trunk 有放行這個 VLAN 嗎？</b><span class="inline-code">show interfaces trunk</span> 的<b>第三段</b>清單才是真的在傳的。第一段有、第三段沒有，就往 STP 或 pruning 查。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>Native VLAN 兩邊一樣嗎？</b><span class="inline-code">show interfaces trunk</span> 的 Native vlan 欄位。不一致會造成兩個 VLAN 詭異地互通。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>SVI 是 up/up 嗎？</b><span class="inline-code">show ip interface brief | include Vlan</span>。down/down 代表該 VLAN 沒有任何 active 的埠。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b><span class="inline-code">ip routing</span> 開了沒？</b><span class="inline-code">show ip route</span>。三層交換器沒開這行，SVI 各自能 ping 通但 VLAN 之間不通——這是最常見的「設定看起來全對卻不通」。</div></div>
+      <div class="step"><div class="step-num">9</div><div class="step-body"><b>電腦的 IP／遮罩／閘道對嗎？</b>閘道打錯、或遮罩寫成 /24 但實際是 /26，症狀是「同網段通、跨網段不通」。</div></div>
+      <div class="step"><div class="step-num">10</div><div class="step-body"><b>有沒有 ACL 擋住？</b><span class="inline-code">show access-lists</span>、<span class="inline-code">show ip interface vlan 30</span>。財務 VLAN 通常有 ACL，很容易忘記自己半年前設過。</div></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「新來的同事電腦連不上，隔壁桌的都正常」</div>
+      <p><b>症狀：</b>PC 拿不到 IP，自己給自己 169.254.x.x。</p>
+      <p><b>排查：</b>第 1 步 <span class="inline-code">show interfaces status fa0/7</span> → connected，線沒問題。第 2 步 <span class="inline-code">show vlan brief</span> → Fa0/7 出現在 <b>VLAN 1</b>，隔壁的 Fa0/6 在 VLAN 10。</p>
+      <p style="margin-bottom:0"><b>原因：</b>前一位管理員設定時 <span class="inline-code">interface range fa0/1 - 6</span> 少打了一個埠。VLAN 1 沒有 DHCP，所以拿不到 IP。<b>修法：</b><span class="inline-code">interface fa0/7</span> → <span class="inline-code">switchport access vlan 10</span>。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「換了一台新交換器之後，某些 VLAN 突然不通」</div>
+      <p><b>症狀：</b>VLAN 10、20 正常，VLAN 30、50 完全不通。</p>
+      <p><b>排查：</b><span class="inline-code">show interfaces trunk</span> 第一段顯示 allowed 10,20,30,50，但第二段（allowed and active）只有 10,20。</p>
+      <p style="margin-bottom:0"><b>原因：</b>新交換器上<b>根本沒有建立 VLAN 30 和 50</b>。allowed 清單可以寫不存在的 VLAN ID，IOS 不會報錯。<b>修法：</b>在新交換器上補建 VLAN 30、50。</p>
+    </div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：三層交換器 + 兩台接入交換器</h3>
+    <p>用 Packet Tracer 或 GNS3 建，全部做完大約 60 分鐘。做完你就具備一般企業辦公室網路的建置能力。</p>
+
+    <h4>拓樸</h4>
+    <pre><code>          [ R1 對外路由器 ]
+                 │ 10.0.0.1/30
+                 │ Gi0/24 (routed port)
+         [ SW-L3 三層交換器 ]
+          Gi0/1 ┴─────┴ Gi0/2
+            │           │
+        [ SW1 ]      [ SW2 ]
+       Fa0/1-8      Fa0/1-8
+      VLAN 10,50   VLAN 20,30</code></pre>
+
+    <h4>步驟</h4>
+    <ol>
+      <li>三台交換器都建立 VLAN <strong>10 SALES、20 ENG、30 FIN、50 VOICE、99 MGMT、999 BLACKHOLE</strong></li>
+      <li>SW1 的 Fa0/1-8 設成 VLAN 10 Access，其中 Fa0/5 額外加 <strong>voice vlan 50</strong></li>
+      <li>SW2 的 Fa0/1-4 設 VLAN 20、Fa0/5-8 設 VLAN 30</li>
+      <li>三台之間的 Gi 埠設成 <strong>Trunk，native vlan 999，allowed 10,20,30,50,99</strong>，全部加 <strong>nonegotiate</strong></li>
+      <li>SW-L3 開 <strong>ip routing</strong>，建立 VLAN 10/20/30/50/99 的 SVI，遮罩依 VLSM 規劃（FIN 用 /26、MGMT 用 /28）</li>
+      <li>SW-L3 的 Gi0/24 下 <strong>no switchport</strong> 並給 10.0.0.2/30，加預設路由指向 10.0.0.1</li>
+      <li>SW1 / SW2 各設 <strong>interface vlan 99</strong> 的管理 IP，並設 <strong>ip default-gateway 192.168.99.1</strong></li>
+      <li>所有未使用的埠丟進 VLAN 999 並 <strong>shutdown</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>SW1 的 VLAN 10 電腦，ping 得到 SW2 的 VLAN 20 電腦</li>
+      <li><span class="inline-code">show interfaces trunk</span> 三段清單都要看到 10,20,30,50,99，<strong>且不能有 999</strong></li>
+      <li><span class="inline-code">show ip route</span> 在 SW-L3 上要看到 5 條 C（直連）+ 1 條 S*（預設路由）</li>
+      <li>從 VLAN 10 的電腦 SSH 到 192.168.99.2（SW1 管理位址）要成功</li>
+      <li>把一台電腦插進 Fa0/20（未使用埠），<strong>應該完全不通</strong></li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>寫一條 ACL，讓 VLAN 10（業務）<strong>只能</strong>連到財務伺服器 192.168.30.10 的 tcp/1433，其他財務主機一律擋掉。（做法在 CH 3-4）</li>
+      <li>故意把 SW2 的 Trunk native 改成 VLAN 1，觀察 log 出現什麼訊息，再改回來。</li>
+      <li>在 SW1 打 <span class="inline-code">switchport trunk allowed vlan 40</span>（不加 add），觀察多少 VLAN 瞬間斷線，體會第 8 節那個事故。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li><strong>一個 VLAN = 一個廣播域 = 一個 IP 子網路</strong>，規劃 VLAN 就是在規劃子網路</li>
+      <li>Normal Range VLAN 存在 <strong>vlan.dat</strong>，不在 running-config，<span class="inline-code">write erase</span> 清不掉</li>
+      <li>802.1Q 插入 <strong>4 bytes</strong>，其中 VLAN ID 佔 12 bits → 上限 4094 個</li>
+      <li>Native VLAN <strong>不打標籤</strong>；改成閒置 VLAN 並移出 allowed 清單是資安基本功</li>
+      <li>只有<strong>兩邊都 dynamic auto</strong> 才協商失敗；企業實務一律 nonegotiate</li>
+      <li><span class="inline-code">allowed vlan X</span> 是<strong>取代</strong>，<span class="inline-code">allowed vlan add X</span> 才是新增</li>
+      <li>VTP 的 <strong>Revision Number</strong> 是機房殺手，接新設備前務必歸零</li>
+      <li>跨 VLAN 三種做法，企業標準答案是<strong>三層交換器 SVI</strong>，別忘了 <span class="inline-code">ip routing</span></li>
+    </ul>
+    <div class="note">學完這章，去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 選「交換技術」主題練一輪，確認觀念沒有漏洞再往下走。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="04-ethernet-switching.html">← CH 2-1：乙太網路與交換</a>
+    <a href="06-stp-etherchannel.html">CH 2-3：STP 與 EtherChannel →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 2-2</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

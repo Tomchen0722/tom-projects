@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QoS 與 SD-WAN — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.dscp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:16px 0;}
+.dscp-chip{border-radius:9px;padding:10px 12px;color:#fff;font-size:.78rem;line-height:1.5;}
+.dscp-chip b{display:block;font-size:.85rem;margin-bottom:2px;}
+.tos{display:flex;flex-wrap:wrap;gap:2px;margin:14px 0;font-family:"Cascadia Code",monospace;font-size:.7rem;}
+.tos div{padding:9px 6px;border-radius:5px;text-align:center;color:#fff;line-height:1.35;}
+.tos small{display:block;opacity:.75;font-size:.62rem;}
+.plane{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0;}
+.plane-card{border:1px solid var(--border);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:12px 15px;background:#fff;}
+.plane-card b{display:block;color:var(--terracotta);font-size:.85rem;margin-bottom:4px;}
+.plane-card span{font-size:.78rem;color:var(--stone);line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第四章</a><span class="sep">/</span>
+  <span class="cur">CH 4-1 · QoS 與 SD-WAN</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 4-1 · 企業架構 · CCNP 重點</div>
+  <h1>QoS 與 SD-WAN</h1>
+  <p>頻寬永遠會有不夠用的時候，QoS 決定「不夠用時誰先走」。SD-WAN 則是用軟體重新定義企業廣域網路的建置與管理方式。這章講原理，也講怎麼實際設定。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼需要 QoS</a></li>
+      <li><a href="#metrics">四個品質指標與應用需求</a></li>
+      <li><a href="#model">三種 QoS 模型</a></li>
+      <li><a href="#mark">標記：CoS、DSCP、PHB</a></li>
+      <li><a href="#trust">信任邊界（Trust Boundary）</a></li>
+      <li><a href="#queue">佇列機制：FIFO 到 LLQ</a></li>
+      <li><a href="#shape">整形 vs 監管</a></li>
+      <li><a href="#wred">壅塞避免：WRED 與 TCP 全域同步</a></li>
+      <li><a href="#mqc">實作一：MQC 完整設定</a></li>
+      <li><a href="#autoqos">實作二：AutoQoS 快速上手</a></li>
+      <li><a href="#sdwan">SD-WAN 是什麼</a></li>
+      <li><a href="#viptela">Cisco SD-WAN 四個元件</a></li>
+      <li><a href="#overlay">Overlay：VXLAN 與 EVPN</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 1 ============ -->
+  <div class="card" id="why">
+    <h2>1. 為什麼需要 QoS</h2>
+
+    <div class="warn"><strong>先講清楚一件事：QoS 不會增加頻寬。</strong>它做的是「決定在壅塞時誰被優先處理、誰被丟棄」。如果你的線路長期 100% 滿載，QoS 只能讓重要的服務活下來，<b>正確的解法還是加頻寬</b>。</div>
+
+    <div class="analogy"><strong>比喻：</strong>QoS 像醫院急診室的檢傷分類。病人多的時候，不是先到先看，而是<b>心肌梗塞優先於扭傷</b>。急診室不會因為分類而變大，但至少不會有人在等待中死掉。<br><br>沒有 QoS 的網路就是「先到先看」——結果一個人下載大檔案，就把整間急診室塞住，心肌梗塞的病人（VoIP 通話）只能排隊。</div>
+
+    <h3>沒有 QoS 會發生什麼</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>症狀</th><th>使用者的說法</th><th>技術原因</th></tr>
+        <tr><td>語音斷續、機器人聲</td><td>「電話一直斷」</td><td>抖動（jitter）過大，緩衝區來不及補償</td></tr>
+        <tr><td>視訊會議畫面馬賽克</td><td>「畫面糊掉」</td><td>封包遺失，畫格無法還原</td></tr>
+        <tr><td>ERP 系統很慢</td><td>「系統當掉」</td><td>TCP 重傳，延遲累積</td></tr>
+        <tr><td>只有某些時段會這樣</td><td>「下午特別慢」</td><td>備份或大量下載佔滿線路</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>企業導入 QoS 的三個典型觸發點：</strong>導入 VoIP 電話系統、開始大量使用視訊會議、WAN 頻寬有限但要跑關鍵業務系統。三個都沒有的話，其實可以先不做 QoS。</div>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="card" id="metrics">
+    <h2>2. 四個品質指標與應用需求</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>指標</th><th>意義</th><th>成因</th></tr>
+        <tr><td><b>頻寬</b>（Bandwidth）</td><td>每秒能傳多少資料</td><td>實體線路能力</td></tr>
+        <tr><td><b>延遲</b>（Delay / Latency）</td><td>封包從 A 到 B 花多久</td><td>傳播 + 序列化 + 佇列 + 處理</td></tr>
+        <tr><td><b>抖動</b>（Jitter）</td><td><b>延遲的變化量</b></td><td>佇列深度不斷變化</td></tr>
+        <tr><td><b>遺失</b>（Loss）</td><td>封包被丟掉的比例</td><td>佇列滿了、線路錯誤</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>對即時應用來說，抖動比延遲更致命。</strong>穩定的 150 ms 延遲，VoIP 完全沒問題（緩衝區能補償）。但延遲在 20 ms 和 200 ms 之間跳來跳去，通話就會斷斷續續——<b>因為緩衝區不知道該等多久</b>。</div>
+
+    <h3>Cisco 建議的品質門檻</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>應用</th><th>單向延遲</th><th>抖動</th><th>封包遺失</th><th>頻寬需求</th></tr>
+        <tr><td><b>語音 VoIP</b></td><td>&lt; <b>150 ms</b></td><td>&lt; <b>30 ms</b></td><td>&lt; <b>1%</b></td><td>21–320 kbps／通</td></tr>
+        <tr><td><b>視訊會議</b></td><td>&lt; 200 ms</td><td>&lt; 30 ms</td><td>&lt; 1%</td><td>384 kbps – 20 Mbps</td></tr>
+        <tr><td>串流影片（單向）</td><td>&lt; 4–5 秒</td><td>不敏感</td><td>&lt; 2%</td><td>視解析度</td></tr>
+        <tr><td>交易型應用</td><td>&lt; 400 ms</td><td>不敏感</td><td>0%（TCP 重傳）</td><td>低</td></tr>
+        <tr><td>檔案傳輸 / 備份</td><td>不敏感</td><td>不敏感</td><td>0%</td><td>愈多愈好</td></tr>
+      </table>
+    </div>
+
+    <h3>延遲的四個組成</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類型</th><th>成因</th><th>能不能靠 QoS 改善</th></tr>
+        <tr><td><b>傳播延遲</b></td><td>光在纖維裡跑的物理時間（約 5 μs/km）</td><td><b>不能</b>（物理限制）</td></tr>
+        <tr><td><b>序列化延遲</b></td><td>把封包一個位元一個位元推上線路的時間</td><td>部分（加大頻寬、封包分片）</td></tr>
+        <tr><td><b>佇列延遲</b></td><td>在路由器緩衝區排隊等待</td><td><b>可以，這是 QoS 的主戰場</b></td></tr>
+        <tr><td><b>處理延遲</b></td><td>路由器查表、封裝的時間</td><td>部分（硬體轉發／CEF）</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code>序列化延遲 = 封包大小(bits) ÷ 線路速率(bps)<br><br>
+    1500 bytes 在 64 kbps 線路上 = 12000 ÷ 64000 = <b>187 ms</b>（災難）<br>
+    1500 bytes 在 1 Gbps 線路上 = 12000 ÷ 10⁹ = <b>0.012 ms</b>（可忽略）</code></div>
+
+    <div class="note">這解釋了為什麼慢速 WAN 線路需要 <b>LFI（Link Fragmentation and Interleaving）</b>——把大封包切小，讓語音封包能插隊。現代線路速度夠快，這個技術已經很少用了。</div>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="card" id="model">
+    <h2>3. 三種 QoS 模型</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>模型</th><th>做法</th><th>擴展性</th><th>實務地位</th></tr>
+        <tr><td><b>Best Effort</b></td><td>什麼都不做，先到先服務</td><td>無限</td><td>預設值</td></tr>
+        <tr><td><b>IntServ</b><br>（整合服務）</td><td>用 <b>RSVP</b> 事先為每個流量預約頻寬</td><td><b>差</b>（每條流都要記狀態）</td><td>幾乎沒人用</td></tr>
+        <tr><td><b>DiffServ</b><br>（差異化服務）</td><td><b>標記封包分類</b>，每台路由器依標記自行處理</td><td><b>好</b></td><td><b>業界標準</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>DiffServ 的核心思想：不記狀態。</strong>路由器不需要知道「這是誰的第幾條連線」，只要看封包上的標記就決定怎麼處理。<b>這就是它能擴展到全球網路的原因。</b>本章後面講的所有技術都屬於 DiffServ。</div>
+  </div>
+
+  <!-- ============ 4 ============ -->
+  <div class="card" id="mark">
+    <h2>4. 標記：CoS、DSCP、PHB</h2>
+
+    <h3>兩個層級的標記欄位</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>CoS（Class of Service）</th><th>DSCP</th></tr>
+        <tr><td>在哪一層</td><td><b>第二層</b>（802.1Q 標籤裡的 PCP）</td><td><b>第三層</b>（IP 表頭的 ToS 位元組）</td></tr>
+        <tr><td>幾個位元</td><td>3 bits → <b>0–7</b></td><td>6 bits → <b>0–63</b></td></tr>
+        <tr><td>限制</td><td><b>只在 Trunk 上存在</b>，Access 埠或跨路由器就消失</td><td>端到端保留</td></tr>
+        <tr><td>用途</td><td>交換器內部、接入層</td><td><b>企業標準</b></td></tr>
+      </table>
+    </div>
+
+    <h4>IP 表頭的 ToS 位元組</h4>
+    <div class="tos">
+      <div style="background:#C2410C;flex:1.2">DSCP<small>6 bits · 0–63</small></div>
+      <div style="background:#78716C;flex:.5">ECN<small>2 bits</small></div>
+    </div>
+    <p>舊的定義叫 <b>IP Precedence</b>，只用前 3 個位元（0–7）。DSCP 向下相容——DSCP 的前 3 位元就是 IP Precedence，所以 DSCP 的 <b>CS 類別</b>（Class Selector）剛好對應舊的 0–7。</p>
+
+    <h3>PHB：每一跳的處理行為</h3>
+    <p><b>PHB（Per-Hop Behavior）</b>定義「看到這個標記時該怎麼處理」。四種標準 PHB：</p>
+
+    <div class="dscp-grid">
+      <div class="dscp-chip" style="background:#7C2D12"><b>EF · 46</b>Expedited Forwarding<br>最低延遲，給語音</div>
+      <div class="dscp-chip" style="background:#9A3412"><b>AF41 · 34</b>互動視訊</div>
+      <div class="dscp-chip" style="background:#B45309"><b>AF31 · 26</b>訊令 / 關鍵應用</div>
+      <div class="dscp-chip" style="background:#C2410C"><b>AF21 · 18</b>交易型資料</div>
+      <div class="dscp-chip" style="background:#D97706"><b>AF11 · 10</b>大量資料傳輸</div>
+      <div class="dscp-chip" style="background:#78716C"><b>CS1 · 8</b>Scavenger（次要）</div>
+      <div class="dscp-chip" style="background:#A8A29E"><b>BE · 0</b>Best Effort（預設）</div>
+    </div>
+
+    <h4>AF 的編號怎麼讀</h4>
+    <div class="formula"><code>AF<b>xy</b>　x = 類別（1–4，<b>愈大愈優先</b>）<br>　　　　　y = 丟棄機率（1–3，<b>愈大愈先被丟</b>）<br><br>
+    DSCP 十進位 = <b>8x + 2y</b><br>
+    AF31 → 8×3 + 2×1 = <b>26</b>　　AF43 → 8×4 + 2×3 = <b>38</b></code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類別 ＼ 丟棄機率</th><th>低（y=1）</th><th>中（y=2）</th><th>高（y=3）</th></tr>
+        <tr><td><b>AF4</b>（最高）</td><td>AF41 = 34</td><td>AF42 = 36</td><td>AF43 = 38</td></tr>
+        <tr><td><b>AF3</b></td><td>AF31 = 26</td><td>AF32 = 28</td><td>AF33 = 30</td></tr>
+        <tr><td><b>AF2</b></td><td>AF21 = 18</td><td>AF22 = 20</td><td>AF23 = 22</td></tr>
+        <tr><td><b>AF1</b>（最低）</td><td>AF11 = 10</td><td>AF12 = 12</td><td>AF13 = 14</td></tr>
+      </table>
+    </div>
+
+    <h3>Cisco 建議的 12 類模型（企業標準）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>應用類別</th><th>DSCP</th><th>建議佇列</th><th>建議頻寬</th></tr>
+        <tr><td><b>語音</b></td><td>EF (46)</td><td><b>LLQ 優先佇列</b></td><td>≤ 10%</td></tr>
+        <tr><td>廣播視訊</td><td>CS5 (40)</td><td>LLQ 或 CBWFQ</td><td>依需求</td></tr>
+        <tr><td>即時互動</td><td>CS4 (32)</td><td>LLQ</td><td>依需求</td></tr>
+        <tr><td>多媒體會議</td><td>AF41 (34)</td><td>CBWFQ + WRED</td><td>依需求</td></tr>
+        <tr><td>多媒體串流</td><td>AF31 (26)</td><td>CBWFQ + WRED</td><td>依需求</td></tr>
+        <tr><td><b>網路控制</b></td><td>CS6 (48)</td><td>CBWFQ</td><td>≥ 5%（路由協定！）</td></tr>
+        <tr><td>訊令（SIP/H.323）</td><td>CS3 (24)</td><td>CBWFQ</td><td>2%</td></tr>
+        <tr><td>網路管理</td><td>CS2 (16)</td><td>CBWFQ</td><td>2%</td></tr>
+        <tr><td>交易型資料</td><td>AF21 (18)</td><td>CBWFQ + WRED</td><td>依需求</td></tr>
+        <tr><td>大量資料</td><td>AF11 (10)</td><td>CBWFQ + WRED</td><td>依需求</td></tr>
+        <tr><td><b>Scavenger</b></td><td>CS1 (8)</td><td>最低優先</td><td>1%</td></tr>
+        <tr><td>預設 / 其他</td><td>BE (0)</td><td>預設佇列</td><td>≥ 25%</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>不要忘記 CS6（網路控制）。</strong>OSPF、BGP、STP 的封包如果在壅塞時被丟掉，<b>整個網路會開始震盪</b>——比使用者的影片卡頓嚴重一百倍。任何 QoS 政策都必須為路由協定保留頻寬。</div>
+  </div>
+
+  <!-- ============ 5 ============ -->
+  <div class="card" id="trust">
+    <h2>5. 信任邊界（Trust Boundary）</h2>
+
+    <div class="warn"><strong>核心問題：使用者的電腦可以自己在封包上標 EF（最高優先權）。</strong>只要裝個工具，任何人都能把自己的 BT 下載標成語音等級，優先於所有人。<b>所以不能信任端點的標記。</b></div>
+
+    <div class="ok"><strong>信任邊界的原則：在<u>愈靠近使用者</u>的地方決定要不要信任。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>IP 電話</b> → 可以信任（它是公司的設備，且會標 EF）</li>
+        <li><b>電腦</b> → <b>不信任</b>，一律重新標記成 BE 或依 ACL 分類</li>
+        <li><b>接電話再接電腦的埠</b> → 信任電話的標記，但把<b>電腦那條</b>的標記清掉</li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment">! ═══ 情境 1：埠上只接電腦 → 完全不信任 ═══</span>
+SW1(config)# <span class="cmd">interface fastEthernet 0/1</span>
+SW1(config-if)# <span class="cmd">mls qos trust none</span>          <span class="comment">← 所有進來的標記都清成 0</span>
+
+<span class="comment">! ═══ 情境 2：接 IP 電話 → 信任電話，但要求它重寫電腦的標記 ═══</span>
+SW1(config)# <span class="cmd">interface fastEthernet 0/5</span>
+SW1(config-if)# <span class="cmd">switchport access vlan 10</span>
+SW1(config-if)# <span class="cmd">switchport voice vlan 50</span>
+SW1(config-if)# <span class="cmd">mls qos trust device cisco-phone</span>   <span class="comment">← 用 CDP 確認真的是電話</span>
+SW1(config-if)# <span class="cmd">mls qos trust cos</span>
+SW1(config-if)# <span class="cmd">switchport priority extend cos 0</span>    <span class="comment">← 電話把 PC 的標記改成 0</span>
+
+<span class="comment">! ═══ 情境 3：接另一台交換器（Trunk）→ 信任 DSCP ═══</span>
+SW1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+SW1(config-if)# <span class="cmd">mls qos trust dscp</span>
+
+<span class="comment">! ═══ 全域啟用 QoS（很多人忘記這行，不下的話上面全部無效）═══</span>
+SW1(config)# <span class="cmd">mls qos</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">mls qos</span> 沒開，所有 QoS 設定都不生效。</strong>而且開啟之後，<b>預設所有埠變成不信任（DSCP 全部重寫成 0）</b>——如果你先開了全域 QoS 卻還沒設好各埠的信任，語音品質會立刻變差。<b>先設好埠，再開全域。</b>用 <span class="inline-code">show mls qos</span> 確認狀態。</div>
+
+    <div class="note"><strong>新款 IOS-XE 交換器的指令不同：</strong>不再需要 <span class="inline-code">mls qos</span> 全域開關，改用 <span class="inline-code">qos trust dscp</span> 之類的介面指令，並全面改用 MQC（第 9 節）。設定前先 <span class="inline-code">show version</span> 確認平台。</div>
+  </div>
+
+  <!-- ============ 6 ============ -->
+  <div class="card" id="queue">
+    <h2>6. 佇列機制：FIFO 到 LLQ</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>機制</th><th>做法</th><th>缺點</th><th>用在</th></tr>
+        <tr><td><b>FIFO</b></td><td>先進先出，一條佇列</td><td>大流量會餓死小流量</td><td>高速介面預設</td></tr>
+        <tr><td><b>WFQ</b></td><td>依「流」自動分類，小流量優先</td><td>不能手動指定政策</td><td>低速介面預設</td></tr>
+        <tr><td><b>CBWFQ</b></td><td><b>自訂類別，各保證最低頻寬</b></td><td>沒有嚴格優先權，延遲不保證</td><td>資料類流量</td></tr>
+        <tr><td><b>LLQ</b></td><td><b>CBWFQ + 嚴格優先佇列</b></td><td>優先佇列會被限速（policed）</td><td><b>企業標準</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>LLQ = Low Latency Queuing = CBWFQ 加上一個「插隊佇列」。</strong>放進優先佇列的流量（通常是語音）<b>永遠先被送出</b>，其他佇列只能等它清空。這保證了語音的延遲和抖動。</div>
+
+    <div class="warn"><strong>優先佇列有防餓死機制：它會被限速。</strong>你設 <span class="inline-code">priority 1000</span>（1 Mbps），語音超過 1 Mbps 的部分<b>會被直接丟棄</b>，而不是佔用其他人的頻寬。<br><br>
+      這是刻意的設計——否則一個失控的語音流量會把整條線路吃光，連路由協定都送不出去。<br><br>
+      <b>所以優先佇列的頻寬要算準：</b>
+      <div class="formula" style="margin-top:10px"><code>G.711 每通約 <b>80 kbps</b>（含表頭）<br>G.729 每通約 <b>26 kbps</b>（含表頭）<br><br>
+      50 人同時通話（G.711）= 50 × 80k = <b>4 Mbps</b></code></div>
+    </div>
+
+    <div class="warn"><strong>優先佇列總量不要超過線路的 33%。</strong>這是 Cisco 的建議值。超過的話，其他類別（包含路由協定）會嚴重挨餓，網路穩定性下降。<b>如果算出來需要超過 33%，代表你該加頻寬了。</b></div>
+  </div>
+
+  <!-- ============ 7 ============ -->
+  <div class="card" id="shape">
+    <h2>7. 整形 vs 監管</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Shaping（整形）</th><th>Policing（監管）</th></tr>
+        <tr><td>超過速率時</td><td><b>緩衝起來，慢慢送</b></td><td><b>直接丟棄</b>或重新標記</td></tr>
+        <tr><td>需要緩衝區</td><td><b>要</b></td><td>不要</td></tr>
+        <tr><td>會增加延遲</td><td><b>會</b></td><td>不會</td></tr>
+        <tr><td>會造成 TCP 重傳</td><td>不會</td><td><b>會</b></td></tr>
+        <tr><td>方向</td><td><b>只能 outbound</b></td><td>兩個方向都可以</td></tr>
+        <tr><td>流量曲線</td><td>平滑</td><td>鋸齒狀</td></tr>
+        <tr><td>典型用途</td><td>配合 ISP 的頻寬合約、避免下游被淹沒</td><td>限制某類流量的上限（例如訪客 Wi-Fi）</td></tr>
+      </table>
+    </div>
+
+    <div class="analogy"><strong>比喻：</strong>Shaping 像高速公路的<b>匝道儀控</b>——車太多時讓你在匝道等一下再放行，總量控制住，但你會多花時間。Policing 像<b>超速照相</b>——超過就開罰單（丟棄），不會讓你等。</div>
+
+    <div class="ex-box">
+      <div class="ex-title">經典情境：ISP 給你 100 Mbps 的實體介面，但合約只有 20 Mbps</div>
+      <p><b>問題：</b>你的路由器以 100 Mbps 全速送出去，ISP 那端會把超過 20 Mbps 的部分<b>直接丟棄</b>（他們用 policing）。TCP 偵測到遺失就重傳，然後又被丟，形成惡性循環，<b>實際吞吐量可能只剩 12 Mbps</b>。</p>
+      <p style="margin-bottom:0"><b>解法：</b>在自己這端做 <b>shaping 到 20 Mbps</b>。主動控制輸出速率，讓 ISP 那端不需要丟包。而且緩衝在自己這裡，可以配合 QoS 決定「緩衝時誰先出去」。</p>
+    </div>
+
+    <pre><code><span class="comment">! ── Shaping：整形到 20 Mbps ──</span>
+R1(config)# <span class="cmd">policy-map WAN-SHAPE</span>
+R1(config-pmap)# <span class="cmd">class class-default</span>
+R1(config-pmap-c)# <span class="cmd">shape average 20000000</span>          <span class="comment">← 20 Mbps</span>
+R1(config-pmap-c)# <span class="cmd">service-policy WAN-QOS</span>            <span class="comment">← 巢狀：在整形後的頻寬裡再分配</span>
+
+<span class="comment">! ── Policing：訪客 Wi-Fi 限速 5 Mbps ──</span>
+R1(config)# <span class="cmd">policy-map GUEST-LIMIT</span>
+R1(config-pmap)# <span class="cmd">class GUEST-TRAFFIC</span>
+R1(config-pmap-c)# <span class="cmd">police 5000000 conform-action transmit exceed-action drop</span></code></pre>
+
+    <div class="ok"><strong>「巢狀 policy-map」是 WAN 的標準寫法。</strong>外層 shape 到合約速率，內層再做 LLQ／CBWFQ 分配。因為 QoS 的佇列只有在「介面覺得壅塞」時才會啟動——實體介面是 100 Mbps，永遠不覺得壅塞，內層政策就永遠不會生效。<b>先 shape 製造出人為的壅塞點，佇列才有意義。</b></div>
+  </div>
+
+  <!-- ============ 8 ============ -->
+  <div class="card" id="wred">
+    <h2>8. 壅塞避免：WRED 與 TCP 全域同步</h2>
+
+    <div class="warn"><strong>Tail Drop 的問題：TCP 全域同步。</strong>
+      <ol style="margin:8px 0 0">
+        <li>佇列滿了 → 所有新來的封包<b>一起</b>被丟</li>
+        <li>所有 TCP 連線<b>同時</b>偵測到遺失 → <b>同時</b>把傳送速率砍半</li>
+        <li>線路瞬間變得很空 → 所有連線<b>又同時</b>加速</li>
+        <li>再度塞爆 → 回到第 1 步</li>
+      </ol>
+      結果：頻寬使用率呈現鋸齒狀，<b>平均利用率可能只有 50%</b>，而且延遲不斷震盪。
+    </div>
+
+    <div class="ok"><strong>WRED（Weighted Random Early Detection）的做法：在佇列滿之前就開始隨機丟。</strong>
+      <ul style="margin:8px 0 0">
+        <li>佇列深度低於<b>最小門檻</b> → 完全不丟</li>
+        <li>在最小和最大門檻之間 → <b>隨機</b>丟少量封包，機率隨深度上升</li>
+        <li>超過<b>最大門檻</b> → 全部丟（退化成 tail drop）</li>
+      </ul>
+      隨機丟的效果是：<b>只有少數幾條 TCP 連線降速</b>，其他繼續全速，避免了同步震盪。<br><br>
+      <b>Weighted</b> 的意思是可以依 DSCP 給不同門檻——AF13 比 AF11 更早開始被丟。
+    </div>
+
+    <pre><code>R1(config)# <span class="cmd">policy-map WAN-QOS</span>
+R1(config-pmap)# <span class="cmd">class BULK-DATA</span>
+R1(config-pmap-c)# <span class="cmd">bandwidth percent 20</span>
+R1(config-pmap-c)# <span class="cmd">random-detect dscp-based</span>
+R1(config-pmap-c)# <span class="cmd">random-detect dscp af11 32 40 10</span>
+R1(config-pmap-c)# <span class="cmd">random-detect dscp af12 28 40 10</span>
+R1(config-pmap-c)# <span class="cmd">random-detect dscp af13 24 40 10</span>
+<span class="comment">!                                    ↑最小 ↑最大 ↑丟棄分母(1/10)</span></code></pre>
+
+    <div class="warn"><strong>WRED 只對 TCP 有效，<u>不要</u>用在語音或視訊上。</strong>UDP 不會因為丟包而降速——你丟它的封包，它照樣送，只是通話品質變差。<b>語音類別要用 LLQ 保護，不是用 WRED。</b></div>
+  </div>
+
+  <!-- ============ 9 ============ -->
+  <div class="card" id="mqc">
+    <h2>9. 實作一：MQC 完整設定</h2>
+
+    <p><b>MQC（Modular QoS CLI）</b>是 Cisco 的統一 QoS 設定框架，三個步驟：</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>class-map — 分類</b>「什麼樣的流量算是這一類」</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>policy-map — 定政策</b>「這一類要怎麼處理」</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>service-policy — 套用</b>「這個政策放在哪個介面的哪個方向」</div></div>
+    </div>
+
+    <h3>步驟 1：分類</h3>
+    <pre><code><span class="comment">! ── 依 DSCP 分類（信任邊界之後的做法）──</span>
+R1(config)# <span class="cmd">class-map match-all VOICE</span>
+R1(config-cmap)# <span class="cmd">match dscp ef</span>
+R1(config-cmap)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">class-map match-any VIDEO</span>
+R1(config-cmap)# <span class="cmd">match dscp af41</span>
+R1(config-cmap)# <span class="cmd">match dscp af42</span>
+R1(config-cmap)# <span class="cmd">match dscp cs4</span>
+R1(config-cmap)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">class-map match-all SIGNALING</span>
+R1(config-cmap)# <span class="cmd">match dscp cs3</span>
+R1(config-cmap)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">class-map match-all NET-CONTROL</span>
+R1(config-cmap)# <span class="cmd">match dscp cs6</span>
+R1(config-cmap)# <span class="cmd">exit</span>
+
+<span class="comment">! ── 依 ACL 分類（信任邊界上的做法）──</span>
+R1(config)# <span class="cmd">ip access-list extended ERP-TRAFFIC</span>
+R1(config-ext-nacl)# <span class="cmd">permit tcp any host 192.168.30.10 eq 1433</span>
+R1(config-ext-nacl)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">class-map match-all CRITICAL-APP</span>
+R1(config-cmap)# <span class="cmd">match access-group name ERP-TRAFFIC</span>
+R1(config-cmap)# <span class="cmd">exit</span>
+
+<span class="comment">! ── 依應用分類（NBAR2，能認出上千種應用）──</span>
+R1(config)# <span class="cmd">class-map match-any SCAVENGER</span>
+R1(config-cmap)# <span class="cmd">match protocol bittorrent</span>
+R1(config-cmap)# <span class="cmd">match protocol netflix</span>
+R1(config-cmap)# <span class="cmd">match protocol youtube</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">match-all</span> 和 <span class="inline-code">match-any</span> 差很多。</strong>match-all = <b>所有</b>條件都要成立（AND），match-any = <b>任一</b>條件成立即可（OR）。預設是 match-all。寫了三個 match dscp 又用 match-all，那條規則<b>永遠不會匹配</b>——一個封包不可能同時是 af41 和 af42。</div>
+
+    <h3>步驟 2：定政策</h3>
+    <pre><code>R1(config)# <span class="cmd">policy-map WAN-QOS</span>
+
+<span class="comment">! ── 語音：嚴格優先，限 10% ──</span>
+R1(config-pmap)# <span class="cmd">class VOICE</span>
+R1(config-pmap-c)# <span class="cmd">priority percent 10</span>
+R1(config-pmap-c)# <span class="cmd">set dscp ef</span>
+
+<span class="comment">! ── 視訊：保證頻寬 + WRED ──</span>
+R1(config-pmap)# <span class="cmd">class VIDEO</span>
+R1(config-pmap-c)# <span class="cmd">bandwidth percent 25</span>
+R1(config-pmap-c)# <span class="cmd">random-detect dscp-based</span>
+
+<span class="comment">! ── 路由協定：一定要保留 ──</span>
+R1(config-pmap)# <span class="cmd">class NET-CONTROL</span>
+R1(config-pmap-c)# <span class="cmd">bandwidth percent 5</span>
+
+<span class="comment">! ── 訊令 ──</span>
+R1(config-pmap)# <span class="cmd">class SIGNALING</span>
+R1(config-pmap-c)# <span class="cmd">bandwidth percent 2</span>
+
+<span class="comment">! ── 關鍵應用 ──</span>
+R1(config-pmap)# <span class="cmd">class CRITICAL-APP</span>
+R1(config-pmap-c)# <span class="cmd">bandwidth percent 20</span>
+R1(config-pmap-c)# <span class="cmd">set dscp af21</span>
+R1(config-pmap-c)# <span class="cmd">random-detect dscp-based</span>
+
+<span class="comment">! ── 垃圾流量：能用多少算多少，且標記成 CS1 ──</span>
+R1(config-pmap)# <span class="cmd">class SCAVENGER</span>
+R1(config-pmap-c)# <span class="cmd">bandwidth percent 1</span>
+R1(config-pmap-c)# <span class="cmd">set dscp cs1</span>
+
+<span class="comment">! ── 其他所有流量 ──</span>
+R1(config-pmap)# <span class="cmd">class class-default</span>
+R1(config-pmap-c)# <span class="cmd">bandwidth percent 25</span>
+R1(config-pmap-c)# <span class="cmd">fair-queue</span>
+R1(config-pmap-c)# <span class="cmd">random-detect</span></code></pre>
+
+    <h3>步驟 3：巢狀整形 + 套用</h3>
+    <pre><code>R1(config)# <span class="cmd">policy-map WAN-PARENT</span>
+R1(config-pmap)# <span class="cmd">class class-default</span>
+R1(config-pmap-c)# <span class="cmd">shape average 20000000</span>
+R1(config-pmap-c)# <span class="cmd">service-policy WAN-QOS</span>
+R1(config-pmap-c)# <span class="cmd">exit</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">service-policy output WAN-PARENT</span></code></pre>
+
+    <div class="warn"><strong>各類別的 bandwidth percent 總和不能超過 75%（預設）。</strong>剩下的 25% 保留給路由協定、二層控制流量等系統開銷。要用更多必須明確調整：<span class="inline-code">max-reserved-bandwidth 90</span>，但<b>不建議</b>。</div>
+
+    <h3>驗證</h3>
+    <pre><code>R1# <span class="cmd">show policy-map interface gigabitEthernet 0/1</span>
+ GigabitEthernet0/1
+
+  Service-policy output: WAN-PARENT
+
+    Class-map: class-default (match-any)
+      Traffic Shaping
+        Target/Average Rate: 20000000/20000000 bps
+
+      Service-policy : WAN-QOS
+
+        Class-map: VOICE (match-all)
+          482910 packets, 38632800 bytes
+          Match: dscp ef (46)
+          Priority: 10% (2000 kbps), burst bytes 50000
+          Priority Rate Limited: <span class="kw">0 packets, 0 bytes</span>     <span class="comment">← 不是 0 就代表語音被限速丟了</span>
+
+        Class-map: VIDEO (match-any)
+          Queueing
+          queue limit 64 packets
+          (queue depth/total drops/no-buffer drops) 0/<span class="val">12</span>/0
+          bandwidth 25% (5000 kbps)
+
+R1# <span class="cmd">show policy-map interface gi0/1 output class VOICE</span>
+R1# <span class="cmd">show mls qos interface fa0/5 statistics</span>       <span class="comment">! 交換器端</span></code></pre>
+
+    <div class="ok"><strong>三個關鍵數字要盯：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>Priority Rate Limited</b> 不是 0 → 語音超量被丟，要加大 priority 或減少通話數</li>
+        <li><b>total drops</b> 持續增加 → 那個類別頻寬不夠</li>
+        <li><b>queue depth</b> 一直很高 → 延遲會很大，考慮調整分配</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 10 ============ -->
+  <div class="card" id="autoqos">
+    <h2>10. 實作二：AutoQoS 快速上手</h2>
+
+    <p>手寫完整的 12 類 MQC 政策要好幾百行。AutoQoS 一行指令就自動產生一整套符合 Cisco 最佳實務的設定。</p>
+
+    <pre><code><span class="comment">! ── 交換器：接 IP 電話的埠 ──</span>
+SW1(config)# <span class="cmd">mls qos</span>
+SW1(config)# <span class="cmd">interface fastEthernet 0/5</span>
+SW1(config-if)# <span class="cmd">auto qos voip cisco-phone</span>
+
+<span class="comment">! ── 交換器：接另一台交換器（信任上游）──</span>
+SW1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+SW1(config-if)# <span class="cmd">auto qos voip trust</span>
+
+<span class="comment">! ── 路由器 WAN 介面（新版，會自動偵測應用）──</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">auto qos</span>
+
+<span class="comment">! ── 看它到底幫你產生了什麼（強烈建議做這一步）──</span>
+SW1# <span class="cmd">show auto qos</span>
+SW1# <span class="cmd">show running-config | begin class-map</span></code></pre>
+
+    <div class="ok"><strong>AutoQoS 的正確用法：把它當成「範本產生器」。</strong>先用它產生一整套設定，再 <span class="inline-code">show running-config</span> 把產生的 class-map／policy-map 讀一遍，看懂之後<b>依自己的需求微調</b>。直接用預設值通常也堪用，但頻寬比例不見得符合你的環境。</div>
+
+    <div class="warn"><strong>AutoQoS 會直接修改 running-config，而且產生的設定量很大。</strong>在正式環境套用前：<b>先備份設定</b>（<span class="inline-code">copy running-config flash:backup.cfg</span>），並在維護時段做。移除要用 <span class="inline-code">no auto qos voip</span>，但殘留的 class-map 可能要手動清。</div>
+  </div>
+
+  <!-- ============ 11 ============ -->
+  <div class="card" id="sdwan">
+    <h2>11. SD-WAN 是什麼</h2>
+
+    <h3>傳統 WAN 的四個痛點</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>痛點</th><th>具體情況</th></tr>
+        <tr><td><b>MPLS 很貴</b></td><td>專線月租是同頻寬網際網路的 5–20 倍</td></tr>
+        <tr><td><b>開通很慢</b></td><td>新分公司拉專線要 4–12 週</td></tr>
+        <tr><td><b>備援線路閒置</b></td><td>買了第二條線，平常完全不用，等於白花錢</td></tr>
+        <tr><td><b>設定要一台台改</b></td><td>50 家分公司改一條政策，要 SSH 進 50 台機器</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>SD-WAN 的核心概念：把控制平面和資料平面分開。</strong>
+      <div class="plane" style="margin-top:10px">
+        <div class="plane-card"><b>控制平面</b><span>「決定流量該怎麼走」。<b>集中到控制器</b>，一個地方設定，推送到所有站點。</span></div>
+        <div class="plane-card"><b>資料平面</b><span>「實際轉送封包」。留在各站點的邊緣設備上，就近處理。</span></div>
+        <div class="plane-card"><b>管理平面</b><span>「看狀態、設政策」。統一的圖形介面，不用 CLI。</span></div>
+      </div>
+    </div>
+
+    <h3>SD-WAN 帶來什麼</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>能力</th><th>實際意義</th></tr>
+        <tr><td><b>Transport Independence</b></td><td>MPLS、光纖、4G/5G 全部可以混用，上面跑加密 overlay 隧道</td></tr>
+        <tr><td><b>Application-Aware Routing</b></td><td>「語音走延遲最低的線，備份走最便宜的線」——依<b>應用</b>而非目的 IP 決定路徑</td></tr>
+        <tr><td><b>即時路徑切換</b></td><td>持續量測每條線的延遲／抖動／遺失，品質變差<b>幾百毫秒內</b>自動換線</td></tr>
+        <tr><td><b>Zero-Touch Provisioning</b></td><td>新設備寄到分公司，插上電和網路線<b>自己從雲端下載設定</b></td></tr>
+        <tr><td><b>集中政策</b></td><td>一個地方改，推送到全部站點</td></tr>
+        <tr><td><b>Direct Internet Access</b></td><td>雲端服務（M365、Salesforce）直接從分公司出去，不用繞回總部</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>SD-WAN 不是萬靈丹，導入前要評估（涉及合約與費用，先算清楚）：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>授權費用</b>通常是按站點按年計費，站點少的話可能比省下的 MPLS 費用還貴</li>
+        <li><b>網際網路線路的品質不保證</b>——SD-WAN 能選較好的線，但沒辦法讓爛線變好</li>
+        <li><b>控制器是單點</b>（雖然可以做高可用），控制器失聯時既有隧道仍運作，但無法變更政策</li>
+        <li>團隊需要重新學習，傳統 CLI 技能不完全適用</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ 12 ============ -->
+  <div class="card" id="viptela">
+    <h2>12. Cisco SD-WAN 四個元件</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>元件</th><th>平面</th><th>職責</th><th>類比</th></tr>
+        <tr><td><b>vManage</b></td><td>管理</td><td>圖形化管理介面、範本、監控、升級</td><td>公司的<b>總管理處</b></td></tr>
+        <tr><td><b>vSmart</b></td><td>控制</td><td>用 <b>OMP</b> 協定散布路由與政策</td><td>路由的<b>大腦</b>（類似 BGP RR）</td></tr>
+        <tr><td><b>vBond</b></td><td>協調</td><td>新設備的第一個聯絡點，做認證與 NAT 穿透</td><td><b>櫃檯接待</b></td></tr>
+        <tr><td><b>vEdge / cEdge</b></td><td>資料</td><td>放在各站點，實際轉送封包、建立隧道</td><td><b>各分店員工</b></td></tr>
+      </table>
+    </div>
+
+    <h3>新站點上線流程（ZTP）</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>設備開箱插電</b>接上任何一條能上網的線（光纖、4G 都可以）。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>連上 vBond</b>用出廠內建的憑證做雙向認證，確認彼此身分。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>vBond 介紹 vManage 和 vSmart</b>並協助處理 NAT 後方的連線建立。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>從 vManage 下載設定範本</b>整台設備的設定自動套用，不需要人工 CLI。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>跟 vSmart 建立 OMP 連線</b>取得路由資訊與政策。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>與其他站點建立 IPsec 資料隧道</b>開始承載業務流量。整個過程<b>不需要工程師到現場</b>。</div></div>
+    </div>
+
+    <h3>三種 SD-WAN 政策</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>政策類型</th><th>在哪裡執行</th><th>做什麼</th></tr>
+        <tr><td><b>Centralized Control Policy</b></td><td>vSmart</td><td>控制路由怎麼散布（哪些站點看得到哪些路由）</td></tr>
+        <tr><td><b>Centralized Data Policy</b></td><td>Edge（由 vSmart 下發）</td><td>依應用選路徑、服務串接、QoS</td></tr>
+        <tr><td><b>Localized Policy</b></td><td>Edge 本地</td><td>ACL、QoS 佇列、路由過濾</td></tr>
+      </table>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">Application-Aware Routing 的實際設定邏輯</div>
+      <pre style="margin:10px 0 0"><code>SLA 類別「VOICE-SLA」：
+    延遲 &lt; 150 ms
+    抖動 &lt; 30 ms
+    遺失 &lt; 1%
+
+規則：
+    符合「語音」應用的流量
+    → 優先使用 MPLS
+    → 若 MPLS 不符合 VOICE-SLA，改用 Internet
+    → 若兩條都不符合，選相對較好的那條
+
+    符合「備份 / 檔案同步」的流量
+    → 只使用 Internet（永遠不佔用昂貴的 MPLS）</code></pre>
+      <p style="margin:8px 0 0">Edge 設備每隔數百毫秒用 <b>BFD</b> 量測每條隧道的實際品質，決策是<b>持續即時</b>的，不是設定一次就固定。</p>
+    </div>
+
+    <div class="note"><strong>CCNA 只要求知道概念</strong>（控制平面／資料平面分離、四個元件的名字和角色）。<b>CCNP ENCOR</b> 會考得更細，包含 OMP、TLOC、政策架構。實際操作需要 vManage 環境，Cisco DevNet 有免費的 <b>Always-On Sandbox</b> 可以登入練習。</div>
+  </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="overlay">
+    <h2>13. Overlay：VXLAN 與 EVPN</h2>
+
+    <p>CH 2-2 提過 802.1Q 的 VLAN ID 只有 12 bits，上限 4094 個。雲端資料中心動輒上萬個租戶，完全不夠用。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>VLAN (802.1Q)</th><th>VXLAN</th></tr>
+        <tr><td>識別碼長度</td><td>12 bits</td><td><b>24 bits（VNI）</b></td></tr>
+        <tr><td>數量上限</td><td>4094</td><td><b>16,777,216</b></td></tr>
+        <tr><td>封裝方式</td><td>插入 4 bytes 標籤</td><td><b>整個 L2 訊框包進 UDP</b>（port 4789）</td></tr>
+        <tr><td>能跨越</td><td>單一 L2 網域</td><td><b>任何 L3 網路</b></td></tr>
+        <tr><td>額外開銷</td><td>4 bytes</td><td><b>50 bytes</b></td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code>原始 L2 訊框 → 外層 MAC + 外層 IP + UDP(4789) + VXLAN(VNI) + <b>原始訊框</b><br><br>
+    「把二層網路裝進三層封包裡運送」</code></div>
+
+    <div class="warn"><strong>VXLAN 的 50 bytes 開銷會造成 MTU 問題。</strong>底層網路（underlay）的 MTU 必須<b>至少 1550</b>，否則 1500 bytes 的原始封包封裝後就超過了。資料中心通常直接把 underlay 設成 <b>9000（Jumbo Frame）</b>。忘記調的症狀又是那個經典的「小封包通、大封包不通」。</div>
+
+    <h3>VTEP 與 EVPN</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>名詞</th><th>意義</th></tr>
+        <tr><td><b>VTEP</b></td><td>VXLAN Tunnel Endpoint。做封裝／解封裝的設備（通常是 ToR 交換器）</td></tr>
+        <tr><td><b>VNI</b></td><td>VXLAN Network Identifier，24 bits 的「虛擬網段編號」</td></tr>
+        <tr><td><b>Underlay</b></td><td>底層的三層網路，通常跑 OSPF 或 IS-IS，只負責讓 VTEP 之間互通</td></tr>
+        <tr><td><b>Overlay</b></td><td>建在 underlay 之上的虛擬二層網路</td></tr>
+        <tr><td><b>EVPN</b></td><td>用 <b>MP-BGP</b> 當 VXLAN 的控制平面，散布 MAC 與 IP 資訊</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>為什麼需要 EVPN？</strong>純 VXLAN 靠「flood and learn」——不知道目的 MAC 在哪就對所有 VTEP 群播氾濫，很浪費。EVPN 用 <b>BGP 主動宣告「我這裡有這些 MAC 和 IP」</b>，其他 VTEP 直接查表，不用氾濫。<br><br>
+    這就是為什麼 CH 3-3 的 BGP 知識在資料中心也用得上——<b>EVPN 本質上就是 BGP 的一個新位址族群（AFI/SAFI）</b>。</div>
+
+    <pre><code><span class="comment">! NX-OS 上的 VXLAN EVPN 片段（概念示意）</span>
+switch(config)# <span class="cmd">feature nv overlay</span>
+switch(config)# <span class="cmd">feature bgp</span>
+switch(config)# <span class="cmd">nv overlay evpn</span>
+
+switch(config)# <span class="cmd">interface nve1</span>
+switch(config-if)# <span class="cmd">source-interface loopback0</span>
+switch(config-if)# <span class="cmd">host-reachability protocol bgp</span>
+switch(config-if)# <span class="cmd">member vni 10010</span>
+switch(config-if-nve-vni)# <span class="cmd">suppress-arp</span>
+
+switch(config)# <span class="cmd">router bgp 65001</span>
+switch(config-router)# <span class="cmd">address-family l2vpn evpn</span></code></pre>
+
+    <div class="note">VXLAN／EVPN 是 <b>CCNP Data Center</b> 和 <b>ENCOR</b> 的內容，CCNA 只要知道「VLAN 不夠用時用 VXLAN，24 bits，1600 萬個」即可。但理解 overlay 的概念對看懂 SD-WAN 很有幫助——<b>SD-WAN 本質上也是一種 overlay</b>。</div>
+  </div>
+
+  <!-- ============ LAB ============ -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：WAN QoS 政策</h3>
+    <p>Packet Tracer 的 QoS 支援有限，建議用 <b>GNS3 或 Cisco CML</b>。約 70 分鐘。</p>
+
+    <h4>情境</h4>
+    <pre><code>總部 ── 20 Mbps 專線（實體介面 1 Gbps）── 分公司
+
+需求：
+  · 30 通 G.711 語音（每通 80 kbps → 2.4 Mbps）
+  · 視訊會議尖峰 5 Mbps
+  · ERP 系統（tcp/1433）必須保證
+  · 夜間備份不能影響白天業務
+  · 路由協定（OSPF）不能被餓死</code></pre>
+
+    <h4>步驟</h4>
+    <ol>
+      <li>交換器端：<strong>mls qos</strong>，接電話的埠設 <strong>trust device cisco-phone</strong> 並 <strong>extend cos 0</strong>，接 PC 的埠設 <strong>trust none</strong></li>
+      <li>建立 class-map：<strong>VOICE</strong>(dscp ef)、<strong>VIDEO</strong>(af41/cs4)、<strong>SIGNALING</strong>(cs3)、<strong>NET-CONTROL</strong>(cs6)、<strong>ERP</strong>(ACL tcp/1433)、<strong>BACKUP</strong>(NBAR 或 ACL)</li>
+      <li>建立 policy-map <strong>WAN-QOS</strong>：VOICE 用 <strong>priority</strong>（自己算需要幾 %）、其他用 <strong>bandwidth percent</strong></li>
+      <li>ERP 和 BACKUP 類別加上 <strong>random-detect dscp-based</strong></li>
+      <li>建立巢狀 policy-map <strong>WAN-PARENT</strong>，<strong>shape average 20000000</strong> 並嵌入 WAN-QOS</li>
+      <li>套用到 WAN 介面的 <strong>output</strong> 方向</li>
+      <li>驗證各類別的 bandwidth percent 總和不超過 <strong>75%</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li><span class="inline-code">show policy-map interface</span> 每個 class 都有<strong>非零的封包計數</strong></li>
+      <li><strong>Priority Rate Limited 是 0</strong>（語音沒有超量被丟）</li>
+      <li>Shaping 的 Target Rate 顯示 <strong>20000000</strong></li>
+      <li>用 iperf 或 ping 灌滿線路，同時 ping 語音目標，<strong>延遲和抖動仍在門檻內</strong></li>
+      <li><span class="inline-code">show mls qos interface fa0/5 statistics</span> 看得到 dscp 46 的封包</li>
+      <li>從 PC 手動標一個 EF 封包，確認交換器<strong>把它重寫成 0</strong>（信任邊界生效）</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>把 VOICE 的 <span class="inline-code">priority percent</span> 故意設成 2%，用 iperf 灌 UDP 模擬語音，觀察 <b>Priority Rate Limited</b> 開始累加。</li>
+      <li>拿掉巢狀的 shape，直接把 WAN-QOS 套在 1 Gbps 介面上，觀察為什麼<strong>佇列統計永遠是 0</strong>（介面不覺得壅塞）。</li>
+      <li>把 NET-CONTROL 類別移除，灌滿線路後觀察 OSPF 鄰居是否開始 flap。</li>
+      <li>對比 <span class="inline-code">police</span> 和 <span class="inline-code">shape</span>：分別限速 5 Mbps，用 iperf TCP 測試實際吞吐量差多少。</li>
+      <li>用 <span class="inline-code">auto qos</span> 產生一套設定，跟你手寫的比較，看 Cisco 的預設比例跟你的判斷差在哪。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>QoS <strong>不增加頻寬</strong>，只決定壅塞時誰優先；長期滿載的解法是加頻寬</li>
+      <li>四指標中<strong>抖動對即時應用最致命</strong>；語音門檻是 <strong>延遲 150ms / 抖動 30ms / 遺失 1%</strong></li>
+      <li>業界標準是 <strong>DiffServ</strong>（標記 + 各跳自行處理，不記狀態）</li>
+      <li><strong>CoS 3 bits 只在 Trunk 上；DSCP 6 bits 端到端</strong>。AF 十進位 = <strong>8x + 2y</strong></li>
+      <li>語音 <strong>EF(46)</strong>、路由協定 <strong>CS6(48)</strong>——後者絕不能忘</li>
+      <li><strong>不要信任端點的標記</strong>；電話可信任，電腦一律重寫</li>
+      <li><span class="inline-code">mls qos</span> 沒開，所有 QoS 設定不生效</li>
+      <li><strong>LLQ = CBWFQ + 嚴格優先佇列</strong>，優先佇列會被限速，總量不超過 33%</li>
+      <li><strong>Shaping 緩衝、Policing 丟棄</strong>；配合 ISP 合約速率要用 shaping</li>
+      <li>WAN 要用<strong>巢狀 policy-map</strong>：外層 shape 製造壅塞點，內層才有意義</li>
+      <li><strong>WRED 只對 TCP 有效</strong>，不要用在語音視訊上</li>
+      <li>SD-WAN 的核心是<strong>控制平面與資料平面分離</strong>；四元件 <strong>vManage / vSmart / vBond / vEdge</strong></li>
+      <li>VXLAN <strong>24 bits VNI</strong>，1600 萬個；EVPN 用 <strong>MP-BGP</strong> 當控制平面</li>
+    </ul>
+    <div class="note">去 <a href="quiz.html" style="color:var(--terracotta);font-weight:600">模擬試題</a> 選「自動化與架構」主題。QoS 在 CCNA 佔比不高但一定會考 DSCP 值和 LLQ 概念，CCNP ENCOR 則考得很細。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="10-acl-nat-detail.html">← CH 3-4：ACL 與 NAT 實戰</a>
+    <a href="12-automation.html">CH 4-2：網路自動化 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 4-1</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

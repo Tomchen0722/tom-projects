@@ -71,4 +71,178 @@
 □ 記錄實際耗時與遇到的問題（給下一批參考）</code></pre></div><h2>七、常見的遷移陷阱</h2><div class="tbl"><table><thead><tr><th>陷阱</th><th>後果</th><th>預防</th></tr></thead><tbody><tr><td><b>沒做效能測試</b></td><td>上線後發現比地端慢，使用者暴怒</td><td>遷移前在雲上做壓力測試，且用真實資料量</td></tr><tr><td><b>忽略網路延遲</b></td><td>應用在雲、資料庫在地端，回應時間暴增</td><td>一起搬，或先加快取層</td></tr><tr><td><b>授權沒處理</b></td><td>Oracle/SQL Server/Windows 授權在雲上不合規</td><td><b>提前 3 個月</b>釐清授權條款（BYOL 規則很複雜）</td></tr><tr><td><b>只搬不改（lift & shift 全部）</b></td><td>成本比地端更高，還沒有雲的好處</td><td>至少對資料庫與中介軟體做 Replatform</td></tr><tr><td><b>沒有訓練團隊</b></td><td>上雲後沒人會維運</td><td><b>遷移前</b>就開始訓練，並讓團隊參與遷移過程</td></tr><tr><td><b>低估資料遷移時間</b></td><td>100TB 走 1Gbps 專線要 9 天</td><td>提前算好：<code>時間 = 資料量 / 頻寬 × 1.5</code></td></tr><tr><td><b>沒有明確的完成定義</b></td><td>專案拖三年還在「遷移中」</td><td>每一批都有明確的驗收標準與退場條件</td></tr></tbody></table></div><h2>八、本課檢核</h2><ul class="checklist"><li>能說出 6R 策略並判斷系統該用哪一種</li><li>知道評估階段要盤點的四件事，特別是相依關係</li><li>理解 Landing Zone 的組成與「先蓋地基」的重要性</li><li>知道第一批遷移該選什麼樣的系統</li><li>能列出切換前中後的檢查項目</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>公司要在 12 個月內把 200 台伺服器搬上雲。怎麼規劃？</summary><div class="ans"><strong>200 台在 12 個月是可行但緊湊的，關鍵是前三個月不要急著搬。</strong><br><br><strong>時程建議</strong>：<br>• <u>M1-M2 評估</u>——用 Migration Center 自動盤點，找出相依關係。<strong>預期能 Retire 20～40 台</strong>（通常是最大的意外收穫），實際要搬的降到 160 台左右。<br>• <u>M2-M3 Landing Zone</u>——這是最重要的投資。用 Cloud Foundation Toolkit 建，同時建立 Terraform 模組庫與專案自動化。<u>這三個月看起來沒有進度，但它決定後面九個月的速度</u>。<br>• <u>M4 第一批（5～10 台）</u>——選有代表性的系統，慢慢做，把流程與工具磨順。<br>• <u>M5-M11 批次推進</u>——每兩週一批，每批 10～20 台。<u>速度會隨著自動化成熟而加快</u>。<br>• <u>M12 收尾</u>——核心系統與緩衝。<br><br><strong>成功的關鍵</strong>：<br>① <strong>成立專責團隊</strong>——遷移不是「大家有空時做」的事。<br>② <strong>大量自動化</strong>——200 台不可能手工搬。第一批就要把流程腳本化。<br>③ <strong>留 20% 緩衝</strong>——一定會有系統比預期難搬。<br>④ <strong>並行訓練</strong>——維運團隊要在遷移過程中就上手，不是搬完才學。<br><br><em>最大的風險不是技術，是<strong>沒有人有空</strong>——原團隊還要維持地端營運。這件事要在一開始就跟管理層講清楚。</em></div></details><details class="qa"><summary>一個跑了 15 年的 Java 單體系統，沒有原始文件，原作者都離職了。怎麼搬？</summary><div class="ans"><strong>這種系統要用 Rehost，不要嘗試 Refactor。</strong>理由是風險不對稱——重構的收益有限，但搞砸的代價極高。<br><br><strong>務實的步驟</strong>：<br>① <strong>先建立「行為基線」</strong>——在不改程式碼的前提下，記錄系統目前的行為：<u>對外的 API 回應、資料庫的讀寫模式、批次作業的時程與輸出</u>。這是之後驗證的唯一依據。<br><br>② <strong>用 Migrate to Virtual Machines 整台搬</strong>——連作業系統、設定、相依套件一起複製。<u>不要嘗試「重新安裝一遍」</u>，因為你不知道 15 年來有人手動改過什麼。<br><br>③ <strong>網路先接通</strong>——確保它在雲上還能連到它依賴的一切（資料庫、檔案伺服器、外部 API）。<br><br>④ <strong>用行為基線驗證</strong>——同樣的輸入，比對雲上與地端的輸出是否一致。<br><br>⑤ <strong>穩定後再逐步改善</strong>：<br>&nbsp;&nbsp;• 先把資料庫 Replatform 到 Cloud SQL<br>&nbsp;&nbsp;• 加上完整的日誌與監控（<u>這是最重要的一步，讓黑箱變透明</u>）<br>&nbsp;&nbsp;• 有了可觀測性之後，才有能力判斷哪些部分可以安全地重構<br>&nbsp;&nbsp;• 用<strong>絞殺者模式（Strangler Fig）</strong>逐步替換：新功能寫成獨立服務，舊功能一塊一塊搬出來<br><br><em>核心判斷：<strong>你無法安全地重構一個你不理解的系統。</strong>先搬上去、先加監控、先建立理解，再談改造。這個過程可能要一到兩年，這是正常的。</em></div></details><details class="qa"><summary>上雲一年後，成本比地端高 40%。管理層質疑決策。怎麼回應？</summary><div class="ans"><strong>這是非常常見的狀況，而且通常是「lift & shift 沒有後續優化」造成的。</strong>要分成三部分回應：<br><br>① <strong>先確認比較基準是否公平</strong>——地端成本常被低估，因為很多成本沒被算進去：<u>機房租金與電力、硬體攤提、備援設備、網路設備、維護合約、機房人力、災難復原的機房、以及「無法快速擴充」的機會成本</u>。把這些加回去後，差距通常會縮小很多。<br><br>② <strong>承認問題，提出具體計畫</strong>——如果扣除上述因素後成本仍然較高，那確實是優化不足。這是可以修正的：<br>&nbsp;&nbsp;• Rightsizing（地端習慣超額配置，因為擴充很痛。雲上不需要）→ <u>通常 20～30%</u><br>&nbsp;&nbsp;• 非正式環境排程關機 → <u>非prod 省 60%</u><br>&nbsp;&nbsp;• 承諾使用折扣 → <u>25～55%</u><br>&nbsp;&nbsp;• 自架服務改用託管服務（省人力，雖然帳單可能持平）<br>&nbsp;&nbsp;• 給出<strong>6 個月降 30～40% 的具體時程表與負責人</strong><br><br>③ <strong>把討論從「成本」拉到「價值」</strong>——上雲的效益不只帳單：<u>新服務上線時間從 3 個月變 3 天、災難復原能力從無到有、彈性應對尖峰、團隊不用值班換硬碟</u>。這些要量化呈現。<br><br><strong>但也要誠實</strong>：如果你的負載極度穩定、完全不需要彈性、且有充足的機房與人力，那地端確實可能更便宜。<em>上雲不是對每個組織都划算——重點是把決策依據攤開來，用數字討論，而不是用信仰。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L38">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L37.html"><span>← 上一課</span>L37 備份、災難復原與高可用設計</a><a class="next" href="L39.html"><span>下一課 →</span>L39 企業級參考架構：三個案例拆解</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

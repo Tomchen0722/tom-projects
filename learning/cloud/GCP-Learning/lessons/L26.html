@@ -168,4 +168,178 @@ gcloud compute forwarding-rules list
 gcloud compute addresses list</code></pre></div><h2>八、本課檢核</h2><ul class="checklist"><li>能建立 Autopilot 叢集並部署應用</li><li>會設定 HPA 並驗證自動擴充</li><li>會做滾動更新與回滾</li><li>理解 Workload Identity 取代金鑰檔的機制</li><li>知道正式環境需要 PDB、拓撲分散、NetworkPolicy、ResourceQuota</li><li>已刪除叢集（確認不再計費）</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>HPA 設定好了但 Pod 數量一直不變，即使 CPU 已經 100%。可能原因？</summary><div class="ans">四個依序檢查：<br>① <strong>Pod 沒有設定 <code>resources.requests.cpu</code></strong>——HPA 的 CPU 百分比是<u>相對於 requests</u> 計算的。沒設 requests，HPA 無法計算百分比，會顯示 <code>&lt;unknown&gt;</code>。<u>這是最常見的原因</u>。<br>② <strong>metrics-server 沒運作</strong>——<code>kubectl top pods</code> 如果報錯就是這個問題（GKE 通常自動裝好）。<br>③ <strong>已達 maxReplicas 上限</strong>。<br>④ <strong>叢集資源不足</strong>——Pod 卡在 Pending 狀態。<code>kubectl describe pod</code> 會顯示 <code>Insufficient cpu</code>。Standard 模式要檢查 Cluster Autoscaler 有沒有開、有沒有達到節點上限。<br><br>診斷指令：<code>kubectl describe hpa -n demo</code> 會直接顯示計算過程與問題。</div></details><details class="qa"><summary>節點升級時服務中斷了 30 秒，但 replicas 有 3 個。為什麼？</summary><div class="ans"><strong>三個 Pod 可能都排在同一個節點上。</strong>節點被抽掉時三個一起消失。<br><br>兩個必要的防護：<br>① <strong>PodDisruptionBudget</strong>——設定 <code>minAvailable: 2</code>。這會讓節點排空（drain）操作<u>暫停等待</u>，直到新 Pod 在其他節點就緒，才繼續移除。<em>沒有 PDB 的話，K8s 認為可以一次全部趕走。</em><br>② <strong>topologySpreadConstraints</strong>——強制 Pod 分散到不同節點與不同 Zone。這樣單一節點或單一 Zone 的問題不會影響全部。<br><br>另外要檢查 <strong>preStop hook 與優雅關閉</strong>（第 25 課提過），確保正在處理的請求不會被硬中斷。<br><br><em>「有 3 個副本」不等於「高可用」——關鍵是它們有沒有分散在不同的故障域。</em></div></details><details class="qa"><summary>公司有 dev / staging / prod 三個環境，該開三個叢集還是一個叢集三個 namespace？</summary><div class="ans"><strong>prod 一定要獨立叢集，dev 和 staging 可以共用。</strong><br><br><strong>prod 獨立的理由（不可妥協）</strong>：<br>• <u>爆炸半徑</u>——叢集層級的操作（升級控制平面、修改 CNI、RBAC 誤設）會影響所有 namespace。<br>• <u>版本策略</u>——prod 應該用穩定的 release channel 並延後升級，dev 可以用 rapid channel 提早發現問題。<br>• <u>資安邊界</u>——namespace 的隔離是<strong>軟隔離</strong>。容器逃逸漏洞、節點層級的攻擊可以跨 namespace。稽核通常不接受 prod 與 dev 同叢集。<br>• <u>資源競爭</u>——dev 的壓力測試不該影響 prod。<br><br><strong>dev + staging 共用的理由</strong>：<br>• 每個叢集固定 ~$73/月管理費 + 最小節點成本，開太多不划算。<br>• 用 namespace + ResourceQuota + NetworkPolicy 隔離已經足夠。<br><br><strong>建議配置</strong>：<code>prod-cluster</code>（regional，穩定 channel）+ <code>nonprod-cluster</code>（zonal 省錢，含 dev/staging/qa 三個 namespace）。</div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L26">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L25.html"><span>← 上一課</span>L25 Kubernetes 觀念：Pod、Service、Deployment</a><a class="next" href="L27.html"><span>下一課 →</span>L27 CI/CD：Cloud Build 與自動部署</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

@@ -102,4 +102,178 @@ gcloud compute instance-templates delete web-template-v1 web-template-v2 --quiet
 gcloud compute health-checks delete web-hc --quiet</code></pre></div><h2>八、本課檢核</h2><ul class="checklist"><li>理解無狀態設計為什麼是自動擴充的前提</li><li>能建立 範本 → MIG → 自動擴充 的完整鏈路</li><li>知道正式環境要用 Regional MIG</li><li>能為非同步工作系統選對擴充指標（佇列長度而非 CPU）</li><li>會用 rolling update 做零停機部署與回滾</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>你的 MIG 一直在 2 台和 5 台之間反覆震盪，服務不穩。原因與解法？</summary><div class="ans">典型的<strong>擴充風暴</strong>。新機器啟動期間 CPU 衝到 100%（安裝套件），被算進群組平均值，觸發再擴充；等安裝完成 CPU 掉下來，又觸發縮減。<br>三個解法一起上：<br>① <strong>拉長 <code>--cool-down-period</code></strong> 到大於完整啟動時間（例如 180 秒）。<br>② <strong>設定 <code>--initial-delay</code></strong>，讓新機器在初始化期間不被計入指標。<br>③ <strong>把套件烤進自訂映像</strong>，讓啟動時間從 3 分鐘降到 30 秒——這是治本的做法。</div></details><details class="qa"><summary>一個影片轉檔服務，任務進 Pub/Sub 佇列，每個任務要跑 20 分鐘。為什麼不該用 CPU 擴充？</summary><div class="ans">因為 <strong>CPU 使用率無法反映「還有多少事沒做」</strong>。<br>如果目前 2 台機器都在 100% 忙碌，佇列裡積了 5000 個任務，CPU 指標會說「滿載了，該擴充」——這沒錯，但它不知道要擴多少台。反之如果任務是 I/O 密集，CPU 可能只有 20%，指標會叫你縮減，但佇列還在堆積。<br>正確做法是用 <code>num_undelivered_messages</code>，設定「每台機器負責 N 則訊息」，這樣佇列長度直接線性對應機器數。<br><em>另外要注意：長任務要設定 <code>--instance-redistribution-type=NONE</code> 或改用 Cloud Run Jobs，避免縮減時砍掉正在跑的機器。</em></div></details><details class="qa"><summary>Regional MIG 設定 min=3，asia-east1 有 3 個 Zone。某個 Zone 完全故障時會發生什麼？</summary><div class="ans">MIG 偵測到該 Zone 的機器失聯，<strong>會在剩餘的健康 Zone 補足到 3 台</strong>（變成一個 Zone 1 台、另一個 Zone 2 台）。<br>但有兩個現實限制要注意：<br>① <strong>補機需要時間</strong>（開機 + 健康檢查，約 2～5 分鐘），這段期間容量是不足的。<br>② <strong>剩餘 Zone 要有足夠配額與實體容量</strong>。大規模 Zone 故障時，其他 Zone 可能也擠爆。<br><em>所以關鍵服務的 min 值要設在「少一個 Zone 也還撐得住」的水位，而不是剛好夠用。這叫做 N+1 容量規劃。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L08">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L07.html"><span>← 上一課</span>L07 機器類型、磁碟與映像：規格怎麼挑</a><a class="next" href="L09.html"><span>下一課 →</span>L09 負載平衡器：流量的交通指揮</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

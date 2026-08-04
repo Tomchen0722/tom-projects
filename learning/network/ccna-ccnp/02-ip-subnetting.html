@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP 位址與子網路切割 — CCNA／CCNP</title>
+<style>
+:root{--sand:#FDFBF7;--terracotta:#C2410C;--amber:#D97706;--brown:#B45309;--cream:#FEF3C7;--stone:#78716C;--ink:#1C1917;--border:#E7E5E4;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","Microsoft JhengHei",sans-serif;background:var(--sand);color:var(--ink);line-height:1.8;}
+.topbar{background:#1C1917;padding:14px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.topbar a{color:#A8A29E;text-decoration:none;font-size:.82rem;}.topbar a:hover{color:#FCD34D;}
+.topbar .sep{color:#57534E;}.topbar .cur{color:#FCD34D;font-weight:600;}
+.hero{background:linear-gradient(135deg,#D97706,#C2410C);color:#fff;padding:48px 24px 60px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.2);padding:4px 14px;border-radius:12px;font-size:.78rem;margin-bottom:14px;letter-spacing:.08em;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:10px;}
+.hero p{opacity:.88;max-width:560px;margin:0 auto;font-size:.95rem;}
+.container{max-width:860px;margin:-24px auto 0;padding:0 16px 72px;}
+.toc{background:#fff;border-radius:14px;padding:20px 24px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin:24px 0;}
+.toc h2{font-size:.85rem;font-weight:700;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.toc ol{padding-left:1.4em;}
+.toc li{font-size:.85rem;margin-bottom:4px;}
+.toc a{color:var(--amber);text-decoration:none;}.toc a:hover{color:var(--terracotta);}
+.card{background:#fff;border-radius:14px;padding:28px 32px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:24px;scroll-margin-top:20px;}
+h2{font-size:1.3rem;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--cream);display:flex;align-items:center;gap:10px;}
+h3{font-size:1.05rem;color:var(--terracotta);margin:22px 0 10px;font-weight:700;}
+h4{font-size:.92rem;color:var(--brown);margin:16px 0 8px;font-weight:700;}
+p{font-size:.9rem;color:#44403C;line-height:1.9;margin-bottom:12px;}
+ul,ol{padding-left:1.5em;margin-bottom:12px;}
+li{font-size:.88rem;color:#57534E;line-height:1.85;margin-bottom:3px;}
+strong{color:var(--ink);}
+.analogy{background:var(--cream);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:16px 20px;margin:14px 0;font-size:.88rem;color:#78350F;line-height:1.8;}
+.analogy strong{color:#92400E;}
+
+/* BINARY TABLE */
+.bin-table{width:100%;border-collapse:collapse;font-family:"Cascadia Code","Consolas",monospace;margin:14px 0;font-size:.88rem;}
+.bin-table th{background:#1C1917;color:#FCD34D;padding:8px 6px;text-align:center;font-size:.78rem;border:1px solid #57534E;}
+.bin-table td{padding:8px 6px;text-align:center;border:1px solid var(--border);}
+.bin-table .pos{background:#FEF3C7;color:#92400E;font-weight:700;}
+.bin-table .val{background:#F5F5F4;}
+.bin-table .ip{background:#fff;}
+.bit-1{color:var(--terracotta);font-weight:700;}
+.bit-0{color:#A8A29E;}
+
+/* STEP BOX */
+.steps-card{background:#F5F5F4;border-radius:12px;padding:20px 24px;margin:14px 0;}
+.steps-card h4{color:var(--ink);margin-top:0;}
+.step-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--terracotta);color:#fff;font-size:.82rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.step-content{flex:1;}
+.step-content strong{display:block;font-size:.9rem;color:var(--ink);margin-bottom:4px;}
+.step-content p{font-size:.84rem;margin-bottom:0;}
+
+/* FORMULA */
+.formula{background:#1C1917;border-radius:10px;padding:16px 20px;margin:14px 0;font-family:"Cascadia Code","Consolas",monospace;font-size:.88rem;color:#E7E5E4;line-height:2.2;}
+.formula .f-label{color:#6B7280;font-size:.75rem;}
+.formula .f-eq{color:#FCD34D;font-weight:700;}
+.formula .f-val{color:#86EFAC;}
+.formula .f-ex{color:#F9A8D4;}
+
+/* EXAMPLE BOXES */
+.ex-box{border-radius:12px;padding:20px 24px;margin:16px 0;border:2px solid;}
+.ex-box.ex1{background:#FFF7ED;border-color:#FDBA74;}
+.ex-box.ex2{background:#FEF2F2;border-color:#FCA5A5;}
+.ex-box.ex3{background:#F0FDF4;border-color:#86EFAC;}
+.ex-box.ex4{background:#EFF6FF;border-color:#93C5FD;}
+.ex-box.ex5{background:#FDF4FF;border-color:#E879F9;}
+.ex-title{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.ex1 .ex-title{color:#C2410C;}.ex2 .ex-title{color:#B91C1C;}.ex3 .ex-title{color:#166534;}
+.ex4 .ex-title{color:#1D4ED8;}.ex5 .ex-title{color:#7E22CE;}
+.ex-box h4{font-size:.95rem;margin-bottom:10px;}
+
+/* ANSWER TABLE */
+.ans-row{display:flex;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.06);}
+.ans-label{font-size:.78rem;color:var(--stone);width:160px;flex-shrink:0;}
+.ans-val{font-family:"Cascadia Code","Consolas",monospace;font-size:.88rem;color:var(--ink);font-weight:600;}
+.ans-note{font-size:.75rem;color:#A8A29E;margin-left:6px;}
+
+/* SUBNET TABLE */
+.subnet-tbl{width:100%;border-collapse:collapse;font-size:.82rem;margin:12px 0;}
+.subnet-tbl th{background:#292524;color:#FCD34D;padding:9px 12px;text-align:left;font-size:.75rem;letter-spacing:.04em;}
+.subnet-tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-family:"Cascadia Code","Consolas",monospace;}
+.subnet-tbl tr:hover td{background:#FAFAF9;}
+.subnet-tbl .hl{background:#FEF3C7 !important;font-weight:700;}
+
+/* VLSM DIAGRAM */
+.vlsm-wrap{background:#1C1917;border-radius:12px;padding:20px;margin:14px 0;}
+.vlsm-title{font-size:.75rem;color:#6B7280;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+.vlsm-bar{display:flex;height:44px;border-radius:8px;overflow:hidden;margin-bottom:8px;}
+.vlsm-seg{display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-direction:column;gap:1px;}
+.vlsm-seg span{font-size:.62rem;opacity:.75;}
+
+/* CHEATSHEET */
+.cheat{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:14px 0;}
+.cheat-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.cheat-item .ci-cidr{font-family:"Cascadia Code","Consolas",monospace;font-size:1rem;font-weight:700;color:var(--terracotta);margin-bottom:4px;}
+.cheat-item .ci-mask{font-family:"Cascadia Code","Consolas",monospace;font-size:.78rem;color:var(--stone);}
+.cheat-item .ci-hosts{font-size:.8rem;color:var(--ink);margin-top:6px;font-weight:600;}
+.cheat-item .ci-use{font-size:.72rem;color:#A8A29E;}
+
+/* CODE */
+pre{background:#1C1917;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:14px 0;}
+code{font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#E7E5E4;}
+pre code .comment{color:#6B7280;}pre code .cmd{color:#FCD34D;}pre code .val{color:#86EFAC;}
+.inline-code{background:#F5F5F4;border:1px solid var(--border);padding:1px 7px;border-radius:5px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#C2410C;}
+.tbl-wrap{overflow-x:auto;margin:14px 0;}
+table.general{width:100%;border-collapse:collapse;font-size:.85rem;}
+table.general th{background:#F5F5F4;padding:10px 14px;text-align:left;font-weight:600;color:var(--stone);font-size:.78rem;border-bottom:2px solid var(--border);}
+table.general td{padding:10px 14px;border-bottom:1px solid var(--border);}
+table.general tr:hover td{background:#FAFAF9;}
+.note{background:#F5F5F4;border-radius:10px;padding:14px 18px;margin:14px 0;font-size:.85rem;color:var(--stone);display:flex;gap:10px;}
+.note::before{content:'💡';flex-shrink:0;}
+.warn{background:#FEF2F2;border-left:4px solid #EF4444;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.88rem;color:#991B1B;}
+
+/* LAB SECTION */
+.lab-box{background:linear-gradient(135deg,#1C1917,#3B1F0C);border-radius:14px;padding:24px 28px;margin:20px 0;color:#fff;}
+.lab-box h3{color:#FCD34D;margin-top:0;}
+.lab-box p{font-size:.87rem;color:rgba(255,255,255,.8);line-height:1.85;}
+.lab-box ol li{font-size:.85rem;color:rgba(255,255,255,.75);line-height:1.85;}
+
+.page-nav{display:flex;justify-content:space-between;margin-top:36px;}
+.page-nav a{display:inline-flex;align-items:center;gap:6px;color:var(--stone);text-decoration:none;font-size:.85rem;padding:10px 18px;border:1px solid var(--border);border-radius:8px;background:#fff;transition:.15s;}
+.page-nav a:hover{color:var(--terracotta);border-color:var(--terracotta);}
+footer{text-align:center;padding:20px;font-size:.78rem;color:#A8A29E;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a>
+  <span class="sep">/</span>
+  <a href="index.html">第一章</a>
+  <span class="sep">/</span>
+  <span class="cur">CH 1-2 · IP 位址與子網路切割</span>
+</div>
+
+<div class="hero">
+  <div class="badge">CH 1-2 · 必讀 · 完整詳解</div>
+  <h1>✂️ IP 位址與子網路切割</h1>
+  <p>從二進位開始，一步步手算子網路，最後完成一個 VLSM 企業網路設計。<br>所有步驟都有公式和計算範例，沒有跳步驟。</p>
+</div>
+
+<div class="container">
+  <div class="toc">
+    <h2>📋 本篇目錄</h2>
+    <ol>
+      <li><a href="#binary">為什麼要學二進位？二進位完整教學</a></li>
+      <li><a href="#ipv4">IPv4 位址結構與分類</a></li>
+      <li><a href="#mask">子網路遮罩原理</a></li>
+      <li><a href="#calc">子網路切割五步驟計算法</a></li>
+      <li><a href="#examples">五個完整計算範例（從簡單到企業級）</a></li>
+      <li><a href="#vlsm">VLSM 可變長子網路遮罩完整設計</a></li>
+      <li><a href="#cheatsheet">速查表：常用遮罩對照</a></li>
+      <li><a href="#traps">常見陷阱與考試技巧</a></li>
+      <li><a href="#verify">Cisco CLI 驗證指令</a></li>
+      <li><a href="#lab">Packet Tracer Lab 實作指引</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. BINARY -->
+  <div class="card" id="binary">
+    <h2>🔢 為什麼要學二進位？</h2>
+    <p>電腦只懂 0 和 1。IP 位址在電腦裡其實是 32 個 0/1 的序列，你看到的 <span class="inline-code">192.168.1.100</span> 只是「給人類看的十進位表示法」。<br>切割子網路的所有計算，本質上都是對這 32 個 bit 進行操作。不懂二進位，就只能死背，懂了之後任何題目都能推導出來。</p>
+
+    <h3>十進位 vs 二進位</h3>
+    <p>十進位（我們日常用的）每一位是 0–9，滿 10 進位。<br>二進位每一位只有 0 或 1，滿 2 進位。IP 位址的每一個「數字」（例如 192）代表 8 個 bit，稱為一個 Octet（八位元組）。</p>
+
+    <h3>8 個 bit 的位值</h3>
+    <table class="bin-table">
+      <thead>
+        <tr>
+          <th>Bit 位置</th><th>第 8 位</th><th>第 7 位</th><th>第 6 位</th><th>第 5 位</th><th>第 4 位</th><th>第 3 位</th><th>第 2 位</th><th>第 1 位</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="pos">位值（2ⁿ）</td>
+          <td class="pos">128</td><td class="pos">64</td><td class="pos">32</td><td class="pos">16</td><td class="pos">8</td><td class="pos">4</td><td class="pos">2</td><td class="pos">1</td>
+        </tr>
+        <tr>
+          <td class="val">記憶口訣</td>
+          <td class="val">128</td><td class="val">64</td><td class="val">32</td><td class="val">16</td><td class="val">8</td><td class="val">4</td><td class="val">2</td><td class="val">1</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>十進位 → 二進位（手算法）</h3>
+    <p>方法：從最大位值（128）開始，逐一判斷「能不能減」：能減就填 1，不能就填 0。</p>
+
+    <div class="steps-card">
+      <h4>範例：把 192 轉成二進位</h4>
+      <div class="step-row"><div class="step-num">1</div><div class="step-content"><strong>192 ÷ 128 = 1 餘 64</strong><p>192 ≥ 128，第 8 位填 <strong>1</strong>，剩下 192 − 128 = 64</p></div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-content"><strong>64 ÷ 64 = 1 餘 0</strong><p>64 ≥ 64，第 7 位填 <strong>1</strong>，剩下 64 − 64 = 0</p></div></div>
+      <div class="step-row"><div class="step-num">3</div><div class="step-content"><strong>0 &lt; 32</strong><p>剩下 0，第 6 位填 <strong>0</strong></p></div></div>
+      <div class="step-row"><div class="step-num">4</div><div class="step-content"><strong>0 &lt; 16, 8, 4, 2, 1</strong><p>全部填 <strong>0</strong></p></div></div>
+    </div>
+
+    <table class="bin-table">
+      <thead><tr><th>位值</th><th>128</th><th>64</th><th>32</th><th>16</th><th>8</th><th>4</th><th>2</th><th>1</th><th>= 十進位</th></tr></thead>
+      <tbody>
+        <tr><td class="pos">192</td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="pos">128+64 = 192 ✓</td></tr>
+        <tr><td class="pos">168</td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="pos">128+32+8 = 168 ✓</td></tr>
+        <tr><td class="pos">255</td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="ip"><span class="bit-1">1</span></td><td class="pos">全部加 = 255 ✓</td></tr>
+        <tr><td class="pos">0</td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="ip"><span class="bit-0">0</span></td><td class="pos">全 0 = 0 ✓</td></tr>
+      </tbody>
+    </table>
+
+    <h3>自己算：常用數字二進位快查</h3>
+    <div class="analogy">
+      <strong>記憶技巧：</strong>128、192、224、240、248、252、254、255 是子網路遮罩最常出現的數字，也就是全 1 然後後面補 0。<br>
+      128 = <strong>1</strong>0000000 &nbsp;｜&nbsp; 192 = <strong>11</strong>000000 &nbsp;｜&nbsp; 224 = <strong>111</strong>00000 &nbsp;｜&nbsp; 240 = <strong>1111</strong>0000<br>
+      248 = <strong>11111</strong>000 &nbsp;｜&nbsp; 252 = <strong>111111</strong>00 &nbsp;｜&nbsp; 254 = <strong>1111111</strong>0 &nbsp;｜&nbsp; 255 = <strong>11111111</strong>
+    </div>
+  </div>
+
+  <!-- 2. IPv4 -->
+  <div class="card" id="ipv4">
+    <h2>🌐 IPv4 位址結構</h2>
+    <p>一個 IPv4 位址 = <strong>32 個 bit</strong>，分成 4 組，每組 8 bit（1 Octet），用點隔開：</p>
+    <div class="formula">
+      <span class="f-label">範例：</span><br>
+      <span class="f-eq">192      .  168      .  1        .  100</span><br>
+      <span class="f-val">11000000 . 10101000 . 00000001 . 01100100</span><br>
+      <span class="f-ex">（第一組）（第二組）（第三組） （第四組）</span>
+    </div>
+
+    <h3>公有 IP vs 私有 IP</h3>
+    <p>私有 IP 是保留給內部網路用的，不會出現在公開網際網路上。透過 NAT，私有 IP 可以共用一個公有 IP 上網。</p>
+    <div class="tbl-wrap">
+      <table class="general">
+        <thead><tr><th>類別</th><th>範圍</th><th>CIDR</th><th>總數量</th><th>常見用途</th></tr></thead>
+        <tbody>
+          <tr><td><strong>私有 Class A</strong></td><td>10.0.0.0 – 10.255.255.255</td><td>10.0.0.0/8</td><td>16,777,216</td><td>大型企業、雲端 VPC</td></tr>
+          <tr><td><strong>私有 Class B</strong></td><td>172.16.0.0 – 172.31.255.255</td><td>172.16.0.0/12</td><td>1,048,576</td><td>中大型企業</td></tr>
+          <tr><td><strong>私有 Class C</strong></td><td>192.168.0.0 – 192.168.255.255</td><td>192.168.0.0/16</td><td>65,536</td><td>家用、小型辦公室</td></tr>
+          <tr><td>Loopback</td><td>127.0.0.0 – 127.255.255.255</td><td>127.0.0.0/8</td><td>—</td><td>本機測試（ping 127.0.0.1）</td></tr>
+          <tr><td>APIPA</td><td>169.254.0.0 – 169.254.255.255</td><td>169.254.0.0/16</td><td>—</td><td>DHCP 失敗自動配置，無法上網</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">考試題型：「以下哪個 IP 是私有位址？」直接背這三個範圍。特別注意 172.16.x.x 到 172.31.x.x，172.32.x.x 已經是公有 IP 了。</div>
+  </div>
+
+  <!-- 3. MASK -->
+  <div class="card" id="mask">
+    <h2>🎭 子網路遮罩原理</h2>
+    <p>子網路遮罩（Subnet Mask）是 32 個 bit，<strong>左邊都是 1，右邊都是 0</strong>，中間沒有例外。<br>
+    規則：遮罩的 <span class="inline-code">1</span> 的部分 = 網路位址（固定），<span class="inline-code">0</span> 的部分 = 主機位址（可變動）。</p>
+
+    <div class="formula">
+      <span class="f-label">以 /24（255.255.255.0）為例：</span><br>
+      <span class="f-eq">IP 位址：  </span><span class="f-val">192.168.1.100</span><br>
+      <span class="f-eq">           </span><span class="f-val">11000000.10101000.00000001.</span><span class="f-ex">01100100</span><br>
+      <span class="f-eq">子網路遮罩：</span><span class="f-val">255.255.255.0</span><br>
+      <span class="f-eq">           </span><span class="f-val">11111111.11111111.11111111.</span><span class="f-ex">00000000</span><br>
+      <span class="f-label">            ←————— 網路部分（固定）—————→ ←主機→</span><br><br>
+      <span class="f-label">AND 運算（1 AND 1=1，其他=0）得到網路位址：</span><br>
+      <span class="f-eq">網路位址：  </span><span class="f-val">192.168.1.0</span><span class="f-label">  （主機位元全補 0）</span><br>
+      <span class="f-eq">廣播位址：  </span><span class="f-val">192.168.1.255</span><span class="f-label">（主機位元全補 1）</span><br>
+      <span class="f-eq">可用主機：  </span><span class="f-val">192.168.1.1 ~ 192.168.1.254</span><span class="f-label">（共 254 台）</span>
+    </div>
+
+    <h3>CIDR 表示法（斜線表示法）</h3>
+    <p><span class="inline-code">/24</span> 是 CIDR（Classless Inter-Domain Routing）表示法，數字代表<strong>從左邊數有幾個 1</strong>。<br>例如 /24 = 前 24 個 bit 都是 1 = 255.255.255.0。</p>
+    <div class="analogy">
+      <strong>比喻：</strong>如果 IP 位址是一個地址「台灣台北市信義區某路100號5樓」，子網路遮罩就像是告訴你「縣市＋區」是固定的（網路部分），「路名＋號碼＋樓層」才是可以變動的（主機部分）。遮罩越長（/28 vs /24），固定的部分越多，能容納的主機數越少。
+    </div>
+  </div>
+
+  <!-- 4. CALC METHOD -->
+  <div class="card" id="calc">
+    <h2>🧮 子網路切割五步驟計算法</h2>
+    <p>記住這五個步驟，<strong>任何子網路題目都能解</strong>。每個步驟都有對應公式。</p>
+
+    <div class="steps-card">
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <strong>確認原始網段和需求</strong>
+          <p>題目給你一個網段（例如 192.168.10.0/24）和需求（例如「需要切出 6 個子網路」或「每個子網需要 30 台主機」）</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <strong>決定借幾個 bit</strong>
+          <p>如果題目給「需要 N 個子網路」：借 n 個 bit，使得 <strong>2ⁿ ≥ N</strong><br>
+          如果題目給「每個子網需要 H 台主機」：主機位元 h 個，使得 <strong>2ʰ − 2 ≥ H</strong>，然後借的 bit = 總位元 − h − 原本的網路位元</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <strong>計算新的遮罩（/N）</strong>
+          <p>新遮罩 = 原本遮罩 + 借的 bit 數<br>例如：原本 /24，借 3 個 bit → 新遮罩 /27</p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <strong>計算「區塊大小」（Subnet Increment）</strong>
+          <p>區塊大小 = <strong>256 − 最後一個非 0 遮罩八位數</strong><br>
+          例如 /27 = 255.255.255.224，最後一組是 224 → 區塊大小 = 256 − 224 = <strong>32</strong></p>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <strong>列出所有子網路</strong>
+          <p>從原始網路位址開始，每次加一個「區塊大小」就是下一個子網路的起始位址。<br>
+          每個子網路的廣播位址 = 下一個子網路起始位址 − 1<br>
+          可用主機 = 網路位址 + 1 到廣播位址 − 1</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula">
+      <span class="f-label">三個核心公式（一定要記）：</span><br>
+      <span class="f-eq">子網路數量  = </span><span class="f-val">2^(借的bit數)</span><br>
+      <span class="f-eq">每網路主機數 = </span><span class="f-val">2^(剩餘host bit) − 2</span><span class="f-label">  （減 2：扣掉網路位址和廣播位址）</span><br>
+      <span class="f-eq">區塊大小    = </span><span class="f-val">256 − 遮罩最後一個八位數</span><span class="f-label">  （或 = 2^(host bit數)）</span>
+    </div>
+  </div>
+
+  <!-- 5. EXAMPLES -->
+  <div class="card" id="examples">
+    <h2>📖 五個完整計算範例</h2>
+
+    <!-- EXAMPLE 1 -->
+    <div class="ex-box ex1">
+      <div class="ex-title">範例 1 · 入門</div>
+      <h4>題目：192.168.1.0/24，需要切出 4 個子網路，請列出所有子網路資訊。</h4>
+      <div class="step-row" style="margin-top:12px;">
+        <div class="step-num" style="background:#C2410C;">1</div>
+        <div class="step-content"><strong>需要幾個 bit？</strong><p>需要 4 個子網路 → 2ⁿ ≥ 4 → n = <strong>2</strong>（2² = 4）</p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#C2410C;">2</div>
+        <div class="step-content"><strong>新遮罩</strong><p>/24 + 2 借的 bit = <strong>/26</strong>（255.255.255.192）</p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#C2410C;">3</div>
+        <div class="step-content"><strong>區塊大小</strong><p>256 − 192 = <strong>64</strong>，每個子網路範圍相差 64</p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#C2410C;">4</div>
+        <div class="step-content"><strong>主機數</strong><p>2⁶ − 2 = <strong>62 台</strong>（/26 剩 6 個 host bit）</p></div>
+      </div>
+      <table class="subnet-tbl" style="margin-top:12px;">
+        <thead><tr><th>子網路</th><th>網路位址</th><th>第一個主機</th><th>最後一個主機</th><th>廣播位址</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>子網 1</td><td>192.168.1.0</td><td>192.168.1.1</td><td>192.168.1.62</td><td>192.168.1.63</td></tr>
+          <tr><td>子網 2</td><td>192.168.1.64</td><td>192.168.1.65</td><td>192.168.1.126</td><td>192.168.1.127</td></tr>
+          <tr><td>子網 3</td><td>192.168.1.128</td><td>192.168.1.129</td><td>192.168.1.190</td><td>192.168.1.191</td></tr>
+          <tr><td>子網 4</td><td>192.168.1.192</td><td>192.168.1.193</td><td>192.168.1.254</td><td>192.168.1.255</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- EXAMPLE 2 -->
+    <div class="ex-box ex2">
+      <div class="ex-title">範例 2 · 以主機數需求切割</div>
+      <h4>題目：172.16.0.0/16，每個子網路需要至少 500 台主機，能切出幾個子網路？</h4>
+      <div class="step-row" style="margin-top:12px;">
+        <div class="step-num" style="background:#B91C1C;">1</div>
+        <div class="step-content"><strong>先算主機位元數</strong><p>2ʰ − 2 ≥ 500 → 2⁹ − 2 = 510 ≥ 500 ✓，所以 h = <strong>9</strong> 個 host bit</p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#B91C1C;">2</div>
+        <div class="step-content"><strong>新遮罩</strong><p>32 − 9 = /23（255.255.254.0）</p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#B91C1C;">3</div>
+        <div class="step-content"><strong>子網路數量</strong><p>借的 bit = 23 − 16 = 7 個 → 2⁷ = <strong>128 個子網路</strong></p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#B91C1C;">4</div>
+        <div class="step-content"><strong>區塊大小</strong><p>/23 = 255.255.254.0，第三組是 254 → 256 − 254 = <strong>2</strong>（在第三組進位）</p></div>
+      </div>
+      <table class="subnet-tbl" style="margin-top:12px;">
+        <thead><tr><th>子網路</th><th>網路位址</th><th>可用主機範圍</th><th>廣播位址</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>子網 1</td><td>172.16.0.0/23</td><td>172.16.0.1 – 172.16.1.254</td><td>172.16.1.255</td></tr>
+          <tr><td>子網 2</td><td>172.16.2.0/23</td><td>172.16.2.1 – 172.16.3.254</td><td>172.16.3.255</td></tr>
+          <tr><td>子網 3</td><td>172.16.4.0/23</td><td>172.16.4.1 – 172.16.5.254</td><td>172.16.5.255</td></tr>
+          <tr><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+          <tr><td>子網 128</td><td>172.16.254.0/23</td><td>172.16.254.1 – 172.16.255.254</td><td>172.16.255.255</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- EXAMPLE 3 -->
+    <div class="ex-box ex3">
+      <div class="ex-title">範例 3 · 判斷 IP 屬於哪個子網路</div>
+      <h4>題目：IP 192.168.10.200/27 屬於哪個子網路？它的廣播位址和可用主機範圍是什麼？</h4>
+      <div class="step-row" style="margin-top:12px;">
+        <div class="step-num" style="background:#166534;">1</div>
+        <div class="step-content"><strong>遮罩 /27 = 255.255.255.224，區塊大小</strong><p>256 − 224 = <strong>32</strong></p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#166534;">2</div>
+        <div class="step-content"><strong>找到 200 落在哪個區塊</strong><p>32 的倍數：0, 32, 64, 96, 128, 160, <strong>192</strong>, 224<br>200 落在 192 到 224 之間，所以網路位址 = <strong>192.168.10.192</strong></p></div>
+      </div>
+      <div class="step-row">
+        <div class="step-num" style="background:#166534;">3</div>
+        <div class="step-content"><strong>廣播位址 = 下一個子網路 − 1</strong><p>下一個子網路 = 192.168.10.224 → 廣播 = <strong>192.168.10.223</strong></p></div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="ans-row"><div class="ans-label">網路位址</div><div class="ans-val">192.168.10.192/27</div></div>
+        <div class="ans-row"><div class="ans-label">廣播位址</div><div class="ans-val">192.168.10.223</div></div>
+        <div class="ans-row"><div class="ans-label">可用主機</div><div class="ans-val">192.168.10.193 – 192.168.10.222</div><div class="ans-note">共 30 台</div></div>
+        <div class="ans-row"><div class="ans-label">200 是否可用？</div><div class="ans-val">✅ 可以（193–222 之間）</div></div>
+      </div>
+    </div>
+
+    <!-- EXAMPLE 4 -->
+    <div class="ex-box ex4">
+      <div class="ex-title">範例 4 · 點對點鏈路（/30）</div>
+      <h4>題目：兩台路由器對接，用 10.0.0.0/30，Router A 取第一個可用 IP，Router B 取最後一個可用 IP，各是什麼？</h4>
+      <div style="margin-top:12px;">
+        <div class="step-row">
+          <div class="step-num" style="background:#1D4ED8;">1</div>
+          <div class="step-content"><strong>/30 = 255.255.255.252，主機 bit = 2 個</strong><p>2² − 2 = <strong>2 個可用主機</strong>，剛好用於點對點</p></div>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#1D4ED8;">2</div>
+          <div class="step-content"><strong>區塊大小</strong><p>256 − 252 = <strong>4</strong></p></div>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="ans-row"><div class="ans-label">網路位址</div><div class="ans-val">10.0.0.0</div></div>
+        <div class="ans-row"><div class="ans-label">Router A（第一個）</div><div class="ans-val">10.0.0.1</div></div>
+        <div class="ans-row"><div class="ans-label">Router B（最後一個）</div><div class="ans-val">10.0.0.2</div></div>
+        <div class="ans-row"><div class="ans-label">廣播位址</div><div class="ans-val">10.0.0.3</div></div>
+      </div>
+      <div class="note" style="margin-top:12px;">點對點鏈路一定用 /30（2 個主機），這樣最節省 IP，/31 在 RFC 3021 也可用但部分設備不支援。</div>
+    </div>
+
+    <!-- EXAMPLE 5 -->
+    <div class="ex-box ex5">
+      <div class="ex-title">範例 5 · 考試常見：跨越第三組的子網路</div>
+      <h4>題目：172.20.0.0/14 中，172.21.100.50 屬於哪個子網路？</h4>
+      <div style="margin-top:12px;">
+        <div class="step-row">
+          <div class="step-num" style="background:#7E22CE;">1</div>
+          <div class="step-content"><strong>/14 = 255.252.0.0</strong><p>遮罩的第二組是 252 → 區塊大小在<strong>第二組</strong>，256 − 252 = <strong>4</strong></p></div>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#7E22CE;">2</div>
+          <div class="step-content"><strong>找 172.21.x.x 的第二組：21 落在哪個區塊？</strong><p>4 的倍數：0, 4, 8, 12, 16, <strong>20</strong>, 24<br>21 落在 20–24 之間 → 網路位址第二組 = <strong>20</strong></p></div>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="ans-row"><div class="ans-label">網路位址</div><div class="ans-val">172.20.0.0/14</div></div>
+        <div class="ans-row"><div class="ans-label">廣播位址</div><div class="ans-val">172.23.255.255</div></div>
+        <div class="ans-row"><div class="ans-label">172.21.100.50 是否在此網段？</div><div class="ans-val">✅ 是（172.20.x.x – 172.23.x.x 範圍內）</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. VLSM -->
+  <div class="card" id="vlsm">
+    <h2>🏗️ VLSM 可變長子網路遮罩 — 完整企業設計</h2>
+    <p>傳統子網路切割要求每個子網路大小一樣（浪費 IP）。VLSM 允許每個子網路用<strong>不同長度的遮罩</strong>，讓 IP 使用率接近 100%。CCNA 必考，CCNP 要能設計。</p>
+
+    <div class="analogy">
+      <strong>比喻：</strong>停車場有 100 個停車格，傳統做法是全部畫成同樣大小（不管是要停機車還是大卡車）。VLSM 就是智慧停車場：大車位給大車、小車位給機車，同樣 100 格停更多輛。
+    </div>
+
+    <h3>VLSM 設計場景：一個 /20 分配給公司五個部門</h3>
+    <p><strong>原始網段：10.1.0.0/20</strong>（可用 IP：10.1.0.1 – 10.1.15.254，共 4094 個）</p>
+    <p><strong>需求：</strong></p>
+    <ul>
+      <li>總部：需要 500 台主機</li>
+      <li>業務部：需要 200 台主機</li>
+      <li>工程部：需要 100 台主機</li>
+      <li>財務部：需要 50 台主機</li>
+      <li>會議室 VLAN：需要 20 台主機</li>
+      <li>三條 WAN 點對點鏈路：各需要 2 台</li>
+    </ul>
+
+    <h4>VLSM 設計原則：由大到小分配</h4>
+    <div class="steps-card">
+      <div class="step-row"><div class="step-num">1</div><div class="step-content"><strong>先分配最大的子網（總部 500 台）</strong><p>2⁹ − 2 = 510 ≥ 500，用 /23（255.255.254.0）<br>分配：<strong>10.1.0.0/23</strong>（10.1.0.1 – 10.1.1.254，共 510 個）<br>下一個起始：10.1.2.0</p></div></div>
+      <div class="step-row"><div class="step-num">2</div><div class="step-content"><strong>業務部 200 台</strong><p>2⁸ − 2 = 254 ≥ 200，用 /24（255.255.255.0）<br>分配：<strong>10.1.2.0/24</strong>（10.1.2.1 – 10.1.2.254，共 254 個）<br>下一個起始：10.1.3.0</p></div></div>
+      <div class="step-row"><div class="step-num">3</div><div class="step-content"><strong>工程部 100 台</strong><p>2⁷ − 2 = 126 ≥ 100，用 /25（255.255.255.128）<br>分配：<strong>10.1.3.0/25</strong>（10.1.3.1 – 10.1.3.126，共 126 個）<br>下一個起始：10.1.3.128</p></div></div>
+      <div class="step-row"><div class="step-num">4</div><div class="step-content"><strong>財務部 50 台</strong><p>2⁶ − 2 = 62 ≥ 50，用 /26（255.255.255.192）<br>分配：<strong>10.1.3.128/26</strong>（10.1.3.129 – 10.1.3.190，共 62 個）<br>下一個起始：10.1.3.192</p></div></div>
+      <div class="step-row"><div class="step-num">5</div><div class="step-content"><strong>會議室 20 台</strong><p>2⁵ − 2 = 30 ≥ 20，用 /27（255.255.255.224）<br>分配：<strong>10.1.3.192/27</strong>（10.1.3.193 – 10.1.3.222，共 30 個）<br>下一個起始：10.1.3.224</p></div></div>
+      <div class="step-row"><div class="step-num">6</div><div class="step-content"><strong>三條 WAN 鏈路（各 /30）</strong><p>分配：<strong>10.1.3.224/30、10.1.3.228/30、10.1.3.232/30</strong><br>各 2 個可用主機，剛好夠</p></div></div>
+    </div>
+
+    <div class="vlsm-wrap">
+      <div class="vlsm-title">VLSM 分配視覺化（10.1.0.0/20 共 4096 個位址）</div>
+      <div class="vlsm-bar">
+        <div class="vlsm-seg" style="width:25%;background:#C2410C;">總部<span>/23 · 512</span></div>
+        <div class="vlsm-seg" style="width:12.5%;background:#D97706;">業務<span>/24 · 256</span></div>
+        <div class="vlsm-seg" style="width:6.25%;background:#B45309;">工程<span>/25</span></div>
+        <div class="vlsm-seg" style="width:3.125%;background:#7C2D12;">財務<span>/26</span></div>
+        <div class="vlsm-seg" style="width:1.5625%;background:#92400E;">會議<span>/27</span></div>
+        <div class="vlsm-seg" style="width:1%;background:#78350F;">WAN</div>
+        <div class="vlsm-seg" style="flex:1;background:#292524;opacity:.5;">剩餘空間<span>備用</span></div>
+      </div>
+    </div>
+
+    <table class="subnet-tbl">
+      <thead><tr><th>部門</th><th>分配網段</th><th>遮罩</th><th>可用主機範圍</th><th>主機數</th></tr></thead>
+      <tbody>
+        <tr><td>總部</td><td>10.1.0.0</td><td>/23</td><td>10.1.0.1 – 10.1.1.254</td><td>510</td></tr>
+        <tr><td>業務部</td><td>10.1.2.0</td><td>/24</td><td>10.1.2.1 – 10.1.2.254</td><td>254</td></tr>
+        <tr><td>工程部</td><td>10.1.3.0</td><td>/25</td><td>10.1.3.1 – 10.1.3.126</td><td>126</td></tr>
+        <tr><td>財務部</td><td>10.1.3.128</td><td>/26</td><td>10.1.3.129 – 10.1.3.190</td><td>62</td></tr>
+        <tr><td>會議室</td><td>10.1.3.192</td><td>/27</td><td>10.1.3.193 – 10.1.3.222</td><td>30</td></tr>
+        <tr><td>WAN-1</td><td>10.1.3.224</td><td>/30</td><td>10.1.3.225 – 10.1.3.226</td><td>2</td></tr>
+        <tr><td>WAN-2</td><td>10.1.3.228</td><td>/30</td><td>10.1.3.229 – 10.1.3.230</td><td>2</td></tr>
+        <tr><td>WAN-3</td><td>10.1.3.232</td><td>/30</td><td>10.1.3.233 – 10.1.3.234</td><td>2</td></tr>
+      </tbody>
+    </table>
+    <div class="note">總共使用 512+256+128+64+32+4+4+4 = 1004 個位址，從 4096 個中只用了 24%，剩下的留給未來擴充。沒有任何重疊，完全相鄰排列。</div>
+  </div>
+
+  <!-- 7. CHEATSHEET -->
+  <div class="card" id="cheatsheet">
+    <h2>📊 速查表：常用遮罩完整對照</h2>
+    <div class="cheat">
+      <div class="cheat-item"><div class="ci-cidr">/30</div><div class="ci-mask">255.255.255.252</div><div class="ci-hosts">2 台主機</div><div class="ci-use">點對點鏈路</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/29</div><div class="ci-mask">255.255.255.248</div><div class="ci-hosts">6 台主機</div><div class="ci-use">小型 DMZ</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/28</div><div class="ci-mask">255.255.255.240</div><div class="ci-hosts">14 台主機</div><div class="ci-use">IoT 子網</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/27</div><div class="ci-mask">255.255.255.224</div><div class="ci-hosts">30 台主機</div><div class="ci-use">小型部門</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/26</div><div class="ci-mask">255.255.255.192</div><div class="ci-hosts">62 台主機</div><div class="ci-use">中型部門</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/25</div><div class="ci-mask">255.255.255.128</div><div class="ci-hosts">126 台主機</div><div class="ci-use">大型部門</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/24</div><div class="ci-mask">255.255.255.0</div><div class="ci-hosts">254 台主機</div><div class="ci-use">標準 LAN</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/23</div><div class="ci-mask">255.255.254.0</div><div class="ci-hosts">510 台主機</div><div class="ci-use">大型辦公室</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/22</div><div class="ci-mask">255.255.252.0</div><div class="ci-hosts">1022 台主機</div><div class="ci-use">校園/廠區</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/20</div><div class="ci-mask">255.255.240.0</div><div class="ci-hosts">4094 台主機</div><div class="ci-use">大型企業</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/16</div><div class="ci-mask">255.255.0.0</div><div class="ci-hosts">65534 台主機</div><div class="ci-use">超大型企業</div></div>
+      <div class="cheat-item"><div class="ci-cidr">/8</div><div class="ci-mask">255.0.0.0</div><div class="ci-hosts">16M 台主機</div><div class="ci-use">ISP / 雲端</div></div>
+    </div>
+  </div>
+
+  <!-- 8. TRAPS -->
+  <div class="card" id="traps">
+    <h2>⚠️ 考試常見陷阱</h2>
+    <div class="warn" style="margin-bottom:14px;">
+      <strong>陷阱 1：網路位址和廣播位址不能分配給主機</strong><br>
+      192.168.1.0（網路位址）和 192.168.1.255（廣播位址）不能給任何設備，這樣每個 /24 只有 254 個可用，不是 256 個。
+    </div>
+    <div class="warn" style="margin-bottom:14px;">
+      <strong>陷阱 2：/31 和 /32 的特殊用途</strong><br>
+      /31：2 個位址，理論上沒有主機可用（都是網路/廣播），但 RFC 3021 允許用在點對點鏈路。<br>
+      /32：只有 1 個 IP，用於 Loopback 介面（router-id），不代表子網路。
+    </div>
+    <div class="warn" style="margin-bottom:14px;">
+      <strong>陷阱 3：跨越八位組的子網路（如 /22、/14）</strong><br>
+      切割點不在第四組而是在第三組時，區塊大小要看「切割發生的那組」。/22 = 255.255.252.0，第三組是 252，區塊大小 = 256 − 252 = 4，表示第三組每次跳 4。
+    </div>
+    <div class="warn">
+      <strong>陷阱 4：「需要 4 個子網」和「可用 4 個子網」不同</strong><br>
+      如果題目問「至少要切出 4 個子網」，你借 2 個 bit（2² = 4）剛好夠；但如果有特殊子網 0 和全 1 子網的限制（老教材），則需要借 3 個 bit（2³ = 8，排除頭尾後有 6 個）。現代 Cisco IOS 預設 ip subnet-zero 啟用，可以用 subnet 0 和廣播子網，不需要排除。
+    </div>
+  </div>
+
+  <!-- 9. VERIFY -->
+  <div class="card" id="verify">
+    <h2>💻 Cisco CLI 驗證指令</h2>
+    <pre><code><span class="comment"># 查看介面 IP 設定</span>
+Router# <span class="cmd">show</span> ip interface brief
+Router# <span class="cmd">show</span> ip interface GigabitEthernet0/0
+
+<span class="comment"># 查看路由表（確認網路位址和遮罩正確）</span>
+Router# <span class="cmd">show</span> ip route
+
+<span class="comment"># 設定介面 IP（以 10.1.0.1/23 為例）</span>
+Router(config)# <span class="cmd">interface</span> GigabitEthernet0/0
+Router(config-if)# <span class="cmd">ip address</span> <span class="val">10.1.0.1 255.255.254.0</span>
+Router(config-if)# <span class="cmd">no shutdown</span>
+
+<span class="comment"># 設定完後確認</span>
+Router# <span class="cmd">show</span> running-config interface GigabitEthernet0/0
+
+<span class="comment"># 測試連通性（ping 子網路上的其他主機）</span>
+Router# <span class="cmd">ping</span> <span class="val">10.1.0.254</span>
+Router# <span class="cmd">ping</span> <span class="val">10.1.1.100</span> source GigabitEthernet0/0
+
+<span class="comment"># 用 extended ping 指定來源 IP（測試子網路連通）</span>
+Router# <span class="cmd">ping</span>
+Protocol [ip]:
+Target IP address: <span class="val">10.1.2.1</span>
+Repeat count [5]: <span class="val">10</span>
+Datagram size [100]:
+Timeout in seconds [2]:
+Extended commands [n]: <span class="val">y</span>
+Source address or interface: <span class="val">10.1.0.1</span></code></pre>
+  </div>
+
+  <!-- 10. LAB -->
+  <div class="lab-box" id="lab">
+    <h3>🔬 Packet Tracer Lab 實作指引</h3>
+    <p>根據上面 VLSM 設計練習，在 Packet Tracer 中重現這個企業網路。</p>
+    <ol>
+      <li><strong>下載 Cisco Packet Tracer</strong>（免費，在 Cisco NetAcad 官網，需要免費帳號）</li>
+      <li><strong>建立拓樸：</strong>1 台 Cisco 2911 Router + 5 台 2960 Switch + 各部門 PC 若干</li>
+      <li><strong>設定 Router 介面：</strong>對每個子網路建立子介面（Router-on-a-Stick），設定各部門的閘道 IP</li>
+      <li><strong>驗證連通性：</strong>從總部 PC ping 業務部 PC，確認跨子網路通訊正常</li>
+      <li><strong>驗證隔離：</strong>不加路由規則時，確認不同 VLAN 之間不能互相 ping</li>
+      <li><strong>加分挑戰：</strong>設定 ACL，讓財務部只能被總部存取，業務部不能訪問財務部</li>
+    </ol>
+    <p style="margin-top:12px;">完成這個 Lab 後，你對子網路切割的理解會從「會算」升到「會用」。</p>
+  </div>
+
+  <div class="page-nav">
+    <a href="01-osi-tcpip.html">← CH 1-1：OSI 模型</a>
+    <a href="03-key-protocols.html">CH 1-3：核心協定 →</a>
+  </div>
+</div>
+
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 1-2</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

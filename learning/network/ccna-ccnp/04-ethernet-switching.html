@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>乙太網路與交換器運作 — CCNA／CCNP</title>
+<style>
+:root{--sand:#FDFBF7;--terracotta:#C2410C;--amber:#D97706;--brown:#B45309;--cream:#FEF3C7;--stone:#78716C;--ink:#1C1917;--border:#E7E5E4;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"Segoe UI","Microsoft JhengHei",sans-serif;background:var(--sand);color:var(--ink);line-height:1.8;}
+.topbar{background:#1C1917;padding:14px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.topbar a{color:#A8A29E;text-decoration:none;font-size:.82rem;}.topbar a:hover{color:#FCD34D;}
+.topbar .sep{color:#57534E;}.topbar .cur{color:#FCD34D;font-weight:600;}
+.hero{background:linear-gradient(135deg,#B45309,#7C2D12);color:#fff;padding:48px 24px 60px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.2);padding:4px 14px;border-radius:12px;font-size:.78rem;margin-bottom:14px;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:10px;}
+.hero p{opacity:.88;max-width:560px;margin:0 auto;font-size:.95rem;}
+.container{max-width:860px;margin:-24px auto 0;padding:0 16px 72px;}
+.toc{background:#fff;border-radius:14px;padding:20px 24px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin:24px 0;}
+.toc h2{font-size:.82rem;font-weight:700;color:var(--stone);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.toc ol{padding-left:1.4em;}.toc li{font-size:.84rem;margin-bottom:3px;}
+.toc a{color:var(--amber);text-decoration:none;}.toc a:hover{color:var(--terracotta);}
+.card{background:#fff;border-radius:14px;padding:28px 32px;border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:24px;scroll-margin-top:20px;}
+h2{font-size:1.25rem;color:var(--ink);margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--cream);}
+h3{font-size:1rem;color:var(--terracotta);margin:20px 0 10px;font-weight:700;}
+h4{font-size:.92rem;color:var(--brown);margin:14px 0 8px;font-weight:700;}
+p{font-size:.9rem;color:#44403C;line-height:1.9;margin-bottom:12px;}
+ul,ol{padding-left:1.5em;margin-bottom:12px;}
+li{font-size:.88rem;color:#57534E;line-height:1.85;margin-bottom:3px;}
+strong{color:var(--ink);}
+.analogy{background:var(--cream);border-left:4px solid var(--amber);border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.88rem;color:#78350F;line-height:1.8;}
+.analogy strong{color:#92400E;}
+pre{background:#1C1917;border-radius:10px;padding:18px 20px;overflow-x:auto;margin:14px 0;}
+code{font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#E7E5E4;}
+pre code .comment{color:#6B7280;}pre code .cmd{color:#FCD34D;}pre code .val{color:#86EFAC;}pre code .kw{color:#F9A8D4;}
+.inline-code{background:#F5F5F4;border:1px solid var(--border);padding:1px 7px;border-radius:5px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;color:#C2410C;}
+.tbl-wrap{overflow-x:auto;margin:14px 0;}
+table.t{width:100%;border-collapse:collapse;font-size:.84rem;}
+table.t th{background:#F5F5F4;padding:9px 14px;text-align:left;font-weight:600;color:var(--stone);font-size:.76rem;border-bottom:2px solid var(--border);}
+table.t td{padding:9px 14px;border-bottom:1px solid var(--border);}
+table.t tr:hover td{background:#FAFAF9;}
+.note{background:#F5F5F4;border-radius:10px;padding:13px 18px;margin:14px 0;font-size:.85rem;color:var(--stone);display:flex;gap:10px;}
+.note::before{content:'💡';flex-shrink:0;}
+.warn{background:#FEF2F2;border-left:4px solid #EF4444;border-radius:0 10px 10px 0;padding:13px 18px;margin:14px 0;font-size:.87rem;color:#991B1B;}
+.warn strong{color:#7F1D1D;}
+.frame{display:flex;margin:16px 0;overflow-x:auto;border-radius:8px;}
+.fseg{padding:12px 10px;text-align:center;font-size:.72rem;color:#fff;flex-shrink:0;line-height:1.5;}
+.fseg b{display:block;font-size:.8rem;margin-bottom:2px;}
+.fseg span{opacity:.75;font-size:.68rem;}
+.f1{background:#78716C;}.f2{background:#B45309;}.f3{background:#D97706;}.f4{background:#C2410C;}.f5{background:#9A3412;}.f6{background:#7C2D12;}
+.steps-card{background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:18px 22px;margin:16px 0;}
+.step{display:grid;grid-template-columns:30px 1fr;gap:12px;margin-bottom:12px;align-items:start;}
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;}
+.step-body{font-size:.87rem;color:#57534E;line-height:1.75;}
+.step-body b{color:#92400E;display:block;margin-bottom:2px;}
+.lab-box{background:linear-gradient(135deg,#1C1917,#3B1F0C);border-radius:14px;padding:24px 28px;margin:20px 0;color:#fff;}
+.lab-box h3{color:#FCD34D;margin-top:0;}
+.lab-box p{font-size:.87rem;color:rgba(255,255,255,.8);}
+.lab-box ol li{font-size:.85rem;color:rgba(255,255,255,.75);}
+.lab-box pre{background:rgba(0,0,0,.4);}
+.page-nav{display:flex;justify-content:space-between;margin-top:36px;}
+.page-nav a{display:inline-flex;align-items:center;gap:6px;color:var(--stone);text-decoration:none;font-size:.85rem;padding:10px 18px;border:1px solid var(--border);border-radius:8px;background:#fff;transition:.15s;}
+.page-nav a:hover{color:var(--terracotta);border-color:var(--terracotta);}
+footer{text-align:center;padding:20px;font-size:.78rem;color:#A8A29E;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">第二章</a><span class="sep">/</span>
+  <span class="cur">CH 2-1 · 乙太網路與交換</span>
+</div>
+<div class="hero">
+  <div class="badge">CH 2-1 · 交換基礎</div>
+  <h1>🔌 乙太網路與交換器運作</h1>
+  <p>訊框結構、MAC 位址表學習、三種轉送行為、雙工與速度協商、線材選擇與 Port Security。</p>
+</div>
+<div class="container">
+  <div class="toc">
+    <h2>本篇目錄</h2>
+    <ol>
+      <li><a href="#frame">乙太網路訊框結構逐欄位解析</a></li>
+      <li><a href="#mac">MAC 位址的組成與意義</a></li>
+      <li><a href="#learn">交換器如何學習與轉送（三種行為）</a></li>
+      <li><a href="#duplex">雙工、速度與碰撞域</a></li>
+      <li><a href="#cable">線材與介面：什麼時候用什麼線</a></li>
+      <li><a href="#portsec">Port Security 完整設定</a></li>
+      <li><a href="#verify">驗證與故障排除指令</a></li>
+      <li><a href="#lab">實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="frame">
+    <h2>📦 乙太網路訊框結構</h2>
+    <p>訊框（Frame）是 Layer 2 的資料單位。每一個從網路卡送出去的資料，都會被包成這個格式。</p>
+    <div class="frame">
+      <div class="fseg f1"><b>Preamble</b><span>7 bytes</span></div>
+      <div class="fseg f1"><b>SFD</b><span>1 byte</span></div>
+      <div class="fseg f2"><b>目的 MAC</b><span>6 bytes</span></div>
+      <div class="fseg f3"><b>來源 MAC</b><span>6 bytes</span></div>
+      <div class="fseg f4"><b>Type/Length</b><span>2 bytes</span></div>
+      <div class="fseg f5"><b>Payload</b><span>46–1500 bytes</span></div>
+      <div class="fseg f6"><b>FCS</b><span>4 bytes</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>欄位</th><th>長度</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td>Preamble</td><td>7 bytes</td><td>10101010 重複 7 次，讓接收端的時脈同步（像賽跑前的「預備」）</td></tr>
+          <tr><td>SFD</td><td>1 byte</td><td>10101011，最後兩個 1 表示「訊框正式開始」</td></tr>
+          <tr><td><strong>目的 MAC</strong></td><td>6 bytes</td><td>要送給誰。FF:FF:FF:FF:FF:FF 表示廣播</td></tr>
+          <tr><td><strong>來源 MAC</strong></td><td>6 bytes</td><td>誰送出的。交換器就是靠這個欄位學習 MAC 表</td></tr>
+          <tr><td>Type/Length</td><td>2 bytes</td><td>&gt;1536 是 Type（0x0800=IPv4, 0x0806=ARP, 0x86DD=IPv6）；≤1500 是長度</td></tr>
+          <tr><td>Payload</td><td>46–1500</td><td>實際資料（含 IP 封包）。不足 46 會補 Padding。1500 就是 MTU</td></tr>
+          <tr><td>FCS</td><td>4 bytes</td><td>CRC 錯誤檢查碼。算出來對不上就直接丟棄，不會重傳（重傳是 TCP 的事）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">訊框總長度 = 64 bytes（最小）到 1518 bytes（最大，不含 Preamble/SFD）。加上 802.1Q VLAN Tag 的 4 bytes 後最大變 1522 bytes。Jumbo Frame 可以到 9000 bytes，常用於儲存網路（iSCSI）和資料中心。</div>
+  </div>
+
+  <div class="card" id="mac">
+    <h2>🏷️ MAC 位址的組成</h2>
+    <p>MAC 位址是 48 bits（6 bytes），燒錄在網路卡上，理論上全球唯一。寫法有三種但意義相同。</p>
+    <pre><code><span class="comment"># 同一個 MAC 位址的三種寫法</span>
+00:1A:2B:3C:4D:5E     <span class="comment"># 冒號分隔（Linux / 一般文件）</span>
+00-1A-2B-3C-4D-5E     <span class="comment"># 連字號分隔（Windows）</span>
+001A.2B3C.4D5E        <span class="comment"># 點分隔，每 4 位一組（Cisco）</span>
+
+<span class="comment"># 結構拆解</span>
+<span class="val">00:1A:2B</span> : <span class="kw">3C:4D:5E</span>
+<span class="val">^^^^^^^^</span>   <span class="kw">^^^^^^^^</span>
+  OUI       NIC 序號
+廠商代碼    廠商自行分配的流水號
+(前 24 bit) (後 24 bit)
+
+<span class="comment"># 常見 OUI</span>
+00:50:56  →  VMware
+00:0C:29  →  VMware
+00:1B:44  →  Cisco
+00:03:47  →  Intel
+DC:A6:32  →  Raspberry Pi</code></pre>
+
+    <h4>第一個 byte 的兩個特殊 bit</h4>
+    <pre><code>第一個 byte: 0000 000<span class="val">0</span>
+                    ^^^^
+                    ││
+                    │└─ I/G bit（最低位）: 0 = 單播  1 = 群播/廣播
+                    └── U/L bit（次低位）: 0 = 全球唯一  1 = 本地管理
+
+<span class="comment"># 判斷範例</span>
+00:1A:2B:...  第一 byte = 0x00 = 0000 0000 → 單播、全球唯一
+01:00:5E:...  第一 byte = 0x01 = 0000 0001 → 群播（IPv4 Multicast 專用）
+33:33:...     第一 byte = 0x33 = 0011 0011 → 群播（IPv6 Multicast 專用）
+FF:FF:FF:...  全 1                          → 廣播</code></pre>
+  </div>
+
+  <div class="card" id="learn">
+    <h2>🧠 交換器如何學習與轉送</h2>
+    <div class="analogy">
+      <strong>比喻：</strong>新來的郵差。第一天完全不認識住戶，所以每封信都挨家挨戶問（Flooding）。但他會記下「我在 3 樓收到王先生寄的信」→ 下次要送給王先生就直接去 3 樓（Forwarding）。這本筆記本就是 <strong>MAC 位址表</strong>。
+    </div>
+
+    <h3>學習機制：看「來源 MAC」</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>訊框進入某個 Port</b>交換器讀取訊框的<strong>來源 MAC</strong>欄位</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>寫入 MAC 表</b>記錄「來源 MAC ↔ 這個 Port ↔ VLAN」的對應關係</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>啟動老化計時器</b>Cisco 預設 300 秒（5 分鐘）。這段時間沒再看到這個 MAC 就刪除</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>查詢目的 MAC</b>用訊框的<strong>目的 MAC</strong>查表，決定要怎麼轉送</div></div>
+    </div>
+
+    <h3>三種轉送行為（考試必考）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>行為</th><th>觸發條件</th><th>做法</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Forwarding<br>（轉送）</strong></td><td>目的 MAC 在表中，且不在同一個 Port</td><td>只送到那一個 Port，其他 Port 完全不受影響</td></tr>
+          <tr><td><strong>Flooding<br>（氾濫）</strong></td><td>① 目的 MAC 不在表中（Unknown Unicast）<br>② 廣播 FF:FF:FF:FF:FF:FF<br>③ 群播且沒設 IGMP Snooping</td><td>送到同 VLAN 的所有 Port，除了進來的那個</td></tr>
+          <tr><td><strong>Filtering<br>（過濾／丟棄）</strong></td><td>目的 MAC 就在進來的同一個 Port 上</td><td>直接丟棄，不轉送（因為對方本來就收得到）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>完整運作範例</h3>
+    <pre><code><span class="comment"># 初始狀態：MAC 表是空的</span>
+Switch# show mac address-table
+  (empty)
+
+<span class="comment"># === 事件 1：PC-A(Fa0/1, MAC=AAAA) 送訊框給 PC-B(MAC=BBBB) ===</span>
+① 學習：來源 AAAA 從 Fa0/1 進來 → 記錄 [AAAA, Fa0/1, VLAN1]
+② 查詢：目的 BBBB 不在表中 → <span class="val">Flooding</span> 到 Fa0/2~Fa0/24
+③ 結果：所有人都收到，但只有 PC-B 會處理
+
+<span class="comment"># === 事件 2：PC-B(Fa0/5, MAC=BBBB) 回覆給 PC-A ===</span>
+① 學習：來源 BBBB 從 Fa0/5 進來 → 記錄 [BBBB, Fa0/5, VLAN1]
+② 查詢：目的 AAAA 在表中，對應 Fa0/1 → <span class="val">Forwarding</span> 只送 Fa0/1
+③ 結果：只有 PC-A 收到，其他 Port 完全沒流量
+
+<span class="comment"># 現在的 MAC 表</span>
+Switch# show mac address-table
+Vlan  Mac Address       Type      Ports
+1     aaaa.aaaa.aaaa    DYNAMIC   Fa0/1
+1     bbbb.bbbb.bbbb    DYNAMIC   Fa0/5</code></pre>
+
+    <h3>三種交換模式（CCNP 範圍）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>模式</th><th>何時開始轉送</th><th>延遲</th><th>錯誤處理</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Store-and-Forward</strong></td><td>收完整個訊框、驗證 FCS 後</td><td>最高</td><td>錯誤訊框直接丟棄（最安全，Cisco 預設）</td></tr>
+          <tr><td><strong>Cut-Through</strong></td><td>只讀完前 6 bytes（目的 MAC）就轉</td><td>最低</td><td>錯誤訊框也會轉出去</td></tr>
+          <tr><td><strong>Fragment-Free</strong></td><td>讀完前 64 bytes 才轉</td><td>中等</td><td>能擋掉大部分碰撞產生的殘片</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="duplex">
+    <h2>⚡ 雙工、速度與碰撞域</h2>
+
+    <h3>半雙工 vs 全雙工</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>項目</th><th>半雙工 Half-Duplex</th><th>全雙工 Full-Duplex</th></tr></thead>
+        <tbody>
+          <tr><td>比喻</td><td>對講機（一次只能一個人講）</td><td>電話（可以同時講和聽）</td></tr>
+          <tr><td>CSMA/CD</td><td>需要（偵測碰撞）</td><td>不需要（沒有碰撞）</td></tr>
+          <tr><td>頻寬使用</td><td>100Mbps 收發共用</td><td>收 100Mbps + 發 100Mbps</td></tr>
+          <tr><td>典型設備</td><td>Hub（集線器，已淘汰）</td><td>Switch（交換器，現代標準）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="warn">
+      <strong>Duplex Mismatch — 最陰險的故障：</strong>一端設全雙工、另一端設半雙工。網路「會通」但速度極慢，ping 通但傳檔案龜速。半雙工那端會看到大量 <span class="inline-code">collisions</span> 和 <span class="inline-code">late collisions</span>。<br>
+      <strong>診斷：</strong><span class="inline-code">show interfaces Fa0/1</span> 看 late collision 數字持續增加。<br>
+      <strong>解法：</strong>兩端都設 auto，或兩端都手動設成一樣。<strong>不要一端 auto、一端手動</strong>（手動端不參與協商，auto 端會退回半雙工）。
+    </div>
+
+    <pre><code><span class="comment"># 手動設定速度與雙工</span>
+Switch(config)# <span class="cmd">interface</span> GigabitEthernet0/1
+Switch(config-if)# <span class="cmd">speed</span> <span class="val">1000</span>            <span class="comment"># 10 / 100 / 1000 / auto</span>
+Switch(config-if)# <span class="cmd">duplex</span> <span class="val">full</span>            <span class="comment"># half / full / auto</span>
+
+<span class="comment"># 檢查目前狀態（a- 前綴表示是協商來的）</span>
+Switch# <span class="cmd">show</span> interfaces status
+Port    Name  Status       Vlan  Duplex  Speed Type
+Gi0/1         connected    1     a-full  a-1000 10/100/1000BaseTX
+                                  ^^^^^^  ^^^^^^ ← a- = auto-negotiated</code></pre>
+
+    <h3>碰撞域 vs 廣播域</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>設備</th><th>碰撞域數量</th><th>廣播域數量</th></tr></thead>
+        <tbody>
+          <tr><td>Hub（24 Port）</td><td>1 個（全部共用）</td><td>1 個</td></tr>
+          <tr><td>Switch（24 Port）</td><td><strong>24 個</strong>（每 Port 一個）</td><td>1 個（除非切 VLAN）</td></tr>
+          <tr><td>Switch + 4 個 VLAN</td><td>24 個</td><td><strong>4 個</strong></td></tr>
+          <tr><td>Router（4 介面）</td><td>4 個</td><td><strong>4 個</strong>（路由器不轉發廣播）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">一句話總結：<strong>Switch 切碰撞域，Router（或 VLAN）切廣播域。</strong>這是 CCNA 最常考的觀念題。</div>
+  </div>
+
+  <div class="card" id="cable">
+    <h2>🔗 線材與介面選擇</h2>
+    <h3>直通線 vs 交叉線</h3>
+    <pre><code><span class="comment"># 判斷法則：同類設備用交叉線，不同類設備用直通線</span>
+
+同類（Crossover 交叉線）：
+  Switch ←→ Switch
+  Router ←→ Router
+  PC     ←→ PC
+  Router ←→ PC          <span class="comment"># 路由器和 PC 都算「主機端」</span>
+
+不同類（Straight-through 直通線）：
+  PC     ←→ Switch
+  Router ←→ Switch
+  Server ←→ Switch
+
+Console 線（Rollover，藍色扁線）：
+  PC COM Port ←→ Switch/Router Console Port</code></pre>
+    <div class="note">現代設備幾乎都支援 <strong>Auto-MDIX</strong>，會自動偵測並調整，所以實務上用哪種線都能通。但 Packet Tracer 和考試仍會考這個規則。指令：<span class="inline-code">mdix auto</span></div>
+
+    <h3>光纖 vs 銅纜</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>類型</th><th>距離</th><th>速度</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>Cat5e UTP</td><td>100m</td><td>1 Gbps</td><td>一般辦公室桌機</td></tr>
+          <tr><td>Cat6 UTP</td><td>100m（10G 限 55m）</td><td>10 Gbps</td><td>新建置辦公室</td></tr>
+          <tr><td>Cat6a UTP</td><td>100m</td><td>10 Gbps</td><td>資料中心接入層</td></tr>
+          <tr><td>多模光纖 MMF</td><td>550m（1G）/ 300m（10G）</td><td>10–100 Gbps</td><td>樓層之間、機房內</td></tr>
+          <tr><td>單模光纖 SMF</td><td>10–80 km</td><td>10–400 Gbps</td><td>園區之間、電信骨幹</td></tr>
+          <tr><td>DAC 銅纜</td><td>1–7m</td><td>10–100 Gbps</td><td>機櫃內 Switch 對接（便宜、低延遲）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="portsec">
+    <h2>🔐 Port Security 完整設定</h2>
+    <p>限制一個交換器 Port 上可以出現幾個 MAC 位址，防止有人私接 Hub 或做 MAC Flooding 攻擊。</p>
+
+    <h3>MAC Flooding 攻擊原理</h3>
+    <p>攻擊者用工具（如 macof）以每秒數千個假的來源 MAC 送訊框。交換器 MAC 表滿了之後（通常 8000–128000 筆），新的訊框全部變成 Unknown Unicast → <strong>Flooding</strong>，攻擊者就能用抓包工具看到整個 VLAN 的流量。</p>
+
+    <h3>設定步驟</h3>
+    <pre><code>Switch(config)# <span class="cmd">interface</span> FastEthernet0/1
+
+<span class="comment"># 步驟 1：Port 必須先是 access 模式（不能是 dynamic）</span>
+Switch(config-if)# <span class="cmd">switchport mode access</span>
+Switch(config-if)# <span class="cmd">switchport access vlan</span> <span class="val">10</span>
+
+<span class="comment"># 步驟 2：啟用 Port Security</span>
+Switch(config-if)# <span class="cmd">switchport port-security</span>
+
+<span class="comment"># 步驟 3：設定最大 MAC 數量（預設 1）</span>
+Switch(config-if)# <span class="cmd">switchport port-security maximum</span> <span class="val">2</span>
+<span class="comment">     # 為什麼常設 2？因為 IP 話機後面接 PC 就有 2 個 MAC</span>
+
+<span class="comment"># 步驟 4：學習方式（三選一）</span>
+<span class="comment">   方式 A：靜態綁定（最嚴格，但要一台一台設）</span>
+Switch(config-if)# <span class="cmd">switchport port-security mac-address</span> <span class="val">aabb.ccdd.eeff</span>
+
+<span class="comment">   方式 B：Sticky（動態學習後自動寫入 running-config，最實用）</span>
+Switch(config-if)# <span class="cmd">switchport port-security mac-address sticky</span>
+
+<span class="comment">   方式 C：不設 = 動態學習，但重開機後清空</span>
+
+<span class="comment"># 步驟 5：違規處理模式（三選一）</span>
+Switch(config-if)# <span class="cmd">switchport port-security violation</span> <span class="val">shutdown</span>   <span class="comment"># 預設</span></code></pre>
+
+    <h3>三種違規模式差異（考試必考）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>模式</th><th>丟棄違規訊框</th><th>Syslog/SNMP 通知</th><th>違規計數器</th><th>Port 關閉</th></tr></thead>
+        <tbody>
+          <tr><td><strong>protect</strong></td><td>✅</td><td>❌</td><td>❌</td><td>❌</td></tr>
+          <tr><td><strong>restrict</strong></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td></tr>
+          <tr><td><strong>shutdown</strong>（預設）</td><td>✅</td><td>✅</td><td>✅</td><td>✅ err-disabled</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Port 被關閉後怎麼恢復</h3>
+    <pre><code><span class="comment"># 方法 1：手動恢復（先排除問題再做）</span>
+Switch(config)# <span class="cmd">interface</span> Fa0/1
+Switch(config-if)# <span class="cmd">shutdown</span>
+Switch(config-if)# <span class="cmd">no shutdown</span>
+
+<span class="comment"># 方法 2：設定自動恢復（300 秒後自動 no shut）</span>
+Switch(config)# <span class="cmd">errdisable recovery cause</span> <span class="val">psecure-violation</span>
+Switch(config)# <span class="cmd">errdisable recovery interval</span> <span class="val">300</span>
+
+<span class="comment"># 查看被關閉的原因</span>
+Switch# <span class="cmd">show</span> interfaces status err-disabled
+Switch# <span class="cmd">show</span> errdisable recovery</code></pre>
+
+    <h3>驗證指令</h3>
+    <pre><code>Switch# <span class="cmd">show</span> port-security                    <span class="comment"># 所有 Port 的摘要</span>
+Switch# <span class="cmd">show</span> port-security interface Fa0/1     <span class="comment"># 單一 Port 詳細（最常用）</span>
+Switch# <span class="cmd">show</span> port-security address            <span class="comment"># 已綁定的 MAC 清單</span>
+
+<span class="comment"># 輸出範例</span>
+Port Security              : Enabled
+Port Status                : Secure-shutdown       <span class="comment">← 已違規被關</span>
+Violation Mode             : Shutdown
+Maximum MAC Addresses      : 2
+Total MAC Addresses        : 2
+Sticky MAC Addresses       : 2
+Last Source Address:Vlan   : 00e0.f7b0.086e:10     <span class="comment">← 違規的 MAC</span>
+Security Violation Count   : 1</code></pre>
+  </div>
+
+  <div class="card" id="verify">
+    <h2>🔎 交換器驗證指令總整理</h2>
+    <pre><code><span class="comment"># === 介面狀態 ===</span>
+show interfaces status                  <span class="comment"># 一覽：連線狀態、VLAN、雙工、速度</span>
+show interfaces Fa0/1                   <span class="comment"># 單一介面詳細（錯誤計數在這）</span>
+show interfaces description             <span class="comment"># 介面說明文字</span>
+show ip interface brief                 <span class="comment"># IP 位址一覽</span>
+show interfaces counters errors         <span class="comment"># 錯誤統計</span>
+
+<span class="comment"># === MAC 位址表 ===</span>
+show mac address-table                  <span class="comment"># 完整表</span>
+show mac address-table dynamic          <span class="comment"># 只看動態學習的</span>
+show mac address-table interface Fa0/1  <span class="comment"># 某 Port 學到的 MAC</span>
+show mac address-table count            <span class="comment"># 統計數量</span>
+clear mac address-table dynamic         <span class="comment"># 清除動態記錄</span>
+
+<span class="comment"># === 需要注意的錯誤計數 ===</span>
+input errors      → 實體層問題（線材、接頭、干擾）
+CRC               → 線材品質差或有電磁干擾
+collisions        → 半雙工正常現象；全雙工出現就是設定錯
+late collisions   → <span class="val">Duplex mismatch 或線材超長</span>
+runts             → 訊框小於 64 bytes（碰撞殘片）
+giants            → 訊框大於 1518 bytes（MTU 設定不一致）
+input queue drops → 交換器負載過高或有廣播風暴</code></pre>
+  </div>
+
+  <div class="lab-box" id="lab">
+    <h3>🔬 Packet Tracer 實作 Lab</h3>
+    <p><strong>目標：</strong>觀察交換器學習過程，並設定 Port Security 阻擋未授權設備。</p>
+    <h4 style="color:#FCD34D;margin-top:16px;">步驟</h4>
+    <ol>
+      <li><strong>建拓樸：</strong>1 台 2960 Switch + 3 台 PC（Fa0/1、Fa0/2、Fa0/3），設同網段 IP</li>
+      <li><strong>清空 MAC 表：</strong><span class="inline-code">clear mac address-table dynamic</span>，確認 <span class="inline-code">show mac address-table</span> 是空的</li>
+      <li><strong>觀察 Flooding：</strong>切到 Simulation 模式，PC1 ping PC2，觀察第一個 ARP 封包如何送到所有 Port</li>
+      <li><strong>觀察學習：</strong>ping 完成後再看 <span class="inline-code">show mac address-table</span>，應該有 3 筆記錄</li>
+      <li><strong>觀察 Forwarding：</strong>再 ping 一次，這次封包只走 PC1↔PC2 的路徑</li>
+      <li><strong>設 Port Security：</strong>在 Fa0/1 設 maximum 1 + sticky + shutdown</li>
+      <li><strong>觸發違規：</strong>把 PC1 拔掉，換接一台新 PC 到 Fa0/1</li>
+      <li><strong>驗證：</strong>Port 燈變紅，<span class="inline-code">show interfaces status</span> 顯示 err-disabled</li>
+      <li><strong>恢復：</strong><span class="inline-code">shutdown</span> 再 <span class="inline-code">no shutdown</span></li>
+      <li><strong>加分：</strong>把違規模式改成 restrict，觀察 Port 不會關但違規計數會增加</li>
+    </ol>
+  </div>
+
+  <div class="page-nav">
+    <a href="03-key-protocols.html">← CH 1-3：核心協定</a>
+    <a href="05-vlan-trunk.html">CH 2-2：VLAN 與 Trunk →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 2-1</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="ccna-ccnp">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

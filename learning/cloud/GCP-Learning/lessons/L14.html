@@ -73,4 +73,178 @@ gcloud dns policies create hybrid-dns-policy \
   --description=&quot;讓地端 DNS 能查詢 GCP 私有區域&quot;</code></pre></div><h2>六、本課檢核</h2><ul class="checklist"><li>能建立 Cloud NAT 讓私有機器對外連線</li><li>知道 NAT 埠耗盡的症狀與解法</li><li>知道正式環境要用固定 NAT IP（給第三方白名單）</li><li>知道閒置的靜態 IP 會收費</li><li>能設定公開與私有 DNS 區域</li><li>理解私有 DNS 對「可替換基礎設施」的價值</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>Cloud NAT 建好了，機器還是連不到外網。列出檢查項目。</summary><div class="ans">五項依序檢查：<br>① <strong>NAT 有沒有涵蓋這個子網路</strong>——如果沒用 <code>--nat-all-subnet-ip-ranges</code>，要確認子網路有被列入。<br>② <strong>Egress 防火牆有沒有擋</strong>——NAT 只處理位址轉換，防火牆規則仍然生效。<br>③ <strong>機器是不是真的沒有外部 IP</strong>——<u>有外部 IP 的機器不會走 NAT</u>，它直接走自己的 IP 出去。<br>④ <strong>Region 對不對</strong>——Cloud Router 和 NAT 是區域級的，只服務同 Region 的子網路。<br>⑤ <strong>DNS 能不能解析</strong>——連 IP 通但連網域不通的話，問題在 DNS 而非 NAT。</div></details><details class="qa"><summary>你的爬蟲服務有 20 台 VM，抓同一個網站，開始出現大量連線逾時。NAT 設定該怎麼調？</summary><div class="ans"><strong>典型的 NAT 連接埠耗盡。</strong>NAT 的埠是以「來源VM + 目的地IP + 目的地Port」的組合配置的，全部連同一個目標網站時，可用埠數被同一個目的地吃光。<br>三個調整方向：<br>① <strong>提高每 VM 的埠數</strong>：<code>--min-ports-per-vm=2048</code> 並啟用 <code>--enable-dynamic-port-allocation</code>。<br>② <strong>增加 NAT IP 數量</strong>：每個 IP 提供額外 64K 埠，20 台機器建議至少 3～4 個 IP。<br>③ <strong>應用層優化</strong>：使用連線池（connection pooling）與 HTTP Keep-Alive，減少連線建立次數。<em>這一項效果通常最好，因為它治本。</em><br>另外開啟 NAT logging（<code>--log-filter=ERRORS_ONLY</code>）可以直接看到 <code>OUT_OF_RESOURCES</code> 錯誤確認診斷。</div></details><details class="qa"><summary>公司同時有地端資料中心和 GCP。內部服務名稱該怎麼統一管理？</summary><div class="ans"><strong>雙向 DNS 轉發</strong>，讓兩邊都能用名稱互相找到對方：<br><br>① <strong>GCP → 地端</strong>：建立私有轉發區域，<code>--forwarding-targets</code> 指向地端 DNS 伺服器 IP。GCP 的機器查 <code>*.corp.local</code> 時會被轉發過去。<br>② <strong>地端 → GCP</strong>：建立 DNS 政策並 <code>--enable-inbound-forwarding</code>，GCP 會提供一個內部 IP（透過 VPN/Interconnect 可達），地端 DNS 設定條件轉發指向它。<br><br><strong>命名規劃建議</strong>：用不同的子網域區分位置，例如 <code>*.gcp.corp.internal</code> 和 <code>*.dc.corp.internal</code>。<em>不要讓同一個名稱在兩邊解析到不同結果——那會產生極難排查的問題。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L14">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L13.html"><span>← 上一課</span>L13 防火牆規則與網路分段</a><a class="next" href="L15.html"><span>下一課 →</span>L15 混合雲連線：VPN 與 Interconnect</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>

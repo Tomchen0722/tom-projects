@@ -46,4 +46,178 @@ gcloud compute networks describe prod-vpc</code></pre></div></li></ol></div></di
 └── 10.200.0.0/12  保留給未來</code></pre></div><div class="box warn"><div class="box-t">小心踩雷</div><strong>GKE 的 Pod 網段一定要留大。</strong>每個節點預設會分到一個 <code>/24</code>（256 個 Pod IP），所以 <code>/16</code> 的 Pod 網段只能撐 256 個節點。<br>看起來很多，但如果你有多個叢集共用網段，很快就會不夠。<em>而且 Pod 網段建立後不能改。</em></div><h2>七、本課檢核</h2><ul class="checklist"><li>理解 GCP VPC 是全球性的，跨 Region 可直接內網互通</li><li>知道正式環境要用 custom mode，並刪除 default VPC</li><li>知道 Private Google Access 的作用</li><li>能寫出一份有層次的 IP 規劃</li><li>知道子網路主要範圍只能擴大不能縮小</li></ul><h2>自我檢測</h2><div class="quiz"><details class="qa"><summary>公司地端網路用 <code>10.0.0.0/16</code>，你在 GCP 建了 auto mode VPC。要接 VPN 時會發生什麼？</summary><div class="ans"><strong>網段衝突，VPN 無法正常運作。</strong>Auto mode 使用 <code>10.128.0.0/9</code>，看起來不重疊——但 auto mode 的問題是<u>你無法控制它未來在新 Region 分配到什麼網段</u>，而且它的網段固定，多個專案的 auto VPC 之間彼此完全重疊，無法做 VPC Peering。<br>解法只有一個：<strong>重建成 custom mode VPC</strong>，並重新規劃網段。<em>這就是為什麼「正式環境不用 auto mode」是硬性規則——這個錯誤事後修正的代價是整個環境重建。</em></div></details><details class="qa"><summary>一台沒有外部 IP 的 VM，執行 <code>gcloud storage ls</code> 卡住不動。為什麼？</summary><div class="ans"><strong>子網路沒開啟 Private Google Access。</strong><br>沒有外部 IP 的機器，預設無法連到任何 Google API 端點（<code>storage.googleapis.com</code> 等）。開啟 PGA 後，這些流量會走 Google 內部路徑，不需要外部 IP、不經過公網、也不算 egress 費用。<br><div class="code"><div class="code-head"><span>bash</span><button class="copy-btn">複製</button></div><pre><code>gcloud compute networks subnets update SUBNET --region=REGION --enable-private-ip-google-access</code></pre></div><em>注意 PGA 只解決「連 Google API」，如果機器還需要連外部網際網路（例如 <code>apt update</code>），要另外設 Cloud NAT——下一課會講。</em></div></details><details class="qa"><summary>你要設計一個跨台灣、新加坡、美國三地的服務。用一個全球 VPC 還是三個區域 VPC？</summary><div class="ans"><strong>預設答案是一個全球 VPC</strong>，理由：管理簡單、跨區直接內網互通、防火牆規則統一、不用維護 Peering。<br><br>但有三種情況要拆開：<br>① <strong>法遵要求資料絕對隔離</strong>（例如歐盟 GDPR 要求某些資料不得離開歐洲）——用獨立 VPC + VPC Service Controls 做硬邊界。<br>② <strong>爆炸半徑考量</strong>——一個 VPC 的防火牆設定錯誤會影響全球。極度關鍵的系統可能想隔離。<br>③ <strong>不同業務單位獨立營運</strong>，網路團隊分開。<br><br><em>但注意：拆開的代價是跨 VPC 溝通要走 Peering 或 VPN，複雜度大幅上升。除非有明確理由，否則從一個 VPC 開始。</em></div></details></div></div><button class="done-btn" id="doneBtn" data-lid="L12">◎ <span class="lbl">標記為已完成</span></button><div class="pager"><a class="prev" href="L11.html"><span>← 上一課</span>L11 Cloud Run 實戰：把 API 從零推上線</a><a class="next" href="L13.html"><span>下一課 →</span>L13 防火牆規則與網路分段</a></div></div></main></div>
 <script>window.GCP_TOTAL_LESSONS=40;</script>
 <script src="../assets/app.js"></script>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "", "key": ""};</script>
+<script data-project="gcp-learning">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
 </body></html>
