@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料庫選型與實作 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin:16px 0;}
+.pk{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--sky);background:#fff;}
+.pk b{display:block;font-size:.87rem;color:var(--dark);margin-bottom:3px;}
+.pk span{font-size:.77rem;color:var(--muted);line-height:1.65;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">05 · 資料庫</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">實作 05 · 資料層</div>
+  <h1>資料庫選型與實作</h1>
+  <p>AWS 有十幾種資料庫服務，考試最愛考「這個情境該選哪一個」。這章給你一張能真正用來做決策的表，以及 RDS 與 DynamoDB 的完整實作。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#pick">選型決策表</a></li>
+      <li><a href="#rds">RDS 基礎與引擎選擇</a></li>
+      <li><a href="#ha">Multi-AZ vs Read Replica（必考）</a></li>
+      <li><a href="#rdsbuild">實作一：建立生產級 RDS</a></li>
+      <li><a href="#aurora">Aurora 的架構差異</a></li>
+      <li><a href="#backup">備份、還原與 PITR</a></li>
+      <li><a href="#dynamo">DynamoDB 核心概念</a></li>
+      <li><a href="#dynamoidx">分區鍵設計與索引</a></li>
+      <li><a href="#dynamobuild">實作二：DynamoDB 完整操作</a></li>
+      <li><a href="#cache">快取層：ElastiCache 與 DAX</a></li>
+      <li><a href="#cost">費用與省錢</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="pick">
+    <h2>1. 選型決策表</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>需求關鍵字</th><th>選這個</th><th>為什麼</th></tr>
+        <tr><td>既有 MySQL/PostgreSQL 要上雲、<b>最少改動</b></td><td><b>RDS</b></td><td>相容既有應用，託管維運</td></tr>
+        <tr><td>要 MySQL/PG 相容但<b>效能與可用性更好</b></td><td><b>Aurora</b></td><td>3–5 倍效能，6 份副本</td></tr>
+        <tr><td><b>個位數毫秒</b>、無限擴展、鍵值查詢</td><td><b>DynamoDB</b></td><td>NoSQL，無伺服器</td></tr>
+        <tr><td>流量<b>難以預測</b>、可能歸零</td><td><b>Aurora Serverless v2</b> 或 <b>DynamoDB On-Demand</b></td><td>自動伸縮，不用時幾乎不收費</td></tr>
+        <tr><td><b>TB–PB 級分析</b>、SQL 查詢</td><td><b>Redshift</b></td><td>資料倉儲，欄式儲存</td></tr>
+        <tr><td>查詢 <b>S3 上的檔案</b>、偶爾查</td><td><b>Athena</b></td><td>無伺服器，按掃描量計費</td></tr>
+        <tr><td><b>快取</b>、Session、排行榜</td><td><b>ElastiCache</b>（Redis）</td><td>記憶體內，微秒級</td></tr>
+        <tr><td><b>圖形</b>關係查詢（社群、詐欺偵測）</td><td><b>Neptune</b></td><td>圖形資料庫</td></tr>
+        <tr><td><b>時序</b>資料（IoT 感測器、監控指標）</td><td><b>Timestream</b></td><td>時序專用</td></tr>
+        <tr><td><b>MongoDB</b> 相容</td><td><b>DocumentDB</b></td><td>文件資料庫</td></tr>
+        <tr><td><b>全文檢索</b>、日誌分析</td><td><b>OpenSearch</b></td><td>搜尋引擎</td></tr>
+        <tr><td><b>不可竄改</b>的帳本</td><td><b>QLDB</b></td><td>加密驗證的交易紀錄</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code><b>三個問題就能定案：</b><br><br>
+    ① 資料有<b>固定結構</b>而且需要 <b>JOIN</b>？ → 關聯式（RDS / Aurora）<br>
+    ② 查詢模式<b>固定</b>、要求<b>極低延遲</b>與<b>無限擴展</b>？ → DynamoDB<br>
+    ③ 要跑<b>大量聚合分析</b>？ → Redshift（常態）或 Athena（偶爾）</code></div>
+
+    <div class="warn"><strong>SQL vs NoSQL 最實際的判斷：看查詢模式是否固定。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>關聯式</b>：先設計資料，查詢隨便你怎麼寫（<span class="inline-code">WHERE</span>、<span class="inline-code">JOIN</span>、<span class="inline-code">GROUP BY</span> 任意組合）</li>
+        <li><b>DynamoDB</b>：<b>先確定要怎麼查，再依此設計資料表</b>。查詢模式變了通常要重新設計</li>
+      </ul>
+      所以「需求還在變、報表需求不明確」的系統<b>不要用 DynamoDB</b>——它會逼你在最不確定的時候做最難改的決定。
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="rds">
+    <h2>2. RDS 基礎與引擎選擇</h2>
+
+    <div class="pick">
+      <div class="pk"><b>MySQL</b><span>最普及，生態豐富</span></div>
+      <div class="pk"><b>PostgreSQL</b><span>功能最強，支援 JSON、地理資訊、擴充套件</span></div>
+      <div class="pk"><b>MariaDB</b><span>MySQL 分支</span></div>
+      <div class="pk"><b>Oracle</b><span>企業既有系統，授權貴</span></div>
+      <div class="pk"><b>SQL Server</b><span>.NET 生態</span></div>
+      <div class="pk"><b>Aurora</b><span>AWS 自研，MySQL/PG 相容</span></div>
+      <div class="pk"><b>Db2</b><span>IBM 大型主機遷移</span></div>
+    </div>
+
+    <div class="ok"><strong>RDS 幫你做什麼、不幫你做什麼：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>✅ RDS 負責</th><th>❌ 你還是要負責</th></tr>
+          <tr><td>作業系統與資料庫的修補</td><td><b>資料表設計與索引</b></td></tr>
+          <tr><td>自動備份與 PITR</td><td><b>SQL 查詢效能調校</b></td></tr>
+          <tr><td>Multi-AZ 故障切換</td><td>應用程式的連線池管理</td></tr>
+          <tr><td>硬體更換</td><td>資料的正確性</td></tr>
+        </table>
+      </div>
+      <b>RDS 不會讓爛 SQL 變快。</b>慢查詢還是慢查詢，只是你不用管作業系統了。
+    </div>
+
+    <div class="warn"><strong>RDS 沒有作業系統存取權。</strong>你<b>不能 SSH 進去</b>、不能裝自訂軟體、不能改設定檔。所有設定都要透過 <b>Parameter Group</b> 和 <b>Option Group</b> 調。<br><br>
+      如果你的應用需要資料庫伺服器上的自訂 agent 或特殊擴充，可能得改用 EC2 自架（<b>但那你就要自己管備份、修補、高可用</b>，通常不划算）。
+    </div>
+
+    <pre><code><span class="comment"># Parameter Group：改資料庫參數（等同 my.cnf / postgresql.conf）</span>
+$ <span class="cmd">aws rds create-db-parameter-group</span> \
+    <span class="var">--db-parameter-group-name</span> mysql8-custom \
+    <span class="var">--db-parameter-group-family</span> mysql8.0 \
+    <span class="var">--description</span> "自訂參數"
+
+$ <span class="cmd">aws rds modify-db-parameter-group</span> \
+    --db-parameter-group-name mysql8-custom \
+    <span class="var">--parameters</span> \
+      "ParameterName=slow_query_log,ParameterValue=1,ApplyMethod=immediate" \
+      "ParameterName=long_query_time,ParameterValue=2,ApplyMethod=immediate" \
+      "ParameterName=max_connections,ParameterValue=500,ApplyMethod=pending-reboot"</code></pre>
+
+    <div class="warn"><strong><span class="inline-code">ApplyMethod</span> 有兩種，選錯會有意外：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>immediate</b>——立刻生效（只有「動態參數」支援）</li>
+        <li><b>pending-reboot</b>——<b>要重開資料庫才生效</b></li>
+      </ul>
+      有些參數（例如 <span class="inline-code">max_connections</span>）是靜態的，只能 pending-reboot。改了以為生效、實際上沒有，是常見的困惑。用 <span class="inline-code">describe-db-parameters</span> 看 <span class="inline-code">ApplyType</span> 確認。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="ha">
+    <h2>3. Multi-AZ vs Read Replica（必考）</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Multi-AZ</th><th>Read Replica</th></tr>
+        <tr><td><b>目的</b></td><td><b>高可用（HA）</b></td><td><b>效能擴展</b></td></tr>
+        <tr><td>複製方式</td><td><b>同步</b></td><td><b>非同步</b></td></tr>
+        <tr><td>待命副本能不能讀</td><td><b>不能</b>（Multi-AZ Cluster 版例外）</td><td><b>能</b></td></tr>
+        <tr><td>位置</td><td>同 region 不同 AZ</td><td><b>可跨 region</b></td></tr>
+        <tr><td>故障時</td><td><b>自動切換</b>（1–2 分鐘）</td><td>要<b>手動</b>提升</td></tr>
+        <tr><td>資料延遲</td><td>無</td><td><b>有</b>（秒級，負載高時可能更久）</td></tr>
+        <tr><td>數量</td><td>1 個待命</td><td>最多 <b>5 個</b>（Aurora 15 個）</td></tr>
+        <tr><td>費用</td><td><b>兩倍</b></td><td>每個副本一份錢</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code><b>Multi-AZ = 保命　Read Replica = 加速</b><br><br>
+    兩者<b>不是二選一</b>，正式環境通常兩個都要。</code></div>
+
+    <div class="warn"><strong>最常見的誤解：以為 Read Replica 可以當備援。</strong>
+      <ul style="margin:8px 0 0">
+        <li>Read Replica 是<b>非同步</b>複製——主庫掛掉時，最後幾秒的交易<b>可能還沒複製過去</b></li>
+        <li>不會自動切換，要人工介入 <span class="inline-code">promote-read-replica</span></li>
+        <li>提升之後<b>就變成獨立資料庫，不能再變回副本</b></li>
+      </ul>
+      <b>要不掉資料的自動故障切換，只有 Multi-AZ 做得到。</b>
+    </div>
+
+    <div class="ok"><strong>考題關鍵字對照：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>題目說</th><th>答案</th></tr>
+          <tr><td>「高可用」「自動故障切換」「最小停機」</td><td><b>Multi-AZ</b></td></tr>
+          <tr><td>「讀取效能不足」「報表查詢拖慢主庫」</td><td><b>Read Replica</b></td></tr>
+          <tr><td>「其他國家使用者讀取太慢」</td><td><b>跨區 Read Replica</b></td></tr>
+          <tr><td>「災難復原」「整個 region 失效」</td><td><b>跨區 Read Replica</b> 或 Aurora Global Database</td></tr>
+          <tr><td>「讀寫都要擴展」</td><td>Aurora + 讀寫分離，或改用 DynamoDB</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <pre><code><span class="comment"># 開啟 Multi-AZ（既有實例也可以改，會有短暫影響）</span>
+$ <span class="cmd">aws rds modify-db-instance</span> --db-instance-identifier prod-mysql \
+    <span class="var">--multi-az</span> <span class="var">--apply-immediately</span>
+
+<span class="comment"># 建立 Read Replica</span>
+$ <span class="cmd">aws rds create-db-instance-read-replica</span> \
+    <span class="var">--db-instance-identifier</span> prod-mysql-ro-1 \
+    <span class="var">--source-db-instance-identifier</span> prod-mysql \
+    --db-instance-class db.r6g.large
+
+<span class="comment"># 跨區 Read Replica（DR 用）</span>
+$ <span class="cmd">aws rds create-db-instance-read-replica</span> \
+    --db-instance-identifier prod-mysql-osaka \
+    <span class="var">--source-db-instance-identifier</span> arn:aws:rds:ap-northeast-1:123456789012:db:prod-mysql \
+    <span class="var">--region</span> ap-northeast-3
+
+<span class="comment"># 檢查副本延遲（要持續監控）</span>
+$ <span class="cmd">aws cloudwatch get-metric-statistics</span> \
+    --namespace AWS/RDS --metric-name ReplicaLag \
+    --dimensions Name=DBInstanceIdentifier,Value=prod-mysql-ro-1 \
+    --start-time 2026-08-05T00:00:00Z --end-time 2026-08-05T12:00:00Z \
+    --period 300 --statistics Average Maximum</code></pre>
+
+    <div class="warn"><strong>應用程式要用「兩個 endpoint」。</strong>RDS 的 Read Replica <b>沒有自動的讀寫分離</b>——AWS 給你一個獨立的 endpoint，<b>你的程式要自己判斷「這是讀還是寫」</b>並連到對的地方。<br><br>
+      Aurora 有內建的 <b>Reader Endpoint</b> 會自動負載平衡到所有副本，這是 Aurora 比 RDS 方便的地方之一。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="rdsbuild">
+    <h2>4. 實作一：建立生產級 RDS</h2>
+
+    <div class="cost">RDS 是最容易產生意外帳單的服務之一。<br>
+    · <b>db.t3.micro 在免費方案內</b>（每月 750 小時，12 個月）<br>
+    · db.r6g.large Multi-AZ 東京區約 <b>US$0.60/小時 = 每月 US$430</b><br>
+    · <b>停止的 RDS 最多 7 天會自動重啟</b>，然後繼續計費<br>
+    · 儲存空間和備份也另外計費<br><br>
+    <b>學習用一律 db.t3.micro、單 AZ、關閉自動備份保留。做完立刻刪除。</b></div>
+
+    <pre><code><span class="comment"># ═══ 步驟 1：DB Subnet Group（指定 RDS 能放在哪些子網路）═══</span>
+$ <span class="cmd">aws rds create-db-subnet-group</span> \
+    <span class="var">--db-subnet-group-name</span> db-subnets \
+    <span class="var">--db-subnet-group-description</span> "隔離層子網路" \
+    <span class="var">--subnet-ids</span> $DB_A $DB_C
+
+<span class="comment"># ═══ 步驟 2：把密碼交給 Secrets Manager 管（不要自己想密碼）═══</span>
+$ <span class="cmd">SECRET_ARN</span>=$(aws secretsmanager create-secret \
+    --name prod/mysql/master \
+    --description "RDS master 密碼" \
+    <span class="var">--generate-secret-string</span> \
+      '{"SecretStringTemplate":"{\"username\":\"admin\"}","GenerateStringKey":"password","PasswordLength":32,"ExcludeCharacters":"\"@/\\\\"}' \
+    --query ARN --output text)
+
+<span class="comment"># ═══ 步驟 3：建立資料庫 ═══</span>
+$ <span class="cmd">aws rds create-db-instance</span> \
+    <span class="var">--db-instance-identifier</span> prod-mysql \
+    <span class="var">--db-instance-class</span> db.r6g.large \
+    <span class="var">--engine</span> mysql <span class="var">--engine-version</span> 8.0.35 \
+    <span class="var">--allocated-storage</span> 100 <span class="var">--max-allocated-storage</span> 500 \
+    <span class="var">--storage-type</span> gp3 <span class="var">--storage-encrypted</span> \
+    <span class="var">--master-username</span> admin \
+    <span class="var">--manage-master-user-password</span> \
+    <span class="var">--db-subnet-group-name</span> db-subnets \
+    <span class="var">--vpc-security-group-ids</span> $SG_DB \
+    <span class="var">--multi-az</span> \
+    <span class="var">--backup-retention-period</span> 7 \
+    <span class="var">--preferred-backup-window</span> "18:00-19:00" \
+    <span class="var">--preferred-maintenance-window</span> "sun:19:00-sun:20:00" \
+    <span class="var">--enable-performance-insights</span> \
+    <span class="var">--performance-insights-retention-period</span> 7 \
+    <span class="var">--enable-cloudwatch-logs-exports</span> '["error","slowquery"]' \
+    <span class="var">--deletion-protection</span> \
+    <span class="var">--auto-minor-version-upgrade</span> \
+    <span class="var">--no-publicly-accessible</span>
+
+$ <span class="cmd">aws rds wait db-instance-available --db-instance-identifier prod-mysql</span></code></pre>
+
+    <div class="ok"><strong>這串參數裡最重要的六個：</strong>
+      <ul style="margin:8px 0 0">
+        <li><span class="inline-code">--no-publicly-accessible</span> — 資料庫<b>絕對不要有公網位址</b></li>
+        <li><span class="inline-code">--storage-encrypted</span> — <b>建立時不加密，之後就不能加</b>（只能快照複製轉換）</li>
+        <li><span class="inline-code">--manage-master-user-password</span> — 讓 Secrets Manager 管密碼並<b>自動輪替</b></li>
+        <li><span class="inline-code">--max-allocated-storage</span> — 啟用<b>儲存自動擴展</b>，空間滿了不會當機</li>
+        <li><span class="inline-code">--deletion-protection</span> — 防止誤刪</li>
+        <li><span class="inline-code">--enable-performance-insights</span> — <b>免費 7 天保留</b>，查慢查詢的神器</li>
+      </ul>
+    </div>
+
+    <div class="warn"><strong>加密只能在建立時決定。</strong>已存在的未加密 RDS 要加密，流程是：<b>建快照 → 複製快照時指定加密 → 從加密快照還原成新實例 → 切換應用程式連線</b>。這需要停機，而且 endpoint 會變。<b>第一次就開加密。</b></div>
+
+    <pre><code><span class="comment"># 從 Secrets Manager 拿密碼連線（應用程式應該這樣做）</span>
+$ <span class="cmd">aws secretsmanager get-secret-value</span> \
+    --secret-id prod/mysql/master \
+    --query SecretString --output text | jq -r '.password'
+
+<span class="comment"># 取得連線 endpoint</span>
+$ <span class="cmd">aws rds describe-db-instances</span> --db-instance-identifier prod-mysql \
+    <span class="var">--query</span> 'DBInstances[0].[Endpoint.Address,Endpoint.Port,DBInstanceStatus]' --output text</code></pre>
+
+    <div class="ok"><strong>更好的做法：完全不用密碼，用 IAM 認證。</strong>
+      <pre style="margin:8px 0 0"><code>$ aws rds modify-db-instance --db-instance-identifier prod-mysql \
+    <span class="cmd">--enable-iam-database-authentication</span> --apply-immediately
+
+<span class="comment"># 應用程式用 IAM 產生 15 分鐘有效的 token 當密碼</span>
+$ TOKEN=$(aws rds generate-db-auth-token \
+    --hostname prod-mysql.xxx.ap-northeast-1.rds.amazonaws.com \
+    --port 3306 --username app_user)
+$ mysql -h ... -u app_user --password="$TOKEN" --enable-cleartext-plugin</code></pre>
+      好處：<b>沒有長期密碼可以外洩</b>、權限用 IAM 統一管理、所有連線都記在 CloudTrail。<br>
+      限制：每秒最多 200 次新連線，所以<b>應用程式必須用連線池</b>。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="aurora">
+    <h2>5. Aurora 的架構差異</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>RDS MySQL</th><th>Aurora MySQL</th></tr>
+        <tr><td>儲存架構</td><td>一顆 EBS</td><td><b>共享儲存層，3 個 AZ × 2 份 = 6 份副本</b></td></tr>
+        <tr><td>效能</td><td>基準</td><td><b>約 5 倍</b></td></tr>
+        <tr><td>Read Replica 數量</td><td>5</td><td><b>15</b></td></tr>
+        <tr><td>副本延遲</td><td>秒級</td><td><b>通常 &lt; 100 ms</b></td></tr>
+        <tr><td>故障切換</td><td>1–2 分鐘</td><td><b>&lt; 30 秒</b></td></tr>
+        <tr><td>儲存擴展</td><td>手動或自動擴展</td><td><b>自動，10 GB 起，最高 128 TB</b></td></tr>
+        <tr><td>備份</td><td>快照</td><td><b>持續備份到 S3，不影響效能</b></td></tr>
+        <tr><td>費用</td><td>較低</td><td><b>約貴 20%</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>Aurora 的關鍵設計：運算和儲存分離。</strong>
+      <ul style="margin:8px 0 0">
+        <li>資料存在<b>共享儲存層</b>，所有節點看到同一份</li>
+        <li>Read Replica <b>不需要複製資料</b>，直接讀共享層 → 這是延遲極低的原因</li>
+        <li>主節點掛掉，某個副本<b>直接接手同一份儲存</b> → 這是切換極快的原因</li>
+        <li><b>6 份副本，可以掉 2 份不影響寫入、掉 3 份不影響讀取</b></li>
+      </ul>
+    </div>
+
+    <h3>三個好用的 Aurora 功能</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>功能</th><th>做什麼</th><th>用途</th></tr>
+        <tr><td><b>Serverless v2</b></td><td>依負載自動伸縮 ACU（0.5–256）</td><td>流量不固定、開發環境</td></tr>
+        <tr><td><b>Global Database</b></td><td>跨 region 複製，延遲 <b>&lt; 1 秒</b></td><td>災難復原、跨洲讀取</td></tr>
+        <tr><td><b>Cloning</b></td><td>秒級複製整個資料庫，<b>寫時複製</b></td><td>測試環境、資料分析</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># Aurora Serverless v2：不用時縮到 0.5 ACU</span>
+$ <span class="cmd">aws rds create-db-cluster</span> \
+    --db-cluster-identifier dev-aurora \
+    --engine aurora-mysql --engine-version 8.0.mysql_aurora.3.05.2 \
+    <span class="var">--serverless-v2-scaling-configuration</span> MinCapacity=0.5,MaxCapacity=8 \
+    --master-username admin --manage-master-user-password \
+    --db-subnet-group-name db-subnets --vpc-security-group-ids $SG_DB \
+    --storage-encrypted
+
+$ <span class="cmd">aws rds create-db-instance</span> \
+    --db-instance-identifier dev-aurora-1 \
+    --db-cluster-identifier dev-aurora \
+    <span class="var">--db-instance-class</span> db.serverless \
+    --engine aurora-mysql
+
+<span class="comment"># Cloning：幾秒鐘複製一個 5 TB 的資料庫（只複製指標，不複製資料）</span>
+$ <span class="cmd">aws rds restore-db-cluster-to-point-in-time</span> \
+    --db-cluster-identifier test-clone \
+    --source-db-cluster-identifier prod-aurora \
+    <span class="var">--restore-type</span> copy-on-write <span class="var">--use-latest-restorable-time</span></code></pre>
+
+    <div class="ok"><strong>Cloning 是 Aurora 最被低估的功能。</strong>複製一個 5 TB 的正式資料庫做測試，<b>幾秒鐘完成、幾乎不佔額外空間</b>（只有你改動的部分才真的複製）。傳統做法要還原快照，可能要好幾小時和一整份儲存費。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>Aurora 的四種 Endpoint</th><th>連到哪</th></tr>
+        <tr><td><b>Cluster Endpoint</b>（Writer）</td><td>永遠指向<b>主節點</b>，故障切換自動跟著換</td></tr>
+        <tr><td><b>Reader Endpoint</b></td><td><b>自動負載平衡</b>到所有 Read Replica</td></tr>
+        <tr><td><b>Custom Endpoint</b></td><td>你指定的一組節點（例如「大型分析用的節點」）</td></tr>
+        <tr><td><b>Instance Endpoint</b></td><td>特定單一節點，除錯用</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>應用程式一定要用 Cluster Endpoint 和 Reader Endpoint，不要用 Instance Endpoint。</strong>用 Instance Endpoint 的話，那個節點故障切換之後<b>你的程式還指著已經變成副本的節點</b>，寫入會失敗。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="backup">
+    <h2>6. 備份、還原與 PITR</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>自動備份</th><th>手動快照</th></tr>
+        <tr><td>保留期</td><td><b>0–35 天</b></td><td><b>永久</b>，直到你刪</td></tr>
+        <tr><td>支援 PITR</td><td><b>可以</b>（精確到秒）</td><td>不行</td></tr>
+        <tr><td>刪除資料庫時</td><td><b>一起刪掉</b></td><td>保留</td></tr>
+        <tr><td>費用</td><td>等同資料庫大小的部分免費</td><td>依大小計費</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>把 <span class="inline-code">--backup-retention-period</span> 設成 0 等於關閉自動備份，<u>也就關閉了 PITR</u>。</strong>正式環境至少設 7 天，關鍵系統設 35 天。<br><br>
+      <b>而且刪除 RDS 時自動備份會一起消失</b>——刪除前務必先建一個<b>手動快照</b>（<span class="inline-code">--final-db-snapshot-identifier</span>）。
+    </div>
+
+    <pre><code><span class="comment"># PITR：還原到 5 分鐘前的狀態（會建立一個新實例）</span>
+$ <span class="cmd">aws rds restore-db-instance-to-point-in-time</span> \
+    <span class="var">--source-db-instance-identifier</span> prod-mysql \
+    <span class="var">--target-db-instance-identifier</span> prod-mysql-restored \
+    <span class="var">--restore-time</span> 2026-08-05T02:55:00Z \
+    --db-subnet-group-name db-subnets --vpc-security-group-ids $SG_DB
+
+<span class="comment"># 查可還原的最早時間點</span>
+$ <span class="cmd">aws rds describe-db-instances</span> --db-instance-identifier prod-mysql \
+    --query 'DBInstances[0].[EarliestRestorableTime,LatestRestorableTime]'
+
+<span class="comment"># 刪除時一定要留最終快照</span>
+$ <span class="cmd">aws rds delete-db-instance</span> --db-instance-identifier prod-mysql \
+    <span class="var">--final-db-snapshot-identifier</span> prod-mysql-final-20260805</code></pre>
+
+    <div class="warn"><strong>還原<u>永遠</u>是建立一個「新的實例」，不會覆蓋原本的。</strong>所以還原後你要：
+      <ol style="margin:8px 0 0">
+        <li>確認新實例的資料正確</li>
+        <li><b>把應用程式的連線字串指向新的 endpoint</b>（endpoint 名稱不同）</li>
+        <li>確認無誤後才刪掉舊的</li>
+      </ol>
+      這代表<b>還原一定會有停機時間</b>。RTO 的估算要把這段切換時間算進去。
+    </div>
+
+    <div class="ok"><strong>災難復原的四種策略與 RDS 對應：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>策略</th><th>RTO / RPO</th><th>RDS 做法</th><th>成本</th></tr>
+          <tr><td><b>Backup &amp; Restore</b></td><td>小時 / 小時</td><td>跨區複製快照</td><td>最低</td></tr>
+          <tr><td><b>Pilot Light</b></td><td>10 分鐘 / 分鐘</td><td>跨區 Read Replica（小規格）</td><td>低</td></tr>
+          <tr><td><b>Warm Standby</b></td><td>分鐘 / 秒</td><td>跨區 Read Replica（正常規格）</td><td>中</td></tr>
+          <tr><td><b>Multi-Site Active</b></td><td>秒 / 接近 0</td><td><b>Aurora Global Database</b></td><td>最高</td></tr>
+        </table>
+      </div>
+      這張表在 SAA 幾乎每次都會考。記住<b>成本和 RTO 成反比</b>。
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="dynamo">
+    <h2>7. DynamoDB 核心概念</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>概念</th><th>說明</th></tr>
+        <tr><td><b>Table</b></td><td>資料表，<b>不需要預先定義欄位</b>（除了鍵）</td></tr>
+        <tr><td><b>Item</b></td><td>一筆資料，<b>最大 400 KB</b></td></tr>
+        <tr><td><b>Partition Key（PK）</b></td><td><b>決定資料存在哪個分區</b>。必填</td></tr>
+        <tr><td><b>Sort Key（SK）</b></td><td>同一個 PK 內的排序依據。選填</td></tr>
+        <tr><td><b>主鍵</b></td><td>只有 PK，或 PK + SK 的組合。<b>必須唯一</b></td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Item 上限 400 KB。</strong>超過就要拆開，或把大內容放 S3 只在 DynamoDB 存指標（這叫 <b>S3 pointer 模式</b>）。存圖片、檔案內容到 DynamoDB 是錯誤用法。</div>
+
+    <h3>兩種容量模式</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>On-Demand</th><th>Provisioned</th></tr>
+        <tr><td>計費</td><td><b>按實際請求數</b></td><td>按預留的 RCU/WCU</td></tr>
+        <tr><td>擴展</td><td><b>瞬間，無上限</b></td><td>要設 Auto Scaling</td></tr>
+        <tr><td>適合</td><td>流量不可預測、有尖峰、新系統</td><td><b>流量穩定可預測</b></td></tr>
+        <tr><td>價格</td><td>單價高約 <b>6–7 倍</b></td><td>單價低，可買預留容量再省</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>怎麼選：新系統先用 On-Demand，跑 1–2 個月看清楚流量模式再考慮轉 Provisioned。</strong>兩種模式<b>每 24 小時可以切換一次</b>。<br><br>
+      流量穩定的話，Provisioned + Auto Scaling 通常能省 <b>50–70%</b>；但如果流量尖峰是平均的 10 倍，Provisioned 反而可能更貴（要預留到尖峰）或會被限流。</div>
+
+    <div class="formula"><code><b>容量單位（考試會考計算）</b><br><br>
+    <b>1 RCU</b> = 每秒 1 次「強一致性」讀取 <b>4 KB</b> 以內<br>
+    　　　　　= 每秒 <b>2 次</b>「最終一致性」讀取 4 KB<br>
+    <b>1 WCU</b> = 每秒 1 次寫入 <b>1 KB</b> 以內<br><br>
+    讀 8 KB、每秒 100 次、最終一致性<br>
+    → 8÷4 = 2 個單位 ÷ 2（最終一致）= 1 → <b>100 RCU</b></code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>一致性模式</th><th>行為</th><th>成本</th></tr>
+        <tr><td><b>Eventually Consistent</b>（預設）</td><td>可能讀到舊資料（通常 1 秒內同步）</td><td><b>0.5 RCU</b></td></tr>
+        <tr><td><b>Strongly Consistent</b></td><td>一定讀到最新</td><td>1 RCU</td></tr>
+        <tr><td><b>Transactional</b></td><td>ACID 交易</td><td><b>2 RCU / 2 WCU</b></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="dynamoidx">
+    <h2>8. 分區鍵設計與索引</h2>
+
+    <div class="warn"><strong>分區鍵設計錯誤是 DynamoDB 最嚴重的問題，而且事後很難修。</strong>DynamoDB 用 PK 的雜湊值決定資料放在哪個實體分區。如果大量資料集中在同一個 PK，就會產生 <b>Hot Partition</b>——<b>那個分區被限流，但整體容量看起來還很空</b>。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>❌ 不好的分區鍵</th><th>為什麼</th><th>✅ 改成</th></tr>
+        <tr><td><span class="inline-code">status</span>（只有 3 種值）</td><td>基數太低，全擠在 3 個分區</td><td><span class="inline-code">orderId</span></td></tr>
+        <tr><td><span class="inline-code">date</span>（今天的資料全在一起）</td><td>當天所有寫入打同一個分區</td><td><span class="inline-code">date#randomSuffix</span></td></tr>
+        <tr><td><span class="inline-code">country</span>（80% 是同一國）</td><td>分布極度不均</td><td><span class="inline-code">country#userId</span></td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code><b>好的分區鍵三條件：</b><br><br>
+    ① <b>基數高</b>（可能的值很多）<br>
+    ② <b>存取分布平均</b>（沒有特別熱門的值）<br>
+    ③ <b>符合你的查詢模式</b>（能直接用它查）</code></div>
+
+    <h3>兩種索引</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>LSI（本地次要索引）</th><th>GSI（全域次要索引）</th></tr>
+        <tr><td>分區鍵</td><td><b>必須跟主表相同</b></td><td><b>可以不同</b></td></tr>
+        <tr><td>建立時機</td><td><b>只能在建表時建</b></td><td><b>隨時可增刪</b></td></tr>
+        <tr><td>數量上限</td><td>5</td><td>20</td></tr>
+        <tr><td>容量</td><td>共用主表的</td><td><b>獨立的 RCU/WCU</b></td></tr>
+        <tr><td>一致性</td><td>支援強一致性</td><td><b>只有最終一致性</b></td></tr>
+        <tr><td>大小限制</td><td>同一 PK 下所有項目 <b>≤ 10 GB</b></td><td>無限制</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>實務上幾乎都用 GSI。</strong>LSI 有兩個致命限制：<b>只能建表時建立</b>（需求變了要重建整張表）、<b>10 GB 上限</b>（超過會直接寫入失敗）。<b>除非真的需要強一致性的次要查詢，否則一律用 GSI。</b></div>
+
+    <div class="warn"><strong>GSI 有兩個容易忽略的行為：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>GSI 容量不足會反過來影響主表的寫入被限流</b>。GSI 的 WCU 一定要設得跟主表一樣或更高</li>
+        <li><b>只有包含 GSI 分區鍵的項目才會進索引</b>。這其實是個好用的技巧——叫做 <b>稀疏索引（Sparse Index）</b></li>
+      </ol>
+      稀疏索引的用法：只有「未處理」的訂單才寫入 <span class="inline-code">pendingFlag</span> 欄位，處理完就刪掉這個欄位。這樣 GSI 裡<b>只會有待處理的訂單</b>，查詢極快且索引很小。
+    </div>
+
+    <h3>Query vs Scan</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Query</th><th>Scan</th></tr>
+        <tr><td>做什麼</td><td>依 <b>PK</b>（可加 SK 條件）查</td><td><b>讀整張表</b>再過濾</td></tr>
+        <tr><td>效率</td><td><b>高</b></td><td><b>極低</b></td></tr>
+        <tr><td>費用</td><td>只算讀到的</td><td><b>算整張表的容量</b>，就算只回傳 1 筆</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>正式環境幾乎不應該出現 Scan。</strong>一張 100 GB 的表做一次 Scan，就算 filter 之後只回傳 10 筆，<b>你還是要付讀取 100 GB 的錢</b>，而且會把容量吃光導致其他請求被限流。<br><br>
+      看到程式碼裡有 Scan，通常代表<b>資料模型設計錯了</b>——應該加一個 GSI 讓它能用 Query。
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="dynamobuild">
+    <h2>9. 實作二：DynamoDB 完整操作</h2>
+
+    <pre><code><span class="comment"># ═══ 建表：單表設計，PK + SK ═══</span>
+$ <span class="cmd">aws dynamodb create-table</span> \
+    <span class="var">--table-name</span> Orders \
+    <span class="var">--attribute-definitions</span> \
+      AttributeName=customerId,AttributeType=S \
+      AttributeName=orderDate,AttributeType=S \
+      AttributeName=status,AttributeType=S \
+    <span class="var">--key-schema</span> \
+      AttributeName=customerId,KeyType=HASH \
+      AttributeName=orderDate,KeyType=RANGE \
+    <span class="var">--billing-mode</span> PAY_PER_REQUEST \
+    <span class="var">--global-secondary-indexes</span> '[{
+      "IndexName": "status-date-index",
+      "KeySchema": [
+        {"AttributeName":"status","KeyType":"HASH"},
+        {"AttributeName":"orderDate","KeyType":"RANGE"}
+      ],
+      "Projection": {"ProjectionType":"INCLUDE","NonKeyAttributes":["amount","customerId"]}
+    }]' \
+    <span class="var">--sse-specification</span> Enabled=true \
+    <span class="var">--tags</span> Key=Env,Value=prod
+
+$ <span class="cmd">aws dynamodb wait table-exists --table-name Orders</span></code></pre>
+
+    <div class="ok"><strong><span class="inline-code">ProjectionType</span> 三選一，直接影響費用：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>類型</th><th>索引裡有什麼</th><th>成本</th></tr>
+          <tr><td><b>KEYS_ONLY</b></td><td>只有鍵</td><td><b>最省</b>，但要拿其他欄位得回主表再查一次</td></tr>
+          <tr><td><b>INCLUDE</b></td><td>鍵 + 你指定的欄位</td><td><b>平衡，實務首選</b></td></tr>
+          <tr><td><b>ALL</b></td><td>全部欄位</td><td>查詢最快，<b>但等於複製一整張表的儲存費</b></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <pre><code><span class="comment"># ═══ 寫入 ═══</span>
+$ <span class="cmd">aws dynamodb put-item</span> --table-name Orders --item '{
+    "customerId": {"S": "CUST-001"},
+    "orderDate":  {"S": "2026-08-05T10:30:00Z"},
+    "status":     {"S": "PENDING"},
+    "amount":     {"N": "1580"},
+    "items":      {"L": [{"S":"SKU-A"},{"S":"SKU-B"}]}
+  }' \
+  <span class="var">--condition-expression</span> "attribute_not_exists(customerId)"   <span class="comment"># 防止覆蓋既有資料</span>
+
+<span class="comment"># ═══ Query：查某客戶 8 月的訂單（效率高）═══</span>
+$ <span class="cmd">aws dynamodb query</span> --table-name Orders \
+    <span class="var">--key-condition-expression</span> "customerId = :c AND begins_with(orderDate, :d)" \
+    <span class="var">--expression-attribute-values</span> '{
+      ":c": {"S": "CUST-001"},
+      ":d": {"S": "2026-08"}
+    }' \
+    <span class="var">--return-consumed-capacity</span> TOTAL
+
+<span class="comment"># ═══ 用 GSI 查所有待處理訂單 ═══</span>
+$ <span class="cmd">aws dynamodb query</span> --table-name Orders \
+    <span class="var">--index-name</span> status-date-index \
+    --key-condition-expression "#s = :st" \
+    <span class="var">--expression-attribute-names</span> '{"#s": "status"}' \
+    --expression-attribute-values '{":st": {"S": "PENDING"}}'</code></pre>
+
+    <div class="note"><span class="inline-code">status</span> 是 DynamoDB 的保留字，不能直接用在表達式裡，要用 <span class="inline-code">--expression-attribute-names</span> 做別名（<span class="inline-code">#s</span>）。<b>保留字有數百個</b>，遇到 <span class="inline-code">ValidationException: Invalid token</span> 就往這裡想。</div>
+
+    <pre><code><span class="comment"># ═══ 原子更新（不用先讀再寫）═══</span>
+$ <span class="cmd">aws dynamodb update-item</span> --table-name Orders \
+    --key '{"customerId":{"S":"CUST-001"},"orderDate":{"S":"2026-08-05T10:30:00Z"}}' \
+    <span class="var">--update-expression</span> "SET #s = :new, updatedAt = :now ADD retryCount :one" \
+    --expression-attribute-names '{"#s":"status"}' \
+    --expression-attribute-values '{
+      ":new":{"S":"SHIPPED"}, ":now":{"S":"2026-08-05T11:00:00Z"},
+      ":one":{"N":"1"}, ":old":{"S":"PENDING"}
+    }' \
+    <span class="var">--condition-expression</span> "#s = :old"    <span class="comment"># 樂觀鎖：只有還是 PENDING 才改</span></code></pre>
+
+    <div class="ok"><strong><span class="inline-code">--condition-expression</span> 是 DynamoDB 做並行控制的方式。</strong>它讓「檢查 + 更新」變成<b>一個原子操作</b>，避免兩個請求同時改同一筆資料造成覆蓋。條件不成立會回傳 <span class="inline-code">ConditionalCheckFailedException</span>，程式要處理這個例外。</div>
+
+    <h3>三個實用功能</h3>
+    <pre><code><span class="comment"># ① TTL：自動刪除過期資料（免費，不消耗 WCU）</span>
+$ <span class="cmd">aws dynamodb update-time-to-live</span> --table-name Sessions \
+    <span class="var">--time-to-live-specification</span> "Enabled=true,AttributeName=expiresAt"
+<span class="comment">#    expiresAt 要存 Unix timestamp（秒）</span>
+
+<span class="comment"># ② Streams：資料變更時觸發 Lambda</span>
+$ <span class="cmd">aws dynamodb update-table</span> --table-name Orders \
+    <span class="var">--stream-specification</span> "StreamEnabled=true,StreamViewType=NEW_AND_OLD_IMAGES"
+
+<span class="comment"># ③ PITR：35 天內任意時間點還原</span>
+$ <span class="cmd">aws dynamodb update-continuous-backups</span> --table-name Orders \
+    <span class="var">--point-in-time-recovery-specification</span> PointInTimeRecoveryEnabled=true</code></pre>
+
+    <div class="ok"><strong>TTL 是省錢神器。</strong>Session、快取、日誌這類有時效的資料，設好 TTL 就會自動刪除，<b>完全免費而且不消耗寫入容量</b>。不用寫清理排程。<br><br>
+      <b>注意：</b>刪除不是即時的，AWS 通常在<b>過期後 48 小時內</b>刪掉。如果你的邏輯需要「過期就一定讀不到」，程式要自己再檢查一次時間。
+    </div>
+
+    <div class="warn"><strong>DynamoDB Global Tables 是多主寫入。</strong>多個 region 都能寫，衝突時用「<b>最後寫入者勝出</b>」解決。這代表<b>可能會掉資料</b>——如果兩個 region 幾乎同時改同一筆，先寫的那筆會被覆蓋且不會有警告。<br><br>
+      需要嚴格一致性的場景（例如庫存扣減）<b>不要用 Global Tables 做多region 寫入</b>，改成單一 region 寫入 + 其他 region 唯讀。
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="cache">
+    <h2>10. 快取層：ElastiCache 與 DAX</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>ElastiCache Redis</th><th>ElastiCache Memcached</th><th>DAX</th></tr>
+        <tr><td>資料結構</td><td><b>豐富</b>（list、set、sorted set、hash）</td><td>只有字串</td><td>DynamoDB 專用</td></tr>
+        <tr><td>持久化</td><td><b>支援</b></td><td>不支援</td><td>不需要</td></tr>
+        <tr><td>高可用</td><td><b>支援</b>（Multi-AZ + 副本）</td><td>不支援</td><td>支援</td></tr>
+        <tr><td>多執行緒</td><td>否（7.0 起部分支援）</td><td><b>是</b></td><td>—</td></tr>
+        <tr><td>程式要改嗎</td><td>要</td><td>要</td><td><b>幾乎不用</b>（相容 DynamoDB API）</td></tr>
+        <tr><td>延遲</td><td>亞毫秒</td><td>亞毫秒</td><td><b>微秒</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>選擇很單純：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>快取 DynamoDB</b> → <b>DAX</b>（程式幾乎不用改，換個 endpoint 就好）</li>
+        <li><b>快取 RDS、存 Session、排行榜、發布訂閱</b> → <b>Redis</b></li>
+        <li><b>只要單純的鍵值快取且要多執行緒</b> → Memcached（實務上很少選它）</li>
+      </ul>
+      考試看到「需要持久化」「需要高可用」「需要複雜資料結構」→ 一律選 <b>Redis</b>。
+    </div>
+
+    <h3>三種快取策略</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>策略</th><th>做法</th><th>優點</th><th>缺點</th></tr>
+        <tr><td><b>Lazy Loading</b><br>（Cache-Aside）</td><td>查快取 → 沒有就查 DB 再寫入快取</td><td>只快取真的被用到的資料</td><td>第一次一定 miss；可能有舊資料</td></tr>
+        <tr><td><b>Write-Through</b></td><td>寫 DB 時<b>同時</b>寫快取</td><td>快取永遠是新的</td><td>寫入變慢；<b>可能快取了沒人用的資料</b></td></tr>
+        <tr><td><b>TTL</b></td><td>設定過期時間</td><td>簡單，限制舊資料的影響</td><td>要調參數找平衡</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>實務標準組合：Lazy Loading + TTL。</strong>只快取真的被查的資料（省記憶體），再用 TTL 限制資料能舊到什麼程度。純 Write-Through 會快取大量從來沒人查的資料，浪費記憶體。</div>
+
+    <pre><code><span class="comment"># DAX：DynamoDB 的快取，程式只要換 endpoint</span>
+$ <span class="cmd">aws dax create-cluster</span> \
+    --cluster-name orders-dax \
+    --node-type dax.r5.large --replication-factor 3 \
+    --iam-role-arn arn:aws:iam::123456789012:role/DAXRole \
+    --subnet-group-name dax-subnets --security-group-ids $SG_DAX
+
+<span class="comment"># Redis 叢集</span>
+$ <span class="cmd">aws elasticache create-replication-group</span> \
+    --replication-group-id session-cache \
+    --replication-group-description "Session 快取" \
+    --engine redis --cache-node-type cache.r6g.large \
+    --num-cache-clusters 2 \
+    <span class="var">--automatic-failover-enabled</span> \
+    <span class="var">--multi-az-enabled</span> \
+    <span class="var">--at-rest-encryption-enabled</span> <span class="var">--transit-encryption-enabled</span> \
+    --cache-subnet-group-name cache-subnets --security-group-ids $SG_CACHE</code></pre>
+
+    <div class="cost">DAX <b>沒有免費方案</b>，最小的 dax.t3.small 東京區約 US$0.05/小時，三節點約 <b>US$110/月</b>。<br>
+    Redis cache.t4g.micro 約 US$0.019/小時（<b>免費方案有 750 小時</b>）。<br>
+    <b>學習用 Redis 的 t4g.micro 就好，不要開 DAX。</b></div>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="cost">
+    <h2>11. 費用與省錢</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>開發／測試資料庫下班關機</b>RDS 可以 stop，<b>但 7 天後會自動重啟</b>。要長期停就刪掉並保留快照。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>Right Sizing</b>Performance Insights 看實際 CPU 與連線數。長期低於 20% 就降規格。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>買 Reserved Instance</b>穩定的正式資料庫買 1 年 RI，<b>省 30–60%</b>。但同樣是不可退的財務承諾。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>用 Graviton 機型</b>db.r6g / db.r7g <b>比 Intel 便宜約 20%</b>，效能更好。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>開發環境用 Aurora Serverless v2</b>沒人用時縮到 0.5 ACU（約 US$0.06/小時），比固定規格省很多。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>清理舊快照</b>手動快照<b>永久保留並持續收費</b>。定期檢查有沒有三年前的快照還留著。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>DynamoDB 用 TTL 自動清理</b>免費刪除過期資料，不消耗 WCU。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>DynamoDB 檢查 GSI 投影</b>ALL 投影等於複製整張表。改成 INCLUDE 只放需要的欄位。</div></div>
+    </div>
+
+    <pre><code><span class="comment"># 找出可能浪費的資料庫資源</span>
+echo "=== 未加密的 RDS ==="
+aws rds describe-db-instances \
+  --query 'DBInstances[?StorageEncrypted==`false`].[DBInstanceIdentifier,Engine]' --output table
+
+echo "=== 沒開 Multi-AZ 的正式資料庫 ==="
+aws rds describe-db-instances \
+  --query 'DBInstances[?MultiAZ==`false`].[DBInstanceIdentifier,DBInstanceClass]' --output table
+
+echo "=== 公開存取的 RDS（重大風險）==="
+aws rds describe-db-instances \
+  --query 'DBInstances[?PubliclyAccessible==`true`].[DBInstanceIdentifier]' --output table
+
+echo "=== 超過一年的手動快照 ==="
+aws rds describe-db-snapshots --snapshot-type manual \
+  --query 'DBSnapshots[?SnapshotCreateTime<=`2025-08-05`].[DBSnapshotIdentifier,AllocatedStorage,SnapshotCreateTime]' \
+  --output table
+
+echo "=== 備份保留天數為 0 的資料庫 ==="
+aws rds describe-db-instances \
+  --query 'DBInstances[?BackupRetentionPeriod==`0`].[DBInstanceIdentifier]' --output table</code></pre>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：RDS + DynamoDB 雙軌</h3>
+    <p>需要第 02 章的 VPC。約 100 分鐘。</p>
+
+    <div class="cost"><b>這個 Lab 一定要用免費方案規格</b>：RDS 用 <b>db.t3.micro、單 AZ、20 GB gp2</b>；DynamoDB 用 <b>On-Demand</b>（免費方案每月 25 GB 儲存 + 2500 萬次請求）。<br>
+    這樣費用接近 0。<b>不要開 Multi-AZ、不要開 DAX、不要用 r6g 機型做實驗</b>——那些一天就會花掉數美元。<br>
+    做完務必刪除，並記得<b>手動快照會永久保留並收費</b>。</div>
+
+    <h4>階段一：RDS</h4>
+    <ol>
+      <li>建立 <strong>DB Subnet Group</strong>（用第 02 章的隔離層子網路）</li>
+      <li>建立 RDS MySQL：<strong>db.t3.micro、單 AZ、加密、不公開存取、--manage-master-user-password</strong></li>
+      <li>備份保留設 <strong>1 天</strong>（省錢但保留 PITR 能力）</li>
+      <li>從私有子網路的 EC2（用 SSM 連進去）連上資料庫，建一張表寫幾筆資料</li>
+      <li>從公網嘗試連線 → <strong>應該連不到</strong></li>
+      <li>建立自訂 <strong>Parameter Group</strong>，開啟 <span class="inline-code">slow_query_log</span> 與 <span class="inline-code">long_query_time=1</span></li>
+      <li>故意跑一個慢查詢（<span class="inline-code">SELECT SLEEP(3)</span>），到 CloudWatch Logs 找到那筆紀錄</li>
+    </ol>
+
+    <h4>階段二：備份與還原</h4>
+    <ol start="8">
+      <li>建立<strong>手動快照</strong></li>
+      <li><strong>刪掉一張表</strong>（模擬誤刪）</li>
+      <li>用 <strong>PITR</strong> 還原到刪除前一分鐘，建立一個新實例</li>
+      <li>連上新實例，確認<strong>資料回來了</strong></li>
+      <li>比較新舊實例的 <strong>endpoint 不同</strong>，理解「還原一定要切換連線」</li>
+    </ol>
+
+    <h4>階段三：DynamoDB</h4>
+    <ol start="13">
+      <li>建立 <strong>Orders</strong> 表：PK=customerId、SK=orderDate、<strong>On-Demand</strong>、加密</li>
+      <li>建立 GSI <strong>status-date-index</strong>，Projection 用 <strong>INCLUDE</strong></li>
+      <li>寫入 20 筆訂單，狀態分別是 PENDING / SHIPPED / DONE</li>
+      <li>用 <strong>Query</strong> 查某客戶的訂單，記下 <span class="inline-code">ConsumedCapacity</span></li>
+      <li>用 <strong>Scan + filter</strong> 查同樣的結果，<strong>比較消耗的容量差多少</strong></li>
+      <li>用 GSI Query 查所有 PENDING 訂單</li>
+      <li>用 <strong>condition-expression</strong> 做樂觀鎖更新，並故意讓條件失敗一次</li>
+      <li>另建一張 <strong>Sessions</strong> 表，開啟 <strong>TTL</strong>，寫入一筆 2 分鐘後過期的資料</li>
+      <li>開啟 <strong>PITR</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li><span class="inline-code">describe-db-instances</span> 的 <strong>PubliclyAccessible 是 false</strong>、<strong>StorageEncrypted 是 true</strong></li>
+      <li>從公網 telnet 3306 → <strong>不通</strong>；從私有 EC2 → <strong>通</strong></li>
+      <li>CloudWatch Logs 的 slowquery log group 裡<strong>找得到那筆 SLEEP(3)</strong></li>
+      <li>PITR 還原的新實例<strong>有被刪掉的那張表</strong></li>
+      <li>Query 的 ConsumedCapacity <strong>明顯小於 Scan</strong>（記下兩個數字）</li>
+      <li>樂觀鎖條件不成立時回傳 <strong>ConditionalCheckFailedException</strong></li>
+      <li>Secrets Manager 裡看得到自動產生的密碼，<strong>而且你從沒手動打過它</strong></li>
+    </ul>
+
+    <h4>清理</h4>
+    <pre><code>$ aws rds delete-db-instance --db-instance-identifier lab-mysql \
+    --skip-final-snapshot --delete-automated-backups
+$ aws rds delete-db-instance --db-instance-identifier lab-mysql-restored \
+    --skip-final-snapshot --delete-automated-backups
+$ aws rds delete-db-snapshot --db-snapshot-identifier lab-manual-snap
+$ aws rds delete-db-subnet-group --db-subnet-group-name db-subnets
+$ aws dynamodb delete-table --table-name Orders
+$ aws dynamodb delete-table --table-name Sessions
+$ aws secretsmanager delete-secret --secret-id prod/mysql/master \
+    --force-delete-without-recovery
+
+<span class="comment"># 確認沒有殘留</span>
+$ aws rds describe-db-instances --query 'DBInstances[].DBInstanceIdentifier'
+$ aws rds describe-db-snapshots --snapshot-type manual --query 'DBSnapshots[].DBSnapshotIdentifier'</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>算一題：讀取 12 KB 的項目、每秒 500 次、最終一致性，需要多少 <strong>RCU</strong>？</li>
+      <li>設計一個「熱門商品排行榜」的 DynamoDB 資料模型，說明 PK/SK 怎麼設計才不會產生 Hot Partition。</li>
+      <li>建立 <strong>稀疏索引</strong>：只有 <span class="inline-code">needsReview</span> 欄位存在的項目才進 GSI，驗證索引項目數遠小於主表。</li>
+      <li>開啟 <strong>DynamoDB Streams</strong>，寫一個 Lambda 在訂單狀態變成 SHIPPED 時印出日誌。</li>
+      <li>把 RDS 開啟 <strong>IAM 資料庫認證</strong>，用 <span class="inline-code">generate-db-auth-token</span> 連線，完全不使用密碼。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>選型三問：<strong>要 JOIN → 關聯式；查詢固定要極低延遲 → DynamoDB；大量分析 → Redshift/Athena</strong></li>
+      <li><strong>Multi-AZ 是保命（同步、自動切換）、Read Replica 是加速（非同步、手動提升）</strong></li>
+      <li>Read Replica <strong>不能取代備援</strong>——非同步複製可能掉資料</li>
+      <li>RDS <strong>加密只能建立時開</strong>；<strong>不公開存取</strong>；密碼交給 <strong>Secrets Manager</strong></li>
+      <li><span class="inline-code">--max-allocated-storage</span> 開啟儲存自動擴展，避免空間滿了當機</li>
+      <li>刪 RDS 前務必 <strong>--final-db-snapshot-identifier</strong>，自動備份會跟著消失</li>
+      <li>Aurora <strong>運算與儲存分離、6 份副本、切換 &lt; 30 秒、Cloning 秒級</strong></li>
+      <li>應用程式用 <strong>Cluster/Reader Endpoint</strong>，不要用 Instance Endpoint</li>
+      <li>DR 四策略：<strong>Backup&amp;Restore → Pilot Light → Warm Standby → Multi-Site</strong>，成本與 RTO 成反比</li>
+      <li>DynamoDB：<strong>1 RCU = 4 KB 強一致性讀、1 WCU = 1 KB 寫</strong>；最終一致性算一半</li>
+      <li><strong>分區鍵要基數高、分布平均</strong>，否則 Hot Partition</li>
+      <li><strong>LSI 只能建表時建且有 10 GB 上限；實務一律用 GSI</strong></li>
+      <li><strong>正式環境不該有 Scan</strong>——有 Scan 通常代表資料模型設計錯了</li>
+      <li>快取 DynamoDB 用 <strong>DAX</strong>，其他用 <strong>Redis</strong>；策略用 <strong>Lazy Loading + TTL</strong></li>
+    </ul>
+    <div class="note">資料庫題在 SAA-C03 每個領域都會出現，尤其「Multi-AZ vs Read Replica」和「DynamoDB 容量計算」是必考。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="04-s3-deep.html">← 04：S3 深入實作</a>
+    <a href="06-elb-asg.html">06：高可用與自動擴展 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 05</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

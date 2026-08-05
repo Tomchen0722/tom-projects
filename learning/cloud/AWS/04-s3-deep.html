@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S3 深入實作 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.tier{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:9px;margin:16px 0;}
+.tc{border-radius:10px;padding:12px 14px;color:#fff;}
+.tc b{display:block;font-size:.85rem;margin-bottom:3px;}
+.tc span{font-size:.75rem;opacity:.9;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">04 · S3 深入</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 04 · 物件儲存</div>
+  <h1><span>S3</span> 深入實作</h1>
+  <p>S3 看起來只是「上傳檔案」，實際上是 AWS 考試佔比最高的服務之一。這章講清楚八種儲存類別怎麼選、生命週期怎麼省錢、以及那些會讓資料外洩的設定。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#basic">基本概念與命名規則</a></li>
+      <li><a href="#class">八種儲存類別與選型</a></li>
+      <li><a href="#lifecycle">生命週期：自動省錢</a></li>
+      <li><a href="#version">版本控制與 MFA Delete</a></li>
+      <li><a href="#security">安全：四道鎖</a></li>
+      <li><a href="#encrypt">加密的四種方式</a></li>
+      <li><a href="#perf">效能優化與大檔上傳</a></li>
+      <li><a href="#replica">跨區複製與災難復原</a></li>
+      <li><a href="#static">靜態網站 + CloudFront</a></li>
+      <li><a href="#lock">Object Lock 與合規</a></li>
+      <li><a href="#cost">費用結構與省錢清單</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="basic">
+    <h2>1. 基本概念與命名規則</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>概念</th><th>說明</th></tr>
+        <tr><td><b>Bucket</b></td><td>最上層容器。<b>名稱全球唯一</b>（不只你的帳號，是全世界）</td></tr>
+        <tr><td><b>Object</b></td><td>一個檔案 + 中繼資料。<b>單一物件最大 5 TB</b></td></tr>
+        <tr><td><b>Key</b></td><td>物件的完整路徑，例如 <span class="inline-code">reports/2026/q1.pdf</span></td></tr>
+        <tr><td><b>Prefix</b></td><td>Key 的前段。S3 <b>沒有真正的資料夾</b>，「資料夾」只是 UI 依 <span class="inline-code">/</span> 做的視覺分組</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Bucket 名稱的硬規則（考試會考）：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>全球唯一</b>——別人用過的名字你不能用</li>
+        <li>3–63 個字元，<b>只能小寫字母、數字、連字號、句點</b></li>
+        <li>不能用底線、不能大寫、不能以連字號開頭或結尾</li>
+        <li><b>不能長得像 IP 位址</b>（192.168.1.1 這種）</li>
+        <li>名稱<b>建立後不能改</b>，要改只能建新的搬過去</li>
+      </ul>
+      實務建議加上帳號 ID 或公司前綴避免撞名：<span class="inline-code">mycompany-prod-reports-123456789012</span>
+    </div>
+
+    <div class="ok"><strong>S3 是 region 級服務，但名稱是全球唯一。</strong>資料實際存在你建立時選的 region，不會自己跑到別的地方。名稱全球唯一是因為 S3 支援用網域名稱存取（<span class="inline-code">bucket.s3.amazonaws.com</span>）。</div>
+
+    <pre><code><span class="comment"># 建立 bucket（東京區要指定 LocationConstraint）</span>
+$ <span class="cmd">aws s3api create-bucket</span> \
+    <span class="var">--bucket</span> mycompany-reports-123456789012 \
+    <span class="var">--region</span> ap-northeast-1 \
+    <span class="var">--create-bucket-configuration</span> LocationConstraint=ap-northeast-1
+
+<span class="comment"># 高階指令（s3 vs s3api 的差別見下方）</span>
+$ <span class="cmd">aws s3 mb s3://mycompany-reports-123456789012 --region ap-northeast-1</span>
+
+<span class="comment"># 上傳、下載、同步</span>
+$ <span class="cmd">aws s3 cp report.pdf s3://mycompany-reports/2026/q1/</span>
+$ <span class="cmd">aws s3 sync ./local-dir s3://mycompany-reports/backup/ --delete</span>
+$ <span class="cmd">aws s3 ls s3://mycompany-reports/2026/ --recursive --human-readable --summarize</span></code></pre>
+
+    <div class="note"><strong><span class="inline-code">aws s3</span> 和 <span class="inline-code">aws s3api</span> 差在哪？</strong><br>
+      <span class="inline-code">s3</span> 是高階指令（cp、sync、mv、rm），像 Linux 檔案操作，會自動處理分段上傳與平行處理。<br>
+      <span class="inline-code">s3api</span> 是低階 API 對應，一個指令對一個 API 呼叫，能做細部設定（版本控制、政策、生命週期）。<br>
+      <b>日常搬檔案用 s3，設定用 s3api。</b>
+    </div>
+
+    <div class="warn"><strong><span class="inline-code">sync --delete</span> 會刪掉目的地多出來的檔案。</strong>方向寫反（把空目錄同步到 bucket）就等於<b>清空整個 bucket</b>。<br><br>
+      <b>執行前務必先加 <span class="inline-code">--dryrun</span> 看它打算做什麼：</b>
+      <pre style="margin:8px 0 0"><code>$ aws s3 sync ./local s3://bucket/ --delete <span class="cmd">--dryrun</span></code></pre>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="class">
+    <h2>2. 八種儲存類別與選型</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類別</th><th>可用性</th><th>最短計費</th><th>取回費</th><th>取回時間</th><th>價格/GB/月</th></tr>
+        <tr><td><b>Standard</b></td><td>99.99%</td><td>—</td><td>無</td><td>即時</td><td><b>US$0.025</b></td></tr>
+        <tr><td><b>Intelligent-Tiering</b></td><td>99.9%</td><td>—</td><td>無</td><td>即時</td><td>0.025 起 + 監控費</td></tr>
+        <tr><td><b>Standard-IA</b></td><td>99.9%</td><td><b>30 天</b></td><td>US$0.01/GB</td><td>即時</td><td><b>US$0.0138</b></td></tr>
+        <tr><td><b>One Zone-IA</b></td><td>99.5%</td><td>30 天</td><td>US$0.01/GB</td><td>即時</td><td><b>US$0.011</b></td></tr>
+        <tr><td><b>Glacier Instant</b></td><td>99.9%</td><td><b>90 天</b></td><td>US$0.03/GB</td><td><b>即時</b></td><td><b>US$0.005</b></td></tr>
+        <tr><td><b>Glacier Flexible</b></td><td>99.99%</td><td>90 天</td><td>依速度</td><td>1 分鐘–12 小時</td><td><b>US$0.0045</b></td></tr>
+        <tr><td><b>Glacier Deep Archive</b></td><td>99.99%</td><td><b>180 天</b></td><td>較高</td><td><b>12–48 小時</b></td><td><b>US$0.002</b></td></tr>
+        <tr><td>Express One Zone</td><td>99.95%</td><td>1 小時</td><td>無</td><td><b>個位數毫秒</b></td><td>US$0.16</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>三個最容易在考試和帳單上踩雷的點：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>耐久性全部都是 99.999999999%（11 個 9）</b>，差別在<b>可用性</b>不是耐久性。考題問「哪個類別耐久性最高」是陷阱——都一樣。</li>
+        <li><b>One Zone-IA 只存在一個 AZ。</b>那個 AZ 毀了資料就沒了。只放「可以重新產生」的資料（縮圖、轉檔快取）。</li>
+        <li><b>最短計費天數是真的會收費。</b>放進 Standard-IA 第 3 天就刪，<b>還是要付 30 天的錢</b>。頻繁變動的檔案不要放 IA。</li>
+      </ol>
+    </div>
+
+    <div class="formula"><code><b>選型三個問題：</b><br><br>
+    多久存取一次？ 每天 → Standard｜每月 → IA｜每年 → Glacier<br>
+    需要多快拿到？ 即時 → Instant 以上｜可等幾小時 → Flexible/Deep<br>
+    <b>不知道存取模式？ → Intelligent-Tiering</b></code></div>
+
+    <div class="ok"><strong>Intelligent-Tiering 是最省心的選擇。</strong>AWS 自動依存取頻率搬層：30 天沒動 → IA、90 天 → Archive Instant、180 天 → Deep Archive。<b>沒有取回費、沒有最短計費天數</b>，只多一筆監控費（每 1000 個物件 US$0.0025）。<br><br>
+      <b>但小檔案不划算</b>——128 KB 以下的物件不會被搬層，卻照樣收監控費。大量小檔案用 Standard 就好。</div>
+
+    <pre><code><span class="comment"># 上傳時直接指定類別</span>
+$ <span class="cmd">aws s3 cp big.zip s3://my-bucket/ --storage-class GLACIER_IR</span>
+
+<span class="comment"># 改變既有物件的類別（用 copy 覆蓋自己）</span>
+$ <span class="cmd">aws s3 cp s3://my-bucket/old.zip s3://my-bucket/old.zip</span> \
+    <span class="var">--storage-class</span> DEEP_ARCHIVE <span class="var">--metadata-directive</span> COPY
+
+<span class="comment"># 看目前各類別各佔多少（用 S3 Storage Lens 或 CloudWatch）</span>
+$ <span class="cmd">aws s3api list-objects-v2</span> --bucket my-bucket \
+    <span class="var">--query</span> <span class="val">'Contents[].[Key,StorageClass,Size]'</span> --output table</code></pre>
+
+    <div class="warn"><strong>Glacier 類別要「還原」才能讀。</strong>Glacier Flexible 和 Deep Archive 的物件<b>不能直接下載</b>，要先發還原請求，等它變成暫時可讀：
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws s3api restore-object</span> --bucket my-bucket --key old.zip \
+    <span class="var">--restore-request</span> '{"Days":3,"GlacierJobParameters":{"Tier":"Standard"}}'
+
+<span class="comment"># 查還原進度</span>
+$ aws s3api head-object --bucket my-bucket --key old.zip --query Restore</code></pre>
+      Tier 有三種：<b>Expedited</b>（1–5 分鐘，貴）、<b>Standard</b>（3–5 小時）、<b>Bulk</b>（5–12 小時，最便宜）。Deep Archive 只有 Standard（12 小時）和 Bulk（48 小時）。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="lifecycle">
+    <h2>3. 生命週期：自動省錢</h2>
+
+    <p>手動搬層不可能維護。<b>生命週期規則</b>讓 S3 自動依「物件建立幾天後」搬層或刪除。</p>
+
+    <pre><code>$ cat &gt; lifecycle.json &lt;&lt;'EOF'
+{
+  "Rules": [
+    {
+      "ID": "logs-tiering",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "logs/" },
+      "Transitions": [
+        { "Days": 30,  "StorageClass": "STANDARD_IA" },
+        { "Days": 90,  "StorageClass": "GLACIER_IR" },
+        { "Days": 365, "StorageClass": "DEEP_ARCHIVE" }
+      ],
+      "Expiration": { "Days": 2555 }
+    },
+    {
+      "ID": "cleanup-old-versions",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "" },
+      "NoncurrentVersionTransitions": [
+        { "NoncurrentDays": 30, "StorageClass": "GLACIER_IR" }
+      ],
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 90 }
+    },
+    {
+      "ID": "abort-failed-uploads",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "" },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 7 }
+    }
+  ]
+}
+EOF
+
+$ <span class="cmd">aws s3api put-bucket-lifecycle-configuration</span> \
+    --bucket my-bucket --lifecycle-configuration file://lifecycle.json
+
+$ <span class="cmd">aws s3api get-bucket-lifecycle-configuration --bucket my-bucket</span></code></pre>
+
+    <div class="warn"><strong>第三條規則（AbortIncompleteMultipartUpload）幾乎所有人都漏掉，而且它在偷你的錢。</strong><br><br>
+      分段上傳失敗時，已經傳上去的片段<b>會一直留在 S3 並持續計費</b>，但 <span class="inline-code">aws s3 ls</span> <b>完全看不到它們</b>。有些帳號累積了幾 TB 的殭屍片段，付了好幾年的錢卻不知道。
+      <pre style="margin:8px 0 0"><code><span class="comment"># 查有沒有殭屍片段（現在就去查一下）</span>
+$ <span class="cmd">aws s3api list-multipart-uploads --bucket my-bucket</span></code></pre>
+      <b>每個 bucket 都應該加這條規則。</b>
+    </div>
+
+    <div class="warn"><strong>搬層本身要收費（每 1000 個物件的請求費）。</strong>
+      <ul style="margin:8px 0 0">
+        <li>轉到 IA / Glacier：每 1000 個物件約 <b>US$0.01–0.05</b></li>
+        <li><b>大量小檔案搬層可能比省下的錢還貴</b></li>
+      </ul>
+      經驗法則：<b>物件小於 128 KB 不要設搬層規則</b>。S3 也會自動忽略小於 128 KB 的物件不轉到 IA。
+    </div>
+
+    <h3>搬層方向的限制</h3>
+    <div class="formula"><code>Standard → IA → Glacier IR → Glacier Flexible → Deep Archive<br><br>
+    <b>只能往「更冷」的方向自動搬，不能反向。</b><br>
+    要回到 Standard 只能手動 restore 或 copy。</code></div>
+
+    <div class="ok"><strong>實際效果算一次給你看：</strong>1 TB 的日誌資料
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>策略</th><th>每月費用</th></tr>
+          <tr><td>全部放 Standard</td><td>1024 × 0.025 = <b>US$25.6</b></td></tr>
+          <tr><td>30 天後轉 IA、90 天後 Glacier IR、1 年後 Deep Archive<br>（假設穩定後 90% 在 Deep Archive）</td><td>約 <b>US$3.5</b></td></tr>
+        </table>
+      </div>
+      <b>省 86%</b>，而且完全自動。設定一次，之後不用管。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="version">
+    <h2>4. 版本控制與 MFA Delete</h2>
+
+    <p><b>版本控制</b>讓每次覆蓋或刪除都保留舊版本。它是防止「誤刪」和「勒索病毒」最有效的機制。</p>
+
+    <pre><code>$ <span class="cmd">aws s3api put-bucket-versioning</span> \
+    --bucket my-bucket <span class="var">--versioning-configuration</span> Status=Enabled
+
+$ <span class="cmd">aws s3api list-object-versions --bucket my-bucket --prefix reports/</span></code></pre>
+
+    <div class="warn"><strong>版本控制有三個重要特性：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>開啟後不能關閉</b>，只能「暫停」（Suspended）。暫停後新物件不再產生版本，但<b>舊版本仍然存在並持續計費</b></li>
+        <li><b>刪除不是真的刪除</b>——會放一個 <b>Delete Marker</b> 在最上層，舊版本還在。刪掉 Delete Marker 檔案就「復活」了</li>
+        <li><b>每個版本都獨立計費</b>。改一個 100 MB 的檔案 10 次 = 存了 1 GB</li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment"># 誤刪了？把 Delete Marker 刪掉就復原</span>
+$ <span class="cmd">aws s3api list-object-versions</span> --bucket my-bucket --prefix important.xlsx \
+    <span class="var">--query</span> <span class="val">'DeleteMarkers[?IsLatest==`true`].[Key,VersionId]'</span> --output text
+
+$ <span class="cmd">aws s3api delete-object</span> --bucket my-bucket \
+    --key important.xlsx <span class="var">--version-id</span> 3HL4kqCxf3vjVBH40Nrjfkd
+
+<span class="comment"># 還原成某個舊版本（把它複製成最新版）</span>
+$ <span class="cmd">aws s3api copy-object</span> --bucket my-bucket --key important.xlsx \
+    <span class="var">--copy-source</span> "my-bucket/important.xlsx?versionId=OLD_VERSION_ID"</code></pre>
+
+    <div class="ok"><strong>版本控制 + 生命週期是標準組合。</strong>光開版本控制會讓費用不斷成長，一定要搭配 <span class="inline-code">NoncurrentVersionExpiration</span> 自動清掉舊版本（例如保留 90 天）。上一節的第二條規則就是做這件事。</div>
+
+    <h3>MFA Delete：最高等級的保護</h3>
+    <pre><code><span class="comment"># 注意：只能用 root 帳號設定，而且必須用長期憑證（不能用 AssumeRole）</span>
+$ <span class="cmd">aws s3api put-bucket-versioning</span> --bucket my-bucket \
+    --versioning-configuration Status=Enabled,<span class="var">MFADelete=Enabled</span> \
+    <span class="var">--mfa</span> "arn:aws:iam::123456789012:mfa/root-account-mfa-device 123456"</code></pre>
+
+    <div class="warn"><strong>MFA Delete 的限制很嚴格：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>只有 root 帳號能開啟或關閉</b></li>
+        <li>必須用 CLI（主控台做不到）</li>
+        <li>之後<b>每次刪除版本或關閉版本控制都要提供 MFA 碼</b></li>
+        <li>不能用臨時憑證（AssumeRole 出來的）</li>
+      </ul>
+      因為太麻煩，實務上多數公司改用 <b>Object Lock</b>（第 10 節）或 <b>SCP 禁止刪除</b>來達到類似效果。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="security">
+    <h2>5. 安全：四道鎖</h2>
+
+    <div class="warn"><strong>S3 資料外洩是雲端最常見的事故類型。</strong>Capital One、Verizon、Accenture、多家醫療機構都發生過。原因幾乎都一樣：<b>bucket 被設成公開，或 bucket policy 寫錯</b>。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>層級</th><th>機制</th><th>作用</th></tr>
+        <tr><td>1</td><td><b>Block Public Access</b></td><td><b>總開關</b>，蓋過所有其他設定</td></tr>
+        <tr><td>2</td><td><b>Bucket Policy</b></td><td>資源型政策，可跨帳號</td></tr>
+        <tr><td>3</td><td><b>IAM Policy</b></td><td>身分型政策</td></tr>
+        <tr><td>4</td><td><b>ACL</b></td><td>舊機制，<b>AWS 現在建議停用</b></td></tr>
+      </table>
+    </div>
+
+    <h3>第一道：Block Public Access（一定要開）</h3>
+    <pre><code><span class="comment"># 帳號層級一次擋掉全部（最強的保護）</span>
+$ <span class="cmd">aws s3control put-public-access-block</span> \
+    <span class="var">--account-id</span> 123456789012 \
+    <span class="var">--public-access-block-configuration</span> \
+      BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+
+<span class="comment"># 單一 bucket</span>
+$ <span class="cmd">aws s3api put-public-access-block</span> --bucket my-bucket \
+    --public-access-block-configuration \
+      BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true</code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>設定</th><th>擋什麼</th></tr>
+        <tr><td><b>BlockPublicAcls</b></td><td>禁止<b>新增</b>公開的 ACL</td></tr>
+        <tr><td><b>IgnorePublicAcls</b></td><td><b>忽略既有</b>的公開 ACL</td></tr>
+        <tr><td><b>BlockPublicPolicy</b></td><td>禁止<b>新增</b>公開的 bucket policy</td></tr>
+        <tr><td><b>RestrictPublicBuckets</b></td><td>既有公開政策<b>只對本帳號和 AWS 服務生效</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>2023 年起 AWS 新建的 bucket 預設就開啟全部四項，而且預設停用 ACL。</strong>但<b>舊 bucket 不受影響</b>——去把每個舊 bucket 都檢查一遍。
+      <pre style="margin:8px 0 0"><code><span class="comment"># 找出沒有完整封鎖公開存取的 bucket</span>
+$ for b in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do
+    cfg=$(aws s3api get-public-access-block --bucket "$b" \
+          --query 'PublicAccessBlockConfiguration' --output json 2&gt;/dev/null || echo "NONE")
+    echo "$b : $cfg"
+  done</code></pre>
+    </div>
+
+    <h3>第二道：Bucket Policy 常用範本</h3>
+    <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": ["arn:aws:s3:::my-bucket", "arn:aws:s3:::my-bucket/*"],
+      "Condition": { "Bool": { <span class="val">"aws:SecureTransport"</span>: "false" } }
+    },
+    {
+      "Sid": "DenyUnencryptedUpload",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::my-bucket/*",
+      "Condition": {
+        "StringNotEquals": { "s3:x-amz-server-side-encryption": "aws:kms" }
+      }
+    },
+    {
+      "Sid": "OnlyFromOurVpcEndpoint",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::my-bucket/*",
+      "Condition": {
+        "StringNotEquals": { <span class="val">"aws:SourceVpce"</span>: "vpce-0abc123def456" }
+      }
+    }
+  ]
+}</code></pre>
+
+    <div class="warn"><strong>寫 <span class="inline-code">"Principal": "*"</span> 加 <span class="inline-code">"Effect": "Deny"</span> 是安全的；寫 <span class="inline-code">"Effect": "Allow"</span> 就是把 bucket 公開給全世界。</strong>一個字之差，結果天差地遠。<br><br>
+      <b>套用政策前一定要用 Access Analyzer 檢查：</b>
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws accessanalyzer validate-policy</span> \
+    --policy-document file://bucket-policy.json --policy-type RESOURCE_POLICY</code></pre>
+    </div>
+
+    <div class="ok"><strong>要對外提供檔案，不要把 bucket 公開——用這三種方式：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>CloudFront + OAC</b>（Origin Access Control）——bucket 保持私有，只有 CloudFront 讀得到。<b>對外網站的標準做法</b></li>
+        <li><b>Presigned URL</b>——產生一個有時效的連結，給特定的人下載</li>
+        <li><b>S3 Access Points</b>——為不同用途建立不同的存取端點與政策</li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment"># Presigned URL：15 分鐘後失效</span>
+$ <span class="cmd">aws s3 presign s3://my-bucket/report.pdf --expires-in 900</span>
+https://my-bucket.s3.ap-northeast-1.amazonaws.com/report.pdf?X-Amz-Algorithm=...
+
+<span class="comment"># 上傳用的 presigned URL（讓外部使用者直接傳到 S3，不經過你的伺服器）</span>
+$ aws s3 presign s3://my-bucket/uploads/file.zip --expires-in 3600</code></pre>
+
+    <div class="note"><strong>Presigned URL 的權限來自「產生它的那個身分」。</strong>如果用 root 或 admin 產生，那個連結就有 admin 的權限範圍。而且<b>URL 的有效期不能超過產生它的憑證有效期</b>——用臨時憑證產生的 presigned URL，憑證過期它也跟著失效。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="encrypt">
+    <h2>6. 加密的四種方式</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>方式</th><th>金鑰誰管</th><th>加解密誰做</th><th>費用</th><th>適合</th></tr>
+        <tr><td><b>SSE-S3</b></td><td>AWS</td><td>AWS</td><td><b>免費</b></td><td><b>預設，多數情況夠用</b></td></tr>
+        <tr><td><b>SSE-KMS</b></td><td>你（在 KMS）</td><td>AWS</td><td>KMS 金鑰 US$1/月 + 請求費</td><td><b>需要稽核與權限控制</b></td></tr>
+        <tr><td><b>DSSE-KMS</b></td><td>你</td><td>AWS（<b>加密兩層</b>）</td><td>較貴</td><td>極高合規要求</td></tr>
+        <tr><td><b>SSE-C</b></td><td><b>你自己</b></td><td>AWS</td><td>免費</td><td>金鑰絕不能給 AWS</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>2023 年起 S3 對<u>所有</u>新物件預設啟用 SSE-S3。</strong>也就是說「有沒有加密」已經不是問題，問題變成「<b>要不要用自己管的金鑰</b>」。</div>
+
+    <pre><code><span class="comment"># 設定 bucket 預設加密為 KMS</span>
+$ <span class="cmd">aws s3api put-bucket-encryption</span> --bucket my-bucket \
+    <span class="var">--server-side-encryption-configuration</span> <span class="val">'{
+  "Rules": [{
+    "ApplyServerSideEncryptionByDefault": {
+      "SSEAlgorithm": "aws:kms",
+      "KMSMasterKeyID": "arn:aws:kms:ap-northeast-1:123456789012:key/xxx"
+    },
+    "BucketKeyEnabled": true
+  }]
+}'</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">BucketKeyEnabled: true</span> 一定要開，它能省 99% 的 KMS 費用。</strong><br><br>
+      沒開的話，<b>每一個物件的每一次讀寫都要呼叫一次 KMS</b>（每萬次 US$0.03）。一天讀 1000 萬次 = 每天 US$30 = <b>每月 US$900</b>。<br><br>
+      開啟 Bucket Key 之後，S3 在 bucket 層級快取一把金鑰，KMS 呼叫次數<b>降到原本的 1%</b>。這是純粹的省錢，沒有任何安全性損失。
+    </div>
+
+    <div class="warn"><strong>用 SSE-KMS 時，光有 S3 權限不夠。</strong>使用者還必須有 KMS key 的 <span class="inline-code">kms:Decrypt</span> 權限，否則會拿到 <span class="inline-code">AccessDenied</span> 而且<b>錯誤訊息不會說是 KMS 的問題</b>。<br><br>
+      「IAM 明明給了 s3:GetObject 卻讀不到」→ 十之八九是 KMS key policy 沒給權限。這也是第 01 章「有 Admin 卻做不到」的其中一種情況。
+    </div>
+
+    <pre><code><span class="comment"># 檢查某個 bucket 的加密設定</span>
+$ <span class="cmd">aws s3api get-bucket-encryption --bucket my-bucket</span>
+
+<span class="comment"># 找出未加密的物件（用 S3 Inventory 或逐一檢查）</span>
+$ aws s3api head-object --bucket my-bucket --key file.pdf \
+    --query '[ServerSideEncryption,SSEKMSKeyId]'</code></pre>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="perf">
+    <h2>7. 效能優化與大檔上傳</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>指標</th><th>數值</th></tr>
+        <tr><td>每個 prefix 每秒 <b>寫入</b></td><td><b>3,500</b> 次 PUT/COPY/POST/DELETE</td></tr>
+        <tr><td>每個 prefix 每秒 <b>讀取</b></td><td><b>5,500</b> 次 GET/HEAD</td></tr>
+        <tr><td>prefix 數量</td><td><b>無上限</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>要更高吞吐量就「分散 prefix」。</strong>
+      <div class="formula" style="margin-top:10px"><code>❌ logs/2026-08-05-001.log　（全部同一個 prefix）<br>
+      ✅ logs/<b>a1</b>/2026-08-05-001.log<br>
+      ✅ logs/<b>b7</b>/2026-08-05-002.log<br><br>
+      10 個 prefix → 每秒 35,000 次寫入</code></div>
+      <b>注意：</b>2018 年後 S3 已經自動處理大部分的分區，一般用途<b>不需要刻意做</b>。只有在單一 prefix 真的撞到 3500/5500 上限（會收到 <span class="inline-code">503 SlowDown</span>）時才需要。
+    </div>
+
+    <h3>分段上傳（Multipart Upload）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>檔案大小</th><th>做法</th></tr>
+        <tr><td>&lt; 100 MB</td><td>單次 PUT 就好</td></tr>
+        <tr><td>100 MB – 5 GB</td><td><b>建議</b>用分段上傳</td></tr>
+        <tr><td>&gt; 5 GB</td><td><b>必須</b>用分段上傳（單次 PUT 上限就是 5 GB）</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># CLI 會自動分段，但可以調參數加速</span>
+$ <span class="cmd">aws configure set default.s3.multipart_threshold 64MB</span>
+$ <span class="cmd">aws configure set default.s3.multipart_chunksize 16MB</span>
+$ <span class="cmd">aws configure set default.s3.max_concurrent_requests 20</span>
+$ <span class="cmd">aws configure set default.s3.max_bandwidth 100MB/s</span>
+
+<span class="comment"># 大量小檔案：用 sync 而不是逐個 cp</span>
+$ <span class="cmd">aws s3 sync ./thousands-of-files s3://my-bucket/data/</span></code></pre>
+
+    <div class="ok"><strong>分段上傳的三個好處：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>平行傳輸</b>——多個片段同時傳，速度快很多</li>
+        <li><b>可續傳</b>——某個片段失敗只要重傳那一段，不用整個重來</li>
+        <li><b>邊產生邊上傳</b>——不需要先知道檔案總大小</li>
+      </ol>
+      <b>但記得設 AbortIncompleteMultipartUpload 生命週期規則</b>（第 3 節），否則失敗的片段會一直計費。
+    </div>
+
+    <h3>Transfer Acceleration：跨洲上傳加速</h3>
+    <pre><code>$ <span class="cmd">aws s3api put-bucket-accelerate-configuration</span> \
+    --bucket my-bucket --accelerate-configuration Status=Enabled
+
+<span class="comment"># 用加速端點上傳</span>
+$ <span class="cmd">aws s3 cp big.zip s3://my-bucket/ --endpoint-url https://s3-accelerate.amazonaws.com</span></code></pre>
+
+    <div class="cost">Transfer Acceleration 每 GB 加收 <b>US$0.04–0.08</b>。它走 CloudFront 的邊緣節點進 AWS 骨幹網路，<b>只有跨洲時才有明顯效果</b>（台灣傳東京幾乎沒差，台灣傳美東才有感）。<br>
+    AWS 有個線上測速工具可以先測「你的位置到各 region 加速多少」，划算再開。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="replica">
+    <h2>8. 跨區複製與災難復原</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>CRR（跨區複製）</th><th>SRR（同區複製）</th></tr>
+        <tr><td>目的</td><td><b>災難復原</b>、降低跨洲延遲、合規</td><td>日誌集中、正式/測試環境同步、跨帳號備份</td></tr>
+        <tr><td>目標 region</td><td>不同</td><td>相同</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># 前提：來源和目標 bucket 都必須開啟版本控制</span>
+$ aws s3api put-bucket-versioning --bucket src-bucket \
+    --versioning-configuration Status=Enabled
+$ aws s3api put-bucket-versioning --bucket dst-bucket-osaka \
+    --versioning-configuration Status=Enabled
+
+$ cat &gt; replication.json &lt;&lt;'EOF'
+{
+  "Role": "arn:aws:iam::123456789012:role/s3-replication-role",
+  "Rules": [{
+    "ID": "dr-to-osaka",
+    "Status": "Enabled",
+    "Priority": 1,
+    "Filter": { "Prefix": "critical/" },
+    "DeleteMarkerReplication": { "Status": "Enabled" },
+    "Destination": {
+      "Bucket": "arn:aws:s3:::dst-bucket-osaka",
+      "StorageClass": "STANDARD_IA",
+      "ReplicationTime": { "Status": "Enabled", "Time": { "Minutes": 15 } },
+      "Metrics": { "Status": "Enabled", "EventThreshold": { "Minutes": 15 } }
+    }
+  }]
+}
+EOF
+
+$ <span class="cmd">aws s3api put-bucket-replication</span> \
+    --bucket src-bucket --replication-configuration file://replication.json</code></pre>
+
+    <div class="warn"><strong>複製的六個限制（考試常考）：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>兩邊都必須開版本控制</b></li>
+        <li><b>只複製「設定規則之後」的新物件</b>。既有物件要另外用 <b>S3 Batch Replication</b> 補</li>
+        <li><b>不會鏈式複製</b>——A→B、B→C，A 的物件不會到 C</li>
+        <li>預設<b>不複製刪除動作</b>，要明確開 <span class="inline-code">DeleteMarkerReplication</span></li>
+        <li><b>永遠不複製「指定版本 ID 的刪除」</b>——這是防止惡意刪除擴散的設計</li>
+        <li>需要一個有適當權限的 <b>IAM Role</b></li>
+      </ol>
+    </div>
+
+    <div class="cost">跨區複製要付：<b>目標 bucket 的儲存費</b> + <b>跨區傳輸費（每 GB 約 US$0.09）</b> + 複製請求費。<br>
+    開 <b>RTC（Replication Time Control，15 分鐘 SLA）</b>還要額外每 GB US$0.015。<br><br>
+    1 TB 的資料複製到大阪：一次性傳輸約 <b>US$92</b>，之後每月多付約 <b>US$14</b> 的儲存費。<b>只複製真正關鍵的 prefix，不要整個 bucket 複製。</b></div>
+
+    <div class="ok"><strong>複製也能用來做「跨帳號防勒索備份」。</strong>把資料 SRR 或 CRR 到<b>另一個帳號</b>的 bucket，並在那個帳號啟用 Object Lock。就算主帳號被完全接管，攻擊者也刪不掉備份帳號的資料。這是目前對抗勒索軟體最有效的雲端架構。</div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="static">
+    <h2>9. 靜態網站 + CloudFront</h2>
+
+    <div class="warn"><strong>不要用 S3 的「靜態網站託管」直接對外。</strong>它<b>只支援 HTTP 不支援 HTTPS</b>，而且需要把 bucket 設成公開。<br><br>
+      <b>正確做法：bucket 保持完全私有，前面掛 CloudFront + OAC。</b>
+    </div>
+
+    <pre><code><span class="comment"># ═══ 步驟 1：bucket 保持私有，開啟全部 Block Public Access ═══</span>
+$ aws s3api put-public-access-block --bucket my-site \
+    --public-access-block-configuration \
+      BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+
+<span class="comment"># ═══ 步驟 2：建立 Origin Access Control ═══</span>
+$ <span class="cmd">OAC_ID</span>=$(aws cloudfront create-origin-access-control \
+    <span class="var">--origin-access-control-config</span> '{
+      "Name": "my-site-oac",
+      "OriginAccessControlOriginType": "s3",
+      "SigningBehavior": "always",
+      "SigningProtocol": "sigv4"
+    }' --query 'OriginAccessControl.Id' --output text)
+
+<span class="comment"># ═══ 步驟 3：建立 CloudFront distribution（略，用 JSON 設定檔）═══</span>
+
+<span class="comment"># ═══ 步驟 4：bucket policy 只允許這個 distribution ═══</span>
+$ cat &gt; oac-policy.json &lt;&lt;'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "AllowCloudFrontOAC",
+    "Effect": "Allow",
+    "Principal": { "Service": "cloudfront.amazonaws.com" },
+    "Action": "s3:GetObject",
+    "Resource": "arn:aws:s3:::my-site/*",
+    "Condition": {
+      "StringEquals": {
+        "AWS:SourceArn": "arn:aws:cloudfront::123456789012:distribution/E1ABCDEF"
+      }
+    }
+  }]
+}
+EOF
+$ aws s3api put-bucket-policy --bucket my-site --policy file://oac-policy.json</code></pre>
+
+    <div class="ok"><strong>CloudFront + OAC 的好處：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>免費的 HTTPS</b>（ACM 憑證在 CloudFront 用是免費的）</li>
+        <li><b>全球 CDN 快取</b>——使用者從最近的節點拿檔案</li>
+        <li><b>bucket 完全私有</b>，不可能被直接存取</li>
+        <li>可以掛 <b>WAF</b> 擋攻擊</li>
+        <li><b>對外流量費比 S3 直出便宜</b>（CloudFront US$0.114/GB vs S3 US$0.114/GB，但 CloudFront 有免費額度且快取命中不算源站流量）</li>
+      </ul>
+    </div>
+
+    <div class="warn"><strong>OAC 取代了舊的 OAI（Origin Access Identity）。</strong>新專案一律用 OAC——它支援 SSE-KMS 加密的 bucket、支援所有 HTTP 方法、支援所有 region。OAI 已經是舊技術，考試可能兩個都問，但實務上用 OAC。</div>
+
+    <pre><code><span class="comment"># 更新內容後要讓 CloudFront 快取失效</span>
+$ <span class="cmd">aws cloudfront create-invalidation</span> \
+    --distribution-id E1ABCDEF <span class="var">--paths</span> "/*"</code></pre>
+
+    <div class="cost">CloudFront 失效每月<b>前 1000 個路徑免費</b>，之後每個 US$0.005。<br>
+    用 <span class="inline-code">"/*"</span> 只算 <b>一個</b>路徑，所以整站失效很便宜。<br>
+    但更好的做法是<b>檔名帶版本雜湊</b>（<span class="inline-code">app.a3f9b2.js</span>），這樣根本不需要失效，也能設很長的快取時間。</div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="lock">
+    <h2>10. Object Lock 與合規</h2>
+
+    <p><b>Object Lock</b> 提供 WORM（Write Once Read Many）——寫進去之後<b>在期限內任何人都刪不掉</b>，包含 root 帳號。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>模式</th><th>誰能提前解除</th><th>用途</th></tr>
+        <tr><td><b>Governance</b></td><td>有 <span class="inline-code">s3:BypassGovernanceRetention</span> 權限的人</td><td>內部保護，防誤刪</td></tr>
+        <tr><td><b>Compliance</b></td><td><b>沒有人</b>，連 root 都不行</td><td>法規要求（金融、醫療）</td></tr>
+        <tr><td><b>Legal Hold</b></td><td>有權限的人可隨時移除</td><td>訴訟期間凍結證據，<b>無到期日</b></td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Compliance 模式是不可逆的。</strong>設定 7 年保留期之後，<b>那筆資料就是會佔用 7 年的儲存空間並收費</b>，AWS 支援也無法幫你刪除。<br><br>
+      這牽涉到實際的長期費用承諾——<b>導入前務必確認法規要求的年限，並且先在測試 bucket 用短期限（例如 1 天）試過</b>。設錯年限沒有後悔藥。
+    </div>
+
+    <pre><code><span class="comment"># Object Lock 只能在「建立 bucket 時」啟用，之後不能加</span>
+$ <span class="cmd">aws s3api create-bucket</span> --bucket compliance-archive \
+    --region ap-northeast-1 \
+    --create-bucket-configuration LocationConstraint=ap-northeast-1 \
+    <span class="var">--object-lock-enabled-for-bucket</span>
+
+<span class="comment"># 設定預設保留規則</span>
+$ <span class="cmd">aws s3api put-object-lock-configuration</span> --bucket compliance-archive \
+    <span class="var">--object-lock-configuration</span> '{
+      "ObjectLockEnabled": "Enabled",
+      "Rule": { "DefaultRetention": { "Mode": "GOVERNANCE", "Days": 2555 } }
+    }'
+
+<span class="comment"># 對單一物件加 Legal Hold</span>
+$ <span class="cmd">aws s3api put-object-legal-hold</span> --bucket compliance-archive \
+    --key evidence.zip --legal-hold Status=ON</code></pre>
+
+    <div class="ok"><strong>防勒索軟體的完整架構：</strong>
+      <ol style="margin:8px 0 0">
+        <li>備份資料<b>複製到另一個 AWS 帳號</b>（CRR 跨帳號）</li>
+        <li>那個帳號的 bucket 啟用 <b>Object Lock（Compliance 模式）</b></li>
+        <li>備份帳號用 <b>SCP 禁止關閉 Object Lock 和版本控制</b></li>
+        <li>主帳號<b>沒有</b>備份帳號的任何寫入權限</li>
+      </ol>
+      這樣就算攻擊者拿到主帳號的 root 權限，<b>也無法碰到備份</b>。
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="cost">
+    <h2>11. 費用結構與省錢清單</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>費用項目</th><th>東京區價格</th><th>備註</th></tr>
+        <tr><td><b>儲存</b></td><td>US$0.025/GB/月（Standard）</td><td>依類別不同</td></tr>
+        <tr><td><b>PUT/POST/LIST 請求</b></td><td>US$0.0047 / 1000 次</td><td>寫入比讀取貴 10 倍</td></tr>
+        <tr><td><b>GET 請求</b></td><td>US$0.00037 / 1000 次</td><td></td></tr>
+        <tr><td><b>對外傳輸</b></td><td><b>US$0.114/GB</b></td><td><b>通常是最大宗</b>，前 100 GB/月免費</td></tr>
+        <tr><td>同 region 傳到 EC2</td><td><b>免費</b></td><td>前提是走 VPC Endpoint 或同 region</td></tr>
+        <tr><td>跨 region 傳輸</td><td>US$0.09/GB</td><td></td></tr>
+        <tr><td>生命週期搬層</td><td>US$0.01–0.05 / 1000 物件</td><td>小檔案要注意</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>最常見的 S3 帳單意外，按發生頻率排序：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>對外流量</b>——網站圖片直接從 S3 出去，沒放 CloudFront</li>
+        <li><b>殭屍分段上傳</b>——看不見但一直收費</li>
+        <li><b>版本控制沒配生命週期</b>——舊版本無限累積</li>
+        <li><b>大量小檔案的請求費</b>——存 1 億個 1 KB 的檔案，請求費遠超儲存費</li>
+        <li><b>IA 類別放了頻繁存取的資料</b>——取回費把省下的儲存費吃光</li>
+        <li><b>SSE-KMS 沒開 Bucket Key</b>——KMS 請求費暴增</li>
+      </ol>
+    </div>
+
+    <h3>盤點腳本</h3>
+    <pre><code>#!/bin/bash
+echo "=== ① 沒有生命週期規則的 bucket ==="
+for b in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do
+  if ! aws s3api get-bucket-lifecycle-configuration --bucket "$b" &gt;/dev/null 2&gt;&amp;1; then
+    echo "  $b"
+  fi
+done
+
+echo "=== ② 有殭屍分段上傳的 bucket ==="
+for b in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do
+  n=$(aws s3api list-multipart-uploads --bucket "$b" \
+      --query 'length(Uploads)' --output text 2&gt;/dev/null)
+  [ "$n" != "None" ] &amp;&amp; [ "$n" != "0" ] &amp;&amp; echo "  $b : $n 個未完成上傳"
+done
+
+echo "=== ③ 開了版本控制但沒有 NoncurrentVersionExpiration ==="
+for b in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do
+  v=$(aws s3api get-bucket-versioning --bucket "$b" --query Status --output text 2&gt;/dev/null)
+  if [ "$v" == "Enabled" ]; then
+    lc=$(aws s3api get-bucket-lifecycle-configuration --bucket "$b" 2&gt;/dev/null)
+    echo "$lc" | grep -q NoncurrentVersionExpiration || echo "  $b"
+  fi
+done
+
+echo "=== ④ 用 KMS 但沒開 Bucket Key ==="
+for b in $(aws s3api list-buckets --query 'Buckets[].Name' --output text); do
+  enc=$(aws s3api get-bucket-encryption --bucket "$b" 2&gt;/dev/null)
+  echo "$enc" | grep -q '"aws:kms"' &amp;&amp; ! echo "$enc" | grep -q '"BucketKeyEnabled": true' \
+    &amp;&amp; echo "  $b"
+done</code></pre>
+
+    <div class="ok"><strong>S3 Storage Lens 是免費的全帳號儀表板。</strong>它會直接告訴你：哪個 bucket 最大、哪些物件從沒被存取過、有多少不完整的分段上傳、各儲存類別的分布。<b>免費版就有 28 項指標，開了沒壞處。</b>
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws s3control get-storage-lens-configuration</span> \
+    --account-id 123456789012 --config-id default-account-dashboard</code></pre>
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：安全的資料湖 + 靜態網站</h3>
+    <p>約 90 分鐘。</p>
+
+    <div class="cost">S3 <b>免費方案</b>每月有 5 GB 標準儲存、20,000 次 GET、2,000 次 PUT。<br>
+    這個 Lab 用到的資料量很小，<b>費用接近 0</b>。CloudFront 免費方案每月有 1 TB 傳輸。<br>
+    <b>唯一要注意</b>：不要啟用 Object Lock Compliance 模式做實驗——那會鎖住資料無法刪除。要試就用 <b>Governance 模式 + 1 天</b>。</div>
+
+    <h4>階段一：建立與加固</h4>
+    <ol>
+      <li>建立 bucket <span class="inline-code">你的名字-lab-YYYYMMDD</span>，確認四項 <strong>Block Public Access 全開</strong></li>
+      <li>開啟<strong>版本控制</strong></li>
+      <li>設定<strong>預設加密</strong>為 SSE-KMS，並開啟 <strong>BucketKeyEnabled</strong></li>
+      <li>套用 bucket policy：<strong>拒絕非 HTTPS</strong>、<strong>拒絕未加密上傳</strong></li>
+      <li>用 <span class="inline-code">accessanalyzer validate-policy</span> 檢查政策沒有問題</li>
+      <li>用 HTTP 嘗試存取 → <strong>應該被拒絕</strong></li>
+    </ol>
+
+    <h4>階段二：生命週期與版本</h4>
+    <ol start="7">
+      <li>設定三條生命週期規則：<strong>搬層</strong>、<strong>清理舊版本</strong>、<strong>中止未完成分段上傳</strong></li>
+      <li>上傳一個檔案，修改後再上傳三次，用 <span class="inline-code">list-object-versions</span> 看到 4 個版本</li>
+      <li><strong>刪除</strong>該檔案，確認出現 <strong>Delete Marker</strong> 且舊版本仍在</li>
+      <li>刪掉 Delete Marker，確認檔案<strong>復活</strong></li>
+      <li>把某個舊版本 copy 成最新版，完成「還原到指定版本」</li>
+    </ol>
+
+    <h4>階段三：儲存類別與還原</h4>
+    <ol start="12">
+      <li>上傳一個檔案指定 <strong>GLACIER</strong> 類別</li>
+      <li>嘗試直接 <span class="inline-code">aws s3 cp</span> 下載 → <strong>應該失敗</strong></li>
+      <li>發 <strong>restore-object</strong> 請求（Bulk tier），用 <span class="inline-code">head-object</span> 觀察 Restore 狀態</li>
+      <li>上傳一個檔案到 <strong>Intelligent-Tiering</strong>，比較兩者的差異</li>
+    </ol>
+
+    <h4>階段四：靜態網站 + CloudFront</h4>
+    <ol start="16">
+      <li>建立第二個 bucket 放靜態網站檔案（<strong>保持私有</strong>）</li>
+      <li>建立 <strong>Origin Access Control</strong></li>
+      <li>建立 CloudFront distribution，origin 指向該 bucket</li>
+      <li>套用只允許該 distribution 的 <strong>bucket policy</strong></li>
+      <li>用 CloudFront 網域開啟網站 → <strong>成功且是 HTTPS</strong></li>
+      <li>直接用 S3 URL 開啟 → <strong>應該 403</strong></li>
+      <li>改一個檔案，<strong>create-invalidation</strong> 讓快取失效</li>
+    </ol>
+
+    <h4>階段五：Presigned URL 與盤點</h4>
+    <ol start="23">
+      <li>產生一個 <strong>60 秒</strong>有效的 presigned URL，測試過期後失效</li>
+      <li>執行第 11 節的<strong>盤點腳本</strong>，檢查自己帳號的所有 bucket</li>
+      <li>開啟 <strong>S3 Storage Lens</strong> 預設儀表板看一眼</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li><span class="inline-code">get-public-access-block</span> 四項全是 <strong>true</strong></li>
+      <li>用 <span class="inline-code">http://</span>（非 https）存取 → <strong>AccessDenied</strong></li>
+      <li>不帶加密標頭上傳 → <strong>AccessDenied</strong></li>
+      <li><span class="inline-code">get-bucket-encryption</span> 顯示 <strong>BucketKeyEnabled: true</strong></li>
+      <li>刪除檔案後 <span class="inline-code">list-object-versions</span> 看得到 <strong>DeleteMarkers</strong> 且 Versions 還在</li>
+      <li>Glacier 物件直接下載<strong>失敗</strong>，restore 後成功</li>
+      <li>CloudFront 網域可開，<strong>S3 直連 403</strong></li>
+      <li>presigned URL 過期後回傳 <strong>AccessDenied</strong></li>
+    </ul>
+
+    <h4>清理</h4>
+    <pre><code><span class="comment"># 版本控制的 bucket 要先刪掉「所有版本」才能刪 bucket</span>
+$ aws s3api delete-objects --bucket my-lab-bucket \
+    --delete "$(aws s3api list-object-versions --bucket my-lab-bucket \
+      --query '{Objects: Versions[].{Key:Key,VersionId:VersionId}}' --output json)"
+
+$ aws s3api delete-objects --bucket my-lab-bucket \
+    --delete "$(aws s3api list-object-versions --bucket my-lab-bucket \
+      --query '{Objects: DeleteMarkers[].{Key:Key,VersionId:VersionId}}' --output json)"
+
+$ aws s3 rb s3://my-lab-bucket
+$ aws cloudfront delete-distribution --id E1ABCDEF --if-match ETAG</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>算一筆帳：1 TB 資料、每月對外傳 500 GB。「S3 直出」與「CloudFront」哪個便宜？差多少？</li>
+      <li>設定 <strong>SRR 同區複製</strong>到另一個 bucket，觀察「設定前」的既有物件<strong>不會被複製</strong>。</li>
+      <li>建一個開啟 <strong>Object Lock Governance 模式（1 天）</strong>的 bucket，上傳檔案後嘗試刪除，觀察錯誤訊息。</li>
+      <li>寫一個 Lambda，S3 有新物件時自動產生縮圖存回另一個 prefix（S3 Event Notification）。</li>
+      <li>用 <strong>S3 Inventory</strong> 產生一份完整的物件清單報表，找出所有未加密的物件。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>Bucket 名稱<strong>全球唯一、只能小寫、建好不能改</strong></li>
+      <li>所有儲存類別的<strong>耐久性都是 11 個 9</strong>，差別在可用性與取回成本</li>
+      <li><strong>One Zone-IA 只有一個 AZ</strong>；IA 有 <strong>30 天</strong>、Glacier <strong>90 天</strong>、Deep Archive <strong>180 天</strong>最短計費</li>
+      <li>不確定存取模式就用 <strong>Intelligent-Tiering</strong>，但小檔案不划算</li>
+      <li>每個 bucket 都要加 <strong>AbortIncompleteMultipartUpload</strong> 規則——殭屍片段看不見卻一直收費</li>
+      <li>版本控制<strong>開了不能關</strong>，一定要配 <strong>NoncurrentVersionExpiration</strong></li>
+      <li>刪除只是放 <strong>Delete Marker</strong>，刪掉它就復原</li>
+      <li><strong>Block Public Access 四項全開</strong>；對外提供檔案用 <strong>CloudFront + OAC</strong> 或 <strong>Presigned URL</strong></li>
+      <li>SSE-KMS 一定要開 <strong>BucketKeyEnabled</strong>，省 99% KMS 費用</li>
+      <li>「有 s3 權限卻讀不到」→ 檢查 <strong>KMS key policy</strong></li>
+      <li>複製<strong>只複製設定後的新物件</strong>、<strong>不會鏈式複製</strong>、兩邊都要開版本控制</li>
+      <li><strong>Object Lock Compliance 模式不可逆</strong>，連 root 都刪不掉——設定前務必確認年限</li>
+      <li>最大的費用通常是<strong>對外流量</strong>，其次是殭屍片段與失控的版本</li>
+    </ul>
+    <div class="note">S3 幾乎在 SAA-C03 的每個領域都會出現。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪，特別注意儲存類別選型和安全設定的題型。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="03-ec2-storage.html">← 03：EC2 與儲存實作</a>
+    <a href="05-database.html">05：資料庫選型與實作 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 04</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

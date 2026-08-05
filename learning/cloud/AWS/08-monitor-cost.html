@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>監控、稽核與成本 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.pillar{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin:16px 0;}
+.pl{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--sky);background:#fff;}
+.pl b{display:block;font-size:.86rem;color:var(--dark);margin-bottom:3px;}
+.pl span{font-size:.77rem;color:var(--muted);line-height:1.65;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">08 · 監控與成本</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">實作 08 · 可觀測性與 FinOps</div>
+  <h1>監控、稽核與<span>成本</span></h1>
+  <p>「看得見才管得動」。這章把 CloudWatch、CloudTrail、Config、X-Ray 串成一套可觀測性架構，並把前面各章零散的省錢技巧整合成可執行的 FinOps 流程。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#four">四個服務各自回答什麼問題</a></li>
+      <li><a href="#metrics">CloudWatch Metrics 與自訂指標</a></li>
+      <li><a href="#alarm">告警設計：不要製造雜訊</a></li>
+      <li><a href="#logs">Logs 與 Logs Insights</a></li>
+      <li><a href="#xray">X-Ray 分散式追蹤</a></li>
+      <li><a href="#config">Config：合規自動檢查</a></li>
+      <li><a href="#auto">自動修復（Auto Remediation）</a></li>
+      <li><a href="#tag">標籤策略：FinOps 的基礎</a></li>
+      <li><a href="#cost">成本分析與異常偵測</a></li>
+      <li><a href="#finops">FinOps 月度流程</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="four">
+    <h2>1. 四個服務各自回答什麼問題</h2>
+
+    <div class="pillar">
+      <div class="pl"><b>CloudWatch</b><span>「<b>現在系統健康嗎？</b>」<br>指標、日誌、告警、儀表板</span></div>
+      <div class="pl"><b>CloudTrail</b><span>「<b>誰做了什麼？</b>」<br>API 呼叫的稽核紀錄</span></div>
+      <div class="pl"><b>Config</b><span>「<b>設定合規嗎？</b>」<br>資源組態的歷史與規則</span></div>
+      <div class="pl"><b>X-Ray</b><span>「<b>這個請求慢在哪？</b>」<br>跨服務的分散式追蹤</span></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>情境</th><th>用哪個</th></tr>
+        <tr><td>「網站變慢了，是 CPU 還是資料庫？」</td><td><b>CloudWatch</b> 指標</td></tr>
+        <tr><td>「誰刪掉了那個 S3 bucket？」</td><td><b>CloudTrail</b></td></tr>
+        <tr><td>「這個安全群組什麼時候被改成開放 0.0.0.0/0？」</td><td><b>Config</b>（組態歷史）</td></tr>
+        <tr><td>「有哪些 EBS 磁碟沒有加密？」</td><td><b>Config</b>（規則）</td></tr>
+        <tr><td>「這支 API 花了 3 秒，是哪一段慢？」</td><td><b>X-Ray</b></td></tr>
+        <tr><td>「應用程式印了什麼錯誤訊息？」</td><td><b>CloudWatch Logs</b></td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>CloudTrail 和 Config 很容易混淆，用一句話分清楚：</strong>
+      <div class="formula" style="margin-top:10px"><code><b>CloudTrail = 「動作」的紀錄</b>（誰在幾點呼叫了 ModifySecurityGroup）<br><br>
+      <b>Config = 「狀態」的紀錄</b>（這個安全群組在各個時間點長什麼樣）</code></div>
+      查「誰做的」用 CloudTrail，查「當時是什麼設定」用 Config。<b>兩個一起用才能還原完整事件</b>。
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="metrics">
+    <h2>2. CloudWatch Metrics 與自訂指標</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類型</th><th>頻率</th><th>費用</th></tr>
+        <tr><td><b>基本監控</b>（預設）</td><td><b>5 分鐘</b></td><td>免費</td></tr>
+        <tr><td><b>詳細監控</b></td><td><b>1 分鐘</b></td><td>EC2 每台每月約 US$2.10</td></tr>
+        <tr><td><b>高解析度自訂指標</b></td><td>最低 <b>1 秒</b></td><td>US$0.30/指標/月 + API 費</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>EC2 的預設指標<u>沒有</u>記憶體和磁碟使用率。</strong>因為那需要從作業系統內部取得，AWS 從外面看不到。<br><br>
+      要監控記憶體必須裝 <b>CloudWatch Agent</b>。這是很多人「為什麼看不到記憶體」的答案。
+      <pre style="margin:8px 0 0"><code>$ sudo dnf install -y amazon-cloudwatch-agent
+$ sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
+    -a fetch-config -m ec2 <span class="var">-c ssm:AmazonCloudWatch-linux</span> -s</code></pre>
+    </div>
+
+    <h3>各服務最該盯的指標</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>服務</th><th>關鍵指標</th><th>看什麼</th></tr>
+        <tr><td rowspan="3"><b>EC2</b></td><td>CPUUtilization</td><td>持續 &gt; 80% 要擴容</td></tr>
+        <tr><td><b>CPUCreditBalance</b></td><td>T 系列，往下掉就要換機型</td></tr>
+        <tr><td>StatusCheckFailed</td><td>&gt; 0 代表機器有問題</td></tr>
+        <tr><td rowspan="3"><b>ALB</b></td><td><b>HTTPCode_ELB_5XX_Count</b></td><td>ALB 自己的錯誤</td></tr>
+        <tr><td>TargetResponseTime</td><td>用 <b>p99</b> 不要用平均</td></tr>
+        <tr><td><b>UnHealthyHostCount</b></td><td>&gt; 0 立刻要看</td></tr>
+        <tr><td rowspan="4"><b>RDS</b></td><td>CPUUtilization</td><td></td></tr>
+        <tr><td><b>DatabaseConnections</b></td><td>接近上限要用連線池</td></tr>
+        <tr><td><b>FreeableMemory</b></td><td>太低會開始用 swap，效能崩潰</td></tr>
+        <tr><td><b>ReadIOPS / WriteIOPS</b></td><td>撞到上限就是瓶頸</td></tr>
+        <tr><td rowspan="3"><b>Lambda</b></td><td><b>Throttles</b></td><td>&gt; 0 代表被限流</td></tr>
+        <tr><td>Duration</td><td>接近 timeout 要注意</td></tr>
+        <tr><td>ConcurrentExecutions</td><td>接近帳號上限</td></tr>
+        <tr><td><b>SQS</b></td><td><b>ApproximateAgeOfOldestMessage</b></td><td>持續增加 = 消費者跟不上</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>用 p99 而不是平均值。</strong>平均回應時間 200ms 看起來很好，但如果 p99 是 5 秒，代表<b>每 100 個使用者就有 1 個等 5 秒</b>。<br><br>
+      平均值會把問題藏起來。<b>SLO 應該用 p95 或 p99 定義</b>，不要用平均。
+      <pre style="margin:8px 0 0"><code>$ aws cloudwatch get-metric-statistics \
+    --namespace AWS/ApplicationELB --metric-name TargetResponseTime \
+    --dimensions Name=LoadBalancer,Value=app/web-alb/xxx \
+    --start-time 2026-08-05T00:00:00Z --end-time 2026-08-05T12:00:00Z \
+    --period 300 <span class="var">--extended-statistics p50 p95 p99</span></code></pre>
+    </div>
+
+    <h3>自訂指標</h3>
+    <pre><code><span class="comment"># 方法 1：直接呼叫 API（會產生 API 費用）</span>
+$ <span class="cmd">aws cloudwatch put-metric-data</span> \
+    <span class="var">--namespace</span> "MyApp/Orders" \
+    <span class="var">--metric-name</span> OrdersCreated \
+    <span class="var">--value</span> 1 \
+    <span class="var">--dimensions</span> Env=prod,Region=tw
+
+<span class="comment"># 方法 2：EMF（Embedded Metric Format）—— 推薦，只要印 log</span>
+<span class="comment"># CloudWatch 會自動從日誌解析出指標，不用額外 API 呼叫</span></code></pre>
+
+    <pre><code><span class="kw">import</span> json, time
+
+<span class="kw">def</span> emit_metric(name, value, unit=<span class="val">"Count"</span>, **dims):
+    print(json.dumps({
+        <span class="val">"_aws"</span>: {
+            <span class="val">"Timestamp"</span>: int(time.time() * 1000),
+            <span class="val">"CloudWatchMetrics"</span>: [{
+                <span class="val">"Namespace"</span>: <span class="val">"MyApp/Orders"</span>,
+                <span class="val">"Dimensions"</span>: [list(dims.keys())],
+                <span class="val">"Metrics"</span>: [{<span class="val">"Name"</span>: name, <span class="val">"Unit"</span>: unit}]
+            }]
+        },
+        name: value,
+        **dims,
+    }))
+
+<span class="comment"># 用法：只是 print，但 CloudWatch 會把它變成指標</span>
+emit_metric(<span class="val">"OrderAmount"</span>, 1580, <span class="val">"None"</span>, Env=<span class="val">"prod"</span>, PaymentType=<span class="val">"credit"</span>)</code></pre>
+
+    <div class="ok"><strong>EMF 比 put-metric-data 好在三點：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>不需要額外的 API 呼叫</b>——省下延遲和費用</li>
+        <li><b>不會阻塞</b>——put-metric-data 是同步呼叫，會拖慢你的函式</li>
+        <li><b>日誌和指標關聯</b>——看到指標異常可以直接跳到對應的日誌</li>
+      </ol>
+      <b>Lambda 裡一律用 EMF</b>，不要用 put-metric-data。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="alarm">
+    <h2>3. 告警設計：不要製造雜訊</h2>
+
+    <div class="warn"><strong>告警疲勞是監控系統最常見的失敗模式。</strong>設了 200 個告警，每天響 50 次，<b>結果是所有人都把通知靜音</b>——真正的事故發生時沒人看到。<br><br>
+      <b>好的告警只有一個標準：收到它時，你必須做點什麼。</b>不需要行動的就不該是告警，應該放進儀表板。
+    </div>
+
+    <div class="ok"><strong>告警分兩級：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>等級</th><th>意義</th><th>通知方式</th><th>例子</th></tr>
+          <tr><td><b>P1 立即處理</b></td><td>使用者已經受影響</td><td><b>電話 / PagerDuty</b></td><td>5XX 錯誤率 &gt; 5%、健康主機數 = 0</td></tr>
+          <tr><td><b>P2 上班時間處理</b></td><td>還沒影響但趨勢不對</td><td>Slack / Email</td><td>磁碟 80%、憑證 30 天到期</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <pre><code><span class="comment"># ═══ 建立 SNS 通知管道 ═══</span>
+$ <span class="cmd">TOPIC_ARN</span>=$(aws sns create-topic --name ops-alerts --query TopicArn --output text)
+$ aws sns subscribe --topic-arn $TOPIC_ARN --protocol email --notification-endpoint you@example.com
+
+<span class="comment"># ═══ 好的告警：多個評估週期，避免瞬間抖動就響 ═══</span>
+$ <span class="cmd">aws cloudwatch put-metric-alarm</span> \
+    <span class="var">--alarm-name</span> "P1-ALB-5XX-率過高" \
+    <span class="var">--alarm-description</span> "5 分鐘內 5XX 超過 5%，使用者已受影響" \
+    <span class="var">--metrics</span> '[
+      {
+        "Id": "errors",
+        "MetricStat": {
+          "Metric": {"Namespace":"AWS/ApplicationELB","MetricName":"HTTPCode_ELB_5XX_Count",
+                     "Dimensions":[{"Name":"LoadBalancer","Value":"app/web-alb/xxx"}]},
+          "Period": 300, "Stat": "Sum"
+        }, "ReturnData": false
+      },
+      {
+        "Id": "total",
+        "MetricStat": {
+          "Metric": {"Namespace":"AWS/ApplicationELB","MetricName":"RequestCount",
+                     "Dimensions":[{"Name":"LoadBalancer","Value":"app/web-alb/xxx"}]},
+          "Period": 300, "Stat": "Sum"
+        }, "ReturnData": false
+      },
+      {
+        "Id": "errorRate",
+        "<span class="var">Expression</span>": "IF(total > 100, errors / total * 100, 0)",
+        "Label": "5XX 百分比", "ReturnData": true
+      }
+    ]' \
+    --threshold 5 --comparison-operator GreaterThanThreshold \
+    <span class="var">--evaluation-periods</span> 2 <span class="var">--datapoints-to-alarm</span> 2 \
+    <span class="var">--treat-missing-data</span> notBreaching \
+    --alarm-actions $TOPIC_ARN --ok-actions $TOPIC_ARN</code></pre>
+
+    <div class="ok"><strong>這個告警的三個設計重點：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>用「錯誤率」不是「錯誤數」</b>——流量大的時候 10 個錯誤很正常，流量小的時候 10 個錯誤是災難</li>
+        <li><b><span class="inline-code">IF(total > 100, ...)</span></b>——請求數太少時不告警，避免半夜 3 個請求裡有 1 個失敗就把人吵醒</li>
+        <li><b><span class="inline-code">--datapoints-to-alarm 2</span></b>——連續兩個週期都超標才響，過濾瞬間抖動</li>
+      </ul>
+    </div>
+
+    <div class="warn"><strong><span class="inline-code">--treat-missing-data</span> 設錯是常見的誤報來源。</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>設定</th><th>沒有資料時</th><th>什麼時候用</th></tr>
+          <tr><td><b>notBreaching</b></td><td>當成正常</td><td><b>流量型指標</b>（沒流量就沒錯誤，是正常的）</td></tr>
+          <tr><td><b>breaching</b></td><td>當成異常</td><td><b>心跳型指標</b>（沒資料代表系統掛了）</td></tr>
+          <tr><td><b>ignore</b></td><td>保持原狀態</td><td>間歇性的指標</td></tr>
+          <tr><td><b>missing</b>（預設）</td><td>進入 INSUFFICIENT_DATA</td><td>—</td></tr>
+        </table>
+      </div>
+      <b>批次工作的「每天應該執行一次」告警要設 breaching</b>——沒資料代表沒跑，那正是你要知道的事。
+    </div>
+
+    <h3>複合告警：減少雜訊</h3>
+    <pre><code><span class="comment"># 只有「錯誤率高」且「健康主機數正常」時才響</span>
+<span class="comment"># （如果主機全掛了，那是另一個告警的事，不用重複通知）</span>
+$ <span class="cmd">aws cloudwatch put-composite-alarm</span> \
+    --alarm-name "P1-應用層錯誤" \
+    <span class="var">--alarm-rule</span> "ALARM('P1-ALB-5XX-率過高') AND NOT ALARM('P1-無健康主機')" \
+    --alarm-actions $TOPIC_ARN</code></pre>
+
+    <div class="note"><strong>異常偵測（Anomaly Detection）</strong>適合「沒有固定閾值」的指標。它學習過去 2 週的模式，自動畫出正常範圍的帶狀區間。例如「週一早上流量本來就高」它會知道，不會誤報。
+      <pre style="margin:8px 0 0"><code>$ aws cloudwatch put-anomaly-detector \
+    --namespace AWS/ApplicationELB --metric-name RequestCount \
+    --dimensions Name=LoadBalancer,Value=app/web-alb/xxx --stat Sum</code></pre>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="logs">
+    <h2>4. Logs 與 Logs Insights</h2>
+
+    <div class="warn"><strong>CloudWatch Logs 的 log group <u>預設永久保留</u>，這是最常見的隱形成本。</strong><br>
+      儲存費 US$0.033/GB/月看起來很少，但一個中型系統一年累積幾 TB 之後就是每月數百美元。<b>而且沒有人會去查三年前的日誌。</b>
+      <pre style="margin:8px 0 0"><code><span class="comment"># 找出所有沒設保留期的 log group</span>
+$ <span class="cmd">aws logs describe-log-groups</span> \
+    <span class="var">--query</span> 'logGroups[?!retentionInDays].[logGroupName,storedBytes]' --output table
+
+<span class="comment"># 一次全部設成 30 天</span>
+$ aws logs describe-log-groups --query 'logGroups[?!retentionInDays].logGroupName' \
+    --output text | tr '\t' '\n' | while read lg; do
+      aws logs put-retention-policy --log-group-name "$lg" --retention-in-days 30
+    done</code></pre>
+    </div>
+
+    <div class="ok"><strong>保留期的建議：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>應用程式日誌</b>：14–30 天（排錯用，超過就沒人看）</li>
+        <li><b>存取日誌</b>：90 天</li>
+        <li><b>稽核日誌（CloudTrail）</b>：<b>1–7 年</b>，但要匯出到 <b>S3 + Glacier</b>，不要放 CloudWatch Logs</li>
+      </ul>
+      長期保存一律用 S3——<b>S3 Glacier Deep Archive 每 GB US$0.002，是 CloudWatch Logs 的 1/16</b>。
+    </div>
+
+    <h3>Logs Insights：查日誌的正確方式</h3>
+    <pre><code><span class="comment"># ① 找出最慢的 20 個請求</span>
+fields @timestamp, @message, @duration
+| filter @type = "REPORT"
+| sort @duration desc
+| limit 20
+
+<span class="comment"># ② 統計各種錯誤出現次數</span>
+fields @message
+| filter @message like /ERROR/
+| parse @message /"errorType":\s*"(?&lt;errType&gt;[^"]+)"/
+| stats count() as 次數 by errType
+| sort 次數 desc
+
+<span class="comment"># ③ Lambda 記憶體使用率（找出設定過大的函式）</span>
+filter @type = "REPORT"
+| stats max(@memorySize / 1000 / 1000) as 設定MB,
+        max(@maxMemoryUsed / 1000 / 1000) as 實際用MB,
+        max(@maxMemoryUsed / @memorySize * 100) as 使用率
+  by @log
+| sort 使用率 asc
+
+<span class="comment"># ④ 找出冷啟動與其耗時</span>
+filter @type = "REPORT" and ispresent(@initDuration)
+| stats count() as 冷啟動次數, avg(@initDuration) as 平均初始化ms,
+        pct(@initDuration, 99) as p99
+  by bin(1h)
+
+<span class="comment"># ⑤ ALB 存取日誌：找出 5XX 來自哪個後端</span>
+fields @timestamp, target_ip, elb_status_code, target_status_code, request_url
+| filter elb_status_code &gt;= 500
+| stats count() by target_ip, target_status_code
+| sort count desc</code></pre>
+
+    <pre><code><span class="comment"># CLI 執行查詢</span>
+$ <span class="cmd">QID</span>=$(aws logs start-query \
+    <span class="var">--log-group-names</span> /aws/lambda/order-processor \
+    <span class="var">--start-time</span> $(date -d '1 hour ago' +%s) \
+    <span class="var">--end-time</span> $(date +%s) \
+    <span class="var">--query-string</span> 'fields @timestamp, @message | filter @message like /ERROR/ | limit 20' \
+    --query queryId --output text)
+
+$ <span class="cmd">aws logs get-query-results --query-id $QID</span></code></pre>
+
+    <div class="cost">Logs Insights 按<b>掃描的資料量</b>計費（US$0.0076/GB）。<br>
+    查詢時<b>一定要縮小時間範圍</b>——查一個月的 100 GB 日誌就是 US$0.76 一次。多查幾次就有感了。<br>
+    <b>技巧：先用 <span class="inline-code">filter</span> 縮小範圍再做 <span class="inline-code">stats</span></b>，可以大幅減少掃描量。</div>
+
+    <div class="ok"><strong>Metric Filter：把日誌變成指標。</strong>如果你要對「日誌裡出現某個關鍵字」告警，不要用 Logs Insights 定時查（貴又慢），改用 Metric Filter：
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws logs put-metric-filter</span> \
+    --log-group-name /aws/lambda/order-processor \
+    --filter-name payment-failures \
+    <span class="var">--filter-pattern</span> '{ $.level = "ERROR" && $.msg = "payment_failed" }' \
+    --metric-transformations \
+      metricName=PaymentFailures,metricNamespace=MyApp,metricValue=1,defaultValue=0</code></pre>
+      這樣就能對它設一般的 CloudWatch 告警，<b>即時且便宜</b>。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="xray">
+    <h2>5. X-Ray 分散式追蹤</h2>
+
+    <p>微服務或無伺服器架構下，一個請求會經過 API Gateway → Lambda → DynamoDB → SQS → 另一支 Lambda。<b>「這個請求為什麼花 3 秒」用日誌很難查</b>，因為日誌分散在各個服務。</p>
+
+    <div class="ok"><strong>X-Ray 把整個請求鏈串成一張圖</strong>，直接告訴你「3 秒裡有 2.4 秒花在等 DynamoDB」。</div>
+
+    <pre><code><span class="comment"># Lambda 開啟追蹤（一個參數）</span>
+$ aws lambda update-function-configuration \
+    --function-name order-processor <span class="var">--tracing-config</span> Mode=Active
+
+<span class="comment"># API Gateway 開啟</span>
+$ aws apigatewayv2 update-stage --api-id $API_ID --stage-name '$default' \
+    --default-route-settings '{"DetailedMetricsEnabled":true}'</code></pre>
+
+    <pre><code><span class="comment"># 程式碼裡加上細部追蹤（Python）</span>
+$ pip install aws-xray-sdk
+
+<span class="kw">from</span> aws_xray_sdk.core <span class="kw">import</span> xray_recorder, patch_all
+
+<span class="comment"># 自動追蹤所有 boto3 / requests 呼叫</span>
+patch_all()
+
+<span class="kw">@xray_recorder.capture</span>(<span class="val">"validate_order"</span>)
+<span class="kw">def</span> validate(order):
+    ...
+
+<span class="kw">def</span> handler(event, context):
+    <span class="comment"># 加上業務註解，方便之後過濾查詢</span>
+    xray_recorder.put_annotation(<span class="val">"customerId"</span>, event[<span class="val">"customerId"</span>])
+    xray_recorder.put_metadata(<span class="val">"orderDetail"</span>, event)
+
+    <span class="kw">with</span> xray_recorder.in_subsegment(<span class="val">"外部支付 API"</span>):
+        charge()</code></pre>
+
+    <div class="warn"><strong>Annotation 和 Metadata 差別很大：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>Annotation</b>——<b>可以被索引和搜尋</b>，最多 50 個。放 customerId、orderId 這種你會拿來查的</li>
+        <li><b>Metadata</b>——<b>不能搜尋</b>，只是附加資料。放完整的請求內容</li>
+      </ul>
+      放錯的話你會發現「資料有記錄但搜尋不到」。
+    </div>
+
+    <pre><code><span class="comment"># 用 annotation 過濾追蹤</span>
+$ <span class="cmd">aws xray get-trace-summaries</span> \
+    --start-time $(date -d '1 hour ago' +%s) --end-time $(date +%s) \
+    <span class="var">--filter-expression</span> 'annotation.customerId = "CUST-001" AND duration > 2'
+
+<span class="comment"># 找出所有錯誤的追蹤</span>
+$ aws xray get-trace-summaries \
+    --start-time ... --end-time ... \
+    --filter-expression 'error = true OR fault = true'</code></pre>
+
+    <div class="cost">X-Ray：每月<b>前 10 萬筆追蹤免費</b>，之後 US$5/百萬筆。<br>
+    高流量系統要開<b>取樣（sampling）</b>——預設是「每秒第一筆 + 之後 5%」，這樣既能看到問題又不會爆費用。<b>不要 100% 取樣。</b></div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="config">
+    <h2>6. Config：合規自動檢查</h2>
+
+    <p>Config 持續記錄每個資源的組態，並用<b>規則</b>持續檢查它們合不合規。</p>
+
+    <pre><code><span class="comment"># 啟用 Config（先要有 Role 和 S3 bucket）</span>
+$ <span class="cmd">aws configservice put-configuration-recorder</span> \
+    --configuration-recorder name=default,roleARN=arn:aws:iam::123456789012:role/config-role \
+    <span class="var">--recording-group</span> allSupported=true,includeGlobalResourceTypes=true
+
+$ aws configservice put-delivery-channel \
+    --delivery-channel name=default,s3BucketName=my-config-bucket
+
+$ aws configservice start-configuration-recorder --configuration-recorder-name default</code></pre>
+
+    <h3>常用的託管規則（不用自己寫）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>規則</th><th>檢查什麼</th></tr>
+        <tr><td><span class="inline-code">s3-bucket-public-read-prohibited</span></td><td>S3 沒有公開讀取</td></tr>
+        <tr><td><span class="inline-code">s3-bucket-server-side-encryption-enabled</span></td><td>S3 有加密</td></tr>
+        <tr><td><span class="inline-code">encrypted-volumes</span></td><td>EBS 都加密</td></tr>
+        <tr><td><span class="inline-code">rds-instance-public-access-check</span></td><td>RDS 沒有公開存取</td></tr>
+        <tr><td><span class="inline-code">rds-storage-encrypted</span></td><td>RDS 有加密</td></tr>
+        <tr><td><span class="inline-code">restricted-ssh</span></td><td>安全群組沒有對 0.0.0.0/0 開 22</td></tr>
+        <tr><td><span class="inline-code">iam-user-mfa-enabled</span></td><td>IAM 使用者都有 MFA</td></tr>
+        <tr><td><span class="inline-code">root-account-mfa-enabled</span></td><td>root 有 MFA</td></tr>
+        <tr><td><span class="inline-code">required-tags</span></td><td>資源有必要的標籤</td></tr>
+        <tr><td><span class="inline-code">cloudtrail-enabled</span></td><td>CloudTrail 有開</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># 套用一條規則</span>
+$ <span class="cmd">aws configservice put-config-rule</span> --config-rule '{
+    "ConfigRuleName": "encrypted-volumes",
+    "Source": { "Owner": "AWS", "SourceIdentifier": "ENCRYPTED_VOLUMES" }
+  }'
+
+<span class="comment"># 要求所有資源都有 Owner 和 Env 標籤</span>
+$ aws configservice put-config-rule --config-rule '{
+    "ConfigRuleName": "required-tags",
+    "Source": { "Owner": "AWS", "SourceIdentifier": "REQUIRED_TAGS" },
+    "InputParameters": "{\"tag1Key\":\"Owner\",\"tag2Key\":\"Env\"}"
+  }'
+
+<span class="comment"># 看哪些資源不合規</span>
+$ <span class="cmd">aws configservice get-compliance-details-by-config-rule</span> \
+    --config-rule-name encrypted-volumes \
+    --compliance-types NON_COMPLIANT \
+    --query 'EvaluationResults[].EvaluationResultIdentifier.EvaluationResultQualifier.ResourceId'</code></pre>
+
+    <div class="ok"><strong>Conformance Pack 一次套用一整組規則。</strong>AWS 提供現成的合規包（CIS、PCI-DSS、HIPAA、NIST），一個指令就把幾十條規則裝好。<b>要通過稽核的公司這是最快的起點。</b></div>
+
+    <div class="cost">Config 按<b>記錄的組態項目</b>計費（US$0.003/項）+ <b>規則評估</b>（US$0.001/次）。<br>
+    資源多的帳號一個月可能數十到數百美元。<br><br>
+    <b>省錢做法：</b><span class="inline-code">allSupported=true</span> 會記錄所有資源類型，包含變動極頻繁的（例如 Auto Scaling 每次擴縮都算一次）。可以改成<b>只記錄你真正在意的資源類型</b>。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="auto">
+    <h2>7. 自動修復（Auto Remediation）</h2>
+
+    <p>發現不合規只是第一步。<b>Config + SSM Automation</b> 可以自動修好。</p>
+
+    <pre><code><span class="comment"># 發現 S3 公開就自動關閉公開存取</span>
+$ <span class="cmd">aws configservice put-remediation-configurations</span> \
+    <span class="var">--remediation-configurations</span> '[{
+      "ConfigRuleName": "s3-bucket-public-read-prohibited",
+      "TargetType": "SSM_DOCUMENT",
+      "TargetId": "AWSConfigRemediation-ConfigureS3BucketPublicAccessBlock",
+      "Automatic": true,
+      "MaximumAutomaticAttempts": 3,
+      "RetryAttemptSeconds": 60,
+      "Parameters": {
+        "AutomationAssumeRole": {
+          "StaticValue": {"Values":["arn:aws:iam::123456789012:role/remediation-role"]}
+        },
+        "BucketName": { "ResourceValue": {"Value":"RESOURCE_ID"} }
+      }
+    }]'</code></pre>
+
+    <div class="warn"><strong>自動修復要非常小心，它會真的改動正式環境。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>先設 <span class="inline-code">"Automatic": false</span> 跑一陣子</b>，觀察它「想改什麼」，確認判斷正確再開自動</li>
+        <li>某些「不合規」是<b>刻意的例外</b>（例如故意公開的靜態網站 bucket）——要用<b>標籤或 Config 的排除清單</b>把它們排除</li>
+        <li>自動關掉正在服務的 bucket 公開存取，<b>等於讓網站掛掉</b></li>
+      </ul>
+      建議先從<b>低風險項目</b>開始自動化：加標籤、關閉未使用的存取金鑰、開啟日誌。
+    </div>
+
+    <h3>另一種做法：EventBridge + Lambda</h3>
+    <pre><code><span class="comment"># 有人建立了對 0.0.0.0/0 開放 22 埠的安全群組 → 立刻通知並記錄</span>
+$ <span class="cmd">aws events put-rule</span> --name detect-open-ssh \
+    --event-pattern '{
+      "source": ["aws.ec2"],
+      "detail-type": ["AWS API Call via CloudTrail"],
+      "detail": {
+        "eventSource": ["ec2.amazonaws.com"],
+        "eventName": ["AuthorizeSecurityGroupIngress"]
+      }
+    }'
+
+<span class="comment"># 費用異常時自動停掉開發環境的機器</span>
+$ aws events put-rule --name budget-breach-action \
+    --event-pattern '{"source":["aws.budgets"],"detail-type":["Budget Threshold Exceeded"]}'</code></pre>
+
+    <div class="ok"><strong>「預算超標自動停機」是很實用的保險，但只該用在開發環境。</strong>
+      <pre style="margin:8px 0 0"><code><span class="kw">import</span> boto3
+ec2 = boto3.client(<span class="val">"ec2"</span>)
+
+<span class="kw">def</span> handler(event, context):
+    <span class="comment"># 只停「AutoStop=true 且 Env=dev」的機器 —— 條件要嚴格</span>
+    r = ec2.describe_instances(Filters=[
+        {<span class="val">"Name"</span>: <span class="val">"tag:AutoStop"</span>, <span class="val">"Values"</span>: [<span class="val">"true"</span>]},
+        {<span class="val">"Name"</span>: <span class="val">"tag:Env"</span>, <span class="val">"Values"</span>: [<span class="val">"dev"</span>]},
+        {<span class="val">"Name"</span>: <span class="val">"instance-state-name"</span>, <span class="val">"Values"</span>: [<span class="val">"running"</span>]},
+    ])
+    ids = [i[<span class="val">"InstanceId"</span>] <span class="kw">for</span> res <span class="kw">in</span> r[<span class="val">"Reservations"</span>] <span class="kw">for</span> i <span class="kw">in</span> res[<span class="val">"Instances"</span>]]
+    <span class="kw">if</span> ids:
+        ec2.stop_instances(InstanceIds=ids)
+    print(f<span class="val">"已停止 {len(ids)} 台"</span>)</code></pre>
+      <b>絕對不要對正式環境做自動停機</b>——帳單超標不是讓服務中斷的理由，那是要人來判斷的商業決策。
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="tag">
+    <h2>8. 標籤策略：FinOps 的基礎</h2>
+
+    <div class="warn"><strong>沒有標籤 = 沒有成本管理。</strong>Cost Explorer 只能告訴你「EC2 花了 5 萬」，<b>但不能告訴你「哪個專案花的」</b>。沒有這個資訊就無法做任何優化決策。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>標籤</th><th>用途</th><th>範例值</th></tr>
+        <tr><td><b>Owner</b></td><td>誰負責（出事找誰、能不能刪）</td><td>tom@example.com</td></tr>
+        <tr><td><b>Env</b></td><td>環境（決定能不能自動關機）</td><td>prod / staging / dev</td></tr>
+        <tr><td><b>Project</b></td><td>專案（分帳）</td><td>order-system</td></tr>
+        <tr><td><b>CostCenter</b></td><td>會計成本中心</td><td>CC-1024</td></tr>
+        <tr><td><b>AutoStop</b></td><td>能不能自動停機</td><td>true / false</td></tr>
+        <tr><td><b>DataClass</b></td><td>資料敏感度（決定加密與備份要求）</td><td>public / internal / confidential</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># ═══ 用 SCP 強制要求標籤（沒帶就不准建立）═══</span>
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "RequireTagsOnEC2",
+    "Effect": "Deny",
+    "Action": ["ec2:RunInstances"],
+    "Resource": ["arn:aws:ec2:*:*:instance/*", "arn:aws:ec2:*:*:volume/*"],
+    "Condition": {
+      "Null": {
+        <span class="val">"aws:RequestTag/Owner"</span>: "true",
+        <span class="val">"aws:RequestTag/Env"</span>: "true"
+      }
+    }
+  }]
+}
+
+<span class="comment"># ═══ 啟用成本分配標籤（很多人忘記這步）═══</span>
+$ <span class="cmd">aws ce update-cost-allocation-tags-status</span> \
+    <span class="var">--cost-allocation-tags-status</span> \
+      TagKey=Owner,Status=Active TagKey=Env,Status=Active \
+      TagKey=Project,Status=Active TagKey=CostCenter,Status=Active</code></pre>
+
+    <div class="warn"><strong>標籤要在 Billing 主控台「啟用成本分配」之後才會出現在 Cost Explorer。</strong>而且<b>只對啟用之後產生的費用生效，不會回溯</b>。<br><br>
+      所以<b>標籤策略要在專案第一天就定好</b>——等三個月後才想到要分帳，前三個月的資料就永遠沒有了。
+    </div>
+
+    <pre><code><span class="comment"># 找出沒有標籤的資源</span>
+$ <span class="cmd">aws resourcegroupstaggingapi get-resources</span> \
+    --resource-type-filters ec2:instance rds:db s3 lambda:function \
+    <span class="var">--query</span> 'ResourceTagMappingList[?length(Tags)==`0`].ResourceARN' --output text
+
+<span class="comment"># 批次補標籤</span>
+$ aws resourcegroupstaggingapi tag-resources \
+    --resource-arn-list arn:aws:ec2:...:instance/i-0abc123 \
+    --tags Owner=tom,Env=dev,Project=learning</code></pre>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="cost">
+    <h2>9. 成本分析與異常偵測</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>工具</th><th>回答什麼</th><th>費用</th></tr>
+        <tr><td><b>Cost Explorer</b></td><td>「錢花在哪、趨勢如何」</td><td>UI 免費，<b>API 每次 US$0.01</b></td></tr>
+        <tr><td><b>Budgets</b></td><td>「快超支了嗎」</td><td>前 2 個免費</td></tr>
+        <tr><td><b>Cost Anomaly Detection</b></td><td>「有沒有不尋常的花費」</td><td><b>免費</b></td></tr>
+        <tr><td><b>CUR</b>（成本使用報告）</td><td>最詳細的原始資料，可用 Athena 查</td><td>只付 S3 儲存</td></tr>
+        <tr><td><b>Compute Optimizer</b></td><td>「哪些資源開太大」</td><td><b>免費</b></td></tr>
+        <tr><td><b>Trusted Advisor</b></td><td>成本、安全、效能、容錯的綜合建議</td><td>部分免費，完整版需 Business Support</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># 依服務看本月花費</span>
+$ <span class="cmd">aws ce get-cost-and-usage</span> \
+    --time-period Start=2026-08-01,End=2026-09-01 \
+    <span class="var">--granularity</span> MONTHLY <span class="var">--metrics</span> UnblendedCost \
+    <span class="var">--group-by</span> Type=DIMENSION,Key=SERVICE \
+    --query 'ResultsByTime[0].Groups[?Metrics.UnblendedCost.Amount>`10`].[Keys[0],Metrics.UnblendedCost.Amount]' \
+    --output table
+
+<span class="comment"># 依專案標籤分帳</span>
+$ aws ce get-cost-and-usage \
+    --time-period Start=2026-08-01,End=2026-09-01 \
+    --granularity MONTHLY --metrics UnblendedCost \
+    <span class="var">--group-by</span> Type=TAG,Key=Project
+
+<span class="comment"># 找出跟上個月比漲最多的服務</span>
+$ aws ce get-cost-and-usage \
+    --time-period Start=2026-06-01,End=2026-08-01 \
+    --granularity MONTHLY --metrics UnblendedCost \
+    --group-by Type=DIMENSION,Key=SERVICE</code></pre>
+
+    <div class="ok"><strong>Cost Anomaly Detection 是免費的，一定要開。</strong>它用機器學習建立「正常花費」的模型，<b>偵測到異常時主動通知</b>。<br><br>
+      典型能抓到的情況：金鑰外洩被拿去挖礦、忘記關的大型機器、程式 bug 造成的 API 呼叫暴增、誤設的資料傳輸。<b>這些通常在帳單出來前 2–3 週就會被抓到。</b>
+    </div>
+
+    <pre><code>$ <span class="cmd">aws ce create-anomaly-monitor</span> --anomaly-monitor '{
+    "MonitorName": "service-monitor",
+    "MonitorType": "DIMENSIONAL",
+    "MonitorDimension": "SERVICE"
+  }'
+
+$ <span class="cmd">aws ce create-anomaly-subscription</span> --anomaly-subscription '{
+    "SubscriptionName": "daily-anomaly-alert",
+    "MonitorArnList": ["arn:aws:ce::123456789012:anomalymonitor/xxx"],
+    "Subscribers": [{"Type":"EMAIL","Address":"you@example.com"}],
+    "Frequency": "DAILY",
+    "ThresholdExpression": {
+      "Dimensions": {
+        "Key": "ANOMALY_TOTAL_IMPACT_ABSOLUTE",
+        "Values": ["50"],
+        "MatchOptions": ["GREATER_THAN_OR_EQUAL"]
+      }
+    }
+  }'</code></pre>
+
+    <div class="warn"><strong>兩個常被忽略但金額很大的費用項目：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>資料傳輸費</b>——尤其是<b>跨 AZ</b>（US$0.01/GB 雙向）和<b>對外</b>（US$0.114/GB）。在 Cost Explorer 裡它們藏在各服務底下，要用 <b>USAGE_TYPE</b> 分組才看得到</li>
+        <li><b>NAT Gateway 處理費</b>——US$0.062/GB。大量流量走 NAT 的話這筆可能比機器本身還貴</li>
+      </ol>
+      <pre style="margin:8px 0 0"><code><span class="comment"># 專門看資料傳輸費</span>
+$ aws ce get-cost-and-usage \
+    --time-period Start=2026-08-01,End=2026-09-01 \
+    --granularity MONTHLY --metrics UnblendedCost \
+    <span class="var">--group-by</span> Type=DIMENSION,Key=USAGE_TYPE \
+    --filter '{"Dimensions":{"Key":"USAGE_TYPE_GROUP","Values":["EC2: Data Transfer - Internet (Out)"]}}'</code></pre>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="finops">
+    <h2>10. FinOps 月度流程</h2>
+
+    <div class="ok"><strong>FinOps 不是「一次性的省錢專案」，是持續的流程。</strong>把下面這套變成每月固定要做的事，通常第一次能砍掉 20–40%，之後維持在合理水位。</div>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>看趨勢</b>Cost Explorer 比較本月與前三個月，<b>找出漲最多的服務</b>。漲幅超過 20% 的一定要有解釋。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>依標籤分帳</b>用 Project / CostCenter 分組，把數字交給各團隊。<b>看得到自己花多少，行為就會改變</b>。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>清孤兒資源</b>跑盤點腳本：未掛載的 EBS、閒置 EIP、舊快照、沒用的 ALB、殭屍分段上傳。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>看 Compute Optimizer</b>把標記為 OVER_PROVISIONED 的資源降規格。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>檢查 SP / RI 使用率</b>Utilization &lt; 95% 代表買太多；Coverage &lt; 70% 代表還能再買。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>檢查資料傳輸</b>用 USAGE_TYPE 分組。跨 AZ 流量高 → 檢查架構是否有不必要的跨 AZ 呼叫。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>回顧異常告警</b>這個月觸發了哪些 Anomaly，原因查清楚了嗎。</div></div>
+    </div>
+
+    <h3>整合盤點腳本</h3>
+    <pre><code>#!/bin/bash
+<span class="comment"># ══ AWS 每月成本盤點 ══</span>
+set -u
+MONTH_START=$(date +%Y-%m-01)
+NEXT_MONTH=$(date -d "$MONTH_START +1 month" +%Y-%m-01)
+
+echo "════ 1. 本月各服務花費（&gt; US$5）════"
+aws ce get-cost-and-usage \
+  --time-period Start=$MONTH_START,End=$NEXT_MONTH \
+  --granularity MONTHLY --metrics UnblendedCost \
+  --group-by Type=DIMENSION,Key=SERVICE \
+  --query "ResultsByTime[0].Groups[?Metrics.UnblendedCost.Amount&gt;\`5\`].[Keys[0],Metrics.UnblendedCost.Amount]" \
+  --output table
+
+echo "════ 2. 未掛載的 EBS 磁碟 ════"
+aws ec2 describe-volumes --filters Name=status,Values=available \
+  --query 'Volumes[].[VolumeId,Size,VolumeType]' --output table
+
+echo "════ 3. 閒置的 Elastic IP ════"
+aws ec2 describe-addresses \
+  --query 'Addresses[?AssociationId==null].[PublicIp,AllocationId]' --output table
+
+echo "════ 4. 還在用 gp2 的磁碟 ════"
+aws ec2 describe-volumes --filters Name=volume-type,Values=gp2 \
+  --query 'Volumes[].[VolumeId,Size]' --output table
+
+echo "════ 5. 沒設保留期的 Log Group ════"
+aws logs describe-log-groups \
+  --query 'logGroups[?!retentionInDays].[logGroupName,storedBytes]' --output table
+
+echo "════ 6. 超過一年的手動快照 ════"
+YEAR_AGO=$(date -d '1 year ago' +%Y-%m-%d)
+aws ec2 describe-snapshots --owner-ids self \
+  --query "Snapshots[?StartTime&lt;=\`$YEAR_AGO\`].[SnapshotId,VolumeSize,StartTime]" --output table
+
+echo "════ 7. Compute Optimizer 建議降規格 ════"
+aws compute-optimizer get-ec2-instance-recommendations \
+  --query 'instanceRecommendations[?finding==`OVER_PROVISIONED`].[instanceArn,currentInstanceType,recommendationOptions[0].instanceType]' \
+  --output table 2&gt;/dev/null || echo "  （尚未啟用 Compute Optimizer）"
+
+echo "════ 8. Savings Plans 使用率 ════"
+aws ce get-savings-plans-utilization \
+  --time-period Start=$MONTH_START,End=$NEXT_MONTH \
+  --query 'Total.[UtilizationPercentage,NetSavings.NetSavings]' --output table 2&gt;/dev/null \
+  || echo "  （沒有 Savings Plans）"
+
+echo "════ 9. 沒有 Owner 標籤的資源 ════"
+aws resourcegroupstaggingapi get-resources \
+  --resource-type-filters ec2:instance rds:db lambda:function \
+  --query 'ResourceTagMappingList[?!(Tags[?Key==`Owner`])].ResourceARN' --output text
+
+echo "════ 10. 公開存取的 RDS（安全風險）════"
+aws rds describe-db-instances \
+  --query 'DBInstances[?PubliclyAccessible==`true`].[DBInstanceIdentifier]' --output table</code></pre>
+
+    <div class="ok"><strong>把這個腳本排成每月 1 號自動跑，結果寄到 Slack。</strong>用 EventBridge Scheduler + Lambda 就能做（第 07 章講過）。<b>自動化的盤點才會真的每月執行</b>——靠人記得做的事情，三個月後就沒人做了。</div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：可觀測性與成本治理</h3>
+    <p>約 90 分鐘。</p>
+
+    <div class="cost">大部分免費：CloudWatch 基本指標、10 個告警、Cost Anomaly Detection、Compute Optimizer、前 2 個 Budget 都免費。<br>
+    <b>要注意的是 Config</b>——它按組態項目計費，資源多的帳號可能有感。學習用途<b>不要開 allSupported</b>，只記錄兩三種資源類型就好，做完記得停用。</div>
+
+    <h4>階段一：指標與告警</h4>
+    <ol>
+      <li>建立 SNS Topic 並訂閱你的 email（記得<strong>去信箱點確認</strong>）</li>
+      <li>建立一個<strong>用 metric math 算錯誤率</strong>的告警（不是錯誤數）</li>
+      <li>加上 <strong>IF(total &gt; N)</strong> 條件避免低流量誤報</li>
+      <li>設 <strong>datapoints-to-alarm 2</strong> 和正確的 <strong>treat-missing-data</strong></li>
+      <li>用 <span class="inline-code">set-alarm-state</span> 手動觸發，確認<strong>真的收得到通知</strong></li>
+      <li>建立一個 <strong>Composite Alarm</strong> 組合兩個告警</li>
+    </ol>
+
+    <h4>階段二：日誌</h4>
+    <ol start="7">
+      <li>找出帳號內<strong>所有沒設保留期的 log group</strong>，全部設成 14 天</li>
+      <li>用 <strong>Logs Insights</strong> 跑第 4 節的五個查詢（挑有資料的跑）</li>
+      <li>建立一個 <strong>Metric Filter</strong>，把日誌中的 ERROR 變成指標</li>
+      <li>對那個指標設告警</li>
+    </ol>
+
+    <h4>階段三：追蹤</h4>
+    <ol start="11">
+      <li>對第 07 章的 Lambda 開啟 <strong>X-Ray Active tracing</strong></li>
+      <li>在程式碼加 <strong>annotation</strong>（customerId）和 <strong>subsegment</strong></li>
+      <li>呼叫幾次，到 X-Ray 主控台看<strong>服務地圖與時間分佈</strong></li>
+      <li>用 <span class="inline-code">--filter-expression</span> 依 annotation 過濾追蹤</li>
+    </ol>
+
+    <h4>階段四：合規</h4>
+    <ol start="15">
+      <li>啟用 Config，<strong>只記錄 EC2 Instance、Volume、SecurityGroup 三種</strong>（省錢）</li>
+      <li>套用規則：<strong>encrypted-volumes</strong>、<strong>restricted-ssh</strong>、<strong>required-tags</strong></li>
+      <li>故意建一個<strong>對 0.0.0.0/0 開 22 埠</strong>的安全群組，觀察它被標為 NON_COMPLIANT</li>
+      <li>建一個<strong>沒有 Owner 標籤</strong>的資源，觀察 required-tags 規則觸發</li>
+      <li>設定 remediation 但<strong>先用 Automatic: false</strong>，觀察它「想做什麼」</li>
+    </ol>
+
+    <h4>階段五：成本</h4>
+    <ol start="20">
+      <li>啟用 <strong>成本分配標籤</strong>（Owner、Env、Project）</li>
+      <li>開啟 <strong>Cost Anomaly Detection</strong></li>
+      <li>執行第 10 節的<strong>完整盤點腳本</strong></li>
+      <li>依腳本結果<strong>實際清掉至少三項</strong>浪費（孤兒磁碟、閒置 EIP、無保留期的 log group）</li>
+      <li>用 <span class="inline-code">get-cost-and-usage</span> 依 <strong>USAGE_TYPE</strong> 分組看資料傳輸費</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>手動觸發告警後<strong>信箱真的收到通知</strong>（很多人設完從沒驗證過）</li>
+      <li><span class="inline-code">describe-log-groups</span> 查詢<strong>沒有保留期的 log group 回傳空的</strong></li>
+      <li>Logs Insights 的記憶體查詢<strong>找出至少一支設定過大的 Lambda</strong></li>
+      <li>X-Ray 服務地圖<strong>看得到完整的呼叫鏈與各段耗時</strong></li>
+      <li>Config 把那個開放 22 埠的安全群組標為 <strong>NON_COMPLIANT</strong></li>
+      <li>Cost Explorer 能<strong>依 Project 標籤分組</strong>顯示費用</li>
+      <li>盤點腳本的<strong>前四項都回傳空的</strong>（代表清乾淨了）</li>
+    </ul>
+
+    <h4>清理</h4>
+    <pre><code>$ aws configservice stop-configuration-recorder --configuration-recorder-name default
+$ aws configservice delete-configuration-recorder --configuration-recorder-name default
+$ aws cloudwatch delete-alarms --alarm-names "P1-ALB-5XX-率過高" "P1-應用層錯誤"
+$ aws sns delete-topic --topic-arn $TOPIC_ARN
+$ aws ce delete-anomaly-monitor --monitor-arn $MONITOR_ARN
+$ aws ec2 delete-security-group --group-id $BAD_SG</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>用 <strong>EventBridge Scheduler + Lambda</strong> 把盤點腳本排程成每月 1 號自動執行，結果寄到 SNS。</li>
+      <li>建立一個 <strong>CloudWatch Dashboard</strong>，把 ALB、ASG、RDS、Lambda 的關鍵指標放在同一頁。</li>
+      <li>設定 <strong>Anomaly Detection 告警</strong>（不是固定閾值），觀察它學習出來的正常範圍帶狀區間。</li>
+      <li>用 <strong>CUR + Athena</strong> 查詢「上個月每個 Project 標籤各花了多少，依服務細分」。</li>
+      <li>寫一條 <strong>SCP</strong> 強制要求 EC2 必須帶 Owner 和 Env 標籤，測試不帶標籤時真的建立失敗。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li><strong>CloudWatch 看健康、CloudTrail 看誰做的、Config 看設定狀態、X-Ray 看請求慢在哪</strong></li>
+      <li>EC2 預設<strong>沒有記憶體和磁碟指標</strong>，要裝 CloudWatch Agent</li>
+      <li>回應時間用 <strong>p95 / p99</strong>，不要用平均值</li>
+      <li>Lambda 自訂指標用 <strong>EMF</strong>（印 log）不要用 put-metric-data</li>
+      <li>好的告警標準：<strong>收到它時你必須做點什麼</strong>；用<strong>錯誤率</strong>不用錯誤數</li>
+      <li><span class="inline-code">treat-missing-data</span> 流量型設 <strong>notBreaching</strong>、心跳型設 <strong>breaching</strong></li>
+      <li><strong>Log group 預設永久保留</strong>——這是最常見的隱形成本</li>
+      <li>長期稽核日誌放 <strong>S3 + Glacier</strong>，不要放 CloudWatch Logs（貴 16 倍）</li>
+      <li>對日誌關鍵字告警用 <strong>Metric Filter</strong>，不要定時跑 Logs Insights</li>
+      <li>X-Ray 的 <strong>Annotation 可搜尋、Metadata 不行</strong>；高流量要開取樣</li>
+      <li>Config 自動修復<strong>先跑 Automatic: false</strong> 觀察，確認後才開自動</li>
+      <li><strong>成本分配標籤不會回溯</strong>——第一天就要定好標籤策略</li>
+      <li><strong>Cost Anomaly Detection 免費，一定要開</strong>——能在帳單出來前 2–3 週抓到問題</li>
+      <li>容易被忽略的大額費用：<strong>跨 AZ 傳輸、對外傳輸、NAT Gateway 處理費</strong></li>
+      <li>FinOps 是<strong>每月固定流程</strong>，不是一次性專案</li>
+    </ul>
+    <div class="note">這章對應 SAA-C03 的「Design Cost-Optimized Architectures」（20%），也橫跨安全與可靠性領域。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="07-serverless.html">← 07：無伺服器架構</a>
+    <a href="09-architecture.html">09：架構範式與災難復原 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 08</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

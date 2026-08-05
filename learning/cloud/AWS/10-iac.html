@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基礎設施即程式碼 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">10 · IaC</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">實作 10 · 自動化 · 最終章</div>
+  <h1>基礎設施即<span>程式碼</span></h1>
+  <p>前面九章都是手打 CLI。這章把那些指令變成可版控、可審查、可重複部署的程式碼——這才是真實工作的樣子。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼手動點主控台不可行</a></li>
+      <li><a href="#compare">CloudFormation vs Terraform vs CDK</a></li>
+      <li><a href="#cfn">CloudFormation 實作</a></li>
+      <li><a href="#cfnadv">變更集、巢狀堆疊與漂移偵測</a></li>
+      <li><a href="#tf">Terraform 實作</a></li>
+      <li><a href="#tfstate">State 管理與團隊協作</a></li>
+      <li><a href="#cdk">CDK：用程式語言寫基礎設施</a></li>
+      <li><a href="#sam">SAM：無伺服器專用</a></li>
+      <li><a href="#cicd">CI/CD 管線</a></li>
+      <li><a href="#practice">實務準則</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="why">
+    <h2>1. 為什麼手動點主控台不可行</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>手動的問題</th><th>實際會發生什麼</th></tr>
+        <tr><td><b>不可重複</b></td><td>正式環境和測試環境設定不一致，「在測試機好好的」</td></tr>
+        <tr><td><b>沒有紀錄</b></td><td>「這條安全群組規則是誰加的、為什麼？」沒人知道</td></tr>
+        <tr><td><b>無法審查</b></td><td>危險的變更直接上線，沒有第二個人看過</td></tr>
+        <tr><td><b>災難無法重建</b></td><td>region 掛掉時要<b>手動重建幾百個資源</b></td></tr>
+        <tr><td><b>組態漂移</b></td><td>有人為了救火手動改了設定，之後沒人記得</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>IaC 帶來的四件事：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>可重複</b>——同一份程式碼，dev / staging / prod 部署出一模一樣的環境</li>
+        <li><b>可審查</b>——Pull Request 讓變更被第二個人看過才上線</li>
+        <li><b>可回溯</b>——<span class="inline-code">git log</span> 就是完整的變更歷史</li>
+        <li><b>災難可重建</b>——第 09 章的 Pilot Light DR，運算層就是靠 IaC 幾分鐘拉起來的</li>
+      </ol>
+    </div>
+
+    <div class="warn"><strong>但 IaC 也有代價，要誠實評估：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>學習曲線</b>——團隊要先學會工具，初期速度比手點慢</li>
+        <li><b>除錯較難</b>——錯誤訊息常常很模糊（尤其 CloudFormation）</li>
+        <li><b>State 管理</b>（Terraform）本身就是一個要維護的東西</li>
+        <li><b>並非所有東西都適合</b>——一次性的實驗、緊急救火，手動快得多</li>
+      </ul>
+      <b>合理的界線：長期存在的基礎設施用 IaC，一次性的實驗用 CLI。</b>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="compare">
+    <h2>2. CloudFormation vs Terraform vs CDK</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>CloudFormation</th><th>Terraform</th><th>CDK</th></tr>
+        <tr><td>誰做的</td><td>AWS 原生</td><td>HashiCorp</td><td>AWS（<b>底層產生 CFN</b>）</td></tr>
+        <tr><td>語言</td><td>YAML / JSON</td><td>HCL</td><td><b>TypeScript / Python / Java / Go</b></td></tr>
+        <tr><td>多雲</td><td>只有 AWS</td><td><b>支援</b></td><td>只有 AWS（CDKTF 例外）</td></tr>
+        <tr><td>State</td><td><b>AWS 幫你管</b></td><td><b>要自己管</b>（S3 + DynamoDB）</td><td>同 CloudFormation</td></tr>
+        <tr><td>新服務支援</td><td>通常最快</td><td>稍慢（等 provider 更新）</td><td>同 CFN</td></tr>
+        <tr><td>迴圈 / 條件</td><td><b>很難寫</b></td><td>不錯（count、for_each）</td><td><b>就是程式語言，最自由</b></td></tr>
+        <tr><td>學習曲線</td><td>中</td><td>中</td><td><b>高</b>（但寫程式的人反而覺得簡單）</td></tr>
+        <tr><td>費用</td><td>免費</td><td>開源免費（Cloud 版收費）</td><td>免費</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>怎麼選？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>只用 AWS、團隊不寫程式</b> → <b>CloudFormation</b>（考試考這個）</li>
+        <li><b>多雲、或已經有 Terraform 經驗</b> → <b>Terraform</b>（業界最普及）</li>
+        <li><b>團隊是開發者、邏輯複雜</b> → <b>CDK</b>（可以寫迴圈、抽象、單元測試）</li>
+        <li><b>純無伺服器專案</b> → <b>SAM</b>（CloudFormation 的簡化版）</li>
+      </ul>
+      <b>SAA-C03 只考 CloudFormation</b>，但實務上 Terraform 的市佔率更高。兩個都值得會。
+    </div>
+
+    <div class="note"><strong>CDK 其實不是第三種工具。</strong>你用 TypeScript 寫，<span class="inline-code">cdk synth</span> 會<b>產生 CloudFormation 範本</b>，最後還是由 CloudFormation 部署。所以 CDK = CloudFormation + 更好的撰寫體驗。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="cfn">
+    <h2>3. CloudFormation 實作</h2>
+
+    <h3>範本的五個區段</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>區段</th><th>必要</th><th>做什麼</th></tr>
+        <tr><td><b>Parameters</b></td><td>否</td><td>部署時可以傳入的值</td></tr>
+        <tr><td><b>Mappings</b></td><td>否</td><td>查表（例如各 region 的 AMI ID）</td></tr>
+        <tr><td><b>Conditions</b></td><td>否</td><td>條件判斷（prod 才建 Multi-AZ）</td></tr>
+        <tr><td><b>Resources</b></td><td><b>是</b></td><td><b>唯一必要的區段</b></td></tr>
+        <tr><td><b>Outputs</b></td><td>否</td><td>輸出值，可被其他堆疊引用</td></tr>
+      </table>
+    </div>
+
+    <pre><code>AWSTemplateFormatVersion: <span class="val">"2010-09-09"</span>
+Description: 三層式 VPC 網路層
+
+<span class="var">Parameters</span>:
+  EnvName:
+    Type: String
+    AllowedValues: [dev, staging, prod]
+    Default: dev
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    <span class="comment"># 用正規表示式驗證輸入，避免打錯</span>
+    AllowedPattern: <span class="val">'^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$'</span>
+
+<span class="var">Conditions</span>:
+  <span class="comment"># prod 才建第二個 NAT（省錢）</span>
+  IsProd: !Equals [!Ref EnvName, prod]
+
+<span class="var">Resources</span>:
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true          <span class="comment"># 第 02 章強調過</span>
+      Tags:
+        - Key: Name
+          Value: !Sub <span class="val">"${EnvName}-vpc"</span>
+
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      <span class="comment"># 自動從 VPC CIDR 切出子網路，不用手算</span>
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 16, 8]]
+      AvailabilityZone: !Select [0, !GetAZs <span class="val">""</span>]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub <span class="val">"${EnvName}-public-a"</span>
+
+  Igw:
+    Type: AWS::EC2::InternetGateway
+
+  IgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref Igw
+
+  NatEipB:
+    Type: AWS::EC2::EIP
+    <span class="var">Condition</span>: IsProd                     <span class="comment"># 只有 prod 才建</span>
+    Properties:
+      Domain: vpc
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    <span class="var">DeletionPolicy</span>: Snapshot            <span class="comment">← 刪除堆疊時先留快照</span>
+    <span class="var">UpdateReplacePolicy</span>: Snapshot
+    Properties:
+      DBInstanceClass: !If [IsProd, db.r6g.large, db.t3.micro]
+      MultiAZ: !If [IsProd, true, false]
+      StorageEncrypted: true
+      PubliclyAccessible: false
+
+<span class="var">Outputs</span>:
+  VpcId:
+    Value: !Ref Vpc
+    <span class="var">Export</span>:
+      Name: !Sub <span class="val">"${EnvName}-VpcId"</span>     <span class="comment">← 其他堆疊可以 ImportValue</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">DeletionPolicy</span> 是最重要也最常被忘記的屬性。</strong>預設值是 <b>Delete</b>——刪掉堆疊時<b>資料庫和 S3 內容會一起消失</b>。<br><br>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>值</th><th>行為</th><th>用在</th></tr>
+          <tr><td><b>Delete</b>（預設）</td><td>一起刪掉</td><td>無狀態資源</td></tr>
+          <tr><td><b>Retain</b></td><td><b>保留，脫離堆疊管理</b></td><td>S3 bucket、重要資源</td></tr>
+          <tr><td><b>Snapshot</b></td><td>刪除前<b>先建快照</b></td><td><b>RDS、EBS、ElastiCache</b></td></tr>
+        </table>
+      </div>
+      <b>所有有狀態的資源都應該設 Retain 或 Snapshot。</b>
+    </div>
+
+    <pre><code><span class="comment"># ═══ 部署 ═══</span>
+<span class="comment"># 先驗證語法</span>
+$ <span class="cmd">aws cloudformation validate-template</span> --template-body file://network.yaml
+
+<span class="comment"># deploy 是 create/update 二合一，比 create-stack 好用</span>
+$ <span class="cmd">aws cloudformation deploy</span> \
+    <span class="var">--template-file</span> network.yaml \
+    <span class="var">--stack-name</span> dev-network \
+    <span class="var">--parameter-overrides</span> EnvName=dev VpcCidr=10.0.0.0/16 \
+    <span class="var">--capabilities</span> CAPABILITY_NAMED_IAM \
+    <span class="var">--tags</span> Owner=tom Project=learning
+
+<span class="comment"># 看事件（部署失敗時第一個要查的）</span>
+$ <span class="cmd">aws cloudformation describe-stack-events</span> --stack-name dev-network \
+    --query 'StackEvents[?ResourceStatus==`CREATE_FAILED`].[LogicalResourceId,ResourceStatusReason]' \
+    --output table
+
+<span class="comment"># 看輸出</span>
+$ aws cloudformation describe-stacks --stack-name dev-network \
+    --query 'Stacks[0].Outputs' --output table</code></pre>
+
+    <div class="warn"><strong>建立失敗時堆疊會自動 ROLLBACK 並刪掉所有資源</strong>，你就看不到現場了。除錯時加上這個參數保留失敗的資源：
+      <pre style="margin:8px 0 0"><code>$ aws cloudformation create-stack --stack-name test \
+    --template-body file://x.yaml \
+    <span class="cmd">--on-failure DO_NOTHING</span></code></pre>
+      查完記得手動刪掉，否則會變成孤兒資源。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="cfnadv">
+    <h2>4. 變更集、巢狀堆疊與漂移偵測</h2>
+
+    <h3>Change Set：部署前先看會改什麼</h3>
+    <pre><code>$ <span class="cmd">aws cloudformation create-change-set</span> \
+    --stack-name prod-network --change-set-name review-20260805 \
+    --template-body file://network.yaml \
+    --parameters ParameterKey=EnvName,ParameterValue=prod \
+    --capabilities CAPABILITY_NAMED_IAM
+
+$ <span class="cmd">aws cloudformation describe-change-set</span> \
+    --stack-name prod-network --change-set-name review-20260805 \
+    --query 'Changes[].ResourceChange.[Action,LogicalResourceId,<span class="var">Replacement</span>,ResourceType]' \
+    --output table
+---------------------------------------------------------
+|  Modify |  Database  |  <span class="kw">True</span>   |  AWS::RDS::DBInstance  |
+|  Add    |  NatEipB   |  False  |  AWS::EC2::EIP         |
+---------------------------------------------------------
+
+<span class="comment"># 確認沒問題才執行</span>
+$ aws cloudformation execute-change-set \
+    --stack-name prod-network --change-set-name review-20260805</code></pre>
+
+    <div class="warn"><strong><span class="inline-code">Replacement: True</span> 代表這個資源會被<u>刪掉重建</u>。</strong>對 RDS 來說這意味著：<b>新的 endpoint、資料要從快照還原、實際的停機時間</b>。<br><br>
+      <b>正式環境部署前一定要看 Change Set，特別檢查有沒有 Replacement: True。</b>看到就要停下來評估影響，不要直接執行。<br><br>
+      常見會觸發 Replacement 的改動：改 RDS 的 <span class="inline-code">DBInstanceIdentifier</span>、改 EC2 的 <span class="inline-code">AvailabilityZone</span>、改 VPC 的 CIDR。
+    </div>
+
+    <h3>堆疊分層</h3>
+    <div class="ok"><strong>不要把所有東西放在一個堆疊裡。</strong>依「變動頻率」分層：
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>層</th><th>內容</th><th>變動頻率</th></tr>
+          <tr><td><b>network</b></td><td>VPC、子網路、路由表、NAT</td><td>幾乎不變</td></tr>
+          <tr><td><b>security</b></td><td>IAM Role、安全群組、KMS</td><td>偶爾</td></tr>
+          <tr><td><b>data</b></td><td>RDS、DynamoDB、S3</td><td>偶爾</td></tr>
+          <tr><td><b>app</b></td><td>ALB、ASG、Lambda</td><td><b>經常</b></td></tr>
+        </table>
+      </div>
+      好處：改應用層時<b>不會意外動到資料庫</b>；部署速度快；權限可以分開授權。
+    </div>
+
+    <pre><code><span class="comment"># 跨堆疊引用：上游 Export，下游 ImportValue</span>
+<span class="comment"># network.yaml 的 Outputs</span>
+Outputs:
+  PrivateSubnets:
+    Value: !Join [<span class="val">","</span>, [!Ref PrivateSubnetA, !Ref PrivateSubnetC]]
+    Export:
+      Name: !Sub <span class="val">"${EnvName}-PrivateSubnets"</span>
+
+<span class="comment"># app.yaml 引用它</span>
+Resources:
+  Asg:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Split [<span class="val">","</span>, !ImportValue <span class="val">"dev-PrivateSubnets"</span>]</code></pre>
+
+    <div class="warn"><strong>Export/Import 有個硬限制：被引用的 Export <u>不能刪除或修改</u>。</strong>只要有任何堆疊 Import 了它，上游堆疊就<b>改不動也刪不掉</b>，錯誤訊息是 <span class="inline-code">Export cannot be deleted as it is in use</span>。<br><br>
+      <b>解法：</b>改用 <b>SSM Parameter Store</b> 傳值——寫入 Parameter Store，下游用 <span class="inline-code">{{resolve:ssm:/dev/vpc-id}}</span> 讀取。這樣就沒有硬相依，上游可以自由變更。
+    </div>
+
+    <h3>漂移偵測</h3>
+    <pre><code><span class="comment"># 有人手動改了主控台？查出來</span>
+$ <span class="cmd">aws cloudformation detect-stack-drift</span> --stack-name prod-network
+$ <span class="cmd">aws cloudformation describe-stack-resource-drifts</span> \
+    --stack-name prod-network <span class="var">--stack-resource-drift-status-filters</span> MODIFIED DELETED \
+    --query 'StackResourceDrifts[].[LogicalResourceId,StackResourceDriftStatus]' --output table</code></pre>
+
+    <div class="ok"><strong>漂移偵測應該排程定期跑。</strong>救火時手動改設定是難免的，但<b>改完要補回程式碼</b>。定期偵測能抓到「改了但忘了補」的情況——這是 IaC 最容易失效的方式。<br><br>
+      更強的做法：用 <b>Stack Policy</b> 或 <b>SCP</b> 直接禁止手動修改被 IaC 管理的資源。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="tf">
+    <h2>5. Terraform 實作</h2>
+
+    <pre><code><span class="comment"># ══ versions.tf ══</span>
+terraform {
+  required_version = <span class="val">"&gt;= 1.6"</span>
+  required_providers {
+    aws = {
+      source  = <span class="val">"hashicorp/aws"</span>
+      version = <span class="val">"~&gt; 5.60"</span>        <span class="comment"># 鎖定主版本，避免破壞性更新</span>
+    }
+  }
+
+  <span class="comment"># 遠端 state —— 團隊協作必備</span>
+  <span class="var">backend</span> <span class="val">"s3"</span> {
+    bucket         = <span class="val">"my-tfstate-123456789012"</span>
+    key            = <span class="val">"prod/network/terraform.tfstate"</span>
+    region         = <span class="val">"ap-northeast-1"</span>
+    encrypt        = true
+    <span class="var">use_lockfile</span>   = true              <span class="comment"># S3 原生鎖定（新版；舊版用 dynamodb_table）</span>
+  }
+}
+
+provider <span class="val">"aws"</span> {
+  region = var.region
+  <span class="comment"># 所有資源自動帶上這些標籤（第 08 章的標籤策略）</span>
+  <span class="var">default_tags</span> {
+    tags = {
+      Env       = var.env
+      ManagedBy = <span class="val">"terraform"</span>
+      Project   = var.project
+    }
+  }
+}</code></pre>
+
+    <pre><code><span class="comment"># ══ variables.tf ══</span>
+variable <span class="val">"env"</span> {
+  type = string
+  <span class="var">validation</span> {
+    condition     = contains([<span class="val">"dev"</span>, <span class="val">"staging"</span>, <span class="val">"prod"</span>], var.env)
+    error_message = <span class="val">"env 只能是 dev / staging / prod"</span>
+  }
+}
+
+variable <span class="val">"vpc_cidr"</span> {
+  type    = string
+  default = <span class="val">"10.0.0.0/16"</span>
+}
+
+<span class="comment"># ══ main.tf ══</span>
+data <span class="val">"aws_availability_zones"</span> <span class="val">"available"</span> {
+  state = <span class="val">"available"</span>
+}
+
+locals {
+  azs = slice(data.aws_availability_zones.available.names, 0, 2)
+}
+
+resource <span class="val">"aws_vpc"</span> <span class="val">"main"</span> {
+  cidr_block           = var.vpc_cidr
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+  tags = { Name = <span class="val">"${var.env}-vpc"</span> }
+}
+
+<span class="comment"># for_each 產生多個子網路 —— 這是 Terraform 比 CFN 好寫的地方</span>
+resource <span class="val">"aws_subnet"</span> <span class="val">"public"</span> {
+  <span class="var">for_each</span> = { <span class="kw">for</span> i, az <span class="kw">in</span> local.azs : az =&gt; i }
+
+  vpc_id                  = aws_vpc.main.id
+  availability_zone       = each.key
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, each.value)
+  map_public_ip_on_launch = false
+  tags = { Name = <span class="val">"${var.env}-public-${each.key}"</span>, Tier = <span class="val">"public"</span> }
+}
+
+resource <span class="val">"aws_subnet"</span> <span class="val">"private"</span> {
+  for_each = { <span class="kw">for</span> i, az <span class="kw">in</span> local.azs : az =&gt; i }
+
+  vpc_id            = aws_vpc.main.id
+  availability_zone = each.key
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value + 10)
+  tags = { Name = <span class="val">"${var.env}-private-${each.key}"</span>, Tier = <span class="val">"private"</span> }
+}
+
+<span class="comment"># 只有 prod 才建第二個 NAT</span>
+resource <span class="val">"aws_nat_gateway"</span> <span class="val">"this"</span> {
+  <span class="var">count</span> = var.env == <span class="val">"prod"</span> ? length(local.azs) : 1
+
+  allocation_id = aws_eip.nat[count.index].id
+  subnet_id     = values(aws_subnet.public)[count.index].id
+}
+
+resource <span class="val">"aws_db_instance"</span> <span class="val">"main"</span> {
+  identifier            = <span class="val">"${var.env}-mysql"</span>
+  engine                = <span class="val">"mysql"</span>
+  instance_class        = var.env == <span class="val">"prod"</span> ? <span class="val">"db.r6g.large"</span> : <span class="val">"db.t3.micro"</span>
+  multi_az              = var.env == <span class="val">"prod"</span>
+  storage_encrypted     = true
+  publicly_accessible   = false
+
+  <span class="comment"># 對應 CFN 的 DeletionPolicy</span>
+  <span class="var">skip_final_snapshot</span>       = var.env != <span class="val">"prod"</span>
+  final_snapshot_identifier = var.env == <span class="val">"prod"</span> ? <span class="val">"${var.env}-final-${formatdate("YYYYMMDD", timestamp())}"</span> : null
+  <span class="var">deletion_protection</span>       = var.env == <span class="val">"prod"</span>
+
+  <span class="var">lifecycle</span> {
+    <span class="comment"># 防止意外刪除正式資料庫</span>
+    prevent_destroy = true
+    <span class="comment"># 這些欄位會被 AWS 自動改，忽略它們避免每次都顯示有變更</span>
+    ignore_changes  = [final_snapshot_identifier]
+  }
+}</code></pre>
+
+    <div class="ok"><strong>Terraform 比 CloudFormation 好寫的三個地方：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b><span class="inline-code">for_each</span> / <span class="inline-code">count</span></b>——CFN 要寫迴圈得用巢狀堆疊或自訂資源，很痛苦</li>
+        <li><b>三元運算子</b>——<span class="inline-code">var.env == "prod" ? A : B</span>，比 CFN 的 <span class="inline-code">!If</span> 直覺</li>
+        <li><b><span class="inline-code">lifecycle { prevent_destroy }</span></b>——直接在程式碼裡防止誤刪</li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment"># ══ 標準工作流程 ══</span>
+$ <span class="cmd">terraform init</span>                      <span class="comment"># 下載 provider、設定 backend</span>
+$ <span class="cmd">terraform fmt -recursive</span>            <span class="comment"># 統一格式</span>
+$ <span class="cmd">terraform validate</span>                  <span class="comment"># 語法檢查</span>
+
+<span class="comment"># plan 存成檔案，確保 apply 的就是你看過的那份</span>
+$ <span class="cmd">terraform plan -out=tfplan</span>
+$ <span class="cmd">terraform show -no-color tfplan</span> | less
+$ <span class="cmd">terraform apply tfplan</span>
+
+<span class="comment"># 只針對某個資源（除錯用，正常流程不該常用）</span>
+$ terraform plan -target=aws_db_instance.main
+
+<span class="comment"># 把手動建立的資源納入管理</span>
+$ <span class="cmd">terraform import</span> aws_vpc.main vpc-0abc123</code></pre>
+
+    <div class="warn"><strong><span class="inline-code">terraform apply</span> 不帶 plan 檔案是危險習慣。</strong>不帶的話它會重新計算一次 plan，<b>而那份 plan 可能跟你剛才看的不一樣</b>（別人同時改了東西、或 AWS 那邊狀態變了）。<br><br>
+      <b>正式環境永遠用 <span class="inline-code">plan -out</span> + <span class="inline-code">apply tfplan</span>。</b>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="tfstate">
+    <h2>6. State 管理與團隊協作</h2>
+
+    <div class="warn"><strong>Terraform State 是最容易出事的地方。</strong>它是一個 JSON 檔，記錄「哪個程式碼資源對應到哪個真實資源」。
+      <ul style="margin:8px 0 0">
+        <li><b>State 檔遺失</b> → Terraform 不知道資源存在，<b>下次 apply 會想重建一份</b></li>
+        <li><b>兩個人同時 apply</b> → State 互相覆蓋，資源狀態錯亂</li>
+        <li><b>State 檔裡有明文機密</b>——RDS 密碼、金鑰都可能在裡面</li>
+      </ul>
+    </div>
+
+    <div class="ok"><strong>正確做法：遠端 State + 鎖定 + 加密。</strong>
+      <pre style="margin:8px 0 0"><code><span class="comment"># 建立 state bucket（要開版本控制，這是誤刪的最後防線）</span>
+$ aws s3api create-bucket --bucket my-tfstate-123456789012 \
+    --region ap-northeast-1 \
+    --create-bucket-configuration LocationConstraint=ap-northeast-1
+
+$ aws s3api put-bucket-versioning --bucket my-tfstate-123456789012 \
+    --versioning-configuration Status=Enabled
+
+$ aws s3api put-bucket-encryption --bucket my-tfstate-123456789012 \
+    --server-side-encryption-configuration \
+      '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+
+$ aws s3api put-public-access-block --bucket my-tfstate-123456789012 \
+    --public-access-block-configuration \
+      BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true</code></pre>
+      <b>State bucket 要開版本控制</b>——state 壞掉時可以還原到前一版，這救過很多人。
+    </div>
+
+    <div class="warn"><strong>State 檔含有機密，要當成密碼等級保護。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>絕對不要 commit 進 Git</b>——<span class="inline-code">.gitignore</span> 要有 <span class="inline-code">*.tfstate</span>、<span class="inline-code">*.tfstate.backup</span>、<span class="inline-code">.terraform/</span></li>
+        <li>S3 bucket 要<b>加密 + 封鎖公開存取 + 嚴格的 bucket policy</b></li>
+        <li>密碼本身應該用 <b>Secrets Manager</b>，Terraform 只引用 ARN 不要存值</li>
+      </ul>
+    </div>
+
+    <h3>環境分離</h3>
+    <pre><code><span class="comment"># 推薦：目錄分離（清楚、不會誤操作）</span>
+infra/
+├── modules/
+│   ├── network/
+│   ├── database/
+│   └── app/
+├── envs/
+│   ├── dev/
+│   │   ├── main.tf          <span class="comment"># 引用 modules</span>
+│   │   ├── terraform.tfvars
+│   │   └── backend.tf       <span class="comment"># key = "dev/terraform.tfstate"</span>
+│   ├── staging/
+│   └── prod/
+└── .gitignore</code></pre>
+
+    <div class="warn"><strong>不建議用 <span class="inline-code">terraform workspace</span> 分環境。</strong>雖然方便，但：
+      <ul style="margin:8px 0 0">
+        <li>所有環境共用同一份程式碼與 backend，<b>很容易忘記切 workspace 就 apply 到正式環境</b></li>
+        <li>環境之間有差異時（prod 要 Multi-AZ、dev 不要）程式碼會塞滿條件判斷</li>
+      </ul>
+      <b>目錄分離雖然有些重複，但「不會誤操作正式環境」這件事值得。</b>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="cdk">
+    <h2>7. CDK：用程式語言寫基礎設施</h2>
+
+    <pre><code>$ npm install -g aws-cdk
+$ mkdir infra &amp;&amp; cd infra
+$ <span class="cmd">cdk init app --language typescript</span>
+$ <span class="cmd">cdk bootstrap</span>          <span class="comment"># 每個帳號每個 region 做一次</span></code></pre>
+
+    <pre><code><span class="comment">// lib/network-stack.ts</span>
+<span class="kw">import</span> * <span class="kw">as</span> cdk <span class="kw">from</span> <span class="val">'aws-cdk-lib'</span>;
+<span class="kw">import</span> * <span class="kw">as</span> ec2 <span class="kw">from</span> <span class="val">'aws-cdk-lib/aws-ec2'</span>;
+<span class="kw">import</span> * <span class="kw">as</span> rds <span class="kw">from</span> <span class="val">'aws-cdk-lib/aws-rds'</span>;
+
+<span class="kw">export interface</span> NetworkStackProps <span class="kw">extends</span> cdk.StackProps {
+  envName: <span class="val">'dev'</span> | <span class="val">'staging'</span> | <span class="val">'prod'</span>;
+}
+
+<span class="kw">export class</span> NetworkStack <span class="kw">extends</span> cdk.Stack {
+  <span class="kw">public readonly</span> vpc: ec2.Vpc;
+
+  <span class="kw">constructor</span>(scope: cdk.App, id: string, props: NetworkStackProps) {
+    <span class="kw">super</span>(scope, id, props);
+    <span class="kw">const</span> isProd = props.envName === <span class="val">'prod'</span>;
+
+    <span class="comment">// 這 10 行等同 CloudFormation 的 200+ 行</span>
+    <span class="comment">// VPC、子網路、路由表、IGW、NAT 全部自動建好</span>
+    <span class="kw">this</span>.vpc = <span class="kw">new</span> ec2.Vpc(<span class="kw">this</span>, <span class="val">'Vpc'</span>, {
+      ipAddresses: ec2.IpAddresses.cidr(<span class="val">'10.0.0.0/16'</span>),
+      maxAzs: 2,
+      <span class="var">natGateways</span>: isProd ? 2 : 1,
+      subnetConfiguration: [
+        { name: <span class="val">'public'</span>,  subnetType: ec2.SubnetType.PUBLIC,               cidrMask: 24 },
+        { name: <span class="val">'app'</span>,     subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,  cidrMask: 24 },
+        { name: <span class="val">'data'</span>,    subnetType: ec2.SubnetType.PRIVATE_ISOLATED,     cidrMask: 24 },
+      ],
+    });
+
+    <span class="comment">// 一行加上 S3 Gateway Endpoint（第 02 章強調的省錢做法）</span>
+    <span class="kw">this</span>.vpc.addGatewayEndpoint(<span class="val">'S3Endpoint'</span>, {
+      service: ec2.GatewayVpcEndpointAwsService.S3,
+    });
+
+    <span class="kw">new</span> rds.DatabaseInstance(<span class="kw">this</span>, <span class="val">'Db'</span>, {
+      engine: rds.DatabaseInstanceEngine.mysql({
+        version: rds.MysqlEngineVersion.VER_8_0,
+      }),
+      vpc: <span class="kw">this</span>.vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
+      instanceType: isProd
+        ? ec2.InstanceType.of(ec2.InstanceClass.R6G, ec2.InstanceSize.LARGE)
+        : ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      multiAz: isProd,
+      storageEncrypted: <span class="kw">true</span>,
+      <span class="comment">// CDK 自動幫你建 Secrets Manager 密碼並輪替</span>
+      credentials: rds.Credentials.fromGeneratedSecret(<span class="val">'admin'</span>),
+      removalPolicy: isProd
+        ? cdk.RemovalPolicy.RETAIN
+        : cdk.RemovalPolicy.DESTROY,
+    });
+  }
+}</code></pre>
+
+    <div class="ok"><strong>CDK 最大的價值是 L2/L3 Construct 的「合理預設值」。</strong>
+      <ul style="margin:8px 0 0">
+        <li><span class="inline-code">new ec2.Vpc()</span> 自動建好子網路、路由表、IGW、NAT、<b>並且正確關聯</b></li>
+        <li><span class="inline-code">rds.Credentials.fromGeneratedSecret()</span> 自動建 Secrets Manager 並設定輪替</li>
+        <li>安全群組的 <span class="inline-code">.connections.allowFrom()</span> 自動雙向設定規則</li>
+      </ul>
+      <b>它把「第 02–08 章講的那些最佳實務」變成預設行為</b>，不容易漏掉。
+    </div>
+
+    <pre><code>$ <span class="cmd">cdk diff</span>                   <span class="comment"># 等同 Change Set，部署前必看</span>
+$ <span class="cmd">cdk synth</span>                  <span class="comment"># 產生 CloudFormation 範本（想看它做了什麼）</span>
+$ <span class="cmd">cdk deploy NetworkStack</span>
+$ <span class="cmd">cdk destroy NetworkStack</span></code></pre>
+
+    <div class="warn"><strong>CDK 的抽象是雙面刃。</strong>一行 <span class="inline-code">new ec2.Vpc()</span> 會建出幾十個資源——<b>包含兩個 NAT Gateway（每月 US$90）</b>。<br><br>
+      <b>第一次用一定要 <span class="inline-code">cdk synth</span> 看它到底產生了什麼</b>，不然帳單會給你驚喜。這是 CDK 新手最常見的意外。
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="sam">
+    <h2>8. SAM：無伺服器專用</h2>
+
+    <pre><code>AWSTemplateFormatVersion: <span class="val">"2010-09-09"</span>
+<span class="var">Transform</span>: AWS::Serverless-2016-10-31    <span class="comment">← 這行讓它變成 SAM</span>
+
+<span class="var">Globals</span>:
+  Function:
+    Runtime: python3.12
+    Architectures: [arm64]              <span class="comment"># 便宜 20%</span>
+    Timeout: 30
+    MemorySize: 512
+    Tracing: Active                     <span class="comment"># X-Ray</span>
+    LoggingConfig:
+      LogFormat: JSON
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref OrdersTable
+
+Resources:
+  OrderApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      Throttle:                         <span class="comment"># 第 07 章強調要設限流</span>
+        BurstLimit: 200
+        RateLimit: 100
+
+  OrderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: index.handler
+      <span class="comment"># SAM 自動產生最小權限的 IAM Role</span>
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref OrderApi
+            Path: /orders
+            Method: POST
+      <span class="comment"># 內建金絲雀部署 + 自動回退</span>
+      <span class="var">AutoPublishAlias</span>: prod
+      <span class="var">DeploymentPreference</span>:
+        Type: Canary10Percent5Minutes
+        Alarms:
+          - !Ref ErrorAlarm
+
+  OrdersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey: { Name: orderId, Type: String }
+      <span class="comment"># TTL 自動清理（第 05 章）</span>
+      SSESpecification: { SSEEnabled: true }</code></pre>
+
+    <pre><code>$ <span class="cmd">sam build</span>
+$ <span class="cmd">sam local invoke OrderFunction -e events/test.json</span>   <span class="comment"># 本機測試</span>
+$ <span class="cmd">sam local start-api</span>                                   <span class="comment"># 本機跑整個 API</span>
+$ <span class="cmd">sam deploy --guided</span>
+$ <span class="cmd">sam logs -n OrderFunction --tail</span>                     <span class="comment"># 即時看日誌</span></code></pre>
+
+    <div class="ok"><strong>SAM 的三個殺手級功能：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b><span class="inline-code">sam local</span></b>——在本機用 Docker 跑 Lambda 和 API Gateway，<b>不用每次都部署上去測</b></li>
+        <li><b><span class="inline-code">DeploymentPreference</span></b>——內建金絲雀部署，<b>綁 CloudWatch 告警自動回退</b>，這是第 07 章提到的最佳實務</li>
+        <li><b>Policy Templates</b>——<span class="inline-code">DynamoDBCrudPolicy</span> 會產生剛好夠用的最小權限，不用自己寫 JSON</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="cicd">
+    <h2>9. CI/CD 管線</h2>
+
+    <pre><code><span class="comment"># .github/workflows/infra.yml</span>
+name: Infrastructure CI/CD
+
+on:
+  pull_request:
+    paths: [<span class="val">'infra/**'</span>]
+  push:
+    branches: [main]
+    paths: [<span class="val">'infra/**'</span>]
+
+<span class="var">permissions</span>:
+  id-token: write        <span class="comment"># OIDC 需要（第 01 章的無金鑰部署）</span>
+  contents: read
+  pull-requests: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      <span class="comment"># 不使用任何 Access Key —— 用 OIDC 換臨時憑證</span>
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          <span class="var">role-to-assume</span>: arn:aws:iam::123456789012:role/GitHubActionsRole
+          aws-region: ap-northeast-1
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: 格式檢查
+        run: terraform fmt -check -recursive
+
+      - name: 安全掃描
+        uses: aquasecurity/tfsec-action@v1.0.0
+
+      - name: 成本估算
+        uses: infracost/actions/setup@v3
+      - run: infracost breakdown --path infra/envs/prod --format json --out-file /tmp/cost.json
+
+      - name: Plan
+        working-directory: infra/envs/prod
+        run: |
+          terraform init
+          terraform plan -out=tfplan -no-color | tee plan.txt
+
+      - name: 把 plan 貼到 PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('infra/envs/prod/plan.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner, repo: context.repo.repo,
+              body: '### Terraform Plan\n```\n' + plan.slice(0, 60000) + '\n```'
+            });
+
+  apply:
+    needs: plan
+    <span class="kw">if</span>: github.ref == <span class="val">'refs/heads/main'</span>
+    runs-on: ubuntu-latest
+    <span class="var">environment</span>: production      <span class="comment">← GitHub 環境保護：需要人工核准</span>
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/GitHubActionsRole
+          aws-region: ap-northeast-1
+      - run: |
+          cd infra/envs/prod
+          terraform init
+          terraform apply -auto-approve</code></pre>
+
+    <div class="ok"><strong>這個管線的五個重點：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>OIDC 而不是 Access Key</b>——GitHub Secrets 裡<b>一個 AWS 金鑰都沒有</b>（第 01 章）</li>
+        <li><b>plan 結果貼回 PR</b>——審查的人看得到「這次會改什麼」</li>
+        <li><b>tfsec 安全掃描</b>——自動抓出「S3 沒加密」「安全群組開太大」這類問題</li>
+        <li><b>Infracost 成本估算</b>——PR 上直接顯示「這次變更每月增加 US$XX」</li>
+        <li><b>environment: production</b>——需要指定的人按核准才會 apply</li>
+      </ol>
+      <b>第 4 點特別有價值</b>——很多雲端成本失控是因為「加資源的當下沒人知道要花多少錢」。
+    </div>
+
+    <div class="warn"><strong>正式環境的 apply 不應該全自動。</strong>就算 plan 看起來沒問題，也該有人按下核准。理由：
+      <ul style="margin:8px 0 0">
+        <li>plan 不會告訴你「這個變更會不會造成停機」</li>
+        <li>時機很重要——不該在流量尖峰或週五下午部署基礎設施</li>
+      </ul>
+      <b>應用程式部署可以全自動，基礎設施部署建議保留人工閘門。</b>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="practice">
+    <h2>10. 實務準則</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>所有東西進 Git</b>包含範本、變數、Runbook。<b>唯一的例外是 state 檔和機密</b>。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>依變動頻率分層</b>network / security / data / app 分開，改應用層不會動到資料庫。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>部署前一定看 diff</b>CFN 用 Change Set、Terraform 用 <span class="inline-code">plan -out</span>、CDK 用 <span class="inline-code">cdk diff</span>。<b>特別注意會不會 Replacement</b>。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>有狀態資源設保護</b>CFN 的 <span class="inline-code">DeletionPolicy: Snapshot</span>、Terraform 的 <span class="inline-code">prevent_destroy</span>、RDS 的 <span class="inline-code">deletion_protection</span>。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>機密不進程式碼</b>用 Secrets Manager / Parameter Store，IaC 只引用 ARN。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>鎖定版本</b>Terraform provider、CDK 套件都要鎖主版本，避免自動升級造成非預期變更。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>定期偵測漂移</b>救火時手動改了設定，<b>事後一定要補回程式碼</b>。排程檢查能抓到漏掉的。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>用 default_tags</b>讓所有資源自動帶上 Owner / Env / Project，這是第 08 章 FinOps 的基礎。</div></div>
+    </div>
+
+    <div class="warn"><strong>IaC 最常見的失敗模式：「一半用 IaC，一半手動」。</strong><br><br>
+      這比全手動更糟——因為你<b>以為</b>程式碼是真實狀態，實際上不是。下次 apply 時 Terraform 會想把手動改的東西<b>改回去</b>，可能造成意外中斷。<br><br>
+      <b>要嘛某個資源完全由 IaC 管，要嘛完全不管。不要混。</b>如果真的必須手動改，改完立刻補進程式碼並跑一次 plan 確認沒有差異。
+    </div>
+
+    <div class="ok"><strong>導入 IaC 的漸進路徑（不要一次全上）：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>新資源一律用 IaC</b>——不要碰既有的</li>
+        <li><b>把既有資源 import 進來</b>——從變動少的開始（VPC、安全群組）</li>
+        <li><b>建立 CI 管線</b>——先只跑 plan，不自動 apply</li>
+        <li><b>開啟漂移偵測</b>——確認沒有人在手動改</li>
+        <li><b>才開始自動 apply</b>——而且正式環境保留人工核准</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：把整個架構寫成程式碼</h3>
+    <p>約 120 分鐘。這是整個實作篇的收尾。</p>
+
+    <div class="cost">會建立實際資源（VPC、NAT、RDS）。<b>用 dev 參數</b>（單 NAT、db.t3.micro、單 AZ）把費用壓到最低，跑 2 小時約 <b>US$0.2</b>。<br>
+    <b>IaC 的好處是清理很簡單</b>——一行 <span class="inline-code">destroy</span> 就全部刪乾淨，不會像手動那樣漏掉資源。</div>
+
+    <h4>階段一：CloudFormation</h4>
+    <ol>
+      <li>寫 <span class="inline-code">network.yaml</span>：VPC、三層子網路 × 2 AZ、IGW、NAT、路由表</li>
+      <li>用 <strong>Parameters</strong>（EnvName、VpcCidr）與 <strong>Conditions</strong>（prod 才建第二個 NAT）</li>
+      <li>用 <span class="inline-code">!Cidr</span> 自動切子網路，不要手算</li>
+      <li><strong>Outputs</strong> 匯出 VpcId 和子網路 ID</li>
+      <li><span class="inline-code">validate-template</span> → <span class="inline-code">deploy</span> 到 dev</li>
+      <li>寫 <span class="inline-code">data.yaml</span> 建 RDS，設 <strong>DeletionPolicy: Snapshot</strong>，用 <span class="inline-code">ImportValue</span> 引用網路層</li>
+      <li>改一下 RDS 的 instance class，用 <strong>Change Set</strong> 看它是不是 <strong>Replacement: True</strong></li>
+      <li>手動在主控台改一個安全群組規則，然後跑<strong>漂移偵測</strong>抓出來</li>
+    </ol>
+
+    <h4>階段二：Terraform</h4>
+    <ol start="9">
+      <li>建立 <strong>state bucket</strong>（版本控制 + 加密 + 封鎖公開）</li>
+      <li>用 <strong>目錄分離</strong>建立 envs/dev 與 envs/prod</li>
+      <li>寫 network module，用 <strong>for_each</strong> 產生子網路</li>
+      <li>用 <strong>default_tags</strong> 自動加上 Owner / Env / Project</li>
+      <li>RDS 加上 <strong>lifecycle { prevent_destroy }</strong>，然後<strong>試著 destroy 看它擋下來</strong></li>
+      <li><span class="inline-code">plan -out=tfplan</span> → 檢視 → <span class="inline-code">apply tfplan</span></li>
+      <li>把階段一手動建的某個資源用 <strong>terraform import</strong> 納管</li>
+    </ol>
+
+    <h4>階段三：CDK</h4>
+    <ol start="16">
+      <li><span class="inline-code">cdk init</span> + <span class="inline-code">cdk bootstrap</span></li>
+      <li>用 <span class="inline-code">new ec2.Vpc()</span> 建同樣的網路</li>
+      <li><strong>先跑 <span class="inline-code">cdk synth</span></strong>，數一數它產生了多少資源、有幾個 NAT Gateway</li>
+      <li>比較「10 行 CDK」和「200 行 CloudFormation」</li>
+      <li><span class="inline-code">cdk diff</span> → <span class="inline-code">cdk deploy</span></li>
+    </ol>
+
+    <h4>階段四：CI/CD</h4>
+    <ol start="21">
+      <li>設定 <strong>GitHub OIDC</strong>（第 01 章），<span class="inline-code">sub</span> 條件<strong>鎖到特定 repo 和分支</strong></li>
+      <li>寫 workflow：PR 時跑 <strong>fmt + validate + plan</strong>，並把 plan 貼回 PR</li>
+      <li>加上 <strong>tfsec</strong> 安全掃描</li>
+      <li>main 分支加 <strong>environment: production</strong> 需要人工核准</li>
+      <li>開一個 PR 改動基礎設施，<strong>確認 plan 出現在 PR 留言裡</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>三種工具都能建出<strong>功能相同</strong>的 VPC</li>
+      <li>Change Set 正確標示出哪些資源會 <strong>Replacement</strong></li>
+      <li>漂移偵測<strong>抓到你手動改的那條規則</strong></li>
+      <li><span class="inline-code">terraform destroy</span> 對加了 <strong>prevent_destroy</strong> 的資源<strong>會失敗</strong></li>
+      <li><span class="inline-code">git status</span> <strong>看不到任何 .tfstate 檔</strong></li>
+      <li>GitHub Secrets 裡<strong>沒有任何 AWS 金鑰</strong>，但 workflow 能成功存取 AWS</li>
+      <li>PR 上看得到完整的 plan 輸出</li>
+      <li>所有建立的資源都<strong>自動帶有 Owner / Env / Project 標籤</strong></li>
+    </ul>
+
+    <h4>清理</h4>
+    <pre><code>$ cd infra/envs/dev &amp;&amp; terraform destroy
+$ cdk destroy --all
+$ aws cloudformation delete-stack --stack-name dev-data
+$ aws cloudformation wait stack-delete-complete --stack-name dev-data
+$ aws cloudformation delete-stack --stack-name dev-network
+
+<span class="comment"># 確認乾淨（IaC 的好處：這裡應該全部是空的）</span>
+$ aws ec2 describe-nat-gateways --filter Name=state,Values=available \
+    --query 'NatGateways[].NatGatewayId'
+$ aws ec2 describe-addresses --query 'Addresses[].PublicIp'
+$ aws rds describe-db-instances --query 'DBInstances[].DBInstanceIdentifier'</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>加上 <strong>Infracost</strong>，讓 PR 顯示「這次變更每月增加多少錢」。</li>
+      <li>用 <strong>CloudFormation StackSets</strong> 把同一份範本部署到<strong>兩個 region</strong>（這就是第 09 章 DR 的基礎）。</li>
+      <li>用 <strong>SAM</strong> 把第 07 章的無伺服器 API 寫成程式碼，包含 <strong>Canary10Percent5Minutes</strong> 部署。</li>
+      <li>故意寫一個有安全問題的範本（S3 公開、SG 開 0.0.0.0/0:22），確認 <strong>tfsec 會擋下來</strong>。</li>
+      <li>寫一個 <strong>CDK 單元測試</strong>（<span class="inline-code">Template.fromStack()</span>），斷言「RDS 一定有加密且不公開」。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>IaC 的價值：<strong>可重複、可審查、可回溯、災難可重建</strong></li>
+      <li><strong>長期基礎設施用 IaC，一次性實驗用 CLI</strong>——不要教條化</li>
+      <li>選型：<strong>只用 AWS → CFN；多雲 → Terraform；團隊會寫程式 → CDK；純無伺服器 → SAM</strong></li>
+      <li>CDK 底層產生 CloudFormation，<strong>不是第三種引擎</strong></li>
+      <li><strong>DeletionPolicy 預設是 Delete</strong>——有狀態資源一定要設 Retain 或 Snapshot</li>
+      <li>部署前一定看 <strong>Change Set / plan / cdk diff</strong>，特別注意 <strong>Replacement: True</strong></li>
+      <li>堆疊<strong>依變動頻率分層</strong>：network / security / data / app</li>
+      <li>CFN 的 <strong>Export 被引用後不能改也不能刪</strong>——用 SSM Parameter Store 傳值更彈性</li>
+      <li>Terraform <strong>state 要遠端 + 鎖定 + 加密 + 版本控制</strong>，且<strong>絕不 commit</strong></li>
+      <li>環境用<strong>目錄分離</strong>不要用 workspace——避免誤操作正式環境</li>
+      <li><span class="inline-code">terraform apply</span> 一定要<strong>帶 plan 檔案</strong></li>
+      <li>CDK 一行 <span class="inline-code">new ec2.Vpc()</span> 可能建出<strong>兩個 NAT（每月 US$90）</strong>——先 synth 看清楚</li>
+      <li>CI/CD 用 <strong>OIDC 不用 Access Key</strong>；plan 貼回 PR；<strong>正式環境保留人工核准</strong></li>
+      <li>最糟的狀態是<strong>「一半 IaC 一半手動」</strong>——要嘛完全管，要嘛完全不管</li>
+    </ul>
+    <div class="note">IaC 在 SAA-C03 主要考 CloudFormation 的概念（Change Set、DeletionPolicy、巢狀堆疊、StackSets）。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 做最後一輪複習。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="09-architecture.html">← 09：架構範式與災難復原</a>
+    <a href="index.html">回 AWS 學習中心 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 10</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

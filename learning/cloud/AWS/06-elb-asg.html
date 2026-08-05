@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高可用與自動擴展 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.lbcmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin:16px 0;}
+.lbc{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--sky);background:#fff;}
+.lbc b{display:block;font-size:.88rem;color:var(--dark);margin-bottom:3px;}
+.lbc span{font-size:.77rem;color:var(--muted);line-height:1.65;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">06 · 高可用與擴展</span>
+</div>
+
+<div class="hero">
+  <div class="badge">實作 06 · 彈性架構</div>
+  <h1>高可用與<span>自動擴展</span></h1>
+  <p>「掛一台不影響服務、流量來了自己長、流量走了自己縮」——這章把 ELB、Auto Scaling、Route 53 串起來，做出真正禁得起故障的架構。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#concept">高可用的三個層級</a></li>
+      <li><a href="#lbtype">四種負載平衡器怎麼選</a></li>
+      <li><a href="#albbuild">實作一：建立 ALB</a></li>
+      <li><a href="#health">健康檢查與連線耗盡</a></li>
+      <li><a href="#sticky">Sticky Session 與無狀態設計</a></li>
+      <li><a href="#asg">Auto Scaling 完整設定</a></li>
+      <li><a href="#policy">五種擴展政策</a></li>
+      <li><a href="#lifecycle">生命週期掛勾與健康檢查</a></li>
+      <li><a href="#deploy">部署策略：滾動、藍綠、金絲雀</a></li>
+      <li><a href="#route53">Route 53 路由政策</a></li>
+      <li><a href="#trouble">故障排除</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="concept">
+    <h2>1. 高可用的三個層級</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>層級</th><th>抵禦什麼</th><th>做法</th><th>成本</th></tr>
+        <tr><td><b>單一 AZ 多台</b></td><td>單台機器故障</td><td>ASG min=2</td><td>低</td></tr>
+        <tr><td><b>多 AZ</b></td><td><b>整個資料中心故障</b></td><td>ASG 跨 2–3 個 AZ + ALB</td><td>中（<b>標準做法</b>）</td></tr>
+        <tr><td><b>多 Region</b></td><td>整個地區故障</td><td>Route 53 + 跨區複製</td><td>高</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code><b>可用性計算</b><br><br>
+    99%　　= 每年停機 <b>3.65 天</b><br>
+    99.9%　= 每年停機 <b>8.77 小時</b><br>
+    99.95% = 每年停機 <b>4.38 小時</b><br>
+    99.99% = 每年停機 <b>52.6 分鐘</b><br>
+    99.999% = 每年停機 <b>5.26 分鐘</b></code></div>
+
+    <div class="warn"><strong>串聯的元件，可用性是<u>相乘</u>的。</strong>
+      <div class="formula" style="margin-top:10px"><code>ALB(99.99%) × EC2(99.99%) × RDS(99.95%) = <b>99.93%</b><br><br>
+      不是 99.99%，是<b>比最弱的那個還低</b></code></div>
+      所以提升可用性要<b>從最弱的環節下手</b>。上面這個例子裡，把 RDS 開 Multi-AZ 的效益遠大於把 EC2 從 2 台加到 4 台。
+    </div>
+
+    <div class="ok"><strong>多 AZ 的最低要求（AWS 建議）：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>至少 2 個 AZ</b>，每個 AZ 的容量要能<b>單獨撐住全部流量</b></li>
+        <li>更省的做法是 <b>3 個 AZ</b>——掛一個還剩 2/3 容量，所以每個 AZ 只要準備 50% 冗餘而不是 100%</li>
+        <li>資料庫、快取、儲存<b>每一層都要跨 AZ</b>，只有應用層跨 AZ 沒有意義</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="lbtype">
+    <h2>2. 四種負載平衡器怎麼選</h2>
+
+    <div class="lbcmp">
+      <div class="lbc"><b>ALB</b><span>第 7 層（HTTP/HTTPS）。<b>絕大多數 Web 應用用它</b>。可依路徑、網域、標頭分流。</span></div>
+      <div class="lbc"><b>NLB</b><span>第 4 層（TCP/UDP/TLS）。<b>極低延遲、每秒數百萬連線</b>、可給靜態 IP。</span></div>
+      <div class="lbc"><b>GWLB</b><span>第 3 層。串接第三方<b>防火牆 / IDS</b> 設備。</span></div>
+      <div class="lbc"><b>CLB</b><span>舊版，<b>已不建議使用</b>。只有既有系統還在用。</span></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>ALB</th><th>NLB</th></tr>
+        <tr><td>OSI 層級</td><td><b>7（應用層）</b></td><td><b>4（傳輸層）</b></td></tr>
+        <tr><td>協定</td><td>HTTP、HTTPS、gRPC</td><td>TCP、UDP、TLS</td></tr>
+        <tr><td>依內容分流</td><td><b>可以</b>（路徑、Host、標頭、查詢字串、來源 IP）</td><td>不行</td></tr>
+        <tr><td>靜態 IP</td><td><b>不行</b>（只有 DNS 名稱）</td><td><b>可以</b>（每 AZ 一個）</td></tr>
+        <tr><td>延遲</td><td>約 400 微秒</td><td><b>約 100 微秒</b></td></tr>
+        <tr><td>保留來源 IP</td><td>放在 <span class="inline-code">X-Forwarded-For</span> 標頭</td><td><b>直接保留</b></td></tr>
+        <tr><td>WAF 整合</td><td><b>可以</b></td><td>不行</td></tr>
+        <tr><td>Lambda 當目標</td><td><b>可以</b></td><td>不行</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>考題關鍵字對照：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>題目說</th><th>答案</th></tr>
+          <tr><td>「依 URL 路徑分流到不同服務」「微服務」</td><td><b>ALB</b></td></tr>
+          <tr><td>「需要固定 IP 讓客戶加白名單」</td><td><b>NLB</b></td></tr>
+          <tr><td>「每秒數百萬請求」「極低延遲」「遊戲伺服器」</td><td><b>NLB</b></td></tr>
+          <tr><td>「UDP」「MQTT」「非 HTTP 協定」</td><td><b>NLB</b></td></tr>
+          <tr><td>「需要 WAF 防護」</td><td><b>ALB</b>（+ WAF）</td></tr>
+          <tr><td>「串接第三方防火牆設備」</td><td><b>GWLB</b></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="warn"><strong>ALB 沒有固定 IP，而且 IP 會變。</strong>它的 IP 由 AWS 動態管理，擴展時會增加、縮減時會回收。<br><br>
+      如果客戶要求「給我一個 IP 加防火牆白名單」：
+      <ul style="margin:8px 0 0">
+        <li><b>方案 A：</b>改用 NLB（可綁 Elastic IP）</li>
+        <li><b>方案 B：</b>NLB 前置 + ALB 當 NLB 的目標（兩者優點兼具，但多一層費用與延遲）</li>
+        <li><b>方案 C：</b>用 <b>Global Accelerator</b>，它提供 2 個固定的 anycast IP</li>
+      </ul>
+      <b>絕對不要</b>去解析 ALB 的 DNS 拿到 IP 然後寫死——那些 IP 隨時會變。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="albbuild">
+    <h2>3. 實作一：建立 ALB</h2>
+
+    <div class="cost">ALB 東京區：<b>每小時 US$0.0243</b>（約每月 US$18）+ <b>LCU 費用</b>（依連線數、頻寬、規則數計算）。<br>
+    小流量的話一個月大約 <b>US$20–25</b>。<b>學習做完要刪掉</b>，它是按小時計費不管有沒有流量。</div>
+
+    <pre><code><span class="comment"># ═══ 步驟 1：建立 ALB（要至少兩個 AZ 的公有子網路）═══</span>
+$ <span class="cmd">ALB_ARN</span>=$(aws elbv2 create-load-balancer \
+    <span class="var">--name</span> web-alb \
+    <span class="var">--subnets</span> $PUB_A $PUB_C \
+    <span class="var">--security-groups</span> $SG_ALB \
+    <span class="var">--scheme</span> internet-facing \
+    <span class="var">--type</span> application \
+    <span class="var">--ip-address-type</span> ipv4 \
+    --query 'LoadBalancers[0].LoadBalancerArn' --output text)
+
+<span class="comment"># ═══ 步驟 2：建立目標群組 ═══</span>
+$ <span class="cmd">TG_ARN</span>=$(aws elbv2 create-target-group \
+    <span class="var">--name</span> web-tg \
+    <span class="var">--protocol</span> HTTP <span class="var">--port</span> 8080 \
+    <span class="var">--vpc-id</span> $VPC_ID \
+    <span class="var">--target-type</span> instance \
+    <span class="var">--health-check-protocol</span> HTTP \
+    <span class="var">--health-check-path</span> /health \
+    <span class="var">--health-check-interval-seconds</span> 15 \
+    <span class="var">--health-check-timeout-seconds</span> 5 \
+    <span class="var">--healthy-threshold-count</span> 2 \
+    <span class="var">--unhealthy-threshold-count</span> 3 \
+    <span class="var">--matcher</span> HttpCode=200 \
+    --query 'TargetGroups[0].TargetGroupArn' --output text)
+
+<span class="comment"># 縮短連線耗盡時間（預設 300 秒，部署會等很久）</span>
+$ <span class="cmd">aws elbv2 modify-target-group-attributes</span> --target-group-arn $TG_ARN \
+    <span class="var">--attributes</span> \
+      Key=deregistration_delay.timeout_seconds,Value=30 \
+      Key=stickiness.enabled,Value=false</code></pre>
+
+    <pre><code><span class="comment"># ═══ 步驟 3：HTTPS Listener（先在 ACM 申請憑證）═══</span>
+$ <span class="cmd">CERT_ARN</span>=$(aws acm request-certificate \
+    --domain-name "app.example.com" \
+    <span class="var">--validation-method</span> DNS \
+    --query CertificateArn --output text)
+
+<span class="comment"># 依提示到 Route 53 加 CNAME 驗證，等它變 ISSUED</span>
+$ aws acm wait certificate-validated --certificate-arn $CERT_ARN
+
+$ <span class="cmd">aws elbv2 create-listener</span> --load-balancer-arn $ALB_ARN \
+    --protocol HTTPS --port 443 \
+    <span class="var">--certificates</span> CertificateArn=$CERT_ARN \
+    <span class="var">--ssl-policy</span> ELBSecurityPolicy-TLS13-1-2-2021-06 \
+    --default-actions Type=forward,TargetGroupArn=$TG_ARN
+
+<span class="comment"># ═══ 步驟 4：HTTP 自動轉 HTTPS ═══</span>
+$ <span class="cmd">aws elbv2 create-listener</span> --load-balancer-arn $ALB_ARN \
+    --protocol HTTP --port 80 \
+    <span class="var">--default-actions</span> '[{
+      "Type": "redirect",
+      "RedirectConfig": {
+        "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"
+      }
+    }]'</code></pre>
+
+    <div class="ok"><strong>ACM 憑證在 ALB / CloudFront / API Gateway 上是<u>免費</u>的，而且自動續期。</strong>不用再管憑證到期。<br><br>
+      <b>兩個注意事項：</b>
+      <ul style="margin:8px 0 0">
+        <li>用 <b>DNS 驗證</b>不要用 Email 驗證——DNS 驗證才能自動續期</li>
+        <li><b>CloudFront 的憑證必須在 us-east-1 申請</b>，其他服務在自己的 region 申請</li>
+      </ul>
+    </div>
+
+    <h3>依路徑 / 網域分流（ALB 的核心價值）</h3>
+    <pre><code><span class="comment"># /api/* 送到 api-tg</span>
+$ <span class="cmd">aws elbv2 create-rule</span> --listener-arn $LISTENER_ARN \
+    <span class="var">--priority</span> 10 \
+    <span class="var">--conditions</span> '[{"Field":"path-pattern","Values":["/api/*"]}]' \
+    <span class="var">--actions</span> "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$API_TG\"}]"
+
+<span class="comment"># admin.example.com 送到 admin-tg，且限制來源 IP</span>
+$ <span class="cmd">aws elbv2 create-rule</span> --listener-arn $LISTENER_ARN --priority 20 \
+    --conditions '[
+      {"Field":"host-header","Values":["admin.example.com"]},
+      {"Field":"source-ip","SourceIpConfig":{"Values":["203.0.113.0/24"]}}
+    ]' \
+    --actions "[{\"Type\":\"forward\",\"TargetGroupArn\":\"$ADMIN_TG\"}]"
+
+<span class="comment"># 加權轉發：金絲雀部署，5% 流量到新版</span>
+$ <span class="cmd">aws elbv2 modify-listener</span> --listener-arn $LISTENER_ARN \
+    --default-actions '[{
+      "Type": "forward",
+      "ForwardConfig": {
+        "TargetGroups": [
+          {"TargetGroupArn": "'$TG_V1'", "Weight": 95},
+          {"TargetGroupArn": "'$TG_V2'", "Weight": 5}
+        ]
+      }
+    }]'</code></pre>
+
+    <div class="note"><strong>規則按 priority 由小到大評估，第一個符合的就執行。</strong>跟 ACL 一樣是「先中先贏」。建議留間隔（10、20、30…）方便之後插入新規則。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="health">
+    <h2>4. 健康檢查與連線耗盡</h2>
+
+    <div class="warn"><strong>健康檢查的路徑<u>不要</u>用首頁（<span class="inline-code">/</span>）。</strong>理由：
+      <ul style="margin:8px 0 0">
+        <li>首頁可能很重（查資料庫、算首頁推薦），健康檢查每 15 秒打一次會造成不必要的負載</li>
+        <li>首頁掛了不一定代表整台機器該被移除</li>
+      </ul>
+      <b>應該做一個專用的 <span class="inline-code">/health</span> 端點</b>，只回傳 200 和一個字串。
+    </div>
+
+    <div class="ok"><strong>健康檢查應該檢查什麼？兩種設計：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>類型</th><th>檢查內容</th><th>用途</th></tr>
+          <tr><td><b>Liveness</b>（淺層）</td><td>只回 200，證明<b>程序還活著</b></td><td><b>給 ALB 用</b></td></tr>
+          <tr><td><b>Readiness</b>（深層）</td><td>連得到資料庫、快取、下游 API</td><td>部署時判斷能否接流量</td></tr>
+        </table>
+      </div>
+      <b>ALB 的健康檢查用淺層就好。</b>用深層的話，資料庫短暫抖動會讓<b>所有機器同時變成 unhealthy</b>，ALB 把全部移除 → 服務完全中斷。這叫「健康檢查造成的雪崩」，比原本的問題嚴重得多。
+    </div>
+
+    <h3>參數怎麼調</h3>
+    <div class="formula"><code>偵測到故障的時間 = <b>interval × unhealthy_threshold</b><br><br>
+    15 秒 × 3 次 = <b>45 秒</b>才會把壞掉的機器移除<br><br>
+    恢復時間 = interval × healthy_threshold = 15 × 2 = <b>30 秒</b></code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>參數</th><th>預設</th><th>建議</th><th>說明</th></tr>
+        <tr><td>interval</td><td>30 秒</td><td><b>15 秒</b></td><td>太短會增加後端負載</td></tr>
+        <tr><td>timeout</td><td>5 秒</td><td>5 秒</td><td>必須小於 interval</td></tr>
+        <tr><td>healthy_threshold</td><td>5</td><td><b>2</b></td><td>恢復要快</td></tr>
+        <tr><td>unhealthy_threshold</td><td>2</td><td><b>3</b></td><td>避免瞬間抖動就被踢掉</td></tr>
+        <tr><td>deregistration_delay</td><td><b>300 秒</b></td><td><b>30 秒</b></td><td>預設太長，部署會很慢</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>Deregistration Delay（連線耗盡）在做什麼？</strong>當一台機器要被移除時，ALB <b>停止送新請求，但等現有請求處理完</b>才真的斷開。<br><br>
+      預設 300 秒代表每次部署每台機器都要等 5 分鐘。<b>如果你的請求都在 10 秒內完成，設 30 秒就夠了</b>，部署時間立刻縮短一大截。<br><br>
+      <b>但如果有長時間的請求</b>（檔案上傳、報表產生），要設得比最長請求還久，否則使用者會斷線。
+    </div>
+
+    <pre><code><span class="comment"># 看目標的健康狀態與「為什麼不健康」</span>
+$ <span class="cmd">aws elbv2 describe-target-health --target-group-arn $TG_ARN</span>
+{
+  "TargetHealthDescriptions": [
+    {
+      "Target": { "Id": "i-0abc123", "Port": 8080 },
+      "TargetHealth": {
+        "State": "<span class="kw">unhealthy</span>",
+        "Reason": "<span class="kw">Target.ResponseCodeMismatch</span>",
+        "Description": "Health checks failed with these codes: [404]"
+      }
+    }
+  ]
+}</code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>Reason</th><th>代表</th><th>怎麼修</th></tr>
+        <tr><td><b>Target.ResponseCodeMismatch</b></td><td>回傳的狀態碼不對</td><td>檢查 <span class="inline-code">/health</span> 路徑存不存在、matcher 設對沒</td></tr>
+        <tr><td><b>Target.Timeout</b></td><td>逾時沒回應</td><td>服務太慢，或 <b>安全群組沒放行</b></td></tr>
+        <tr><td><b>Target.FailedHealthChecks</b></td><td>連不上</td><td><b>SG 沒開</b>、服務沒起來、埠號錯</td></tr>
+        <tr><td><b>Elb.RegistrationInProgress</b></td><td>剛註冊，還在檢查</td><td>正常，等一下</td></tr>
+        <tr><td><b>Elb.InitialHealthChecking</b></td><td>初次檢查中</td><td>正常</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>健康檢查失敗最常見的原因是安全群組。</strong>後端 EC2 的 SG 必須允許<b>來自 ALB 安全群組</b>的健康檢查埠。用 <span class="inline-code">--source-group</span> 引用 ALB 的 SG（第 02 章講過），不要寫 IP。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="sticky">
+    <h2>5. Sticky Session 與無狀態設計</h2>
+
+    <div class="warn"><strong>Sticky Session 是一種妥協，不是好設計。</strong>它讓同一個使用者永遠連到同一台機器。問題：
+      <ul style="margin:8px 0 0">
+        <li>那台機器掛了，<b>使用者的 session 就沒了</b>（會被登出）</li>
+        <li>負載會<b>分布不均</b>——有些機器綁了很多使用者</li>
+        <li>Auto Scaling 縮容時<b>一定會斷掉一些人的 session</b></li>
+      </ul>
+    </div>
+
+    <div class="ok"><strong>正確做法：把 session 存到外部，讓應用程式無狀態。</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>存哪</th><th>適合</th></tr>
+          <tr><td><b>ElastiCache Redis</b></td><td><b>最常見</b>，快、支援 TTL</td></tr>
+          <tr><td><b>DynamoDB</b></td><td>無伺服器架構，配 TTL 自動清理</td></tr>
+          <tr><td><b>JWT（存在客戶端）</b></td><td>完全無狀態，但無法主動撤銷</td></tr>
+        </table>
+      </div>
+      無狀態之後：<b>任何一台機器掛掉都不影響使用者</b>、可以自由擴縮、部署不用擔心踢人。
+    </div>
+
+    <pre><code><span class="comment"># 真的需要 sticky 時的兩種模式</span>
+$ <span class="cmd">aws elbv2 modify-target-group-attributes</span> --target-group-arn $TG_ARN \
+    --attributes \
+      Key=stickiness.enabled,Value=true \
+      Key=stickiness.type,Value=lb_cookie \
+      Key=stickiness.lb_cookie.duration_seconds,Value=3600</code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類型</th><th>Cookie 誰產生</th><th>特性</th></tr>
+        <tr><td><b>lb_cookie</b></td><td>ALB（<span class="inline-code">AWSALB</span>）</td><td>ALB 自己管，設定簡單</td></tr>
+        <tr><td><b>app_cookie</b></td><td><b>你的應用程式</b></td><td>可以跟應用的 session 生命週期一致</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="asg">
+    <h2>6. Auto Scaling 完整設定</h2>
+
+    <pre><code>$ <span class="cmd">aws autoscaling create-auto-scaling-group</span> \
+    <span class="var">--auto-scaling-group-name</span> web-asg \
+    <span class="var">--launch-template</span> LaunchTemplateName=web-lt,Version='$Latest' \
+    <span class="var">--min-size</span> 2 <span class="var">--max-size</span> 12 <span class="var">--desired-capacity</span> 4 \
+    <span class="var">--vpc-zone-identifier</span> "$APP_A,$APP_C" \
+    <span class="var">--target-group-arns</span> $TG_ARN \
+    <span class="var">--health-check-type</span> ELB \
+    <span class="var">--health-check-grace-period</span> 180 \
+    <span class="var">--default-cooldown</span> 180 \
+    <span class="var">--termination-policies</span> OldestLaunchTemplate Default \
+    <span class="var">--capacity-rebalance</span> \
+    <span class="var">--tags</span> "Key=Name,Value=web,PropagateAtLaunch=true" \
+                  "Key=Env,Value=prod,PropagateAtLaunch=true"</code></pre>
+
+    <div class="warn"><strong>三個參數設錯就會出事：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>參數</th><th>設錯的後果</th></tr>
+          <tr><td><span class="inline-code">--health-check-type EC2</span>（預設）</td><td><b>只檢查機器有沒有開機</b>。應用程式當掉但機器還活著 → ASG 認為健康，<b>流量繼續送給壞掉的機器</b>。<b>掛了 ALB 就一定要改成 ELB</b></td></tr>
+          <tr><td><span class="inline-code">--health-check-grace-period</span> 太短</td><td>新機器還在開機就被判定不健康 → <b>殺掉 → 再開 → 再殺</b>，無限迴圈燒錢</td></tr>
+          <tr><td><span class="inline-code">--min-size</span> 設 1</td><td>那一台掛掉時<b>服務中斷</b>，直到新的開起來。正式環境至少 2</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="ok"><strong>Grace Period 怎麼抓？</strong>從「機器啟動」到「應用程式能回應健康檢查」的時間，再加 60 秒緩衝。
+      <ul style="margin:8px 0 0">
+        <li>Golden AMI（軟體已預裝）→ <b>60–120 秒</b></li>
+        <li>User Data 現裝軟體 → <b>300–600 秒</b></li>
+      </ul>
+      這也是第 03 章推薦 Golden AMI 的原因之一——擴容反應快非常多。
+    </div>
+
+    <h3>終止政策：縮容時先殺誰</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>政策</th><th>先終止</th></tr>
+        <tr><td><b>Default</b></td><td>先平衡 AZ → 再挑最舊的 Launch Template → 再挑最接近計費整點的</td></tr>
+        <tr><td><b>OldestInstance</b></td><td>最舊的機器（<b>適合定期汰換</b>）</td></tr>
+        <tr><td><b>NewestInstance</b></td><td>最新的（<b>測試新設定時方便回退</b>）</td></tr>
+        <tr><td><b>OldestLaunchTemplate</b></td><td>用舊版範本開的（<b>滾動更新常用</b>）</td></tr>
+        <tr><td><b>ClosestToNextInstanceHour</b></td><td>最接近計費整點的（現在按秒計費，意義不大）</td></tr>
+      </table>
+    </div>
+
+    <div class="note"><strong>ASG 永遠優先維持 AZ 之間的平衡。</strong>就算你設了 OldestInstance，如果 1a 有 3 台、1c 有 1 台，它會<b>先從 1a 殺</b>來平衡，而不是全網最舊的那台。這是內建行為，無法關閉。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="policy">
+    <h2>7. 五種擴展政策</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>政策</th><th>怎麼運作</th><th>適合</th></tr>
+        <tr><td><b>Target Tracking</b></td><td>「CPU 維持在 60%」，AWS 自己算要幾台</td><td><b>90% 的情況用這個</b></td></tr>
+        <tr><td><b>Step Scaling</b></td><td>依超標幅度分級加不同數量</td><td>需要精細控制擴展速度</td></tr>
+        <tr><td><b>Simple Scaling</b></td><td>觸發就加 N 台，然後 cooldown</td><td><b>舊做法，不建議</b></td></tr>
+        <tr><td><b>Scheduled</b></td><td>指定時間擴縮</td><td><b>已知的規律尖峰</b></td></tr>
+        <tr><td><b>Predictive</b></td><td>ML 學習歷史模式，<b>提前</b>擴容</td><td>有明顯週期性的流量</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># ═══ Target Tracking：最簡單也最好用 ═══</span>
+$ <span class="cmd">aws autoscaling put-scaling-policy</span> \
+    --auto-scaling-group-name web-asg \
+    --policy-name cpu-target-60 \
+    <span class="var">--policy-type</span> TargetTrackingScaling \
+    <span class="var">--target-tracking-configuration</span> '{
+      "PredefinedMetricSpecification": {
+        "PredefinedMetricType": "ASGAverageCPUUtilization"
+      },
+      "TargetValue": 60.0,
+      "DisableScaleIn": false
+    }'
+
+<span class="comment"># 更好的指標：每台機器承受的請求數（比 CPU 更直接反映負載）</span>
+$ <span class="cmd">aws autoscaling put-scaling-policy</span> \
+    --auto-scaling-group-name web-asg \
+    --policy-name req-per-target \
+    --policy-type TargetTrackingScaling \
+    --target-tracking-configuration '{
+      "PredefinedMetricSpecification": {
+        "PredefinedMetricType": "<span class="val">ALBRequestCountPerTarget</span>",
+        "ResourceLabel": "app/web-alb/xxx/targetgroup/web-tg/yyy"
+      },
+      "TargetValue": 1000.0
+    }'</code></pre>
+
+    <div class="ok"><strong>Target Tracking 為什麼比 Step Scaling 好？</strong>
+      <ul style="margin:8px 0 0">
+        <li>它會<b>自動建立 CloudWatch 告警</b>，你不用手動設</li>
+        <li>它<b>擴容積極、縮容保守</b>——這正是你要的（寧可多開一下也不要不夠用）</li>
+        <li>它會<b>算出「需要幾台」而不是「加幾台」</b>，避免震盪</li>
+      </ul>
+      <b>除非有特殊需求，一律用 Target Tracking。</b>
+    </div>
+
+    <div class="warn"><strong>用 CPU 當指標不一定準。</strong>如果你的應用是 I/O 密集（等資料庫、等外部 API），<b>CPU 可能一直很低但已經塞爆了</b>。<br><br>
+      更好的指標：
+      <ul style="margin:8px 0 0">
+        <li><b>ALBRequestCountPerTarget</b>——每台承受多少請求</li>
+        <li><b>TargetResponseTime</b>——回應時間（用自訂指標）</li>
+        <li><b>SQS 佇列長度 / 機器數</b>——批次處理系統的標準指標</li>
+      </ul>
+    </div>
+
+    <pre><code><span class="comment"># ═══ Scheduled：每天早上 8:50 先擴容 ═══</span>
+$ <span class="cmd">aws autoscaling put-scheduled-update-group-action</span> \
+    --auto-scaling-group-name web-asg \
+    --scheduled-action-name morning-warmup \
+    <span class="var">--recurrence</span> "50 0 * * 1-5" \
+    <span class="var">--time-zone</span> "Asia/Taipei" \
+    --min-size 6 --desired-capacity 8
+
+<span class="comment"># 晚上縮回去</span>
+$ aws autoscaling put-scheduled-update-group-action \
+    --auto-scaling-group-name web-asg \
+    --scheduled-action-name evening-scaledown \
+    --recurrence "0 12 * * 1-5" --time-zone "Asia/Taipei" \
+    --min-size 2 --desired-capacity 2</code></pre>
+
+    <div class="ok"><strong>Scheduled + Target Tracking 一起用是最佳實務。</strong>Scheduled 負責「已知的規律」（上班前先開好），Target Tracking 負責「意外的尖峰」。<br><br>
+      純靠 Target Tracking 的問題：流量瞬間湧入時，<b>從偵測到機器可服務要 2–5 分鐘</b>，這段期間使用者會很慢。Scheduled 提前把機器準備好就沒這個問題。
+    </div>
+
+    <h3>Warm Pool：讓擴容更快</h3>
+    <pre><code>$ <span class="cmd">aws autoscaling put-warm-pool</span> \
+    --auto-scaling-group-name web-asg \
+    <span class="var">--min-size</span> 4 \
+    <span class="var">--pool-state</span> Stopped</code></pre>
+
+    <div class="note"><strong>Warm Pool</strong> 預先開好機器、跑完初始化，然後<b>停機</b>。需要擴容時直接 start（<b>幾十秒</b>）而不是從零開機（幾分鐘）。<br>
+    停機狀態<b>只付 EBS 費用不付運算費</b>，所以成本很低。適合「開機很慢但需要快速擴容」的應用。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="lifecycle">
+    <h2>8. 生命週期掛勾與健康檢查</h2>
+
+    <p><b>Lifecycle Hook</b> 讓機器在「準備啟動」或「準備終止」時<b>暫停</b>，等你做完事再繼續。</p>
+
+    <pre><code><span class="comment"># 終止前先暫停，讓你把日誌傳走、優雅關閉</span>
+$ <span class="cmd">aws autoscaling put-lifecycle-hook</span> \
+    --auto-scaling-group-name web-asg \
+    --lifecycle-hook-name drain-before-terminate \
+    <span class="var">--lifecycle-transition</span> autoscaling:EC2_INSTANCE_TERMINATING \
+    <span class="var">--heartbeat-timeout</span> 300 \
+    <span class="var">--default-result</span> CONTINUE
+
+<span class="comment"># 機器上的腳本做完事後回報「我好了」</span>
+$ <span class="cmd">aws autoscaling complete-lifecycle-action</span> \
+    --auto-scaling-group-name web-asg \
+    --lifecycle-hook-name drain-before-terminate \
+    --lifecycle-action-result CONTINUE \
+    --instance-id i-0abc123</code></pre>
+
+    <div class="ok"><strong>Lifecycle Hook 的典型用途：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>終止前</b>：把本機日誌上傳到 S3、從服務註冊中心移除、把工作交接給其他機器</li>
+        <li><b>啟動時</b>：等設定拉完、等資料預熱完才開始接流量</li>
+      </ul>
+      <b>注意 <span class="inline-code">--default-result</span></b>：超時後預設要 CONTINUE（繼續）還是 ABANDON（放棄並終止）。設 ABANDON 的話，腳本掛掉會導致機器被砍，可能形成迴圈。
+    </div>
+
+    <div class="warn"><strong>ASG 健康檢查與 ALB 健康檢查的關係要搞清楚：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>ALB 判定 unhealthy</b> → 只是<b>停止送流量</b>給它，機器還在</li>
+        <li><b>ASG（health-check-type=ELB）看到 ALB 說不健康</b> → <b>終止並開一台新的</b></li>
+      </ul>
+      所以 <span class="inline-code">--health-check-type ELB</span> 才是「自動修復」的關鍵。設成 EC2 的話，壞掉的機器會被 ALB 隔離但<b>永遠不會被替換</b>，容量就這樣慢慢流失。
+    </div>
+
+    <h3>手動控制</h3>
+    <pre><code><span class="comment"># 暫時保護某台不被縮容殺掉（除錯用）</span>
+$ <span class="cmd">aws autoscaling set-instance-protection</span> \
+    --auto-scaling-group-name web-asg --instance-ids i-0abc123 \
+    <span class="var">--protected-from-scale-in</span>
+
+<span class="comment"># 把機器移出 ASG 但不終止（保留現場查問題）</span>
+$ <span class="cmd">aws autoscaling detach-instances</span> \
+    --auto-scaling-group-name web-asg --instance-ids i-0abc123 \
+    <span class="var">--should-decrement-desired-capacity</span>
+
+<span class="comment"># 暫停某些自動流程（維護時用）</span>
+$ <span class="cmd">aws autoscaling suspend-processes</span> \
+    --auto-scaling-group-name web-asg \
+    <span class="var">--scaling-processes</span> Terminate ReplaceUnhealthy
+
+<span class="comment"># 記得恢復</span>
+$ aws autoscaling resume-processes --auto-scaling-group-name web-asg</code></pre>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="deploy">
+    <h2>9. 部署策略：滾動、藍綠、金絲雀</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>策略</th><th>做法</th><th>停機</th><th>回退速度</th><th>成本</th></tr>
+        <tr><td><b>In-place</b></td><td>直接在原機器上更新</td><td><b>有</b></td><td>慢</td><td>最低</td></tr>
+        <tr><td><b>Rolling</b></td><td>一次換幾台，逐批替換</td><td>無</td><td>中（要再滾一次）</td><td>低</td></tr>
+        <tr><td><b>Blue/Green</b></td><td>建一整套新的，測好再切流量</td><td>無</td><td><b>極快</b>（切回去）</td><td><b>高</b>（雙倍資源）</td></tr>
+        <tr><td><b>Canary</b></td><td>先給 5% 流量，觀察後再全推</td><td>無</td><td>快</td><td>中</td></tr>
+      </table>
+    </div>
+
+    <h3>Instance Refresh：ASG 內建的滾動更新</h3>
+    <pre><code>$ <span class="cmd">aws autoscaling start-instance-refresh</span> \
+    --auto-scaling-group-name web-asg \
+    <span class="var">--preferences</span> '{
+      "MinHealthyPercentage": 90,
+      "InstanceWarmup": 180,
+      "CheckpointPercentages": [20, 50, 100],
+      "CheckpointDelay": 600,
+      "SkipMatching": true,
+      "AutoRollback": true
+    }'
+
+<span class="comment"># 查進度</span>
+$ <span class="cmd">aws autoscaling describe-instance-refreshes</span> \
+    --auto-scaling-group-name web-asg \
+    --query 'InstanceRefreshes[0].[Status,PercentageComplete,StatusReason]'
+
+<span class="comment"># 出事了立刻取消</span>
+$ <span class="cmd">aws autoscaling cancel-instance-refresh --auto-scaling-group-name web-asg</span></code></pre>
+
+    <div class="ok"><strong>這組參數的意義：</strong>
+      <ul style="margin:8px 0 0">
+        <li><span class="inline-code">MinHealthyPercentage: 90</span> — 過程中至少保持 90% 容量</li>
+        <li><span class="inline-code">CheckpointPercentages: [20,50,100]</span> — 換到 20% 時<b>停下來等 10 分鐘</b>，讓你觀察有沒有問題</li>
+        <li><span class="inline-code">SkipMatching: true</span> — 已經是最新版的機器<b>不重複替換</b>（省時間）</li>
+        <li><span class="inline-code">AutoRollback: true</span> — <b>失敗自動回退到上一版 Launch Template</b></li>
+      </ul>
+      Checkpoint 就是<b>內建的金絲雀機制</b>，不需要額外工具。
+    </div>
+
+    <h3>藍綠部署（用 ALB 加權轉發）</h3>
+    <pre><code><span class="comment"># ① 建立綠色環境（新版），先給 0% 流量</span>
+<span class="comment"># ② 內部測試綠色環境（用 host-header 規則導特定測試網域過去）</span>
+<span class="comment"># ③ 逐步調整權重</span>
+$ for W in 5 25 50 100; do
+    aws elbv2 modify-listener --listener-arn $LISTENER_ARN \
+      --default-actions '[{
+        "Type":"forward",
+        "ForwardConfig":{"TargetGroups":[
+          {"TargetGroupArn":"'$TG_BLUE'","Weight":'$((100-W))'},
+          {"TargetGroupArn":"'$TG_GREEN'","Weight":'$W'}
+        ]}
+      }]'
+    echo "綠色 $W%，觀察 5 分鐘…"
+    sleep 300
+    <span class="comment"># 這裡應該檢查錯誤率指標，異常就中止</span>
+  done</code></pre>
+
+    <div class="warn"><strong>藍綠部署的資料庫問題沒有標準解。</strong>應用程式可以有兩套，<b>但資料庫通常只有一套</b>。所以：
+      <ul style="margin:8px 0 0">
+        <li>資料庫 schema 變更必須<b>向前相容</b>——舊版程式也要能跑</li>
+        <li>做法：<b>先加欄位（不刪不改）→ 部署新版 → 確認穩定 → 之後才清理舊欄位</b>。這叫 expand-contract 模式</li>
+        <li><b>絕對不要在部署時同時做破壞性的 schema 變更</b>，那會讓回退變得不可能</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="route53">
+    <h2>10. Route 53 路由政策</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>政策</th><th>做什麼</th><th>用途</th></tr>
+        <tr><td><b>Simple</b></td><td>一個名稱對一組 IP</td><td>最基本</td></tr>
+        <tr><td><b>Weighted</b></td><td>按權重分配</td><td><b>A/B 測試、金絲雀</b></td></tr>
+        <tr><td><b>Latency</b></td><td>導到<b>延遲最低</b>的 region</td><td>多 region 效能優化</td></tr>
+        <tr><td><b>Failover</b></td><td>主要掛了切備援</td><td><b>災難復原</b></td></tr>
+        <tr><td><b>Geolocation</b></td><td>依<b>使用者所在國家</b></td><td>內容在地化、法規遵循</td></tr>
+        <tr><td><b>Geoproximity</b></td><td>依地理距離，可調偏差值</td><td>逐步把流量搬到新 region</td></tr>
+        <tr><td><b>Multivalue Answer</b></td><td>回傳多個健康的 IP</td><td>簡易負載平衡</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>考題關鍵字：</strong>
+      <ul style="margin:8px 0 0">
+        <li>「<b>最低延遲</b>」→ Latency</li>
+        <li>「<b>特定國家看到不同內容</b>」「法規要求資料不出境」→ Geolocation</li>
+        <li>「<b>主站掛了自動切備援</b>」→ Failover</li>
+        <li>「<b>10% 流量給新版</b>」→ Weighted</li>
+        <li>「<b>逐步把流量從東京搬到大阪</b>」→ Geoproximity（調 bias）</li>
+      </ul>
+      <b>Latency 和 Geolocation 很容易混淆</b>：Latency 看的是「網路延遲」，Geolocation 看的是「使用者在哪個國家」。日本使用者可能連東京最快（Latency 會選東京），但如果法規要求日本使用者必須連日本主機，就得用 Geolocation。
+    </div>
+
+    <pre><code><span class="comment"># ═══ Failover：主站 + 備援 ═══</span>
+<span class="comment"># ① 先建健康檢查</span>
+$ <span class="cmd">HC_ID</span>=$(aws route53 create-health-check \
+    --caller-reference "primary-$(date +%s)" \
+    <span class="var">--health-check-config</span> '{
+      "Type": "HTTPS",
+      "FullyQualifiedDomainName": "app.example.com",
+      "Port": 443,
+      "ResourcePath": "/health",
+      "RequestInterval": 30,
+      "FailureThreshold": 3
+    }' --query 'HealthCheck.Id' --output text)
+
+<span class="comment"># ② 主要記錄（綁健康檢查）</span>
+$ aws route53 change-resource-record-sets --hosted-zone-id $ZONE_ID \
+    --change-batch '{
+      "Changes": [{
+        "Action": "UPSERT",
+        "ResourceRecordSet": {
+          "Name": "app.example.com",
+          "Type": "A",
+          "SetIdentifier": "primary-tokyo",
+          <span class="var">"Failover"</span>: "PRIMARY",
+          "HealthCheckId": "'$HC_ID'",
+          "AliasTarget": {
+            "HostedZoneId": "Z14GRHDCWA56QT",
+            "DNSName": "web-alb-xxx.ap-northeast-1.elb.amazonaws.com",
+            "EvaluateTargetHealth": true
+          }
+        }
+      }]
+    }'
+
+<span class="comment"># ③ 備援記錄（Failover=SECONDARY，不綁健康檢查）</span></code></pre>
+
+    <div class="ok"><strong>Alias Record 比 CNAME 好，而且免費。</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th></th><th>Alias</th><th>CNAME</th></tr>
+          <tr><td>能用在根網域（example.com）</td><td><b>可以</b></td><td><b>不行</b></td></tr>
+          <tr><td>查詢費用</td><td><b>免費</b>（指向 AWS 資源時）</td><td>要錢</td></tr>
+          <tr><td>健康檢查整合</td><td><b>EvaluateTargetHealth</b></td><td>要另外設</td></tr>
+        </table>
+      </div>
+      <b>指向 AWS 資源（ALB、CloudFront、S3 網站）一律用 Alias。</b>
+    </div>
+
+    <div class="warn"><strong>DNS 故障切換不是即時的。</strong>就算健康檢查 30 秒發現問題，使用者的<b>本機 DNS 快取</b>還是會指向舊位址，直到 TTL 過期。<br><br>
+      <ul style="margin:8px 0 0">
+        <li>需要快速切換 → TTL 設 <b>60 秒</b>（費用會增加，因為查詢次數變多）</li>
+        <li>但很多電信商和瀏覽器<b>不完全遵守 TTL</b>，實際切換可能要幾分鐘</li>
+        <li>要秒級切換 → 用 <b>Global Accelerator</b>（固定 anycast IP，切換在 AWS 網路層完成，不依賴 DNS）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="trouble">
+    <h2>11. 故障排除</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>目標一直 unhealthy</b>看 <span class="inline-code">describe-target-health</span> 的 Reason。八成是 <b>SG 沒放行 ALB 的健康檢查埠</b>，或 <span class="inline-code">/health</span> 路徑不存在。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>機器一直被殺掉重開</b><span class="inline-code">describe-scaling-activities</span> 看原因。通常是 <b>grace period 太短</b>，機器還沒開好就被判定不健康。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>ALB 回 502 Bad Gateway</b>後端回了 ALB 看不懂的回應。查後端應用的日誌——常見是應用當掉、回傳格式錯誤、或 keep-alive 逾時設定比 ALB 短。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>ALB 回 503 Service Unavailable</b><b>目標群組裡沒有健康的目標</b>。回到第 1 點。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>ALB 回 504 Gateway Timeout</b>後端太慢，超過 idle timeout（預設 60 秒）。調高 timeout 或優化應用。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>不會自動擴容</b>檢查有沒有設擴展政策、<b>是否已達 max-size</b>、CloudWatch 告警狀態、以及是否還在 cooldown。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>擴容了但流量沒分過去</b>新機器可能還在 health check 中。<span class="inline-code">describe-target-health</span> 看是不是 <span class="inline-code">initial</span> 狀態。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>使用者一直被登出</b>沒有 sticky 也沒有外部 session store。回到第 5 節，把 session 搬到 Redis。</div></div>
+    </div>
+
+    <pre><code><span class="comment"># ASG 的活動歷史 —— 排錯第一站</span>
+$ <span class="cmd">aws autoscaling describe-scaling-activities</span> \
+    --auto-scaling-group-name web-asg --max-records 10 \
+    <span class="var">--query</span> 'Activities[].[StartTime,StatusCode,Cause]' --output text
+
+<span class="comment"># ALB 的錯誤率指標</span>
+$ <span class="cmd">aws cloudwatch get-metric-statistics</span> \
+    --namespace AWS/ApplicationELB --metric-name HTTPCode_ELB_5XX_Count \
+    --dimensions Name=LoadBalancer,Value=app/web-alb/xxx \
+    --start-time 2026-08-05T00:00:00Z --end-time 2026-08-05T12:00:00Z \
+    --period 300 --statistics Sum
+
+<span class="comment"># 開啟 ALB 存取日誌（排查個別請求必備）</span>
+$ <span class="cmd">aws elbv2 modify-load-balancer-attributes</span> --load-balancer-arn $ALB_ARN \
+    --attributes \
+      Key=access_logs.s3.enabled,Value=true \
+      Key=access_logs.s3.bucket,Value=my-alb-logs \
+      Key=idle_timeout.timeout_seconds,Value=60</code></pre>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「部署後容量慢慢變少，最後服務掛掉」</div>
+      <p><b>症狀：</b>desired 是 6，但幾小時後只剩 2 台在服務，ASG 卻沒有補機器。</p>
+      <p><b>排查：</b><span class="inline-code">describe-target-health</span> → 4 台 unhealthy。<span class="inline-code">describe-auto-scaling-groups</span> → <span class="inline-code">HealthCheckType: EC2</span>。</p>
+      <p style="margin-bottom:0"><b>原因：</b>ASG 用 EC2 健康檢查，只看機器有沒有開機。應用程式當掉了但機器還活著 → ASG 認為健康不替換，ALB 卻把它們隔離。<b>修法：</b>改成 <span class="inline-code">--health-check-type ELB</span>。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「ASG 不斷開機殺機，一天燒掉幾百美元」</div>
+      <p><b>症狀：</b><span class="inline-code">describe-scaling-activities</span> 顯示每 5 分鐘就有一輪 launch + terminate。</p>
+      <p><b>排查：</b>Cause 寫 <span class="inline-code">an instance was taken out of service in response to a ELB system health check failure</span>。</p>
+      <p style="margin-bottom:0"><b>原因：</b>User Data 要裝 3 分鐘軟體，但 <span class="inline-code">health-check-grace-period</span> 只設 60 秒。<b>修法：</b>grace period 調到 300 秒，並改用 Golden AMI 縮短開機時間。</p>
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：高可用 Web 架構</h3>
+    <p>需要第 02、03 章的 VPC 與 Launch Template。約 110 分鐘。</p>
+
+    <div class="cost"><b>這個 Lab 會產生費用</b>：ALB 約 <b>US$0.025/小時</b>（不管有沒有流量），EC2 用 t4g.micro（免費方案內）。<br>
+    做 3 小時大約 <b>US$0.08</b>。<b>但 ALB 忘記刪一個月就是 US$18</b>，做完務必執行清理。</div>
+
+    <h4>階段一：ALB</h4>
+    <ol>
+      <li>建立 ALB（<strong>兩個 AZ 的公有子網路</strong>）與目標群組</li>
+      <li>健康檢查設 <strong>/health、interval 15、unhealthy 3、healthy 2</strong></li>
+      <li><strong>deregistration_delay 改成 30 秒</strong></li>
+      <li>建立 HTTP listener（先不做 HTTPS，避免需要網域）</li>
+      <li>後端 SG <strong>只允許來源 = ALB 的 SG</strong>（不要用 IP）</li>
+    </ol>
+
+    <h4>階段二：ASG</h4>
+    <ol start="6">
+      <li>建立 ASG：<strong>min 2 / max 6 / desired 2</strong>，跨兩個 AZ，掛到目標群組</li>
+      <li><strong>health-check-type 設 ELB</strong>、grace period 設 180</li>
+      <li>User Data 讓每台顯示<strong>自己的 instance-id</strong>，並提供 <span class="inline-code">/health</span> 端點</li>
+      <li>用瀏覽器多次重新整理 ALB 網址，<strong>確認會輪流看到不同的 instance-id</strong></li>
+    </ol>
+
+    <h4>階段三：驗證高可用</h4>
+    <ol start="10">
+      <li>手動 <strong>terminate 一台</strong>機器，觀察：<br>
+        ① ALB 幾秒後標記 unhealthy ② ASG 自動開新的一台 ③ <strong>過程中服務不中斷</strong></li>
+      <li>把一台的應用程式停掉（但機器還活著），觀察 ASG <strong>是否會替換它</strong>（驗證 ELB 健康檢查生效）</li>
+      <li>用 <span class="inline-code">describe-scaling-activities</span> 看完整的活動紀錄</li>
+    </ol>
+
+    <h4>階段四：自動擴展</h4>
+    <ol start="13">
+      <li>建立 <strong>Target Tracking</strong> 政策，目標 CPU 50%</li>
+      <li>在某台機器上跑 <span class="inline-code">stress-ng --cpu 2</span> 或 <span class="inline-code">yes &gt; /dev/null</span> 灌高 CPU</li>
+      <li>觀察 <strong>3–5 分鐘後 ASG 自動擴容</strong></li>
+      <li>停掉負載，觀察<strong>約 15 分鐘後自動縮容</strong>（縮容比擴容保守很多）</li>
+      <li>再建一個 <strong>Scheduled</strong> 政策，設定在 10 分鐘後把 desired 改成 4，驗證它會執行</li>
+    </ol>
+
+    <h4>階段五：滾動更新</h4>
+    <ol start="18">
+      <li>修改 Launch Template（改個首頁文字），建立<strong>新版本</strong></li>
+      <li>執行 <strong>Instance Refresh</strong>，帶 <strong>CheckpointPercentages [50,100]</strong> 和 <strong>AutoRollback</strong></li>
+      <li>觀察它換到 50% 時<strong>停下來等待</strong></li>
+      <li>整個過程持續重新整理網頁，<strong>確認服務沒有中斷</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li><span class="inline-code">describe-target-health</span> 兩個目標都是 <strong>healthy</strong>，且分屬<strong>不同 AZ</strong></li>
+      <li>Terminate 一台後，<strong>2 分鐘內</strong>有新機器加入且變 healthy</li>
+      <li>停掉應用程式的那台<strong>會被 ASG 替換</strong>（不是只被隔離）</li>
+      <li>CPU 灌高後 <strong>ASG 有擴容紀錄</strong></li>
+      <li>Instance Refresh 在 50% 時<strong>暫停</strong>，且全程可正常瀏覽</li>
+      <li>後端 SG 的入站規則<strong>來源是 sg-xxx 不是 IP 網段</strong></li>
+    </ul>
+
+    <h4>清理（重要）</h4>
+    <pre><code>$ aws autoscaling update-auto-scaling-group --auto-scaling-group-name web-asg \
+    --min-size 0 --max-size 0 --desired-capacity 0
+$ aws autoscaling delete-auto-scaling-group --auto-scaling-group-name web-asg --force-delete
+$ aws elbv2 delete-listener --listener-arn $LISTENER_ARN
+$ aws elbv2 delete-load-balancer --load-balancer-arn $ALB_ARN
+$ aws elbv2 delete-target-group --target-group-arn $TG_ARN
+
+<span class="comment"># 確認沒有殘留的 ALB（它按小時計費）</span>
+$ aws elbv2 describe-load-balancers --query 'LoadBalancers[].[LoadBalancerName,State.Code]' --output table</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>用 <strong>ALB 加權轉發</strong>做一次金絲雀部署：建兩個目標群組，權重從 95/5 逐步調到 0/100。</li>
+      <li>加一條 <strong>path-pattern 規則</strong>，讓 <span class="inline-code">/api/*</span> 轉到不同的目標群組。</li>
+      <li>把擴展指標從 CPU 改成 <strong>ALBRequestCountPerTarget</strong>，用 <span class="inline-code">ab</span> 或 <span class="inline-code">hey</span> 灌請求測試。</li>
+      <li>設定 <strong>Lifecycle Hook</strong>，讓機器終止前先把 <span class="inline-code">/var/log/app.log</span> 上傳到 S3。</li>
+      <li>算一題：ALB(99.99%) + ASG 跨 2 AZ + RDS 單 AZ(99.95%) 的整體可用性是多少？改成 RDS Multi-AZ(99.99%) 後呢？</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>串聯元件的可用性是<strong>相乘</strong>的——要從<strong>最弱的環節</strong>下手改善</li>
+      <li><strong>ALB 看內容分流、NLB 快且有固定 IP</strong>；需要 WAF 或 Lambda 目標一定是 ALB</li>
+      <li>ALB <strong>沒有固定 IP</strong>，客戶要白名單就用 NLB 或 Global Accelerator</li>
+      <li>健康檢查用<strong>專用的淺層 /health</strong>，不要檢查資料庫（會造成雪崩）</li>
+      <li><strong>deregistration_delay 預設 300 秒太長</strong>，一般調成 30 秒</li>
+      <li><strong>ASG 一定要設 --health-check-type ELB</strong>，否則應用當掉不會被替換</li>
+      <li><strong>grace period 太短會導致無限開機殺機迴圈</strong></li>
+      <li>擴展政策 <strong>90% 情況用 Target Tracking</strong>；I/O 密集的應用用 <strong>RequestCountPerTarget</strong> 比 CPU 準</li>
+      <li><strong>Scheduled + Target Tracking 一起用</strong>：前者處理已知尖峰，後者處理意外</li>
+      <li>Instance Refresh 的 <strong>CheckpointPercentages 就是內建的金絲雀</strong>，配 <strong>AutoRollback</strong></li>
+      <li>Sticky Session 是妥協——正解是<strong>把 session 存到 Redis / DynamoDB</strong></li>
+      <li>藍綠部署的資料庫要用 <strong>expand-contract</strong>，schema 變更必須向前相容</li>
+      <li>Route 53：<strong>Latency 看網路延遲、Geolocation 看使用者國家</strong>；指向 AWS 資源用 <strong>Alias</strong></li>
+      <li>DNS 切換受<strong>快取影響不是即時</strong>，要秒級切換用 Global Accelerator</li>
+    </ul>
+    <div class="note">這章對應 SAA-C03 的「Design Resilient Architectures」領域（26%）。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="05-database.html">← 05：資料庫選型與實作</a>
+    <a href="07-serverless.html">07：無伺服器架構 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 06</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>無伺服器架構 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.flow{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;}
+.flow pre{background:none;padding:0;margin:0;}
+.svcrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:9px;margin:16px 0;}
+.sv{border-radius:10px;padding:11px 13px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.sv b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:2px;}
+.sv span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">07 · 無伺服器</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 07 · 無伺服器</div>
+  <h1><span>無伺服器</span>架構</h1>
+  <p>不用管機器、用多少付多少、沒人用就不收錢。但它有一整套自己的限制與陷阱——冷啟動、逾時、併發上限、以及最容易被忽略的「重複執行」。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#what">無伺服器到底是什麼</a></li>
+      <li><a href="#lambda">Lambda 核心限制（必背）</a></li>
+      <li><a href="#build">實作一：部署一支 Lambda</a></li>
+      <li><a href="#cold">冷啟動與效能優化</a></li>
+      <li><a href="#concurrency">併發模型與限流</a></li>
+      <li><a href="#trigger">事件來源與觸發模式</a></li>
+      <li><a href="#apigw">API Gateway 實作</a></li>
+      <li><a href="#queue">SQS、SNS、EventBridge 怎麼選</a></li>
+      <li><a href="#idempotent">冪等性：最常被忽略的坑</a></li>
+      <li><a href="#step">Step Functions 編排</a></li>
+      <li><a href="#cost">費用與適用邊界</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="what">
+    <h2>1. 無伺服器到底是什麼</h2>
+
+    <div class="formula"><code><b>無伺服器 ≠ 沒有伺服器</b><br><br>
+    是「<b>你不用管伺服器</b>」——不用開機器、不用打補丁、不用設容量<br>
+    而且<b>沒有請求就不收費</b></code></div>
+
+    <div class="svcrow">
+      <div class="sv"><b>Lambda</b><span>執行程式碼</span></div>
+      <div class="sv"><b>API Gateway</b><span>HTTP 入口</span></div>
+      <div class="sv"><b>DynamoDB</b><span>資料庫</span></div>
+      <div class="sv"><b>S3</b><span>檔案儲存</span></div>
+      <div class="sv"><b>SQS / SNS</b><span>佇列與通知</span></div>
+      <div class="sv"><b>EventBridge</b><span>事件路由</span></div>
+      <div class="sv"><b>Step Functions</b><span>流程編排</span></div>
+      <div class="sv"><b>Fargate</b><span>免管機器的容器</span></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>EC2</th><th>Fargate</th><th>Lambda</th></tr>
+        <tr><td>你要管</td><td>OS、擴展、修補</td><td><b>只管容器</b></td><td><b>只管程式碼</b></td></tr>
+        <tr><td>計費</td><td>按秒（開著就算）</td><td>按秒（任務執行期間）</td><td><b>按毫秒 + 請求數</b></td></tr>
+        <tr><td>閒置時</td><td><b>照樣收費</b></td><td>不收（沒任務時）</td><td><b>完全不收</b></td></tr>
+        <tr><td>啟動時間</td><td>分鐘</td><td>數十秒</td><td><b>毫秒–秒</b></td></tr>
+        <tr><td>執行時間上限</td><td>無限</td><td>無限</td><td><b>15 分鐘</b></td></tr>
+        <tr><td>適合</td><td>長時間、需要 OS 控制</td><td>容器化的常駐服務</td><td><b>事件驅動、短工作</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>什麼時候該用無伺服器？</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>✅ 很適合</th><th>❌ 不適合</th></tr>
+          <tr><td>流量不固定、會歸零</td><td><b>穩定的高流量</b>（EC2 + RI 更便宜）</td></tr>
+          <tr><td>事件驅動（檔案上傳、訊息到達）</td><td>執行超過 15 分鐘的工作</td></tr>
+          <tr><td>排程工作（每天跑報表）</td><td>需要極低且穩定延遲的服務</td></tr>
+          <tr><td>API 後端（流量不大）</td><td>需要持久連線（WebSocket 長連線除外）</td></tr>
+          <tr><td>膠水程式（串接各服務）</td><td>需要特殊系統權限或核心模組</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="warn"><strong>無伺服器最大的隱藏成本是「複雜度」。</strong>一個 EC2 上的單體應用，出事時你 SSH 進去看日誌就好。同樣功能拆成 20 支 Lambda + SQS + EventBridge 之後，<b>一個請求跨越十幾個服務，追蹤問題困難很多</b>。<br><br>
+      這就是為什麼無伺服器架構<b>必須從第一天就導入分散式追蹤</b>（X-Ray）和結構化日誌。
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="lambda">
+    <h2>2. Lambda 核心限制（必背）</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>項目</th><th>限制</th><th>踩到會怎樣</th></tr>
+        <tr><td><b>執行時間</b></td><td><b>最長 15 分鐘</b>（預設 3 秒）</td><td>被強制中止，<b>沒有任何清理機會</b></td></tr>
+        <tr><td><b>記憶體</b></td><td>128 MB – <b>10,240 MB</b></td><td>OOM 直接失敗</td></tr>
+        <tr><td><b>vCPU</b></td><td>依記憶體<b>等比配給</b>（1769 MB = 1 vCPU）</td><td>算力不足</td></tr>
+        <tr><td><b>/tmp 暫存空間</b></td><td>512 MB – <b>10,240 MB</b></td><td>寫不下</td></tr>
+        <tr><td><b>部署包（zip）</b></td><td>50 MB 壓縮 / <b>250 MB 解壓後</b></td><td>上傳失敗 → 改用容器映像（<b>10 GB</b>）</td></tr>
+        <tr><td><b>環境變數</b></td><td>總共 4 KB</td><td>放不下 → 用 Parameter Store</td></tr>
+        <tr><td><b>同步呼叫 payload</b></td><td><b>6 MB</b></td><td>超過就失敗 → 用 S3 傳大檔</td></tr>
+        <tr><td><b>非同步呼叫 payload</b></td><td>256 KB</td><td>同上</td></tr>
+        <tr><td><b>預設併發</b></td><td>每帳號每 region <b>1,000</b></td><td>被限流（可申請提高）</td></tr>
+        <tr><td><b>Layer</b></td><td>最多 5 個，總計 250 MB</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>記憶體設定同時決定 CPU，這是最重要的調校參數。</strong>
+      <div class="formula" style="margin-top:10px"><code>128 MB ≈ 0.07 vCPU　　1,769 MB = <b>1 vCPU</b>　　10,240 MB ≈ 6 vCPU</code></div>
+      所以「調高記憶體」<b>常常反而更便宜</b>——因為執行時間縮短的幅度大於單價上升的幅度。<br><br>
+      <b>實例：</b>一支函式 128 MB 跑 10 秒 vs 1024 MB 跑 1 秒<br>
+      · 128 MB：128 × 10 = 1280 MB-秒<br>
+      · 1024 MB：1024 × 1 = 1024 MB-秒 → <b>反而便宜 20%，而且快 10 倍</b>
+    </div>
+
+    <div class="ok"><strong>用 AWS Lambda Power Tuning 自動找最佳記憶體設定。</strong>它是官方提供的 Step Functions 工具，會用不同記憶體各跑幾次，畫出「成本 vs 執行時間」的曲線讓你選。<b>免費（只付測試執行的費用），通常能省 20–50%</b>。</div>
+
+    <div class="warn"><strong>15 分鐘上限沒有例外。</strong>時間到就是被砍，程式碼<b>來不及做任何善後</b>。要處理長時間工作：
+      <ul style="margin:8px 0 0">
+        <li>拆成多支 Lambda 用 <b>Step Functions</b> 串起來</li>
+        <li>改用 <b>Fargate</b>（無時間限制）或 <b>Batch</b></li>
+        <li>做成<b>可續作</b>的設計：處理一部分、存進度、重新觸發自己</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="build">
+    <h2>3. 實作一：部署一支 Lambda</h2>
+
+    <div class="cost">Lambda <b>永久免費方案</b>：每月 100 萬次請求 + 40 萬 GB-秒運算。<br>
+    一支 512 MB 的函式跑 200ms，<b>每月可以免費跑約 400 萬次</b>。學習用途幾乎不可能超過。<br>
+    <b>但要小心無限迴圈</b>——Lambda 寫回觸發自己的 S3 bucket，會遞迴爆炸。第 9 節會講怎麼防。</div>
+
+    <pre><code><span class="comment"># ═══ 步驟 1：執行角色 ═══</span>
+$ cat &gt; trust-lambda.json &lt;&lt;'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "Service": "lambda.amazonaws.com" },
+    "Action": "sts:AssumeRole"
+  }]
+}
+EOF
+
+$ <span class="cmd">ROLE_ARN</span>=$(aws iam create-role --role-name order-processor-role \
+    --assume-role-policy-document file://trust-lambda.json \
+    --query Role.Arn --output text)
+
+<span class="comment"># 基本執行權限（寫 CloudWatch Logs）—— 一定要有</span>
+$ <span class="cmd">aws iam attach-role-policy</span> --role-name order-processor-role \
+    --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+<span class="comment"># 額外權限：寫 DynamoDB（最小權限）</span>
+$ aws iam put-role-policy --role-name order-processor-role \
+    --policy-name write-orders --policy-document '{
+      "Version":"2012-10-17",
+      "Statement":[{
+        "Effect":"Allow",
+        "Action":["dynamodb:PutItem","dynamodb:UpdateItem","dynamodb:GetItem"],
+        "Resource":"arn:aws:dynamodb:ap-northeast-1:123456789012:table/Orders"
+      }]
+    }'</code></pre>
+
+    <pre><code><span class="comment"># ═══ 步驟 2：程式碼 ═══</span>
+$ mkdir order-processor &amp;&amp; cd order-processor
+$ cat &gt; index.py &lt;&lt;'PYEOF'
+<span class="kw">import</span> json, os, boto3, logging
+<span class="kw">from</span> decimal <span class="kw">import</span> Decimal
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+<span class="comment"># ⚠ 在 handler 外面初始化 —— 這樣可以在多次呼叫之間重複使用</span>
+dynamodb = boto3.resource(<span class="val">"dynamodb"</span>)
+table = dynamodb.Table(os.environ[<span class="val">"TABLE_NAME"</span>])
+
+
+<span class="kw">def</span> handler(event, context):
+    <span class="comment"># 結構化日誌：方便之後用 CloudWatch Logs Insights 查</span>
+    logger.info(json.dumps({
+        <span class="val">"msg"</span>: <span class="val">"invoked"</span>,
+        <span class="val">"requestId"</span>: context.aws_request_id,
+        <span class="val">"remainingMs"</span>: context.get_remaining_time_in_millis(),
+    }))
+
+    <span class="kw">try</span>:
+        body = json.loads(event.get(<span class="val">"body"</span>) <span class="kw">or</span> <span class="val">"{}"</span>)
+        order_id = body[<span class="val">"orderId"</span>]
+
+        table.put_item(
+            Item={
+                <span class="val">"customerId"</span>: body[<span class="val">"customerId"</span>],
+                <span class="val">"orderDate"</span>: body[<span class="val">"orderDate"</span>],
+                <span class="val">"orderId"</span>: order_id,
+                <span class="val">"amount"</span>: Decimal(str(body[<span class="val">"amount"</span>])),
+            },
+            <span class="comment"># 冪等性：同一筆訂單重複送不會覆蓋</span>
+            ConditionExpression=<span class="val">"attribute_not_exists(orderId)"</span>,
+        )
+        <span class="kw">return</span> {<span class="val">"statusCode"</span>: 201, <span class="val">"body"</span>: json.dumps({<span class="val">"orderId"</span>: order_id})}
+
+    <span class="kw">except</span> KeyError <span class="kw">as</span> e:
+        logger.warning(f<span class="val">"缺少欄位 {e}"</span>)
+        <span class="kw">return</span> {<span class="val">"statusCode"</span>: 400, <span class="val">"body"</span>: json.dumps({<span class="val">"error"</span>: f<span class="val">"missing {e}"</span>})}
+
+    <span class="kw">except</span> dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
+        <span class="comment"># 重複送達 —— 回 200 而不是錯誤，這才是冪等的做法</span>
+        logger.info(f<span class="val">"訂單 {order_id} 已存在，略過"</span>)
+        <span class="kw">return</span> {<span class="val">"statusCode"</span>: 200, <span class="val">"body"</span>: json.dumps({<span class="val">"duplicate"</span>: <span class="kw">True</span>})}
+
+    <span class="kw">except</span> Exception:
+        logger.exception(<span class="val">"處理失敗"</span>)
+        <span class="kw">raise</span>          <span class="comment"># 讓 Lambda 標記失敗，觸發重試 / DLQ</span>
+PYEOF
+
+$ zip -r function.zip index.py</code></pre>
+
+    <div class="ok"><strong>三個寫 Lambda 的關鍵習慣（程式碼裡都示範了）：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>在 handler 外面初始化 SDK client</b>——Lambda 會重複使用執行環境，放外面就不用每次重建連線，可以省下數十到數百毫秒</li>
+        <li><b>用結構化日誌（JSON）</b>——CloudWatch Logs Insights 才能有效查詢</li>
+        <li><b>失敗要 raise 不要吞掉</b>——吞掉例外的話 Lambda 認為成功，訊息就不會重試也不會進 DLQ，<b>資料默默遺失</b></li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment"># ═══ 步驟 3：建立函式 ═══</span>
+$ <span class="cmd">aws lambda create-function</span> \
+    <span class="var">--function-name</span> order-processor \
+    <span class="var">--runtime</span> python3.12 \
+    <span class="var">--architecture</span> arm64 \
+    <span class="var">--handler</span> index.handler \
+    <span class="var">--role</span> $ROLE_ARN \
+    <span class="var">--zip-file</span> fileb://function.zip \
+    <span class="var">--timeout</span> 30 \
+    <span class="var">--memory-size</span> 512 \
+    <span class="var">--environment</span> "Variables={TABLE_NAME=Orders}" \
+    <span class="var">--tracing-config</span> Mode=Active \
+    <span class="var">--logging-config</span> LogFormat=JSON,ApplicationLogLevel=INFO
+
+<span class="comment"># 測試</span>
+$ <span class="cmd">aws lambda invoke</span> --function-name order-processor \
+    --payload '{"body":"{\"orderId\":\"O-1\",\"customerId\":\"C-1\",\"orderDate\":\"2026-08-05\",\"amount\":100}"}' \
+    --cli-binary-format raw-in-base64-out response.json
+$ cat response.json</code></pre>
+
+    <div class="ok"><strong><span class="inline-code">--architecture arm64</span>（Graviton）比 x86 便宜約 20%，效能通常更好。</strong>Python、Node.js、Java、Go 都完全支援。<b>只有在依賴的原生套件沒有 ARM 版時才用 x86。</b></div>
+
+    <h3>版本與別名：安全部署</h3>
+    <pre><code><span class="comment"># 發布一個不可變的版本</span>
+$ <span class="cmd">aws lambda publish-version</span> --function-name order-processor
+
+<span class="comment"># 建立別名指向該版本</span>
+$ <span class="cmd">aws lambda create-alias</span> --function-name order-processor \
+    --name prod --function-version 3
+
+<span class="comment"># 金絲雀：10% 流量給新版本</span>
+$ <span class="cmd">aws lambda update-alias</span> --function-name order-processor --name prod \
+    --function-version 3 \
+    <span class="var">--routing-config</span> '{"AdditionalVersionWeights":{"4":0.1}}'</code></pre>
+
+    <div class="warn"><strong>永遠讓觸發器指向「別名」而不是 <span class="inline-code">$LATEST</span>。</strong>指向 $LATEST 的話，你一上傳程式碼<b>全部流量立刻用新版</b>，沒有金絲雀也沒有回退。指向別名就能控制切換節奏，出事把別名指回舊版本即可（<b>秒級回退</b>）。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="cold">
+    <h2>4. 冷啟動與效能優化</h2>
+
+    <div class="formula"><code><b>冷啟動 = 下載程式碼 + 啟動執行環境 + 初始化你的程式</b><br><br>
+    之後同一個環境的呼叫叫「<b>暖啟動</b>」，只跑 handler 內的程式碼</code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>Runtime</th><th>典型冷啟動</th></tr>
+        <tr><td>Python / Node.js</td><td><b>100–400 ms</b></td></tr>
+        <tr><td>Go / Rust</td><td><b>50–150 ms</b></td></tr>
+        <tr><td>Java / .NET</td><td><b>1–10 秒</b>（最嚴重）</td></tr>
+        <tr><td>+ 放在 VPC 內</td><td>以前 +10 秒，<b>現在幾乎無影響</b>（Hyperplane ENI）</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>「Lambda 放進 VPC 會很慢」這個說法已經過時了。</strong>2019 年 AWS 改用 Hyperplane ENI 之後，VPC Lambda 的冷啟動額外開銷<b>降到幾乎可以忽略</b>。舊教材和舊考古題可能還在講 10 秒，那是錯的。<br><br>
+      <b>但仍要注意</b>：VPC 內的 Lambda <b>沒有網際網路存取</b>，除非放在有 NAT Gateway 的私有子網路，或建 VPC Endpoint。</div>
+
+    <h3>降低冷啟動的六個方法</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>縮小部署包</b>只打包必要的依賴。Python 用 <span class="inline-code">--no-deps</span> 挑選、Node.js 用 esbuild 打包。包越小下載越快。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>調高記憶體</b>CPU 跟著變多，初始化也變快。通常 512–1024 MB 是甜蜜點。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>SDK client 放 handler 外</b>暖啟動時就不用重建。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>延遲載入不常用的模組</b>只在需要時才 import 大型套件。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>Provisioned Concurrency</b>預先開好並保持暖機。<b>完全消除冷啟動，但要付錢</b>。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>SnapStart</b>（Java）把初始化後的狀態存快照，<b>冷啟動降低約 90%</b>。免費。</div></div>
+    </div>
+
+    <pre><code><span class="comment"># Provisioned Concurrency：保持 5 個環境隨時待命</span>
+$ <span class="cmd">aws lambda put-provisioned-concurrency-config</span> \
+    --function-name order-processor <span class="var">--qualifier</span> prod \
+    <span class="var">--provisioned-concurrent-executions</span> 5
+
+<span class="comment"># 配合 Auto Scaling 依時段調整（不然離峰也在付錢）</span>
+$ aws application-autoscaling register-scalable-target \
+    --service-namespace lambda \
+    --resource-id function:order-processor:prod \
+    --scalable-dimension lambda:function:ProvisionedConcurrency \
+    --min-capacity 2 --max-capacity 20</code></pre>
+
+    <div class="cost"><b>Provisioned Concurrency 是按「保持暖機的時間」收費，不管有沒有請求。</b><br>
+    512 MB × 5 個環境保持一整月 ≈ <b>US$18</b>，這是在一般執行費用<b>之外</b>的支出。<br><br>
+    <b>先確認你真的需要</b>：如果冷啟動只有 200ms 而你的 API 允許 1 秒回應，那不需要花這筆錢。<b>只有對延遲極度敏感的使用者面向 API 才值得。</b></div>
+
+    <div class="warn"><strong>不要用「定時 ping 自己」來保溫。</strong>這是網路上常見但錯誤的做法：
+      <ul style="margin:8px 0 0">
+        <li>只能保溫<b>一個</b>執行環境，併發一上來還是會冷啟動</li>
+        <li>污染日誌和監控指標</li>
+        <li>Provisioned Concurrency 才是正解</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="concurrency">
+    <h2>5. 併發模型與限流</h2>
+
+    <div class="formula"><code><b>併發數 = 每秒請求數 × 平均執行時間（秒）</b><br><br>
+    每秒 100 次請求 × 每次 0.5 秒 = <b>50 個併發</b><br>
+    每秒 100 次請求 × 每次 3 秒 = <b>300 個併發</b></code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類型</th><th>意義</th><th>用途</th></tr>
+        <tr><td><b>帳號併發上限</b></td><td>每帳號每 region 預設 <b>1,000</b></td><td>可申請提高到數萬</td></tr>
+        <tr><td><b>Reserved Concurrency</b></td><td>幫某支函式<b>保留</b>額度（也是它的上限）</td><td><b>保護關鍵函式</b>不被其他函式吃光額度</td></tr>
+        <tr><td><b>Provisioned Concurrency</b></td><td>預先<b>暖好</b>的環境數</td><td>消除冷啟動</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Reserved Concurrency 是雙面刃。</strong>它同時是「保留」也是「上限」：
+      <ul style="margin:8px 0 0">
+        <li>設 100 → 這支函式<b>保證有 100 個額度可用</b>，其他函式搶不走</li>
+        <li>但它<b>也永遠不能超過 100</b>，超過就被限流（回 <span class="inline-code">TooManyRequestsException</span>）</li>
+        <li><b>設成 0 = 完全停用這支函式</b>（緊急止血時很好用）</li>
+      </ul>
+    </div>
+
+    <div class="ok"><strong>Reserved Concurrency 最重要的用途：保護下游資料庫。</strong><br><br>
+      Lambda 可以瞬間衝到 1000 個併發，但你的 RDS <b>只能承受 200 個連線</b>。不設限的話，流量一來就把資料庫連線打爆，<b>整個系統一起掛掉</b>。<br><br>
+      設 <span class="inline-code">--reserved-concurrent-executions 50</span> 就能確保最多只有 50 個 Lambda 同時連資料庫。
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws lambda put-function-concurrency</span> \
+    --function-name db-writer <span class="var">--reserved-concurrent-executions</span> 50
+
+<span class="comment"># 緊急停用某支失控的函式</span>
+$ aws lambda put-function-concurrency \
+    --function-name runaway-func --reserved-concurrent-executions 0</code></pre>
+    </div>
+
+    <div class="note"><strong>更好的做法：用 RDS Proxy。</strong>它在 Lambda 和 RDS 之間做連線池，<b>幾百個 Lambda 共用少量資料庫連線</b>。這是「Lambda + RDS」架構的標準配置。<br>
+    費用：每 vCPU 每小時 US$0.015（db.r6g.large 是 2 vCPU → 約 US$22/月）。</div>
+
+    <h3>監控併發</h3>
+    <pre><code><span class="comment"># 這三個指標一定要設告警</span>
+<span class="comment">#   ConcurrentExecutions  — 接近上限就要注意</span>
+<span class="comment">#   Throttles             — 大於 0 就代表有請求被拒絕</span>
+<span class="comment">#   Errors                — 錯誤數</span>
+
+$ <span class="cmd">aws cloudwatch put-metric-alarm</span> \
+    --alarm-name lambda-throttled \
+    --namespace AWS/Lambda --metric-name Throttles \
+    --dimensions Name=FunctionName,Value=order-processor \
+    --statistic Sum --period 300 --evaluation-periods 1 \
+    --threshold 1 --comparison-operator GreaterThanOrEqualToThreshold \
+    --alarm-actions $SNS_TOPIC_ARN</code></pre>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="trigger">
+    <h2>6. 事件來源與觸發模式</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>模式</th><th>來源</th><th>失敗處理</th><th>回傳值</th></tr>
+        <tr><td><b>同步</b></td><td>API Gateway、ALB、直接 invoke</td><td><b>不重試</b>，錯誤直接回給呼叫方</td><td>有</td></tr>
+        <tr><td><b>非同步</b></td><td>S3、SNS、EventBridge</td><td><b>自動重試 2 次</b>，再失敗進 DLQ</td><td>無</td></tr>
+        <tr><td><b>輪詢（Poll）</b></td><td>SQS、Kinesis、DynamoDB Streams</td><td>依設定重試，可設 DLQ</td><td>無</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>這三種模式的失敗行為完全不同，設計時一定要分清楚。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>同步</b>失敗 → 使用者立刻看到 500。<b>要重試得靠呼叫方自己做</b></li>
+        <li><b>非同步</b>失敗 → AWS 幫你重試 2 次（間隔 1 分鐘、2 分鐘），之後<b>訊息就消失了</b>，除非有設 DLQ</li>
+        <li><b>輪詢</b>失敗 → 訊息回到佇列再被拿出來，<b>可能無限重試</b>，一定要設 maxReceiveCount</li>
+      </ul>
+      <b>沒設 DLQ 的非同步 Lambda，失敗的資料就是永久遺失。</b>
+    </div>
+
+    <pre><code><span class="comment"># 非同步呼叫的失敗處理設定</span>
+$ <span class="cmd">aws lambda put-function-event-invoke-config</span> \
+    --function-name order-processor \
+    <span class="var">--maximum-retry-attempts</span> 2 \
+    <span class="var">--maximum-event-age-in-seconds</span> 3600 \
+    <span class="var">--destination-config</span> '{
+      "OnFailure": { "Destination": "arn:aws:sqs:ap-northeast-1:123456789012:order-dlq" },
+      "OnSuccess": { "Destination": "arn:aws:sns:ap-northeast-1:123456789012:order-done" }
+    }'</code></pre>
+
+    <div class="ok"><strong>Lambda Destinations 比傳統 DLQ 好。</strong>DLQ 只能收失敗的訊息，Destinations 可以<b>同時處理成功和失敗</b>，而且會附上<b>完整的執行結果與錯誤內容</b>（DLQ 只有原始事件）。新專案用 Destinations。</div>
+
+    <h3>SQS 觸發的細節</h3>
+    <pre><code>$ <span class="cmd">aws lambda create-event-source-mapping</span> \
+    --function-name order-processor \
+    <span class="var">--event-source-arn</span> arn:aws:sqs:ap-northeast-1:123456789012:orders \
+    <span class="var">--batch-size</span> 10 \
+    <span class="var">--maximum-batching-window-in-seconds</span> 5 \
+    <span class="var">--function-response-types</span> ReportBatchItemFailures \
+    <span class="var">--scaling-config</span> '{"MaximumConcurrency": 50}'</code></pre>
+
+    <div class="warn"><strong><span class="inline-code">ReportBatchItemFailures</span> 一定要開，否則會重複處理成功的訊息。</strong><br><br>
+      預設行為：一批 10 筆，<b>只要有一筆失敗，整批 10 筆都會重新送</b>——包含已經成功處理的 9 筆。如果你的處理不是冪等的，那 9 筆就會被重複執行。<br><br>
+      開啟後，程式可以回報「只有第 3 筆失敗」，AWS 就<b>只重送那一筆</b>：
+      <pre style="margin:8px 0 0"><code><span class="kw">def</span> handler(event, context):
+    failures = []
+    <span class="kw">for</span> record <span class="kw">in</span> event[<span class="val">"Records"</span>]:
+        <span class="kw">try</span>:
+            process(record)
+        <span class="kw">except</span> Exception:
+            failures.append({<span class="val">"itemIdentifier"</span>: record[<span class="val">"messageId"</span>]})
+    <span class="kw">return</span> {<span class="val">"batchItemFailures"</span>: failures}</code></pre>
+    </div>
+
+    <div class="warn"><strong>SQS 的 Visibility Timeout 必須<u>大於等於</u> Lambda 的 timeout。</strong>建議設成 <b>Lambda timeout 的 6 倍</b>（AWS 官方建議）。<br><br>
+      設太短的後果：Lambda 還在處理，訊息就重新出現在佇列被<b>另一個 Lambda 拿走</b> → <b>同一筆訊息被處理兩次</b>。
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="apigw">
+    <h2>7. API Gateway 實作</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>HTTP API</th><th>REST API</th><th>WebSocket API</th></tr>
+        <tr><td>費用</td><td><b>US$1.00 / 百萬次</b></td><td>US$3.50 / 百萬次</td><td>US$1.00 / 百萬訊息</td></tr>
+        <tr><td>延遲</td><td><b>較低</b></td><td>較高</td><td>—</td></tr>
+        <tr><td>JWT 授權</td><td><b>內建</b></td><td>要自己寫 Authorizer</td><td>—</td></tr>
+        <tr><td>API Key / 用量方案</td><td>不支援</td><td><b>支援</b></td><td>—</td></tr>
+        <tr><td>請求／回應轉換</td><td>有限</td><td><b>完整</b></td><td>—</td></tr>
+        <tr><td>快取</td><td>不支援</td><td><b>支援</b></td><td>—</td></tr>
+        <tr><td>WAF</td><td>不支援</td><td><b>支援</b></td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>預設選 HTTP API——便宜 71%、延遲更低。</strong>只有在需要 <b>API Key 計量、請求轉換、快取、WAF</b> 這些功能時才用 REST API。<br><br>
+      考題如果強調「成本最低的 API 方案」→ <b>HTTP API</b>；強調「需要 API 用量方案給不同客戶不同配額」→ <b>REST API</b>。</div>
+
+    <pre><code><span class="comment"># ═══ 建立 HTTP API 並接上 Lambda ═══</span>
+$ <span class="cmd">API_ID</span>=$(aws apigatewayv2 create-api \
+    --name orders-api <span class="var">--protocol-type</span> HTTP \
+    <span class="var">--target</span> arn:aws:lambda:ap-northeast-1:123456789012:function:order-processor \
+    --query ApiId --output text)
+
+<span class="comment"># 允許 API Gateway 呼叫 Lambda（很多人漏掉這步）</span>
+$ <span class="cmd">aws lambda add-permission</span> \
+    --function-name order-processor \
+    --statement-id apigw-invoke \
+    <span class="var">--action</span> lambda:InvokeFunction \
+    <span class="var">--principal</span> apigateway.amazonaws.com \
+    <span class="var">--source-arn</span> "arn:aws:execute-api:ap-northeast-1:123456789012:$API_ID/*/*"
+
+<span class="comment"># 設定限流（保護後端）</span>
+$ <span class="cmd">aws apigatewayv2 update-stage</span> --api-id $API_ID --stage-name '$default' \
+    <span class="var">--default-route-settings</span> '{
+      "ThrottlingBurstLimit": 200,
+      "ThrottlingRateLimit": 100,
+      "DetailedMetricsEnabled": true
+    }'</code></pre>
+
+    <div class="warn"><strong>API Gateway 一定要設限流。</strong>不設的話：
+      <ul style="margin:8px 0 0">
+        <li>惡意流量或程式錯誤會<b>把 Lambda 併發吃光</b>，連帶影響其他函式</li>
+        <li>如果後面接 RDS，<b>連線會被打爆</b></li>
+        <li><b>而且你要付所有請求的錢</b>——DDoS 攻擊會直接反映在帳單上</li>
+      </ul>
+      <b>預設帳號層級是每秒 10,000 次</b>，這對多數應用來說遠遠太高。
+    </div>
+
+    <div class="warn"><strong>API Gateway 的整合逾時上限是 29 秒。</strong>就算 Lambda 設 15 分鐘，透過 API Gateway 呼叫<b>超過 29 秒就會回 504</b>。<br><br>
+      長時間工作的正確做法：API 收到請求後<b>立刻回 202 Accepted 和一個 job ID</b>，把工作丟到 SQS 非同步處理，讓客戶端輪詢或用 WebSocket 通知。
+    </div>
+
+    <h3>三種授權方式</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>方式</th><th>做什麼</th><th>適合</th></tr>
+        <tr><td><b>IAM 授權</b></td><td>用 SigV4 簽名</td><td>AWS 服務之間、內部系統</td></tr>
+        <tr><td><b>Cognito / JWT</b></td><td>驗證 JWT token</td><td><b>使用者登入的應用</b></td></tr>
+        <tr><td><b>Lambda Authorizer</b></td><td>自己寫驗證邏輯</td><td>自訂的驗證機制、第三方 IdP</td></tr>
+      </table>
+    </div>
+
+    <div class="note"><strong>Lambda Authorizer 記得開快取。</strong>不開的話<b>每一個請求都會多呼叫一次 Lambda</b>——延遲加倍、費用加倍。設 <span class="inline-code">--authorizer-result-ttl-in-seconds 300</span>，同一個 token 在 5 分鐘內只驗證一次。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="queue">
+    <h2>8. SQS、SNS、EventBridge 怎麼選</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>SQS</th><th>SNS</th><th>EventBridge</th></tr>
+        <tr><td>模式</td><td><b>佇列</b>（1 對 1）</td><td><b>發布訂閱</b>（1 對多）</td><td><b>事件匯流排</b>（含路由規則）</td></tr>
+        <tr><td>訊息保留</td><td><b>最長 14 天</b></td><td>不保留（推送失敗就重試）</td><td>不保留（可存 Archive）</td></tr>
+        <tr><td>消費者</td><td>拉取（pull）</td><td>推送（push）</td><td>推送</td></tr>
+        <tr><td>內容過濾</td><td>無</td><td>訊息屬性過濾</td><td><b>強大的內容比對</b></td></tr>
+        <tr><td>排程</td><td>延遲最多 15 分鐘</td><td>無</td><td><b>cron 排程</b></td></tr>
+        <tr><td>第三方 SaaS</td><td>—</td><td>—</td><td><b>支援</b></td></tr>
+        <tr><td>延遲</td><td>低</td><td><b>最低</b></td><td>約 0.5 秒</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code><b>一句話選型：</b><br><br>
+    要<b>削峰填谷、保證不掉訊息</b> → <b>SQS</b><br>
+    一個事件要<b>通知很多人</b> → <b>SNS</b><br>
+    要<b>依內容路由</b>、接 SaaS、做<b>排程</b> → <b>EventBridge</b></code></div>
+
+    <h3>經典架構：Fan-out</h3>
+    <div class="flow"><pre><code>　　　　　　　　　　　　　┌──► SQS-庫存 ──► Lambda-扣庫存
+訂單建立 ──► <b>SNS Topic</b> ──┼──► SQS-通知 ──► Lambda-寄信
+　　　　　　　　　　　　　└──► SQS-分析 ──► Lambda-寫數倉
+
+<b>為什麼中間要放 SQS，不讓 SNS 直接觸發 Lambda？</b>
+  · Lambda 掛掉時訊息還在佇列裡，<b>不會遺失</b>
+  · 每個下游可以<b>用自己的速度</b>處理（削峰）
+  · 單一下游失敗<b>不影響其他下游</b>
+  · 可以各自設定 DLQ 和重試策略</code></pre></div>
+
+    <pre><code><span class="comment"># 建立佇列 + DLQ（DLQ 幾乎是必要的）</span>
+$ <span class="cmd">DLQ_URL</span>=$(aws sqs create-queue --queue-name orders-dlq --query QueueUrl --output text)
+$ <span class="cmd">DLQ_ARN</span>=$(aws sqs get-queue-attributes --queue-url $DLQ_URL \
+    --attribute-names QueueArn --query 'Attributes.QueueArn' --output text)
+
+$ <span class="cmd">aws sqs create-queue</span> --queue-name orders \
+    <span class="var">--attributes</span> '{
+      "VisibilityTimeout": "180",
+      "MessageRetentionPeriod": "1209600",
+      "RedrivePolicy": "{\"deadLetterTargetArn\":\"'$DLQ_ARN'\",\"maxReceiveCount\":\"3\"}"
+    }'</code></pre>
+
+    <div class="warn"><strong>沒設 DLQ 的 SQS 會無限重試「毒藥訊息」。</strong>一筆格式錯誤的訊息會被拿出來、失敗、回到佇列、再拿出來……<b>一直到 14 天保留期滿為止</b>。這段期間它會不斷消耗 Lambda 執行次數（<b>你要付錢</b>），而且可能塞住整個佇列。<br><br>
+      <b>設 <span class="inline-code">maxReceiveCount: 3</span></b>：失敗 3 次就丟進 DLQ，之後人工處理。
+    </div>
+
+    <h3>Standard vs FIFO 佇列</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Standard</th><th>FIFO</th></tr>
+        <tr><td>順序</td><td><b>不保證</b></td><td><b>嚴格保證</b></td></tr>
+        <tr><td>重複</td><td><b>至少一次</b>（可能重複）</td><td><b>恰好一次</b>（5 分鐘內去重）</td></tr>
+        <tr><td>吞吐量</td><td><b>幾乎無限</b></td><td>300/秒（批次 3000/秒，高吞吐模式更高）</td></tr>
+        <tr><td>價格</td><td>US$0.40/百萬</td><td>US$0.50/百萬</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>能用 Standard 就用 Standard。</strong>FIFO 的吞吐量限制在高流量下會變成瓶頸。<br><br>
+      「需要順序」的需求通常可以用 <b>MessageGroupId</b> 解決——FIFO 保證的是<b>同一個 group 內</b>有序，不同 group 可以平行處理。用 <span class="inline-code">customerId</span> 當 group id，就能同時保有順序和吞吐量。
+    </div>
+
+    <h3>EventBridge 規則</h3>
+    <pre><code><span class="comment"># 依「內容」路由：只有金額 &gt; 10000 的訂單才觸發</span>
+$ <span class="cmd">aws events put-rule</span> --name high-value-orders \
+    <span class="var">--event-pattern</span> '{
+      "source": ["myapp.orders"],
+      "detail-type": ["OrderCreated"],
+      "detail": {
+        "amount": [{ "numeric": [">", 10000] }],
+        "status": ["PENDING"]
+      }
+    }'
+
+<span class="comment"># 排程：每天早上 9 點跑報表（比 cron 機器可靠）</span>
+$ <span class="cmd">aws scheduler create-schedule</span> --name daily-report \
+    <span class="var">--schedule-expression</span> "cron(0 9 * * ? *)" \
+    <span class="var">--schedule-expression-timezone</span> "Asia/Taipei" \
+    --flexible-time-window '{"Mode":"OFF"}' \
+    --target '{
+      "Arn":"arn:aws:lambda:ap-northeast-1:123456789012:function:daily-report",
+      "RoleArn":"arn:aws:iam::123456789012:role/scheduler-role"
+    }'</code></pre>
+
+    <div class="ok"><strong>EventBridge 的內容過濾是它最大的價值。</strong>用 SNS 的話，所有訂閱者都會收到全部訊息，<b>過濾邏輯要寫在消費端</b>（收到不相關的訊息也要付 Lambda 執行費）。EventBridge 在<b>路由層就過濾掉</b>，不符合的事件根本不會觸發你的函式。</div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="idempotent">
+    <h2>9. 冪等性：最常被忽略的坑</h2>
+
+    <div class="warn"><strong>分散式系統的鐵律：訊息一定會被重複送達。</strong>
+      <ul style="margin:8px 0 0">
+        <li>SQS Standard 是「<b>至少一次</b>」——設計上就會重複</li>
+        <li>Lambda 非同步呼叫失敗會<b>自動重試 2 次</b></li>
+        <li>網路逾時導致呼叫方重送，但實際上第一次已經成功了</li>
+        <li>Visibility Timeout 設太短造成同一訊息被兩個 consumer 拿走</li>
+      </ul>
+      <b>如果你的 Lambda 是「扣款」或「發貨」，重複執行 = 重複扣錢、重複出貨。這是真的會發生的財務事故。</b>
+    </div>
+
+    <div class="formula"><code><b>冪等 = 同一個操作執行 N 次，結果跟執行 1 次一樣</b></code></div>
+
+    <h3>三種實作方式</h3>
+
+    <pre><code><span class="comment"># ── 方法 1：DynamoDB 條件寫入（最簡單，前面示範過）──</span>
+table.put_item(
+    Item={<span class="val">"orderId"</span>: order_id, ...},
+    ConditionExpression=<span class="val">"attribute_not_exists(orderId)"</span>
+)
+<span class="comment"># 第二次會拋 ConditionalCheckFailedException → 捕捉後當成功回傳</span></code></pre>
+
+    <pre><code><span class="comment"># ── 方法 2：獨立的冪等表（適合複雜流程）──</span>
+<span class="kw">import</span> hashlib, time, boto3
+<span class="kw">from</span> botocore.exceptions <span class="kw">import</span> ClientError
+
+idem = boto3.resource(<span class="val">"dynamodb"</span>).Table(<span class="val">"IdempotencyKeys"</span>)
+
+<span class="kw">def</span> already_processed(key: str, ttl_seconds: int = 86400) -&gt; bool:
+    <span class="val">"""回傳 True 代表這個 key 之前處理過"""</span>
+    <span class="kw">try</span>:
+        idem.put_item(
+            Item={<span class="val">"key"</span>: key, <span class="val">"expiresAt"</span>: int(time.time()) + ttl_seconds},
+            ConditionExpression=<span class="val">"attribute_not_exists(#k)"</span>,
+            ExpressionAttributeNames={<span class="val">"#k"</span>: <span class="val">"key"</span>},
+        )
+        <span class="kw">return</span> <span class="kw">False</span>
+    <span class="kw">except</span> ClientError <span class="kw">as</span> e:
+        <span class="kw">if</span> e.response[<span class="val">"Error"</span>][<span class="val">"Code"</span>] == <span class="val">"ConditionalCheckFailedException"</span>:
+            <span class="kw">return</span> <span class="kw">True</span>
+        <span class="kw">raise</span>
+
+
+<span class="kw">def</span> handler(event, context):
+    <span class="kw">for</span> record <span class="kw">in</span> event[<span class="val">"Records"</span>]:
+        <span class="comment"># 用訊息內容的雜湊當 key，不要用 messageId</span>
+        <span class="comment"># （messageId 每次重送都不同，起不到去重作用）</span>
+        key = hashlib.sha256(record[<span class="val">"body"</span>].encode()).hexdigest()
+
+        <span class="kw">if</span> already_processed(key):
+            print(f<span class="val">"重複訊息，略過 {key[:12]}"</span>)
+            <span class="kw">continue</span>
+
+        do_the_actual_work(record)</code></pre>
+
+    <div class="ok"><strong>用 <span class="inline-code">IdempotencyKeys</span> 表記得開 TTL</strong>（第 05 章講過），讓舊的 key 自動清掉，否則這張表會無限成長。TTL 設多久？<b>比你的最大重試視窗長就好</b>，通常 24 小時很夠。</div>
+
+    <pre><code><span class="comment"># ── 方法 3：用官方的 Powertools（推薦，不用自己造輪子）──</span>
+$ pip install aws-lambda-powertools
+
+<span class="kw">from</span> aws_lambda_powertools.utilities.idempotency <span class="kw">import</span> (
+    DynamoDBPersistenceLayer, idempotent_function, IdempotencyConfig
+)
+
+persistence = DynamoDBPersistenceLayer(table_name=<span class="val">"IdempotencyKeys"</span>)
+config = IdempotencyConfig(event_key_jmespath=<span class="val">"orderId"</span>, expires_after_seconds=86400)
+
+<span class="kw">@idempotent_function</span>(data_keyword_argument=<span class="val">"order"</span>,
+                     config=config, persistence_store=persistence)
+<span class="kw">def</span> process_order(order: dict):
+    charge_credit_card(order)     <span class="comment"># 保證只會執行一次</span>
+    <span class="kw">return</span> {<span class="val">"status"</span>: <span class="val">"charged"</span>}</code></pre>
+
+    <div class="warn"><strong>另一個相關的坑：Lambda 遞迴。</strong>
+      <div class="formula" style="margin-top:10px"><code>S3 上傳 → 觸發 Lambda → Lambda 寫回<b>同一個 bucket</b> → 又觸發 Lambda → …</code></div>
+      這會無限迴圈，<b>幾分鐘內產生數十萬次執行</b>，帳單非常可觀。<br><br>
+      <b>防範方式：</b>
+      <ul style="margin:8px 0 0">
+        <li><b>輸出寫到不同的 bucket</b>（最簡單也最可靠）</li>
+        <li>或用 <b>prefix 過濾</b>：只有 <span class="inline-code">input/</span> 觸發，輸出寫到 <span class="inline-code">output/</span></li>
+        <li>AWS 現在有 <b>遞迴迴圈偵測</b>，同一個請求鏈超過 16 次會自動中止並通知你——但這是最後一道防線，不要依賴它</li>
+        <li>加 <b>Reserved Concurrency</b> 當保險絲</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="step">
+    <h2>10. Step Functions 編排</h2>
+
+    <p>當流程有<b>多個步驟、需要判斷分支、需要重試、可能要等人工審核</b>時，把邏輯寫在一支大 Lambda 裡會變成災難。<b>Step Functions</b> 把流程本身變成一個可視覺化、可追蹤的狀態機。</p>
+
+    <pre><code>{
+  "Comment": "訂單處理流程",
+  "StartAt": "ValidateOrder",
+  "States": {
+    "ValidateOrder": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:validate",
+      <span class="var">"Retry"</span>: [{
+        "ErrorEquals": ["States.TaskFailed"],
+        "IntervalSeconds": 2,
+        "MaxAttempts": 3,
+        "BackoffRate": 2.0
+      }],
+      <span class="var">"Catch"</span>: [{
+        "ErrorEquals": ["ValidationError"],
+        "Next": "RejectOrder"
+      }],
+      "Next": "CheckAmount"
+    },
+    "CheckAmount": {
+      "Type": <span class="var">"Choice"</span>,
+      "Choices": [{
+        "Variable": "$.amount",
+        "NumericGreaterThan": 10000,
+        "Next": "ManualApproval"
+      }],
+      "Default": "ChargePayment"
+    },
+    "ManualApproval": {
+      "Type": "Task",
+      <span class="comment">"人工審核：等待外部回呼，最長可等 1 年"</span>
+      "Resource": "arn:aws:states:::lambda:invoke<span class="var">.waitForTaskToken</span>",
+      "Parameters": {
+        "FunctionName": "request-approval",
+        "Payload": { "taskToken.$": "$$.Task.Token", "order.$": "$" }
+      },
+      "TimeoutSeconds": 86400,
+      "Next": "ChargePayment"
+    },
+    "ChargePayment": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:...:function:charge",
+      "Catch": [{ "ErrorEquals": ["States.ALL"], "Next": "CompensateOrder" }],
+      "Next": "ShipOrder"
+    },
+    "ShipOrder": { "Type": "Task", "Resource": "...", "End": true },
+    "CompensateOrder": { "Type": "Task", "Resource": "...:function:refund", "End": true },
+    "RejectOrder": { "Type": "Fail", "Error": "ValidationError" }
+  }
+}</code></pre>
+
+    <div class="ok"><strong>Step Functions 幫你解決的四件事：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>重試與退避</b>——不用自己寫 retry 邏輯，宣告式設定</li>
+        <li><b>錯誤補償（Saga 模式）</b>——付款失敗時自動觸發退款</li>
+        <li><b>等待人工</b>——<span class="inline-code">waitForTaskToken</span> 可以等到<b>一年</b>，遠超 Lambda 的 15 分鐘</li>
+        <li><b>視覺化執行歷史</b>——主控台可以看到每一次執行走了哪些步驟、在哪裡失敗、輸入輸出是什麼</li>
+      </ol>
+      <b>最後一點在排錯時價值極高</b>——分散式系統最難的就是「知道發生了什麼」。
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Standard 工作流程</th><th>Express 工作流程</th></tr>
+        <tr><td>最長執行</td><td><b>1 年</b></td><td>5 分鐘</td></tr>
+        <tr><td>執行語意</td><td><b>恰好一次</b></td><td>至少一次</td></tr>
+        <tr><td>執行歷史</td><td>完整保留</td><td>只在 CloudWatch Logs</td></tr>
+        <tr><td>計費</td><td>按<b>狀態轉換次數</b>（US$25/百萬）</td><td>按<b>執行時間</b>（便宜很多）</td></tr>
+        <tr><td>適合</td><td>長流程、需要稽核、人工審核</td><td><b>高頻短流程</b>（IoT、串流處理）</td></tr>
+      </table>
+    </div>
+
+    <div class="cost">Standard 按「狀態轉換次數」計費——<b>一個有 10 個步驟的流程跑一次 = 10 次轉換</b>。<br>
+    每天跑 10 萬次 × 10 步 = 每月 3000 萬次轉換 = <b>US$750</b>。<br><br>
+    同樣的量用 Express 大約 <b>US$30</b>。<b>高頻流程一定要評估 Express</b>，但要接受「至少一次」語意（所以每一步都要冪等）。</div>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="cost">
+    <h2>11. 費用與適用邊界</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>服務</th><th>免費額度（每月）</th><th>超出後</th></tr>
+        <tr><td><b>Lambda</b></td><td><b>100 萬次請求 + 40 萬 GB-秒</b>（永久）</td><td>US$0.20/百萬次 + US$0.0000166667/GB-秒</td></tr>
+        <tr><td><b>API Gateway HTTP</b></td><td>100 萬次（前 12 個月）</td><td>US$1.00/百萬次</td></tr>
+        <tr><td><b>DynamoDB</b></td><td><b>25 GB + 25 RCU/WCU</b>（永久）</td><td>依用量</td></tr>
+        <tr><td><b>SQS</b></td><td><b>100 萬次請求</b>（永久）</td><td>US$0.40/百萬</td></tr>
+        <tr><td><b>SNS</b></td><td>100 萬次發布（永久）</td><td>US$0.50/百萬</td></tr>
+        <tr><td><b>Step Functions</b></td><td>4,000 次狀態轉換（永久）</td><td>US$25/百萬</td></tr>
+        <tr><td><b>EventBridge</b></td><td>AWS 服務事件免費</td><td>自訂事件 US$1.00/百萬</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>小型應用的無伺服器成本通常接近 0。</strong>一個每天幾千次請求的內部工具，用 Lambda + DynamoDB + API Gateway，<b>很可能整年都在免費額度內</b>。<br><br>
+      這是無伺服器最吸引人的地方——<b>做實驗和小專案幾乎不用成本</b>。
+    </div>
+
+    <div class="warn"><strong>但流量大到一定程度後，無伺服器會比 EC2 貴。</strong>
+      <div class="formula" style="margin-top:10px"><code><b>粗略的損益平衡點</b><br><br>
+      Lambda 512 MB × 200ms × 每月 5000 萬次<br>
+      ≈ US$95（請求）+ US$83（運算）= <b>約 US$178</b><br><br>
+      同樣負載用 2 台 m7g.large + ALB（買 1 年 SP）<br>
+      ≈ <b>約 US$130</b></code></div>
+      加上 API Gateway 的 US$50，無伺服器在這個量級已經比較貴了。<br><br>
+      <b>但要把「維運成本」算進去</b>——EC2 要有人管修補、擴展、監控。對小團隊來說，貴一點但不用管人可能更划算。<b>這是財務決策，不是純技術決策。</b>
+    </div>
+
+    <h3>省錢清單</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>用 arm64（Graviton）</b>便宜 20%，改一個參數就好。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>用 Power Tuning 找最佳記憶體</b>常常「調高記憶體反而更便宜」，因為執行時間縮短更多。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>HTTP API 取代 REST API</b>便宜 71%。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>設 CloudWatch Logs 保留期</b>Lambda 的 log group <b>預設「永久保留」</b>，這是很常見的隱形成本。設成 7–30 天。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>高頻 Step Functions 改用 Express</b>可能省 90%。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>Provisioned Concurrency 配 Auto Scaling</b>離峰時段自動縮到最低。</div></div>
+    </div>
+
+    <pre><code><span class="comment"># 一次把所有 Lambda 的 log 保留期設成 14 天（很有感的省錢動作）</span>
+$ aws logs describe-log-groups --log-group-name-prefix /aws/lambda/ \
+    --query 'logGroups[?!retentionInDays].logGroupName' --output text | \
+  tr '\t' '\n' | while read lg; do
+    echo "設定 $lg"
+    aws logs put-retention-policy --log-group-name "$lg" --retention-in-days 14
+  done</code></pre>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：事件驅動的訂單系統</h3>
+    <p>約 110 分鐘。</p>
+
+    <div class="cost">這個 Lab <b>幾乎全部在免費額度內</b>（Lambda、DynamoDB、SQS、SNS、EventBridge 都有永久免費額度）。<br>
+    <b>唯一風險是遞迴迴圈</b>——階段五會故意做一次，記得照指示加上保險絲，並在觀察完後立刻停用。</div>
+
+    <h4>階段一：Lambda 基礎</h4>
+    <ol>
+      <li>建立執行角色（<strong>基本執行權限 + 最小化的 DynamoDB 權限</strong>）</li>
+      <li>寫 <span class="inline-code">order-processor</span>，用 <strong>arm64、512 MB、timeout 30</strong></li>
+      <li>SDK client <strong>放在 handler 外</strong>，用 <strong>JSON 結構化日誌</strong></li>
+      <li>用 <span class="inline-code">invoke</span> 測試成功與失敗兩種情況</li>
+      <li>設定 log group <strong>保留 14 天</strong></li>
+    </ol>
+
+    <h4>階段二：API Gateway</h4>
+    <ol start="6">
+      <li>建立 <strong>HTTP API</strong> 接上 Lambda</li>
+      <li>加 <span class="inline-code">lambda add-permission</span>（漏掉會 500）</li>
+      <li>設定<strong>限流</strong>：rate 100、burst 200</li>
+      <li>用 curl 打 API，確認回 201</li>
+      <li>用 <span class="inline-code">hey -n 1000 -c 50</span> 灌流量，觀察<strong>限流生效</strong>（429）</li>
+    </ol>
+
+    <h4>階段三：非同步與 DLQ</h4>
+    <ol start="11">
+      <li>建立 SQS <strong>orders</strong> 與 <strong>orders-dlq</strong>，設 <strong>maxReceiveCount 3</strong></li>
+      <li>Visibility Timeout 設成 <strong>Lambda timeout 的 6 倍</strong></li>
+      <li>建立 event source mapping，<strong>開啟 ReportBatchItemFailures</strong></li>
+      <li>丟一筆<strong>格式錯誤</strong>的訊息，觀察它重試 3 次後<strong>進入 DLQ</strong></li>
+      <li>丟一批 10 筆其中 1 筆壞的，驗證<strong>只有那 1 筆被重送</strong></li>
+    </ol>
+
+    <h4>階段四：Fan-out</h4>
+    <ol start="16">
+      <li>建立 SNS Topic，訂閱<strong>兩個</strong>不同的 SQS 佇列</li>
+      <li>各接一支 Lambda（一支寫 DynamoDB、一支只印日誌）</li>
+      <li>發一則訊息，確認<strong>兩支 Lambda 都被觸發</strong></li>
+      <li>故意讓其中一支失敗，確認<strong>另一支不受影響</strong></li>
+    </ol>
+
+    <h4>階段五：冪等性與遞迴（重點）</h4>
+    <ol start="20">
+      <li>建立 <strong>IdempotencyKeys</strong> 表並開啟 <strong>TTL</strong></li>
+      <li>在 Lambda 加上冪等檢查，<strong>同一筆訊息送三次，驗證只處理一次</strong></li>
+      <li><strong>先設 Reserved Concurrency = 2 當保險絲</strong></li>
+      <li>建一個 S3 bucket，讓 Lambda 被上傳觸發並<strong>寫回同一個 bucket</strong></li>
+      <li>上傳一個檔案，觀察遞迴發生，<strong>立刻把 Reserved Concurrency 設成 0 止血</strong></li>
+      <li>改成「輸出寫到不同 bucket」，驗證問題解決</li>
+    </ol>
+
+    <h4>階段六：Step Functions</h4>
+    <ol start="26">
+      <li>建立一個有 <strong>Choice 分支</strong>和 <strong>Retry</strong> 的狀態機</li>
+      <li>金額 &gt; 10000 走人工審核分支，否則直接處理</li>
+      <li>加上 <strong>Catch → 補償（退款）</strong>步驟</li>
+      <li>在主控台觀察<strong>視覺化的執行歷史</strong></li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>API 回 201，重複送同一個 orderId 回 <strong>200 且不重複寫入</strong></li>
+      <li>灌流量時看得到 <strong>429 限流</strong></li>
+      <li>壞訊息重試 3 次後<strong>出現在 DLQ</strong></li>
+      <li>批次中只有壞的那筆被重送（看 CloudWatch Logs 的處理次數）</li>
+      <li>SNS 一則訊息 → <strong>兩個佇列各收到一份</strong></li>
+      <li>同一訊息送 3 次，DynamoDB <strong>只有 1 筆</strong></li>
+      <li>遞迴發生時 <strong>Reserved Concurrency 成功止住</strong></li>
+      <li>Step Functions 主控台看得到<strong>走過的路徑</strong>與每步的輸入輸出</li>
+    </ul>
+
+    <h4>清理</h4>
+    <pre><code>$ aws lambda delete-function --function-name order-processor
+$ aws apigatewayv2 delete-api --api-id $API_ID
+$ aws sqs delete-queue --queue-url $QUEUE_URL
+$ aws sqs delete-queue --queue-url $DLQ_URL
+$ aws sns delete-topic --topic-arn $TOPIC_ARN
+$ aws dynamodb delete-table --table-name IdempotencyKeys
+$ aws stepfunctions delete-state-machine --state-machine-arn $SM_ARN
+$ aws s3 rb s3://your-lab-bucket --force
+
+<span class="comment"># 清掉殘留的 log group（它們會一直佔空間）</span>
+$ aws logs describe-log-groups --log-group-name-prefix /aws/lambda/order \
+    --query 'logGroups[].logGroupName' --output text | tr '\t' '\n' | \
+  while read lg; do aws logs delete-log-group --log-group-name "$lg"; done</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>用 <strong>Lambda Power Tuning</strong> 測試 128 / 256 / 512 / 1024 / 2048 MB，找出成本最低的設定。</li>
+      <li>用 <strong>版本 + 別名 + routing-config</strong> 做一次 10% 金絲雀部署，然後回退。</li>
+      <li>建一個 <strong>EventBridge 規則</strong>，只有 <span class="inline-code">amount > 10000</span> 的事件才觸發，驗證小額訂單<strong>完全不會觸發 Lambda</strong>。</li>
+      <li>把 Standard 狀態機改成 <strong>Express</strong>，比較兩者的計費方式與執行歷史差異。</li>
+      <li>算一題：每月 3000 萬次請求、每次 512 MB 跑 300ms，Lambda + HTTP API 的月費是多少？跟 2 台 m7g.large + ALB 比呢？</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>Lambda <strong>15 分鐘上限、6 MB 同步 payload、250 MB 解壓後大小、預設 1000 併發</strong></li>
+      <li><strong>記憶體同時決定 CPU</strong>（1769 MB = 1 vCPU）——調高常常反而更便宜</li>
+      <li>SDK client <strong>放 handler 外</strong>、用 <strong>JSON 日誌</strong>、失敗要 <strong>raise 不要吞</strong></li>
+      <li><strong>arm64 便宜 20%</strong>；觸發器指向<strong>別名</strong>不要指 $LATEST</li>
+      <li>「VPC Lambda 冷啟動 10 秒」已經<strong>過時</strong>，但 VPC 內沒有網際網路</li>
+      <li><strong>Reserved Concurrency 既是保留也是上限</strong>，設 0 = 緊急停用</li>
+      <li>Lambda + RDS 要用 <strong>RDS Proxy</strong> 做連線池</li>
+      <li>三種呼叫模式失敗行為不同：<strong>同步不重試、非同步重試 2 次、輪詢可能無限重試</strong></li>
+      <li>SQS 觸發一定要開 <strong>ReportBatchItemFailures</strong>，Visibility Timeout <strong>設 Lambda timeout 的 6 倍</strong></li>
+      <li><strong>沒設 DLQ 的佇列會無限重試毒藥訊息</strong>並持續燒錢</li>
+      <li>選型：<strong>SQS 削峰、SNS 一對多、EventBridge 內容路由與排程</strong></li>
+      <li>Fan-out 要在 <strong>SNS 和 Lambda 之間放 SQS</strong>，才不會掉訊息</li>
+      <li><strong>訊息一定會重複，扣款類的操作必須做冪等</strong></li>
+      <li><strong>Lambda 寫回觸發自己的 bucket 會遞迴爆炸</strong>——輸出寫不同 bucket</li>
+      <li>Step Functions 提供<strong>重試、補償、等待人工、視覺化歷史</strong>；高頻用 Express</li>
+      <li><strong>Lambda 的 log group 預設永久保留</strong>，記得設保留期</li>
+    </ul>
+    <div class="note">無伺服器橫跨 SAA-C03 的多個領域。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪，特別注意 SQS/SNS/EventBridge 的選型題。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="06-elb-asg.html">← 06：高可用與自動擴展</a>
+    <a href="08-monitor-cost.html">08：監控、稽核與成本 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 07</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

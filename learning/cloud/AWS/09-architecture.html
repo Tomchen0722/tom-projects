@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>架構範式與災難復原 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:20px 22px;margin:16px 0;overflow-x:auto;}
+.arch pre{background:none;padding:0;margin:0;}
+.wa{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0;}
+.wac{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.wac b{display:block;font-size:.86rem;color:var(--dark);margin-bottom:3px;}
+.wac span{font-size:.77rem;color:var(--muted);line-height:1.65;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">09 · 架構範式</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 09 · 架構設計</div>
+  <h1>架構範式與<span>災難復原</span></h1>
+  <p>SAA 考試有一大半是情境題：「這個需求該用什麼架構？」這章把前八章的元件組合成可以直接套用的參考架構，並把 DR 四策略講到能實際執行。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#war">Well-Architected 六大支柱</a></li>
+      <li><a href="#p1">範式一：三層式 Web 應用</a></li>
+      <li><a href="#p2">範式二：無伺服器 API</a></li>
+      <li><a href="#p3">範式三：非同步批次處理</a></li>
+      <li><a href="#p4">範式四：資料湖與分析</a></li>
+      <li><a href="#p5">範式五：靜態網站與 SPA</a></li>
+      <li><a href="#p6">範式六：混合雲</a></li>
+      <li><a href="#dr">災難復原四策略</a></li>
+      <li><a href="#drbuild">實作：Pilot Light DR</a></li>
+      <li><a href="#chaos">故障演練</a></li>
+      <li><a href="#exam">情境題解題法</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="war">
+    <h2>1. Well-Architected 六大支柱</h2>
+
+    <div class="wa">
+      <div class="wac"><b>卓越營運</b><span>用程式碼管理基礎設施、小步頻繁變更、從失敗中學習</span></div>
+      <div class="wac"><b>安全性</b><span>最小權限、縱深防禦、全程加密、可追溯</span></div>
+      <div class="wac"><b>可靠性</b><span>自動從故障復原、水平擴展、停止猜測容量</span></div>
+      <div class="wac"><b>效能效率</b><span>用託管服務、實驗更多、考慮機制的親和性</span></div>
+      <div class="wac"><b>成本優化</b><span>採用消費模式、衡量整體效率、分析歸因支出</span></div>
+      <div class="wac"><b>永續性</b><span>降低碳足跡、提高使用率、採用高效硬體</span></div>
+    </div>
+
+    <div class="ok"><strong>六大支柱在考試裡的用法：題目會暗示「優先考量什麼」。</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>題目說</th><th>優先支柱</th><th>傾向的答案</th></tr>
+          <tr><td>「最具成本效益」「最低成本」</td><td>成本</td><td>Spot、S3 生命週期、Serverless、關掉閒置資源</td></tr>
+          <tr><td>「最少營運負擔」「最少管理」</td><td>營運</td><td><b>託管服務</b>（Aurora &gt; RDS &gt; EC2 自架）</td></tr>
+          <tr><td>「高可用」「容錯」</td><td>可靠性</td><td>Multi-AZ、ASG、跨區複製</td></tr>
+          <tr><td>「最低延遲」</td><td>效能</td><td>CloudFront、ElastiCache、Global Accelerator</td></tr>
+          <tr><td>「符合法規」「稽核」</td><td>安全</td><td>KMS、CloudTrail、Config、Object Lock</td></tr>
+        </table>
+      </div>
+      <b>SAA 的情境題幾乎都能用這張表縮小到 1–2 個選項。</b>
+    </div>
+
+    <div class="warn"><strong>「最少營運負擔」是最常見也最容易答錯的關鍵字。</strong>看到它就要往「<b>越託管越好</b>」的方向選：
+      <div class="formula" style="margin-top:10px"><code>Lambda &gt; Fargate &gt; ECS on EC2 &gt; EC2 自架<br>
+      DynamoDB &gt; Aurora Serverless &gt; Aurora &gt; RDS &gt; EC2 上的 MySQL<br>
+      S3 &gt; EFS &gt; EBS</code></div>
+      就算託管服務貴一點，只要題目說「最少營運負擔」它就是答案。
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="p1">
+    <h2>2. 範式一：三層式 Web 應用</h2>
+
+    <div class="arch"><pre><code>　　　　　　　　　　　　[ Route 53 ]
+　　　　　　　　　　　　　　　│ Alias
+　　　　　　　　　　　　[ CloudFront ] ── [ WAF ]
+　　　　　　　　　　　　　　　│
+　　　　　　　　　┌───────────┴───────────┐
+　　　　　　　[ S3 靜態資源 ]　　　　[ ALB ]（公有子網路 × 2 AZ）
+　　　　　　　　（OAC 私有）　　　　　　　│
+　　　　　　　　　　　　　　　┌──────────┴──────────┐
+　　　　　　　　　　　　[ EC2/ECS ]　　　　　　[ EC2/ECS ]
+　　　　　　　　　　　　　1a 私有子網路　　　　 1c 私有子網路
+　　　　　　　　　　　　　　　└────── ASG ──────┘
+　　　　　　　　　　　　　　　　　　　　│
+　　　　　　　　　　　　┌───────────────┼───────────────┐
+　　　　　　　　[ ElastiCache ]　　[ RDS Multi-AZ ]　　[ S3 使用者上傳 ]
+　　　　　　　　　（快取／Session）　（隔離子網路）　　（VPC Endpoint）</code></pre></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>層</th><th>元件</th><th>關鍵設計</th></tr>
+        <tr><td>邊緣</td><td>CloudFront + WAF</td><td>快取靜態內容、擋 SQL injection 與 DDoS</td></tr>
+        <tr><td>入口</td><td>ALB（公有子網路）</td><td>跨 2 AZ、HTTPS、健康檢查</td></tr>
+        <tr><td>應用</td><td>ASG（私有子網路）</td><td><b>無狀態</b>、health-check-type=ELB、跨 AZ</td></tr>
+        <tr><td>快取</td><td>ElastiCache Redis</td><td>放 Session（讓應用無狀態）、快取熱資料</td></tr>
+        <tr><td>資料</td><td>RDS Multi-AZ（隔離子網路）</td><td>加密、不公開、自動備份、Read Replica</td></tr>
+        <tr><td>檔案</td><td>S3 + VPC Endpoint</td><td>不走 NAT，省流量費</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>這個架構的五個關鍵決策，每一個都是考點：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>應用層放私有子網路</b>——只有 ALB 能連到它們</li>
+        <li><b>資料庫放隔離子網路</b>——連對外路由都沒有</li>
+        <li><b>Session 放 Redis</b>——應用無狀態才能自由擴縮（第 06 章）</li>
+        <li><b>S3 走 VPC Endpoint</b>——省 NAT 流量費（第 02 章）</li>
+        <li><b>安全群組互相引用</b>——ALB→App→DB 層層限制，擴縮不用改規則</li>
+      </ol>
+    </div>
+
+    <div class="warn"><strong>這個架構的成本要有心理準備。</strong>最小規模（2 台 t3.small + ALB + RDS Multi-AZ db.t3.small + Redis + NAT×2）東京區<b>每月約 US$250–350</b>。<br><br>
+      <b>個人專案或小型內部系統不需要這麼完整</b>：可以省掉 Redis（用 JWT）、RDS 用單 AZ、NAT 用一個或改用 VPC Endpoint、應用層直接放公有子網路配好 SG。這樣可以壓到 <b>每月 US$50 以下</b>。<br><br>
+      <b>架構要配合實際規模，不是越完整越好。</b>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="p2">
+    <h2>3. 範式二：無伺服器 API</h2>
+
+    <div class="arch"><pre><code>[ 使用者 ] ──► [ CloudFront ] ──► [ API Gateway (HTTP API) ]
+　　　　　　　　　　　　　　　　　　　　　│
+　　　　　　　　　　　　　　　　　　[ Cognito 授權 ]
+　　　　　　　　　　　　　　　　　　　　　│
+　　　　　　　　　　　　　　　　　　　[ Lambda ]
+　　　　　　　　　　　　　　　┌──────────┼──────────┐
+　　　　　　　　　　　　[ DynamoDB ]  [ S3 ]  [ SQS ] ──► [ Lambda 背景處理 ]
+　　　　　　　　　　　　　　　│　　　　　　　　　　　　　　　　　│
+　　　　　　　　　　　　[ DynamoDB Streams ]　　　　　　　　 [ DLQ ]
+　　　　　　　　　　　　　　　└──► [ Lambda 同步到分析 ]</code></pre></div>
+
+    <div class="ok"><strong>什麼時候選這個架構：</strong>
+      <ul style="margin:8px 0 0">
+        <li>流量<b>不固定、會歸零</b>（內部工具、季節性業務）</li>
+        <li>團隊小，<b>沒有人力管伺服器</b></li>
+        <li>需要<b>快速從零到上線</b></li>
+        <li>成本要<b>跟使用量嚴格掛鉤</b></li>
+      </ul>
+    </div>
+
+    <div class="warn"><strong>這個架構的三個必做設計（第 07 章詳述）：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>所有寫入操作要冪等</b>——訊息一定會重複</li>
+        <li><b>每個佇列都要有 DLQ</b>——否則毒藥訊息會無限重試燒錢</li>
+        <li><b>設 Reserved Concurrency</b>——保護下游、當保險絲</li>
+      </ol>
+    </div>
+
+    <div class="note"><strong>如果後面接的是 RDS 而不是 DynamoDB，一定要加 RDS Proxy。</strong>Lambda 瞬間 1000 個併發會把 RDS 連線打爆。這是「Lambda + 關聯式資料庫」的標準配置。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="p3">
+    <h2>4. 範式三：非同步批次處理</h2>
+
+    <div class="arch"><pre><code>[ 使用者上傳大檔 ] ──► [ S3 input/ ]
+　　　　　　　　　　　　　　　│ Event Notification
+　　　　　　　　　　　　　[ SQS ]  ◄── 削峰填谷，避免瞬間爆量
+　　　　　　　　　　　　　　　│
+　　　　　　　　　　　[ ASG (Spot) ] 或 [ AWS Batch ]
+　　　　　　　　　　　　　　　│ 依佇列長度自動擴縮
+　　　　　　　　　　　　[ S3 output/ ]  ◄── <b>不同 prefix，避免遞迴</b>
+　　　　　　　　　　　　　　　│
+　　　　　　　　　　　　　[ SNS 通知 ]</code></pre></div>
+
+    <div class="ok"><strong>這個架構的精髓：用「佇列長度」而不是 CPU 來擴縮。</strong>
+      <div class="formula" style="margin-top:10px"><code>目標值 = <b>每台機器應該處理的積壓訊息數</b><br><br>
+      佇列有 1000 則、每台處理 100 則 → 需要 10 台</code></div>
+      <pre style="margin:8px 0 0"><code><span class="comment"># 自訂指標：每台機器的積壓量</span>
+$ aws autoscaling put-scaling-policy \
+    --auto-scaling-group-name worker-asg \
+    --policy-name backlog-per-instance \
+    --policy-type TargetTrackingScaling \
+    --target-tracking-configuration '{
+      "CustomizedMetricSpecification": {
+        "MetricName": "BacklogPerInstance",
+        "Namespace": "MyApp/Workers",
+        "Statistic": "Average"
+      },
+      "TargetValue": 100
+    }'</code></pre>
+    </div>
+
+    <div class="warn"><strong>批次處理最適合用 Spot（省 70–90%），但必須做三件事：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>訊息處理要冪等</b>——機器被收回時訊息會回到佇列被別人處理</li>
+        <li><b>Visibility Timeout 要夠長</b>——比最長處理時間長，否則會重複處理</li>
+        <li><b>接收中斷通知後優雅退場</b>——2 分鐘內存好進度（第 03 章有腳本）</li>
+      </ol>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>運算選項</th><th>適合</th></tr>
+        <tr><td><b>Lambda</b></td><td>單次 &lt; 15 分鐘、記憶體 &lt; 10 GB</td></tr>
+        <tr><td><b>Fargate</b></td><td>需要容器、時間不限、不想管機器</td></tr>
+        <tr><td><b>ASG + Spot</b></td><td><b>成本最低</b>、需要 GPU 或特殊機型</td></tr>
+        <tr><td><b>AWS Batch</b></td><td><b>大規模科學運算</b>，自動管理佇列與相依性</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="p4">
+    <h2>5. 範式四：資料湖與分析</h2>
+
+    <div class="arch"><pre><code>各種來源 ──► [ Kinesis Data Streams ] ──► [ Firehose ] ──► [ S3 資料湖 ]
+（App/IoT/日誌）　　　　　　　　　　　　　　（緩衝＋轉 Parquet）　　│
+　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　┌───────┴───────┐
+　　　　　　　　　　　　　　　　　　　　　　　　　　　[ Glue Catalog ]  [ 生命週期 ]
+　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　│　　　　　（轉 Glacier）
+　　　　　　　　　　　　　　　　　　　┌──────────────────────┼──────────────┐
+　　　　　　　　　　　　　　　　[ Athena ]　　　　　[ Redshift ]　　[ QuickSight ]
+　　　　　　　　　　　　　　　　（偶爾查詢）　　　　（常態 BI）　　　（視覺化）</code></pre></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Athena</th><th>Redshift</th></tr>
+        <tr><td>資料在哪</td><td><b>S3（原地查詢）</b></td><td>載入 Redshift 叢集</td></tr>
+        <tr><td>計費</td><td><b>按掃描量</b>（US$5/TB）</td><td>按叢集執行時間</td></tr>
+        <tr><td>適合</td><td><b>偶爾查、探索性分析</b></td><td><b>每天大量查詢、固定報表</b></td></tr>
+        <tr><td>效能</td><td>秒到分鐘</td><td><b>更快</b>（資料已最佳化）</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>Athena 省錢的三個關鍵（考試會考）：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>用欄式格式</b>（Parquet / ORC）——只讀需要的欄位，<b>可以省 90% 掃描量</b></li>
+        <li><b>分區</b>（依日期 <span class="inline-code">s3://.../year=2026/month=08/day=05/</span>）——查一天的資料就只掃一天</li>
+        <li><b>壓縮</b>（Snappy / GZIP）——直接減少掃描的位元組數</li>
+      </ol>
+      <div class="formula" style="margin-top:10px"><code>1 TB CSV 全表掃描 = <b>US$5</b><br>
+      同樣資料轉成分區的 Parquet，只查一天的三個欄位 = <b>約 US$0.01</b></code></div>
+    </div>
+
+    <div class="warn"><strong>Kinesis 三兄弟很容易混淆：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th></th><th>用途</th><th>保留</th><th>消費者</th></tr>
+          <tr><td><b>Data Streams</b></td><td>即時串流，<b>需要自己寫消費者</b></td><td>1–365 天</td><td>多個，可重播</td></tr>
+          <tr><td><b>Data Firehose</b></td><td><b>直接送到目的地</b>（S3、Redshift、OpenSearch）</td><td>不保留</td><td>固定目的地</td></tr>
+          <tr><td><b>Managed Flink</b></td><td>用 SQL 做即時分析</td><td>—</td><td>—</td></tr>
+        </table>
+      </div>
+      <b>只是要把資料送進 S3 → Firehose</b>（最簡單、無伺服器）。<br>
+      <b>需要多個消費者或重播 → Data Streams</b>。
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="p5">
+    <h2>6. 範式五：靜態網站與 SPA</h2>
+
+    <div class="arch"><pre><code>[ Route 53 ] ──► [ CloudFront ] ──► [ S3（私有，OAC）]
+　　　　　　　　　　　　│
+　　　　　　　　　　[ ACM 憑證 ]（必須在 <b>us-east-1</b>）
+　　　　　　　　　　　　│
+　　　　　　　　[ /api/* 行為 ] ──► [ API Gateway ] ──► [ Lambda ]</code></pre></div>
+
+    <div class="ok"><strong>這是成本最低的架構，小網站每月可能不到 US$1。</strong>
+      <ul style="margin:8px 0 0">
+        <li>S3 儲存幾百 MB ≈ US$0.01</li>
+        <li>CloudFront 每月<b>前 1 TB 傳輸免費</b>（永久免費方案）</li>
+        <li>ACM 憑證免費</li>
+        <li>Route 53 每個 hosted zone US$0.50/月</li>
+      </ul>
+    </div>
+
+    <div class="warn"><strong>SPA 的三個必設項目：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>錯誤頁面導向 index.html</b>——前端路由（<span class="inline-code">/about</span>）在 S3 上不存在會回 403/404，要設成回傳 <span class="inline-code">/index.html</span> 且狀態碼 200</li>
+        <li><b>index.html 不要快取</b>（<span class="inline-code">Cache-Control: no-cache</span>），但 JS/CSS 檔名帶雜湊<b>快取一年</b></li>
+        <li><b>ACM 憑證必須在 us-east-1</b>——CloudFront 只認那個 region 的憑證</li>
+      </ol>
+      <pre style="margin:8px 0 0"><code><span class="comment"># SPA 的錯誤頁面設定</span>
+"CustomErrorResponses": {
+  "Quantity": 2,
+  "Items": [
+    {"ErrorCode":403,"ResponsePagePath":"/index.html",
+     "ResponseCode":"200","ErrorCachingMinTTL":0},
+    {"ErrorCode":404,"ResponsePagePath":"/index.html",
+     "ResponseCode":"200","ErrorCachingMinTTL":0}
+  ]
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="p6">
+    <h2>7. 範式六：混合雲</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>連線方式</th><th>頻寬</th><th>延遲</th><th>費用</th><th>適合</th></tr>
+        <tr><td><b>Site-to-Site VPN</b></td><td>最高 1.25 Gbps/tunnel</td><td>不穩定（走網際網路）</td><td><b>低</b>（US$0.05/小時 + 流量）</td><td>一般連線、DX 的備援</td></tr>
+        <tr><td><b>Direct Connect</b></td><td>50 Mbps – 100 Gbps</td><td><b>穩定且低</b></td><td><b>高</b>（要簽約，數月建置）</td><td>大量資料、穩定需求</td></tr>
+        <tr><td><b>DX + VPN 備援</b></td><td>—</td><td>—</td><td>高</td><td><b>正式環境標準做法</b></td></tr>
+        <tr><td><b>Transit Gateway</b></td><td>—</td><td>—</td><td>每連接每小時</td><td>多 VPC + 多站點</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Direct Connect 本身<u>沒有加密</u>。</strong>它是專線，資料不走網際網路，但線路上是明文。合規要求加密的話要<b>在 DX 上再跑 VPN</b>（叫 DX + VPN），或用 MACsec。這是 SAA 的考點。</div>
+
+    <h3>資料遷移工具怎麼選</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>資料量</th><th>工具</th><th>時間</th></tr>
+        <tr><td>&lt; 10 TB</td><td><b>DataSync</b>（走網路）</td><td>幾小時到幾天</td></tr>
+        <tr><td>10–80 TB</td><td><b>Snowball Edge</b></td><td>約 1 週（含運送）</td></tr>
+        <tr><td>&gt; 100 TB</td><td><b>Snowmobile</b>（貨櫃車）</td><td>數週</td></tr>
+        <tr><td>持續同步</td><td><b>Storage Gateway</b></td><td>持續</td></tr>
+        <tr><td>資料庫遷移</td><td><b>DMS</b>（+ SCT 轉換異質資料庫）</td><td>可線上遷移</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code><b>網路傳輸時間估算</b><br><br>
+    100 TB ÷ 1 Gbps 專線 ≈ <b>9.3 天</b>（還是理想值）<br>
+    100 TB 用 Snowball ≈ <b>1 週</b>（含來回運送）<br><br>
+    考題問「最快的方式」時，<b>算一下就知道該選實體運送還是網路傳輸</b></code></div>
+
+    <div class="ok"><strong>Storage Gateway 三種模式：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>File Gateway</b>——本地看到 NFS/SMB，實際存在 S3</li>
+        <li><b>Volume Gateway</b>——本地看到 iSCSI 磁碟，備份到 S3</li>
+        <li><b>Tape Gateway</b>——<b>模擬磁帶櫃</b>，讓既有的備份軟體不用改就能備份到 Glacier</li>
+      </ul>
+      考題看到「想淘汰實體磁帶但不想換備份軟體」→ <b>Tape Gateway</b>。
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="dr">
+    <h2>8. 災難復原四策略</h2>
+
+    <div class="formula"><code><b>RTO</b>（Recovery Time Objective）= 可以<b>停多久</b><br>
+    <b>RPO</b>（Recovery Point Objective）= 可以<b>掉多少資料</b><br><br>
+    這兩個數字決定了架構和預算，<b>而且是商業決策不是技術決策</b></code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>策略</th><th>RTO</th><th>RPO</th><th>備援區平常狀態</th><th>相對成本</th></tr>
+        <tr><td><b>Backup &amp; Restore</b></td><td>數小時–數天</td><td>數小時</td><td><b>什麼都沒有</b>，只有備份</td><td><b>$</b></td></tr>
+        <tr><td><b>Pilot Light</b></td><td>數十分鐘</td><td>分鐘</td><td><b>資料庫在跑</b>，運算層關著</td><td>$$</td></tr>
+        <tr><td><b>Warm Standby</b></td><td>數分鐘</td><td>秒</td><td><b>縮小版全套在跑</b></td><td>$$$</td></tr>
+        <tr><td><b>Multi-Site Active/Active</b></td><td><b>近乎零</b></td><td>近乎零</td><td><b>全量在跑並承載流量</b></td><td><b>$$$$</b></td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>選 DR 策略是「花多少錢買多少保障」的取捨，這牽涉實際預算，應該由業務單位決定而不是工程師自己決定。</strong><br><br>
+      問對方三個問題：
+      <ul style="margin:8px 0 0">
+        <li>「系統停 <b>1 小時</b>，公司損失多少？停 <b>1 天</b>呢？」</li>
+        <li>「掉 <b>5 分鐘</b>的資料可以接受嗎？<b>1 小時</b>呢？」</li>
+        <li>「願意每月多花 <b>X 元</b>把 RTO 從 4 小時降到 10 分鐘嗎？」</li>
+      </ul>
+      <b>如果 Multi-Site 每月多花 US$5000，但停機一小時只損失 US$500，那就不該做 Multi-Site。</b>
+    </div>
+
+    <h3>各策略的實作對照</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>元件</th><th>Backup&amp;Restore</th><th>Pilot Light</th><th>Warm Standby</th><th>Multi-Site</th></tr>
+        <tr><td><b>資料庫</b></td><td>跨區複製快照</td><td><b>跨區 Read Replica</b></td><td>跨區 Read Replica</td><td><b>Aurora Global DB</b></td></tr>
+        <tr><td><b>運算</b></td><td>無（事後建）</td><td><b>AMI 準備好，不開機</b></td><td>ASG min=1 在跑</td><td>ASG 全量在跑</td></tr>
+        <tr><td><b>S3</b></td><td>跨區複製</td><td>跨區複製</td><td>跨區複製</td><td>雙向複製</td></tr>
+        <tr><td><b>DNS</b></td><td>事後手動改</td><td>Failover 政策</td><td>Failover 政策</td><td><b>Latency / 加權</b></td></tr>
+        <tr><td><b>基礎設施</b></td><td>IaC 範本</td><td><b>IaC 已部署網路層</b></td><td>已部署</td><td>已部署</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>大多數企業的合理選擇是 Pilot Light。</strong>資料庫用跨區 Read Replica（持續同步，RPO 短），運算層只準備 AMI 和 IaC 範本但不開機（成本低）。<br><br>
+      災難發生時：<b>提升 Read Replica → 用 IaC 開起運算層 → 切 DNS</b>，通常 20–40 分鐘可以恢復。<b>成本大約是 Warm Standby 的 1/3。</b>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="drbuild">
+    <h2>9. 實作：Pilot Light DR</h2>
+
+    <div class="cost">跨區 DR 一定會增加費用：<b>跨區資料傳輸（US$0.09/GB）+ 備援區的資料庫 + 備援區的儲存</b>。<br>
+    Pilot Light 大約是主區成本的 <b>25–35%</b>。這是要編列預算的項目，<b>導入前先算清楚並取得核准</b>。</div>
+
+    <h3>建置步驟</h3>
+    <pre><code><span class="comment"># ═══ ① 備援區先用 IaC 建好網路層（不花錢的部分）═══</span>
+<span class="comment">#     VPC、子網路、路由表、安全群組、IGW —— 這些都免費</span>
+<span class="comment">#     用第 10 章的 CloudFormation / Terraform 建</span>
+
+<span class="comment"># ═══ ② 資料庫：跨區 Read Replica ═══</span>
+$ <span class="cmd">aws rds create-db-instance-read-replica</span> \
+    --db-instance-identifier prod-mysql-dr \
+    --source-db-instance-identifier arn:aws:rds:ap-northeast-1:123456789012:db:prod-mysql \
+    <span class="var">--region</span> ap-northeast-3 \
+    --db-instance-class db.t3.medium \
+    --db-subnet-group-name dr-db-subnets
+
+<span class="comment"># ═══ ③ S3：跨區複製 ═══</span>
+<span class="comment">#     只複製關鍵 prefix，不要整個 bucket（省錢）</span>
+
+<span class="comment"># ═══ ④ AMI 跨區複製（定期執行）═══</span>
+$ <span class="cmd">aws ec2 copy-image</span> \
+    --source-region ap-northeast-1 --source-image-id ami-0abc123 \
+    --region ap-northeast-3 --name "web-golden-dr-$(date +%Y%m%d)"
+
+<span class="comment"># ═══ ⑤ Route 53 Failover ═══</span>
+$ <span class="cmd">aws route53 create-health-check</span> --caller-reference "primary-$(date +%s)" \
+    --health-check-config '{
+      "Type":"HTTPS","FullyQualifiedDomainName":"app.example.com",
+      "ResourcePath":"/health","RequestInterval":30,"FailureThreshold":3
+    }'
+<span class="comment">#     主要記錄綁健康檢查、備援記錄設 SECONDARY（第 06 章）</span></code></pre>
+
+    <h3>切換手冊（Runbook）</h3>
+    <pre><code>#!/bin/bash
+<span class="comment"># ══ DR 切換腳本 —— 必須事先演練過 ══</span>
+set -euo pipefail
+DR_REGION=ap-northeast-3
+
+echo "⚠ 這會把服務切換到 $DR_REGION，確定嗎？"
+read -p "輸入 CONFIRM 繼續：" ans
+[ "$ans" = "CONFIRM" ] || exit 1
+
+echo "① 提升 Read Replica 為獨立資料庫…"
+aws rds promote-read-replica --db-instance-identifier prod-mysql-dr --region $DR_REGION
+aws rds wait db-instance-available --db-instance-identifier prod-mysql-dr --region $DR_REGION
+
+echo "② 用 IaC 部署運算層…"
+aws cloudformation deploy --region $DR_REGION \
+  --template-file compute-tier.yaml --stack-name dr-compute \
+  --parameter-overrides DbEndpoint=$(aws rds describe-db-instances \
+      --db-instance-identifier prod-mysql-dr --region $DR_REGION \
+      --query 'DBInstances[0].Endpoint.Address' --output text) \
+  --capabilities CAPABILITY_IAM
+
+echo "③ 等待 ALB 目標健康…"
+<span class="comment"># 這裡應該輪詢 describe-target-health 直到有健康目標</span>
+
+echo "④ 切換 Route 53…"
+<span class="comment"># 健康檢查會自動切，但也可以手動強制</span>
+
+echo "✅ 切換完成，請驗證：https://app.example.com/health"</code></pre>
+
+    <div class="warn"><strong>沒有演練過的 DR 計畫等於沒有 DR 計畫。</strong>真實災難時你會發現：
+      <ul style="margin:8px 0 0">
+        <li>備援區的 <b>AMI 是三個月前的，缺了新的相依套件</b></li>
+        <li><b>Secrets Manager 的密碼沒有跨區複製</b>，應用連不上資料庫</li>
+        <li><b>ACM 憑證只在主區申請</b>，備援區的 ALB 沒有憑證</li>
+        <li><b>服務配額不夠</b>——備援區從沒開過那麼多機器，撞到預設上限</li>
+        <li>寫 Runbook 的人已經離職，<b>沒人知道步驟</b></li>
+      </ul>
+      <b>至少每半年做一次完整演練</b>，而且要換人執行（驗證文件寫得夠清楚）。
+    </div>
+
+    <div class="ok"><strong>DR 演練檢查清單：</strong>
+      <ul style="margin:8px 0 0">
+        <li>備援區的<b>服務配額</b>夠嗎？（EC2 vCPU、EIP、VPC 數量）</li>
+        <li><b>Secrets / Parameter Store</b> 有跨區複製嗎？</li>
+        <li><b>ACM 憑證</b>在備援區申請了嗎？</li>
+        <li><b>AMI 和容器映像</b>是最新的嗎？</li>
+        <li><b>IAM Role</b> 是全球的（沒問題），但<b>資源型政策</b>裡的 ARN 有寫死 region 嗎？</li>
+        <li>Runbook 上次更新是什麼時候？</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="chaos">
+    <h2>10. 故障演練</h2>
+
+    <p><b>AWS Fault Injection Service（FIS）</b>可以受控地製造故障，驗證你的架構真的禁得起。</p>
+
+    <pre><code>$ <span class="cmd">aws fis create-experiment-template</span> --cli-input-json '{
+  "description": "驗證單一 AZ 失效時服務仍可用",
+  "targets": {
+    "instances-in-1a": {
+      "resourceType": "aws:ec2:instance",
+      "resourceTags": { "Env": "staging" },
+      "filters": [
+        {"path":"Placement.AvailabilityZone","values":["ap-northeast-1a"]},
+        {"path":"State.Name","values":["running"]}
+      ],
+      "selectionMode": "ALL"
+    }
+  },
+  "actions": {
+    "stop-instances": {
+      "actionId": "aws:ec2:stop-instances",
+      "parameters": { "startInstancesAfterDuration": "PT10M" },
+      "targets": { "Instances": "instances-in-1a" }
+    }
+  },
+  <span class="var">"stopConditions"</span>: [{
+    "source": "aws:cloudwatch:alarm",
+    "value": "arn:aws:cloudwatch:...:alarm/P1-錯誤率過高"
+  }],
+  "roleArn": "arn:aws:iam::123456789012:role/fis-role"
+}'</code></pre>
+
+    <div class="warn"><strong><span class="inline-code">stopConditions</span> 是 FIS 最重要的設定。</strong>它綁定一個 CloudWatch 告警——<b>實驗造成的影響超過閾值時自動中止並復原</b>。<br><br>
+      <b>沒設 stopCondition 就跑實驗，等於自己製造一場真實事故。</b>而且第一次一定要在 staging 跑，確認 stopCondition 真的會觸發，才考慮在正式環境做。
+    </div>
+
+    <h3>值得演練的五個場景</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>場景</th><th>驗證什麼</th><th>期望結果</th></tr>
+        <tr><td><b>停掉一個 AZ 的所有機器</b></td><td>跨 AZ 冗餘</td><td>ALB 自動移除、ASG 在另一 AZ 補上，<b>服務不中斷</b></td></tr>
+        <tr><td><b>RDS 強制 failover</b></td><td>Multi-AZ 切換</td><td>1–2 分鐘內恢復，應用自動重連</td></tr>
+        <tr><td><b>注入 API 延遲</b></td><td>逾時與重試設定</td><td>不會雪崩，有降級行為</td></tr>
+        <tr><td><b>耗盡磁碟空間</b></td><td>監控告警</td><td>告警在滿之前就響</td></tr>
+        <tr><td><b>Spot 中斷</b></td><td>優雅退場邏輯</td><td>訊息不遺失、工作可續作</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># RDS 強制故障切換（不用 FIS，直接一行）</span>
+$ <span class="cmd">aws rds reboot-db-instance</span> \
+    --db-instance-identifier prod-mysql <span class="var">--force-failover</span>
+
+<span class="comment"># 主動觸發 Spot 中斷通知（測試用）</span>
+$ <span class="cmd">aws ec2 send-spot-instance-interruptions</span> \
+    --instance-id i-0abc123</code></pre>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="exam">
+    <h2>11. 情境題解題法</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>先找「優先支柱」關鍵字</b>「最低成本」「最少營運負擔」「最高可用」「最低延遲」——這一步通常能刪掉兩個選項。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>找數字限制</b>RTO/RPO、資料量、延遲要求、預算。數字會直接指向特定方案（100 TB → Snowball；RPO 秒級 → 同步複製）。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>刪掉「明顯錯誤」的選項</b>把資料庫放公有子網路、用 root 帳號、把 Access Key 寫進程式碼、S3 設成公開——這些永遠是錯的。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>刪掉「能做但不是最佳」的選項</b>用 EC2 自架 MySQL 也能運作，但題目問「最少營運負擔」時它就不是答案。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>剩下兩個時，比「託管程度」和「AWS 原生程度」</b>AWS 考試偏好託管服務與原生方案。</div></div>
+    </div>
+
+    <div class="ok"><strong>永遠是錯的選項（看到就刪）：</strong>
+      <ul style="margin:8px 0 0">
+        <li>資料庫放<b>公有子網路</b>或設 <span class="inline-code">PubliclyAccessible=true</span></li>
+        <li>把 <b>Access Key 寫進程式碼或 User Data</b>（正解永遠是 Role）</li>
+        <li>用 <b>root 帳號</b>做日常操作</li>
+        <li>把 <b>S3 bucket 設成公開</b>來提供內容（正解是 CloudFront + OAC 或 presigned URL）</li>
+        <li>安全群組開 <b>0.0.0.0/0 的 22 或 3389</b></li>
+        <li>用 <b>Read Replica 當高可用方案</b>（那是 Multi-AZ 的工作）</li>
+      </ul>
+    </div>
+
+    <div class="ok"><strong>常見的「最佳答案」模式：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>需求</th><th>標準答案</th></tr>
+          <tr><td>EC2 存取 S3</td><td><b>IAM Role（Instance Profile）</b></td></tr>
+          <tr><td>應用程式要密碼</td><td><b>Secrets Manager</b>（要輪替）或 Parameter Store（不用輪替）</td></tr>
+          <tr><td>解耦兩個服務</td><td><b>SQS</b></td></tr>
+          <tr><td>一個事件通知多個系統</td><td><b>SNS</b>（+ 各自的 SQS）</td></tr>
+          <tr><td>全球使用者低延遲存取靜態內容</td><td><b>CloudFront</b></td></tr>
+          <tr><td>全球使用者低延遲存取<b>動態</b>內容</td><td><b>Global Accelerator</b></td></tr>
+          <tr><td>資料庫讀取壓力大</td><td><b>Read Replica</b> 或 <b>ElastiCache</b></td></tr>
+          <tr><td>不知道存取模式的 S3 資料</td><td><b>Intelligent-Tiering</b></td></tr>
+          <tr><td>跨帳號存取</td><td><b>AssumeRole</b>（+ ExternalId 給第三方）</td></tr>
+          <tr><td>私有子網路存取 AWS 服務</td><td><b>VPC Endpoint</b></td></tr>
+          <tr><td>連進私有子網路的機器</td><td><b>SSM Session Manager</b>（不是堡壘主機）</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="warn"><strong>兩個容易混淆的配對，考試很愛出：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>CloudFront vs Global Accelerator</b>——前者<b>快取靜態內容</b>（HTTP/HTTPS），後者<b>加速動態流量</b>（任何 TCP/UDP）並提供<b>固定 IP</b></li>
+        <li><b>Secrets Manager vs Parameter Store</b>——前者<b>會自動輪替密碼</b>（每月 US$0.40/個），後者<b>免費</b>但不會輪替。題目提到「自動輪替」就是 Secrets Manager</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：三層式架構 + Pilot Light DR</h3>
+    <p>這是總整合 Lab，會用到第 02–08 章的所有元件。約 150 分鐘。</p>
+
+    <div class="cost"><b>這個 Lab 會產生實際費用</b>，主要來自 ALB（US$0.025/小時）、NAT Gateway（US$0.062/小時）、RDS。<br>
+    全套跑 3 小時大約 <b>US$0.5–1</b>。<b>跨區 DR 部分會再加上跨區傳輸費。</b><br><br>
+    <b>強烈建議：</b>先確認第 01 章的 Budget 告警已設定，並在<b>單一個下午完成後立刻清理</b>。不要讓它過夜。</div>
+
+    <h4>階段一：主區三層式架構</h4>
+    <ol>
+      <li>用第 02 章的 VPC（三層子網路、NAT、VPC Endpoint）</li>
+      <li>建立 ALB + 目標群組 + ASG（第 06 章），<strong>health-check-type=ELB</strong></li>
+      <li>建立 RDS <strong>db.t3.micro 單 AZ</strong>（省錢，正式環境要 Multi-AZ）</li>
+      <li>應用程式從 <strong>Secrets Manager</strong> 取得資料庫密碼</li>
+      <li>建立 S3 bucket 存使用者上傳，走 <strong>Gateway Endpoint</strong></li>
+      <li>安全群組層層引用：<strong>ALB → App → DB</strong></li>
+    </ol>
+
+    <h4>階段二：可觀測性</h4>
+    <ol start="7">
+      <li>建立 CloudWatch Dashboard，放 ALB、ASG、RDS 的關鍵指標</li>
+      <li>設定 <strong>P1 告警</strong>：5XX 錯誤率、無健康主機</li>
+      <li>所有 log group 設<strong>保留 14 天</strong></li>
+      <li>啟用 <strong>Cost Anomaly Detection</strong></li>
+    </ol>
+
+    <h4>階段三：故障演練</h4>
+    <ol start="11">
+      <li>手動 terminate 一台機器 → 驗證<strong>服務不中斷</strong>且 ASG 自動補</li>
+      <li>停掉某台的應用程式（機器還活著）→ 驗證 <strong>ASG 會替換它</strong></li>
+      <li>把 ALB 的目標群組健康檢查路徑改成不存在的路徑 → 觀察<strong>全部變 unhealthy</strong>，體會「健康檢查雪崩」，然後改回來</li>
+      <li>用 <span class="inline-code">reboot-db-instance --force-failover</span> 測試（<strong>如果你有開 Multi-AZ</strong>）</li>
+    </ol>
+
+    <h4>階段四：Pilot Light DR</h4>
+    <ol start="15">
+      <li>在 <strong>ap-northeast-3（大阪）</strong> 建立 VPC 網路層（<strong>免費的部分</strong>）</li>
+      <li>建立<strong>跨區 Read Replica</strong></li>
+      <li>設定 S3 <strong>跨區複製</strong>（只複製一個 prefix）</li>
+      <li>把 AMI <strong>複製到大阪</strong></li>
+      <li>寫一份 <strong>DR Runbook</strong>（步驟、指令、驗證方式）</li>
+      <li><strong>實際執行一次切換</strong>：提升 Read Replica、開運算層、驗證可用</li>
+      <li>記錄<strong>實際花了多久</strong>（這就是你真實的 RTO）</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>從網際網路可以連到 ALB，看得到應用程式</li>
+      <li>應用程式<strong>能連資料庫</strong>，且密碼<strong>從沒出現在程式碼或 User Data 裡</strong></li>
+      <li>資料庫 <span class="inline-code">PubliclyAccessible=false</span>，且從公網<strong>連不到</strong></li>
+      <li>terminate 一台機器時，<strong>持續重新整理網頁不會看到錯誤</strong></li>
+      <li>停掉應用程式的那台<strong>被 ASG 替換</strong>（不只被隔離）</li>
+      <li>DR 切換後，大阪的 endpoint <strong>能正常提供服務且資料完整</strong></li>
+      <li>你能說出<strong>實際的 RTO 是幾分鐘</strong>，以及 RPO 大約多少</li>
+    </ul>
+
+    <h4>清理（務必完整執行）</h4>
+    <pre><code><span class="comment"># 大阪</span>
+$ aws rds delete-db-instance --db-instance-identifier prod-mysql-dr \
+    --skip-final-snapshot --region ap-northeast-3
+$ aws cloudformation delete-stack --stack-name dr-compute --region ap-northeast-3
+$ aws ec2 deregister-image --image-id $DR_AMI --region ap-northeast-3
+
+<span class="comment"># 東京</span>
+$ aws autoscaling delete-auto-scaling-group --auto-scaling-group-name web-asg --force-delete
+$ aws elbv2 delete-load-balancer --load-balancer-arn $ALB_ARN
+$ aws elbv2 delete-target-group --target-group-arn $TG_ARN
+$ aws rds delete-db-instance --db-instance-identifier prod-mysql --skip-final-snapshot
+$ aws ec2 delete-nat-gateway --nat-gateway-id $NAT_ID
+$ aws ec2 release-address --allocation-id $EIP_ALLOC
+$ aws s3 rb s3://your-lab-bucket --force
+
+<span class="comment"># ⚠ 最後一定要跑這個確認</span>
+$ for R in ap-northeast-1 ap-northeast-3; do
+    echo "── $R ──"
+    aws elbv2 describe-load-balancers --region $R --query 'LoadBalancers[].LoadBalancerName'
+    aws ec2 describe-nat-gateways --region $R \
+      --filter Name=state,Values=available --query 'NatGateways[].NatGatewayId'
+    aws rds describe-db-instances --region $R --query 'DBInstances[].DBInstanceIdentifier'
+    aws ec2 describe-addresses --region $R --query 'Addresses[].PublicIp'
+  done</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>用 <strong>FIS</strong> 停掉整個 1a 的機器，<strong>並設好 stopCondition</strong>，驗證服務仍可用。</li>
+      <li>把架構前面加上 <strong>CloudFront + WAF</strong>，設定一條擋 SQL injection 的規則並實測。</li>
+      <li>把應用層從 EC2 改成 <strong>ECS Fargate</strong>，比較兩者的營運負擔差異。</li>
+      <li>計算這個架構的<strong>整體可用性</strong>（CloudFront × ALB × ASG × RDS），並找出最弱的一環。</li>
+      <li>設計一份給主管看的 <strong>DR 提案</strong>：列出四種策略的 RTO/RPO 與<strong>每月成本估算</strong>，給出建議。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>六大支柱在考試裡是<strong>關鍵字對照表</strong>——先找「優先考量什麼」</li>
+      <li><strong>「最少營運負擔」= 越託管越好</strong>：Lambda &gt; Fargate &gt; EC2；DynamoDB &gt; Aurora &gt; RDS &gt; 自架</li>
+      <li>三層式：<strong>應用在私有、資料庫在隔離、Session 在 Redis、S3 走 Endpoint、SG 互相引用</strong></li>
+      <li>架構要<strong>配合實際規模</strong>——小專案不需要完整的高可用架構</li>
+      <li>批次處理用<strong>佇列長度</strong>而不是 CPU 擴縮；配 Spot 但必須冪等</li>
+      <li>Athena 省錢三招：<strong>Parquet + 分區 + 壓縮</strong>，可省 90% 以上</li>
+      <li><strong>只是送資料進 S3 用 Firehose；要多消費者或重播用 Data Streams</strong></li>
+      <li>SPA 要設<strong>錯誤頁面導向 index.html</strong>；CloudFront 憑證<strong>必須在 us-east-1</strong></li>
+      <li><strong>Direct Connect 本身不加密</strong>，合規要 DX + VPN</li>
+      <li>資料遷移：<strong>&lt;10TB 用 DataSync、10–80TB 用 Snowball</strong>；先算傳輸時間再決定</li>
+      <li>DR 四策略成本與 RTO <strong>成反比</strong>；<strong>多數企業合理選擇是 Pilot Light</strong></li>
+      <li><strong>沒演練過的 DR 計畫等於沒有</strong>——至少每半年一次，換人執行</li>
+      <li>FIS 一定要設 <strong>stopConditions</strong>，否則就是自己製造事故</li>
+      <li>永遠錯的選項：<strong>資料庫公開、金鑰寫死、用 root、S3 設公開、Read Replica 當高可用</strong></li>
+      <li><strong>CloudFront 快取靜態、Global Accelerator 加速動態</strong>；<strong>Secrets Manager 會輪替、Parameter Store 免費</strong></li>
+    </ul>
+    <div class="note">這章是 SAA-C03 情境題的總整理。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪，用第 11 節的五步驟解題法。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="08-monitor-cost.html">← 08：監控、稽核與成本</a>
+    <a href="10-iac.html">10：基礎設施即程式碼 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 09</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>
