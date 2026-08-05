@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gcloud CLI 速查表 — GCP ACE</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#F5F7FA;color:#1a1a2e;line-height:1.6;}
+.topbar{background:#1a73e8;padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:20;}
+.topbar a{color:rgba(255,255,255,.8);text-decoration:none;font-size:.82rem;}
+.topbar a:hover{color:#fff;}
+.topbar .sep{color:rgba(255,255,255,.4);}
+.topbar .cur{color:#fff;font-weight:600;font-size:.82rem;}
+.hero{background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;padding:46px 24px 50px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:4px 14px;border-radius:12px;font-size:.76rem;margin-bottom:14px;letter-spacing:.05em;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:8px;}
+.hero p{opacity:.85;max-width:600px;margin:0 auto;font-size:.94rem;}
+.container{max-width:980px;margin:0 auto;padding:24px 16px 60px;}
+.section{background:#fff;border-radius:12px;padding:22px 26px;border:1px solid #e0e0e0;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px;}
+.section h2{font-size:1.05rem;font-weight:700;color:#1a73e8;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e8f0fe;}
+.section h3{font-size:.9rem;font-weight:700;color:#333;margin:16px 0 8px;}
+code{font-family:"Cascadia Code","Consolas","Courier New",monospace;background:#f1f3f4;border:1px solid #e0e0e0;padding:2px 6px;border-radius:4px;font-size:.8rem;color:#c7254e;}
+pre{background:#1e1e2e;border-radius:8px;padding:14px 18px;overflow-x:auto;margin:10px 0;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.8;}
+pre .cmd{color:#89b4fa;}
+pre .flag{color:#a6e3a1;}
+pre .cmt{color:#6c7086;font-style:italic;}
+pre .val{color:#fab387;}
+pre .out{color:#cdd6f4;}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin:10px 0;}
+th{background:#e8f0fe;color:#1557b0;padding:8px 12px;text-align:left;font-weight:600;}
+td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+td code{font-size:.78rem;}
+tr:last-child td{border-bottom:none;}
+.tip{background:#e8f0fe;border-left:4px solid #1a73e8;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:.83rem;color:#174ea6;}
+.warn{background:#fef7e0;border-left:4px solid #f9ab00;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:.83rem;color:#7d5700;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:10px 0;}
+.card{background:#f8f9fa;border-radius:8px;padding:12px 14px;border:1px solid #e0e0e0;}
+.card b{display:block;color:#1a73e8;margin-bottom:4px;font-size:.84rem;}
+.card span{font-size:.78rem;color:#666;line-height:1.6;}
+.toc{background:#e8f0fe;border-radius:10px;padding:14px 18px;margin-bottom:20px;}
+.toc h2{font-size:.78rem;font-weight:700;color:#1557b0;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.toc ol{padding-left:18px;font-size:.83rem;color:#1a73e8;line-height:1.9;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">GCP 自學道場</a><span class="sep">/</span>
+  <span class="cur">gcloud CLI 速查表</span>
+</div>
+
+<div class="hero">
+  <div class="badge">考前必備 · 指令速查</div>
+  <h1>gcloud CLI 速查表</h1>
+  <p>ACE 考試必背指令集。每個服務最常考的 5-10 個指令，附旗標說明與考試陷阱。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>跳到各節</h2>
+    <ol>
+      <li><a href="#config">設定與認證</a></li>
+      <li><a href="#compute">Compute Engine</a></li>
+      <li><a href="#gke">GKE（Kubernetes）</a></li>
+      <li><a href="#storage">Cloud Storage</a></li>
+      <li><a href="#sql">Cloud SQL</a></li>
+      <li><a href="#bq">BigQuery</a></li>
+      <li><a href="#iam">IAM 與帳號</a></li>
+      <li><a href="#network">網路</a></li>
+      <li><a href="#run">Cloud Run / Functions</a></li>
+      <li><a href="#patterns">考試常見情境指令</a></li>
+    </ol>
+  </div>
+
+  <!-- 設定與認證 -->
+  <div class="section" id="config">
+    <h2>1. 設定與認證</h2>
+    <pre><span class="cmt"># 登入帳號</span>
+<span class="cmd">gcloud auth login</span>
+<span class="cmd">gcloud auth application-default login</span>    <span class="cmt"># 應用程式憑證（SDK 用）</span>
+
+<span class="cmt"># 設定預設專案</span>
+<span class="cmd">gcloud config set project</span> <span class="val">PROJECT_ID</span>
+
+<span class="cmt"># 設定預設 region 和 zone（考試常考）</span>
+<span class="cmd">gcloud config set compute/region</span> <span class="val">asia-east1</span>
+<span class="cmd">gcloud config set compute/zone</span> <span class="val">asia-east1-b</span>
+
+<span class="cmt"># 查看目前設定</span>
+<span class="cmd">gcloud config list</span>
+<span class="cmd">gcloud config get-value project</span>
+
+<span class="cmt"># 多組設定（不同帳號/專案切換）</span>
+<span class="cmd">gcloud config configurations create</span> <span class="val">prod-config</span>
+<span class="cmd">gcloud config configurations activate</span> <span class="val">prod-config</span>
+<span class="cmd">gcloud config configurations list</span></pre>
+
+    <div class="tip">ACE 考試常考：<code>gcloud config set project</code> 和 <code>gcloud config set compute/zone</code> 的差異。前者設定預設專案，後者設定預設 Zone（省去每次加 <code>--zone</code> 旗標）。</div>
+  </div>
+
+  <!-- Compute Engine -->
+  <div class="section" id="compute">
+    <h2>2. Compute Engine</h2>
+    <pre><span class="cmt"># 建立 VM</span>
+<span class="cmd">gcloud compute instances create</span> <span class="val">my-vm</span> <span class="flag">\
+  --machine-type=e2-medium \
+  --zone=asia-east1-b \
+  --image-family=debian-12 \
+  --image-project=debian-cloud \
+  --tags=http-server \
+  --metadata-from-file startup-script=startup.sh</span>
+
+<span class="cmt"># 列出 VM</span>
+<span class="cmd">gcloud compute instances list</span>
+<span class="cmd">gcloud compute instances list</span> <span class="flag">--filter="zone:asia-east1-b"</span>
+
+<span class="cmt"># 啟動 / 停止 / 刪除</span>
+<span class="cmd">gcloud compute instances start</span> <span class="val">my-vm</span> <span class="flag">--zone=asia-east1-b</span>
+<span class="cmd">gcloud compute instances stop</span> <span class="val">my-vm</span> <span class="flag">--zone=asia-east1-b</span>
+<span class="cmd">gcloud compute instances delete</span> <span class="val">my-vm</span> <span class="flag">--zone=asia-east1-b</span>
+
+<span class="cmt"># SSH 連線</span>
+<span class="cmd">gcloud compute ssh</span> <span class="val">my-vm</span> <span class="flag">--zone=asia-east1-b</span>
+
+<span class="cmt"># 設定 Service Account</span>
+<span class="cmd">gcloud compute instances set-service-account</span> <span class="val">my-vm</span> <span class="flag">\
+  --service-account=sa@PROJECT.iam.gserviceaccount.com \
+  --scopes=cloud-platform \
+  --zone=asia-east1-b</span>
+
+<span class="cmt"># 防火牆規則</span>
+<span class="cmd">gcloud compute firewall-rules create</span> <span class="val">allow-http</span> <span class="flag">\
+  --direction=INGRESS --action=ALLOW \
+  --rules=tcp:80 --target-tags=http-server</span>
+
+<span class="cmt"># 建立映像快照</span>
+<span class="cmd">gcloud compute disks snapshot</span> <span class="val">my-disk</span> <span class="flag">\
+  --snapshot-names=my-snap --zone=asia-east1-b</span></pre>
+
+    <div class="warn">考試陷阱：<code>--machine-type</code> 改名：<code>n1-standard-1</code>（舊）vs <code>e2-standard-2</code>（新）。E2 更便宜，是現在的預設推薦。</div>
+  </div>
+
+  <!-- GKE -->
+  <div class="section" id="gke">
+    <h2>3. GKE（Kubernetes）</h2>
+    <pre><span class="cmt"># 建立 GKE Cluster</span>
+<span class="cmd">gcloud container clusters create</span> <span class="val">my-cluster</span> <span class="flag">\
+  --zone=asia-east1-b \
+  --num-nodes=3 \
+  --machine-type=e2-standard-2 \
+  --enable-autoscaling --min-nodes=1 --max-nodes=5</span>
+
+<span class="cmt"># Autopilot 模式（推薦，無需管 Node）</span>
+<span class="cmd">gcloud container clusters create-auto</span> <span class="val">my-autopilot</span> <span class="flag">\
+  --region=asia-east1</span>
+
+<span class="cmt"># 取得 kubectl 認證設定</span>
+<span class="cmd">gcloud container clusters get-credentials</span> <span class="val">my-cluster</span> <span class="flag">--zone=asia-east1-b</span>
+
+<span class="cmt"># 升級 Cluster 版本</span>
+<span class="cmd">gcloud container clusters upgrade</span> <span class="val">my-cluster</span> <span class="flag">--master --zone=asia-east1-b</span>
+
+<span class="cmt"># 列出所有 Cluster</span>
+<span class="cmd">gcloud container clusters list</span>
+
+<span class="cmt"># 刪除 Cluster</span>
+<span class="cmd">gcloud container clusters delete</span> <span class="val">my-cluster</span> <span class="flag">--zone=asia-east1-b</span>
+
+<span class="cmt"># kubectl 常用（取得認證後）</span>
+<span class="out">kubectl get pods --all-namespaces
+kubectl get services
+kubectl apply -f deployment.yaml
+kubectl scale deployment my-app --replicas=5</span></pre>
+
+    <div class="tip">ACE 重點：<code>get-credentials</code> 是讓本地端的 <code>kubectl</code> 連到 GKE Cluster 的關鍵指令。沒有這一步，kubectl 指令都找不到 Cluster。</div>
+  </div>
+
+  <!-- Cloud Storage -->
+  <div class="section" id="storage">
+    <h2>4. Cloud Storage（gsutil / gcloud storage）</h2>
+    <pre><span class="cmt"># 建立 Bucket（新語法用 gcloud storage）</span>
+<span class="cmd">gcloud storage buckets create</span> <span class="val">gs://my-bucket</span> <span class="flag">\
+  --location=asia-east1 \
+  --default-storage-class=STANDARD</span>
+
+<span class="cmt"># 上傳 / 下載 / 列出（gsutil 仍常用）</span>
+<span class="cmd">gsutil cp</span> <span class="val">local-file.txt</span> <span class="flag">gs://my-bucket/</span>
+<span class="cmd">gsutil cp</span> <span class="flag">gs://my-bucket/file.txt</span> <span class="val">./</span>
+<span class="cmd">gsutil ls</span> <span class="flag">gs://my-bucket/</span>
+<span class="cmd">gsutil ls -la</span> <span class="flag">gs://my-bucket/</span>          <span class="cmt"># 顯示版本（版本控制開啟時）</span>
+<span class="cmd">gsutil rm</span> <span class="flag">gs://my-bucket/file.txt</span>
+
+<span class="cmt"># 遞迴複製（同步整個目錄）</span>
+<span class="cmd">gsutil -m rsync -r</span> <span class="val">./local-dir</span> <span class="flag">gs://my-bucket/dir/</span>
+
+<span class="cmt"># 設定 ACL（現在推薦用 IAM 不用 ACL）</span>
+<span class="cmd">gsutil iam ch</span> <span class="val">allUsers:objectViewer</span> <span class="flag">gs://my-bucket</span>  <span class="cmt"># 公開讀取</span>
+
+<span class="cmt"># 生命週期設定</span>
+<span class="cmd">gsutil lifecycle set</span> <span class="val">lifecycle.json</span> <span class="flag">gs://my-bucket</span>
+
+<span class="cmt"># 查看 Bucket 設定</span>
+<span class="cmd">gsutil ls -L -b</span> <span class="flag">gs://my-bucket</span></pre>
+
+    <div class="warn">考試陷阱：<code>gsutil cp</code> 預設不遞迴。複製整個資料夾要加 <code>-r</code> 旗標：<code>gsutil cp -r ./dir gs://bucket/</code></div>
+  </div>
+
+  <!-- Cloud SQL -->
+  <div class="section" id="sql">
+    <h2>5. Cloud SQL</h2>
+    <pre><span class="cmt"># 建立 Cloud SQL Instance（MySQL）</span>
+<span class="cmd">gcloud sql instances create</span> <span class="val">my-db</span> <span class="flag">\
+  --database-version=MYSQL_8_0 \
+  --tier=db-n1-standard-2 \
+  --region=asia-east1 \
+  --availability-type=REGIONAL</span>   <span class="cmt"># REGIONAL = 高可用（自動備援）</span>
+
+<span class="cmt"># 建立資料庫和使用者</span>
+<span class="cmd">gcloud sql databases create</span> <span class="val">mydb</span> <span class="flag">--instance=my-db</span>
+<span class="cmd">gcloud sql users create</span> <span class="val">app-user</span> <span class="flag">--instance=my-db --password=secret</span>
+
+<span class="cmt"># 連線到 Cloud SQL（使用 Cloud SQL Auth Proxy）</span>
+<span class="out">./cloud-sql-proxy my-project:asia-east1:my-db &amp;</span>
+<span class="out">mysql -u app-user -p -h 127.0.0.1</span>
+
+<span class="cmt"># 或直接用 gcloud（Cloud Shell 環境）</span>
+<span class="cmd">gcloud sql connect</span> <span class="val">my-db</span> <span class="flag">--user=app-user</span>
+
+<span class="cmt"># 備份</span>
+<span class="cmd">gcloud sql backups create</span> <span class="flag">--instance=my-db</span>
+<span class="cmd">gcloud sql backups list</span> <span class="flag">--instance=my-db</span>
+
+<span class="cmt"># 列出所有 Instance</span>
+<span class="cmd">gcloud sql instances list</span></pre>
+  </div>
+
+  <!-- BigQuery -->
+  <div class="section" id="bq">
+    <h2>6. BigQuery</h2>
+    <pre><span class="cmt"># 建立 Dataset</span>
+<span class="cmd">bq mk</span> <span class="flag">--location=asia-east1</span> <span class="val">my_dataset</span>
+
+<span class="cmt"># 執行查詢（計費按掃描量）</span>
+<span class="cmd">bq query</span> <span class="flag">--use_legacy_sql=false --dry_run</span> <span class="val">'SELECT * FROM dataset.table'</span>
+<span class="cmt"># --dry_run 不實際執行，只顯示預估掃描量（考試重點！）</span>
+
+<span class="cmt"># 載入資料（從 GCS）</span>
+<span class="cmd">bq load</span> <span class="flag">--source_format=CSV --autodetect</span> <span class="val">my_dataset.my_table</span> <span class="flag">gs://bucket/data.csv</span>
+
+<span class="cmt"># 匯出資料</span>
+<span class="cmd">bq extract</span> <span class="val">my_dataset.my_table</span> <span class="flag">gs://bucket/export-*.csv</span>
+
+<span class="cmt"># 列出 Dataset 和 Table</span>
+<span class="cmd">bq ls</span>
+<span class="cmd">bq ls</span> <span class="val">my_dataset</span>
+<span class="cmd">bq show</span> <span class="val">my_dataset.my_table</span>    <span class="cmt"># 顯示 Schema</span>
+
+<span class="cmt"># 刪除 Table</span>
+<span class="cmd">bq rm</span> <span class="flag">-t</span> <span class="val">my_dataset.my_table</span></pre>
+
+    <div class="tip">考試重點：<code>bq query --dry_run</code> 估算費用（BigQuery 按掃描量計費）。加 <code>--maximum_bytes_billed</code> 設上限，超過就取消查詢，防止意外高費用。</div>
+  </div>
+
+  <!-- IAM -->
+  <div class="section" id="iam">
+    <h2>7. IAM 與 Service Account</h2>
+    <pre><span class="cmt"># 查看 IAM 政策</span>
+<span class="cmd">gcloud projects get-iam-policy</span> <span class="val">PROJECT_ID</span>
+
+<span class="cmt"># 授予角色</span>
+<span class="cmd">gcloud projects add-iam-policy-binding</span> <span class="val">PROJECT_ID</span> <span class="flag">\
+  --member="user:alice@example.com" \
+  --role="roles/storage.objectViewer"</span>
+
+<span class="cmt"># 移除角色</span>
+<span class="cmd">gcloud projects remove-iam-policy-binding</span> <span class="val">PROJECT_ID</span> <span class="flag">\
+  --member="user:alice@example.com" \
+  --role="roles/storage.objectViewer"</span>
+
+<span class="cmt"># Service Account 操作</span>
+<span class="cmd">gcloud iam service-accounts create</span> <span class="val">my-sa</span> <span class="flag">\
+  --display-name="My Service Account"</span>
+
+<span class="cmt"># 下載 SA 金鑰（JSON）——盡量避免，改用 Workload Identity</span>
+<span class="cmd">gcloud iam service-accounts keys create</span> <span class="val">key.json</span> <span class="flag">\
+  --iam-account=my-sa@PROJECT.iam.gserviceaccount.com</span>
+
+<span class="cmt"># 列出 Service Account</span>
+<span class="cmd">gcloud iam service-accounts list</span>
+
+<span class="cmt"># 模擬執行（檢查是否有某個權限）</span>
+<span class="cmd">gcloud iam list-testable-permissions</span> <span class="val">//cloudresourcemanager.googleapis.com/projects/PROJECT_ID</span></pre>
+
+    <div class="warn">最佳實踐：盡量用 Workload Identity（GKE）或 VM Service Account 附加，不要下載 JSON Key。JSON Key 洩漏等於服務帳號被攻陷，很難追蹤。</div>
+  </div>
+
+  <!-- 網路 -->
+  <div class="section" id="network">
+    <h2>8. 網路</h2>
+    <pre><span class="cmt"># 建立自訂 VPC</span>
+<span class="cmd">gcloud compute networks create</span> <span class="val">my-vpc</span> <span class="flag">--subnet-mode=custom</span>
+
+<span class="cmt"># 建立子網路</span>
+<span class="cmd">gcloud compute networks subnets create</span> <span class="val">my-subnet</span> <span class="flag">\
+  --network=my-vpc --region=asia-east1 --range=10.0.1.0/24</span>
+
+<span class="cmt"># 建立 Cloud NAT（讓私有 VM 可以對外連網）</span>
+<span class="cmd">gcloud compute routers create</span> <span class="val">my-router</span> <span class="flag">--network=my-vpc --region=asia-east1</span>
+<span class="cmd">gcloud compute routers nats create</span> <span class="val">my-nat</span> <span class="flag">\
+  --router=my-router --region=asia-east1 \
+  --nat-all-subnet-ip-ranges --auto-allocate-nat-external-ips</span>
+
+<span class="cmt"># Cloud DNS（私有 Zone）</span>
+<span class="cmd">gcloud dns managed-zones create</span> <span class="val">my-zone</span> <span class="flag">\
+  --dns-name=internal.example.com \
+  --visibility=private --networks=my-vpc</span>
+
+<span class="cmt"># VPC Peering</span>
+<span class="cmd">gcloud compute networks peerings create</span> <span class="val">peer-a-to-b</span> <span class="flag">\
+  --network=vpc-a --peer-network=vpc-b</span></pre>
+  </div>
+
+  <!-- Cloud Run / Functions -->
+  <div class="section" id="run">
+    <h2>9. Cloud Run / Functions</h2>
+    <pre><span class="cmt"># 部署 Cloud Run 服務（從映像）</span>
+<span class="cmd">gcloud run deploy</span> <span class="val">my-service</span> <span class="flag">\
+  --image=asia-east1-docker.pkg.dev/PROJECT/repo/image:latest \
+  --region=asia-east1 \
+  --allow-unauthenticated \
+  --min-instances=1 \
+  --max-instances=10 \
+  --concurrency=80 \
+  --memory=512Mi \
+  --cpu=1</span>
+
+<span class="cmt"># 列出服務</span>
+<span class="cmd">gcloud run services list</span>
+<span class="cmd">gcloud run services describe</span> <span class="val">my-service</span> <span class="flag">--region=asia-east1</span>
+
+<span class="cmt"># 更新流量分配（藍綠部署）</span>
+<span class="cmd">gcloud run services update-traffic</span> <span class="val">my-service</span> <span class="flag">\
+  --to-revisions=my-service-v2=80,my-service-v1=20 \
+  --region=asia-east1</span>
+
+<span class="cmt"># Cloud Functions（2nd Gen）</span>
+<span class="cmd">gcloud functions deploy</span> <span class="val">my-func</span> <span class="flag">\
+  --gen2 --runtime=python311 \
+  --region=asia-east1 \
+  --entry-point=main \
+  --trigger-http --allow-unauthenticated</span>
+
+<span class="cmt"># 查看函式日誌</span>
+<span class="cmd">gcloud functions logs read</span> <span class="val">my-func</span> <span class="flag">--region=asia-east1</span></pre>
+  </div>
+
+  <!-- 考試情境 -->
+  <div class="section" id="patterns">
+    <h2>10. 考試常見情境指令</h2>
+    <table>
+      <thead><tr><th>情境</th><th>指令</th></tr></thead>
+      <tbody>
+        <tr><td>找出所有 VM 的外部 IP</td><td><code>gcloud compute instances list --format="table(name,networkInterfaces[0].accessConfigs[0].natIP)"</code></td></tr>
+        <tr><td>設定 VM 的啟動腳本</td><td><code>gcloud compute instances create ... --metadata=startup-script='#!/bin/bash\napt-get install -y nginx'</code></td></tr>
+        <tr><td>確認有效的 gcloud 帳號</td><td><code>gcloud auth list</code></td></tr>
+        <tr><td>查看 API 是否啟用</td><td><code>gcloud services list --enabled</code></td></tr>
+        <tr><td>啟用某個 API</td><td><code>gcloud services enable compute.googleapis.com</code></td></tr>
+        <tr><td>把 GCS 物件設為公開</td><td><code>gsutil iam ch allUsers:objectViewer gs://BUCKET</code></td></tr>
+        <tr><td>建立排程的 Cloud Run Job</td><td><code>gcloud scheduler jobs create http ... --schedule="0 9 * * 1"</code></td></tr>
+        <tr><td>查看帳單帳號</td><td><code>gcloud billing accounts list</code></td></tr>
+        <tr><td>把帳單帳號連結到專案</td><td><code>gcloud billing projects link PROJECT_ID --billing-account=ACCOUNT_ID</code></td></tr>
+        <tr><td>查看 Quota 使用量</td><td><code>gcloud compute project-info describe --project=PROJECT_ID</code></td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip">考試技巧：ACE 考題常用 <code>gcloud [服務] [資源] [動作]</code> 格式。記住資源名稱（如 <code>instances</code> 不是 <code>vms</code>、<code>clusters</code> 不是 <code>kubernetes</code>）。動作：<code>create / list / describe / delete / update</code>。</div>
+
+    <div class="grid">
+      <div class="card"><b>旗標記憶法</b><span><code>--zone</code>：單一機房（如 asia-east1-b）<br><code>--region</code>：整個地區（如 asia-east1）<br>Regional 資源用 <code>--region</code>，Zonal 資源用 <code>--zone</code></span></div>
+      <div class="card"><b>--format 輸出格式</b><span><code>--format=json</code>：腳本處理<br><code>--format=csv</code>：試算表匯入<br><code>--format="table(name,zone)"</code>：自訂欄位</span></div>
+      <div class="card"><b>--filter 篩選</b><span><code>--filter="status=RUNNING"</code><br><code>--filter="zone:asia-east1-b"</code><br><code>--filter="labels.env=prod"</code></span></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <a href="exam-strategy.html" style="display:inline-block;padding:12px 28px;background:#1a73e8;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">→ 前往 GCP ACE 應試策略</a>
+    &nbsp;
+    <a href="quiz.html" style="display:inline-block;padding:12px 28px;background:#34a853;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">→ 前往 GCP 模擬試題</a>
+  </div>
+
+</div>
+</body>
+</html>

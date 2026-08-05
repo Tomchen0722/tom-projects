@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECS / Fargate 容器化 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">11 · ECS / Fargate 容器化</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 11 · 容器化</div>
+  <h1><span>ECS / Fargate</span> 容器化完全指南</h1>
+  <p>從 Task Definition 到 Fargate Spot，把 ECS 的每個概念釘住。這一章是 SAA-C03 近年的高頻考點。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#overview">ECS 架構概覽</a></li>
+      <li><a href="#taskdef">Task Definition 關鍵參數</a></li>
+      <li><a href="#launchtype">Fargate vs EC2 Launch Type</a></li>
+      <li><a href="#iam">ECS IAM 三層角色</a></li>
+      <li><a href="#alb">ECS + ALB 動態埠映射</a></li>
+      <li><a href="#capacity">Capacity Provider 與 Fargate Spot</a></li>
+      <li><a href="#servicedisc">服務探索（Cloud Map）</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="overview">
+    <h2>1. ECS 架構概覽</h2>
+    <div class="analogy">把 ECS 想成「AWS 幫你管的 Docker Compose 升級版」：你告訴 AWS 要跑什麼容器、要幾個，AWS 負責找機器、排程、監控健康狀態。</div>
+
+    <div class="arch">
+<span class="c">Cluster（叢集）</span><br>
+  ├── <span class="y">Service（服務）</span>  ← 維持 N 個 Task 持續運行<br>
+  │     ├── <span class="o">Task（任務）</span>  ← 一次性工作（批次處理）<br>
+  │     └── <span class="o">Task（任務）</span>  ← 一個以上容器的組合<br>
+  └── <span class="y">Task Definition（任務定義）</span>  ← 藍圖（不是跑起來的東西）<br>
+          ├── 映像 URI<br>
+          ├── CPU / 記憶體<br>
+          ├── 環境變數 / Secrets<br>
+          └── 網路模式（awsvpc / bridge / host）
+    </div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Cluster</b><span>資源的邏輯邊界，可包含多個 Service 和 Task。EC2 Launch Type 時，EC2 Instance 也在 Cluster 裡。</span></div>
+      <div class="cmp"><b>Task Definition</b><span>不可變的藍圖（有版本號），定義「要跑什麼」；每次修改產生新版本。</span></div>
+      <div class="cmp"><b>Task</b><span>Task Definition 的一個執行實例。Fargate 時每個 Task 有自己的獨立 ENI（彈性網路介面）。</span></div>
+      <div class="cmp"><b>Service</b><span>確保指定數量的 Task 持續運行，支援 Rolling Update、Auto Scaling、與 ALB 整合。</span></div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="taskdef">
+    <h2>2. Task Definition 關鍵參數</h2>
+    <table class="t">
+      <thead><tr><th>參數</th><th>說明</th><th>考試重點</th></tr></thead>
+      <tbody>
+        <tr><td><b>Network Mode</b></td><td><code>awsvpc</code>：每個 Task 獨立 ENI（Fargate 強制）<br><code>bridge</code>：共享 Host 的 ENI（EC2 Launch Type，動態埠映射）<br><code>host</code>：直接用 Host 的網路介面</td><td>Fargate = 只能 awsvpc；EC2 = 三種都可以</td></tr>
+        <tr><td><b>Task Role</b></td><td>容器內的應用程式 call AWS API 用的 IAM Role（如 S3、DynamoDB）</td><td>這是授予<b>應用程式</b>的權限</td></tr>
+        <tr><td><b>Task Execution Role</b></td><td>ECS Agent 代替你拉映像、送日誌用的 Role（AmazonECSTaskExecutionRolePolicy）</td><td>這是授予 <b>ECS 基礎設施</b>的權限</td></tr>
+        <tr><td><b>Secrets</b></td><td>從 SSM Parameter Store 或 Secrets Manager 注入環境變數，不用硬編碼</td><td>需要 Task Execution Role 有讀取 SSM/SM 的權限</td></tr>
+        <tr><td><b>CPU/記憶體</b></td><td>Fargate 需要在 Task Definition 指定（256 CPU 單位 = 0.25 vCPU）</td><td>設太小會有 OOM；設太大浪費錢</td></tr>
+        <tr><td><b>Log Driver</b></td><td><code>awslogs</code>：送到 CloudWatch Logs；<code>awsfirelens</code>：送到 Fluent Bit（可轉到 Splunk、Kinesis 等）</td><td>FireLens 是 log aggregation 的標準答案</td></tr>
+      </tbody>
+    </table>
+
+    <div class="trap"><b>陷阱：Task Role vs Task Execution Role</b><br>
+    Task Role = 你的<b>應用程式</b>要存取 DynamoDB，設這個。<br>
+    Task Execution Role = ECS 要從 ECR 拉映像或從 SSM 拿密鑰，設這個。<br>
+    考試題常混淆兩者！</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="launchtype">
+    <h2>3. Fargate vs EC2 Launch Type</h2>
+    <table class="t">
+      <thead><tr><th>特性</th><th>Fargate</th><th>EC2 Launch Type</th></tr></thead>
+      <tbody>
+        <tr><td><b>基礎設施管理</b></td><td>AWS 全管（無伺服器）</td><td>你管 EC2 Instance（打補丁、容量規劃）</td></tr>
+        <tr><td><b>計費</b></td><td>按 Task 使用的 vCPU + 記憶體，精確到秒</td><td>按 EC2 Instance 計費（不管 Task 是否跑滿）</td></tr>
+        <tr><td><b>成本</b></td><td>低流量時更貴（每個 Task 獨立計費）</td><td>高密度 Task 時更划算（Instance 可塞很多 Task）</td></tr>
+        <tr><td><b>GPU 支援</b></td><td>❌（Fargate 不支援 GPU Task）</td><td>✅（用 GPU Instance 如 g4dn）</td></tr>
+        <tr><td><b>Windows Container</b></td><td>✅ 支援</td><td>✅ 支援</td></tr>
+        <tr><td><b>Network Mode</b></td><td>只能 awsvpc</td><td>awsvpc / bridge / host</td></tr>
+        <tr><td><b>ECS Agent</b></td><td>AWS 管（你看不到）</td><td>需在 EC2 安裝 ECS Agent</td></tr>
+        <tr><td><b>適合情境</b></td><td>無伺服器、Dev/Test、不確定流量</td><td>GPU 工作負載、需要自訂 AMI、高密度部署</td></tr>
+      </tbody>
+    </table>
+
+    <div class="analogy">Fargate 像叫 Uber（隨叫隨到，依趟計費）；EC2 Launch Type 像買一輛車（固定成本，自己管保養，但每公里成本更低）。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="iam">
+    <h2>4. ECS IAM 三層角色</h2>
+    <div class="arch">
+<span class="c">① EC2 Instance Profile</span>  <span class="w">（只有 EC2 Launch Type 才有）</span><br>
+   └── EC2 Instance 本身需要的權限<br>
+       ECS Agent 用這個 Role 向 ECS Control Plane 回報<br>
+       需要：<span class="y">AmazonEC2ContainerServiceforEC2Role</span><br>
+<br>
+<span class="c">② Task Execution Role</span>  <span class="w">（Fargate + EC2 都需要）</span><br>
+   └── ECS 基礎設施的權限<br>
+       拉 ECR 映像、送 CloudWatch 日誌、讀 SSM/Secrets Manager<br>
+       需要：<span class="y">AmazonECSTaskExecutionRolePolicy</span><br>
+<br>
+<span class="c">③ Task Role</span>  <span class="w">（你的應用程式需要的權限）</span><br>
+   └── 應用程式 call AWS API 的權限<br>
+       如：S3 GetObject、DynamoDB PutItem、SQS SendMessage<br>
+       <span class="o">自訂，按最小權限原則設定</span>
+    </div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;">
+      <span>💡</span>
+      <span>最小權限原則：Task Role 只給應用程式實際需要的最小 IAM 權限。不要用 AdministratorAccess！</span>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="alb">
+    <h2>5. ECS + ALB 動態埠映射</h2>
+    <h3>EC2 Launch Type 的動態埠映射</h3>
+    <p>bridge 網路模式下，多個 Task 可以在同一個 EC2 Instance 上用不同的隨機 Host Port 運行同一個容器（容器 Port 固定，Host Port 動態分配）。ALB Target Group 用 Instance 模式，會追蹤動態分配的埠。</p>
+
+    <div class="arch">
+<span class="w">EC2 Instance</span><br>
+  ├── Task 1: Container Port 8080 → Host Port <span class="o">32768</span><br>
+  ├── Task 2: Container Port 8080 → Host Port <span class="o">32769</span><br>
+  └── Task 3: Container Port 8080 → Host Port <span class="o">32770</span><br>
+<br>
+<span class="c">ALB</span> → Target Group (Instance 模式) → 自動知道每個 Task 的 Host Port
+    </div>
+
+    <h3>Fargate 的 IP 模式</h3>
+    <p>Fargate 每個 Task 有獨立 ENI（有自己的私有 IP）。ALB Target Group 用 <strong>IP 模式</strong>，直接指向 Task 的私有 IP。不需要動態埠映射。</p>
+
+    <div class="trap"><b>陷阱：EC2 Launch Type 的 Security Group</b><br>
+    EC2 Launch Type（bridge 模式）：Security Group 設在 EC2 Instance 上，允許 ALB 到 EC2 的任意高位埠（32768-65535）。<br>
+    Fargate（awsvpc 模式）：Security Group 設在 Task 的 ENI 上，允許 ALB 到 Task 的容器埠（如 8080）。更安全！</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="capacity">
+    <h2>6. Capacity Provider 與 Fargate Spot</h2>
+
+    <table class="t">
+      <thead><tr><th>類型</th><th>說明</th><th>折扣</th><th>適合場景</th></tr></thead>
+      <tbody>
+        <tr><td><b>Fargate</b></td><td>標準 Fargate，任何時候可用</td><td>無</td><td>生產環境，需要穩定性</td></tr>
+        <tr><td><b>Fargate Spot</b></td><td>利用 AWS 閒置容量，隨時可能被中斷（2 分鐘通知）</td><td>最高 70%</td><td>批次處理、CI/CD、可重試的工作</td></tr>
+        <tr><td><b>Auto Scaling Group</b><br>(EC2)</td><td>EC2 Auto Scaling 與 ECS Cluster 整合，自動增減 EC2</td><td>依 EC2 類型</td><td>需要 GPU、高密度工作負載</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Capacity Provider Strategy（混合策略）</h3>
+    <div class="formula"><code>Service 設定：<br>
+FARGATE: base=1, weight=1  ← 至少維持 1 個穩定 Task<br>
+FARGATE_SPOT: weight=4     ← 其餘 Task 盡量用 Spot（70% 折扣）<br><br>
+最終效果：1 個穩定 + 80% 的擴充都用 Spot</code></div>
+
+    <div class="trap"><b>Fargate Spot 中斷處理</b><br>
+    AWS 會給 2 分鐘停機通知（SIGTERM 信號）。你的應用必須實作 Graceful Shutdown：收到 SIGTERM 後停止接受新請求、完成進行中的請求、退出。ECS Service 會自動啟動新的替換 Task。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="servicedisc">
+    <h2>7. 服務探索（Service Discovery）</h2>
+    <p>微服務之間需要互相找到對方。在 ECS 裡有幾種方式：</p>
+
+    <table class="t">
+      <thead><tr><th>方法</th><th>機制</th><th>適合場景</th></tr></thead>
+      <tbody>
+        <tr><td><b>ALB / NLB</b></td><td>固定 DNS（ALB 的 DNS Name），服務透過 Load Balancer 互訪</td><td>HTTP 服務的南北向流量（外部到內部）</td></tr>
+        <tr><td><b>AWS Cloud Map</b><br>(ECS Service Discovery)</td><td>自動在 Route 53 Private Hosted Zone 登記 Task 的 IP（SRV/A 記錄），服務透過 DNS 直接找 Task</td><td>東西向微服務通訊（Service to Service），延遲更低</td></tr>
+        <tr><td><b>App Mesh</b></td><td>Service Mesh（每個 Task 注入 Envoy Proxy Sidecar），提供流量控制、熔斷、mTLS</td><td>需要進階流量管理、安全需求的微服務架構</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Cloud Map 整合</h3>
+    <div class="arch">
+Service A 想找 Service B<br>
+  → DNS 查詢：<span class="y">api.prod.local</span><br>
+  → Route 53 Private Zone 回傳 Task B 的私有 IP<br>
+  → Service A 直接連線到 Task B<br>
+  → 新 Task 啟動時自動登記；Task 結束時自動登出<br>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="traps">
+    <h2>8. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1：Fargate 不支援 GPU</b><br>
+    題目問「要跑 GPU 工作負載的 Container」→ 只能用 EC2 Launch Type + GPU Instance（g4dn / p3）。Fargate 目前不支援 GPU。</div>
+
+    <div class="trap"><b>陷阱 2：ECS Anywhere</b><br>
+    ECS Anywhere = 讓你用 ECS 管理自己的 on-premises 伺服器（不是 AWS 的機器）。這些機器不是 EC2，也不是 Fargate。用 SSM Agent 溝通。適合混合雲場景。</div>
+
+    <div class="trap"><b>陷阱 3：Auto Scaling 有兩個層次</b><br>
+    ① ECS Service Auto Scaling = Task 數量的自動擴縮（基於 CPU/記憶體/自訂指標）<br>
+    ② EC2 Auto Scaling = EC2 Instance 的自動擴縮（只有 EC2 Launch Type 需要）<br>
+    Fargate 只需要 ① ，不需要 ②（AWS 管基礎設施）。</div>
+
+    <div class="trap"><b>陷阱 4：ECS 健康檢查有兩個</b><br>
+    ① Task Definition 裡的 Container Health Check（Docker HEALTHCHECK）：判斷容器本身是否健康<br>
+    ② ALB Target Group Health Check：判斷 HTTP 端點是否可用<br>
+    ALB 的 Health Check 失敗，ECS Service 會移除並重啟 Task。</div>
+
+    <div class="trap"><b>陷阱 5：Fargate 費用計算</b><br>
+    Fargate 按 vCPU 和記憶體的「預留量」計費，不是「實際使用量」。設了 0.5 vCPU / 1 GB 的 Task 即使 CPU 使用率只有 5%，仍然按 0.5 vCPU 收費。</div>
+
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;">
+      <span>📋</span>
+      <span><b>快速記憶：Fargate vs EC2 三個關鍵差異</b><br>
+      ① GPU → EC2 ② 管理負擔高 → EC2 ③ 不確定流量 / 無伺服器 → Fargate</span>
+    </div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="10-iac.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 10 · IaC</a>
+    <a href="12-identity-api.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">12 · Cognito & API GW →</a>
+  </div>
+
+</div>
+</body>
+</html>

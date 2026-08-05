@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCP 計費實戰練習 — ACE 考前必讀</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#F5F7FA;color:#1a1a2e;line-height:1.6;}
+.topbar{background:#1a73e8;padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:20;}
+.topbar a{color:rgba(255,255,255,.8);text-decoration:none;font-size:.82rem;}
+.topbar .sep{color:rgba(255,255,255,.4);}
+.topbar .cur{color:#fff;font-weight:600;font-size:.82rem;}
+.hero{background:linear-gradient(135deg,#0d47a1,#1a73e8);color:#fff;padding:46px 24px 50px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:4px 14px;border-radius:12px;font-size:.76rem;margin-bottom:14px;letter-spacing:.05em;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:8px;}
+.hero p{opacity:.85;max-width:600px;margin:0 auto;font-size:.94rem;}
+.container{max-width:980px;margin:0 auto;padding:24px 16px 60px;}
+.section{background:#fff;border-radius:12px;padding:22px 26px;border:1px solid #e0e0e0;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px;}
+.section h2{font-size:1.05rem;font-weight:700;color:#1a73e8;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e8f0fe;}
+.section h3{font-size:.9rem;font-weight:700;color:#333;margin:16px 0 8px;}
+code{font-family:"Cascadia Code","Consolas",monospace;background:#f1f3f4;border:1px solid #e0e0e0;padding:2px 6px;border-radius:4px;font-size:.8rem;color:#c7254e;}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin:10px 0;}
+th{background:#e8f0fe;color:#1557b0;padding:8px 12px;text-align:left;font-weight:600;}
+td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.tip{background:#e8f0fe;border-left:4px solid #1a73e8;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:.83rem;color:#174ea6;}
+.warn{background:#fef7e0;border-left:4px solid #f9ab00;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:.83rem;color:#7d5700;}
+.formula{background:#1e1e2e;color:#cdd6f4;border-radius:10px;padding:16px 20px;margin:12px 0;font-family:"Cascadia Code","Consolas",monospace;font-size:.83rem;line-height:2;}
+.formula .hi{color:#89b4fa;font-weight:700;}
+.formula .val{color:#a6e3a1;}
+.formula .label{color:#fab387;}
+.quiz-block{border:2px solid #e8f0fe;border-radius:10px;padding:16px 18px;margin:14px 0;}
+.quiz-block .q{font-weight:600;color:#1a1a2e;margin-bottom:10px;font-size:.9rem;}
+details summary{cursor:pointer;color:#1a73e8;font-size:.84rem;padding:6px 0;}
+details summary::marker{content:'▶ ';}
+details[open] summary::marker{content:'▼ ';}
+.ans{background:#e8f0fe;border-radius:8px;padding:12px 14px;margin-top:8px;font-size:.83rem;color:#1557b0;line-height:1.8;}
+.ans b{color:#0d47a1;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0;}
+.card{background:#f8f9fa;border-radius:8px;padding:12px 14px;border:1px solid #e0e0e0;}
+.card b{display:block;color:#1a73e8;margin-bottom:4px;font-size:.85rem;}
+.card .num{font-size:1.3rem;font-weight:700;color:#0d47a1;}
+.card span{font-size:.78rem;color:#666;line-height:1.6;}
+.disc-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;}
+.disc-box{border-radius:10px;padding:14px 16px;text-align:center;border:1px solid #e0e0e0;}
+.disc-box .pct{font-size:1.6rem;font-weight:700;margin-bottom:4px;}
+.disc-box .label{font-size:.78rem;color:#666;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">GCP 自學道場</a><span class="sep">/</span>
+  <span class="cur">計費實戰練習</span>
+</div>
+
+<div class="hero">
+  <div class="badge">考前必讀 · 計費與成本</div>
+  <h1>GCP 計費實戰練習</h1>
+  <p>ACE 考試必考！Sustained Use Discount、Committed Use、BigQuery 計費、Egress 費用——全部用計算題練熟。</p>
+</div>
+
+<div class="container">
+
+  <!-- 計費基本架構 -->
+  <div class="section">
+    <h2>1. GCP 計費的四個維度</h2>
+    <div class="grid">
+      <div class="card"><b>運算（Compute）</b><div class="num">vCPU + RAM</div><span>按秒計費，最少 1 分鐘。關機後停收 CPU/RAM，但磁碟仍收費。</span></div>
+      <div class="card"><b>儲存（Storage）</b><div class="num">GB × 月</div><span>GCS 按實際儲存量，Cloud SQL 按佈建空間，BigQuery 按儲存資料量（前 10 GB 免費）。</span></div>
+      <div class="card"><b>網路 Egress</b><div class="num">進免費，出收費</div><span>資料流出 GCP 收費，流入（Ingress）免費。同 Region 內傳輸免費，跨 Region 或出網路都要錢。</span></div>
+      <div class="card"><b>API 呼叫量</b><div class="num">請求數 / 掃描量</div><span>BigQuery 按掃描 TB 計費。Cloud Functions 按呼叫次數和執行時間。Cloud Run 按 CPU×秒。</span></div>
+    </div>
+  </div>
+
+  <!-- 折扣機制 -->
+  <div class="section">
+    <h2>2. 折扣機制：SUD vs CUD</h2>
+
+    <div class="disc-row">
+      <div class="disc-box" style="background:#e8f0fe;border-color:#1a73e8;">
+        <div class="pct" style="color:#1a73e8;">自動</div>
+        <div class="label"><b>Sustained Use Discount</b><br>（SUD / 持續使用折扣）<br>無需承諾，用越多折越多</div>
+      </div>
+      <div class="disc-box" style="background:#e6f4ea;border-color:#34a853;">
+        <div class="pct" style="color:#34a853;">最高57%</div>
+        <div class="label"><b>Committed Use Discount</b><br>（CUD / 承諾使用折扣）<br>1 年或 3 年預付承諾</div>
+      </div>
+      <div class="disc-box" style="background:#fef7e0;border-color:#f9ab00;">
+        <div class="pct" style="color:#f9ab00;">最高91%</div>
+        <div class="label"><b>Preemptible / Spot VM</b><br>隨時可中斷，適合批次<br>無法保證可用性</div>
+      </div>
+    </div>
+
+    <h3>Sustained Use Discount（SUD）計算邏輯</h3>
+    <div class="formula">
+<span class="label">SUD 分段折扣（Compute Engine N1/N2 系列）：</span><br>
+使用率  0%-25%  → <span class="hi">按全價</span>計費<br>
+使用率 25%-50%  → 這段打 <span class="val">80%</span>（折 20%）<br>
+使用率 50%-75%  → 這段打 <span class="val">60%</span>（折 40%）<br>
+使用率 75%-100% → 這段打 <span class="val">40%</span>（折 60%）<br>
+<br>
+<span class="label">整個月跑滿的等效折扣：約 30%</span><br>
+<span class="label">重要：SUD 是自動計算的，不需要任何設定</span>
+    </div>
+
+    <div class="quiz-block">
+      <div class="q">練習 1：一台 n2-standard-4 VM 在某月跑了 100% 的時間（730 小時），全價 $0.2 / 小時。SUD 後實際費用？</div>
+      <details><summary>查看解答</summary>
+      <div class="ans">
+        <b>計算步驟：</b><br>
+        全月 730 小時，把它分成四段：<br>
+        0-25%（0-182.5 小時）：182.5 × $0.2 = <b>$36.50</b><br>
+        25-50%（182.5-365 小時）：182.5 × $0.2 × 0.8 = <b>$29.20</b><br>
+        50-75%（365-547.5 小時）：182.5 × $0.2 × 0.6 = <b>$21.90</b><br>
+        75-100%（547.5-730 小時）：182.5 × $0.2 × 0.4 = <b>$14.60</b><br>
+        <b>總計 = $102.20</b>（若全價跑滿是 $146，SUD 後省約 30%）<br><br>
+        實際上 GCP 不要求你手算，但要知道 SUD 自動觸發且最多約 30% 折扣。
+      </div>
+      </details>
+    </div>
+
+    <h3>Committed Use Discount（CUD）選擇</h3>
+    <table>
+      <thead><tr><th>類型</th><th>承諾方式</th><th>折扣</th><th>適合情境</th></tr></thead>
+      <tbody>
+        <tr><td><b>Resource-based CUD</b></td><td>承諾特定 vCPU + 記憶體</td><td>最高 57%（3年）</td><td>已知的固定工作負載（資料庫、常駐服務）</td></tr>
+        <tr><td><b>Spend-based CUD</b></td><td>承諾每月最低消費金額</td><td>最高 17%</td><td>Cloud Run、Cloud SQL 等不好預估資源量的服務</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warn">考試陷阱：CUD 是<b>承諾</b>，不管是否實際使用都要付費。如果工作負載波動大、無法確定需求，CUD 可能得不償失。SUD 無此風險（自動、免承諾）。</div>
+  </div>
+
+  <!-- BigQuery 計費 -->
+  <div class="section">
+    <h2>3. BigQuery 計費模式</h2>
+
+    <table>
+      <thead><tr><th>模式</th><th>收費方式</th><th>適合情境</th></tr></thead>
+      <tbody>
+        <tr><td><b>On-demand（按需）</b></td><td>每掃描 1 TB 收 $5<br>前 1 TB/月免費</td><td>不定期查詢、流量小</td></tr>
+        <tr><td><b>Capacity（容量型）</b><br>前稱 Flat-rate</td><td>購買 Slot（計算單元），月/年承諾<br>100 Slot 起，約 $1,600/月</td><td>高頻查詢、大企業</td></tr>
+        <tr><td><b>儲存費</b></td><td>Active：$0.02/GB/月<br>Long-term（90天未修改）：$0.01/GB/月（半價）</td><td>所有使用者都收</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quiz-block">
+      <div class="q">練習 2：分析師每天執行 3 次查詢，每次掃描 50 GB。一個月（30 天）的 BigQuery 查詢費是多少？</div>
+      <details><summary>查看解答</summary>
+      <div class="ans">
+        <b>計算：</b><br>
+        每月掃描量：3 次 × 50 GB × 30 天 = 4,500 GB = <b>4.5 TB</b><br>
+        前 1 TB 免費，收費部分：4.5 - 1 = 3.5 TB<br>
+        費用：3.5 × $5 = <b>$17.50 / 月</b><br><br>
+        <b>優化建議：</b>在 Query 上加 <code>SELECT</code> 指定欄位（避免 <code>SELECT *</code>）、分區表只掃描所需分區，可以把掃描量砍到 1/10 以下。
+      </div>
+      </details>
+    </div>
+
+    <div class="formula">
+<span class="label">BigQuery 成本控制三招：</span><br>
+① <span class="hi">--maximum_bytes_billed</span>：設上限，超過就取消查詢，防止意外高費<br>
+② <span class="hi">--dry_run</span>：估算掃描量再決定是否執行<br>
+③ <span class="hi">Partitioning + Clustering</span>：分區讓 BQ 只掃特定日期的資料，Clustering 進一步減少掃描
+    </div>
+  </div>
+
+  <!-- Egress 費用 -->
+  <div class="section">
+    <h2>4. 網路 Egress 費用（最常被忽略）</h2>
+
+    <table>
+      <thead><tr><th>流量方向</th><th>費用</th></tr></thead>
+      <tbody>
+        <tr><td>Ingress（資料流入 GCP）</td><td><b>免費</b></td></tr>
+        <tr><td>同 Zone 內 VM 互傳（使用內部 IP）</td><td><b>免費</b></td></tr>
+        <tr><td>同 Region 不同 Zone 間（使用內部 IP）</td><td>$0.01 / GB</td></tr>
+        <tr><td>不同 Region 間</td><td>$0.01-$0.08 / GB（依 Region）</td></tr>
+        <tr><td>GCP → 網際網路（前 1 TB/月）</td><td>$0.12 / GB</td></tr>
+        <tr><td>GCP → 網際網路（1-10 TB/月）</td><td>$0.11 / GB</td></tr>
+        <tr><td>GCP → CDN（Cloud CDN）</td><td>更低費率（$0.02-$0.08）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quiz-block">
+      <div class="q">練習 3：一個影音串流服務在 GCS（asia-east1）存放 10 TB 影片，每月有 50,000 個使用者各下載 200 MB。不用 CDN 的 Egress 費用？若用 Cloud CDN 可省多少？</div>
+      <details><summary>查看解答</summary>
+      <div class="ans">
+        <b>每月 Egress 流量：</b>50,000 × 200 MB = 10,000,000 MB = 10 TB<br><br>
+        <b>不用 CDN：</b>直接從 GCS 到網際網路<br>
+        前 1 TB：1,024 GB × $0.12 = $122.88<br>
+        剩餘 9 TB：9,216 GB × $0.11 = $1,013.76<br>
+        <b>總計約 $1,137 / 月</b><br><br>
+        <b>用 Cloud CDN：</b>CDN Egress 費率約 $0.04/GB（台灣）<br>
+        假設 95% 流量命中 CDN 快取：9.5 TB × $0.04 = $388<br>
+        未命中的 5%（0.5 TB）從 GCS → CDN：按較低費率約 $30<br>
+        <b>Cloud CDN 總計約 $418 / 月，省約 63%</b>
+      </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Budget Alert -->
+  <div class="section">
+    <h2>5. Budget Alert 設定與最佳實踐</h2>
+
+    <div class="formula">
+<span class="label">Budget Alert 的三個觸發點（預設）：</span><br>
+50% 預算消耗 → <span class="val">Email 通知</span>（預警）<br>
+90% 預算消耗 → <span class="val">Email 通知</span>（高警戒）<br>
+100% 預算消耗 → <span class="val">Email 通知</span>（超出）<br>
+<br>
+<span class="label">自動控制（需自行設定）：</span><br>
+Budget → Pub/Sub → <span class="hi">Cloud Functions</span> → 停止 VM / 禁用帳單<br>
+<span class="label">⚠️ Budget Alert 本身不會自動停止資源！</span>
+    </div>
+
+    <table>
+      <thead><tr><th>情境</th><th>推薦作法</th></tr></thead>
+      <tbody>
+        <tr><td>開發/測試環境防止超支</td><td>設定預算 Alert → Pub/Sub → Cloud Function 停止所有 Compute VM</td></tr>
+        <tr><td>BigQuery 防止意外高費</td><td><code>--maximum_bytes_billed</code> 或 Table 層級的 Slot Reservation</td></tr>
+        <tr><td>整個 Org 的費用可視化</td><td>Billing Export to BigQuery → Data Studio / Looker Studio Dashboard</td></tr>
+        <tr><td>部門費用分攤</td><td>Resource 加 Label（如 <code>team:marketing</code>），Billing Report 按 Label 分組</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cloud Storage 階層計費 -->
+  <div class="section">
+    <h2>6. Cloud Storage 儲存類別費用比較</h2>
+
+    <table>
+      <thead><tr><th>儲存類別</th><th>儲存費（/GB/月）</th><th>存取費（/GB）</th><th>最少儲存時間</th><th>適合情境</th></tr></thead>
+      <tbody>
+        <tr><td><b>Standard</b></td><td>$0.020</td><td>免費</td><td>無</td><td>熱資料、頻繁存取</td></tr>
+        <tr><td><b>Nearline</b></td><td>$0.010</td><td>$0.01</td><td>30 天</td><td>每月存取一次以下（備份）</td></tr>
+        <tr><td><b>Coldline</b></td><td>$0.004</td><td>$0.02</td><td>90 天</td><td>每季存取一次（災難備份）</td></tr>
+        <tr><td><b>Archive</b></td><td>$0.0012</td><td>$0.05</td><td>365 天</td><td>每年存取一次以下（法規封存）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="quiz-block">
+      <div class="q">練習 4：公司有 5 TB 的日誌需要保存 2 年，預計每季才會查一次。選哪個儲存類別最划算？計算 2 年的儲存費。</div>
+      <details><summary>查看解答</summary>
+      <div class="ans">
+        <b>選擇：Coldline</b>（每季存取一次，符合 ≤ 每月一次，且 90 天最小儲存期限可接受）<br><br>
+        <b>2 年儲存費：</b><br>
+        5 TB = 5,120 GB<br>
+        5,120 GB × $0.004 × 24 個月 = <b>$491.52</b><br><br>
+        <b>比較 Standard：</b>5,120 × $0.020 × 24 = $2,457.60<br>
+        <b>省下：$1,966，省約 80%</b><br><br>
+        注意：若用 Archive（$0.0012），費用更低但每次存取費更高（$0.05/GB），如果每季都要查幾十 GB，Archive 不一定更划算。
+      </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- 成本優化清單 -->
+  <div class="section">
+    <h2>7. ACE 考試必背：成本優化選擇題邏輯</h2>
+
+    <table>
+      <thead><tr><th>情境</th><th>最佳答案</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>VM 跑 24/7、預測性工作負載</td><td>CUD（1年或3年）</td><td>最高折扣 57%，工作負載固定沒有浪費風險</td></tr>
+        <tr><td>VM 用量不確定、自動啟停</td><td>SUD（自動）</td><td>沒有承諾，跑越多折越多，靈活</td></tr>
+        <tr><td>可以中斷的批次 / ML 訓練</td><td>Preemptible VM / Spot VM</td><td>最高 91% 折扣，中斷可重試</td></tr>
+        <tr><td>BigQuery 查詢費太高</td><td>分區表 + Clustering</td><td>減少掃描量就直接減費用</td></tr>
+        <tr><td>GCS 資料很少存取</td><td>Lifecycle Rule 轉 Nearline/Coldline</td><td>自動轉換，省 50-94% 儲存費</td></tr>
+        <tr><td>Web 服務 Egress 費高</td><td>Cloud CDN</td><td>CDN Egress 費率比直接 GCS → 網際網路低 50-70%</td></tr>
+        <tr><td>想知道哪個服務最貴</td><td>Billing Export → BigQuery 分析</td><td>最詳細的費用分解，可按服務、Region、Label 分組</td></tr>
+        <tr><td>整個 Org 的閒置資源</td><td>Recommender（Active Assist）</td><td>GCP AI 自動找出低使用率 VM、閒置 IP、未用的磁碟等</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <a href="exam-strategy.html" style="display:inline-block;padding:12px 28px;background:#1a73e8;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">→ 前往 GCP ACE 應試策略</a>
+    &nbsp;
+    <a href="quiz.html" style="display:inline-block;padding:12px 28px;background:#34a853;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">→ 前往 GCP 模擬試題</a>
+  </div>
+
+</div>
+</body>
+</html>

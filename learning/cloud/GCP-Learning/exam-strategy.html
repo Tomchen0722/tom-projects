@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCP ACE 應試策略</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#F5F7FA;color:#1a1a2e;line-height:1.6;}
+.topbar{background:#1a73e8;padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:20;}
+.topbar a{color:rgba(255,255,255,.8);text-decoration:none;font-size:.82rem;}
+.topbar .sep{color:rgba(255,255,255,.4);}
+.topbar .cur{color:#fff;font-weight:600;font-size:.82rem;}
+.hero{background:linear-gradient(135deg,#0d47a1,#1a73e8);color:#fff;padding:46px 24px 50px;text-align:center;}
+.hero .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:4px 14px;border-radius:12px;font-size:.76rem;margin-bottom:14px;letter-spacing:.05em;}
+.hero h1{font-size:2rem;font-weight:700;margin-bottom:8px;}
+.hero h1 span{color:#ffd54f;}
+.hero p{opacity:.85;max-width:600px;margin:0 auto;font-size:.94rem;}
+.container{max-width:980px;margin:0 auto;padding:24px 16px 60px;}
+.section{background:#fff;border-radius:12px;padding:22px 26px;border:1px solid #e0e0e0;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px;}
+.section h2{font-size:1.05rem;font-weight:700;color:#1a73e8;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e8f0fe;}
+.section h3{font-size:.9rem;font-weight:700;color:#333;margin:16px 0 8px;}
+table{width:100%;border-collapse:collapse;font-size:.82rem;margin:10px 0;}
+th{background:#e8f0fe;color:#1557b0;padding:8px 12px;text-align:left;font-weight:600;}
+td{padding:8px 12px;border-bottom:1px solid #f0f0f0;vertical-align:top;}
+.tip{background:#e8f0fe;border-left:4px solid #1a73e8;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:.83rem;color:#174ea6;}
+.warn{background:#fef7e0;border-left:4px solid #f9ab00;border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:.83rem;color:#7d5700;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:12px 0;}
+.card{background:#f8f9fa;border-radius:8px;padding:12px 14px;border:1px solid #e0e0e0;border-top:3px solid #1a73e8;}
+.card b{display:block;color:#1a73e8;margin-bottom:4px;font-size:.85rem;}
+.card span{font-size:.78rem;color:#444;line-height:1.7;}
+.card .big{font-size:1.4rem;font-weight:700;color:#0d47a1;}
+.domain-bar{margin:8px 0;}
+.domain-bar .label{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:3px;}
+.domain-bar .bar{height:10px;border-radius:5px;background:#e8f0fe;}
+.domain-bar .fill{height:100%;border-radius:5px;background:#1a73e8;}
+.elim{background:#f8f9ff;border-radius:10px;padding:16px 18px;margin:12px 0;font-size:.83rem;line-height:2;border:1px solid #c5cae9;}
+.elim .step{color:#1a73e8;font-weight:700;}
+.elim .good{color:#34a853;}
+.elim .bad{color:#ea4335;}
+.kw-trap{background:#e8f0fe;border-radius:10px;padding:16px 18px;margin:10px 0;}
+.kw-trap h4{color:#1557b0;font-size:.85rem;margin-bottom:10px;}
+.kw-row{display:grid;grid-template-columns:1fr 2fr;gap:4px 14px;font-size:.8rem;margin:4px 0;padding:4px 0;border-bottom:1px solid rgba(21,87,176,.1);}
+.kw-row:last-child{border:none;}
+.kw-row .kw{color:#0d47a1;font-weight:600;}
+.kw-row .ans{color:#333;}
+.timeline{display:flex;gap:0;margin:14px 0;overflow-x:auto;}
+.tl-block{flex:1;min-width:80px;text-align:center;padding:10px 6px;border:1px solid #e0e0e0;border-right:none;font-size:.73rem;}
+.tl-block:last-child{border-right:1px solid #e0e0e0;}
+.tl-block .min{font-size:1.15rem;font-weight:700;color:#1a73e8;}
+.tl-block .act{color:#333;font-weight:600;margin:2px 0;}
+.tl-block .note{color:#666;line-height:1.4;}
+.checklist{list-style:none;padding:0;}
+.checklist li{padding:7px 0;border-bottom:1px solid #f0f0f0;display:flex;gap:10px;align-items:flex-start;font-size:.84rem;}
+.checklist li:last-child{border-bottom:none;}
+.checklist li::before{content:'☐';color:#1a73e8;font-size:1rem;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">GCP 自學道場</a><span class="sep">/</span>
+  <span class="cur">ACE 應試策略</span>
+</div>
+
+<div class="hero">
+  <div class="badge">考前必讀 · 應試策略</div>
+  <h1>GCP <span>ACE</span> 應試策略</h1>
+  <p>50 題、120 分鐘、70% 及格。ACE 考的是「能不能實際操作 GCP」，不只是理論。本頁整理消去法、gcloud 指令考點、常見陷阱。</p>
+</div>
+
+<div class="container">
+
+  <!-- 考試結構 -->
+  <div class="section">
+    <h2>考試結構一覽</h2>
+    <div class="grid">
+      <div class="card"><b>題目數量</b><div class="big">50</div><span>單選為主，偶有多選（明確標示）</span></div>
+      <div class="card"><b>考試時間</b><div class="big">120 分</div><span>每題平均 2.4 分鐘，時間充裕</span></div>
+      <div class="card"><b>及格分數</b><div class="big">~70%</div><span>約答對 35 題可及格（Google 未公布精確分數）</span></div>
+      <div class="card"><b>考試語言</b><div class="big">英文</div><span>官方只有英文，熟悉英文服務名稱</span></div>
+    </div>
+  </div>
+
+  <!-- Domain 比重 -->
+  <div class="section">
+    <h2>四大 Domain 比重</h2>
+    <div class="domain-bar"><div class="label"><span>設定雲端解決方案環境（Setting up）</span><span>~20%</span></div><div class="bar"><div class="fill" style="width:20%"></div></div></div>
+    <div class="domain-bar"><div class="label"><span>規劃與設定雲端解決方案（Planning）</span><span>~25%</span></div><div class="bar"><div class="fill" style="width:25%"></div></div></div>
+    <div class="domain-bar"><div class="label"><span>部署與實作雲端解決方案（Deploying）</span><span>~30%</span></div><div class="bar"><div class="fill" style="width:30%"></div></div></div>
+    <div class="domain-bar"><div class="label"><span>確保解決方案成功運作（Ensuring）</span><span>~25%</span></div><div class="bar"><div class="fill" style="width:25%"></div></div></div>
+
+    <div class="tip"><b>ACE 考試核心特色：</b>大量考 gcloud 指令和 Console 操作流程。「要怎麼做」比「是什麼」更重要。把 gcloud-cheatsheet.html 的指令都熟悉。</div>
+  </div>
+
+  <!-- 時間分配 -->
+  <div class="section">
+    <h2>時間分配策略（120 分鐘計劃）</h2>
+    <div class="timeline">
+      <div class="tl-block"><div class="min">0-5</div><div class="act">準備</div><div class="note">確認介面<br>深呼吸</div></div>
+      <div class="tl-block"><div class="min">5-60</div><div class="act">第一輪</div><div class="note">50 題快速作答<br>每題約 60 秒<br>不確定的標記</div></div>
+      <div class="tl-block"><div class="min">60-105</div><div class="act">第二輪</div><div class="note">回看標記題<br>仔細分析</div></div>
+      <div class="tl-block"><div class="min">105-115</div><div class="act">檢查</div><div class="note">確認所有題<br>都有作答</div></div>
+      <div class="tl-block"><div class="min">115-120</div><div class="act">收尾</div><div class="note">未答題隨機選<br>（不倒扣）</div></div>
+    </div>
+  </div>
+
+  <!-- 消去法 -->
+  <div class="section">
+    <h2>消去法——ACE 版本</h2>
+    <div class="elim">
+<span class="step">ACE 特有：先找「操作約束」</span><br>
+題目常限制：<b>「用 gcloud CLI」</b>、<b>「用 Cloud Console」</b>、<b>「最少步驟」</b><br>
+→ 確認解法符合指定工具<br>
+<br>
+<span class="step">排除管理負擔高的選項</span><br>
+<span class="bad">❌</span> 自己管 VM（Compute Engine）= 高管理負擔<br>
+<span class="good">✅</span> 受管服務（Cloud SQL、GKE Autopilot、Cloud Run）= 低管理負擔<br>
+→ 若題目沒有特別要求自訂，選受管服務<br>
+<br>
+<span class="step">注意 Regional vs Zonal 的區別</span><br>
+高可用（HA）題目 → 選 Regional 資源（跨 Zone）<br>
+單 Zone 夠用 → 選 Zonal（節省成本）<br>
+<br>
+<span class="step">gcloud 指令選擇</span><br>
+看到 gcloud 指令選項 → 確認「資源類型」對不對<br>
+<span class="bad">❌</span> gcloud compute vms list（錯誤，沒有 vms 這個資源）<br>
+<span class="good">✅</span> gcloud compute instances list（正確）
+    </div>
+  </div>
+
+  <!-- 關鍵字陷阱 -->
+  <div class="section">
+    <h2>GCP 關鍵字對應答案</h2>
+
+    <div class="kw-trap">
+      <h4>🔑 情境 → 服務選擇</h4>
+      <div class="kw-row"><span class="kw">「無伺服器容器 API」</span><span class="ans">→ Cloud Run（不是 GKE；Cloud Run 是無伺服器）</span></div>
+      <div class="kw-row"><span class="kw">「Kubernetes 自動管理 Node」</span><span class="ans">→ GKE Autopilot（不是 Standard；Autopilot 不管 Node）</span></div>
+      <div class="kw-row"><span class="kw">「全球分散式關聯式資料庫」</span><span class="ans">→ Cloud Spanner（不是 Cloud SQL；SQL 是單 Region）</span></div>
+      <div class="kw-row"><span class="kw">「TB 級資料 SQL 分析」</span><span class="ans">→ BigQuery（不是 Cloud SQL；BQ 是 OLAP）</span></div>
+      <div class="kw-row"><span class="kw">「即時串流處理」</span><span class="ans">→ Pub/Sub + Dataflow（不是 BigQuery；BQ 是批次）</span></div>
+      <div class="kw-row"><span class="kw">「批次 ETL 資料管線」</span><span class="ans">→ Dataflow（或 Cloud Composer 做編排）</span></div>
+      <div class="kw-row"><span class="kw">「降低成本、可中斷工作負載」</span><span class="ans">→ Preemptible VM / Spot VM（最高 91% 折扣）</span></div>
+      <div class="kw-row"><span class="kw">「Pod 存取 GCP API 不用金鑰」</span><span class="ans">→ Workload Identity（不是 SA JSON Key）</span></div>
+      <div class="kw-row"><span class="kw">「VM 間私有連線（無公開 IP）」</span><span class="ans">→ VPC 內部 IP + 防火牆規則（不需要 VPN）</span></div>
+      <div class="kw-row"><span class="kw">「On-premises 到 GCP 低延遲」</span><span class="ans">→ Cloud Interconnect（Dedicated/Partner）</span></div>
+      <div class="kw-row"><span class="kw">「Organization 層級的存取限制」</span><span class="ans">→ Organization Policy（不是 IAM）</span></div>
+      <div class="kw-row"><span class="kw">「VM 沒有外部 IP 但需要對外」</span><span class="ans">→ Cloud NAT（不是給 VM 加外部 IP）</span></div>
+    </div>
+
+    <div class="kw-trap">
+      <h4>⚠️ 常見混淆對</h4>
+      <div class="kw-row"><span class="kw">IAM vs Organization Policy</span><span class="ans">IAM：誰能做什麼（授權）；Org Policy：什麼能被做（資源守護欄，連 Owner 都受限）</span></div>
+      <div class="kw-row"><span class="kw">Cloud Run vs App Engine</span><span class="ans">Cloud Run：容器、彈性、Cold Start 可配置；App Engine：原始碼部署、固定語言 Runtime</span></div>
+      <div class="kw-row"><span class="kw">Cloud SQL vs Spanner</span><span class="ans">Cloud SQL：單 Region 關聯式（便宜）；Spanner：全球分散（貴 10-100x）</span></div>
+      <div class="kw-row"><span class="kw">CUD vs SUD vs Preemptible</span><span class="ans">SUD：自動折扣；CUD：承諾更大折扣；Preemptible/Spot：可中斷才用</span></div>
+      <div class="kw-row"><span class="kw">VPC Peering vs Shared VPC</span><span class="ans">Peering：對等互連兩個 VPC（不傳遞）；Shared VPC：一個 Host Project 的 VPC 給多個 Service Project 共用</span></div>
+      <div class="kw-row"><span class="kw">Cloud Armor vs IAP</span><span class="ans">Cloud Armor：DDoS/WAF 防護外部攻擊；IAP：員工 Zero Trust 存取內部應用</span></div>
+    </div>
+  </div>
+
+  <!-- gcloud 考點 -->
+  <div class="section">
+    <h2>高頻 gcloud 指令考點</h2>
+    <table>
+      <thead><tr><th>考試情境</th><th>正確指令</th><th>常見錯誤</th></tr></thead>
+      <tbody>
+        <tr><td>讓 kubectl 連到 GKE</td><td><code>gcloud container clusters get-credentials CLUSTER --zone ZONE</code></td><td>忘了這步就直接 kubectl（會找不到 cluster）</td></tr>
+        <tr><td>設定預設專案</td><td><code>gcloud config set project PROJECT_ID</code></td><td>誤用 --project 旗標而不是全域設定</td></tr>
+        <tr><td>列出 Compute Engine VM</td><td><code>gcloud compute instances list</code></td><td>gcloud compute vms list（不存在）</td></tr>
+        <tr><td>BigQuery 估算費用</td><td><code>bq query --dry_run ...</code></td><td>忘記 --dry_run，直接執行並被收費</td></tr>
+        <tr><td>部署 Cloud Run 服務</td><td><code>gcloud run deploy SERVICE --image IMAGE --region REGION</code></td><td>少 --region 旗標（會問你）</td></tr>
+        <tr><td>授予 IAM 角色</td><td><code>gcloud projects add-iam-policy-binding PROJECT --member=user:EMAIL --role=roles/ROLE</code></td><td>角色格式：必須是 roles/xxx，不是直接寫角色名</td></tr>
+        <tr><td>SSH 連線到 VM</td><td><code>gcloud compute ssh INSTANCE --zone ZONE</code></td><td>忘記 --zone 旗標（若無預設 zone）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 考前清單 -->
+  <div class="section">
+    <h2>考試當天檢查清單</h2>
+    <ul class="checklist">
+      <li>gcloud 基礎：config set、auth list、projects list、services enable</li>
+      <li>Compute Engine：機器類型（E2/N2/C2）、Preemptible vs Spot、Instance Template vs Managed Instance Group</li>
+      <li>GKE：Standard vs Autopilot、get-credentials、Workload Identity、HPA vs CA</li>
+      <li>Cloud Run：min-instances（消除冷啟動）、concurrency、--allow-unauthenticated vs IAP</li>
+      <li>Cloud Storage：4 種儲存類別（Standard/Nearline/Coldline/Archive）、Lifecycle Rule</li>
+      <li>Cloud SQL：REGIONAL availability（HA）vs ZONAL（單 Zone）、Cloud SQL Auth Proxy</li>
+      <li>BigQuery：按掃描量計費、--dry_run 估算、分區表減少掃描、Slot 容量型計費</li>
+      <li>IAM：Primitive Roles（不推薦）vs Predefined Roles；Organization Policy 的 Guardian 概念</li>
+      <li>VPC：Shared VPC vs Peering；Cloud NAT（私有 VM 對外）；Cloud Armor（WAF/DDoS）</li>
+      <li>成本：SUD（自動）、CUD（承諾）、Preemptible（可中斷）、Budget Alert（只通知不自動停）</li>
+    </ul>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <a href="quiz.html" style="display:inline-block;padding:12px 28px;background:#1a73e8;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">→ 前往 GCP 模擬試題</a>
+    &nbsp;
+    <a href="gcloud-cheatsheet.html" style="display:inline-block;padding:12px 28px;background:#34a853;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">→ gcloud 速查表</a>
+  </div>
+
+</div>
+</body>
+</html>
