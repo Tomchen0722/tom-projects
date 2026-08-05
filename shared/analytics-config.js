@@ -14,6 +14,6 @@
    頁面照常運作、不會報錯，只是數字僅代表你自己這台瀏覽器。
    ═══════════════════════════════════════════════════════════ */
 window.ANALYTICS_CONFIG = {
-  url: '',
-  key: ''
+  url: 'https://rkotktpmpatojxxnqlpj.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk'
 };

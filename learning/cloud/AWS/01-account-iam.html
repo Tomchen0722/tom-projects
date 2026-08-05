@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>帳號安全基線與 IAM 實作 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">01 · 帳號安全與 IAM</span>
+</div>
+
+<div class="hero">
+  <div class="badge">實作 01 · 安全基線</div>
+  <h1>帳號安全基線與 <span>IAM</span> 實作</h1>
+  <p>開通 AWS 帳號後的第一天該做什麼？這章是所有後續實作的前提——把 root 鎖起來、設好預算告警、裝好 CLI，並真正搞懂 Policy 怎麼寫。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#day1">開帳號第一天的六件事</a></li>
+      <li><a href="#budget">先設預算告警（避免帳單意外）</a></li>
+      <li><a href="#cli">安裝與設定 AWS CLI</a></li>
+      <li><a href="#identity">四個核心身分：User、Group、Role、Policy</a></li>
+      <li><a href="#policy">Policy JSON 逐欄拆解</a></li>
+      <li><a href="#eval">權限判斷邏輯（考試必考）</a></li>
+      <li><a href="#role">Role 與 AssumeRole 實作</a></li>
+      <li><a href="#practice">企業實務：多帳號與 SSO</a></li>
+      <li><a href="#audit">稽核：誰做了什麼</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="day1">
+    <h2>1. 開帳號第一天的六件事</h2>
+
+    <div class="warn"><strong>AWS 是「用多少付多少，而且沒有上限」。</strong>沒有預付、沒有硬性天花板——開錯一台機器忘了關，一個月可能燒掉數萬元。金鑰外洩被拿去挖礦，帳單可以到六位數。<br><br>
+      <b>所以「省錢」和「安全」在 AWS 是同一件事</b>，兩者都必須在第一天就處理，不能等出事再說。
+    </div>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>root 帳號開啟 MFA</b>root 有無限權限、無法用 Policy 限制、連帳號都能關掉。<b>沒有例外，這是第一件事。</b></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>刪掉 root 的 Access Key</b>如果有的話（現在新帳號預設沒有）。root 金鑰外洩等於整個帳號被接管。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>建立一個 IAM 管理者帳號，之後日常都用它</b>root 只在<b>少數幾個非它不可</b>的操作時登入（改帳單資訊、關閉帳號、改支援方案）。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>設定 Budget 預算告警</b>下一節詳述。這是唯一能在帳單失控前通知你的機制。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>開啟 CloudTrail</b>記錄「誰在什麼時候呼叫了哪個 API」。出事時這是唯一的證據來源。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>設定密碼政策與 MFA 強制</b>所有 IAM 使用者都要 MFA，密碼長度至少 14 碼。</div></div>
+    </div>
+
+    <div class="warn"><strong>root 到底哪些事非它不可？</strong>考試會考，實務上也要知道：
+      <ul style="margin:8px 0 0">
+        <li>修改帳號名稱、email、root 密碼</li>
+        <li>修改付款方式與帳單聯絡資訊</li>
+        <li><b>關閉 AWS 帳號</b></li>
+        <li>變更 AWS Support 方案</li>
+        <li>還原被誤刪的 IAM 管理者權限</li>
+        <li>建立 CloudFront 金鑰對、註冊 GovCloud</li>
+        <li>修改 S3 bucket 的某些特殊政策（把自己鎖出去之後）</li>
+      </ul>
+      <b>除此之外的所有事情都應該用 IAM 身分做。</b>
+    </div>
+
+    <h3>密碼政策設定（CLI）</h3>
+    <pre><code>$ <span class="cmd">aws iam update-account-password-policy</span> \
+    <span class="var">--minimum-password-length</span> 14 \
+    <span class="var">--require-symbols</span> \
+    <span class="var">--require-numbers</span> \
+    <span class="var">--require-uppercase-characters</span> \
+    <span class="var">--require-lowercase-characters</span> \
+    <span class="var">--allow-users-to-change-password</span> \
+    <span class="var">--max-password-age</span> 90 \
+    <span class="var">--password-reuse-prevention</span> 5
+
+<span class="comment"># 確認結果</span>
+$ <span class="cmd">aws iam get-account-password-policy</span></code></pre>
+
+    <h3>檢查帳號目前的安全狀態</h3>
+    <pre><code><span class="comment"># 產生憑證報告：列出所有使用者的 MFA、金鑰、密碼狀態</span>
+$ <span class="cmd">aws iam generate-credential-report</span>
+$ <span class="cmd">aws iam get-credential-report</span> <span class="var">--query</span> Content <span class="var">--output</span> text | base64 -d &gt; report.csv
+
+<span class="comment"># 找出「有 Access Key 但從沒用過」的殭屍金鑰</span>
+$ <span class="cmd">aws iam list-users</span> <span class="var">--query</span> <span class="val">'Users[].UserName'</span> <span class="var">--output</span> text | \
+  tr <span class="val">'\t'</span> <span class="val">'\n'</span> | while read u; do
+    aws iam list-access-keys --user-name <span class="val">"$u"</span> \
+      --query <span class="val">'AccessKeyMetadata[].[UserName,AccessKeyId,CreateDate,Status]'</span> --output text
+  done</code></pre>
+
+    <div class="ok"><strong>憑證報告是稽核的起點。</strong>它一次列出所有使用者的：密碼多久沒換、有沒有 MFA、Access Key 建立多久、上次使用是什麼時候。<b>90 天沒用過的金鑰就該停用</b>——那通常是離職員工或早就廢棄的腳本留下的。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="budget">
+    <h2>2. 先設預算告警（避免帳單意外）</h2>
+
+    <div class="cost">AWS Budgets 每個帳號<b>前兩個預算免費</b>，第三個開始每個每天 US$0.02（約每月 US$0.60）。這是整個 AWS 裡最值得花的錢——它可能幫你省下數萬元的意外帳單。</div>
+
+    <h3>用 CLI 建立預算</h3>
+    <pre><code><span class="comment"># 先取得自己的帳號 ID</span>
+$ <span class="cmd">aws sts get-caller-identity</span>
+{
+    "UserId": "AIDXXXXXXXXXXXXXXXXX",
+    "Account": <span class="val">"123456789012"</span>,
+    "Arn": "arn:aws:iam::123456789012:user/tom-admin"
+}
+
+<span class="comment"># budget.json —— 每月上限 50 美元</span>
+$ cat &gt; budget.json &lt;&lt;'EOF'
+{
+  "BudgetName": "monthly-cost-guard",
+  "BudgetLimit": { "Amount": "50", "Unit": "USD" },
+  "TimeUnit": "MONTHLY",
+  "BudgetType": "COST"
+}
+EOF
+
+<span class="comment"># notify.json —— 三段告警：實際 50%、實際 80%、預測 100%</span>
+$ cat &gt; notify.json &lt;&lt;'EOF'
+[
+  {
+    "Notification": {
+      "NotificationType": "ACTUAL",
+      "ComparisonOperator": "GREATER_THAN",
+      "Threshold": 50,
+      "ThresholdType": "PERCENTAGE"
+    },
+    "Subscribers": [
+      { "SubscriptionType": "EMAIL", "Address": "you@example.com" }
+    ]
+  },
+  {
+    "Notification": {
+      "NotificationType": "ACTUAL",
+      "ComparisonOperator": "GREATER_THAN",
+      "Threshold": 80,
+      "ThresholdType": "PERCENTAGE"
+    },
+    "Subscribers": [
+      { "SubscriptionType": "EMAIL", "Address": "you@example.com" }
+    ]
+  },
+  {
+    "Notification": {
+      "NotificationType": "FORECASTED",
+      "ComparisonOperator": "GREATER_THAN",
+      "Threshold": 100,
+      "ThresholdType": "PERCENTAGE"
+    },
+    "Subscribers": [
+      { "SubscriptionType": "EMAIL", "Address": "you@example.com" }
+    ]
+  }
+]
+EOF
+
+$ <span class="cmd">aws budgets create-budget</span> \
+    <span class="var">--account-id</span> 123456789012 \
+    <span class="var">--budget</span> file://budget.json \
+    <span class="var">--notifications-with-subscribers</span> file://notify.json</code></pre>
+
+    <div class="ok"><strong><span class="inline-code">FORECASTED</span> 這一條最重要。</strong>它用目前的花費速度<b>預測月底會花多少</b>。如果你月初第 3 天就開了一台很貴的機器，ACTUAL 還很低不會告警，但 FORECASTED 會立刻通知你「照這速度月底會超支」。<b>這能提早二十幾天發現問題。</b></div>
+
+    <div class="warn"><strong>Budget 只會「通知」，<u>不會</u>幫你關掉資源。</strong>收到信之後還是要自己去處理。想自動停機的話要另外做：Budget → SNS → Lambda → 停止 EC2。這在第 08 章會實作。</div>
+
+    <h3>成本異常偵測（免費，強烈建議開）</h3>
+    <pre><code><span class="comment"># Cost Anomaly Detection 會用機器學習找出「不尋常的花費」</span>
+<span class="comment"># 例如平常每天 3 美元，突然某天變 80 美元 → 立刻通知</span>
+$ <span class="cmd">aws ce create-anomaly-monitor</span> <span class="var">--anomaly-monitor</span> <span class="val">'{
+    "MonitorName": "whole-account-monitor",
+    "MonitorType": "DIMENSIONAL",
+    "MonitorDimension": "SERVICE"
+}'</span></code></pre>
+
+    <div class="note">開發／學習用的帳號，建議預算設 <b>US$20–50</b>。多數 SAA 練習用得到的資源（t3.micro、小型 RDS、S3 幾 GB）如果每次用完都關掉，一個月通常在 US$10 以內。<b>會爆掉的都是「忘記關」的東西</b>——NAT Gateway、彈性 IP、RDS、負載平衡器。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="cli">
+    <h2>3. 安裝與設定 AWS CLI</h2>
+
+    <h3>安裝</h3>
+    <pre><code><span class="comment"># Windows（PowerShell，管理員）</span>
+&gt; <span class="cmd">msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi</span>
+
+<span class="comment"># macOS</span>
+$ <span class="cmd">curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"</span>
+$ <span class="cmd">sudo installer -pkg AWSCLIV2.pkg -target /</span>
+
+<span class="comment"># Linux</span>
+$ <span class="cmd">curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"</span>
+$ <span class="cmd">unzip awscliv2.zip &amp;&amp; sudo ./aws/install</span>
+
+<span class="comment"># 確認版本（要 v2）</span>
+$ <span class="cmd">aws --version</span>
+aws-cli/2.17.42 Python/3.11.9 Windows/10 exe/AMD64</code></pre>
+
+    <h3>設定憑證</h3>
+    <pre><code>$ <span class="cmd">aws configure</span>
+AWS Access Key ID [None]: <span class="val">AKIAIOSFODNN7EXAMPLE</span>
+AWS Secret Access Key [None]: <span class="val">wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</span>
+Default region name [None]: <span class="val">ap-northeast-1</span>
+Default output format [None]: <span class="val">json</span></code></pre>
+
+    <div class="warn"><strong>這兩個檔案就是你的 AWS 帳號，保護等級等同銀行密碼：</strong>
+      <ul style="margin:8px 0 0">
+        <li><span class="inline-code">~/.aws/credentials</span> — 金鑰（Windows：<span class="inline-code">%USERPROFILE%\.aws\credentials</span>）</li>
+        <li><span class="inline-code">~/.aws/config</span> — region 與其他設定</li>
+      </ul>
+      <b>絕對不要：</b>寫進程式碼、commit 進 Git、貼到聊天室、放進 Docker image。GitHub 上有機器人在秒級掃描外洩的 AWS 金鑰，<b>外洩後幾分鐘內就會被拿去開挖礦機</b>。
+    </div>
+
+    <h3>多帳號 / 多環境用 Profile 分開</h3>
+    <pre><code><span class="comment"># ~/.aws/credentials</span>
+[default]
+aws_access_key_id = AKIA...
+aws_secret_access_key = ...
+
+[prod]
+aws_access_key_id = AKIA...
+aws_secret_access_key = ...
+
+<span class="comment"># ~/.aws/config</span>
+[default]
+region = ap-northeast-1
+output = json
+
+[profile prod]
+region = ap-northeast-1
+output = json
+<span class="comment"># 需要 MFA 才能操作正式環境</span>
+mfa_serial = arn:aws:iam::123456789012:mfa/tom
+
+[profile prod-admin]
+role_arn = arn:aws:iam::999988887777:role/OrgAdmin
+source_profile = prod
+mfa_serial = arn:aws:iam::123456789012:mfa/tom</code></pre>
+
+    <pre><code><span class="comment"># 用 --profile 指定</span>
+$ <span class="cmd">aws s3 ls --profile prod</span>
+
+<span class="comment"># 或用環境變數（整個 session 都套用）</span>
+$ <span class="cmd">export AWS_PROFILE=prod</span>          <span class="comment"># Linux/macOS</span>
+&gt; <span class="cmd">$env:AWS_PROFILE = "prod"</span>       <span class="comment"># PowerShell</span>
+
+<span class="comment"># 動手前先確認「我現在是誰」—— 養成這個習慣</span>
+$ <span class="cmd">aws sts get-caller-identity</span></code></pre>
+
+    <div class="ok"><strong>養成一個習慣：任何有破壞性的指令之前，先跑 <span class="inline-code">aws sts get-caller-identity</span>。</strong>「以為在測試環境、其實在正式環境」是雲端最常見也最昂貴的事故。這一秒鐘的確認能救你很多次。</div>
+
+    <h3>三個超好用的 CLI 技巧</h3>
+    <pre><code><span class="comment"># ① --dry-run：只檢查權限，不真的執行（EC2 類指令支援）</span>
+$ <span class="cmd">aws ec2 run-instances --image-id ami-xxx --instance-type t3.micro --dry-run</span>
+An error occurred (DryRunOperation) ... <span class="comment">← 看到這個代表「權限沒問題，真跑會成功」</span>
+
+<span class="comment"># ② --query：用 JMESPath 只取你要的欄位</span>
+$ <span class="cmd">aws ec2 describe-instances</span> \
+    <span class="var">--query</span> <span class="val">'Reservations[].Instances[].[InstanceId,InstanceType,State.Name,Tags[?Key==`Name`].Value|[0]]'</span> \
+    <span class="var">--output</span> table
+
+<span class="comment"># ③ --output table / text / yaml，看人不看機器時用 table</span>
+$ <span class="cmd">aws s3api list-buckets --query 'Buckets[].[Name,CreationDate]' --output table</span></code></pre>
+
+    <div class="note"><strong><span class="inline-code">--query</span> 是在<u>本機</u>過濾，<span class="inline-code">--filters</span> 是在<u>AWS 端</u>過濾。</strong>資源多的時候用 <span class="inline-code">--filters</span> 效率高很多（少傳輸資料、少 API 分頁）。兩個可以一起用：先 filters 縮小範圍，再 query 取欄位。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="identity">
+    <h2>4. 四個核心身分：User、Group、Role、Policy</h2>
+
+    <div class="svc-grid">
+      <div class="svc"><b>User（使用者）</b><span>代表<b>一個人或一個程式</b>。有長期憑證（密碼或 Access Key）。</span></div>
+      <div class="svc"><b>Group（群組）</b><span>User 的集合，<b>只是為了方便掛 Policy</b>。Group 不能登入，也不能被 AssumeRole。</span></div>
+      <div class="svc"><b>Role（角色）</b><span>可以被<b>臨時扮演</b>的身分。沒有長期憑證，發的是<b>有時效的臨時憑證</b>。</span></div>
+      <div class="svc"><b>Policy（政策）</b><span>一份 JSON 文件，寫明<b>誰能對什麼資源做什麼事</b>。</span></div>
+    </div>
+
+    <div class="analogy"><strong>比喻：</strong>User 是<b>員工識別證</b>——你一直帶著它。Role 是<b>臨時通行證</b>——要進機房時去櫃檯借，用完就過期。Policy 是<b>門禁規則表</b>——寫明「哪張證能開哪扇門」。<br><br>
+      <b>為什麼 Role 比較安全？</b>因為臨時憑證幾小時後就失效。就算外洩，攻擊者能用的時間非常有限；長期 Access Key 外洩則是<b>直到你發現並手動撤銷為止</b>都有效。
+    </div>
+
+    <div class="warn"><strong>最重要的一條實務原則：程式不要用 Access Key，要用 Role。</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>場景</th><th>❌ 錯誤做法</th><th>✅ 正確做法</th></tr>
+          <tr><td>EC2 上的程式要讀 S3</td><td>把 Access Key 寫進設定檔</td><td>掛 <b>EC2 Instance Profile</b></td></tr>
+          <tr><td>Lambda 要寫 DynamoDB</td><td>用環境變數存金鑰</td><td>Lambda 的 <b>Execution Role</b></td></tr>
+          <tr><td>ECS 容器要拿 Secret</td><td>build 進 image</td><td><b>Task Role</b></td></tr>
+          <tr><td>GitHub Actions 要部署</td><td>把金鑰存 Repository Secret</td><td><b>OIDC + AssumeRole</b>（無金鑰）</td></tr>
+        </table>
+      </div>
+      這是 SAA 考試的高頻考點：<b>「應用程式如何安全地存取 AWS 服務？」答案永遠是 Role，不是 Access Key。</b>
+    </div>
+
+    <h3>建立使用者與群組（CLI 完整流程）</h3>
+    <pre><code><span class="comment"># ① 建立群組並掛上政策</span>
+$ <span class="cmd">aws iam create-group --group-name Developers</span>
+$ <span class="cmd">aws iam attach-group-policy</span> \
+    <span class="var">--group-name</span> Developers \
+    <span class="var">--policy-arn</span> arn:aws:iam::aws:policy/PowerUserAccess
+
+<span class="comment"># ② 建立使用者</span>
+$ <span class="cmd">aws iam create-user --user-name alice</span>
+
+<span class="comment"># ③ 加入群組（權限由群組來，不要直接掛在使用者身上）</span>
+$ <span class="cmd">aws iam add-user-to-group --user-name alice --group-name Developers</span>
+
+<span class="comment"># ④ 給主控台登入密碼，並強制首次登入必須改密碼</span>
+$ <span class="cmd">aws iam create-login-profile</span> \
+    <span class="var">--user-name</span> alice \
+    <span class="var">--password</span> <span class="val">'TempP@ssw0rd-2026!'</span> \
+    <span class="var">--password-reset-required</span>
+
+<span class="comment"># ⑤ 需要 CLI 存取才建 Access Key（能不建就不建）</span>
+$ <span class="cmd">aws iam create-access-key --user-name alice</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">create-access-key</span> 的 SecretAccessKey <u>只會顯示這一次</u>。</strong>關掉視窗就再也拿不回來，只能刪掉重建。而且這個輸出<b>會留在你的終端機歷史紀錄裡</b>——用完記得 <span class="inline-code">clear</span> 並檢查 <span class="inline-code">~/.bash_history</span>。</div>
+
+    <div class="ok"><strong>權限一律掛在 Group 上，不要掛在 User 上。</strong>理由：新人報到只要加進群組就好；權限稽核時看幾個群組而不是看幾百個人；離職只要移出群組。<b>直接掛在 User 上的權限，半年後沒人記得為什麼要給。</b></div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="policy">
+    <h2>5. Policy JSON 逐欄拆解</h2>
+
+    <pre><code>{
+  <span class="var">"Version"</span>: <span class="val">"2012-10-17"</span>,
+  <span class="var">"Statement"</span>: [
+    {
+      <span class="var">"Sid"</span>: <span class="val">"AllowReadCompanyBucket"</span>,
+      <span class="var">"Effect"</span>: <span class="val">"Allow"</span>,
+      <span class="var">"Action"</span>: [
+        <span class="val">"s3:GetObject"</span>,
+        <span class="val">"s3:ListBucket"</span>
+      ],
+      <span class="var">"Resource"</span>: [
+        <span class="val">"arn:aws:s3:::company-reports"</span>,
+        <span class="val">"arn:aws:s3:::company-reports/*"</span>
+      ],
+      <span class="var">"Condition"</span>: {
+        <span class="var">"IpAddress"</span>: { <span class="val">"aws:SourceIp"</span>: [<span class="val">"203.0.113.0/24"</span>] },
+        <span class="var">"Bool"</span>: { <span class="val">"aws:MultiFactorAuthPresent"</span>: <span class="val">"true"</span> }
+      }
+    }
+  ]
+}</code></pre>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>欄位</th><th>必填</th><th>意義</th></tr>
+        <tr><td><b>Version</b></td><td>是</td><td>政策語言版本。<b>永遠寫 2012-10-17</b>，這不是日期，是版本代號</td></tr>
+        <tr><td><b>Sid</b></td><td>否</td><td>Statement ID，給人看的備註</td></tr>
+        <tr><td><b>Effect</b></td><td>是</td><td><span class="inline-code">Allow</span> 或 <span class="inline-code">Deny</span></td></tr>
+        <tr><td><b>Action</b></td><td>是</td><td>可以做什麼，格式 <span class="inline-code">服務:動作</span>，支援萬用字元</td></tr>
+        <tr><td><b>Resource</b></td><td>是*</td><td>對什麼資源。用 <b>ARN</b> 指定</td></tr>
+        <tr><td><b>Principal</b></td><td>是**</td><td><b>誰</b>。只有「資源型政策」才有這欄</td></tr>
+        <tr><td><b>Condition</b></td><td>否</td><td>什麼條件下才成立</td></tr>
+      </table>
+    </div>
+    <p style="font-size:.82rem;color:var(--muted)">* 少數 Action 不支援資源層級限制，只能寫 <span class="inline-code">"*"</span>　** 身分型政策不寫 Principal（因為它掛在誰身上，誰就是 Principal）</p>
+
+    <h3>兩種 Policy 的差別（考試必考）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Identity-based（身分型）</th><th>Resource-based（資源型）</th></tr>
+        <tr><td>掛在哪</td><td>User / Group / Role</td><td><b>資源本身</b>（S3 bucket、SQS queue、KMS key…）</td></tr>
+        <tr><td>有 Principal 欄位？</td><td><b>沒有</b></td><td><b>有</b>（必填）</td></tr>
+        <tr><td>能不能跨帳號</td><td>不能單獨做到</td><td><b>可以</b></td></tr>
+        <tr><td>典型例子</td><td>「alice 可以讀 S3」</td><td>「這個 bucket 允許帳號 B 讀」</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>跨帳號存取一定要「兩邊都設」。</strong>帳號 A 的使用者要讀帳號 B 的 bucket：
+      <ol style="margin:8px 0 0">
+        <li>帳號 <b>B</b> 的 bucket policy 要 <span class="inline-code">Allow</span> 帳號 A 的 Principal</li>
+        <li>帳號 <b>A</b> 的 IAM policy 也要 <span class="inline-code">Allow</span> 對那個 bucket 的動作</li>
+      </ol>
+      只設一邊會失敗。這是 SAA 的經典題型。
+    </div>
+
+    <h3>ARN 的格式</h3>
+    <div class="formula"><code>arn:<b>partition</b>:<b>service</b>:<b>region</b>:<b>account-id</b>:<b>resource</b><br><br>
+    arn:aws:s3:::my-bucket/reports/*<br>
+    arn:aws:ec2:ap-northeast-1:123456789012:instance/i-0abc123<br>
+    arn:aws:iam::123456789012:role/AppRole</code></div>
+
+    <div class="note">S3 的 ARN <b>沒有 region 和 account-id</b>（中間連續三個冒號），因為 bucket 名稱是全球唯一的。IAM 的 ARN <b>沒有 region</b>（IAM 是全球服務）。這兩個細節考試會考。</div>
+
+    <h3>常用的 Condition 條件</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>Condition Key</th><th>用途</th></tr>
+        <tr><td><span class="inline-code">aws:MultiFactorAuthPresent</span></td><td>要求必須通過 MFA</td></tr>
+        <tr><td><span class="inline-code">aws:SourceIp</span></td><td>限制來源 IP（<b>從 VPC endpoint 來的流量不適用</b>）</td></tr>
+        <tr><td><span class="inline-code">aws:SourceVpce</span></td><td>限制必須從特定 VPC Endpoint 進來</td></tr>
+        <tr><td><span class="inline-code">aws:RequestedRegion</span></td><td>限制只能在特定 region 操作（<b>省錢＋合規常用</b>）</td></tr>
+        <tr><td><span class="inline-code">aws:PrincipalTag/xxx</span></td><td>依身分上的標籤判斷（ABAC）</td></tr>
+        <tr><td><span class="inline-code">aws:ResourceTag/xxx</span></td><td>依資源上的標籤判斷</td></tr>
+        <tr><td><span class="inline-code">s3:x-amz-server-side-encryption</span></td><td>強制上傳時必須加密</td></tr>
+      </table>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">企業常用範例一：限制只能在東京區操作</div>
+      <p>防止員工誤在昂貴的 region 開資源，也符合資料落地的合規要求。</p>
+      <pre style="margin-bottom:0"><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "DenyOutsideTokyo",
+    <span class="var">"Effect"</span>: <span class="kw">"Deny"</span>,
+    "NotAction": [
+      <span class="comment">// 全球型服務不能擋，否則整個帳號會壞掉</span>
+      "iam:*", "sts:*", "organizations:*", "route53:*",
+      "cloudfront:*", "support:*", "budgets:*", "ce:*"
+    ],
+    "Resource": "*",
+    "Condition": {
+      "StringNotEquals": { <span class="val">"aws:RequestedRegion"</span>: "ap-northeast-1" }
+    }
+  }]
+}</code></pre>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">企業常用範例二：ABAC — 用標籤自動配權限</div>
+      <p>「你只能操作標籤 <span class="inline-code">Team</span> 跟你自己相同的資源」。<b>不用為每個團隊寫一份 policy</b>，加新團隊時完全不用改政策。</p>
+      <pre style="margin-bottom:0"><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["ec2:StartInstances", "ec2:StopInstances", "ec2:RebootInstances"],
+    "Resource": "arn:aws:ec2:*:*:instance/*",
+    "Condition": {
+      "StringEquals": {
+        <span class="val">"aws:ResourceTag/Team"</span>: <span class="val">"${aws:PrincipalTag/Team}"</span>
+      }
+    }
+  }]
+}</code></pre>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">企業常用範例三：強制 S3 上傳必須加密</div>
+      <pre style="margin:10px 0 0"><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyUnencryptedUploads",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::company-reports/*",
+      "Condition": {
+        "StringNotEquals": { "s3:x-amz-server-side-encryption": "aws:kms" }
+      }
+    },
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::company-reports",
+        "arn:aws:s3:::company-reports/*"
+      ],
+      "Condition": { "Bool": { <span class="val">"aws:SecureTransport"</span>: "false" } }
+    }
+  ]
+}</code></pre>
+    </div>
+
+    <h3>建立自訂政策並掛上</h3>
+    <pre><code>$ <span class="cmd">aws iam create-policy</span> \
+    <span class="var">--policy-name</span> TokyoOnly \
+    <span class="var">--policy-document</span> file://tokyo-only.json \
+    <span class="var">--description</span> <span class="val">"限制只能在 ap-northeast-1 操作"</span>
+
+$ <span class="cmd">aws iam attach-group-policy</span> \
+    <span class="var">--group-name</span> Developers \
+    <span class="var">--policy-arn</span> arn:aws:iam::123456789012:policy/TokyoOnly
+
+<span class="comment"># 改政策要建新版本，最多保留 5 個版本</span>
+$ <span class="cmd">aws iam create-policy-version</span> \
+    <span class="var">--policy-arn</span> arn:aws:iam::123456789012:policy/TokyoOnly \
+    <span class="var">--policy-document</span> file://tokyo-only-v2.json \
+    <span class="var">--set-as-default</span>
+
+<span class="comment"># 出事了？切回舊版本（這是 IAM 內建的回滾機制）</span>
+$ <span class="cmd">aws iam set-default-policy-version</span> \
+    <span class="var">--policy-arn</span> arn:aws:iam::123456789012:policy/TokyoOnly \
+    <span class="var">--version-id</span> v1</code></pre>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="eval">
+    <h2>6. 權限判斷邏輯（考試必考）</h2>
+
+    <p>當一個請求進來，AWS 依這個順序判斷，<b>只要走到「拒絕」就立刻結束</b>：</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>預設是拒絕（Implicit Deny）</b>沒有任何政策明確允許 → 拒絕。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>有沒有明確的 Deny？</b>只要<b>任何一個</b>政策寫了 Deny → <b>立刻拒絕，不管有多少 Allow</b>。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>SCP（Organizations 服務控制政策）允許嗎？</b>SCP 是天花板，它不給的權限，帳號內誰也拿不到——<b>連 root 都不行</b>。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>Permissions Boundary 允許嗎？</b>如果身分有設邊界，實際權限 = 身分政策 ∩ 邊界。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>Session Policy 允許嗎？</b>AssumeRole 時可以額外再縮小權限。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>有明確的 Allow 嗎？</b>身分型或資源型政策裡有 Allow → <b>允許</b>。否則拒絕。</div></div>
+    </div>
+
+    <div class="formula"><code><b>明確 Deny &gt; 明確 Allow &gt; 預設 Deny</b><br><br>
+    「一票否決制」——只要有人說不行，就是不行</code></div>
+
+    <div class="warn"><strong>這條規則造成的實務陷阱：</strong>使用者掛了 <span class="inline-code">AdministratorAccess</span>（全部允許），卻還是不能操作某個資源。原因通常是：
+      <ul style="margin:8px 0 0">
+        <li>SCP 在組織層級擋掉了</li>
+        <li>Permissions Boundary 限制了</li>
+        <li>資源型政策（例如 bucket policy）有明確 Deny</li>
+        <li>KMS key policy 沒允許（存取加密資料時常見）</li>
+      </ul>
+      <b>「有 Admin 權限但做不到」的問題，八成要往上面四個地方查。</b>
+    </div>
+
+    <h3>兩個必學的排錯工具</h3>
+    <pre><code><span class="comment"># ① Policy Simulator：模擬「這個身分能不能做這件事」</span>
+$ <span class="cmd">aws iam simulate-principal-policy</span> \
+    <span class="var">--policy-source-arn</span> arn:aws:iam::123456789012:user/alice \
+    <span class="var">--action-names</span> s3:GetObject s3:DeleteObject \
+    <span class="var">--resource-arns</span> arn:aws:s3:::company-reports/q4.pdf
+
+<span class="comment"># 輸出會告訴你 allowed / implicitDeny / explicitDeny，
+# 以及「是哪一條政策做的決定」——這比猜快一百倍</span>
+
+<span class="comment"># ② Access Analyzer：找出「被外部帳號存取」的資源</span>
+$ <span class="cmd">aws accessanalyzer create-analyzer</span> \
+    <span class="var">--analyzer-name</span> account-analyzer <span class="var">--type</span> ACCOUNT
+$ <span class="cmd">aws accessanalyzer list-findings --analyzer-arn &lt;arn&gt;</span></code></pre>
+
+    <div class="ok"><strong>Access Analyzer 是免費的，開了沒壞處。</strong>它會主動找出「這個 bucket 對全世界公開」「這個 role 允許外部帳號扮演」這類問題，而且是<b>用形式化驗證</b>而不是掃描規則，準確度很高。企業帳號應該預設開啟。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="role">
+    <h2>7. Role 與 AssumeRole 實作</h2>
+
+    <p>Role 有兩份政策，兩份缺一不可：</p>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>政策</th><th>回答的問題</th><th>CLI 參數</th></tr>
+        <tr><td><b>Trust Policy</b><br>（信任政策）</td><td><b>誰</b>可以扮演這個角色？</td><td><span class="inline-code">--assume-role-policy-document</span></td></tr>
+        <tr><td><b>Permissions Policy</b><br>（權限政策）</td><td>扮演之後<b>能做什麼</b>？</td><td><span class="inline-code">attach-role-policy</span></td></tr>
+      </table>
+    </div>
+
+    <h3>實作一：EC2 讀 S3（最常見的情境）</h3>
+    <pre><code><span class="comment"># ① Trust Policy：允許 EC2 服務扮演這個角色</span>
+$ cat &gt; trust-ec2.json &lt;&lt;'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "Service": "ec2.amazonaws.com" },
+    "Action": "sts:AssumeRole"
+  }]
+}
+EOF
+
+$ <span class="cmd">aws iam create-role</span> \
+    <span class="var">--role-name</span> EC2-S3-ReadOnly \
+    <span class="var">--assume-role-policy-document</span> file://trust-ec2.json
+
+<span class="comment"># ② 權限政策：只給這一個 bucket 的讀取權（最小權限）</span>
+$ cat &gt; perm-s3.json &lt;&lt;'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["s3:GetObject", "s3:ListBucket"],
+    "Resource": [
+      "arn:aws:s3:::company-reports",
+      "arn:aws:s3:::company-reports/*"
+    ]
+  }]
+}
+EOF
+
+$ <span class="cmd">aws iam put-role-policy</span> \
+    <span class="var">--role-name</span> EC2-S3-ReadOnly \
+    <span class="var">--policy-name</span> ReadCompanyReports \
+    <span class="var">--policy-document</span> file://perm-s3.json
+
+<span class="comment"># ③ EC2 不能直接掛 Role，要透過 Instance Profile 這層包裝</span>
+$ <span class="cmd">aws iam create-instance-profile --instance-profile-name EC2-S3-Profile</span>
+$ <span class="cmd">aws iam add-role-to-instance-profile</span> \
+    <span class="var">--instance-profile-name</span> EC2-S3-Profile \
+    <span class="var">--role-name</span> EC2-S3-ReadOnly
+
+<span class="comment"># ④ 掛到既有的執行個體上（不用重開機）</span>
+$ <span class="cmd">aws ec2 associate-iam-instance-profile</span> \
+    <span class="var">--instance-id</span> i-0abc123def456 \
+    <span class="var">--iam-instance-profile</span> Name=EC2-S3-Profile</code></pre>
+
+    <div class="ok"><strong>掛好之後，EC2 上的程式什麼都不用改。</strong>AWS SDK 和 CLI 會自動去 <b>Instance Metadata Service</b> 拿臨時憑證，而且會自動輪替。程式碼裡<b>一行金鑰都不用寫</b>。
+      <pre style="margin:8px 0 0"><code><span class="comment"># 在 EC2 上驗證（IMDSv2，需要先取 token）</span>
+$ TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" \
+    -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+$ curl -H "X-aws-ec2-metadata-token: $TOKEN" \
+    http://169.254.169.254/latest/meta-data/iam/security-credentials/</code></pre>
+    </div>
+
+    <div class="warn"><strong>一定要強制 IMDSv2。</strong>舊版 IMDSv1 只要一個 GET 就能拿到憑證，<b>SSRF 漏洞可以直接偷走你的 Role 憑證</b>（2019 年 Capital One 的重大外洩事件就是這樣發生的）。IMDSv2 要求先 PUT 拿 token，SSRF 打不進去。
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws ec2 modify-instance-metadata-options</span> \
+    <span class="var">--instance-id</span> i-0abc123 \
+    <span class="var">--http-tokens</span> required \
+    <span class="var">--http-put-response-hop-limit</span> 1</code></pre>
+    </div>
+
+    <h3>實作二：跨帳號 AssumeRole</h3>
+    <pre><code><span class="comment"># ═══ 在「被存取」的帳號 B (999988887777) 建立角色 ═══</span>
+$ cat &gt; trust-cross.json &lt;&lt;'EOF'
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "AWS": "arn:aws:iam::123456789012:root" },
+    "Action": "sts:AssumeRole",
+    "Condition": {
+      "StringEquals": { "sts:ExternalId": "unique-shared-secret-2026" },
+      "Bool": { "aws:MultiFactorAuthPresent": "true" }
+    }
+  }]
+}
+EOF
+
+$ <span class="cmd">aws iam create-role --role-name CrossAccountAudit \
+    --assume-role-policy-document file://trust-cross.json</span>
+$ <span class="cmd">aws iam attach-role-policy --role-name CrossAccountAudit \
+    --policy-arn arn:aws:iam::aws:policy/SecurityAudit</span>
+
+<span class="comment"># ═══ 在帳號 A 使用它 ═══</span>
+$ <span class="cmd">aws sts assume-role</span> \
+    <span class="var">--role-arn</span> arn:aws:iam::999988887777:role/CrossAccountAudit \
+    <span class="var">--role-session-name</span> tom-audit-20260805 \
+    <span class="var">--external-id</span> unique-shared-secret-2026 \
+    <span class="var">--duration-seconds</span> 3600
+
+<span class="comment"># 回傳三個值，設成環境變數就能用</span>
+$ export AWS_ACCESS_KEY_ID=ASIA...
+$ export AWS_SECRET_ACCESS_KEY=...
+$ export AWS_SESSION_TOKEN=...          <span class="comment">← 臨時憑證特有，不能漏</span></code></pre>
+
+    <div class="note"><strong>Trust Policy 寫 <span class="inline-code">:root</span> 是什麼意思？</strong>它不是「root 使用者」，而是「<b>帳號 123456789012 裡任何被授權的身分</b>」。實際能不能扮演，還要看帳號 A 那邊的 IAM policy 有沒有給 <span class="inline-code">sts:AssumeRole</span>。<b>兩邊都要同意</b>，跟跨帳號 S3 是同一個道理。</div>
+
+    <div class="warn"><strong>ExternalId 是給第三方廠商用的，不是裝飾。</strong>如果你讓一家監控廠商 AssumeRole 進你的帳號，而 Trust Policy 只寫了他們的帳號 ID，那麼<b>那家廠商的<u>其他客戶</u>也可能猜到你的 Role ARN 並扮演它</b>（這叫 confused deputy 問題）。ExternalId 是你和廠商之間的獨有暗號，能堵住這個漏洞。</div>
+
+    <h3>用 config 讓 AssumeRole 自動化</h3>
+    <pre><code><span class="comment"># ~/.aws/config —— 設好之後直接 --profile audit，CLI 自動幫你換身分</span>
+[profile audit]
+role_arn = arn:aws:iam::999988887777:role/CrossAccountAudit
+source_profile = default
+external_id = unique-shared-secret-2026
+mfa_serial = arn:aws:iam::123456789012:mfa/tom
+role_session_name = tom-audit
+duration_seconds = 3600
+
+<span class="comment"># 用起來就像一般 profile，CLI 會自動提示輸入 MFA 碼並快取憑證</span>
+$ <span class="cmd">aws s3 ls --profile audit</span>
+Enter MFA code for arn:aws:iam::123456789012:mfa/tom: <span class="val">123456</span></code></pre>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="practice">
+    <h2>8. 企業實務：多帳號與 SSO</h2>
+
+    <div class="warn"><strong>企業<u>不會</u>把所有東西放在一個 AWS 帳號裡。</strong>原因：
+      <ul style="margin:8px 0 0">
+        <li><b>爆炸半徑</b>——開發環境出事不該影響正式環境</li>
+        <li><b>帳單分離</b>——每個部門／專案的花費要能單獨看</li>
+        <li><b>權限邊界</b>——帳號是 AWS 最強的隔離單位，比 IAM policy 可靠</li>
+        <li><b>服務配額</b>——很多配額是「每帳號每 region」，共用一個帳號會撞上限</li>
+      </ul>
+    </div>
+
+    <h3>典型的 Organizations 結構</h3>
+    <pre><code>Root（管理帳號 — 只做帳務與治理，<b>不放任何工作負載</b>）
+├── OU: Security
+│   ├── Log Archive 帳號      （集中收 CloudTrail / Config 記錄）
+│   └── Audit 帳號            （安全團隊的唯讀存取）
+├── OU: Infrastructure
+│   ├── Network 帳號          （Transit Gateway、共用 VPC）
+│   └── Shared Services 帳號  （AD、CI/CD、映像檔）
+└── OU: Workloads
+    ├── OU: Prod
+    │   └── prod-app-a 帳號
+    ├── OU: Staging
+    │   └── stg-app-a 帳號
+    └── OU: Dev（可套用較寬鬆但費用受限的 SCP）
+        └── dev-app-a 帳號</code></pre>
+
+    <h3>SCP：組織層級的權限天花板</h3>
+    <pre><code><span class="comment"># SCP 範例：禁止 Dev OU 開昂貴的機型</span>
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Sid": "DenyExpensiveInstances",
+    "Effect": "Deny",
+    "Action": "ec2:RunInstances",
+    "Resource": "arn:aws:ec2:*:*:instance/*",
+    "Condition": {
+      "StringNotLike": {
+        <span class="val">"ec2:InstanceType"</span>: ["t3.*", "t4g.*", "m5.large", "m5.xlarge"]
+      }
+    }
+  }]
+}</code></pre>
+
+    <div class="warn"><strong>SCP 的三個重要特性（考試常考）：</strong>
+      <ul style="margin:8px 0 0">
+        <li>SCP <b>不會給予任何權限</b>，它只能<b>限制</b>。還是要有 IAM policy 才能做事</li>
+        <li>SCP <b>對管理帳號（Management Account）無效</b>——所以管理帳號絕對不要放工作負載</li>
+        <li>SCP <b>連 root 使用者都限制得住</b>，這是它比 IAM 強的地方</li>
+      </ul>
+    </div>
+
+    <h3>IAM Identity Center（原 AWS SSO）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>傳統 IAM User</th><th>IAM Identity Center</th></tr>
+        <tr><td>憑證類型</td><td>長期 Access Key</td><td><b>臨時憑證</b>（登入後才發）</td></tr>
+        <tr><td>多帳號</td><td>每個帳號都要建使用者</td><td><b>一次登入，切換所有帳號</b></td></tr>
+        <tr><td>離職處理</td><td>要一個一個帳號刪</td><td><b>在身分來源停用即可</b></td></tr>
+        <tr><td>整合 AD / Okta</td><td>要自己接 SAML</td><td>內建支援</td></tr>
+        <tr><td>費用</td><td>免費</td><td><b>免費</b></td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># CLI 用 SSO 登入（不需要任何長期金鑰）</span>
+$ <span class="cmd">aws configure sso</span>
+SSO session name: mycompany
+SSO start URL: https://mycompany.awsapps.com/start
+SSO region: ap-northeast-1
+
+$ <span class="cmd">aws sso login --profile prod-admin</span>       <span class="comment"># 開瀏覽器驗證，憑證有時效</span>
+$ <span class="cmd">aws s3 ls --profile prod-admin</span></code></pre>
+
+    <div class="ok"><strong>企業導入建議：新專案直接用 IAM Identity Center，不要建 IAM User。</strong>它免費、憑證有時效、離職只要停用一個地方。IAM User 只保留給<b>真的無法用 SSO 的機器帳號</b>（而那些多半也能改用 Role 或 OIDC）。</div>
+
+    <h3>GitHub Actions 用 OIDC 部署（無金鑰）</h3>
+    <pre><code><span class="comment"># ① 註冊 GitHub 為 OIDC 身分提供者（每個帳號做一次）</span>
+$ <span class="cmd">aws iam create-open-id-connect-provider</span> \
+    <span class="var">--url</span> https://token.actions.githubusercontent.com \
+    <span class="var">--client-id-list</span> sts.amazonaws.com \
+    <span class="var">--thumbprint-list</span> 6938fd4d98bab03faadb97b34396831e3780aea1
+
+<span class="comment"># ② Trust Policy —— 注意 sub 條件要鎖死 repo 和分支</span>
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": {
+      "Federated": "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+    },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+      "StringEquals": {
+        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+      },
+      "StringLike": {
+        <span class="val">"token.actions.githubusercontent.com:sub"</span>: "repo:myorg/myrepo:ref:refs/heads/main"
+      }
+    }
+  }]
+}</code></pre>
+
+    <div class="warn"><strong><span class="inline-code">sub</span> 條件寫成 <span class="inline-code">repo:myorg/*</span> 或漏掉，等於<u>任何人</u>的 GitHub Actions 都能扮演你的角色。</strong>務必鎖到<b>特定 repo + 特定分支或環境</b>。這是 OIDC 設定最常見也最嚴重的錯誤。</div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="audit">
+    <h2>9. 稽核：誰做了什麼</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>服務</th><th>回答的問題</th><th>費用</th></tr>
+        <tr><td><b>CloudTrail</b></td><td>「<b>誰</b>在什麼時候呼叫了哪個 API？」</td><td>管理事件<b>前一份免費</b>；資料事件要錢</td></tr>
+        <tr><td><b>Config</b></td><td>「這個資源的<b>設定</b>什麼時候被改成這樣？符合規範嗎？」</td><td>依記錄的組態項目計費</td></tr>
+        <tr><td><b>CloudWatch Logs</b></td><td>「應用程式<b>輸出</b>了什麼？」</td><td>依攝入量與儲存量</td></tr>
+        <tr><td><b>GuardDuty</b></td><td>「有沒有<b>可疑行為</b>？」（挖礦、異常登入、外洩金鑰）</td><td>依分析量，<b>30 天免費試用</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>金鑰外洩最有效的偵測是 GuardDuty。</strong>它會抓到「這把金鑰平常從台北用，現在從某個陌生 IP 呼叫 <span class="inline-code">RunInstances</span> 開了 20 台 GPU 機器」這種行為。<b>沒有 GuardDuty，多數人是收到帳單才發現。</b></div>
+
+    <h3>用 CloudTrail 查特定操作</h3>
+    <pre><code><span class="comment"># 誰刪掉了那個 bucket？</span>
+$ <span class="cmd">aws cloudtrail lookup-events</span> \
+    <span class="var">--lookup-attributes</span> AttributeKey=EventName,AttributeValue=DeleteBucket \
+    <span class="var">--start-time</span> 2026-08-01T00:00:00Z \
+    <span class="var">--query</span> <span class="val">'Events[].[EventTime,Username,Resources[0].ResourceName]'</span> \
+    <span class="var">--output</span> table
+
+<span class="comment"># 某個使用者最近做了什麼</span>
+$ <span class="cmd">aws cloudtrail lookup-events</span> \
+    <span class="var">--lookup-attributes</span> AttributeKey=Username,AttributeValue=alice \
+    <span class="var">--max-results</span> 30 \
+    <span class="var">--query</span> <span class="val">'Events[].[EventTime,EventName,EventSource]'</span> --output table
+
+<span class="comment"># 找出所有失敗的 API 呼叫（可能是攻擊探測）</span>
+$ <span class="cmd">aws cloudtrail lookup-events</span> \
+    <span class="var">--query</span> <span class="val">"Events[?contains(CloudTrailEvent, 'AccessDenied')].[EventTime,Username,EventName]"</span> \
+    <span class="var">--output</span> table</code></pre>
+
+    <div class="warn"><strong>CloudTrail 預設只保留 90 天的事件歷史，而且不含資料事件。</strong>要長期保存必須建立 Trail 並輸出到 S3。合規要求通常是 <b>1–7 年</b>，記得搭配 S3 生命週期規則轉到 Glacier 省錢，並開啟 <b>Object Lock</b> 防止被竄改。
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws cloudtrail create-trail</span> \
+    <span class="var">--name</span> org-audit-trail \
+    <span class="var">--s3-bucket-name</span> my-cloudtrail-logs \
+    <span class="var">--is-multi-region-trail</span> \
+    <span class="var">--enable-log-file-validation</span>
+$ <span class="cmd">aws cloudtrail start-logging --name org-audit-trail</span></code></pre>
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：從零建立安全基線</h3>
+    <p>需要一個 AWS 帳號（可用免費方案）。約 90 分鐘。</p>
+
+    <div class="cost">這個 Lab 用到的資源<b>幾乎全部免費</b>：IAM、Budgets（前兩個）、Access Analyzer、CloudTrail 管理事件（第一份）都不收費。唯一可能產生費用的是 CloudTrail 輸出到 S3 的儲存（幾 MB，不到 US$0.01）。<b>做完不需要刪任何東西。</b></div>
+
+    <h4>階段一：帳號基線</h4>
+    <ol>
+      <li>root 開啟 <strong>MFA</strong>（用手機 App，不要用簡訊）</li>
+      <li>設定<strong>密碼政策</strong>：14 碼、四種字元、90 天更換、不可重複前 5 次</li>
+      <li>建立 <strong>Budget</strong>：月上限 US$20，三段告警（實際 50%、實際 80%、預測 100%）</li>
+      <li>開啟 <strong>Cost Anomaly Detection</strong></li>
+      <li>建立多區域 <strong>CloudTrail</strong>，輸出到 S3 並開啟 log file validation</li>
+      <li>開啟 <strong>Access Analyzer</strong></li>
+    </ol>
+
+    <h4>階段二：身分結構</h4>
+    <ol start="7">
+      <li>建立群組 <strong>Admins</strong>（AdministratorAccess）與 <strong>Developers</strong>（PowerUserAccess）</li>
+      <li>建立使用者 <strong>tom-admin</strong> 加入 Admins，開啟 MFA，之後<strong>不再用 root 登入</strong></li>
+      <li>建立使用者 <strong>alice</strong> 加入 Developers，設定強制首次改密碼</li>
+      <li>寫一個自訂政策 <strong>TokyoOnly</strong>（用 <span class="inline-code">aws:RequestedRegion</span>），掛到 Developers</li>
+      <li>用 <span class="inline-code">aws configure</span> 設定 CLI，確認 <span class="inline-code">aws sts get-caller-identity</span> 顯示的是 tom-admin</li>
+    </ol>
+
+    <h4>階段三：Role 實作</h4>
+    <ol start="12">
+      <li>建立 Role <strong>EC2-S3-ReadOnly</strong>，Trust Policy 給 <span class="inline-code">ec2.amazonaws.com</span></li>
+      <li>權限政策只允許讀<strong>一個特定 bucket</strong>（最小權限）</li>
+      <li>建立 Instance Profile 並把 Role 放進去</li>
+      <li>寫一個 Role <strong>ReadOnlyAudit</strong>，Trust Policy 要求 <strong>MFA</strong> 才能扮演</li>
+      <li>在 <span class="inline-code">~/.aws/config</span> 設定 <span class="inline-code">[profile audit]</span> 自動 AssumeRole</li>
+    </ol>
+
+    <h4>階段四：驗證權限判斷</h4>
+    <ol start="17">
+      <li>用 <strong>Policy Simulator</strong> 測試 alice 能不能 <span class="inline-code">s3:DeleteObject</span></li>
+      <li>幫 Developers 加一條明確 <strong>Deny</strong> 刪除 S3 的政策，再模擬一次，觀察結果變化</li>
+      <li>用 <span class="inline-code">--profile audit</span> 執行指令，確認會提示輸入 MFA 碼</li>
+      <li>產生<strong>憑證報告</strong>，確認所有使用者都有 MFA</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li><span class="inline-code">aws iam get-account-summary</span> 的 <strong>AccountMFAEnabled = 1</strong></li>
+      <li><span class="inline-code">aws budgets describe-budgets</span> 看得到預算與三個通知</li>
+      <li>用 alice 的身分在 <strong>us-east-1</strong> 開 EC2 → <strong>被拒絕</strong>；在 ap-northeast-1 → 可以</li>
+      <li>Policy Simulator 對 <span class="inline-code">s3:DeleteObject</span> 回傳 <strong>explicitDeny</strong>，且指出是哪條政策</li>
+      <li><span class="inline-code">aws sts assume-role</span> 不帶 MFA → <strong>AccessDenied</strong>；帶 MFA → 成功</li>
+      <li>憑證報告裡 <strong>沒有任何 root 的 Access Key</strong></li>
+      <li>Access Analyzer 的 findings <strong>是空的</strong>（沒有意外對外公開的資源）</li>
+    </ul>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>寫一個 <strong>Permissions Boundary</strong>，讓 Developers 就算掛了 AdministratorAccess 也不能改 IAM。</li>
+      <li>實作 <strong>ABAC</strong>：幫使用者和 EC2 都打上 <span class="inline-code">Team</span> 標籤，寫一條政策讓人只能操作同隊的機器。</li>
+      <li>寫一個 Bash 腳本，找出所有 <strong>90 天沒使用過</strong>的 Access Key 並列出來（先不要真的刪）。</li>
+      <li>設定 <strong>GitHub Actions OIDC</strong>，做出一個不需要任何 Secret 就能部署到 S3 的 workflow。</li>
+      <li>用 CloudTrail 查出「你自己今天做了哪些變更類的 API 呼叫」，並用 <span class="inline-code">--query</span> 過濾掉所有 <span class="inline-code">Describe*</span> 和 <span class="inline-code">List*</span>。</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>第一天六件事：<strong>root MFA → 刪 root 金鑰 → 建 IAM 管理者 → 設 Budget → 開 CloudTrail → 密碼政策</strong></li>
+      <li>Budget 的 <strong>FORECASTED</strong> 告警能提早二十幾天發現超支；但它<strong>只通知不會關資源</strong></li>
+      <li>做任何危險操作前先 <span class="inline-code">aws sts get-caller-identity</span></li>
+      <li><strong>程式一律用 Role，不要用 Access Key</strong>——EC2 用 Instance Profile、Lambda 用 Execution Role、CI/CD 用 OIDC</li>
+      <li>權限判斷：<strong>明確 Deny &gt; 明確 Allow &gt; 預設 Deny</strong>，一票否決</li>
+      <li>「有 Admin 卻做不到」→ 往 <strong>SCP、Permissions Boundary、資源型政策、KMS key policy</strong> 查</li>
+      <li>跨帳號存取<strong>兩邊都要設</strong>；第三方廠商務必用 <strong>ExternalId</strong></li>
+      <li>強制 <strong>IMDSv2</strong>，防 SSRF 偷走 Role 憑證</li>
+      <li>SCP <strong>只能限制不能授權</strong>，且<strong>對管理帳號無效</strong>——管理帳號不放工作負載</li>
+      <li>新專案用 <strong>IAM Identity Center</strong>，不要建 IAM User</li>
+      <li>排錯用 <strong>Policy Simulator</strong>，防外洩用 <strong>Access Analyzer + GuardDuty</strong></li>
+    </ul>
+    <div class="note">安全與 IAM 在 SAA-C03 屬於「Design Secure Architectures」領域，佔 <b>30%</b>，是四大領域裡最重的。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪確認觀念。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="index.html">← 回 AWS 學習中心</a>
+    <a href="02-vpc-build.html">02：手刻一個 VPC →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 01</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

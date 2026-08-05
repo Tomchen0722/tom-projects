@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EC2 與儲存實作 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.fam{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0;}
+.famc{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.famc b{display:block;font-size:.9rem;color:var(--dark);margin-bottom:2px;font-family:"Cascadia Code",monospace;}
+.famc span{font-size:.78rem;color:var(--muted);line-height:1.65;}
+.price{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin:16px 0;}
+.pc{border-radius:10px;padding:13px 15px;color:#fff;}
+.pc b{display:block;font-size:.88rem;margin-bottom:3px;}
+.pc span{font-size:.77rem;opacity:.88;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">03 · EC2 與儲存</span>
+</div>
+
+<div class="hero c3">
+  <div class="badge">實作 03 · 運算與儲存</div>
+  <h1><span>EC2</span> 與儲存實作</h1>
+  <p>機型怎麼選、五種付費方式差多少錢、EBS 的 gp3 為什麼永遠比 gp2 好。這章的重點是「怎麼在不犧牲效能的前提下把帳單砍掉一半」。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#naming">機型命名規則與家族選擇</a></li>
+      <li><a href="#pricing">五種付費方式（省錢核心）</a></li>
+      <li><a href="#spot">Spot 實戰與中斷處理</a></li>
+      <li><a href="#launch">實作一：用 CLI 開一台機器</a></li>
+      <li><a href="#userdata">User Data 與開機自動化</a></li>
+      <li><a href="#ebs">EBS 五種類型與 IOPS 計算</a></li>
+      <li><a href="#snapshot">快照、AMI 與備份策略</a></li>
+      <li><a href="#storage">儲存選型：EBS / Instance Store / EFS / S3</a></li>
+      <li><a href="#placement">放置群組與網路效能</a></li>
+      <li><a href="#opt">成本優化實戰清單</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="naming">
+    <h2>1. 機型命名規則與家族選擇</h2>
+
+    <div class="formula"><code><b>m6g.2xlarge</b><br><br>
+    <b>m</b> = 家族（用途）　<b>6</b> = 世代　<b>g</b> = 附加特性　<b>2xlarge</b> = 大小</code></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>附加字母</th><th>意義</th></tr>
+        <tr><td><b>g</b></td><td>AWS Graviton（ARM 處理器）——<b>同規格便宜約 20%，效能還更好</b></td></tr>
+        <tr><td><b>a</b></td><td>AMD 處理器——比 Intel 便宜約 10%</td></tr>
+        <tr><td><b>i</b></td><td>Intel 處理器（明確標示）</td></tr>
+        <tr><td><b>d</b></td><td>本機 NVMe 儲存（Instance Store）</td></tr>
+        <tr><td><b>n</b></td><td>強化網路頻寬</td></tr>
+        <tr><td><b>e</b></td><td>額外記憶體或儲存</td></tr>
+        <tr><td><b>z</b></td><td>高時脈 CPU</td></tr>
+      </table>
+    </div>
+
+    <h3>六大家族</h3>
+    <div class="fam">
+      <div class="famc"><b>T</b><span><b>可爆發型</b>。平常低使用率，偶爾衝高。最便宜，適合開發機、小網站。<b>注意 CPU credit</b>。</span></div>
+      <div class="famc"><b>M</b><span><b>通用型</b>。CPU:記憶體 = 1:4。不知道選什麼就選 M。</span></div>
+      <div class="famc"><b>C</b><span><b>運算優化</b>。CPU:記憶體 = 1:2。批次運算、遊戲伺服器、影音轉檔。</span></div>
+      <div class="famc"><b>R / X / Z</b><span><b>記憶體優化</b>。1:8 到 1:32。資料庫、快取、記憶體內分析。</span></div>
+      <div class="famc"><b>I / D / H</b><span><b>儲存優化</b>。本機高 IOPS NVMe。NoSQL、資料倉儲。</span></div>
+      <div class="famc"><b>P / G / Inf / Trn</b><span><b>加速運算</b>。GPU 或自研晶片。ML 訓練與推論。<b>非常貴</b>。</span></div>
+    </div>
+
+    <div class="warn"><strong>T 系列的 CPU Credit 是最常見的效能陷阱。</strong>
+      <ul style="margin:8px 0 0">
+        <li>t3.micro 的「基準效能」只有 <b>10% 的 vCPU</b>。低於基準時累積 credit，高於基準時消耗</li>
+        <li>credit 用完 → <b>CPU 被強制限制在 10%</b>，網站會突然變得極慢</li>
+        <li><b>t3 預設是 unlimited 模式</b>——credit 用完會繼續跑，但<b>額外收費</b>（每 vCPU 小時 US$0.05）</li>
+        <li>t2 預設是 standard 模式——用完就限速，不額外收費</li>
+      </ul>
+      <b>症狀：</b>「網站平常很快，流量一大就慢到不能用，但 CPU 使用率看起來才 10%」——那個 10% 就是被限速的證據。<br>
+      <b>監控：</b>CloudWatch 的 <span class="inline-code">CPUCreditBalance</span> 一直往下掉就要換機型。
+    </div>
+
+    <pre><code><span class="comment"># 查 credit 模式與餘額</span>
+$ <span class="cmd">aws ec2 describe-instance-credit-specifications --instance-ids i-0abc123</span>
+$ <span class="cmd">aws cloudwatch get-metric-statistics</span> \
+    <span class="var">--namespace</span> AWS/EC2 <span class="var">--metric-name</span> CPUCreditBalance \
+    <span class="var">--dimensions</span> Name=InstanceId,Value=i-0abc123 \
+    <span class="var">--start-time</span> 2026-08-04T00:00:00Z <span class="var">--end-time</span> 2026-08-05T00:00:00Z \
+    <span class="var">--period</span> 3600 <span class="var">--statistics</span> Average
+
+<span class="comment"># 改成 standard（避免 unlimited 產生意外費用）</span>
+$ <span class="cmd">aws ec2 modify-instance-credit-specification</span> \
+    --instance-credit-specification InstanceId=i-0abc123,CpuCredits=standard</code></pre>
+
+    <div class="ok"><strong>Graviton（g 結尾）是目前最容易的省錢手段。</strong>m7g 比 m7i 便宜約 20%，而且多數工作負載效能還更好。<b>只要你的軟體支援 ARM64</b>（現在絕大多數都支援：Python、Node.js、Java、Go、.NET、Nginx、PostgreSQL、Redis…）就該用。<br><br>
+      唯一要注意：<b>Docker 映像檔要是 arm64 版</b>，或用 multi-arch 建置。</div>
+
+    <pre><code><span class="comment"># 查某個機型在東京區的規格與價格資訊</span>
+$ <span class="cmd">aws ec2 describe-instance-types</span> \
+    <span class="var">--instance-types</span> m7g.large m7i.large \
+    <span class="var">--query</span> <span class="val">'InstanceTypes[].[InstanceType,VCpuInfo.DefaultVCpus,MemoryInfo.SizeInMiB,ProcessorInfo.SupportedArchitectures[0],NetworkInfo.NetworkPerformance]'</span> \
+    --output table</code></pre>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="pricing">
+    <h2>2. 五種付費方式（省錢核心）</h2>
+
+    <div class="price">
+      <div class="pc" style="background:#5F6B7A"><b>On-Demand</b><span>按秒計費，隨開隨關。<b>基準價</b>，最貴但最有彈性。</span></div>
+      <div class="pc" style="background:#0972D3"><b>Savings Plans</b><span>承諾「每小時花 $X」用 1 或 3 年。<b>省 27~72%</b>。彈性最高。</span></div>
+      <div class="pc" style="background:#146EB4"><b>Reserved Instance</b><span>承諾「特定機型」1 或 3 年。<b>省 30~72%</b>。可在市集轉售。</span></div>
+      <div class="pc" style="background:#1E8E3E"><b>Spot</b><span>用 AWS 的閒置容量。<b>省 70~90%</b>，但<b>可能被 2 分鐘通知後收回</b>。</span></div>
+      <div class="pc" style="background:#8A5C00"><b>Dedicated Host</b><span>整台實體伺服器。<b>最貴</b>，用於自帶授權（BYOL）或合規要求。</span></div>
+    </div>
+
+    <h3>Savings Plans vs Reserved Instance（考試常混淆）</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Compute Savings Plans</th><th>EC2 Instance SP</th><th>Standard RI</th><th>Convertible RI</th></tr>
+        <tr><td>承諾什麼</td><td><b>每小時花費</b></td><td>每小時花費 + 機型家族</td><td><b>特定機型</b></td><td>特定機型（可換）</td></tr>
+        <tr><td>能換機型家族</td><td><b>可以</b></td><td>不行</td><td>不行</td><td>可以（同價或更貴）</td></tr>
+        <tr><td>能換 region</td><td><b>可以</b></td><td>不行</td><td>不行</td><td>不行</td></tr>
+        <tr><td>涵蓋 Fargate / Lambda</td><td><b>可以</b></td><td>不行</td><td>不行</td><td>不行</td></tr>
+        <tr><td>最高折扣</td><td>66%</td><td><b>72%</b></td><td><b>72%</b></td><td>66%</td></tr>
+        <tr><td>可轉售</td><td>不行</td><td>不行</td><td><b>可以</b></td><td>不行</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Savings Plans 和 RI 都是<u>付錢的承諾</u>，簽下去就不能退。</strong>1 年或 3 年期間，<b>就算你不用了也要繼續付</b>。<br><br>
+      <b>導入前務必先確認：</b>
+      <ul style="margin:8px 0 0">
+        <li>用 <b>Cost Explorer 的建議功能</b>看過去 30/60 天的實際使用量</li>
+        <li><b>只承諾「穩定基線」的部分</b>，浮動的部分留給 On-Demand 或 Spot</li>
+        <li>常見做法：<b>基線 70% 用 SP、彈性 30% 用 On-Demand/Spot</b></li>
+        <li>新創或需求不確定的公司，<b>先跑 3~6 個月再簽</b></li>
+      </ul>
+      這是實際的財務承諾，簽約前建議跟財務或主管確認過。
+    </div>
+
+    <pre><code><span class="comment"># 讓 AWS 幫你算該買多少（免費，強烈建議先跑）</span>
+$ <span class="cmd">aws ce get-savings-plans-purchase-recommendation</span> \
+    <span class="var">--savings-plans-type</span> COMPUTE_SP \
+    <span class="var">--term-in-years</span> ONE_YEAR \
+    <span class="var">--payment-option</span> NO_UPFRONT \
+    <span class="var">--lookback-period-in-days</span> THIRTY_DAYS
+
+<span class="comment"># 看目前 SP / RI 的使用率與涵蓋率</span>
+$ <span class="cmd">aws ce get-savings-plans-utilization</span> \
+    --time-period Start=2026-07-01,End=2026-08-01
+$ <span class="cmd">aws ce get-reservation-coverage</span> \
+    --time-period Start=2026-07-01,End=2026-08-01</code></pre>
+
+    <div class="ok"><strong>兩個指標要一起看：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>Utilization（使用率）</b>——買了的 SP/RI 有沒有用滿。低於 95% 代表買太多，在浪費錢</li>
+        <li><b>Coverage（涵蓋率）</b>——多少 On-Demand 花費被 SP/RI 蓋住。低於 70% 代表還可以再買</li>
+      </ul>
+      理想狀態：<b>Utilization 接近 100%、Coverage 在 70~80%</b>。
+    </div>
+
+    <h3>付款方式的折扣差異</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>付款方式</th><th>折扣</th><th>現金流</th></tr>
+        <tr><td><b>No Upfront</b>（不預付）</td><td>最低</td><td><b>最好</b>，每月付</td></tr>
+        <tr><td><b>Partial Upfront</b>（部分預付）</td><td>中等</td><td>約一半先付</td></tr>
+        <tr><td><b>All Upfront</b>（全額預付）</td><td><b>最高</b>（多約 5~7%）</td><td>最差，一次付清</td></tr>
+      </table>
+    </div>
+
+    <div class="note">實務上多數公司選 <b>No Upfront</b> 或 <b>Partial Upfront</b>——多出來那 5~7% 的折扣，通常不值得綁住一整年的現金。除非公司有多餘現金且會計上偏好一次認列。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="spot">
+    <h2>3. Spot 實戰與中斷處理</h2>
+
+    <p>Spot 用的是 AWS 的閒置容量，<b>價格只有 On-Demand 的 10~30%</b>。代價是 AWS 需要那些容量時會把你的機器收回，<b>只給 2 分鐘通知</b>。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>✅ 適合 Spot</th><th>❌ 不適合 Spot</th></tr>
+        <tr><td>批次運算、資料處理</td><td>資料庫</td></tr>
+        <tr><td>CI/CD build agent</td><td>有狀態的單體應用</td></tr>
+        <tr><td>影音轉檔、算圖</td><td>需要固定 IP 的服務</td></tr>
+        <tr><td>ML 訓練（有 checkpoint）</td><td>License 綁機器的軟體</td></tr>
+        <tr><td>無狀態的 Web 層（配 ASG）</td><td>做到一半不能中斷的工作</td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code>Spot 的判斷標準：<br><br>
+    <b>「這台機器突然消失，我的系統會不會有事？」</b><br>
+    不會 → 用 Spot　　會 → 不要用</code></div>
+
+    <h3>接收中斷通知並優雅退場</h3>
+    <pre><code><span class="comment">#!/bin/bash</span>
+<span class="comment"># 放進 user-data，背景執行，監聽中斷通知</span>
+<span class="kw">while</span> true; <span class="kw">do</span>
+  TOKEN=$(curl -sX PUT "http://169.254.169.254/latest/api/token" \
+      -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
+
+  <span class="comment"># 沒有中斷時回 404，有中斷時回 200 + JSON</span>
+  ACTION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" \
+      http://169.254.169.254/latest/meta-data/spot/instance-action)
+
+  <span class="kw">if</span> [[ "$ACTION" == *"action"* ]]; <span class="kw">then</span>
+    echo "$(date) 收到 Spot 中斷通知，開始善後"
+    <span class="comment"># ① 從 ALB 目標群組移除自己（停止接新流量）</span>
+    aws elbv2 deregister-targets --target-group-arn $TG_ARN \
+        --targets Id=$(ec2-metadata --instance-id | cut -d' ' -f2)
+    <span class="comment"># ② 存 checkpoint</span>
+    /opt/app/save-checkpoint.sh
+    <span class="comment"># ③ 等現有請求處理完</span>
+    sleep 90
+    <span class="kw">break</span>
+  <span class="kw">fi</span>
+  sleep 5
+<span class="kw">done</span></code></pre>
+
+    <div class="warn"><strong>2 分鐘看起來很短，但夠用。</strong>關鍵是<b>提早把自己從流量路徑移除</b>——先 deregister，讓 ALB 停止送新請求，再處理完手上的工作。<br><br>
+      如果你的應用連 2 分鐘都無法優雅結束，那它本來就不該用 Spot，甚至也不適合 Auto Scaling。
+    </div>
+
+    <h3>企業標準做法：混合容量的 ASG</h3>
+    <pre><code><span class="comment"># 用 Launch Template + 混合實例政策</span>
+$ <span class="cmd">aws autoscaling create-auto-scaling-group</span> \
+    <span class="var">--auto-scaling-group-name</span> web-asg \
+    <span class="var">--min-size</span> 2 <span class="var">--max-size</span> 20 <span class="var">--desired-capacity</span> 6 \
+    <span class="var">--vpc-zone-identifier</span> "$APP_A,$APP_C" \
+    <span class="var">--mixed-instances-policy</span> <span class="val">'{
+  "LaunchTemplate": {
+    "LaunchTemplateSpecification": {
+      "LaunchTemplateName": "web-lt", "Version": "$Latest"
+    },
+    "Overrides": [
+      { "InstanceType": "m7g.large" },
+      { "InstanceType": "m6g.large" },
+      { "InstanceType": "m7i.large" },
+      { "InstanceType": "m6i.large" }
+    ]
+  },
+  "InstancesDistribution": {
+    "OnDemandBaseCapacity": 2,
+    "OnDemandPercentageAboveBaseCapacity": 25,
+    "SpotAllocationStrategy": "capacity-optimized"
+  }
+}'</span></code></pre>
+
+    <div class="ok"><strong>這段設定的實際意義：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>前 2 台一定是 On-Demand</b>（保底容量，就算 Spot 全被收回也不會全掛）</li>
+        <li>超過 2 台之後，<b>25% On-Demand + 75% Spot</b></li>
+        <li>列 <b>4 種機型</b>——Spot 容量是按機型分配的，選項愈多愈不容易被收回</li>
+        <li><span class="inline-code">capacity-optimized</span> = 「挑目前<b>閒置容量最多</b>的機型」，中斷率最低（不是挑最便宜的）</li>
+      </ul>
+      這個組合通常能省下 <b>50~60% 的運算費用</b>，而可用性幾乎不受影響。是 SAA 考試很愛的答案。
+    </div>
+
+    <pre><code><span class="comment"># 查各機型的 Spot 中斷頻率（決策前必看）</span>
+$ <span class="cmd">aws ec2 describe-spot-price-history</span> \
+    <span class="var">--instance-types</span> m7g.large \
+    <span class="var">--product-descriptions</span> "Linux/UNIX" \
+    <span class="var">--start-time</span> $(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%S) \
+    <span class="var">--query</span> 'SpotPriceHistory[].[AvailabilityZone,SpotPrice,Timestamp]' --output table</code></pre>
+
+    <div class="note">AWS 也有一個公開的 <b>Spot Instance Advisor</b> 網頁，直接列出每個機型的「折扣幅度」和「中斷頻率」（&lt;5%、5-10%、&gt;20%）。挑機型時看那個最快——<b>選折扣大且中斷率 &lt;5% 的</b>。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="launch">
+    <h2>4. 實作一：用 CLI 開一台機器</h2>
+
+    <div class="cost">t3.micro / t4g.micro 在<b>免費方案</b>內每月有 750 小時（約一台跑整月）。超出或用其他機型就會收費。<br>
+    m7g.large 東京區約 <b>US$0.098/小時</b> → 忘記關一個月約 <b>US$71</b>。<b>做完 Lab 一定要 terminate。</b></div>
+
+    <pre><code><span class="comment"># ═══ 步驟 1：找到最新的 AMI（不要硬寫 AMI ID）═══</span>
+<span class="comment"># AWS 把最新 AMI 放在 SSM Parameter Store，這是最可靠的取得方式</span>
+$ <span class="cmd">AMI_ID</span>=$(aws ssm get-parameter \
+    <span class="var">--name</span> /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64 \
+    <span class="var">--query</span> Parameter.Value <span class="var">--output</span> text)
+$ echo $AMI_ID
+ami-0abc123def456789a
+
+<span class="comment"># x86_64 版本</span>
+$ aws ssm get-parameter \
+    --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64 \
+    --query Parameter.Value --output text</code></pre>
+
+    <div class="warn"><strong>不要在腳本或 IaC 裡硬寫 AMI ID。</strong>理由：
+      <ul style="margin:8px 0 0">
+        <li>AMI ID <b>每個 region 都不同</b>，換 region 就壞</li>
+        <li>AMI 會更新，硬寫的話你永遠停在建立當天的版本（<b>缺安全性修補</b>）</li>
+      </ul>
+      用 SSM Parameter 或 <span class="inline-code">describe-images</span> 加排序，讓它每次都拿最新的。
+    </div>
+
+    <pre><code><span class="comment"># ═══ 步驟 2：建立 Launch Template（不要直接 run-instances）═══</span>
+$ cat &gt; lt-data.json &lt;&lt;'EOF'
+{
+  "ImageId": "AMI_PLACEHOLDER",
+  "InstanceType": "t4g.micro",
+  "IamInstanceProfile": { "Name": "EC2-S3-Profile" },
+  "SecurityGroupIds": ["SG_PLACEHOLDER"],
+  "MetadataOptions": {
+    "HttpTokens": "required",
+    "HttpPutResponseHopLimit": 1
+  },
+  "Monitoring": { "Enabled": true },
+  "BlockDeviceMappings": [{
+    "DeviceName": "/dev/xvda",
+    "Ebs": {
+      "VolumeSize": 20,
+      "VolumeType": "gp3",
+      "Iops": 3000,
+      "Throughput": 125,
+      "Encrypted": true,
+      "DeleteOnTermination": true
+    }
+  }],
+  "TagSpecifications": [{
+    "ResourceType": "instance",
+    "Tags": [
+      { "Key": "Name",    "Value": "web-01" },
+      { "Key": "Env",     "Value": "dev" },
+      { "Key": "Owner",   "Value": "tom" },
+      { "Key": "AutoStop","Value": "true" }
+    ]
+  }]
+}
+EOF
+
+$ sed -i "s/AMI_PLACEHOLDER/$AMI_ID/; s/SG_PLACEHOLDER/$SG_APP/" lt-data.json
+
+$ <span class="cmd">aws ec2 create-launch-template</span> \
+    <span class="var">--launch-template-name</span> web-lt \
+    <span class="var">--launch-template-data</span> file://lt-data.json</code></pre>
+
+    <div class="ok"><strong>為什麼要用 Launch Template 而不是直接 <span class="inline-code">run-instances</span>？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>Auto Scaling 需要它</b>——ASG 只能用 Launch Template（或舊的 Launch Configuration）</li>
+        <li><b>有版本控制</b>——改設定會產生新版本，出事可以指定舊版本</li>
+        <li>設定集中，開 10 台不用打 10 次參數</li>
+      </ul>
+      <b>Launch Configuration 已經被 AWS 標記為過時，新專案一律用 Launch Template。</b>
+    </div>
+
+    <pre><code><span class="comment"># ═══ 步驟 3：開機器 ═══</span>
+$ <span class="cmd">INSTANCE_ID</span>=$(aws ec2 run-instances \
+    <span class="var">--launch-template</span> LaunchTemplateName=web-lt,Version='$Latest' \
+    <span class="var">--subnet-id</span> $APP_A \
+    <span class="var">--count</span> 1 \
+    <span class="var">--query</span> 'Instances[0].InstanceId' --output text)
+
+$ <span class="cmd">aws ec2 wait instance-running --instance-ids $INSTANCE_ID</span>
+$ <span class="cmd">aws ec2 wait instance-status-ok --instance-ids $INSTANCE_ID</span>
+
+<span class="comment"># ═══ 步驟 4：用 SSM 連進去（不用金鑰、不用開 22 埠）═══</span>
+$ <span class="cmd">aws ssm start-session --target $INSTANCE_ID</span></code></pre>
+
+    <div class="warn"><strong>兩種 status check 意義不同，排錯時要分清楚：</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>檢查</th><th>失敗代表</th><th>怎麼處理</th></tr>
+          <tr><td><b>System Status</b></td><td><b>AWS 的問題</b>——底層硬體、網路、電力</td><td><b>stop 再 start</b>（會換一台實體主機）。reboot 沒用</td></tr>
+          <tr><td><b>Instance Status</b></td><td><b>你的問題</b>——OS 沒開起來、檔案系統壞掉、網路設定錯</td><td>看 console output、檢查 user-data</td></tr>
+        </table>
+      </div>
+      <pre style="margin:8px 0 0"><code><span class="comment"># 看開機畫面（排查 OS 層問題最直接的方法）</span>
+$ <span class="cmd">aws ec2 get-console-output --instance-id $INSTANCE_ID --output text</span></code></pre>
+    </div>
+
+    <h3>Stop / Reboot / Terminate / Hibernate 的差別</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>EBS 根磁碟</th><th>Instance Store</th><th>公網 IP</th><th>私有 IP</th><th>還收費嗎</th></tr>
+        <tr><td><b>Reboot</b></td><td>保留</td><td><b>保留</b></td><td>保留</td><td>保留</td><td>繼續</td></tr>
+        <tr><td><b>Stop</b></td><td>保留</td><td><b>清空</b></td><td><b>釋放</b>（除非 EIP）</td><td>保留</td><td>只收 EBS</td></tr>
+        <tr><td><b>Hibernate</b></td><td>保留（含記憶體內容）</td><td>清空</td><td>釋放</td><td>保留</td><td>只收 EBS</td></tr>
+        <tr><td><b>Terminate</b></td><td>依 DeleteOnTermination</td><td>清空</td><td>釋放</td><td>釋放</td><td><b>停止</b></td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Stop 之後公網 IP 會變。</strong>如果你把那個 IP 寫進 DNS 或防火牆白名單，重開之後就全部失效。<b>需要固定 IP 就用 Elastic IP</b>（但要記得 EIP 現在無論有沒有綁定都收費）。<br><br>
+      更好的做法：<b>用 ALB 或 Route 53</b>，讓後端機器的 IP 可以自由變動。</div>
+
+    <h3>防止誤刪</h3>
+    <pre><code><span class="comment"># 開啟終止保護（正式環境的機器一定要開）</span>
+$ <span class="cmd">aws ec2 modify-instance-attribute</span> \
+    --instance-id $INSTANCE_ID <span class="var">--disable-api-termination</span>
+
+<span class="comment"># 連 stop 都不准（資料庫類的機器）</span>
+$ <span class="cmd">aws ec2 modify-instance-attribute</span> \
+    --instance-id $INSTANCE_ID <span class="var">--disable-api-stop</span></code></pre>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="userdata">
+    <h2>5. User Data 與開機自動化</h2>
+
+    <p><b>User Data</b> 是機器第一次開機時執行的腳本，用來安裝軟體、拉設定、註冊到服務。</p>
+
+    <pre><code>#!/bin/bash
+<span class="comment"># 把所有輸出寫進 log，方便排錯（很重要）</span>
+exec &gt; &gt;(tee /var/log/user-data.log | logger -t user-data -s 2&gt;/dev/console) 2&gt;&amp;1
+set -euxo pipefail
+
+<span class="comment"># ── 更新與安裝 ──</span>
+dnf update -y
+dnf install -y nginx amazon-cloudwatch-agent
+
+<span class="comment"># ── 從 Parameter Store 拉設定（不要硬寫在腳本裡）──</span>
+DB_HOST=$(aws ssm get-parameter --name /app/prod/db-host \
+    --query Parameter.Value --output text --region ap-northeast-1)
+
+<span class="comment"># ── 密碼從 Secrets Manager 拉（會自動輪替）──</span>
+DB_PASS=$(aws secretsmanager get-secret-value --secret-id prod/db/password \
+    --query SecretString --output text --region ap-northeast-1 | jq -r .password)
+
+<span class="comment"># ── 寫設定檔 ──</span>
+cat &gt; /etc/app/config.yml &lt;&lt;EOF
+database:
+  host: ${DB_HOST}
+  password: ${DB_PASS}
+EOF
+chmod 600 /etc/app/config.yml
+
+<span class="comment"># ── 掛載 EBS 資料碟（如果有）──</span>
+<span class="kw">if</span> [ -b /dev/nvme1n1 ] &amp;&amp; ! blkid /dev/nvme1n1; <span class="kw">then</span>
+  mkfs -t xfs /dev/nvme1n1
+<span class="kw">fi</span>
+mkdir -p /data
+<span class="comment"># 用 UUID 而不是裝置名稱，nofail 避免磁碟不在時開不了機</span>
+UUID=$(blkid -s UUID -o value /dev/nvme1n1)
+echo "UUID=$UUID /data xfs defaults,nofail 0 2" &gt;&gt; /etc/fstab
+mount -a
+
+<span class="comment"># ── 啟動服務 ──</span>
+systemctl enable --now nginx
+systemctl enable --now amazon-cloudwatch-agent
+
+echo "user-data 完成於 $(date)"</code></pre>
+
+    <div class="warn"><strong>User Data 的五個重點：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>預設只在第一次開機執行一次</b>。改了 user-data 再 stop/start 不會重跑</li>
+        <li><b>以 root 身分執行</b>，不需要 sudo</li>
+        <li><b>大小上限 16 KB</b>（base64 編碼前）。超過就改成「下載一個腳本再執行」</li>
+        <li><b>絕對不要把密碼寫在裡面</b>——user data 可以被 <span class="inline-code">describe-instance-attribute</span> 讀出來，也能從 metadata endpoint 拿到。用 Secrets Manager</li>
+        <li><b>第一行一定要 <span class="inline-code">#!/bin/bash</span></b>，不然不會被當成腳本</li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment"># 排錯：看 user-data 有沒有跑、跑到哪裡失敗</span>
+$ <span class="cmd">sudo cat /var/log/cloud-init-output.log</span>
+$ <span class="cmd">sudo cat /var/log/user-data.log</span>
+
+<span class="comment"># 讓 user-data 每次開機都跑（少數情況需要）</span>
+$ <span class="cmd">sudo rm -f /var/lib/cloud/instances/*/sem/config_scripts_user</span>
+
+<span class="comment"># 從外面讀某台機器的 user-data（確認自己有沒有不小心放密碼）</span>
+$ <span class="cmd">aws ec2 describe-instance-attribute</span> \
+    --instance-id $INSTANCE_ID <span class="var">--attribute</span> userData \
+    --query UserData.Value --output text | base64 -d</code></pre>
+
+    <div class="ok"><strong>更好的做法：用 Golden AMI 取代冗長的 User Data。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>User Data 開機才裝軟體</b> → 開機要 3~5 分鐘，Auto Scaling 反應慢，而且套件庫掛掉就開不起來</li>
+        <li><b>Golden AMI 事先烤好</b> → 開機 30 秒就能服務，而且每台完全一致</li>
+      </ul>
+      用 <b>EC2 Image Builder</b> 或 <b>Packer</b> 自動化建立 AMI，加進 CI/CD。User Data 只留下「拉環境專屬設定」這種必須在開機時做的事。
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="ebs">
+    <h2>6. EBS 五種類型與 IOPS 計算</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類型</th><th>用途</th><th>IOPS</th><th>吞吐量</th><th>東京區價格</th></tr>
+        <tr><td><b>gp3</b>（SSD）</td><td><b>預設首選</b></td><td>3,000 基礎，可到 16,000</td><td>125 MB/s 基礎，可到 1,000</td><td><b>US$0.096/GB/月</b></td></tr>
+        <tr><td><b>gp2</b>（SSD）</td><td><b>已過時</b></td><td>3 IOPS/GB（最低 100，最高 16,000）</td><td>最高 250 MB/s</td><td>US$0.12/GB/月</td></tr>
+        <tr><td><b>io2 Block Express</b></td><td>高效能資料庫</td><td>最高 <b>256,000</b></td><td>最高 4,000 MB/s</td><td>US$0.142/GB + IOPS 費</td></tr>
+        <tr><td><b>st1</b>（HDD）</td><td>大檔循序讀寫、日誌</td><td>低（不能開機）</td><td>最高 500 MB/s</td><td><b>US$0.054/GB/月</b></td></tr>
+        <tr><td><b>sc1</b>（HDD）</td><td>冷資料歸檔</td><td>最低（不能開機）</td><td>最高 250 MB/s</td><td><b>US$0.018/GB/月</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>gp3 永遠比 gp2 好，沒有例外。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>便宜 20%</b>（US$0.096 vs US$0.12 每 GB）</li>
+        <li><b>IOPS 和容量脫鉤</b>——gp2 要 3000 IOPS 得買 1000 GB，gp3 買 20 GB 就有 3000</li>
+        <li>IOPS 和吞吐量可以<b>獨立調整</b></li>
+        <li><b>可以線上轉換，不用停機</b></li>
+      </ul>
+      如果你的帳號還有 gp2，<b>現在就全部轉成 gp3</b>，這是最無痛的省錢動作。
+    </div>
+
+    <pre><code><span class="comment"># 找出所有還在用 gp2 的磁碟</span>
+$ <span class="cmd">aws ec2 describe-volumes</span> \
+    <span class="var">--filters</span> Name=volume-type,Values=gp2 \
+    <span class="var">--query</span> <span class="val">'Volumes[].[VolumeId,Size,State,Attachments[0].InstanceId]'</span> --output table
+
+<span class="comment"># 一鍵轉成 gp3（線上進行，不用停機）</span>
+$ <span class="cmd">aws ec2 modify-volume</span> --volume-id vol-0abc123 \
+    <span class="var">--volume-type</span> gp3 <span class="var">--iops</span> 3000 <span class="var">--throughput</span> 125
+
+<span class="comment"># 批次轉換全部</span>
+$ aws ec2 describe-volumes --filters Name=volume-type,Values=gp2 \
+    --query 'Volumes[].VolumeId' --output text | tr '\t' '\n' | \
+  while read v; <span class="kw">do</span>
+    echo "轉換 $v"
+    aws ec2 modify-volume --volume-id "$v" --volume-type gp3
+  <span class="kw">done</span>
+
+<span class="comment"># 查轉換進度</span>
+$ <span class="cmd">aws ec2 describe-volumes-modifications --volume-ids vol-0abc123</span></code></pre>
+
+    <div class="warn"><strong>擴大磁碟是兩個步驟，很多人只做第一步然後困惑「空間沒變大」。</strong>
+      <pre style="margin:8px 0 0"><code><span class="comment"># ① AWS 端擴大磁碟</span>
+$ aws ec2 modify-volume --volume-id vol-0abc123 --size 100
+
+<span class="comment"># ② 在 OS 裡擴大分割區和檔案系統（必做！）</span>
+$ sudo growpart /dev/nvme0n1 1        <span class="comment"># 擴大分割區</span>
+$ sudo xfs_growfs /                   <span class="comment"># XFS</span>
+$ sudo resize2fs /dev/nvme0n1p1       <span class="comment"># ext4</span>
+$ df -h                               <span class="comment"># 確認</span></code></pre>
+      另外：<b>EBS 磁碟只能變大，不能變小</b>。要縮小只能建一個小的、把資料複製過去。
+    </div>
+
+    <h3>IOPS 到底夠不夠？怎麼算</h3>
+    <div class="formula"><code>需要的 IOPS ≈ <b>每秒交易數 × 每筆交易的 I/O 次數</b><br><br>
+    吞吐量(MB/s) = <b>IOPS × 每次 I/O 大小</b><br><br>
+    gp3 基礎 3000 IOPS × 16 KB = <b>48 MB/s</b>（但基礎吞吐量上限是 125 MB/s）</code></div>
+
+    <pre><code><span class="comment"># 用 CloudWatch 看實際用了多少 IOPS</span>
+$ <span class="cmd">aws cloudwatch get-metric-statistics</span> \
+    --namespace AWS/EBS --metric-name VolumeReadOps \
+    --dimensions Name=VolumeId,Value=vol-0abc123 \
+    --start-time 2026-08-04T00:00:00Z --end-time 2026-08-05T00:00:00Z \
+    --period 300 --statistics Sum
+
+<span class="comment"># 關鍵指標：VolumeQueueLength 持續 > 1 代表磁碟撐不住</span>
+<span class="comment"># 在機器裡用 iostat 也看得到</span>
+$ <span class="cmd">iostat -xz 1</span>
+<span class="comment">#   %util 接近 100 且 await 很高 → I/O 是瓶頸</span></code></pre>
+
+    <div class="note"><strong>EBS 的效能也受<u>機型</u>限制。</strong>t3.micro 就算掛 io2 也跑不到高 IOPS，因為機器本身的 EBS 頻寬有上限。要高 I/O 效能，機型要選<b>支援 EBS 最佳化</b>的（現代機型多半預設開啟）。用 <span class="inline-code">describe-instance-types</span> 看 <span class="inline-code">EbsInfo.EbsOptimizedInfo</span>。</div>
+
+    <h3>加密</h3>
+    <pre><code><span class="comment"># 帳號層級預設加密（強烈建議開，新磁碟自動加密）</span>
+$ <span class="cmd">aws ec2 enable-ebs-encryption-by-default</span>
+$ <span class="cmd">aws ec2 get-ebs-encryption-by-default</span></code></pre>
+
+    <div class="warn"><strong>既有的未加密磁碟不能直接加密。</strong>流程是：<b>建快照 → 複製快照時指定加密 → 從加密快照建新磁碟 → 換掛</b>。要停機。<br><br>
+      所以<b>一開始就開啟預設加密</b>。加密對效能的影響幾乎測不出來，沒有理由不開。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="snapshot">
+    <h2>7. 快照、AMI 與備份策略</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Snapshot（快照）</th><th>AMI（映像檔）</th></tr>
+        <tr><td>內容</td><td><b>單一 EBS 磁碟</b>的資料</td><td>一或多個快照 + <b>開機設定</b>（機型、核心、權限）</td></tr>
+        <tr><td>用途</td><td>備份資料、換磁碟</td><td><b>開新機器</b></td></tr>
+        <tr><td>存在哪</td><td colspan="2">S3（但你看不到那個 bucket），<b>增量儲存</b></td></tr>
+        <tr><td>跨區</td><td>可複製</td><td>可複製</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>快照是「增量」的，但刪除很聰明。</strong>第一份快照存全部，之後只存變動的區塊。<b>刪掉中間某一份快照，AWS 會自動把它獨有的區塊合併到下一份</b>，所以你永遠可以用剩下的任何一份還原。不用擔心「刪了中間那份會不會讓後面的壞掉」。</div>
+
+    <pre><code><span class="comment"># 建快照</span>
+$ <span class="cmd">SNAP_ID</span>=$(aws ec2 create-snapshot \
+    <span class="var">--volume-id</span> vol-0abc123 \
+    <span class="var">--description</span> "web-01 root before upgrade" \
+    --tag-specifications 'ResourceType=snapshot,Tags=[{Key=Name,Value=web-01-pre-upgrade}]' \
+    --query SnapshotId --output text)
+
+$ <span class="cmd">aws ec2 wait snapshot-completed --snapshot-ids $SNAP_ID</span>
+
+<span class="comment"># 從快照建新磁碟</span>
+$ aws ec2 create-volume --snapshot-id $SNAP_ID \
+    --availability-zone ap-northeast-1a --volume-type gp3
+
+<span class="comment"># 建 AMI（--no-reboot 不重開機，但檔案系統可能不一致）</span>
+$ <span class="cmd">aws ec2 create-image</span> \
+    --instance-id $INSTANCE_ID \
+    --name "web-golden-$(date +%Y%m%d)" \
+    --description "Golden AMI with nginx + agent" \
+    <span class="var">--no-reboot</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">--no-reboot</span> 有風險。</strong>它不會重開機（服務不中斷），但<b>檔案系統緩衝區的資料可能還沒寫入磁碟</b>，做出來的 AMI 可能檔案不完整。<br><br>
+      <b>正確做法：</b>建 AMI 前先在機器裡 <span class="inline-code">sync</span> 並暫停寫入，或乾脆讓它重開機。<b>資料庫類的機器絕對不要用 --no-reboot 做 AMI。</b></div>
+
+    <h3>自動備份：Data Lifecycle Manager</h3>
+    <pre><code><span class="comment"># DLM 依標籤自動建快照並自動刪除舊的 —— 免費</span>
+$ <span class="cmd">aws dlm create-lifecycle-policy</span> \
+    <span class="var">--execution-role-arn</span> arn:aws:iam::123456789012:role/AWSDataLifecycleManagerDefaultRole \
+    <span class="var">--description</span> "每日快照保留 7 天" \
+    <span class="var">--state</span> ENABLED \
+    <span class="var">--policy-details</span> <span class="val">'{
+  "PolicyType": "EBS_SNAPSHOT_MANAGEMENT",
+  "ResourceTypes": ["VOLUME"],
+  "TargetTags": [{ "Key": "Backup", "Value": "daily" }],
+  "Schedules": [{
+    "Name": "DailySnapshots",
+    "CreateRule": { "Interval": 24, "IntervalUnit": "HOURS", "Times": ["19:00"] },
+    "RetainRule": { "Count": 7 },
+    "CopyTags": true
+  }]
+}'</span></code></pre>
+
+    <div class="ok"><strong>DLM 完全免費（只付快照的儲存費）。</strong>做法是幫要備份的磁碟打上 <span class="inline-code">Backup=daily</span> 標籤，DLM 就會自動處理。<b>不用寫 Lambda、不用維護排程</b>。<br><br>
+      需要更完整的備份（RDS、DynamoDB、EFS、跨帳號、合規報表）就用 <b>AWS Backup</b>，它是統一的備份服務，但要另外收費。</div>
+
+    <div class="warn"><strong>備份不等於災難復原。</strong>快照預設<b>只存在同一個 region</b>。整個 region 出事（很罕見但發生過）你的備份也一起沒了。<br><br>
+      合規或關鍵系統要做<b>跨區複製</b>：
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws ec2 copy-snapshot</span> \
+    <span class="var">--source-region</span> ap-northeast-1 \
+    <span class="var">--source-snapshot-id</span> $SNAP_ID \
+    <span class="var">--region</span> ap-northeast-3 \
+    <span class="var">--encrypted</span> --description "DR copy"</code></pre>
+      也可以考慮 <b>快照封存（Archive）</b>——不常還原的快照轉到封存層，<b>儲存費省 75%</b>，但還原要 24~72 小時。
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="storage">
+    <h2>8. 儲存選型：EBS / Instance Store / EFS / S3</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>EBS</th><th>Instance Store</th><th>EFS</th><th>S3</th></tr>
+        <tr><td>類型</td><td>區塊</td><td>區塊</td><td><b>檔案（NFS）</b></td><td><b>物件</b></td></tr>
+        <tr><td>能同時掛幾台</td><td>1 台<br>（io2 多重掛載最多 16）</td><td>1 台</td><td><b>上千台</b></td><td>不掛載，走 API</td></tr>
+        <tr><td>跨 AZ</td><td><b>不行</b>（綁定 AZ）</td><td>不行</td><td><b>可以</b></td><td>可以（region 級）</td></tr>
+        <tr><td>停機後資料</td><td>保留</td><td><b>消失</b></td><td>保留</td><td>保留</td></tr>
+        <tr><td>延遲</td><td>低（單位毫秒）</td><td><b>最低</b>（微秒）</td><td>中</td><td>較高</td></tr>
+        <tr><td>容量</td><td>最高 64 TiB</td><td>依機型固定</td><td><b>自動擴展，無上限</b></td><td>無上限</td></tr>
+        <tr><td>價格（每 GB/月）</td><td>US$0.096（gp3）</td><td><b>含在機器價格內</b></td><td>US$0.36（標準）</td><td><b>US$0.025</b></td></tr>
+      </table>
+    </div>
+
+    <div class="formula"><code><b>選型的三個問題：</b><br><br>
+    要當<b>開機磁碟</b>或需要<b>單機高效能</b>？→ EBS<br>
+    <b>多台機器要同時讀寫同一份檔案</b>？→ EFS<br>
+    存<b>圖片、影片、備份、靜態檔案</b>？→ S3（最便宜）</code></div>
+
+    <div class="warn"><strong>EBS 綁定 AZ，這是常見的設計陷阱。</strong>在 ap-northeast-1a 建的磁碟，<b>不能掛到 1c 的機器上</b>。要跨 AZ 只能：建快照 → 在另一個 AZ 從快照建新磁碟。<br><br>
+      所以「EC2 掛 EBS」這種架構<b>天生無法跨 AZ 高可用</b>。真的需要共享儲存就用 EFS。</div>
+
+    <div class="cost"><b>EFS 比 EBS 貴將近 4 倍</b>（US$0.36 vs US$0.096 每 GB）。不要因為「方便」就把所有東西都放 EFS。<br><br>
+    省錢做法：開啟 <b>Lifecycle Management</b>，30 天沒存取的檔案自動轉到 <b>Infrequent Access</b> 層（<b>US$0.027/GB，省 92%</b>），讀取時才收少量取回費。多數檔案系統的資料都是「寫了就很少再讀」，這個設定通常能省下 70% 以上。</div>
+
+    <pre><code><span class="comment"># 建立 EFS 並開啟生命週期</span>
+$ <span class="cmd">FS_ID</span>=$(aws efs create-file-system \
+    <span class="var">--performance-mode</span> generalPurpose \
+    <span class="var">--throughput-mode</span> elastic \
+    <span class="var">--encrypted</span> \
+    --tags Key=Name,Value=shared-data \
+    --query FileSystemId --output text)
+
+$ <span class="cmd">aws efs put-lifecycle-configuration</span> --file-system-id $FS_ID \
+    <span class="var">--lifecycle-policies</span> \
+      '[{"TransitionToIA":"AFTER_30_DAYS"},{"TransitionToPrimaryStorageClass":"AFTER_1_ACCESS"}]'
+
+<span class="comment"># 每個 AZ 都要建 mount target</span>
+$ aws efs create-mount-target --file-system-id $FS_ID \
+    --subnet-id $APP_A --security-groups $SG_EFS
+$ aws efs create-mount-target --file-system-id $FS_ID \
+    --subnet-id $APP_C --security-groups $SG_EFS
+
+<span class="comment"># 在 EC2 上掛載（用 efs-utils，支援加密傳輸與 IAM 認證）</span>
+$ sudo dnf install -y amazon-efs-utils
+$ sudo mkdir -p /mnt/efs
+$ sudo mount -t efs -o tls,iam $FS_ID:/ /mnt/efs
+
+<span class="comment"># 寫進 fstab（記得 _netdev）</span>
+$ echo "$FS_ID:/ /mnt/efs efs _netdev,tls,iam 0 0" | sudo tee -a /etc/fstab</code></pre>
+
+    <div class="warn"><strong>EFS 的安全群組要開 <u>2049</u>（NFS）。</strong>忘了開的症狀是 <span class="inline-code">mount</span> 指令卡住幾分鐘然後 timeout，沒有明確錯誤訊息。這是 EFS 最常見的卡關點。</div>
+
+    <div class="note"><strong>Instance Store 的正確用途：暫存、快取、shuffle 空間。</strong>它是實體接在主機上的 NVMe，速度極快（微秒級），<b>而且不額外收費</b>（含在機器價格裡）。但<b>機器一 stop 資料就沒了</b>。適合放 Spark 的中間結果、資料庫的暫存表空間、影片轉檔的工作目錄。<b>絕對不要放唯一一份資料。</b></div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="placement">
+    <h2>9. 放置群組與網路效能</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>類型</th><th>做什麼</th><th>用途</th><th>風險</th></tr>
+        <tr><td><b>Cluster</b></td><td>擠在<b>同一個機架</b></td><td>HPC、低延遲叢集運算</td><td><b>單點故障</b>——機架掛了全掛</td></tr>
+        <tr><td><b>Spread</b></td><td>分散到<b>不同硬體</b></td><td>少量關鍵機器（每 AZ 最多 7 台）</td><td>數量受限</td></tr>
+        <tr><td><b>Partition</b></td><td>分成多個<b>分區</b>，區間硬體隔離</td><td>HDFS、Cassandra、Kafka</td><td>—</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>怎麼記：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>Cluster = 擠在一起</b> → 追求速度，犧牲可用性</li>
+        <li><b>Spread = 散開</b> → 追求可用性，數量有限</li>
+        <li><b>Partition = 分組散開</b> → 大型分散式系統，每組資料有副本在不同分區</li>
+      </ul>
+      考試看到「HPC、最低延遲、最高網路吞吐」→ Cluster；看到「關鍵應用、避免同時故障」→ Spread；看到「Hadoop、Cassandra、Kafka」→ Partition。
+    </div>
+
+    <pre><code>$ <span class="cmd">aws ec2 create-placement-group</span> \
+    <span class="var">--group-name</span> hpc-cluster <span class="var">--strategy</span> cluster
+
+$ <span class="cmd">aws ec2 create-placement-group</span> \
+    <span class="var">--group-name</span> critical-spread <span class="var">--strategy</span> spread
+
+$ <span class="cmd">aws ec2 run-instances</span> --launch-template LaunchTemplateName=web-lt \
+    <span class="var">--placement</span> GroupName=hpc-cluster \
+    --subnet-id $APP_A --count 4</code></pre>
+
+    <h3>網路效能加速</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>技術</th><th>做什麼</th><th>適合</th></tr>
+        <tr><td><b>ENA</b></td><td>強化網路，最高 100 Gbps</td><td>現代機型<b>預設啟用</b></td></tr>
+        <tr><td><b>EFA</b></td><td>繞過 OS 核心的網路介面，超低延遲</td><td>HPC、大規模 ML 訓練</td></tr>
+        <tr><td><b>Cluster PG + EFA</b></td><td>兩者搭配</td><td>MPI 平行運算</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Cluster Placement Group 的兩個限制：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>不能跨 AZ</b>——它的目的就是擠在一起</li>
+        <li><b>容量不足時會失敗</b>——一次把所有機器開起來（用同一個 run-instances 呼叫）成功率最高。分批開很容易撞到「該機架沒空間了」</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="opt">
+    <h2>10. 成本優化實戰清單</h2>
+
+    <div class="cost">以下每一項都是實際能省下錢的動作，按<b>投入產出比</b>排序。前五項幾乎沒有風險，建議立刻做。</div>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>gp2 全部轉 gp3</b>省 20% 磁碟費，<b>線上轉換不用停機、沒有任何風險</b>。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>刪掉沒掛載的 EBS 磁碟</b>機器 terminate 了但磁碟沒刪，這是最常見的浪費。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>釋放沒用的 Elastic IP</b>2024 年起<b>所有</b>公網 IPv4 每小時收 US$0.005。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>刪掉過舊的快照與 AMI</b>用 DLM 自動管理保留期限。三年前的 AMI 沒人會用。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>開發／測試機下班自動關機</b>只在上班時間開 = <b>省 70%</b>（週一到五 9-19 點 = 50/168 小時）。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>x86 換 Graviton</b>省 20%，前提是軟體支援 ARM64。先在測試環境驗證。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>Right Sizing</b>看 CloudWatch 的 CPU / 記憶體使用率，長期低於 20% 就降規格。<b>Compute Optimizer 會直接給你建議</b>。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>無狀態工作負載改用 Spot</b>配合混合 ASG，省 50~60% 運算費。</div></div>
+      <div class="step"><div class="step-num">9</div><div class="step-body"><b>穩定基線買 Savings Plans</b>省 27~72%。<b>但這是財務承諾，先確認過使用量再簽</b>。</div></div>
+      <div class="step"><div class="step-num">10</div><div class="step-body"><b>建 VPC Endpoint 取代 NAT 流量</b>S3 / DynamoDB 的 Gateway Endpoint 免費（見第 02 章）。</div></div>
+    </div>
+
+    <h3>找出浪費的腳本</h3>
+    <pre><code>#!/bin/bash
+<span class="comment"># ── ① 沒掛載的 EBS 磁碟 ──</span>
+echo "=== 未掛載的磁碟 ==="
+aws ec2 describe-volumes --filters Name=status,Values=available \
+  --query 'Volumes[].[VolumeId,Size,VolumeType,CreateTime]' --output table
+
+<span class="comment"># ── ② 沒綁定的 Elastic IP ──</span>
+echo "=== 閒置的 EIP ==="
+aws ec2 describe-addresses \
+  --query 'Addresses[?AssociationId==null].[PublicIp,AllocationId]' --output table
+
+<span class="comment"># ── ③ 還在用 gp2 的磁碟 ──</span>
+echo "=== 還沒轉 gp3 的磁碟 ==="
+aws ec2 describe-volumes --filters Name=volume-type,Values=gp2 \
+  --query 'Volumes[].[VolumeId,Size]' --output table
+
+<span class="comment"># ── ④ 停機超過 30 天的機器（磁碟還在收費）──</span>
+echo "=== 長期停機的機器 ==="
+aws ec2 describe-instances --filters Name=instance-state-name,Values=stopped \
+  --query 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0],StateTransitionReason]' \
+  --output table
+
+<span class="comment"># ── ⑤ 沒有 Owner 標籤的機器（找不到主人的孤兒資源）──</span>
+echo "=== 沒有 Owner 標籤 ==="
+aws ec2 describe-instances \
+  --query 'Reservations[].Instances[?!not_null(Tags[?Key==`Owner`].Value)].[InstanceId,InstanceType]' \
+  --output table
+
+<span class="comment"># ── ⑥ AWS 官方的降規格建議 ──</span>
+echo "=== Compute Optimizer 建議 ==="
+aws compute-optimizer get-ec2-instance-recommendations \
+  --query 'instanceRecommendations[?finding==`OVER_PROVISIONED`].[instanceArn,currentInstanceType,recommendationOptions[0].instanceType]' \
+  --output table</code></pre>
+
+    <h3>下班自動關機</h3>
+    <pre><code><span class="comment"># 用 EventBridge + SSM Automation，不用寫 Lambda</span>
+<span class="comment"># 每天 20:00 (台北時間 = UTC 12:00) 關掉所有 AutoStop=true 的機器</span>
+
+$ <span class="cmd">aws events put-rule</span> \
+    <span class="var">--name</span> stop-dev-instances \
+    <span class="var">--schedule-expression</span> <span class="val">"cron(0 12 ? * MON-FRI *)"</span> \
+    <span class="var">--description</span> "平日 20:00 (JST/CST) 關閉開發機"
+
+<span class="comment"># 早上 08:30 開機</span>
+$ <span class="cmd">aws events put-rule</span> \
+    --name start-dev-instances \
+    --schedule-expression "cron(30 0 ? * MON-FRI *)"</code></pre>
+
+    <div class="ok"><strong>下班關機的效果比想像中大。</strong>一週 168 小時，只開週一到五的 9:00–19:00 = 50 小時。<b>省下 70%</b>。<br><br>
+      一台 m7g.large（US$71/月）→ 變成 <b>US$21/月</b>。20 台開發機一年就省下 <b>US$12,000</b>。<b>這是所有省錢手段裡投報率最高的。</b></div>
+
+    <div class="warn"><strong>做成本優化前，先確認標籤策略。</strong>沒有 <span class="inline-code">Owner</span>、<span class="inline-code">Env</span>、<span class="inline-code">Project</span> 標籤的話：
+      <ul style="margin:8px 0 0">
+        <li>你分不出哪台是誰的、能不能關</li>
+        <li>Cost Explorer 沒辦法按專案拆帳</li>
+        <li>自動化腳本不敢動任何東西</li>
+      </ul>
+      建議用 <b>SCP 或 Tag Policy 強制要求</b>開機器時必須帶標籤，沒帶就拒絕建立。
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：Golden AMI + 混合容量 + 成本優化</h3>
+    <p>需要第 02 章建好的 VPC。約 100 分鐘。</p>
+
+    <div class="cost">用 <b>t4g.micro</b>（免費方案內）做這個 Lab，運算費用接近 0。<br>
+    EBS 20 GB × 幾台約 <b>US$0.06/天</b>。<b>做完務必執行清理步驟</b>，特別是快照和 AMI——它們不會自己消失。</div>
+
+    <h4>階段一：開機器與 User Data</h4>
+    <ol>
+      <li>用 <strong>SSM Parameter</strong> 取得最新的 AL2023 <strong>arm64</strong> AMI ID</li>
+      <li>建立 <strong>Launch Template</strong>：t4g.micro、gp3 20GB 加密、<strong>IMDSv2 required</strong>、掛 SSM Role、完整標籤</li>
+      <li>寫 User Data：安裝 nginx、寫一個顯示主機名稱的首頁、<strong>輸出導向 /var/log/user-data.log</strong></li>
+      <li>在私有子網路開一台，<strong>不給公網 IP</strong></li>
+      <li>用 <span class="inline-code">aws ssm start-session</span> 連進去，確認 nginx 有起來</li>
+      <li>檢查 <span class="inline-code">/var/log/cloud-init-output.log</span> 確認 user-data 完整執行</li>
+    </ol>
+
+    <h4>階段二：Golden AMI</h4>
+    <ol start="7">
+      <li>在機器裡 <span class="inline-code">sync</span>，然後建立 <strong>AMI</strong>（這次<strong>不要</strong>用 --no-reboot）</li>
+      <li>用這個 AMI 建一個新的 Launch Template 版本，<strong>把 User Data 的安裝步驟拿掉</strong></li>
+      <li>用新版本開一台，<strong>比較開機到服務可用的時間差</strong></li>
+    </ol>
+
+    <h4>階段三：混合容量 ASG</h4>
+    <ol start="10">
+      <li>建立 ASG：min 2 / max 6 / desired 2，跨兩個 AZ</li>
+      <li>設定 <strong>混合實例政策</strong>：OnDemandBaseCapacity=1、上面 25% On-Demand、列 <strong>4 種機型</strong>、strategy 用 <strong>capacity-optimized</strong></li>
+      <li>用 <span class="inline-code">describe-auto-scaling-groups</span> 確認實際開出來的機器有 On-Demand 也有 Spot（看 <span class="inline-code">InstanceLifecycle</span> 欄位）</li>
+    </ol>
+
+    <h4>階段四：儲存實作</h4>
+    <ol start="13">
+      <li>建立一顆 <strong>gp2</strong> 磁碟掛上去，然後用 <span class="inline-code">modify-volume</span> <strong>線上轉成 gp3</strong>，觀察轉換過程中服務不中斷</li>
+      <li>把它從 10 GB 擴大到 20 GB，<strong>在 OS 裡執行 growpart + xfs_growfs</strong></li>
+      <li>建立 <strong>EFS</strong>，兩個 AZ 都建 mount target，開啟 <strong>30 天轉 IA</strong> 的生命週期</li>
+      <li>兩台不同 AZ 的機器<strong>同時掛載</strong> EFS，在一台寫檔案、另一台立刻讀得到</li>
+      <li>建立 <strong>DLM 政策</strong>：對 <span class="inline-code">Backup=daily</span> 標籤的磁碟每日快照、保留 7 份</li>
+    </ol>
+
+    <h4>階段五：成本盤點</h4>
+    <ol start="18">
+      <li>執行第 10 節的<strong>浪費盤點腳本</strong>，看看你的帳號有沒有孤兒資源</li>
+      <li>查 <strong>Compute Optimizer</strong> 的建議</li>
+      <li>建立 EventBridge 規則，平日 20:00 關閉 <span class="inline-code">AutoStop=true</span> 的機器</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li>私有子網路的機器<strong>沒有公網 IP</strong>，但 SSM 連得進去</li>
+      <li><span class="inline-code">describe-instances</span> 的 <span class="inline-code">MetadataOptions.HttpTokens</span> 是 <strong>required</strong></li>
+      <li>Golden AMI 開出來的機器，<strong>開機到 nginx 可服務 &lt; 60 秒</strong></li>
+      <li>ASG 裡同時有 <strong>spot 和 On-Demand</strong>（InstanceLifecycle 欄位）</li>
+      <li>gp3 轉換期間 <span class="inline-code">df -h</span> 一直正常，<strong>服務沒中斷</strong></li>
+      <li>兩個 AZ 的機器對同一個 EFS 路徑<strong>看到相同內容</strong></li>
+      <li><span class="inline-code">describe-volumes --filters Name=status,Values=available</span> <strong>是空的</strong>（沒有孤兒磁碟）</li>
+      <li><span class="inline-code">describe-addresses</span> <strong>沒有未綁定的 EIP</strong></li>
+    </ul>
+
+    <h4>清理</h4>
+    <pre><code>$ aws autoscaling update-auto-scaling-group --auto-scaling-group-name web-asg \
+    --min-size 0 --max-size 0 --desired-capacity 0
+$ aws autoscaling delete-auto-scaling-group --auto-scaling-group-name web-asg
+$ aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+$ aws efs delete-mount-target --mount-target-id fsmt-xxx      <span class="comment"># 每個都要刪</span>
+$ aws efs delete-file-system --file-system-id $FS_ID
+$ aws dlm delete-lifecycle-policy --policy-id policy-xxx
+$ aws ec2 deregister-image --image-id $AMI_ID
+$ aws ec2 delete-snapshot --snapshot-id $SNAP_ID
+
+<span class="comment"># 最後掃一遍確認沒有殘留</span>
+$ aws ec2 describe-volumes --filters Name=status,Values=available --output table
+$ aws ec2 describe-snapshots --owner-ids self --output table
+$ aws ec2 describe-images --owners self --output table</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>寫一個 Spot 中斷處理腳本，用 <span class="inline-code">aws ec2 send-spot-instance-interruptions</span>（測試用 API）<strong>主動觸發一次中斷</strong>，驗證你的腳本有正確善後。</li>
+      <li>比較 t4g.micro 在 <strong>standard 和 unlimited</strong> 模式下，跑滿 CPU 30 分鐘的行為與費用差異。</li>
+      <li>建立一個 <strong>Cluster Placement Group</strong>，開 4 台機器，用 <span class="inline-code">iperf3</span> 量測彼此之間的頻寬，跟不在同一個 PG 的機器比較。</li>
+      <li>用 <strong>EC2 Image Builder</strong> 建立一個自動化的 Golden AMI pipeline。</li>
+      <li>算一筆帳：20 台 m7i.large 全 On-Demand 跑整月，跟「改 Graviton + 買 1 年 Compute SP + 下班關機」相比，一年差多少錢？</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li>機型命名：<strong>家族 + 世代 + 特性 + 大小</strong>；<strong>g = Graviton，便宜 20% 效能更好</strong></li>
+      <li>T 系列有 <strong>CPU Credit</strong>；t3 預設 unlimited 會額外收費，用完會被限速到 10%</li>
+      <li><strong>Compute SP 最有彈性</strong>（可換家族、換 region、涵蓋 Fargate/Lambda）；<strong>Standard RI 折扣最高但綁死機型</strong></li>
+      <li>SP / RI 是<strong>不可退的財務承諾</strong>，簽之前先看 Cost Explorer 建議，只承諾穩定基線</li>
+      <li>Spot 省 70~90%，判準是<strong>「這台突然消失會不會有事」</strong>；企業標準是<strong>混合容量 ASG + capacity-optimized</strong></li>
+      <li>AMI ID <strong>不要硬寫</strong>，用 SSM Parameter 取得最新版</li>
+      <li>用 <strong>Launch Template</strong> 不要用 run-instances 裸開；Launch Configuration 已過時</li>
+      <li>System Status 失敗 → <strong>stop/start</strong>（換實體機）；Instance Status 失敗 → 查 OS</li>
+      <li>User Data <strong>只跑一次、以 root 執行、上限 16 KB、絕不放密碼</strong></li>
+      <li><strong>gp3 永遠優於 gp2</strong>，線上轉換無風險；擴大磁碟要<strong>兩步</strong>（AWS 端 + OS 端）</li>
+      <li>EBS <strong>綁定 AZ</strong>；要跨 AZ 共享用 <strong>EFS</strong>（但貴 4 倍，記得開 IA 生命週期）</li>
+      <li>Instance Store <strong>停機資料就消失</strong>，只放暫存</li>
+      <li>Placement Group：<strong>Cluster 擠一起、Spread 散開、Partition 分組</strong></li>
+      <li>省錢優先順序：<strong>gp3 → 刪孤兒資源 → 下班關機 → Graviton → Right Sizing → Spot → SP</strong></li>
+    </ul>
+    <div class="note">EC2 與儲存在 SAA-C03 屬於「Design Cost-Optimized Architectures」（20%）和「High-Performing」（24%）兩個領域。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="02-vpc-build.html">← 02：手刻一個 VPC</a>
+    <a href="index.html">回 AWS 學習中心 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 03</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

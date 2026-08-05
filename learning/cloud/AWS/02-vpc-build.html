@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手刻一個 VPC — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.topo{background:#0F1724;border-radius:10px;padding:20px 22px;margin:16px 0;overflow-x:auto;}
+.topo pre{background:none;padding:0;margin:0;}
+.subnet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:16px 0;}
+.sn{border-radius:10px;padding:12px 14px;border:1px solid var(--border);background:#fff;}
+.sn.pub{border-left:4px solid var(--good);}
+.sn.pri{border-left:4px solid var(--sky);}
+.sn.db{border-left:4px solid #8B5CF6;}
+.sn b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:2px;}
+.sn span{font-size:.78rem;color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">02 · 手刻 VPC</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 02 · 網路基礎</div>
+  <h1>手刻一個 <span>VPC</span></h1>
+  <p>不要用預設 VPC，不要按精靈。這章從一張白紙開始，逐個資源把企業標準的三層式網路建起來——每一條路由表為什麼要那樣寫，都講清楚。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼不要用預設 VPC</a></li>
+      <li><a href="#plan">網段規劃：CIDR 怎麼切</a></li>
+      <li><a href="#build">實作：11 個步驟建起完整 VPC</a></li>
+      <li><a href="#route">路由表：公有與私有的唯一差別</a></li>
+      <li><a href="#natgw">NAT Gateway 與它的帳單</a></li>
+      <li><a href="#sgnacl">SG vs NACL 完整對比</a></li>
+      <li><a href="#endpoint">VPC Endpoint：省錢又安全</a></li>
+      <li><a href="#connect">VPC 之間怎麼連</a></li>
+      <li><a href="#flowlog">Flow Logs 與網路排錯</a></li>
+      <li><a href="#trouble">連不上的九個檢查點</a></li>
+      <li><a href="#lab">完整實作 Lab</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="why">
+    <h2>1. 為什麼不要用預設 VPC</h2>
+
+    <p>每個 region 都有一個 AWS 幫你建好的 <b>Default VPC</b>。它很方便——開 EC2 直接就有公網 IP、能上網、能被連進來。但正因為方便，它的預設值全部偏向「能通」而不是「安全」。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Default VPC</th><th>自建 VPC</th></tr>
+        <tr><td>CIDR</td><td>固定 <b>172.31.0.0/16</b>（所有帳號都一樣）</td><td>自己決定</td></tr>
+        <tr><td>子網路</td><td>每個 AZ 一個，<b>全部是公有</b></td><td>公有／私有／資料庫分層</td></tr>
+        <tr><td>自動配公網 IP</td><td><b>開啟</b></td><td>預設關閉</td></tr>
+        <tr><td>對外路由</td><td>已接 IGW</td><td>自己決定哪些子網路能出去</td></tr>
+        <tr><td>問題</td><td colspan="2"><b>資料庫也會被放在公有子網路</b>；CIDR 撞在一起無法 Peering</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>Default VPC 的 CIDR 全世界都一樣是 172.31.0.0/16。</strong>這代表：你的帳號 A 和帳號 B 的 Default VPC <b>永遠無法做 VPC Peering</b>（網段重疊）。等公司長大要串接時才發現，那時搬遷成本非常高。<b>從第一個專案就自建 VPC。</b></div>
+
+    <div class="ok"><strong>但也不要刪掉 Default VPC。</strong>某些服務（部分 SageMaker、Elastic Beanstalk 快速部署、少數 Marketplace AMI）預設會找它，刪掉會出現難查的錯誤。<b>留著但不要用</b>就好。真要刪，記得它刪掉後可以用 <span class="inline-code">aws ec2 create-default-vpc</span> 重建。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="plan">
+    <h2>2. 網段規劃：CIDR 怎麼切</h2>
+
+    <div class="warn"><strong>VPC 的 CIDR 建立後<u>不能縮小</u>，只能額外新增次要 CIDR。</strong>所以第一次就要規劃好。而且子網路一旦建立，<b>CIDR 完全不能改</b>，只能刪掉重建（意味著裡面的資源要全部搬走）。</div>
+
+    <h3>三個規劃原則</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>用 /16，不要小氣</b>私有 IP 不用錢。給 VPC 一個 /16（65536 個位址），未來擴充才有空間。<b>AWS 允許 /16 到 /28。</b></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>不同環境、不同帳號用<u>不同</u>網段</b>prod 用 10.0.0.0/16、staging 用 10.1.0.0/16、dev 用 10.2.0.0/16。重疊了就永遠不能互連。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>避開公司內網已用的網段</b>將來要拉 VPN 或 Direct Connect 回機房時，網段撞到就通不了。<b>建工前先問網管要一份現有網段清單。</b></div></div>
+    </div>
+
+    <h3>本章要建的架構</h3>
+    <div class="topo"><pre><code>VPC: 10.0.0.0/16　(ap-northeast-1)
+
+　　　　　　　　 ap-northeast-1a　　　　　　 ap-northeast-1c
+　　　　　　┌──────────────────────┐　┌──────────────────────┐
+公有層　　　│ 10.0.0.0/24　        │　│ 10.0.1.0/24          │
+(Public)　  │ ALB / NAT GW / 堡壘  │　│ ALB / NAT GW         │
+　　　　　　└──────────┬───────────┘　└──────────┬───────────┘
+　　　　　　　　　　　　│　　　　　　　　　　　　　│
+應用層　　　┌──────────▼───────────┐　┌──────────▼───────────┐
+(Private)　 │ 10.0.10.0/24         │　│ 10.0.11.0/24         │
+　　　　　　│ EC2 / ECS / Lambda   │　│ EC2 / ECS            │
+　　　　　　└──────────┬───────────┘　└──────────┬───────────┘
+　　　　　　　　　　　　│　　　　　　　　　　　　　│
+資料層　　　┌──────────▼───────────┐　┌──────────▼───────────┐
+(Isolated)　│ 10.0.20.0/24         │　│ 10.0.21.0/24         │
+　　　　　　│ RDS 主　             │　│ RDS 待命 (Multi-AZ)  │
+　　　　　　└──────────────────────┘　└──────────────────────┘
+　　　　　　　　　　　　　　　　　　　　　剩餘 10.0.2~9 / 12~19 / 22~255 留給未來擴充</code></pre></div>
+
+    <div class="subnet-grid">
+      <div class="sn pub"><b>公有子網路</b><span>路由表<b>有</b>指向 IGW 的 0.0.0.0/0。放 ALB、NAT Gateway、堡壘主機。</span></div>
+      <div class="sn pri"><b>私有子網路</b><span>路由表指向 <b>NAT Gateway</b>。能主動出網，但外面連不進來。放應用伺服器。</span></div>
+      <div class="sn db"><b>隔離子網路</b><span>路由表<b>沒有</b>對外路由。完全封閉。放資料庫。</span></div>
+    </div>
+
+    <div class="warn"><strong>每個子網路 AWS 會保留 5 個 IP，不是 2 個。</strong>
+      <div class="tbl-wrap" style="margin-top:8px">
+        <table class="t">
+          <tr><th>位址</th><th>用途</th></tr>
+          <tr><td><b>.0</b></td><td>網路位址</td></tr>
+          <tr><td><b>.1</b></td><td>VPC 路由器</td></tr>
+          <tr><td><b>.2</b></td><td><b>DNS 伺服器</b>（VPC CIDR 的 base + 2）</td></tr>
+          <tr><td><b>.3</b></td><td>保留給未來使用</td></tr>
+          <tr><td><b>.255</b></td><td>廣播位址（VPC 不支援廣播，但仍保留）</td></tr>
+        </table>
+      </div>
+      所以 <b>/24 只有 251 個可用</b>，<b>/28 只有 11 個可用</b>。這是 SAA 常考的計算題。
+    </div>
+
+    <div class="formula"><code>/24 → 256 − 5 = <b>251</b> 個可用<br>
+    /26 → 64 − 5 = <b>59</b> 個可用<br>
+    /28 → 16 − 5 = <b>11</b> 個可用（AWS 允許的最小子網路）</code></div>
+
+    <div class="note"><strong>子網路不能跨 AZ。</strong>一個子網路綁死一個 AZ。所以「高可用」的最低要求是<b>至少兩個 AZ，每層各一個子網路</b>——這也是為什麼上面的圖每一層都有兩個。ALB 要求至少兩個 AZ 的子網路，RDS Multi-AZ 也是。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="build">
+    <h2>3. 實作：11 個步驟建起完整 VPC</h2>
+
+    <div class="cost">這一節建立的資源中，<b>VPC、子網路、IGW、路由表、SG、NACL 全部免費</b>。<br>
+    <b>要錢的只有兩個</b>：NAT Gateway（每小時約 US$0.062 + 每 GB US$0.062，一個月不關約 <b>US$45</b>）和 Elastic IP（未綁定時每小時 US$0.005）。<br>
+    <b>做完 Lab 一定要刪 NAT Gateway 和釋放 EIP</b>，否則會持續計費。</div>
+
+    <pre><code><span class="comment"># ═══ 步驟 1：建立 VPC ═══</span>
+$ <span class="cmd">VPC_ID</span>=$(aws ec2 create-vpc \
+    <span class="var">--cidr-block</span> 10.0.0.0/16 \
+    <span class="var">--tag-specifications</span> <span class="val">'ResourceType=vpc,Tags=[{Key=Name,Value=main-vpc}]'</span> \
+    <span class="var">--query</span> Vpc.VpcId <span class="var">--output</span> text)
+$ echo $VPC_ID
+vpc-0a1b2c3d4e5f6789a
+
+<span class="comment"># 開啟 DNS 支援（RDS endpoint、VPC Endpoint 都需要）</span>
+$ <span class="cmd">aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-support</span>
+$ <span class="cmd">aws ec2 modify-vpc-attribute --vpc-id $VPC_ID --enable-dns-hostnames</span></code></pre>
+
+    <div class="warn"><strong><span class="inline-code">enable-dns-hostnames</span> 沒開，之後 RDS 的 endpoint 名稱會解析不出來，VPC Endpoint 的私有 DNS 也不會生效。</strong>自建 VPC 這個屬性<b>預設是關的</b>（Default VPC 才預設開），是最常見的「照著做卻不通」原因。</div>
+
+    <pre><code><span class="comment"># ═══ 步驟 2：建立 6 個子網路（3 層 × 2 AZ）═══</span>
+<span class="comment"># 公有層</span>
+$ <span class="cmd">PUB_A</span>=$(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.0.0.0/24 --availability-zone ap-northeast-1a \
+    --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=public-1a},{Key=Tier,Value=public}]' \
+    --query Subnet.SubnetId --output text)
+$ <span class="cmd">PUB_C</span>=$(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.0.1.0/24 --availability-zone ap-northeast-1c \
+    --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=public-1c},{Key=Tier,Value=public}]' \
+    --query Subnet.SubnetId --output text)
+
+<span class="comment"># 應用層</span>
+$ <span class="cmd">APP_A</span>=$(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.0.10.0/24 --availability-zone ap-northeast-1a \
+    --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=app-1a},{Key=Tier,Value=private}]' \
+    --query Subnet.SubnetId --output text)
+$ <span class="cmd">APP_C</span>=$(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.0.11.0/24 --availability-zone ap-northeast-1c \
+    --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=app-1c},{Key=Tier,Value=private}]' \
+    --query Subnet.SubnetId --output text)
+
+<span class="comment"># 資料層</span>
+$ <span class="cmd">DB_A</span>=$(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.0.20.0/24 --availability-zone ap-northeast-1a \
+    --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=db-1a},{Key=Tier,Value=isolated}]' \
+    --query Subnet.SubnetId --output text)
+$ <span class="cmd">DB_C</span>=$(aws ec2 create-subnet --vpc-id $VPC_ID \
+    --cidr-block 10.0.21.0/24 --availability-zone ap-northeast-1c \
+    --tag-specifications 'ResourceType=subnet,Tags=[{Key=Name,Value=db-1c},{Key=Tier,Value=isolated}]' \
+    --query Subnet.SubnetId --output text)</code></pre>
+
+    <pre><code><span class="comment"># ═══ 步驟 3：建立並掛上 Internet Gateway ═══</span>
+$ <span class="cmd">IGW_ID</span>=$(aws ec2 create-internet-gateway \
+    --tag-specifications 'ResourceType=internet-gateway,Tags=[{Key=Name,Value=main-igw}]' \
+    --query InternetGateway.InternetGatewayId --output text)
+
+$ <span class="cmd">aws ec2 attach-internet-gateway</span> --vpc-id $VPC_ID --internet-gateway-id $IGW_ID</code></pre>
+
+    <div class="note"><strong>IGW 是免費的，而且沒有頻寬上限、不會是效能瓶頸。</strong>它是 VPC 層級的資源，一個 VPC 只能掛一個。它同時做兩件事：提供對網際網路的路由，以及<b>幫有公網 IP 的執行個體做 1:1 NAT</b>。</div>
+
+    <pre><code><span class="comment"># ═══ 步驟 4：建立 NAT Gateway（放在公有子網路）═══</span>
+$ <span class="cmd">EIP_ALLOC</span>=$(aws ec2 allocate-address --domain vpc \
+    --tag-specifications 'ResourceType=elastic-ip,Tags=[{Key=Name,Value=nat-eip-1a}]' \
+    --query AllocationId --output text)
+
+$ <span class="cmd">NAT_ID</span>=$(aws ec2 create-nat-gateway \
+    <span class="var">--subnet-id</span> $PUB_A \
+    <span class="var">--allocation-id</span> $EIP_ALLOC \
+    --tag-specifications 'ResourceType=natgateway,Tags=[{Key=Name,Value=nat-1a}]' \
+    --query NatGateway.NatGatewayId --output text)
+
+<span class="comment"># 建立要 2~3 分鐘，等它變 available</span>
+$ <span class="cmd">aws ec2 wait nat-gateway-available --nat-gateway-ids $NAT_ID</span></code></pre>
+
+    <div class="warn"><strong>NAT Gateway 一定要放在<u>公有</u>子網路。</strong>放進私有子網路會建得起來但完全不通——因為它自己也需要走 IGW 出去。這是很常見的錯誤，而且不會有明顯的錯誤訊息，只會表現成「私有子網路的機器上不了網」。</div>
+
+    <pre><code><span class="comment"># ═══ 步驟 5：公有路由表 ═══</span>
+$ <span class="cmd">RT_PUB</span>=$(aws ec2 create-route-table --vpc-id $VPC_ID \
+    --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=rt-public}]' \
+    --query RouteTable.RouteTableId --output text)
+
+<span class="comment"># 這一行是「公有子網路」的唯一定義</span>
+$ <span class="cmd">aws ec2 create-route</span> --route-table-id $RT_PUB \
+    <span class="var">--destination-cidr-block</span> 0.0.0.0/0 <span class="var">--gateway-id</span> $IGW_ID
+
+$ <span class="cmd">aws ec2 associate-route-table</span> --route-table-id $RT_PUB --subnet-id $PUB_A
+$ <span class="cmd">aws ec2 associate-route-table</span> --route-table-id $RT_PUB --subnet-id $PUB_C
+
+<span class="comment"># ═══ 步驟 6：私有路由表（指向 NAT）═══</span>
+$ <span class="cmd">RT_APP</span>=$(aws ec2 create-route-table --vpc-id $VPC_ID \
+    --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=rt-app}]' \
+    --query RouteTable.RouteTableId --output text)
+
+$ <span class="cmd">aws ec2 create-route</span> --route-table-id $RT_APP \
+    --destination-cidr-block 0.0.0.0/0 <span class="var">--nat-gateway-id</span> $NAT_ID
+
+$ <span class="cmd">aws ec2 associate-route-table</span> --route-table-id $RT_APP --subnet-id $APP_A
+$ <span class="cmd">aws ec2 associate-route-table</span> --route-table-id $RT_APP --subnet-id $APP_C
+
+<span class="comment"># ═══ 步驟 7：資料層路由表（完全不加對外路由）═══</span>
+$ <span class="cmd">RT_DB</span>=$(aws ec2 create-route-table --vpc-id $VPC_ID \
+    --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=rt-db}]' \
+    --query RouteTable.RouteTableId --output text)
+
+$ <span class="cmd">aws ec2 associate-route-table</span> --route-table-id $RT_DB --subnet-id $DB_A
+$ <span class="cmd">aws ec2 associate-route-table</span> --route-table-id $RT_DB --subnet-id $DB_C</code></pre>
+
+    <div class="ok"><strong>資料層的路由表<u>什麼都不用加</u>。</strong>每張路由表天生就有一條 <span class="inline-code">10.0.0.0/16 → local</span>（VPC 內互通，<b>無法刪除也無法覆蓋</b>）。不加 0.0.0.0/0 就代表這個子網路完全出不了 VPC——資料庫本來就該這樣。</div>
+
+    <pre><code><span class="comment"># ═══ 步驟 8：安全群組 —— ALB ═══</span>
+$ <span class="cmd">SG_ALB</span>=$(aws ec2 create-security-group \
+    --group-name alb-sg --description "ALB from internet" --vpc-id $VPC_ID \
+    --query GroupId --output text)
+
+$ <span class="cmd">aws ec2 authorize-security-group-ingress</span> --group-id $SG_ALB \
+    --protocol tcp --port 443 --cidr 0.0.0.0/0
+$ <span class="cmd">aws ec2 authorize-security-group-ingress</span> --group-id $SG_ALB \
+    --protocol tcp --port 80 --cidr 0.0.0.0/0
+
+<span class="comment"># ═══ 步驟 9：安全群組 —— 應用層（只接受來自 ALB 的流量）═══</span>
+$ <span class="cmd">SG_APP</span>=$(aws ec2 create-security-group \
+    --group-name app-sg --description "App tier" --vpc-id $VPC_ID \
+    --query GroupId --output text)
+
+<span class="comment"># 關鍵：來源寫「安全群組」而不是 IP 網段</span>
+$ <span class="cmd">aws ec2 authorize-security-group-ingress</span> --group-id $SG_APP \
+    --protocol tcp --port 8080 <span class="var">--source-group</span> $SG_ALB
+
+<span class="comment"># ═══ 步驟 10：安全群組 —— 資料庫（只接受應用層）═══</span>
+$ <span class="cmd">SG_DB</span>=$(aws ec2 create-security-group \
+    --group-name db-sg --description "Database tier" --vpc-id $VPC_ID \
+    --query GroupId --output text)
+
+$ <span class="cmd">aws ec2 authorize-security-group-ingress</span> --group-id $SG_DB \
+    --protocol tcp --port 3306 <span class="var">--source-group</span> $SG_APP</code></pre>
+
+    <div class="ok"><strong>安全群組互相引用是 AWS 最好用的設計之一。</strong><span class="inline-code">--source-group</span> 的意思是「任何掛著那個安全群組的資源都能進來」。<br><br>
+      好處：<b>Auto Scaling 增減機器時完全不用改規則</b>。用 IP 網段的話，每次擴容都要改 SG。<b>這是 SAA 的高頻考點</b>——題目問「如何讓 Web 層存取 App 層且不受擴縮影響」，答案就是引用安全群組。
+    </div>
+
+    <pre><code><span class="comment"># ═══ 步驟 11：確認整體結構 ═══</span>
+$ <span class="cmd">aws ec2 describe-subnets</span> --filters "Name=vpc-id,Values=$VPC_ID" \
+    --query 'Subnets[].[Tags[?Key==`Name`].Value|[0],CidrBlock,AvailabilityZone,AvailableIpAddressCount]' \
+    --output table
+-------------------------------------------------------------
+|                      DescribeSubnets                       |
++-------------+---------------+-------------------+----------+
+|  public-1a  |  10.0.0.0/24  |  ap-northeast-1a  |  250     |
+|  public-1c  |  10.0.1.0/24  |  ap-northeast-1c  |  251     |
+|  app-1a     |  10.0.10.0/24 |  ap-northeast-1a  |  251     |
+|  app-1c     |  10.0.11.0/24 |  ap-northeast-1c  |  251     |
+|  db-1a      |  10.0.20.0/24 |  ap-northeast-1a  |  251     |
+|  db-1c      |  10.0.21.0/24 |  ap-northeast-1c  |  251     |
++-------------+---------------+-------------------+----------+
+
+<span class="comment"># public-1a 是 250 因為 NAT Gateway 佔用了一個 IP</span>
+
+$ <span class="cmd">aws ec2 describe-route-tables</span> --filters "Name=vpc-id,Values=$VPC_ID" \
+    --query 'RouteTables[].[Tags[?Key==`Name`].Value|[0],Routes[].DestinationCidrBlock]' \
+    --output text</code></pre>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="route">
+    <h2>4. 路由表：公有與私有的唯一差別</h2>
+
+    <div class="formula"><code><b>公有子網路的定義：</b>它關聯的路由表有一條<br>
+    <b>0.0.0.0/0 → Internet Gateway</b><br><br>
+    沒有這條，就是私有子網路。<b>就這樣，沒有別的判準。</b></code></div>
+
+    <div class="warn"><strong>「子網路」本身沒有公有／私有這個屬性。</strong>AWS 主控台上看不到一個叫「Public」的開關。是<b>路由表決定</b>的。所以：
+      <ul style="margin:8px 0 0">
+        <li>把一個私有子網路的路由表改成指向 IGW → 它<b>立刻變成公有</b></li>
+        <li>把公有子網路的那條路由刪掉 → 裡面的機器<b>立刻斷網</b></li>
+      </ul>
+      考試常出這種題：「這個子網路是公有還是私有？」——去看它的路由表。
+    </div>
+
+    <h3>路由表比對規則</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>目的地</th><th>目標</th><th>說明</th></tr>
+        <tr><td><b>10.0.0.0/16</b></td><td>local</td><td><b>自動存在、不可刪除、不可覆蓋</b>。VPC 內互通</td></tr>
+        <tr><td>0.0.0.0/0</td><td>igw-xxx</td><td>公有子網路的對外路由</td></tr>
+        <tr><td>0.0.0.0/0</td><td>nat-xxx</td><td>私有子網路的對外路由</td></tr>
+        <tr><td>172.16.0.0/12</td><td>pcx-xxx</td><td>指向 VPC Peering</td></tr>
+        <tr><td>192.168.0.0/16</td><td>vgw-xxx</td><td>指向 VPN Gateway（回公司機房）</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>跟 CH 3-1 的路由器一樣：最長前綴匹配優先。</strong>如果同時有 <span class="inline-code">0.0.0.0/0 → NAT</span> 和 <span class="inline-code">54.230.0.0/16 → IGW</span>，那麼去 54.230.x.x 的流量走 IGW，其他走 NAT。<b>local 那條永遠最優先，這是它不能被覆蓋的原因。</b></div>
+
+    <h3>Main Route Table 的陷阱</h3>
+    <div class="warn"><strong>沒有明確關聯路由表的子網路，會自動使用 VPC 的 Main Route Table。</strong>如果有人不小心在 Main 加了一條指向 IGW 的路由，<b>所有「忘了關聯」的子網路就全部變成公有</b>——包含你的資料庫。<br><br>
+      <b>防護做法：</b>把 Main Route Table 保持乾淨（只有 local），並且<b>每個子網路都明確關聯</b>到自己的路由表。可以用 AWS Config 規則持續監控。
+      <pre style="margin:8px 0 0"><code><span class="comment"># 找出沒有明確關聯路由表的子網路</span>
+$ <span class="cmd">aws ec2 describe-route-tables</span> --filters "Name=vpc-id,Values=$VPC_ID" \
+    --query 'RouteTables[?Associations[?Main==`true`]].RouteTableId'</code></pre>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="natgw">
+    <h2>5. NAT Gateway 與它的帳單</h2>
+
+    <div class="cost"><b>NAT Gateway 是 AWS 帳單上最常見的「意外支出」前三名。</b><br><br>
+    · 每小時 <b>US$0.062</b>（東京區）→ 一個月不關 <b>≈ US$45</b><br>
+    · 每處理 1 GB 再收 <b>US$0.062</b><br>
+    · 而且<b>三個 AZ 就要三個</b>（做高可用的話）→ 一個月 <b>≈ US$135</b>，還沒算流量<br><br>
+    很多人做完 Lab 忘了刪，下個月看到帳單才發現。<b>學習用途做完就刪。</b></div>
+
+    <h3>NAT Gateway vs NAT Instance</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>NAT Gateway（AWS 託管）</th><th>NAT Instance（自己開 EC2）</th></tr>
+        <tr><td>可用性</td><td><b>AZ 內自動高可用</b></td><td>自己要做（ASG + 腳本）</td></tr>
+        <tr><td>頻寬</td><td>自動擴展到 <b>100 Gbps</b></td><td>看機型</td></tr>
+        <tr><td>維運</td><td><b>零</b></td><td>要自己打補丁、監控</td></tr>
+        <tr><td>費用</td><td>約 US$45/月起</td><td>t4g.nano 約 <b>US$3/月</b></td></tr>
+        <tr><td>安全群組</td><td><b>不能掛</b></td><td>可以掛</td></tr>
+        <tr><td>可當堡壘主機</td><td>不行</td><td>可以</td></tr>
+        <tr><td>需要關 Source/Dest Check</td><td>不用</td><td><b>必須關</b>，忘了就不通</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>怎麼選？</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>正式環境</b> → NAT Gateway，沒得商量。省下的錢不值得承擔單點故障</li>
+        <li><b>學習／開發環境</b> → NAT Instance（t4g.nano）可以省 90% 費用</li>
+        <li><b>更省的做法</b> → 大部分「出網」需求其實是去 S3、ECR、CloudWatch，用 <b>VPC Endpoint</b> 完全不需要 NAT（下一節）</li>
+      </ul>
+      考試題目如果強調「高可用」「免維運」→ 選 NAT Gateway；強調「成本最低」→ 可能是 NAT Instance 或 VPC Endpoint。
+    </div>
+
+    <h3>高可用架構：每個 AZ 一個 NAT</h3>
+    <div class="warn"><strong>只放一個 NAT Gateway 有兩個問題：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>單點故障</b>——那個 AZ 掛掉，所有私有子網路一起斷網</li>
+        <li><b>跨 AZ 流量費</b>——1c 的機器走 1a 的 NAT，每 GB 要多付跨 AZ 傳輸費（US$0.01/GB 雙向）</li>
+      </ol>
+      正確做法：<b>每個 AZ 各一個 NAT Gateway，每個 AZ 的私有子網路指向自己 AZ 的那個</b>。
+    </div>
+
+    <pre><code><span class="comment"># 1c 也建一個 NAT，並給 1c 的私有子網路自己的路由表</span>
+$ EIP_C=$(aws ec2 allocate-address --domain vpc --query AllocationId --output text)
+$ NAT_C=$(aws ec2 create-nat-gateway --subnet-id $PUB_C --allocation-id $EIP_C \
+    --query NatGateway.NatGatewayId --output text)
+$ aws ec2 wait nat-gateway-available --nat-gateway-ids $NAT_C
+
+$ RT_APP_C=$(aws ec2 create-route-table --vpc-id $VPC_ID \
+    --tag-specifications 'ResourceType=route-table,Tags=[{Key=Name,Value=rt-app-1c}]' \
+    --query RouteTable.RouteTableId --output text)
+$ aws ec2 create-route --route-table-id $RT_APP_C \
+    --destination-cidr-block 0.0.0.0/0 --nat-gateway-id $NAT_C
+
+<span class="comment"># 把 1c 從共用路由表改關聯到自己的</span>
+$ ASSOC=$(aws ec2 describe-route-tables --route-table-ids $RT_APP \
+    --query "RouteTables[0].Associations[?SubnetId=='$APP_C'].RouteTableAssociationId" --output text)
+$ aws ec2 replace-route-table-association --association-id $ASSOC --route-table-id $RT_APP_C</code></pre>
+
+    <h3>刪除（做完 Lab 一定要做）</h3>
+    <pre><code>$ <span class="cmd">aws ec2 delete-nat-gateway --nat-gateway-id $NAT_ID</span>
+$ <span class="cmd">aws ec2 wait nat-gateway-deleted --nat-gateway-ids $NAT_ID</span>
+$ <span class="cmd">aws ec2 release-address --allocation-id $EIP_ALLOC</span>      <span class="comment"># EIP 沒釋放也會收費</span>
+
+<span class="comment"># 檢查有沒有漏掉的 EIP（未綁定的每小時 US$0.005）</span>
+$ <span class="cmd">aws ec2 describe-addresses</span> \
+    <span class="var">--query</span> <span class="val">'Addresses[?AssociationId==null].[PublicIp,AllocationId]'</span> --output table</code></pre>
+
+    <div class="warn"><strong>2024 年起 AWS 對<u>所有</u>公有 IPv4 收費（每小時 US$0.005，約每月 US$3.6/個），不論有沒有綁定。</strong>以前只有「閒置的 EIP」才收費，現在連正在用的也收。這讓「盡量少用公網 IP」變成實際的省錢手段——多用私有子網路 + ALB + VPC Endpoint。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="sgnacl">
+    <h2>6. SG vs NACL 完整對比</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Security Group（安全群組）</th><th>Network ACL</th></tr>
+        <tr><td>作用層級</td><td><b>ENI（網卡）</b></td><td><b>子網路</b></td></tr>
+        <tr><td>有狀態？</td><td><b>Stateful（有狀態）</b></td><td><b>Stateless（無狀態）</b></td></tr>
+        <tr><td>規則類型</td><td><b>只有 Allow</b></td><td>Allow <b>和</b> Deny</td></tr>
+        <tr><td>評估方式</td><td><b>所有規則一起看</b>，有一條符合就通過</td><td><b>依規則號碼由小到大</b>，第一個符合就決定</td></tr>
+        <tr><td>回程流量</td><td><b>自動放行</b></td><td><b>要自己開規則</b></td></tr>
+        <tr><td>來源可寫安全群組</td><td><b>可以</b></td><td>不行（只能寫 CIDR）</td></tr>
+        <tr><td>預設值</td><td>入站全擋、<b>出站全開</b></td><td>預設 NACL 進出<b>全開</b>；自建的<b>全擋</b></td></tr>
+      </table>
+    </div>
+
+    <div class="analogy"><strong>比喻：</strong>NACL 是<b>社區大門的警衛</b>——管整個社區的人車進出，而且他記性不好，你出去再回來還要再檢查一次（無狀態）。SG 是<b>每一戶的門鎖</b>——只管自己這一戶，而且他記得「這是剛剛出去的那個人」，回來直接放行（有狀態）。</div>
+
+    <div class="warn"><strong>「有狀態」的實際意義，用一個例子講清楚：</strong><br><br>
+      EC2 要去外面下載更新（出去 tcp/443，回來的封包來源埠是 443、目的埠是隨機高位埠）。
+      <ul style="margin:8px 0 0">
+        <li><b>SG：</b>只要出站規則允許 443 出去，回程<b>自動放行</b>，入站規則完全不用動</li>
+        <li><b>NACL：</b>出站要允許 443，<b>入站還要額外允許 1024–65535 的回應埠</b>（ephemeral ports）</li>
+      </ul>
+      <b>忘記開 ephemeral port 是 NACL 最常見的故障</b>：症狀是「連得出去但沒有回應」。
+    </div>
+
+    <pre><code><span class="comment"># NACL 正確寫法：出站 443 + 入站 ephemeral</span>
+$ <span class="cmd">aws ec2 create-network-acl-entry</span> --network-acl-id $NACL_ID \
+    <span class="var">--rule-number</span> 100 <span class="var">--protocol</span> tcp <span class="var">--port-range</span> From=443,To=443 \
+    <span class="var">--cidr-block</span> 0.0.0.0/0 <span class="var">--rule-action</span> allow <span class="var">--egress</span>
+
+$ <span class="cmd">aws ec2 create-network-acl-entry</span> --network-acl-id $NACL_ID \
+    --rule-number 100 --protocol tcp <span class="var">--port-range</span> From=1024,To=65535 \
+    --cidr-block 0.0.0.0/0 --rule-action allow          <span class="comment">← 沒有 --egress 就是入站</span></code></pre>
+
+    <div class="ok"><strong>企業實務建議：主要用 SG，NACL 只做粗粒度的封鎖。</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>SG</b> 做精細的分層控制（ALB→App→DB），因為有狀態、可引用安全群組、好維護</li>
+        <li><b>NACL</b> 只用來做「封鎖特定惡意 IP 網段」這種<b>SG 做不到的 Deny</b></li>
+        <li>不要用 NACL 做細部應用層控制——規則號碼管理很快就會亂掉</li>
+      </ul>
+    </div>
+
+    <h3>SG 的三個容易忽略的細節</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>細節</th><th>說明</th></tr>
+        <tr><td><b>預設出站是全開</b></td><td>新建 SG 的 outbound 是 <span class="inline-code">0.0.0.0/0 全部允許</span>。高安全需求要手動收緊</td></tr>
+        <tr><td><b>一個 ENI 可掛多個 SG</b></td><td>規則<b>聯集</b>生效。最多 5 個（可申請提高）</td></tr>
+        <tr><td><b>刪不掉？</b></td><td>被其他 SG 引用、或還有 ENI 掛著，就刪不掉。要先解除引用</td></tr>
+      </table>
+    </div>
+
+    <pre><code><span class="comment"># 查某個 SG 被誰引用了（刪不掉的時候用）</span>
+$ <span class="cmd">aws ec2 describe-security-groups</span> \
+    <span class="var">--query</span> <span class="val">"SecurityGroups[?IpPermissions[?UserIdGroupPairs[?GroupId=='sg-0abc123']]].[GroupId,GroupName]"</span> \
+    --output table
+
+<span class="comment"># 查哪些 ENI 還掛著它</span>
+$ <span class="cmd">aws ec2 describe-network-interfaces</span> \
+    --filters Name=group-id,Values=sg-0abc123 \
+    --query 'NetworkInterfaces[].[NetworkInterfaceId,Description,Status]' --output table</code></pre>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="endpoint">
+    <h2>7. VPC Endpoint：省錢又安全</h2>
+
+    <p>私有子網路的 EC2 要讀 S3。走 NAT Gateway 的話：流量出到公網 → 繞一圈 → 再回到 AWS 的 S3。<b>又慢、又要付 NAT 流量費、又暴露在公網上。</b></p>
+
+    <p><b>VPC Endpoint</b> 讓流量<b>完全走 AWS 內部網路</b>，不經過網際網路。</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Gateway Endpoint</th><th>Interface Endpoint（PrivateLink）</th></tr>
+        <tr><td>支援服務</td><td><b>只有 S3 和 DynamoDB</b></td><td>其他<b>上百個</b>服務</td></tr>
+        <tr><td>實作方式</td><td>加一條<b>路由表項目</b></td><td>在子網路裡建一張 <b>ENI</b></td></tr>
+        <tr><td>費用</td><td><b>完全免費</b></td><td>每小時 US$0.01/AZ + 每 GB US$0.01</td></tr>
+        <tr><td>能不能跨 VPC / 跨帳號</td><td>不行</td><td><b>可以</b></td></tr>
+        <tr><td>用 SG 控制</td><td>不行（用 Endpoint Policy）</td><td><b>可以</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>Gateway Endpoint 免費，S3 和 DynamoDB 一律建起來，沒有理由不建。</strong>光是省下的 NAT 流量費就很可觀——如果你的應用每天讀寫 S3 100 GB，走 NAT 一個月要多付 <b>US$186</b>，走 Gateway Endpoint 是 <b>US$0</b>。</div>
+
+    <pre><code><span class="comment"># ═══ Gateway Endpoint（S3）—— 免費，直接建 ═══</span>
+$ <span class="cmd">aws ec2 create-vpc-endpoint</span> \
+    <span class="var">--vpc-id</span> $VPC_ID \
+    <span class="var">--service-name</span> com.amazonaws.ap-northeast-1.s3 \
+    <span class="var">--vpc-endpoint-type</span> Gateway \
+    <span class="var">--route-table-ids</span> $RT_APP $RT_DB
+
+<span class="comment"># DynamoDB 同理</span>
+$ <span class="cmd">aws ec2 create-vpc-endpoint</span> \
+    --vpc-id $VPC_ID \
+    --service-name com.amazonaws.ap-northeast-1.dynamodb \
+    --vpc-endpoint-type Gateway --route-table-ids $RT_APP</code></pre>
+
+    <div class="note">建立之後，去看路由表會多出一條 <span class="inline-code">pl-61a54008 → vpce-xxx</span>。<span class="inline-code">pl-</span> 開頭的是 <b>Prefix List</b>，代表「S3 在這個 region 的所有 IP 範圍」，AWS 會自動維護。</div>
+
+    <pre><code><span class="comment"># ═══ Interface Endpoint —— 常用的幾個 ═══</span>
+<span class="comment"># SSM（Session Manager 連線用，取代堡壘主機）</span>
+$ for SVC in ssm ssmmessages ec2messages; do
+    aws ec2 create-vpc-endpoint \
+      --vpc-id $VPC_ID \
+      --service-name com.amazonaws.ap-northeast-1.$SVC \
+      <span class="var">--vpc-endpoint-type</span> Interface \
+      --subnet-ids $APP_A $APP_C \
+      --security-group-ids $SG_ENDPOINT \
+      <span class="var">--private-dns-enabled</span>
+  done
+
+<span class="comment"># ECR（容器拉映像檔）—— 注意要 api + dkr 兩個，還要加 S3 Gateway</span>
+$ for SVC in ecr.api ecr.dkr; do
+    aws ec2 create-vpc-endpoint --vpc-id $VPC_ID \
+      --service-name com.amazonaws.ap-northeast-1.$SVC \
+      --vpc-endpoint-type Interface --subnet-ids $APP_A $APP_C \
+      --security-group-ids $SG_ENDPOINT --private-dns-enabled
+  done</code></pre>
+
+    <div class="warn"><strong>Interface Endpoint 的三個常見坑：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>SG 要放行 443</b>——Endpoint 的 ENI 也是網卡，要有安全群組允許來源存取 tcp/443，否則會 timeout</li>
+        <li><b>VPC 要開 enable-dns-hostnames</b>——不然 <span class="inline-code">--private-dns-enabled</span> 不會生效，程式還是會解析到公網 IP</li>
+        <li><b>ECR 需要三個 endpoint</b>——<span class="inline-code">ecr.api</span>、<span class="inline-code">ecr.dkr</span>，<b>加上 S3 Gateway Endpoint</b>（映像檔的 layer 實際存在 S3）。少一個就會拉不下來，而且錯誤訊息很模糊</li>
+      </ol>
+    </div>
+
+    <div class="ok"><strong>SSM Session Manager 可以完全取代堡壘主機。</strong>建好三個 SSM endpoint 之後：
+      <ul style="margin:8px 0 0">
+        <li>私有子網路的 EC2 <b>不需要公網 IP</b></li>
+        <li>不需要開放 22 埠，SG 可以完全沒有入站規則</li>
+        <li>不需要管理 SSH 金鑰</li>
+        <li>所有操作<b>自動記錄到 CloudTrail 和 S3</b>，稽核直接過關</li>
+      </ul>
+      <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws ssm start-session --target i-0abc123def456</span></code></pre>
+      這是目前 AWS 推薦的標準做法，SAA 考試也偏好這個答案。
+    </div>
+
+    <h3>Endpoint Policy：再收緊一層</h3>
+    <pre><code><span class="comment"># 只允許透過這個 endpoint 存取自家的 bucket</span>
+$ <span class="cmd">aws ec2 modify-vpc-endpoint</span> --vpc-endpoint-id vpce-0abc123 \
+    <span class="var">--policy-document</span> <span class="val">'{
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": "*",
+    "Action": ["s3:GetObject", "s3:PutObject"],
+    "Resource": ["arn:aws:s3:::company-data/*"]
+  }]
+}'</span></code></pre>
+
+    <div class="note">反過來，<b>bucket policy 也可以要求「只接受從特定 VPC Endpoint 來的請求」</b>，用 <span class="inline-code">aws:SourceVpce</span> 條件。兩邊搭配起來，就能做到「這個 bucket 只有這個 VPC 裡的機器讀得到，連有正確 IAM 權限的人從外面也讀不到」。這是處理敏感資料的標準做法。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="connect">
+    <h2>8. VPC 之間怎麼連</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>方式</th><th>適合</th><th>可傳遞路由？</th><th>費用</th></tr>
+        <tr><td><b>VPC Peering</b></td><td>少數幾個 VPC 互連</td><td><b>不行</b></td><td>只收跨 AZ/跨區流量費</td></tr>
+        <tr><td><b>Transit Gateway</b></td><td><b>多個 VPC + 本地機房</b></td><td><b>可以</b></td><td>每個連接每小時 + 流量費</td></tr>
+        <tr><td><b>PrivateLink</b></td><td>只暴露<b>單一服務</b>給別人</td><td>—</td><td>Interface Endpoint 費用</td></tr>
+        <tr><td><b>Site-to-Site VPN</b></td><td>連回公司機房（走網際網路）</td><td>—</td><td>每小時 + 流量</td></tr>
+        <tr><td><b>Direct Connect</b></td><td>連回機房（<b>專線</b>，穩定低延遲）</td><td>—</td><td>昂貴，要簽約</td></tr>
+      </table>
+    </div>
+
+    <div class="warn"><strong>VPC Peering 的兩個硬限制（必考）：</strong>
+      <ol style="margin:8px 0 0">
+        <li><b>不支援傳遞路由（no transitive peering）。</b>A↔B、B↔C 都通，但 <b>A 和 C 不通</b>。要通就得再建一條 A↔C。<br>N 個 VPC 全互連需要 <b>N(N−1)/2</b> 條——跟 CH 3-3 的 iBGP 全網狀是同一個數學問題，解法也類似（用 Transit Gateway 當中心點，等同 Route Reflector）。</li>
+        <li><b>CIDR 不能重疊。</b>兩個 VPC 都是 10.0.0.0/16 就無法 Peering。這就是第 2 節強調網段規劃的原因。</li>
+      </ol>
+    </div>
+
+    <pre><code><span class="comment"># ═══ VPC Peering：三步驟 ═══</span>
+<span class="comment"># ① 發起請求</span>
+$ <span class="cmd">PCX</span>=$(aws ec2 create-vpc-peering-connection \
+    <span class="var">--vpc-id</span> $VPC_ID \
+    <span class="var">--peer-vpc-id</span> vpc-0target123 \
+    <span class="var">--peer-owner-id</span> 999988887777 \
+    --query VpcPeeringConnection.VpcPeeringConnectionId --output text)
+
+<span class="comment"># ② 對方接受（在對方帳號執行）</span>
+$ <span class="cmd">aws ec2 accept-vpc-peering-connection --vpc-peering-connection-id $PCX</span>
+
+<span class="comment"># ③ 兩邊都要加路由 —— 這步最常被忘記</span>
+$ <span class="cmd">aws ec2 create-route</span> --route-table-id $RT_APP \
+    --destination-cidr-block 10.1.0.0/16 <span class="var">--vpc-peering-connection-id</span> $PCX
+<span class="comment"># 對方也要加一條指回 10.0.0.0/16</span></code></pre>
+
+    <div class="warn"><strong>Peering 建好了還是不通？</strong>依序檢查：<b>① 對方接受了嗎 ② 兩邊路由表都加了嗎 ③ 兩邊的安全群組允許對方網段嗎 ④ NACL 呢</b>。四項缺一不可，而且「接受了」不代表「通了」——路由要自己加。</div>
+
+    <h3>Transit Gateway：中心輻射式</h3>
+    <div class="topo"><pre><code>　　　　　　　  [ VPC-Prod ]　　[ VPC-Stg ]　　[ VPC-Dev ]
+　　　　　　　　　　 │　　　　　　　│　　　　　　　│
+　　　　　　　　　　 └───────┬─────┴──────┬──────┘
+　　　　　　　　　　　　　　　│             │
+　　　　　　　　　　　  [ Transit Gateway ]
+　　　　　　　　　　　　　　　│
+　　　　　　　　　　　　  [ VPN / DX ]
+　　　　　　　　　　　　　　　│
+　　　　　　　　　　　  [ 公司機房 ]
+
+每個 VPC 只要連 TGW 一次 → N 條連接，而不是 N(N−1)/2 條</code></pre></div>
+
+    <div class="cost">Transit Gateway：每個 <b>VPC attachment 每小時 US$0.07</b>（約每月 US$50/個）+ 每 GB US$0.02。<br>
+    5 個 VPC 接上去，光是連接費一個月就 <b>US$250</b>。<b>VPC 數量少於 4~5 個時，Peering 通常更便宜</b>；超過就換 TGW（省下的是管理成本和路由複雜度）。</div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="flowlog">
+    <h2>9. Flow Logs 與網路排錯</h2>
+
+    <p><b>VPC Flow Logs</b> 記錄每個網路介面的流量摘要——誰連誰、哪個埠、被允許還是拒絕。<b>這是 VPC 裡唯一能回答「封包到底有沒有到」的工具。</b></p>
+
+    <pre><code>$ <span class="cmd">aws ec2 create-flow-logs</span> \
+    <span class="var">--resource-type</span> VPC \
+    <span class="var">--resource-ids</span> $VPC_ID \
+    <span class="var">--traffic-type</span> ALL \
+    <span class="var">--log-destination-type</span> s3 \
+    <span class="var">--log-destination</span> arn:aws:s3:::my-flow-logs/vpc/ \
+    <span class="var">--max-aggregation-interval</span> 60</code></pre>
+
+    <h3>怎麼讀 Flow Log</h3>
+    <pre><code>2 123456789012 eni-0abc123 10.0.10.5 10.0.20.8 45231 3306 6 12 3400 1735689600 1735689660 <span class="val">ACCEPT</span> OK
+2 123456789012 eni-0abc123 203.0.113.9 10.0.10.5 51422 22 6 1 40 1735689600 1735689660 <span class="kw">REJECT</span> OK
+│ │            │           │          │        │     │    │ │  │    │          │          │      │
+│ │            │           │          │        │     │    │ │  │    │          │          │      └ log-status
+│ │            │           │          │        │     │    │ │  │    │          └ 結束時間  └ ACCEPT / REJECT
+│ │            │           │          │        │     │    │ │  │    └ 開始時間
+│ │            │           │          │        │     │    │ │  └ bytes
+│ │            │           │          │        │     │    │ └ packets
+│ │            │           │          │        │     │    └ protocol (6=TCP, 17=UDP, 1=ICMP)
+│ │            │           │          │        │     └ 目的埠
+│ │            │           │          │        └ 來源埠
+│ │            │           │          └ 目的 IP
+│ │            │           └ 來源 IP
+│ │            └ 網卡 ID
+│ └ 帳號 ID
+└ 版本</code></pre>
+
+    <div class="ok"><strong>判讀 ACCEPT / REJECT 就能定位問題出在哪一層：</strong>
+      <ul style="margin:8px 0 0">
+        <li>看到 <b>REJECT</b> → 被 <b>SG 或 NACL</b> 擋了。去查那兩個</li>
+        <li>看到 <b>ACCEPT 但應用還是沒回應</b> → 封包有到，問題在<b>作業系統防火牆或應用程式本身</b>（服務沒起來、沒監聽該埠）</li>
+        <li><b>完全沒有紀錄</b> → 封包根本沒到達。問題在<b>路由表</b>或來源端</li>
+      </ul>
+      這三種情況的排查方向完全不同，Flow Log 能省下大量時間。
+    </div>
+
+    <div class="warn"><strong>Flow Logs 不記錄的內容（考試會考）：</strong>
+      <ul style="margin:8px 0 0">
+        <li>DHCP 流量</li>
+        <li>到 <b>Amazon DNS 伺服器</b>（VPC+2）的流量——用自己的 DNS 則會記錄</li>
+        <li>Windows 執行個體的授權啟用流量</li>
+        <li>到 <b>169.254.169.254</b>（instance metadata）和 169.254.169.123（時間同步）的流量</li>
+        <li><b>封包內容</b>——Flow Log 只有摘要，要看內容得用 <b>Traffic Mirroring</b></li>
+      </ul>
+    </div>
+
+    <h3>Reachability Analyzer：不用送封包就能查路徑</h3>
+    <pre><code><span class="comment"># 建立一個「從 A 能不能到 B」的分析</span>
+$ <span class="cmd">PATH_ID</span>=$(aws ec2 create-network-insights-path \
+    <span class="var">--source</span> $BASTION_ENI \
+    <span class="var">--destination</span> $DB_ENI \
+    <span class="var">--protocol</span> tcp <span class="var">--destination-port</span> 3306 \
+    --query NetworkInsightsPath.NetworkInsightsPathId --output text)
+
+$ <span class="cmd">aws ec2 start-network-insights-analysis</span> --network-insights-path-id $PATH_ID</code></pre>
+
+    <div class="ok"><strong>Reachability Analyzer 會直接告訴你「在哪一個元件被擋住」。</strong>例如「路由表 rtb-xxx 沒有到目的地的路由」或「安全群組 sg-xxx 的入站規則不允許 3306」。<b>它是靜態分析，不需要真的開機器送封包</b>，所以在資源還沒部署前就能驗證設計。每次分析約 US$0.10。</div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="trouble">
+    <h2>10. 連不上的九個檢查點</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>子網路的路由表對嗎？</b>公有要有 <span class="inline-code">0.0.0.0/0 → igw</span>，私有要有 <span class="inline-code">0.0.0.0/0 → nat</span>。<b>而且要確認子網路真的關聯到那張路由表</b>，不是用到 Main。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>IGW 掛到 VPC 了嗎？</b>建立和掛載是兩個動作。<span class="inline-code">describe-internet-gateways</span> 看 Attachments。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>執行個體有公網 IP 嗎？</b>公有子網路的機器如果沒有公網 IP，一樣連不出去也連不進來。<span class="inline-code">--associate-public-ip-address</span> 或用 EIP。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>SG 入站允許嗎？</b>來源寫對了嗎（IP vs 安全群組）？埠對嗎？</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>SG 出站允許嗎？</b>如果有人收緊過出站規則，回應可能出不去。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>NACL 兩個方向都開了嗎？</b>無狀態，<b>入站和出站都要</b>，而且回程要開 <b>1024–65535</b>。</div></div>
+      <div class="step"><div class="step-num">7</div><div class="step-body"><b>NAT Gateway 在公有子網路嗎？狀態是 available 嗎？</b>放錯子網路會建得起來但不通。</div></div>
+      <div class="step"><div class="step-num">8</div><div class="step-body"><b>作業系統層的防火牆？</b>Windows Firewall、Linux 的 iptables/firewalld。Flow Log 顯示 ACCEPT 卻連不上，就往這裡查。</div></div>
+      <div class="step"><div class="step-num">9</div><div class="step-body"><b>服務真的起來了嗎？</b><span class="inline-code">ss -tlnp</span> 確認有在監聽，而且是監聽 <b>0.0.0.0</b> 不是 127.0.0.1——只綁 localhost 是很常見的疏忽。</div></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「私有子網路的機器裝不了套件」</div>
+      <p><b>症狀：</b><span class="inline-code">yum update</span> 卡住，但 ping 內網其他機器正常。</p>
+      <p><b>排查：</b>路由表有 <span class="inline-code">0.0.0.0/0 → nat-xxx</span>，看起來正常。查 NAT Gateway → 它被建在 <b>app-1a</b>（私有子網路）裡。</p>
+      <p style="margin-bottom:0"><b>原因：</b>NAT Gateway 自己也需要走 IGW 才能出去，放在私有子網路等於自己也出不去。<b>修法：</b>刪掉重建在公有子網路。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「RDS 的 endpoint 解析不出來」</div>
+      <p><b>症狀：</b><span class="inline-code">nslookup mydb.xxx.rds.amazonaws.com</span> 沒有結果。</p>
+      <p><b>排查：</b><span class="inline-code">aws ec2 describe-vpc-attribute --attribute enableDnsHostnames</span> → <b>false</b>。</p>
+      <p style="margin-bottom:0"><b>原因：</b>自建 VPC 的 <span class="inline-code">enableDnsHostnames</span> 預設是關的。<b>修法：</b>開啟它，立即生效。這也會影響 VPC Endpoint 的私有 DNS。</p>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">真實案例：「ECS 拉不到映像檔，但錯誤訊息看不懂」</div>
+      <p><b>症狀：</b>Task 一直在 PROVISIONING 然後失敗，訊息只寫 <span class="inline-code">CannotPullContainerError</span>。</p>
+      <p><b>排查：</b>Task 在私有子網路，建了 <span class="inline-code">ecr.api</span> 和 <span class="inline-code">ecr.dkr</span> 兩個 Interface Endpoint。</p>
+      <p style="margin-bottom:0"><b>原因：</b>ECR 的映像檔 <b>layer 實際存在 S3</b>，還需要 <b>S3 Gateway Endpoint</b>。<b>修法：</b>補上 S3 Gateway Endpoint（免費），立刻就通。</p>
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>完整實作 Lab：三層式 VPC + 私有子網路上網</h3>
+    <p>約 100 分鐘。建議用 CLI 而不是主控台——CLI 逼你理解每個參數。</p>
+
+    <div class="cost"><b>這個 Lab 會產生費用</b>，主要是 NAT Gateway（每小時約 US$0.062）和公網 IPv4（每小時 US$0.005/個）。<br>
+    做兩小時大約 <b>US$0.15</b>，可以接受。<b>但務必照最後的清理步驟刪乾淨</b>——忘記刪一個月就是 US$45。<br>
+    建議在開始前先確認第 01 章的 Budget 告警已經設好。</div>
+
+    <h4>階段一：建立網路骨架</h4>
+    <ol>
+      <li>建立 VPC <strong>10.0.0.0/16</strong>，開啟 <strong>dns-support</strong> 與 <strong>dns-hostnames</strong></li>
+      <li>建立 6 個子網路（公有／應用／資料層 × 2 AZ），全部打上 <strong>Name 和 Tier 標籤</strong></li>
+      <li>建立 IGW 並掛到 VPC</li>
+      <li>建立 3 張路由表：<strong>rt-public</strong>（→IGW）、<strong>rt-app</strong>（→NAT）、<strong>rt-db</strong>（不加對外路由）</li>
+      <li>每個子網路都<strong>明確關聯</strong>到對應的路由表（不要用 Main）</li>
+    </ol>
+
+    <h4>階段二：NAT 與出網</h4>
+    <ol start="6">
+      <li>配置 EIP，在 <strong>public-1a</strong> 建立 NAT Gateway</li>
+      <li>把 rt-app 的 0.0.0.0/0 指向它</li>
+      <li>用 <span class="inline-code">describe-route-tables</span> 確認三張表的內容都正確</li>
+    </ol>
+
+    <h4>階段三：安全群組分層</h4>
+    <ol start="9">
+      <li><strong>alb-sg</strong>：允許 0.0.0.0/0 的 80、443</li>
+      <li><strong>app-sg</strong>：只允許 <strong>來源 = alb-sg</strong> 的 8080</li>
+      <li><strong>db-sg</strong>：只允許 <strong>來源 = app-sg</strong> 的 3306</li>
+      <li><strong>endpoint-sg</strong>：允許來自 VPC CIDR 的 443</li>
+    </ol>
+
+    <h4>階段四：VPC Endpoint 與免堡壘連線</h4>
+    <ol start="13">
+      <li>建立 <strong>S3 Gateway Endpoint</strong>（免費），關聯 rt-app 和 rt-db</li>
+      <li>建立三個 <strong>SSM Interface Endpoint</strong>（ssm、ssmmessages、ec2messages）</li>
+      <li>在 <strong>app-1a</strong> 開一台 t3.micro，<strong>不給公網 IP</strong>，掛上有 <span class="inline-code">AmazonSSMManagedInstanceCore</span> 的 Role</li>
+      <li>用 <span class="inline-code">aws ssm start-session</span> 連進去（<strong>不用 SSH 金鑰、不用開 22 埠</strong>）</li>
+    </ol>
+
+    <h4>階段五：驗證與排錯</h4>
+    <ol start="17">
+      <li>開啟 <strong>VPC Flow Logs</strong> 輸出到 S3</li>
+      <li>在私有機器上 <span class="inline-code">curl https://aws.amazon.com</span> → 應該成功（走 NAT）</li>
+      <li><span class="inline-code">aws s3 ls</span> → 應該成功（走 Gateway Endpoint，<strong>不經過 NAT</strong>）</li>
+      <li>用 <strong>Reachability Analyzer</strong> 分析「app-1a 的機器 → db-1a 的 3306」</li>
+      <li>故意把 db-sg 的規則刪掉，再跑一次分析，觀察它指出哪個元件擋住</li>
+    </ol>
+
+    <h4>驗收清單</h4>
+    <ul>
+      <li><span class="inline-code">describe-subnets</span> 顯示 6 個子網路，AvailableIpAddressCount <strong>是 251</strong>（有 NAT 的那個是 250）</li>
+      <li>rt-db 的 Routes <strong>只有一條 local</strong></li>
+      <li>私有子網路的 EC2 <strong>沒有公網 IP</strong>，但 <span class="inline-code">curl</span> 得到外網</li>
+      <li><span class="inline-code">aws ssm start-session</span> 能連進去，且該機器的 SG <strong>沒有任何入站規則</strong></li>
+      <li>Flow Log 裡看得到 ACCEPT 和 REJECT 兩種紀錄</li>
+      <li>Reachability Analyzer 對正常路徑回傳 <strong>reachable</strong>，刪掉 SG 規則後回傳 <strong>not reachable 並指出 sg-xxx</strong></li>
+    </ul>
+
+    <h4>清理（一定要做）</h4>
+    <pre><code><span class="comment"># 順序很重要，有依賴關係的要先刪</span>
+$ aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+$ aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
+
+$ aws ec2 delete-nat-gateway --nat-gateway-id $NAT_ID
+$ aws ec2 wait nat-gateway-deleted --nat-gateway-ids $NAT_ID
+$ aws ec2 release-address --allocation-id $EIP_ALLOC
+
+$ aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $VPCE_S3 $VPCE_SSM ...
+$ aws ec2 detach-internet-gateway --vpc-id $VPC_ID --internet-gateway-id $IGW_ID
+$ aws ec2 delete-internet-gateway --internet-gateway-id $IGW_ID
+$ aws ec2 delete-vpc --vpc-id $VPC_ID     <span class="comment"># 這會連帶刪掉子網路、路由表、SG</span>
+
+<span class="comment"># 最後確認沒有漏掉的 EIP</span>
+$ aws ec2 describe-addresses --query 'Addresses[].[PublicIp,AssociationId]' --output table</code></pre>
+
+    <h4>加碼挑戰</h4>
+    <ol>
+      <li>在 1c 也建一個 NAT Gateway，做出<strong>每個 AZ 各自的私有路由表</strong>，並解釋這樣省下什麼費用。</li>
+      <li>寫一條 <strong>bucket policy</strong>，要求「只接受從你的 VPC Endpoint 來的請求」（<span class="inline-code">aws:SourceVpce</span>），然後從公網嘗試存取，確認被拒絕。</li>
+      <li>建立一個自訂 <strong>NACL</strong>，只允許 443 出站，觀察為什麼機器完全連不出去，再補上 ephemeral port 入站規則修好它。</li>
+      <li>把整個 VPC 用 <strong>CloudFormation</strong> 或 <strong>Terraform</strong> 重寫一次，體會 IaC 的價值（第 10 章會詳談）。</li>
+      <li>計算：如果應用每月從 S3 讀 500 GB，走 NAT Gateway 和走 Gateway Endpoint 的費用差多少？</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>本章重點回顧</h2>
+    <ul>
+      <li><strong>不要用 Default VPC</strong>——CIDR 全世界一樣，未來無法 Peering；但也不要刪掉它</li>
+      <li>VPC CIDR <strong>建好不能縮小</strong>，子網路 CIDR <strong>完全不能改</strong>。第一次就要規劃好</li>
+      <li>每個子網路 AWS <strong>保留 5 個 IP</strong>：/24 只有 251 個可用</li>
+      <li>子網路<strong>不能跨 AZ</strong>；高可用最低要求是兩個 AZ</li>
+      <li><strong>公有子網路的唯一定義</strong>：路由表有 <span class="inline-code">0.0.0.0/0 → IGW</span></li>
+      <li>自建 VPC 記得開 <strong>enable-dns-hostnames</strong>，不然 RDS endpoint 和私有 DNS 都會出問題</li>
+      <li>NAT Gateway <strong>必須放在公有子網路</strong>；一個月不關約 US$45，做完 Lab 要刪</li>
+      <li>SG <strong>有狀態</strong>、只有 Allow、可引用安全群組；NACL <strong>無狀態</strong>、有 Deny、要開 ephemeral port</li>
+      <li>SG 用 <strong>--source-group 互相引用</strong>，Auto Scaling 時完全不用改規則</li>
+      <li><strong>S3 / DynamoDB 的 Gateway Endpoint 免費，一律建起來</strong></li>
+      <li>ECR 需要 <strong>ecr.api + ecr.dkr + S3 Gateway</strong> 三個 endpoint</li>
+      <li><strong>SSM Session Manager 取代堡壘主機</strong>：不用公網 IP、不開 22 埠、自動稽核</li>
+      <li>VPC Peering <strong>不支援傳遞路由</strong>且 <strong>CIDR 不能重疊</strong>；多 VPC 用 Transit Gateway</li>
+      <li>排錯順序：<strong>路由表 → IGW → 公網 IP → SG → NACL → OS 防火牆 → 服務有沒有起來</strong></li>
+    </ul>
+    <div class="note">VPC 是 SAA-C03 最容易失分的地方，因為題目常常把路由表、SG、NACL 混在一起考。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪，特別注意「有狀態 vs 無狀態」的題型。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="01-account-iam.html">← 01：帳號安全與 IAM</a>
+    <a href="03-ec2-storage.html">03：EC2 與儲存實作 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · AWS SAA-C03 學習中心 · 實作 02</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="aws">
+/* ═══════════════════════════════════════════════════════════
+   作品集瀏覽計數器 — 前端追蹤 + 顯示
+   ───────────────────────────────────────────────────────────
+   使用方式（在頁面底部加兩行）：
+
+     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
+     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
+
+   data-project 對應 projects.json 的 id，首頁請填 hub。
+   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
+
+   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
+   ═══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) {
+      v = 'anon';
+    }
+    return v;
+  }
+
+  /* ── 短時間內重複整理不重複計數 ── */
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { /* 隱私模式下就照常計數 */ }
+    return true;
+  }
+
+  /* ── 本機備援計數（未設定 Supabase 時使用）── */
+  function localBump() {
+    var k = 'pf:count:' + PROJECT;
+    try {
+      var d = JSON.parse(localStorage.getItem(k) || '{"total":0,"days":{}}');
+      var today = new Date().toISOString().slice(0, 10);
+      d.total++;
+      d.days[today] = (d.days[today] || 0) + 1;
+      localStorage.setItem(k, JSON.stringify(d));
+      return d;
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  function localRead() {
+    try {
+      return JSON.parse(localStorage.getItem('pf:count:' + PROJECT) || '{"total":0,"days":{}}');
+    } catch (e) { return { total: 0, days: {} }; }
+  }
+
+  /* ── 送出一筆瀏覽紀錄 ── */
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) { localBump(); return Promise.resolve(); }
+
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () { localBump(); });
+  }
+
+  /* ── 讀取某專案的統計摘要 ── */
+  function summary(projectId) {
+    projectId = projectId || PROJECT;
+    if (!LIVE) {
+      var d = localRead();
+      var today = new Date().toISOString().slice(0, 10);
+      var ym = today.slice(0, 7);
+      var month = Object.keys(d.days).reduce(function (s, k) {
+        return k.indexOf(ym) === 0 ? s + d.days[k] : s;
+      }, 0);
+      return Promise.resolve({
+        project_id: projectId, total_views: d.total,
+        today_views: d.days[today] || 0, month_views: month, local: true
+      });
+    }
+    return fetch(CFG.url + '/rest/v1/v_views_summary?project_id=eq.' + encodeURIComponent(projectId),
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        return rows[0] || { project_id: projectId, total_views: 0, today_views: 0, month_views: 0 };
+      })
+      .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
+  }
+
+  /* ── 讀取全部專案的統計 ── */
+  function allSummary() {
+    if (!LIVE) return Promise.resolve([]);
+    return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
+      { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每日趨勢（近 N 天）── */
+  function daily(projectId, days) {
+    if (!LIVE) return Promise.resolve([]);
+    var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
+    var q = '/rest/v1/v_views_daily?day=gte.' + since + '&order=day.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 讀取每月統計 ── */
+  function monthly(projectId) {
+    if (!LIVE) return Promise.resolve([]);
+    var q = '/rest/v1/v_views_monthly?order=month.asc';
+    if (projectId) q += '&project_id=eq.' + encodeURIComponent(projectId);
+    return fetch(CFG.url + q, { headers: { 'apikey': CFG.key, 'Authorization': 'Bearer ' + CFG.key } })
+      .then(function (r) { return r.json(); }).catch(function () { return []; });
+  }
+
+  /* ── 把數字填進 #view-counter ── */
+  function paint() {
+    var box = document.getElementById('view-counter');
+    if (!box) return;
+    summary().then(function (s) {
+      box.innerHTML =
+        '<span class="vc-item"><b>' + (s.today_views || 0) + '</b> 今日</span>' +
+        '<span class="vc-item"><b>' + (s.month_views || 0) + '</b> 本月</span>' +
+        '<span class="vc-item"><b>' + (s.total_views || 0) + '</b> 總計</span>' +
+        (s.local ? '<span class="vc-note">本機計數</span>' : '');
+      box.classList.add('vc-ready');
+    });
+  }
+
+  window.PortfolioAnalytics = {
+    project: PROJECT, live: LIVE,
+    track: track, summary: summary, allSummary: allSummary,
+    daily: daily, monthly: monthly, paint: paint
+  };
+
+  function boot() { track().then(paint); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>
