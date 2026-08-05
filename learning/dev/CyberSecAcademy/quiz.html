@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CompTIA Security+ 模擬試題</title>
+<style>
+  :root{--red:#dc2626;--dark:#1a1a2e;--bg:#f8f9fa;--card:#fff;--good:#1e8e3e;--bad:#d93025;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);color:#222;min-height:100vh;}
+  header{background:var(--dark);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  header h1{font-size:1.2rem;}
+  header h1 span{color:#f87171;}
+  .container{max-width:860px;margin:0 auto;padding:24px 16px;}
+  .card{background:var(--card);border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;}
+  .domain-tag{display:inline-block;font-size:.75rem;padding:3px 10px;border-radius:20px;background:#fee2e2;color:#991b1b;margin-bottom:12px;}
+  .q-text{font-size:1.05rem;line-height:1.7;margin-bottom:16px;font-weight:600;}
+  .multi-hint{color:#b45309;font-size:.85rem;margin-bottom:10px;}
+  .opt{display:block;width:100%;text-align:left;padding:12px 16px;margin:8px 0;border:2px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:.95rem;line-height:1.6;transition:.15s;}
+  .opt:hover{border-color:var(--red);background:#fef2f2;}
+  .opt.selected{border-color:#991b1b;background:#fee2e2;}
+  .opt.correct{border-color:var(--good);background:#e6f4ea;}
+  .opt.wrong{border-color:var(--bad);background:#fce8e6;}
+  .opt:disabled{cursor:default;}
+  .explain{margin-top:16px;padding:16px;border-radius:8px;background:#fffbe6;border-left:4px solid var(--red);line-height:1.7;font-size:.92rem;display:none;}
+  .explain.show{display:block;}
+  .explain .verdict{font-weight:700;margin-bottom:6px;}
+  .btn{padding:10px 24px;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;}
+  .btn-primary{background:var(--red);color:#fff;}
+  .btn-primary:hover{background:#b91c1c;}
+  .btn-outline{background:#fff;border:2px solid var(--dark);color:var(--dark);}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px;flex-wrap:wrap;}
+  .progress-wrap{background:#ddd;border-radius:10px;height:10px;margin-bottom:20px;overflow:hidden;}
+  .progress-bar{height:100%;background:var(--red);width:0;transition:.3s;}
+  .stat{font-size:.9rem;color:#555;}
+  .result-big{font-size:3rem;font-weight:800;text-align:center;margin:12px 0;}
+  .pass{color:var(--good);} .fail{color:var(--bad);}
+  .domain-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.95rem;}
+  .setup-opt{padding:16px;border:2px solid #ddd;border-radius:10px;margin:10px 0;cursor:pointer;transition:.15s;}
+  .setup-opt:hover{border-color:var(--red);}
+  .setup-opt h3{font-size:1rem;margin-bottom:4px;}
+  .setup-opt p{font-size:.85rem;color:#666;}
+  a.back{color:#fff;text-decoration:none;font-size:.9rem;opacity:.85;}
+  a.back:hover{opacity:1;}
+  @media(max-width:600px){.container{padding:16px 10px;}.card{padding:16px;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>CompTIA <span>Security+</span> 模擬試題</h1>
+  <a class="back" href="index.html">← 回資安學院</a>
+</header>
+<div class="container" id="app"></div>
+
+<script>
+// domain: 1=威脅攻擊與漏洞(24%) 2=技術與工具(22%) 3=架構與設計(18%) 4=身分與存取(16%) 5=風險管理(20%)
+const QUESTIONS = [
+// ---------- Domain 1: 威脅攻擊與漏洞 ----------
+{d:1,q:"攻擊者發送偽造的電子郵件，聲稱來自公司 IT 部門，要求員工點擊連結並輸入其 VPN 憑證。這是哪種攻擊類型？",o:["Vishing（語音釣魚）","Spear Phishing（魚叉式釣魚）","Whaling（鯨魚攻擊）","Smishing（簡訊釣魚）"],a:[1],e:"Spear Phishing 是針對特定個人或組織的精準釣魚攻擊，通常包含目標的個人化資訊以提高可信度。Whaling 則是針對高層主管（C-level）的釣魚。Vishing 透過電話、Smishing 透過簡訊進行。"},
+{d:1,q:"攻擊者在公司停車場掉落一個 USB 隨身碟，員工撿到後插入電腦，惡意程式隨即執行。這種攻擊手法稱為？",o:["Watering Hole Attack","USB Drop Attack（隨身碟誘餌攻擊）","Evil Twin Attack","Man-in-the-Middle Attack"],a:[1],e:"USB Drop Attack 利用人類的好奇心——人們往往會插入陌生的隨身碟。這是一種物理社會工程攻擊，預防方式：停用 USB AutoRun、端點安全策略限制外部儲存裝置、安全意識培訓。"},
+{d:1,q:"SQL Injection 攻擊最常利用哪種程式設計問題？",o:["使用了過時的加密演算法","未對使用者輸入進行適當的驗證或參數化","伺服器設定不當導致目錄遍歷","密碼儲存為明文"],a:[1],e:"SQL Injection 發生在應用程式直接把使用者輸入拼接到 SQL 查詢中，攻擊者可注入惡意 SQL 語句。防禦：使用 Prepared Statements（參數化查詢）、輸入驗證、最小權限資料庫帳號、Web Application Firewall。"},
+{d:1,q:"Zero-day 漏洞的定義是？",o:["發布超過 0 天（已知很久）的漏洞","廠商尚未知曉或尚未發布修補程式的漏洞","需要 0 次點擊即可利用的漏洞","CVSS 分數為 0 的低風險漏洞"],a:[1],e:"Zero-day 指廠商「零天」時間可以修補——因為漏洞未被廠商知曉（或知道但未修補），攻擊者可以無阻礙地利用。這類漏洞在暗網價值極高，因為防禦者無法通過修補來防護。"},
+{d:1,q:"以下哪種掃描技術在進行連接埠掃描時，完成 TCP 三向握手，是最準確但也最容易被偵測的方式？",o:["SYN Scan（半開放掃描）","Full Connect Scan（全連接掃描）","NULL Scan","XMAS Scan"],a:[1],e:"Full Connect Scan 完成完整的 TCP 三向握手（SYN→SYN/ACK→ACK），因此最準確（連接確認開放），但也最容易被防火牆日誌記錄。SYN Scan 只送 SYN，收到 SYN/ACK 後立即重置，更隱蔽但需要 root 權限。"},
+{d:1,q:"APT（Advanced Persistent Threat）最主要的特徵是？",o:["使用最新的零日漏洞","長期潛伏在目標網路中，持續進行偵察和資料外洩","每次攻擊都使用不同的惡意軟體","主要針對個人用戶，不針對企業"],a:[1],e:"APT 的核心特徵是「Persistent（持續性）」——攻擊者（通常是國家支持的組織）潛伏數月甚至數年，目標是長期情報收集，而非立即獲利。偵測困難，通常在資料外洩數個月後才被發現。"},
+// ---------- Domain 2: 技術與工具 ----------
+{d:2,q:"IDS（Intrusion Detection System）和 IPS（Intrusion Prevention System）最主要的差異是？",o:["IDS 效能比 IPS 好","IPS 可以主動封鎖惡意流量，IDS 只能偵測並警告","IDS 部署在網路邊界，IPS 部署在主機上","兩者功能完全相同，只是命名不同"],a:[1],e:"IDS 是「警報器」——偵測到威脅後發出警告，不採取主動行動。IPS 是「警報器 + 自動鎖門」——可以主動丟棄封包、重置連線、封鎖 IP。IPS 通常以 Inline 模式部署（流量必須經過它）。"},
+{d:2,q:"Which of the following BEST describes the purpose of a WAF (Web Application Firewall)?",o:["封鎖所有 Layer 3/4 網路流量","偵測並阻擋針對 Web 應用程式的 Layer 7 攻擊（如 SQLi、XSS、CSRF）","替代 TLS 加密保護 Web 流量","管理 Web 伺服器的 SSL 憑證"],a:[1],e:"WAF 在 Layer 7（應用層）分析 HTTP/HTTPS 流量，可辨識並封鎖 SQL Injection、XSS、CSRF、命令注入等應用層攻擊。傳統防火牆只在 Layer 3/4 過濾 IP/Port，無法理解 HTTP 請求內容。"},
+{d:2,q:"對稱加密（Symmetric Encryption）與非對稱加密（Asymmetric Encryption）最主要的差異是？",o:["對稱加密速度較慢但安全性更高","對稱加密使用同一把金鑰加解密；非對稱使用公/私鑰對，公鑰加密、私鑰解密","對稱加密不適用於網際網路通訊","非對稱加密只能用於數位簽章，不能加密資料"],a:[1],e:"對稱：同一把金鑰（速度快，如 AES）；非對稱：公鑰加密，私鑰解密（速度慢，如 RSA，適合金鑰交換）。HTTPS 使用非對稱加密交換對稱金鑰（握手），之後用對稱加密傳輸資料（兩者結合）。"},
+{d:2,q:"數位簽章（Digital Signature）的主要目的是？（選兩項）",o:["加密訊息防止竊聽","驗證訊息來源（不可否認性）","確保訊息在傳輸中未被篡改（完整性）","壓縮資料減少傳輸量"],a:[1,2],e:"數位簽章：傳送方用私鑰對訊息的雜湊值簽章，接收方用公鑰驗證。可確認：(1) 來自聲稱的傳送方（身分驗證/不可否認性）；(2) 訊息未被篡改（完整性）。數位簽章不提供機密性（加密），需要另外加密才能防竊聽。"},
+{d:2,q:"SIEM（Security Information and Event Management）在 SOC 中的主要功能是？",o:["只負責防火牆規則管理","集中收集、分析多個來源的安全日誌，提供即時警報和關聯分析","只用於合規報告，不即時監控","替代所有其他安全工具"],a:[1],e:"SIEM 是 SOC 的神經中樞：集中收集防火牆、IDS、端點、應用程式等所有安全日誌，使用規則和 ML 進行關聯分析，觸發即時警報，並保留日誌供事後鑑識。常見產品：Splunk、Microsoft Sentinel、IBM QRadar。"},
+// ---------- Domain 3: 架構與設計 ----------
+{d:3,q:"零信任架構（Zero Trust Architecture）的核心原則是？",o:["只信任來自內部網路的流量","不因網路位置而自動信任任何使用者或裝置，每次存取都需要驗證和授權","只在邊界設置防火牆，內部不需要控制","完全不使用密碼認證"],a:[1],e:"零信任：「Never trust, always verify」——即使在企業內部網路，每次存取都需要驗證身分、裝置健康狀態，並依最小權限授權。這是針對傳統「城堡護城河」模型的改進，因為內部威脅（員工、被入侵的設備）同樣危險。"},
+{d:3,q:"以下哪個設計原則要求每個帳號只授予完成工作所需的最小必要權限？",o:["Defense in Depth（縱深防禦）","Principle of Least Privilege（最小權限原則）","Separation of Duties（職責分離）","Need to Know（知需原則）"],a:[1],e:"Principle of Least Privilege（PoLP）：每個使用者、程式、系統只獲得完成其任務所需的最低限度權限。可減少因帳號被入侵或誤用造成的爆炸半徑。相關概念：Separation of Duties 確保關鍵任務需要多人合作，防止內部欺詐。"},
+{d:3,q:"DMZ（Demilitarized Zone）在網路架構中的用途是？",o:["完全隔離企業內網，使外部無法訪問任何資源","將對外服務（Web/Mail 伺服器）放置在隔離的緩衝區，使外部存取不直接觸及內網","作為 VPN 的終端節點","存放備份資料的隔離區域"],a:[1],e:"DMZ 是夾在外部防火牆和內部防火牆之間的「中間地帶」，對外服務（Web、DNS、Mail 伺服器）放在這裡。即使 DMZ 中的伺服器被攻陷，攻擊者也無法直接存取內部網路（還需要突破內部防火牆）。"},
+{d:3,q:"Business Continuity Plan（BCP）和 Disaster Recovery Plan（DRP）最主要的差異是？",o:["BCP 只針對 IT 系統，DRP 針對整個業務","BCP 確保整個業務在災難中持續運作；DRP 聚焦於 IT 系統和資料的技術恢復","兩者完全相同，只是不同組織的命名","DRP 包含 BCP，BCP 只是 DRP 的一部分"],a:[1],e:"BCP（業務持續計畫）是更廣義的計畫，確保業務在中斷期間仍能運作（包含人員、流程、溝通）。DRP（災難復原計畫）是 BCP 的子集，專注於 IT 基礎設施和資料的技術恢復。RTO 和 RPO 是 DRP 的關鍵指標。"},
+// ---------- Domain 4: 身分與存取 ----------
+{d:4,q:"多因素驗證（MFA）包含哪三種認證因子類型？",o:["密碼、PIN、生物特徵（都屬於「所知道的」）","所知道的（密碼）、所持有的（硬體 Token）、所具備的（生物特徵）","只有密碼和生物特徵兩種","裝置位置、時間和 IP 位址"],a:[1],e:"三大認證因子：(1) Something you KNOW（密碼、PIN、安全問題）；(2) Something you HAVE（手機 OTP、硬體 Token、智慧卡）；(3) Something you ARE（指紋、臉部辨識、虹膜掃描）。MFA 需要至少兩種不同類型的因子。"},
+{d:4,q:"SSO（Single Sign-On）最主要的安全風險是？",o:["SSO 讓密碼更複雜難以記住","SSO 的身分提供者（IdP）成為單一故障點和高價值攻擊目標","SSO 不支援 MFA","SSO 會降低使用者的工作效率"],a:[1],e:"SSO 的優點（一次登入即可存取所有服務）同時也是風險：IdP 被攻陷意味著所有連接的服務都被攻陷。緩解措施：IdP 必須強制 MFA、定期金鑰輪換、異常登入偵測、條件式存取政策（Conditional Access）。"},
+{d:4,q:"RBAC（Role-Based Access Control）和 ABAC（Attribute-Based Access Control）的主要差異是？",o:["RBAC 比 ABAC 更安全","RBAC 依角色授予權限；ABAC 依多個屬性（使用者、資源、環境）的組合決定存取","ABAC 只適用於小型組織","兩者在技術上完全相同"],a:[1],e:"RBAC：「你是 Manager 角色，所以能做 X」——簡單但粗粒度。ABAC：「你是部門 A 的 Manager、在公司網路、工作時間、存取台灣地區資料，所以能做 X」——精細但複雜。現代零信任架構傾向 ABAC 的細粒度控制。"},
+{d:4,q:"硬體安全金鑰（如 YubiKey）相較於 TOTP 軟體驗證器的主要安全優勢是？",o:["硬體金鑰支援更多網站","硬體金鑰對網路釣魚攻擊完全免疫（因為金鑰綁定到特定網域），TOTP 可被中間人攔截","硬體金鑰更便宜","硬體金鑰不需要電池"],a:[1],e:"硬體安全金鑰使用 FIDO2/WebAuthn 協議，加密挑戰包含網域資訊，即使攻擊者騙到使用者在釣魚網站輸入，金鑰也不會在非預期網域簽章。TOTP（6位數字）可以在中間人攻擊中被即時轉送，硬體金鑰是目前最強的 MFA 方式。"},
+// ---------- Domain 5: 風險管理 ----------
+{d:5,q:"以下哪個公式最能代表資訊安全中的「風險」？",o:["風險 = 威脅 + 漏洞","風險 = 威脅 × 漏洞 × 資產價值（影響）","風險 = 攻擊次數 × 成功率","風險 = 弱點數量 ÷ 修補時間"],a:[1],e:"風險 = 威脅利用漏洞的可能性 × 影響。三個因素缺一不可：威脅（攻擊者）、漏洞（弱點）、資產（有價值才有影響）。降低任一因素即可降低風險：減少威脅（情報）、修補漏洞（技術）、保護資產（控制措施）。"},
+{d:5,q:"Vulnerability Assessment（漏洞評估）和 Penetration Testing（滲透測試）最主要的差異是？",o:["漏洞評估比滲透測試更昂貴","漏洞評估找出系統弱點並分類；滲透測試嘗試主動利用這些弱點，模擬真實攻擊","兩者結果完全相同，只是方法不同","滲透測試不需要授權，漏洞評估需要"],a:[1],e:"漏洞評估：掃描工具自動識別弱點並評分（CVSS）。滲透測試：安全研究員像真實攻擊者一樣試圖利用弱點、提升權限、橫向移動。兩者都需要書面授權（Scope of Work），未授權的測試在法律上等同於入侵。"},
+{d:5,q:"公司決定購買網路安全保險來應對資安事件的財務影響。這是哪種風險應對策略？",o:["風險接受（Risk Acceptance）","風險轉移（Risk Transference）","風險迴避（Risk Avoidance）","風險緩解（Risk Mitigation）"],a:[1],e:"風險轉移：將財務風險轉移給第三方（保險公司）。四種策略：接受（知道風險存在但不處理）、轉移（保險/外包）、迴避（停止引發風險的活動）、緩解（實施控制措施降低可能性或影響）。"},
+{d:5,q:"Data Classification（資料分類）的主要目的是？",o:["只是為了合規要求，沒有實際安全意義","確保不同敏感等級的資料獲得適當的保護措施和存取控制","讓資料更容易搜尋和管理","決定資料的儲存位置"],a:[1],e:"資料分類（如：公開、內部、機密、絕密）讓組織能夠對高價值資料投入更多保護（加密、存取控制、審計日誌），對低價值資料節省成本。沒有分類就沒有辦法實施差異化保護，等於把所有資料都當機密或都不當機密。"},
+{d:5,q:"在事件應變（Incident Response）流程中，「Containment（遏制）」的主要目標是？",o:["立即修復所有受影響系統","防止事件擴散到其他系統，並保留事件的數位鑑識證據","完全刪除攻擊者的存取權","向主管機關報告事件"},a:[1],e:"Containment 是在「根除（Eradication）」之前的步驟，目標是限制損害範圍（如隔離受感染主機）同時保留證據（不要立刻重建系統）。NIST SP 800-61 定義的六階段：準備→偵測與分析→遏制→根除→復原→事後學習。"}
+];
+
+const DOMAINS = {
+  1:"領域 1：威脅攻擊與漏洞 (24%)",
+  2:"領域 2：技術與工具 (22%)",
+  3:"領域 3：架構與設計 (18%)",
+  4:"領域 4：身分與存取 (16%)",
+  5:"領域 5：風險管理 (20%)"
+};
+
+let quiz=[], idx=0, answers=[], selected=new Set(), submitted=false, mode="all";
+const app = document.getElementById("app");
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function renderSetup(){
+  const wrong = JSON.parse(localStorage.getItem("sec_wrong")||"[]");
+  app.innerHTML = `
+  <div class="card">
+    <h2 style="margin-bottom:8px;">選擇測驗模式</h2>
+    <p class="stat" style="margin-bottom:12px;">題庫共 ${QUESTIONS.length} 題 · 依 Security+ SY0-701 五大領域出題 · 及格線 75%（750/900）</p>
+    <div class="setup-opt" onclick="startQuiz('all')"><h3>📝 完整模擬考（${QUESTIONS.length} 題）</h3><p>全領域隨機出題，模擬正式考試</p></div>
+    <div class="setup-opt" onclick="startQuiz('d1')"><h3>⚔️ 領域 1：威脅攻擊與漏洞（${QUESTIONS.filter(q=>q.d===1).length} 題）</h3><p>社會工程、滲透技術、漏洞類型</p></div>
+    <div class="setup-opt" onclick="startQuiz('d2')"><h3>🛠️ 領域 2：技術與工具（${QUESTIONS.filter(q=>q.d===2).length} 題）</h3><p>防火牆、IDS/IPS、加密演算法、SIEM</p></div>
+    <div class="setup-opt" onclick="startQuiz('d3')"><h3>🏗️ 領域 3：架構與設計（${QUESTIONS.filter(q=>q.d===3).length} 題）</h3><p>零信任、DMZ、BCP/DRP、安全原則</p></div>
+    <div class="setup-opt" onclick="startQuiz('d4')"><h3>🔑 領域 4：身分與存取（${QUESTIONS.filter(q=>q.d===4).length} 題）</h3><p>MFA、SSO、RBAC、硬體金鑰</p></div>
+    <div class="setup-opt" onclick="startQuiz('d5')"><h3>📋 領域 5：風險管理（${QUESTIONS.filter(q=>q.d===5).length} 題）</h3><p>風險評估、合規、事件應變、資料分類</p></div>
+    ${wrong.length>0?`<div class="setup-opt" onclick="startQuiz('wrong')"><h3>❌ 複習錯題（${wrong.length} 題）</h3><p>上次答錯的題目重新練習</p></div>`:''}
+  </div>`;
+}
+
+function startQuiz(m){
+  mode=m;
+  if(m==='all') quiz=shuffle(QUESTIONS);
+  else if(m.startsWith('d')) quiz=shuffle(QUESTIONS.filter(q=>q.d===+m[1]));
+  else if(m==='wrong'){const w=JSON.parse(localStorage.getItem("sec_wrong")||"[]");quiz=shuffle(QUESTIONS.filter((q,i)=>w.includes(i)));}
+  idx=0; answers=[];
+  renderQ();
+}
+
+function renderQ(){
+  if(idx>=quiz.length){renderResult();return;}
+  const q=quiz[idx]; submitted=false; selected=new Set();
+  const isMulti=q.a.length>1;
+  app.innerHTML=`
+  <div class="progress-wrap"><div class="progress-bar" style="width:${idx/quiz.length*100}%"></div></div>
+  <div class="card">
+    <div class="domain-tag">${DOMAINS[q.d]}</div>
+    <div class="q-text">${idx+1}. ${q.q}</div>
+    ${isMulti?`<div class="multi-hint">⚠️ 多選題，請選出所有正確答案（共 ${q.a.length} 項）</div>`:''}
+    ${q.o.map((o,i)=>`<button class="opt" id="o${i}" onclick="pick(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+    <div class="explain" id="exp"></div>
+    <div class="toolbar">
+      <span class="stat">第 ${idx+1} / ${quiz.length} 題</span>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitAns()" disabled>確認答案</button>
+    </div>
+  </div>`;
+}
+
+function pick(i){
+  if(submitted) return;
+  const q=quiz[idx];
+  if(q.a.length===1){selected.clear();selected.add(i);}
+  else{if(selected.has(i))selected.delete(i);else selected.add(i);}
+  document.querySelectorAll('.opt').forEach((b,j)=>{b.classList.toggle('selected',selected.has(j));});
+  document.getElementById('submitBtn').disabled=selected.size===0;
+}
+
+function submitAns(){
+  if(submitted||selected.size===0) return;
+  submitted=true;
+  const q=quiz[idx];
+  const correct=q.a.slice().sort().join(',');
+  const userAns=[...selected].sort().join(',');
+  const ok=correct===userAns;
+  answers.push({q:QUESTIONS.indexOf(q),ok});
+  document.querySelectorAll('.opt').forEach((b,j)=>{
+    b.disabled=true;
+    if(q.a.includes(j))b.classList.add('correct');
+    else if(selected.has(j))b.classList.add('wrong');
+  });
+  const exp=document.getElementById('exp');
+  exp.classList.add('show');
+  exp.innerHTML=`<div class="verdict">${ok?'✅ 正確！':'❌ 答錯了'}</div>${q.e}`;
+  document.getElementById('submitBtn').textContent='下一題 →';
+  document.getElementById('submitBtn').onclick=()=>{idx++;renderQ();};
+  document.getElementById('submitBtn').disabled=false;
+}
+
+function renderResult(){
+  const total=answers.length;
+  const correct=answers.filter(a=>a.ok).length;
+  const pct=Math.round(correct/total*100);
+  const pass=pct>=75;
+  const wrongIds=answers.filter(a=>!a.ok).map(a=>a.q);
+  localStorage.setItem("sec_wrong",JSON.stringify(wrongIds));
+  const byDomain={};
+  answers.forEach(a=>{
+    const dq=QUESTIONS[a.q];
+    if(!byDomain[dq.d])byDomain[dq.d]={ok:0,total:0};
+    byDomain[dq.d].total++;
+    if(a.ok)byDomain[dq.d].ok++;
+  });
+  app.innerHTML=`
+  <div class="card">
+    <h2 style="text-align:center">測驗結果</h2>
+    <div class="result-big ${pass?'pass':'fail'}">${pct}%</div>
+    <p style="text-align:center;margin-bottom:20px;">${correct} / ${total} 題正確 · ${pass?'🎉 通過！':'💪 繼續加油，再試一次！'}<br><small style="color:#999">（正式考試及格線：75%）</small></p>
+    <h3 style="margin-bottom:12px;">各領域表現</h3>
+    ${Object.entries(byDomain).map(([d,s])=>`
+      <div class="domain-row"><span>${DOMAINS[d]}</span><span>${s.ok}/${s.total} (${Math.round(s.ok/s.total*100)}%)</span></div>
+    `).join('')}
+    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="renderSetup()">重新測驗</button>
+      ${wrongIds.length>0?`<button class="btn btn-outline" onclick="startQuiz('wrong')">複習錯題 (${wrongIds.length}題)</button>`:''}
+    </div>
+  </div>`;
+}
+
+renderSetup();
+</script>
+
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="cybersec-academy">
+(function(){var CFG=window.ANALYTICS_CONFIG||{};var s=document.currentScript;var P=(s&&s.getAttribute('data-project'))||'unknown';var PG=(function(){var f=location.pathname.split('/').pop();return f&&f!==''?f:'index.html';})();var LIVE=!!(CFG.url&&CFG.key);function vid(){var k='pf:vid',v;try{v=localStorage.getItem(k);if(!v){v='v'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(k,v);}}catch(e){v='anon';}return v;}function ok(){var k='pf:seen:'+P+':'+PG;try{var l=+(sessionStorage.getItem(k)||0);if(Date.now()-l<1800000)return false;sessionStorage.setItem(k,Date.now());}catch(e){}return true;}function track(){if(!ok())return;if(!LIVE)return;fetch(CFG.url+'/rest/v1/page_views',{method:'POST',headers:{'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({project_id:P,page_path:PG,visitor_id:vid(),referrer:document.referrer?document.referrer.slice(0,300):null})}).catch(function(){});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',track);else track();})();
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

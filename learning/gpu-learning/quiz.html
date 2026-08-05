@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GPU 與 AI 模擬試題</title>
+<style>
+  :root{--green:#76b900;--dark:#0f0c29;--bg:#f0f4f0;--card:#fff;--good:#1e8e3e;--bad:#d93025;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);color:#222;min-height:100vh;}
+  header{background:var(--dark);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  header h1{font-size:1.2rem;}
+  header h1 span{color:var(--green);}
+  .container{max-width:860px;margin:0 auto;padding:24px 16px;}
+  .card{background:var(--card);border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:16px;}
+  .domain-tag{display:inline-block;font-size:.75rem;padding:3px 10px;border-radius:20px;background:#f5f3ff;color:#7c3aed;margin-bottom:12px;}
+  .q-text{font-size:1.05rem;line-height:1.7;margin-bottom:16px;font-weight:600;}
+  .multi-hint{color:#b45309;font-size:.85rem;margin-bottom:10px;}
+  .opt{display:block;width:100%;text-align:left;padding:12px 16px;margin:8px 0;border:2px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:.95rem;line-height:1.6;transition:.15s;}
+  .opt:hover{border-color:var(--green);background:#f0fdf4;}
+  .opt.selected{border-color:#7c3aed;background:#f5f3ff;}
+  .opt.correct{border-color:var(--good);background:#e6f4ea;}
+  .opt.wrong{border-color:var(--bad);background:#fce8e6;}
+  .opt:disabled{cursor:default;}
+  .explain{margin-top:16px;padding:16px;border-radius:8px;background:#f0fdf4;border-left:4px solid var(--green);line-height:1.7;font-size:.92rem;display:none;}
+  .explain.show{display:block;}
+  .explain .verdict{font-weight:700;margin-bottom:6px;}
+  .btn{padding:10px 24px;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:600;}
+  .btn-primary{background:var(--green);color:#fff;}
+  .btn-primary:hover{background:#5a8c00;}
+  .btn-outline{background:#fff;border:2px solid var(--dark);color:var(--dark);}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px;flex-wrap:wrap;}
+  .progress-wrap{background:#ddd;border-radius:10px;height:10px;margin-bottom:20px;overflow:hidden;}
+  .progress-bar{height:100%;background:var(--green);width:0;transition:.3s;}
+  .stat{font-size:.9rem;color:#555;}
+  .result-big{font-size:3rem;font-weight:800;text-align:center;margin:12px 0;}
+  .pass{color:var(--good);} .fail{color:var(--bad);}
+  .domain-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:.95rem;}
+  .setup-opt{padding:16px;border:2px solid #ddd;border-radius:10px;margin:10px 0;cursor:pointer;transition:.15s;}
+  .setup-opt:hover{border-color:var(--green);}
+  .setup-opt h3{font-size:1rem;margin-bottom:4px;}
+  .setup-opt p{font-size:.85rem;color:#666;}
+  a.back{color:#fff;text-decoration:none;font-size:.9rem;opacity:.85;}
+  a.back:hover{opacity:1;}
+  @media(max-width:600px){.container{padding:16px 10px;}.card{padding:16px;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>GPU <span>與 AI</span> 模擬試題</h1>
+  <a class="back" href="index.html">← 回學習中心</a>
+</header>
+<div class="container" id="app"></div>
+
+<script>
+// domain: 1=GPU基礎架構 2=CUDA與程式設計 3=AI與GPU 4=部署與企業決策
+const QUESTIONS = [
+// ---------- Domain 1: GPU 基礎架構 ----------
+{d:1,q:"GPU 相較於 CPU 最核心的設計差異是？",o:["時脈速度更高（GHz 更快）","擁有大量較簡單的運算核心，適合高度平行任務","記憶體容量比 CPU 大","支援多個作業系統同時執行"],a:[1],e:"CPU 設計目標是低延遲的序列任務（少數強核心），GPU 設計目標是高吞吐的平行任務（數千個簡單核心）。GPU 的時脈反而比 CPU 低，但能同時處理成千上萬個執行緒。"},
+{d:1,q:"NVIDIA GPU 的 Tensor Core 與一般 CUDA Core 相比，最主要的差異是？",o:["Tensor Core 時脈頻率更高","Tensor Core 專門加速矩陣乘加（MMA）運算，用於 AI 訓練推論","Tensor Core 負責顯示輸出","Tensor Core 用於加密計算"],a:[1],e:"Tensor Core（從 Volta 架構引入）是硬體層級的矩陣乘加加速器，一個時脈可完成 4×4 矩陣乘法。AI 訓練的核心就是大量矩陣乘法，所以 Tensor Core 讓訓練速度提升 5-10 倍。"},
+{d:1,q:"HBM3（High Bandwidth Memory）相較於 GDDR6，最主要的優勢是？",o:["更大的容量","大幅更高的記憶體頻寬（TB/s 級別）","更低的價格","更低的功耗"],a:[1],e:"HBM 採用 3D 堆疊架構，頻寬遠超 GDDR（H100 的 HBM3 達 3.35 TB/s，而消費卡 GDDR6X 約 1 TB/s）。代價是製造成本極高，僅用於資料中心 GPU。"},
+{d:1,q:"一個 7B 參數的 LLM，以 FP16（16-bit float）格式載入，大約需要多少 VRAM？",o:["約 7 GB","約 14 GB","約 28 GB","約 56 GB"],a:[1],e:"FP16 每個參數佔 2 bytes。7B × 2 bytes = 14 GB。這是純模型權重，實際推論還需要 KV Cache 空間，所以至少要 16 GB VRAM。記憶公式：FP16 = 參數量(B) × 2 GB。"},
+{d:1,q:"在 CUDA 執行模型中，哪個層次的執行緒能共享高速的 Shared Memory？",o:["跨不同 GPU 的所有執行緒","同一 Grid 內的所有 Block","同一 Block 內的執行緒","同一 Warp 內的執行緒"],a:[2],e:"Shared Memory 是每個 Block 私有的高速記憶體（比 Global Memory 快約 100 倍），只有同一 Block 內的 Thread 才能存取。跨 Block 的溝通只能透過慢速的 Global Memory（VRAM）。"},
+{d:1,q:"NVLink 在多 GPU 系統中的主要作用是？",o:["連接 GPU 到顯示器","提供 GPU 間高速直接互連，頻寬遠超 PCIe","連接 GPU 到外部儲存","提供網路連接"],a:[1],e:"NVLink 是 NVIDIA 的 GPU 間專用高速互連，頻寬遠超 PCIe（H100 NVLink 4 達 900 GB/s vs PCIe 5 的 128 GB/s）。對多 GPU 訓練的梯度同步至關重要。"},
+// ---------- Domain 2: CUDA 與程式設計 ----------
+{d:2,q:"以下 PyTorch 程式碼中，哪個操作會強制 CPU 等待 GPU 完成計算（造成同步點）？",o:["x = tensor.cuda()","y = model(x)","loss = criterion(y, labels)","value = loss.item()"],a:[3],e:".item() 把 GPU tensor 的值取出到 Python 純量，這需要把資料從 GPU 搬回 CPU，是一個同步點。在訓練迴圈中每次都呼叫 .item() 會導致 GPU 不斷等待，大幅降低效能。"},
+{d:2,q:"Mixed Precision Training 中，BF16（Brain Float 16）相較於 FP16 的主要優點是？",o:["BF16 精度比 FP16 更高","BF16 的指數位元數與 FP32 相同，不易下溢或上溢","BF16 運算速度比 FP16 快一倍","BF16 佔用更少 VRAM"],a:[1],e:"BF16 有 8 位元指數（與 FP32 相同）但只有 7 位元尾數，FP16 則有 5 位元指數。數值範圍相同意味著 BF16 訓練時不需要 GradScaler 來防止梯度下溢，使用更簡單。A100/H100 強烈推薦 BF16。"},
+{d:2,q:"DataLoader 設定 pin_memory=True 的作用是？",o:["把資料集永久存在 GPU VRAM","在固定記憶體分配資料，讓 CPU→GPU 傳輸更快（DMA 直接傳輸）","防止資料集被作業系統換出","加密儲存資料"],a:[1],e:"Pin memory（固定記憶體、頁鎖定記憶體）讓 CUDA DMA 可以直接傳輸，不需經過作業系統的分頁機制。搭配 num_workers 多執行緒預載，是訓練 I/O 效能的標準優化組合。"},
+{d:2,q:"torch.compile() 在 PyTorch 2.0 中的主要功能是？",o:["自動分散到多張 GPU","把 Python 模型即時編譯為優化的核心程式碼，加速推論和訓練","自動量化模型為 INT8","自動選擇最佳批次大小"],a:[1],e:"torch.compile() 使用 TorchInductor 後端把 PyTorch 運算圖編譯為 CUDA/CPU 優化核心，通常可加速 20-50%，而無需修改模型邏輯。第一次執行需要「暖機」時間（幾分鐘）。"},
+{d:2,q:"在計算 GPU 操作執行時間時，下列做法何者正確？",o:["直接使用 time.time() 包住 GPU 操作","使用 datetime.now() 計時","在計時前後各呼叫 torch.cuda.synchronize()","設定 CUDA_LAUNCH_BLOCKING=1 環境變數再用 time.time()"],a:[2],e:"GPU 操作是非同步的：CPU 發送指令後立刻繼續，不等 GPU。torch.cuda.synchronize() 是強制 CPU 等待 GPU 完成的同步點。計時前後各呼叫一次才能量到真實 GPU 執行時間。CUDA_LAUNCH_BLOCKING=1 雖也有效但會破壞平行性。"},
+// ---------- Domain 3: AI 與 GPU ----------
+{d:3,q:"深度學習訓練為何需要大量 GPU 算力？核心原因是？",o:["神經網路需要高頻率的整數運算","反向傳播演算法需要大量浮點矩陣乘法，而 GPU 天生適合平行執行矩陣運算","GPU 的記憶體比 CPU 更快","深度學習框架只支援 NVIDIA GPU"],a:[1],e:"神經網路的前向傳播（矩陣乘加）和反向傳播（梯度計算）的核心都是大規模矩陣乘法。GPU 的大量並行核心和 Tensor Core 硬體加速讓這些操作比 CPU 快 100-1000 倍，這是 GPU 統治 AI 訓練的根本原因。"},
+{d:3,q:"量化技術中，AWQ（Activation-aware Weight Quantization）相較於 GPTQ 的主要優點是？",o:["AWQ 的量化位元數更低，模型更小","AWQ 考慮了激活值的分佈來決定哪些權重更重要，通常有更好的品質和速度","AWQ 不需要 GPU 就能運行","AWQ 支援更多模型架構"],a:[1],e:"GPTQ 純粹基於 Hessian 矩陣量化；AWQ 分析哪些權重對激活值影響最大（「顯著權重」），保護這些重要的 1% 權重不量化，其他的積極量化，在相同位元數下品質更好、推論速度更快。"},
+{d:3,q:"vLLM 的 PagedAttention 技術主要解決什麼問題？",o:["解決模型檔案過大無法載入的問題","解決 KV Cache 記憶體碎片化問題，大幅提升 GPU 利用率和吞吐量","解決多 GPU 通訊延遲問題","解決批次推論的順序問題"],a:[1],e:"傳統推論框架為每個請求預先保留最大長度的連續 KV Cache，導致大量記憶體碎片和浪費。PagedAttention 類似 OS 的虛擬記憶體分頁，按需分配 KV Cache「頁面」，使 GPU 記憶體利用率提升到近 100%，吞吐量提升 5-10 倍。"},
+{d:3,q:"LoRA（Low-Rank Adaptation）微調的核心思想是？",o:["只訓練模型的最後幾層","把權重矩陣的更新量分解為兩個低秩矩陣的乘積，大幅減少可訓練參數量","對模型進行蒸餾（Distillation）","把模型分割到多張 GPU"],a:[1],e:"LoRA 凍結原始模型權重 W，在旁邊加上兩個小矩陣 A（d×r）和 B（r×d），其中 r（rank）遠小於 d。更新量 ΔW = A×B 的可訓練參數量只有原始的 0.1-1%，大幅降低顯存需求和訓練成本。"},
+{d:3,q:"LLM 推論的 TTFT（Time to First Token）指的是？",o:["完整生成一個完整回答所需的時間","從使用者送出請求到接收到第一個 token 的時間","每秒生成的 token 數量","模型載入所需的時間"],a:[1],e:"TTFT 衡量的是「感覺快不快」——使用者開始看到回應的等待時間。TTFT 取決於 prefill 階段（處理整個 prompt）的速度。TPS（tokens per second）才是生成速度。兩個指標都重要，但影響使用者主觀體驗的主要是 TTFT。"},
+// ---------- Domain 4: 部署與企業決策 ----------
+{d:4,q:"公司想要部署 Llama 3.1 70B 做為內部 API，預算有限。下列哪個方案最能平衡品質、成本和可維運性？",o:["FP16 全精度，租用 2 台 A100 80G 伺服器","AWQ INT4 量化 + vLLM，在 1 台 H100 80G 上部署","使用 OpenAI API，完全不自建","llama.cpp CPU 推論，不需要 GPU"],a:[1],e:"70B FP16 需要 ~140 GB VRAM（2 台 A100），成本約 $60/天。AWQ INT4 量化後只需 ~35 GB，1 台 H100 搞定（$30/天），品質損失極小。vLLM 提供高吞吐和 OpenAI 相容 API，維運簡單。OpenAI API 長期成本可能更高且有資料隱私問題。"},
+{d:4,q:"新創公司打算用 GPU 做 AI 推論服務，每月流量尚不穩定。最佳的 GPU 取得策略是？",o:["立刻購買 H100 伺服器（約 $300,000）","租用 Vast.ai 或 Lambda Labs 等 GPU 雲端，按小時計費","僅使用 CPU 推論避免 GPU 費用","等流量穩定再做決定，先不提供 AI 功能"],a:[1],e:"流量不穩定時，購買 GPU 會造成低利用率浪費（花 $300K 的設備可能只用 30%）。Vast.ai、Lambda Labs、CoreWeave 等 GPU 雲按小時計費，適合早期驗證。流量穩定且月費超過 Reserved 費用時再考慮採購或長期租約。"},
+{d:4,q:"Multi-GPU 訓練中，Data Parallelism 和 Model Parallelism 最主要的差異是？",o:["Data Parallel 只能用 2 張 GPU，Model Parallel 可以用更多","Data Parallel 把不同資料分配給各 GPU（模型複製），Model Parallel 把模型本身切割到不同 GPU","Data Parallel 速度較慢但記憶體效率高","兩者沒有本質差異"],a:[1],e:"Data Parallel（DP）：每張 GPU 都有完整的模型副本，只是處理不同批次資料，最後梯度同步。優點：實作簡單。Model Parallel（MP/TP）：模型本身切割到多張 GPU，適合模型太大無法塞進單張卡的情境（如 LLM）。兩種技術通常混合使用。"},
+{d:4,q:"Ollama 在本地部署 LLM 時，設定 OLLAMA_HOST=0.0.0.0 會帶來什麼風險？",o:["模型準確度下降","LLM 服務對區域網路（甚至網際網路）開放，缺乏認證機制，任何人都能呼叫","GPU 溫度升高","模型自動更新可能破壞現有應用"],a:[1],e:"Ollama 預設只監聽 localhost（127.0.0.1），改為 0.0.0.0 後，任何能連接到該機器的人（LAN 甚至公網）都能免認證呼叫 API，存取你的模型。必須搭配防火牆規則或 Nginx 反向代理加上 API Key 認證。"},
+{d:4,q:"企業要微調一個內部 LLM 用於客服，訓練資料包含客戶個資。下列哪項做法最重要？",o:["使用最大的開源模型以確保品質","確保訓練資料脫敏（移除個資）且在本地環境訓練，資料不上傳第三方平台","使用 OpenAI Fine-tuning API 最方便","選擇 AWQ 量化以節省成本"],a:[1],e:"含客戶個資的資料有個資保護（如 GDPR）合規要求，不能傳送給第三方（包括 OpenAI）。必須在自控環境訓練，且訓練前要脫敏（去識別化）。資料安全優先於效能和便利性考量。"},
+{d:4,q:"一家公司的 AI 推論工作負載每天 9-18 點流量高峰，其他時間幾乎無流量。最節省成本的雲端 GPU 策略是？",o:["24/7 租用 On-Demand GPU","使用 Kubernetes + Karpenter 在有流量時啟動 Spot GPU，無流量時縮至 0","購買 Reserved GPU 實例","改用 CPU 推論"],a:[1],e:"對於明顯的高低峰工作負載，Scale-to-Zero 架構最節省。搭配 Spot GPU（比 On-Demand 便宜 70-90%）+ 自動擴縮，只在有流量時付費。只有 24/7 穩定負載才值得 Reserved 或購買。"},
+{d:4,q:"選擇推論框架時，如果主要需求是 OpenAI 相容 API + 支援多 GPU 張量並行 + 最高吞吐量，最應選擇？",o:["Ollama","llama.cpp","vLLM","Hugging Face pipeline"],a:[2],e:"vLLM 提供 OpenAI 相容的 HTTP API、原生 Tensor Parallel 多 GPU 支援、PagedAttention 最高吞吐量，是生產環境的首選。Ollama 適合本地開發，llama.cpp 適合 CPU/低資源環境，HF pipeline 無生產級 API。"},
+{d:4,q:"衡量 GPU 推論服務品質時，下列何者最能反映「使用者感知的回應速度」？",o:["GPU 利用率（GPU Utilization %）","TTFT（Time to First Token）","TPS（Tokens per Second）","模型參數量"],a:[1],e:"TTFT 決定使用者從送出請求到看到第一個字的等待感受——這是最影響主觀體驗的指標。TPS 影響「讀完整個回答的速度」，GPU 利用率反映資源效率，但都不如 TTFT 直接影響使用者感知。"},
+{d:4,q:"QLoRA 微調相較於 Full Fine-tuning 最主要的代價（缺點）是？",o:["需要更長的訓練時間","模型品質通常略低，且微調後的 LoRA 權重需要搭配基礎模型才能推論","不支援 Llama 等開源模型","無法處理多語言資料"],a:[1],e:"QLoRA 品質略低於 Full Fine-tuning（實際差距通常很小）。更重要的代價是推論時需要同時載入基礎模型（4-bit 量化）+ LoRA 適配權重，或先 merge_and_unload 合併，增加了一道工序。但相比 Full Fine-tuning 節省的資源（10-100x），這個代價通常值得。"}
+];
+
+const DOMAINS = {
+  1:"主題 1：GPU 基礎架構",
+  2:"主題 2：CUDA 與程式設計",
+  3:"主題 3：AI 與 GPU",
+  4:"主題 4：部署與企業決策"
+};
+
+let quiz=[], idx=0, answers=[], selected=new Set(), submitted=false, mode="all";
+const app = document.getElementById("app");
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function renderSetup(){
+  const wrong = JSON.parse(localStorage.getItem("gpu_wrong")||"[]");
+  app.innerHTML = `
+  <div class="card">
+    <h2 style="margin-bottom:8px;">選擇測驗模式</h2>
+    <p class="stat" style="margin-bottom:12px;">題庫共 ${QUESTIONS.length} 題 · 涵蓋 GPU 架構、CUDA、AI 應用、企業部署 · 及格線 70%</p>
+    <div class="setup-opt" onclick="startQuiz('all')"><h3>📝 完整模擬考（${QUESTIONS.length} 題）</h3><p>全主題隨機出題，模擬完整測驗</p></div>
+    <div class="setup-opt" onclick="startQuiz('d1')"><h3>🏗️ 主題 1：GPU 基礎架構（${QUESTIONS.filter(q=>q.d===1).length} 題）</h3><p>GPU 架構、VRAM、NVLink、Tensor Core</p></div>
+    <div class="setup-opt" onclick="startQuiz('d2')"><h3>🐍 主題 2：CUDA 與程式設計（${QUESTIONS.filter(q=>q.d===2).length} 題）</h3><p>PyTorch 操作、Mixed Precision、效能優化</p></div>
+    <div class="setup-opt" onclick="startQuiz('d3')"><h3>🧠 主題 3：AI 與 GPU（${QUESTIONS.filter(q=>q.d===3).length} 題）</h3><p>量化技術、vLLM、LoRA 微調、推論指標</p></div>
+    <div class="setup-opt" onclick="startQuiz('d4')"><h3>🏢 主題 4：部署與企業決策（${QUESTIONS.filter(q=>q.d===4).length} 題）</h3><p>框架選型、成本策略、安全合規</p></div>
+    ${wrong.length>0?`<div class="setup-opt" onclick="startQuiz('wrong')"><h3>❌ 複習錯題（${wrong.length} 題）</h3><p>上次答錯的題目重新練習</p></div>`:''}
+  </div>`;
+}
+
+function startQuiz(m){
+  mode=m;
+  if(m==='all') quiz=shuffle(QUESTIONS);
+  else if(m.startsWith('d')) quiz=shuffle(QUESTIONS.filter(q=>q.d===+m[1]));
+  else if(m==='wrong'){const w=JSON.parse(localStorage.getItem("gpu_wrong")||"[]");quiz=shuffle(QUESTIONS.filter(q=>w.includes(QUESTIONS.indexOf(q))));}
+  idx=0; answers=[];
+  renderQ();
+}
+
+function renderQ(){
+  if(idx>=quiz.length){renderResult();return;}
+  const q=quiz[idx]; submitted=false; selected=new Set();
+  const isMulti=q.a.length>1;
+  app.innerHTML=`
+  <div class="progress-wrap"><div class="progress-bar" style="width:${idx/quiz.length*100}%"></div></div>
+  <div class="card">
+    <div class="domain-tag">${DOMAINS[q.d]}</div>
+    <div class="q-text">${idx+1}. ${q.q}</div>
+    ${isMulti?`<div class="multi-hint">⚠️ 多選題，請選出所有正確答案（共 ${q.a.length} 項）</div>`:''}
+    ${q.o.map((o,i)=>`<button class="opt" id="o${i}" onclick="pick(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+    <div class="explain" id="exp"></div>
+    <div class="toolbar">
+      <span class="stat">第 ${idx+1} / ${quiz.length} 題</span>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitAns()" disabled>確認答案</button>
+    </div>
+  </div>`;
+}
+
+function pick(i){
+  if(submitted) return;
+  const q=quiz[idx];
+  if(q.a.length===1){selected.clear();selected.add(i);}
+  else{if(selected.has(i))selected.delete(i);else selected.add(i);}
+  document.querySelectorAll('.opt').forEach((b,j)=>{b.classList.toggle('selected',selected.has(j));});
+  document.getElementById('submitBtn').disabled=selected.size===0;
+}
+
+function submitAns(){
+  if(submitted||selected.size===0) return;
+  submitted=true;
+  const q=quiz[idx];
+  const correct=q.a.slice().sort().join(',');
+  const userAns=[...selected].sort().join(',');
+  const ok=correct===userAns;
+  answers.push({q:QUESTIONS.indexOf(q),ok});
+  document.querySelectorAll('.opt').forEach((b,j)=>{
+    b.disabled=true;
+    if(q.a.includes(j))b.classList.add('correct');
+    else if(selected.has(j))b.classList.add('wrong');
+  });
+  const exp=document.getElementById('exp');
+  exp.classList.add('show');
+  exp.innerHTML=`<div class="verdict">${ok?'✅ 正確！':'❌ 答錯了'}</div>${q.e}`;
+  document.getElementById('submitBtn').textContent='下一題 →';
+  document.getElementById('submitBtn').onclick=()=>{idx++;renderQ();};
+  document.getElementById('submitBtn').disabled=false;
+}
+
+function renderResult(){
+  const total=answers.length;
+  const correct=answers.filter(a=>a.ok).length;
+  const pct=Math.round(correct/total*100);
+  const pass=pct>=70;
+
+  const wrongIds=answers.filter(a=>!a.ok).map(a=>a.q);
+  localStorage.setItem("gpu_wrong",JSON.stringify(wrongIds));
+
+  const byDomain={};
+  answers.forEach(a=>{
+    const dq=QUESTIONS[a.q];
+    if(!byDomain[dq.d])byDomain[dq.d]={ok:0,total:0};
+    byDomain[dq.d].total++;
+    if(a.ok)byDomain[dq.d].ok++;
+  });
+
+  app.innerHTML=`
+  <div class="card">
+    <h2 style="text-align:center">測驗結果</h2>
+    <div class="result-big ${pass?'pass':'fail'}">${pct}%</div>
+    <p style="text-align:center;margin-bottom:20px;">${correct} / ${total} 題正確 · ${pass?'🎉 通過！':'💪 繼續加油，再試一次！'}</p>
+    <h3 style="margin-bottom:12px;">各主題表現</h3>
+    ${Object.entries(byDomain).map(([d,s])=>`
+      <div class="domain-row"><span>${DOMAINS[d]}</span><span>${s.ok}/${s.total} (${Math.round(s.ok/s.total*100)}%)</span></div>
+    `).join('')}
+    <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="renderSetup()">重新測驗</button>
+      ${wrongIds.length>0?`<button class="btn btn-outline" onclick="startQuiz('wrong')">複習錯題 (${wrongIds.length}題)</button>`:''}
+    </div>
+  </div>`;
+}
+
+renderSetup();
+</script>
+
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="gpu-learning">
+(function(){var CFG=window.ANALYTICS_CONFIG||{};var s=document.currentScript;var P=(s&&s.getAttribute('data-project'))||'unknown';var PG=(function(){var f=location.pathname.split('/').pop();return f&&f!==''?f:'index.html';})();var LIVE=!!(CFG.url&&CFG.key);function vid(){var k='pf:vid',v;try{v=localStorage.getItem(k);if(!v){v='v'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(k,v);}}catch(e){v='anon';}return v;}function ok(){var k='pf:seen:'+P+':'+PG;try{var l=+(sessionStorage.getItem(k)||0);if(Date.now()-l<1800000)return false;sessionStorage.setItem(k,Date.now());}catch(e){}return true;}function track(){if(!ok())return;if(!LIVE)return;fetch(CFG.url+'/rest/v1/page_views',{method:'POST',headers:{'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({project_id:P,page_path:PG,visitor_id:vid(),referrer:document.referrer?document.referrer.slice(0,300):null})}).catch(function(){});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',track);else track();})();
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

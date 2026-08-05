@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 推論部署 — GPU 完全自學指南</title>
+<style>
+  :root{--purple:#a78bfa;--dark:#0f0c29;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4f0;min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#0f0c29,#1e1b4b);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .back{display:inline-block;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;margin-bottom:16px;}
+  .hero .back:hover{color:#fff;}
+  .hero .badge{display:inline-block;background:rgba(167,139,250,.25);border:1px solid var(--purple);color:#c4b5fd;padding:4px 14px;border-radius:12px;font-size:.8rem;margin-bottom:12px;}
+  .hero h1{font-size:1.9rem;line-height:1.4;}
+  .hero h1 span{color:var(--purple);}
+  .hero p{opacity:.85;max-width:560px;margin:12px auto 0;line-height:1.8;font-size:.95rem;}
+  .container{max-width:820px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:14px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:24px;}
+  h2{font-size:1.25rem;color:#1a1a1a;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  h3{font-size:1rem;color:#333;margin:18px 0 10px;font-weight:700;}
+  p{line-height:1.85;color:#444;margin-bottom:12px;font-size:.95rem;}
+  .analogy{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-left:4px solid var(--purple);border-radius:0 12px 12px 0;padding:18px 20px;margin:16px 0;}
+  .analogy .label{font-size:.75rem;font-weight:700;color:#7c3aed;letter-spacing:.05em;margin-bottom:6px;}
+  .analogy p{color:#4c1d95;margin:0;line-height:1.8;}
+  .key-box{background:#1a1a2e;color:#e2e8f0;border-radius:12px;padding:20px;margin:16px 0;}
+  .key-box .label{color:var(--purple);font-size:.8rem;font-weight:700;letter-spacing:.05em;margin-bottom:10px;}
+  .key-box ul{padding-left:20px;}
+  .key-box li{line-height:2;font-size:.9rem;}
+  .code-block{background:#0d1117;border-radius:10px;padding:20px;margin:16px 0;overflow-x:auto;}
+  .code-block pre{color:#e6edf3;font-family:"Cascadia Code","Fira Code","Consolas",monospace;font-size:.85rem;line-height:1.7;white-space:pre;}
+  .code-block .comment{color:#8b949e;}
+  .code-block .kw{color:#ff7b72;}
+  .code-block .str{color:#a5d6ff;}
+  .code-block .num{color:#79c0ff;}
+  .warn-box{background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .warn-box p{color:#92400e;margin:0;font-size:.9rem;line-height:1.8;}
+  .tip-box{background:#f0fdf4;border-left:4px solid #4ade80;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .tip-box p{color:#166534;margin:0;font-size:.9rem;line-height:1.8;}
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:16px 0;}
+  .metric-card{background:#f8fafc;border:2px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;}
+  .metric-card .num{font-size:1.8rem;font-weight:800;color:var(--purple);}
+  .metric-card .label{font-size:.78rem;color:#666;margin-top:4px;}
+  .stack-row{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #f3f4f6;}
+  .stack-row:last-child{border:none;}
+  .stack-icon{width:44px;height:44px;border-radius:10px;background:#f5f3ff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+  .stack-info h4{font-size:.92rem;margin:0 0 4px;color:#1a1a1a;}
+  .stack-info p{font-size:.82rem;color:#666;margin:0;line-height:1.5;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:12px 0;}
+  th{background:#1a1a2e;color:#c4b5fd;padding:10px 14px;text-align:left;}
+  td{padding:10px 14px;border-bottom:1px solid #eee;}
+  tr:nth-child(even) td{background:#f9fafb;}
+  .good{color:#16a34a;font-weight:700;}
+  .bad{color:#dc2626;font-weight:700;}
+  .takeaway{background:linear-gradient(135deg,#1a1a2e,#1e1b4b);color:#fff;border-radius:14px;padding:24px;margin-top:24px;}
+  .takeaway h2{color:var(--purple);margin-bottom:12px;}
+  .takeaway ul{padding-left:20px;}
+  .takeaway li{line-height:2.2;font-size:.9rem;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:24px;gap:12px;}
+  .btn{display:block;padding:12px 24px;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;text-align:center;}
+  .btn-outline{border:2px solid var(--purple);color:var(--purple);background:transparent;}
+  .btn-fill{background:var(--purple);color:#fff;}
+  .btn:hover{opacity:.85;}
+  .flow-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:16px 0;}
+  .flow-node{background:#1a1a2e;color:#c4b5fd;border-radius:8px;padding:8px 16px;font-size:.85rem;font-weight:600;}
+  .flow-arrow{color:#888;font-size:1.2rem;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <a class="back" href="../index.html">← 回 GPU 完全自學指南</a>
+  <div class="badge">高階 · 文章 14</div>
+  <h1>🚀 <span>LLM 推論部署</span>完整指南</h1>
+  <p>從模型格式、框架選擇到量化技術，手把手帶你把 LLM 部署上線，並壓榨到最高吞吐量。</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>🗺️ 推論部署的全貌</h2>
+    <p>訓練好一個模型只是開始。「推論部署」是讓它在生產環境服務真實使用者的整個過程。這比訓練難的原因是：你要同時兼顧速度、成本和品質。</p>
+    <div class="flow-row">
+      <div class="flow-node">原始模型<br><small>PyTorch .pt</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">優化<br><small>量化/編譯</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">推論引擎<br><small>vLLM / TGI</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">API 服務<br><small>HTTP/gRPC</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">使用者</div>
+    </div>
+    <div class="key-box">
+      <div class="label">📊 推論的三個核心指標</div>
+      <ul>
+        <li><strong>TTFT（Time to First Token）</strong>：使用者送出請求到收到第一個 token 的時間，影響「感覺快不快」</li>
+        <li><strong>TPS（Tokens per Second）</strong>：每秒生成的 token 數量，影響「讀完的速度」</li>
+        <li><strong>吞吐量（Throughput）</strong>：每秒能同時服務多少個請求，決定成本</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ 推論框架選擇</h2>
+    <div class="stack-row">
+      <div class="stack-icon">⚡</div>
+      <div class="stack-info">
+        <h4>vLLM（推薦生產環境）</h4>
+        <p>PagedAttention 技術，吞吐量業界最高；支援 continuous batching、多 GPU 張量並行；OpenAI 相容 API</p>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-icon">🤗</div>
+      <div class="stack-info">
+        <h4>Hugging Face TGI（Text Generation Inference）</h4>
+        <p>HF 官方推論伺服器；Docker 直接部署；支援量化；企業版有 SLA 保證</p>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-icon">🦙</div>
+      <div class="stack-info">
+        <h4>Ollama（本地部署首選）</h4>
+        <p>Mac/Windows/Linux 一鍵安裝；自動管理模型下載；CLI 操作直覺；REST API 與 OpenAI 相容</p>
+      </div>
+    </div>
+    <div class="stack-row">
+      <div class="stack-icon">🎯</div>
+      <div class="stack-info">
+        <h4>llama.cpp（超低資源環境）</h4>
+        <p>純 CPU 可跑；Apple Silicon 最佳化；支援 GGUF 量化格式；資源需求最低</p>
+      </div>
+    </div>
+
+    <h3>框架選型一覽</h3>
+    <table>
+      <thead><tr><th>情境</th><th>推薦框架</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>生產 API，高並發</td><td class="good">vLLM</td><td>吞吐量最高，continuous batching</td></tr>
+        <tr><td>HF 模型快速上線</td><td class="good">TGI</td><td>Docker 一鍵，HF Hub 直接整合</td></tr>
+        <tr><td>本地開發/測試</td><td class="good">Ollama</td><td>安裝最簡單，UI 工具多</td></tr>
+        <tr><td>沒有 GPU 的機器</td><td class="good">llama.cpp</td><td>CPU 也能跑，記憶體需求低</td></tr>
+        <tr><td>NVIDIA 企業部署</td><td>Triton Server</td><td>動態 batching，多模型管理</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>🧠 PagedAttention：vLLM 快在哪</h2>
+    <p>傳統推論框架的問題：為每個請求預先保留最大長度的 KV Cache 記憶體，90% 的空間被浪費。</p>
+    <div class="analogy">
+      <div class="label">📖 比喻：書架管理</div>
+      <p>傳統方式：每個人來借書就保留整排書架給他（即使他只用了幾格）。PagedAttention：只在需要的時候分配一格格的「頁面」，不用的立刻歸還。結果：同樣的書架可以同時服務 5-10 倍的人。</p>
+    </div>
+    <div class="code-block"><pre><span class="comment"># vLLM 快速啟動（安裝後一行啟動服務）</span>
+<span class="comment"># pip install vllm</span>
+
+<span class="kw">from</span> vllm <span class="kw">import</span> LLM, SamplingParams
+
+<span class="comment"># 載入模型（自動用 PagedAttention）</span>
+llm = LLM(
+    model=<span class="str">"meta-llama/Llama-3.2-8B-Instruct"</span>,
+    tensor_parallel_size=<span class="num">2</span>,   <span class="comment"># 跨 2 張 GPU 張量並行</span>
+    max_model_len=<span class="num">4096</span>,
+    gpu_memory_utilization=<span class="num">0.95</span>,  <span class="comment"># 使用 95% VRAM</span>
+)
+
+params = SamplingParams(temperature=<span class="num">0.7</span>, max_tokens=<span class="num">512</span>)
+outputs = llm.generate([<span class="str">"解釋 GPU 的 CUDA 架構"</span>], params)
+<span class="kw">print</span>(outputs[<span class="num">0</span>].outputs[<span class="num">0</span>].text)
+
+<span class="comment"># 或啟動 OpenAI 相容的 HTTP API</span>
+<span class="comment"># python -m vllm.entrypoints.openai.api_server \</span>
+<span class="comment">#   --model meta-llama/Llama-3.2-8B-Instruct \</span>
+<span class="comment">#   --port 8000</span></pre></div>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="num">5-10x</div><div class="label">vLLM vs 原生 PyTorch 吞吐量</div></div>
+      <div class="metric-card"><div class="num">&lt;1%</div><div class="label">VRAM 碎片化浪費</div></div>
+      <div class="metric-card"><div class="num">continuous</div><div class="label">Batching 模式（動態填充）</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🗜️ 量化：讓模型塞進更小的 GPU</h2>
+    <p>70B 模型用 FP16 需要 140 GB VRAM（約 2 台 H100）。量化後可以塞進一張 GPU。</p>
+    <table>
+      <thead><tr><th>量化格式</th><th>精度</th><th>70B 模型需要 VRAM</th><th>品質損失</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td>FP16（基準）</td><td>16 bit</td><td>~140 GB</td><td>無</td><td>訓練/高精度推論</td></tr>
+        <tr><td>INT8（GPTQ/bitsandbytes）</td><td>8 bit</td><td>~70 GB</td><td>極小</td><td>推論，精度優先</td></tr>
+        <tr><td>INT4（GPTQ/AWQ）</td><td>4 bit</td><td>~35 GB</td><td>小</td><td>推論，最常用</td></tr>
+        <tr><td>GGUF Q4_K_M（llama.cpp）</td><td>~4 bit</td><td>~28 GB</td><td>小</td><td>本地/CPU 推論</td></tr>
+        <tr><td>GGUF Q2_K</td><td>~2 bit</td><td>~18 GB</td><td>明顯</td><td>VRAM 極度受限</td></tr>
+      </tbody>
+    </table>
+
+    <h3>AWQ 量化（推薦）</h3>
+    <div class="code-block"><pre><span class="comment"># AWQ (Activation-aware Weight Quantization) — 比 GPTQ 更快，品質相當</span>
+<span class="comment"># pip install autoawq</span>
+
+<span class="kw">from</span> awq <span class="kw">import</span> AutoAWQForCausalLM
+<span class="kw">from</span> transformers <span class="kw">import</span> AutoTokenizer
+
+model = AutoAWQForCausalLM.from_pretrained(<span class="str">"Qwen/Qwen2-7B"</span>)
+tokenizer = AutoTokenizer.from_pretrained(<span class="str">"Qwen/Qwen2-7B"</span>)
+
+quant_config = {<span class="str">"zero_point"</span>: <span class="kw">True</span>, <span class="str">"q_group_size"</span>: <span class="num">128</span>, <span class="str">"w_bit"</span>: <span class="num">4</span>}
+model.quantize(tokenizer, quant_config=quant_config)
+model.save_quantized(<span class="str">"./qwen2-7b-awq"</span>)
+
+<span class="comment"># 之後載入量化模型（快又省 VRAM）</span>
+model = AutoAWQForCausalLM.from_quantized(<span class="str">"./qwen2-7b-awq"</span>)</pre></div>
+
+    <div class="tip-box">
+      <p>💡 <strong>選哪種量化？</strong>生產環境首選 AWQ INT4（速度/品質平衡最好）。本地開發用 Ollama 下載的 GGUF（自動選 Q4_K_M）。需要極致品質時用 FP16 或 INT8。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🖥️ 用 Ollama 本地部署（最快上手）</h2>
+    <div class="code-block"><pre><span class="comment"># 安裝 Ollama（Windows/Mac/Linux）</span>
+<span class="comment"># 到 https://ollama.ai 下載安裝包，或</span>
+<span class="comment"># Linux: curl -fsSL https://ollama.ai/install.sh | sh</span>
+
+<span class="comment"># 拉取並執行模型</span>
+ollama pull llama3.2           <span class="comment"># 下載 3B 模型（約 2.0 GB）</span>
+ollama pull qwen2.5:7b         <span class="comment"># 繁中效果更好的 7B</span>
+ollama run llama3.2            <span class="comment"># 進入對話模式</span>
+
+<span class="comment"># 呼叫 REST API（OpenAI 相容格式）</span>
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+  "prompt": "什麼是 GPU 的 CUDA 架構？",
+  "stream": false
+}'
+
+<span class="comment"># Python 呼叫（使用 OpenAI SDK）</span>
+<span class="comment"># pip install openai</span>
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+client = OpenAI(base_url=<span class="str">"http://localhost:11434/v1"</span>, api_key=<span class="str">"ollama"</span>)
+response = client.chat.completions.create(
+    model=<span class="str">"llama3.2"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"解釋 VRAM 和 RAM 的差異"</span>}]
+)</pre></div>
+    <div class="warn-box">
+      <p>⚠️ Ollama 預設跑在 localhost，不對外開放。若要在 LAN 內共享，需設定 <code>OLLAMA_HOST=0.0.0.0</code> 環境變數，並注意防火牆與授權控制——開放後任何人都能存取，沒有認證機制。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📈 生產優化清單</h2>
+    <table>
+      <thead><tr><th>優化項目</th><th>效果</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>Continuous Batching</td><td class="good">吞吐量 5-10x</td><td>用 vLLM（預設開啟）</td></tr>
+        <tr><td>INT4 量化</td><td class="good">VRAM -50%，速度 +20%</td><td>AWQ 或 GPTQ</td></tr>
+        <tr><td>Tensor Parallel</td><td class="good">線性擴展多 GPU</td><td>vLLM tensor_parallel_size=N</td></tr>
+        <tr><td>KV Cache 量化</td><td class="good">VRAM -30%</td><td>vLLM kv_cache_dtype=fp8</td></tr>
+        <tr><td>Flash Attention 2</td><td class="good">速度 +20-40%，記憶體 -50%</td><td>安裝 flash-attn 套件</td></tr>
+        <tr><td>Speculative Decoding</td><td class="good">TTFT -50%</td><td>vLLM speculative decoding</td></tr>
+        <tr><td>輸出長度限制</td><td>成本控制</td><td>max_tokens 設合理上限</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="takeaway">
+    <h2>📌 本章重點整理</h2>
+    <ul>
+      <li>推論三指標：TTFT（體感速度）、TPS（生成速度）、Throughput（並發能力）</li>
+      <li>vLLM：生產首選，PagedAttention 讓吞吐量提升 5-10x</li>
+      <li>Ollama：本地開發最快，一行命令跑 LLM</li>
+      <li>AWQ INT4 量化：VRAM 用量減半，品質損失極小，推論速度還更快</li>
+      <li>Flash Attention 2 + INT4 量化 + Continuous Batching = 生產三件套</li>
+      <li>70B 模型 FP16 需 140 GB，INT4 後降到 35 GB，一張 H100 搞定</li>
+    </ul>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-outline" href="01-cuda-python.html">← 上一篇：CUDA Python 實戰</a>
+    <a class="btn btn-fill" href="03-finetuning.html">下一篇：微調 LLM →</a>
+  </div>
+</div>
+<footer style="text-align:center;padding:20px;color:#999;font-size:.8rem;">GPU 完全自學指南 · Tom Projects Learning Hub</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="gpu-learning">
+(function(){var CFG=window.ANALYTICS_CONFIG||{};var s=document.currentScript;var P=(s&&s.getAttribute('data-project'))||'unknown';var PG=(function(){var f=location.pathname.split('/').pop();return f&&f!==''?f:'index.html';})();var LIVE=!!(CFG.url&&CFG.key);function vid(){var k='pf:vid',v;try{v=localStorage.getItem(k);if(!v){v='v'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(k,v);}}catch(e){v='anon';}return v;}function ok(){var k='pf:seen:'+P+':'+PG;try{var l=+(sessionStorage.getItem(k)||0);if(Date.now()-l<1800000)return false;sessionStorage.setItem(k,Date.now());}catch(e){}return true;}function track(){if(!ok())return;if(!LIVE)return;fetch(CFG.url+'/rest/v1/page_views',{method:'POST',headers:{'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({project_id:P,page_path:PG,visitor_id:vid(),referrer:document.referrer?document.referrer.slice(0,300):null})}).catch(function(){});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',track);else track();})();
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>

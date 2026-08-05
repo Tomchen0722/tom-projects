@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUDA Python 實戰 — GPU 完全自學指南</title>
+<style>
+  :root{--purple:#a78bfa;--dark:#0f0c29;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4f0;min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#0f0c29,#1e1b4b);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .back{display:inline-block;color:rgba(255,255,255,.7);text-decoration:none;font-size:.85rem;margin-bottom:16px;}
+  .hero .back:hover{color:#fff;}
+  .hero .badge{display:inline-block;background:rgba(167,139,250,.25);border:1px solid var(--purple);color:#c4b5fd;padding:4px 14px;border-radius:12px;font-size:.8rem;margin-bottom:12px;}
+  .hero h1{font-size:1.9rem;line-height:1.4;}
+  .hero h1 span{color:var(--purple);}
+  .hero p{opacity:.85;max-width:560px;margin:12px auto 0;line-height:1.8;font-size:.95rem;}
+  .container{max-width:820px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:14px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:24px;}
+  h2{font-size:1.25rem;color:#1a1a1a;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  h3{font-size:1rem;color:#333;margin:18px 0 10px;font-weight:700;}
+  p{line-height:1.85;color:#444;margin-bottom:12px;font-size:.95rem;}
+  .analogy{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-left:4px solid var(--purple);border-radius:0 12px 12px 0;padding:18px 20px;margin:16px 0;}
+  .analogy .label{font-size:.75rem;font-weight:700;color:#7c3aed;letter-spacing:.05em;margin-bottom:6px;}
+  .analogy p{color:#4c1d95;margin:0;line-height:1.8;}
+  .key-box{background:#1a1a2e;color:#e2e8f0;border-radius:12px;padding:20px;margin:16px 0;}
+  .key-box .label{color:var(--purple);font-size:.8rem;font-weight:700;letter-spacing:.05em;margin-bottom:10px;}
+  .key-box ul{padding-left:20px;}
+  .key-box li{line-height:2;font-size:.9rem;}
+  .code-block{background:#0d1117;border-radius:10px;padding:20px;margin:16px 0;overflow-x:auto;}
+  .code-block pre{color:#e6edf3;font-family:"Cascadia Code","Fira Code","Consolas",monospace;font-size:.85rem;line-height:1.7;white-space:pre;}
+  .code-block .comment{color:#8b949e;}
+  .code-block .kw{color:#ff7b72;}
+  .code-block .fn{color:#d2a8ff;}
+  .code-block .str{color:#a5d6ff;}
+  .code-block .num{color:#79c0ff;}
+  .warn-box{background:#fef3c7;border-left:4px solid #f59e0b;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .warn-box p{color:#92400e;margin:0;font-size:.9rem;line-height:1.8;}
+  .tip-box{background:#f0fdf4;border-left:4px solid #4ade80;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;}
+  .tip-box p{color:#166534;margin:0;font-size:.9rem;line-height:1.8;}
+  .perf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:16px 0;}
+  .perf-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;}
+  .perf-card .num{font-size:1.8rem;font-weight:800;color:var(--purple);}
+  .perf-card .label{font-size:.78rem;color:#666;margin-top:4px;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;margin:12px 0;}
+  th{background:#1a1a2e;color:#c4b5fd;padding:10px 14px;text-align:left;}
+  td{padding:10px 14px;border-bottom:1px solid #eee;}
+  tr:nth-child(even) td{background:#f9fafb;}
+  .takeaway{background:linear-gradient(135deg,#1a1a2e,#1e1b4b);color:#fff;border-radius:14px;padding:24px;margin-top:24px;}
+  .takeaway h2{color:var(--purple);margin-bottom:12px;}
+  .takeaway ul{padding-left:20px;}
+  .takeaway li{line-height:2.2;font-size:.9rem;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:24px;gap:12px;}
+  .btn{display:block;padding:12px 24px;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;text-align:center;}
+  .btn-outline{border:2px solid var(--purple);color:var(--purple);background:transparent;}
+  .btn-fill{background:var(--purple);color:#fff;}
+  .btn:hover{opacity:.85;}
+  .step-list{list-style:none;padding:0;counter-reset:step;}
+  .step-item{counter-increment:step;display:flex;gap:14px;padding:14px 0;border-bottom:1px solid #f3f4f6;align-items:flex-start;}
+  .step-item::before{content:counter(step);min-width:28px;height:28px;background:var(--purple);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;}
+  .step-item p{margin:0;font-size:.9rem;color:#444;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <a class="back" href="../index.html">← 回 GPU 完全自學指南</a>
+  <div class="badge">高階 · 文章 13</div>
+  <h1>🐍 <span>CUDA Python</span> 實戰</h1>
+  <p>不用學 C++，用 Python 就能操控 GPU。從 PyTorch tensor 到記憶體管理，工程師必知的 GPU 程式設計基礎。</p>
+</div>
+<div class="container">
+
+  <div class="card">
+    <h2>🤔 為什麼要學 CUDA Python？</h2>
+    <p>很多人以為「用 GPU 跑 AI」就只是把 PyTorch 安裝好然後呼叫 <code>.to("cuda")</code>。這沒錯——但你不知道底層在做什麼，就不知道為何慢、怎麼快。</p>
+    <div class="analogy">
+      <div class="label">🏁 比喻</div>
+      <p>不懂引擎的賽車手只會油門跟煞車。懂引擎的賽車手能調教到每一圈都快半秒。GPU 程式設計就是學會調教的技術。</p>
+    </div>
+    <p>學完這篇，你能做到：</p>
+    <div class="key-box">
+      <div class="label">📋 你會學到</div>
+      <ul>
+        <li>理解 CUDA 執行模型（不需要寫 C++）</li>
+        <li>用 PyTorch 正確地在 CPU ↔ GPU 間搬資料</li>
+        <li>避免最常見的「沒有加速、反而更慢」陷阱</li>
+        <li>用 torch.profiler 找出程式瓶頸</li>
+        <li>Mixed Precision Training 讓訓練速度提升 2-3 倍</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏗️ CUDA 執行模型（白話版）</h2>
+    <p>CUDA 程式分三個層次：<strong>Grid → Block → Thread</strong>。你可以把它想成一個大工廠：</p>
+    <table>
+      <thead><tr><th>層次</th><th>CUDA 名詞</th><th>比喻</th><th>典型數量</th></tr></thead>
+      <tbody>
+        <tr><td>最大</td><td>Grid</td><td>整個工廠</td><td>1 個（一次任務）</td></tr>
+        <tr><td>中層</td><td>Block</td><td>一條生產線</td><td>數百到數千個</td></tr>
+        <tr><td>最小</td><td>Thread</td><td>一個工人</td><td>Block × 128~1024</td></tr>
+      </tbody>
+    </table>
+    <p>當你呼叫 <code>tensor.to("cuda")</code>，PyTorch 替你管理這三層。但理解它讓你知道為什麼某些操作快、某些慢。</p>
+    <div class="warn-box">
+      <p>⚠️ <strong>關鍵限制：</strong>同一個 Block 內的 Thread 才能共享快速的 Shared Memory（比 Global Memory 快約 100 倍）。跨 Block 的溝通只能透過慢速的 Global Memory（VRAM）。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💻 PyTorch 基本操作</h2>
+    <h3>搬資料到 GPU</h3>
+    <div class="code-block"><pre><span class="kw">import</span> torch
+
+<span class="comment"># 確認 GPU 可用</span>
+device = torch.device(<span class="str">"cuda"</span> <span class="kw">if</span> torch.cuda.is_available() <span class="kw">else</span> <span class="str">"cpu"</span>)
+<span class="fn">print</span>(<span class="str">f"使用設備: {device}"</span>)
+<span class="fn">print</span>(<span class="str">f"GPU 名稱: {torch.cuda.get_device_name(0)}"</span>)
+
+<span class="comment"># 建立 tensor 並搬到 GPU</span>
+x = torch.randn(<span class="num">1000</span>, <span class="num">1000</span>)    <span class="comment"># 在 CPU</span>
+x_gpu = x.to(device)              <span class="comment"># 搬到 GPU</span>
+x_gpu2 = x.cuda()                 <span class="comment"># 等效寫法</span>
+
+<span class="comment"># 也可以直接建在 GPU 上（更快，省去複製）</span>
+y = torch.randn(<span class="num">1000</span>, <span class="num">1000</span>, device=device)</pre></div>
+
+    <h3>記憶體監控</h3>
+    <div class="code-block"><pre><span class="comment"># 查看 VRAM 使用量</span>
+<span class="fn">print</span>(<span class="str">f"已配置: {torch.cuda.memory_allocated() / 1e9:.2f} GB"</span>)
+<span class="fn">print</span>(<span class="str">f"已保留: {torch.cuda.memory_reserved() / 1e9:.2f} GB"</span>)
+
+<span class="comment"># 清除快取（訓練中切換 batch 時用）</span>
+torch.cuda.empty_cache()
+
+<span class="comment"># 查看記憶體使用摘要（PyTorch 2.0+）</span>
+<span class="fn">print</span>(torch.cuda.memory_summary())</pre></div>
+    <div class="tip-box">
+      <p>💡 <strong>memory_reserved vs memory_allocated：</strong>PyTorch 向 CUDA 要記憶體是一大塊一大塊要（reserved），然後再從裡面分配給 tensor（allocated）。empty_cache() 是把 reserved 但沒 allocated 的還回去，並不會讓你的模型記憶體用量下降。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🐌 最常見的效能陷阱</h2>
+    <h3>陷阱一：在迴圈裡把結果搬回 CPU</h3>
+    <div class="code-block"><pre><span class="comment"># ❌ 慢：每次迭代都強迫 GPU 同步</span>
+total = <span class="num">0</span>
+<span class="kw">for</span> x <span class="kw">in</span> dataset:
+    output = model(x.cuda())
+    total += output.item()  <span class="comment"># .item() 把 GPU tensor 搬到 CPU！</span>
+
+<span class="comment"># ✅ 快：留在 GPU 上累加，最後才搬</span>
+total = torch.tensor(<span class="num">0.0</span>, device=<span class="str">"cuda"</span>)
+<span class="kw">for</span> x <span class="kw">in</span> dataset:
+    output = model(x.cuda())
+    total += output.sum()
+result = total.item()  <span class="comment"># 只搬一次</span></pre></div>
+
+    <h3>陷阱二：CPU-GPU 資料不對齊</h3>
+    <div class="code-block"><pre><span class="comment"># ❌ 慢：DataLoader 預設用 pin_memory=False</span>
+loader = DataLoader(dataset, batch_size=<span class="num">32</span>)
+
+<span class="comment"># ✅ 快：pin_memory 讓 CPU→GPU 傳輸更快（適合有獨立 GPU 的機器）</span>
+loader = DataLoader(
+    dataset,
+    batch_size=<span class="num">32</span>,
+    pin_memory=<span class="kw">True</span>,    <span class="comment"># 使用固定記憶體，DMA 傳輸更快</span>
+    num_workers=<span class="num">4</span>,      <span class="comment"># 多執行緒預先載入資料</span>
+    prefetch_factor=<span class="num">2</span>   <span class="comment"># 每個 worker 預抓 2 個 batch</span>
+)</pre></div>
+
+    <h3>陷阱三：梯度累積但忘記 zero_grad</h3>
+    <div class="code-block"><pre><span class="comment"># ❌ 慢且錯：梯度一直累加</span>
+<span class="kw">for</span> batch <span class="kw">in</span> loader:
+    loss = model(batch)
+    loss.backward()
+    optimizer.step()  <span class="comment"># 梯度沒有歸零！</span>
+
+<span class="comment"># ✅ 正確：每個 step 前清梯度</span>
+<span class="kw">for</span> batch <span class="kw">in</span> loader:
+    optimizer.zero_grad(set_to_none=<span class="kw">True</span>)  <span class="comment"># set_to_none 比 zero_grad() 更省記憶體</span>
+    loss = model(batch)
+    loss.backward()
+    optimizer.step()</pre></div>
+  </div>
+
+  <div class="card">
+    <h2>⚡ Mixed Precision Training</h2>
+    <p>模型預設用 <strong>FP32（32-bit 浮點數）</strong>，但 Tensor Core 在 <strong>FP16（16-bit）</strong> 速度快 2-8 倍，而且 VRAM 用量只有一半。Mixed Precision 就是聰明地混用兩種精度。</p>
+    <table>
+      <thead><tr><th>精度</th><th>位元數</th><th>VRAM 用量</th><th>速度</th><th>精度</th></tr></thead>
+      <tbody>
+        <tr><td>FP32</td><td>32 bit</td><td>基準</td><td>基準</td><td>最高</td></tr>
+        <tr><td>FP16</td><td>16 bit</td><td>1/2</td><td>2-8x</td><td>可能下溢</td></tr>
+        <tr><td>BF16</td><td>16 bit</td><td>1/2</td><td>2-4x</td><td>與 FP32 接近</td></tr>
+        <tr><td>INT8</td><td>8 bit</td><td>1/4</td><td>4x+</td><td>僅推論用</td></tr>
+      </tbody>
+    </table>
+    <h3>在 PyTorch 開啟 Mixed Precision</h3>
+    <div class="code-block"><pre><span class="kw">from</span> torch.cuda.amp <span class="kw">import</span> autocast, GradScaler
+
+scaler = GradScaler()  <span class="comment"># 防止 FP16 梯度下溢</span>
+
+<span class="kw">for</span> batch <span class="kw">in</span> loader:
+    optimizer.zero_grad(set_to_none=<span class="kw">True</span>)
+
+    <span class="comment"># autocast 自動決定哪些 op 用 FP16</span>
+    <span class="kw">with</span> autocast(dtype=torch.bfloat16):  <span class="comment"># H100/A100 推薦 BF16</span>
+        output = model(batch)
+        loss = criterion(output, labels)
+
+    scaler.scale(loss).backward()   <span class="comment"># 縮放梯度避免下溢</span>
+    scaler.step(optimizer)
+    scaler.update()</pre></div>
+    <div class="perf-grid">
+      <div class="perf-card"><div class="num">2x</div><div class="label">訓練速度提升</div></div>
+      <div class="perf-card"><div class="num">50%</div><div class="label">VRAM 節省</div></div>
+      <div class="perf-card"><div class="num">3行</div><div class="label">需要修改的程式碼</div></div>
+      <div class="perf-card"><div class="num">~0%</div><div class="label">精度損失（BF16）</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔍 效能分析：找出瓶頸在哪</h2>
+    <h3>方法一：torch.profiler（推薦）</h3>
+    <div class="code-block"><pre><span class="kw">from</span> torch.profiler <span class="kw">import</span> profile, record_function, ProfilerActivity
+
+<span class="kw">with</span> profile(
+    activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+    record_shapes=<span class="kw">True</span>,
+    with_flops=<span class="kw">True</span>,
+) <span class="kw">as</span> prof:
+    <span class="kw">with</span> record_function(<span class="str">"model_inference"</span>):
+        output = model(input_tensor)
+
+<span class="comment"># 印出前 10 最耗時的操作</span>
+<span class="fn">print</span>(prof.key_averages().table(
+    sort_by=<span class="str">"cuda_time_total"</span>,
+    row_limit=<span class="num">10</span>
+))</pre></div>
+
+    <h3>方法二：快速計時</h3>
+    <div class="code-block"><pre><span class="comment"># GPU 操作是非同步的，不能用 time.time() 直接計時！</span>
+<span class="kw">import</span> time
+
+<span class="comment"># ❌ 錯誤：time.time() 在 GPU 還沒做完就回傳了</span>
+start = time.time()
+output = model(x.cuda())
+elapsed = time.time() - start  <span class="comment"># 數字不對！</span>
+
+<span class="comment"># ✅ 正確：先同步再計時</span>
+torch.cuda.synchronize()
+start = time.time()
+output = model(x.cuda())
+torch.cuda.synchronize()  <span class="comment"># 等 GPU 做完</span>
+elapsed = time.time() - start</pre></div>
+    <div class="warn-box">
+      <p>⚠️ GPU 操作是<strong>非同步</strong>的：CPU 送出指令就繼續執行，不等 GPU。torch.cuda.synchronize() 才是強制等待點。這就是為什麼 profiler 幫你處理同步，你直接 time.time() 量到的數字往往接近 0。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚀 torch.compile：一行大幅加速</h2>
+    <p>PyTorch 2.0 引入的 <code>torch.compile()</code>，會把你的模型編譯成最佳化的核心程式碼。通常不需要改任何邏輯，只要一行。</p>
+    <div class="code-block"><pre><span class="comment"># PyTorch 2.0+ 只需一行</span>
+model = torch.compile(model)
+
+<span class="comment"># 然後照常使用</span>
+output = model(x)
+
+<span class="comment"># 可以指定編譯模式</span>
+model = torch.compile(model, mode=<span class="str">"reduce-overhead"</span>)  <span class="comment"># 減少 overhead</span>
+model = torch.compile(model, mode=<span class="str">"max-autotune"</span>)     <span class="comment"># 最積極優化（編譯慢）</span></pre></div>
+    <div class="tip-box">
+      <p>💡 torch.compile 第一次跑會花幾分鐘「暖機」（JIT 編譯），之後才快。適合要跑大量 epoch 的訓練任務；推論時若每次 input shape 不同，效果可能有限。</p>
+    </div>
+  </div>
+
+  <div class="takeaway">
+    <h2>📌 本章重點整理</h2>
+    <ul>
+      <li>CUDA 執行模型：Grid → Block → Thread，同 Block 的 Thread 共享快速 Shared Memory</li>
+      <li><code>.to(device)</code> 搬 tensor；<code>direct on device</code> 建立更快</li>
+      <li>最常見陷阱：在迴圈裡呼叫 .item()、忘記 zero_grad、DataLoader 不開 pin_memory</li>
+      <li>Mixed Precision（BF16）：2x 速度、50% VRAM，只改 3 行程式碼</li>
+      <li>GPU 是非同步的：計時前要 synchronize()；profiler 幫你處理</li>
+      <li><code>torch.compile(model)</code>：PyTorch 2.0 的一行加速魔法</li>
+    </ul>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-outline" href="../04-enterprise/03-decision-guide.html">← 上一篇：GPU 採購決策指南</a>
+    <a class="btn btn-fill" href="02-llm-inference.html">下一篇：LLM 推論部署 →</a>
+  </div>
+</div>
+<footer style="text-align:center;padding:20px;color:#999;font-size:.8rem;">GPU 完全自學指南 · Tom Projects Learning Hub</footer>
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="gpu-learning">
+(function(){var CFG=window.ANALYTICS_CONFIG||{};var s=document.currentScript;var P=(s&&s.getAttribute('data-project'))||'unknown';var PG=(function(){var f=location.pathname.split('/').pop();return f&&f!==''?f:'index.html';})();var LIVE=!!(CFG.url&&CFG.key);function vid(){var k='pf:vid',v;try{v=localStorage.getItem(k);if(!v){v='v'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem(k,v);}}catch(e){v='anon';}return v;}function ok(){var k='pf:seen:'+P+':'+PG;try{var l=+(sessionStorage.getItem(k)||0);if(Date.now()-l<1800000)return false;sessionStorage.setItem(k,Date.now());}catch(e){}return true;}function track(){if(!ok())return;if(!LIVE)return;fetch(CFG.url+'/rest/v1/page_views',{method:'POST',headers:{'apikey':CFG.key,'Authorization':'Bearer '+CFG.key,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({project_id:P,page_path:PG,visitor_id:vid(),referrer:document.referrer?document.referrer.slice(0,300):null})}).catch(function(){});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',track);else track();})();
+</script>
+<!-- portfolio-analytics:end -->
+</body>
+</html>
