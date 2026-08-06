@@ -604,9 +604,9 @@ footer {
     <div class="setup-row">
       <label>科目範圍：</label>
       <select id="b-scope">
-        <option value="all" selected>兩科混合（50 題）</option>
-        <option value="s1">科目一：人工智慧基礎概論</option>
-        <option value="s2">科目二：生成式 AI 應用與規劃</option>
+        <option value="all" selected>兩科混合（100 題）</option>
+        <option value="s1">科目一：人工智慧基礎概論（50 題）</option>
+        <option value="s2">科目二：生成式 AI 應用與規劃（50 題）</option>
       </select>
     </div>
     <div class="setup-row">
@@ -665,10 +665,10 @@ footer {
     <div class="setup-row">
       <label>科目範圍：</label>
       <select id="i-scope">
-        <option value="all" selected>三科混合（50 題）</option>
-        <option value="s1">科目一：AI 技術應用與規劃（必考）</option>
-        <option value="s2">科目二：大數據處理分析與應用</option>
-        <option value="s3">科目三：機器學習技術與應用</option>
+        <option value="all" selected>三科混合（100 題）</option>
+        <option value="s1">科目一：AI 技術應用與規劃（50 題）</option>
+        <option value="s2">科目二：大數據處理分析與應用（50 題）</option>
+        <option value="s3">科目三：機器學習技術與應用（50 題）</option>
       </select>
     </div>
     <div class="setup-row">
@@ -765,8 +765,8 @@ document.querySelectorAll('.nav-links button').forEach(b => {
 
 // ─── Exam State ───
 const examState = {
-  beginner: { questions: [], answers: [], current: 0, timer: null, timeLeft: 0, totalTime: 0 },
-  intermediate: { questions: [], answers: [], current: 0, timer: null, timeLeft: 0, totalTime: 0 }
+  beginner: { questions: [], answers: [], current: 0, timer: null, timeLeft: 0, totalTime: 0, scope: 'all' },
+  intermediate: { questions: [], answers: [], current: 0, timer: null, timeLeft: 0, totalTime: 0, scope: 'all' }
 };
 
 // ─── Shuffle Array ───
@@ -784,7 +784,7 @@ function startExam(level) {
   const prefix = level === 'beginner' ? 'b' : 'i';
   const scope = document.getElementById(prefix + '-scope').value;
   const timerMin = parseInt(document.getElementById(prefix + '-timer').value);
-  const totalQuestions = 50;
+  const totalQuestions = scope === 'all' ? 100 : 50;
 
   // Filter questions by scope
   let pool = [];
@@ -808,6 +808,7 @@ function startExam(level) {
   state.questions = selected;
   state.answers = new Array(selected.length).fill(null);
   state.current = 0;
+  state.scope = scope;
   state.totalTime = timerMin * 60;
   state.timeLeft = state.totalTime;
 
@@ -985,7 +986,8 @@ function submitExam(level, autoSubmit = false) {
 
   const total = state.questions.length;
   const score = Math.round((correct / total) * 100);
-  const passed = score >= 70;
+  const passThreshold = state.scope === 'all' ? 70 : 60;
+  const passed = score >= passThreshold;
   const timeUsed = state.totalTime - state.timeLeft;
 
   // Show confetti if passed
@@ -997,6 +999,7 @@ function submitExam(level, autoSubmit = false) {
   html += '<div class="score-big' + (passed ? '' : ' fail') + '">' + score + '</div>';
   html += '<div style="font-size:14px;color:var(--text-dim);">分</div>';
   html += '<div class="result-msg">' + (passed ? '🎉 恭喜通過！' : '💪 繼續加油！') + '</div>';
+  html += '<div style="font-size:13px;color:var(--text-muted);margin-top:4px;">及格標準：' + passThreshold + ' 分</div>';
   html += '<div class="result-stats">';
   html += '<div class="stat-item"><div class="stat-value good">' + correct + '</div><div class="stat-label">答對</div></div>';
   html += '<div class="stat-item"><div class="stat-value bad">' + (total - correct) + '</div><div class="stat-label">答錯</div></div>';
