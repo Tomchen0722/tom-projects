@@ -605,9 +605,17 @@ footer {
       <label>科目範圍：</label>
       <select id="b-scope">
         <option value="all" selected>兩科混合（100 題）</option>
-        <option value="s1">科目一：人工智慧基礎概論（50 題）</option>
-        <option value="s2">科目二：生成式 AI 應用與規劃（50 題）</option>
+        <option value="s1" id="b-opt-s1">科目一：人工智慧基礎概論</option>
+        <option value="s2" id="b-opt-s2">科目二：生成式 AI 應用與規劃</option>
+        <option value="bank" id="b-opt-bank">⭐ 全部題庫（練習模式）</option>
       </select>
+    </div>
+    <!-- 題庫數量 -->
+    <div id="b-stats" style="margin:8px 0 4px;display:flex;flex-wrap:wrap;gap:10px;padding:10px 14px;background:rgba(99,140,255,.05);border:1px solid rgba(99,140,255,.1);border-radius:10px;">
+      <span style="font-size:12px;color:var(--text-muted);font-weight:700;letter-spacing:.03em;">📚 題庫</span>
+      <span style="font-size:12px;color:var(--text-dim);">s1 AI基礎：<b id="b-count-s1" style="color:var(--accent)">…</b></span>
+      <span style="font-size:12px;color:var(--text-dim);">s2 生成式AI：<b id="b-count-s2" style="color:var(--accent)">…</b></span>
+      <span style="font-size:12px;font-weight:700;color:var(--text-dim);">合計：<b id="b-count-total" style="color:var(--accent2)">…</b> 題</span>
     </div>
     <div class="setup-row">
       <label>計時模式：</label>
@@ -666,10 +674,19 @@ footer {
       <label>科目範圍：</label>
       <select id="i-scope">
         <option value="all" selected>三科混合（100 題）</option>
-        <option value="s1">科目一：AI 技術應用與規劃（50 題）</option>
-        <option value="s2">科目二：大數據處理分析與應用（50 題）</option>
-        <option value="s3">科目三：機器學習技術與應用（50 題）</option>
+        <option value="s1" id="i-opt-s1">科目一：AI 技術應用與規劃</option>
+        <option value="s2" id="i-opt-s2">科目二：大數據處理分析與應用</option>
+        <option value="s3" id="i-opt-s3">科目三：機器學習技術與應用</option>
+        <option value="bank" id="i-opt-bank">⭐ 全部題庫（練習模式）</option>
       </select>
+    </div>
+    <!-- 題庫數量 -->
+    <div id="i-stats" style="margin:8px 0 4px;display:flex;flex-wrap:wrap;gap:10px;padding:10px 14px;background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.12);border-radius:10px;">
+      <span style="font-size:12px;color:var(--text-muted);font-weight:700;letter-spacing:.03em;">📚 題庫</span>
+      <span style="font-size:12px;color:var(--text-dim);">s1 AI技術：<b id="i-count-s1" style="color:var(--accent2)">…</b></span>
+      <span style="font-size:12px;color:var(--text-dim);">s2 大數據：<b id="i-count-s2" style="color:var(--accent2)">…</b></span>
+      <span style="font-size:12px;color:var(--text-dim);">s3 機器學習：<b id="i-count-s3" style="color:var(--accent2)">…</b></span>
+      <span style="font-size:12px;font-weight:700;color:var(--text-dim);">合計：<b id="i-count-total" style="color:var(--accent)">…</b> 題</span>
     </div>
     <div class="setup-row">
       <label>計時模式：</label>
@@ -736,11 +753,55 @@ async function loadQuestions() {
     const data = await res.json();
     QUESTIONS_BEGINNER = data.beginner || [];
     QUESTIONS_INTERMEDIATE = data.intermediate || [];
-    
-    // 更新首頁的題庫資訊標籤
-    const heroPill = document.querySelector('.hero .pill');
+
+    // ── 初級各科目計數 ──
+    const bS1 = QUESTIONS_BEGINNER.filter(q => q.subject === 's1').length;
+    const bS2 = QUESTIONS_BEGINNER.filter(q => q.subject === 's2').length;
+    const bTotal = QUESTIONS_BEGINNER.length;
+
+    // ── 中級各科目計數 ──
+    const iS1 = QUESTIONS_INTERMEDIATE.filter(q => q.subject === 's1').length;
+    const iS2 = QUESTIONS_INTERMEDIATE.filter(q => q.subject === 's2').length;
+    const iS3 = QUESTIONS_INTERMEDIATE.filter(q => q.subject === 's3').length;
+    const iTotal = QUESTIONS_INTERMEDIATE.length;
+
+    // ── 更新 select option 文字 ──
+    const bOptS1 = document.getElementById('b-opt-s1');
+    if (bOptS1) bOptS1.textContent = `科目一：人工智慧基礎概論（${bS1} 題）`;
+    const bOptS2 = document.getElementById('b-opt-s2');
+    if (bOptS2) bOptS2.textContent = `科目二：生成式 AI 應用與規劃（${bS2} 題）`;
+    const bOptBank = document.getElementById('b-opt-bank');
+    if (bOptBank) bOptBank.textContent = `⭐ 全部題庫（${bTotal} 題，練習模式）`;
+
+    const iOptS1 = document.getElementById('i-opt-s1');
+    if (iOptS1) iOptS1.textContent = `科目一：AI 技術應用與規劃（${iS1} 題）`;
+    const iOptS2 = document.getElementById('i-opt-s2');
+    if (iOptS2) iOptS2.textContent = `科目二：大數據處理分析與應用（${iS2} 題）`;
+    const iOptS3 = document.getElementById('i-opt-s3');
+    if (iOptS3) iOptS3.textContent = `科目三：機器學習技術與應用（${iS3} 題）`;
+    const iOptBank = document.getElementById('i-opt-bank');
+    if (iOptBank) iOptBank.textContent = `⭐ 全部題庫（${iTotal} 題，練習模式）`;
+
+    // ── 更新題庫統計列 ──
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('b-count-s1', bS1);
+    set('b-count-s2', bS2);
+    set('b-count-total', bTotal);
+    set('i-count-s1', iS1);
+    set('i-count-s2', iS2);
+    set('i-count-s3', iS3);
+    set('i-count-total', iTotal);
+
+    // ── 更新首頁 mode card 徽章 ──
+    const bBadge = document.querySelector('.mode-card .badge-beginner');
+    if (bBadge) bBadge.textContent = `初級 · ${bTotal} 題 · 75分鐘`;
+    const iBadge = document.querySelector('.mode-card .badge-intermediate');
+    if (iBadge) iBadge.textContent = `中級 · ${iTotal} 題 · 90分鐘`;
+
+    // ── 更新首頁 hero pill ──
+    const heroPill = document.querySelector('#page-home .hero .pill');
     if (heroPill) {
-      heroPill.textContent = `📋 題庫載入完成：初級 ${QUESTIONS_BEGINNER.length} 題 / 中級 ${QUESTIONS_INTERMEDIATE.length} 題`;
+      heroPill.textContent = `📋 依據 iPAS 115年度考試規章設計 · 初級 ${bTotal} 題 / 中級 ${iTotal} 題`;
     }
   } catch (err) {
     console.error('Failed to load questions:', err);
@@ -784,24 +845,24 @@ function startExam(level) {
   const prefix = level === 'beginner' ? 'b' : 'i';
   const scope = document.getElementById(prefix + '-scope').value;
   const timerMin = parseInt(document.getElementById(prefix + '-timer').value);
-  const totalQuestions = scope === 'all' ? 100 : 50;
+  const totalQuestions = scope === 'all' ? 100 : (scope === 'bank' ? Infinity : 50);
 
   // Filter questions by scope
   let pool = [];
   const bank = level === 'beginner' ? QUESTIONS_BEGINNER : QUESTIONS_INTERMEDIATE;
-  
+
   if (bank.length === 0) {
     alert('題庫尚未載入完成或無題目，請稍後再試。');
     return;
   }
 
-  if (scope === 'all') {
+  if (scope === 'all' || scope === 'bank') {
     pool = shuffle(bank);
   } else {
     pool = shuffle(bank.filter(q => q.subject === scope));
   }
 
-  // Take the required number of questions
+  // Take the required number of questions (bank = all)
   const selected = pool.slice(0, Math.min(totalQuestions, pool.length));
 
   const state = examState[level];
@@ -815,6 +876,7 @@ function startExam(level) {
   // Update scope label
   const scopeLabels = {
     all: level === 'beginner' ? '兩科混合' : '三科混合',
+    bank: `全部題庫 · ${selected.length} 題`,
     s1: level === 'beginner' ? '科目一：AI 基礎概論' : '科目一：AI 技術應用與規劃',
     s2: level === 'beginner' ? '科目二：生成式 AI 應用與規劃' : '科目二：大數據處理分析',
     s3: '科目三：機器學習技術與應用'
@@ -986,7 +1048,7 @@ function submitExam(level, autoSubmit = false) {
 
   const total = state.questions.length;
   const score = Math.round((correct / total) * 100);
-  const passThreshold = state.scope === 'all' ? 70 : 60;
+  const passThreshold = (state.scope === 'all' || state.scope === 'bank') ? 70 : 60;
   const passed = score >= passThreshold;
   const timeUsed = state.totalTime - state.timeLeft;
 
