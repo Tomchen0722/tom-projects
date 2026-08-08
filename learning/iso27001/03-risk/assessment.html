@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>風險評估實務 | ISO 27001 指南</title>
+<style>
+  :root{--blue:#1e40af;--sky:#0ea5e9;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4ff;min-height:100vh;}
+  .topbar{background:#1e40af;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(251,191,36,.2);color:#fbbf24;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(251,191,36,.3);}
+  .hero h1{font-size:1.9rem;margin-bottom:10px;}
+  .hero h1 span{color:#60a5fa;}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:#1e40af;margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#eff6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#1e40af;line-height:1.8;}
+  .step-box{display:flex;gap:14px;margin-bottom:16px;padding:16px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;}
+  .step-num{flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#1e40af;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;}
+  .step-content h3{font-size:.95rem;color:#1e293b;margin-bottom:4px;}
+  .step-content p{font-size:.85rem;color:#64748b;margin:0;line-height:1.7;}
+  .matrix{display:grid;grid-template-columns:auto repeat(5,1fr);gap:2px;margin:14px 0;font-size:.78rem;text-align:center;}
+  .matrix-cell{padding:8px 4px;border-radius:4px;}
+  .matrix-label{padding:8px 4px;display:flex;align-items:center;justify-content:flex-end;font-weight:600;color:#374151;font-size:.75rem;}
+  .matrix-header{background:#1e40af;color:#fff;padding:8px 4px;border-radius:4px;font-weight:700;}
+  .risk-low{background:#dcfce7;color:#166534;}
+  .risk-med{background:#fef3c7;color:#92400e;}
+  .risk-high{background:#fee2e2;color:#991b1b;}
+  .risk-critical{background:#7f1d1d;color:#fff;}
+  .example-table{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.82rem;}
+  th{background:#1e40af;color:#fff;padding:8px 12px;text-align:left;}
+  td{padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .risk-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:700;}
+  .rb-h{background:#fee2e2;color:#dc2626;}
+  .rb-m{background:#fef3c7;color:#b45309;}
+  .rb-l{background:#dcfce7;color:#16a34a;}
+  .treat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:14px 0;}
+  .treat{border-radius:12px;padding:16px;border:2px solid;}
+  .treat h4{font-size:.9rem;margin-bottom:6px;}
+  .treat p{font-size:.8rem;line-height:1.7;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:#1e40af;color:#fff;}
+  .btn-next:hover{background:#1d4ed8;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔐 ISO 27001 指南</a>
+  <span class="sep">/</span>
+  <span>模組三：風險管理</span>
+  <span class="sep">/</span>
+  <span>風險評估實務</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟡 進階 01</div>
+  <h1>⚠️ <span>風險評估</span>實務</h1>
+  <p>資產盤點 → 威脅識別 → 風險計算 → 風險處理，完整步驟加上真實表格範例。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🔄 風險評估的完整流程</h2>
+    <p>ISO 27001 的風險評估分為 6 個步驟，每一步都要有文件記錄：</p>
+
+    <div class="step-box">
+      <div class="step-num">1</div>
+      <div class="step-content"><h3>建立風險評估準則</h3><p>先定義：什麼叫做「高風險」？影響和可能性怎麼評分？可接受的風險門檻是多少？</p></div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">2</div>
+      <div class="step-content"><h3>資訊資產盤點</h3><p>列出所有資訊資產：資料、系統、設備、人員、流程。每個資產都要有擁有者。</p></div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">3</div>
+      <div class="step-content"><h3>識別威脅與脆弱性</h3><p>針對每個資產，找出可能的威脅（外部）和弱點（內部）。</p></div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">4</div>
+      <div class="step-content"><h3>評估風險（影響 × 可能性）</h3><p>計算每個風險的風險值，排出優先順序。</p></div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">5</div>
+      <div class="step-content"><h3>選擇風險處理方式</h3><p>決定每個風險要：降低、接受、移轉（保險）還是規避。</p></div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">6</div>
+      <div class="step-content"><h3>製作風險處理計畫</h3><p>高風險要有具體的改善計畫，指定負責人和完成時間。</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📦 步驟二：資產盤點範例</h2>
+    <p>資產盤點是風險評估的基礎。每個資產要記錄：名稱、類型、資產擁有者、機密等級、存放位置。</p>
+    <div class="example-table">
+      <table>
+        <tr><th>資產名稱</th><th>類型</th><th>擁有者</th><th>機密等級</th><th>存放位置</th><th>資產價值</th></tr>
+        <tr><td>客戶資料庫</td><td>資料</td><td>業務部主管</td><td>機密</td><td>AWS RDS</td><td>5（極高）</td></tr>
+        <tr><td>ERP 系統</td><td>應用程式</td><td>IT 主管</td><td>內部</td><td>公司機房</td><td>4（高）</td></tr>
+        <tr><td>員工筆電</td><td>設備</td><td>各員工</td><td>內部</td><td>辦公室/居家</td><td>3（中）</td></tr>
+        <tr><td>原始碼儲存庫</td><td>資料</td><td>技術主管</td><td>機密</td><td>GitHub</td><td>5（極高）</td></tr>
+        <tr><td>財務報表</td><td>資料</td><td>財務主管</td><td>機密</td><td>SharePoint</td><td>4（高）</td></tr>
+        <tr><td>辦公室網路</td><td>基礎設施</td><td>IT 主管</td><td>內部</td><td>辦公室</td><td>3（中）</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 步驟四：風險矩陣計算</h2>
+    <p>最常用的方法是 <strong>風險值 = 影響程度（1-5）× 可能性（1-5）</strong>，最高 25 分。</p>
+
+    <div style="margin:16px 0;">
+      <div style="font-size:.85rem;color:#374151;margin-bottom:8px;">風險矩陣（可能性 × 影響程度）：</div>
+      <div class="matrix">
+        <div class="matrix-label">可能性 ↑</div>
+        <div class="matrix-header">影響1<br>極低</div>
+        <div class="matrix-header">影響2<br>低</div>
+        <div class="matrix-header">影響3<br>中</div>
+        <div class="matrix-header">影響4<br>高</div>
+        <div class="matrix-header">影響5<br>極高</div>
+
+        <div class="matrix-label">5 幾乎確定</div>
+        <div class="matrix-cell risk-med">5</div>
+        <div class="matrix-cell risk-high">10</div>
+        <div class="matrix-cell risk-high">15</div>
+        <div class="matrix-cell risk-critical">20</div>
+        <div class="matrix-cell risk-critical">25</div>
+
+        <div class="matrix-label">4 很可能</div>
+        <div class="matrix-cell risk-low">4</div>
+        <div class="matrix-cell risk-med">8</div>
+        <div class="matrix-cell risk-high">12</div>
+        <div class="matrix-cell risk-high">16</div>
+        <div class="matrix-cell risk-critical">20</div>
+
+        <div class="matrix-label">3 可能</div>
+        <div class="matrix-cell risk-low">3</div>
+        <div class="matrix-cell risk-med">6</div>
+        <div class="matrix-cell risk-med">9</div>
+        <div class="matrix-cell risk-high">12</div>
+        <div class="matrix-cell risk-high">15</div>
+
+        <div class="matrix-label">2 不太可能</div>
+        <div class="matrix-cell risk-low">2</div>
+        <div class="matrix-cell risk-low">4</div>
+        <div class="matrix-cell risk-med">6</div>
+        <div class="matrix-cell risk-med">8</div>
+        <div class="matrix-cell risk-high">10</div>
+
+        <div class="matrix-label">1 極少發生</div>
+        <div class="matrix-cell risk-low">1</div>
+        <div class="matrix-cell risk-low">2</div>
+        <div class="matrix-cell risk-low">3</div>
+        <div class="matrix-cell risk-low">4</div>
+        <div class="matrix-cell risk-med">5</div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;"><div style="width:16px;height:16px;border-radius:4px;background:#dcfce7;"></div>低風險（1-4）：接受</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;"><div style="width:16px;height:16px;border-radius:4px;background:#fef3c7;"></div>中風險（5-9）：監控</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;"><div style="width:16px;height:16px;border-radius:4px;background:#fee2e2;"></div>高風險（10-15）：需改善</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:.8rem;"><div style="width:16px;height:16px;border-radius:4px;background:#7f1d1d;"></div>極高風險（16-25）：立即行動</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 風險登記表範例</h2>
+    <p>把資產、威脅、脆弱性、風險值全部整合到一張表：</p>
+    <div class="example-table">
+      <table>
+        <tr><th>資產</th><th>威脅</th><th>脆弱性</th><th>影響</th><th>可能性</th><th>風險值</th><th>等級</th></tr>
+        <tr><td>客戶資料庫</td><td>駭客入侵</td><td>密碼政策過弱</td><td>5</td><td>4</td><td>20</td><td><span class="risk-badge rb-h">極高</span></td></tr>
+        <tr><td>客戶資料庫</td><td>員工誤操作</td><td>無備份機制</td><td>5</td><td>3</td><td>15</td><td><span class="risk-badge rb-h">高</span></td></tr>
+        <tr><td>原始碼儲存庫</td><td>內部人員洩漏</td><td>無存取記錄</td><td>4</td><td>3</td><td>12</td><td><span class="risk-badge rb-h">高</span></td></tr>
+        <tr><td>ERP 系統</td><td>勒索軟體</td><td>系統未更新</td><td>4</td><td>3</td><td>12</td><td><span class="risk-badge rb-h">高</span></td></tr>
+        <tr><td>員工筆電</td><td>遺失或竊盜</td><td>無全碟加密</td><td>3</td><td>3</td><td>9</td><td><span class="risk-badge rb-m">中</span></td></tr>
+        <tr><td>辦公室網路</td><td>未授權存取</td><td>Wi-Fi 無隔離</td><td>3</td><td>2</td><td>6</td><td><span class="risk-badge rb-m">中</span></td></tr>
+        <tr><td>財務報表</td><td>意外刪除</td><td>SharePoint 無版本控制</td><td>3</td><td>2</td><td>6</td><td><span class="risk-badge rb-m">中</span></td></tr>
+        <tr><td>辦公室設備</td><td>自然災害</td><td>無 UPS</td><td>2</td><td>1</td><td>2</td><td><span class="risk-badge rb-l">低</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛡️ 步驟五：四種風險處理方式</h2>
+
+    <div class="treat-grid">
+      <div class="treat" style="background:#eff6ff;border-color:#93c5fd;">
+        <h4 style="color:#1d4ed8;">🔽 降低（Reduce）</h4>
+        <p style="color:#3730a3;">採取控制措施降低風險。<br><br>例：加強密碼政策、啟用 2FA、安裝防火牆。<br><br><strong>最常用的方式</strong></p>
+      </div>
+      <div class="treat" style="background:#f0fdf4;border-color:#86efac;">
+        <h4 style="color:#16a34a;">✅ 接受（Accept）</h4>
+        <p style="color:#166534;">風險在可接受範圍內，不採取額外措施。<br><br>例：低風險項目，成本大於效益時選擇接受。<br><br><strong>須有管理層批准</strong></p>
+      </div>
+      <div class="treat" style="background:#fff7ed;border-color:#fdba74;">
+        <h4 style="color:#c2410c;">↗️ 移轉（Transfer）</h4>
+        <p style="color:#7c2d12;">把風險轉移給第三方。<br><br>例：購買網路安全保險、外包給有認證的廠商。<br><br><strong>風險不消失，只是轉移</strong></p>
+      </div>
+      <div class="treat" style="background:#fff1f2;border-color:#fca5a5;">
+        <h4 style="color:#dc2626;">🚫 規避（Avoid）</h4>
+        <p style="color:#7f1d1d;">停止進行高風險活動。<br><br>例：放棄某個過於危險的業務線、不儲存某類高敏感資料。<br><br><strong>通常是最後手段</strong></p>
+      </div>
+    </div>
+
+    <div class="highlight">
+      💡 <strong>可接受風險（Risk Acceptance Criteria）：</strong>公司要在事前定義「什麼程度的風險可以接受」，例如：風險值 ≤ 6 可接受，7-14 需要監控改善計畫，≥ 15 必須立即處理。這個標準要在管理審查中由高層批准。
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="../02-isms/documents.html" class="btn btn-prev">← 上一篇</a>
+    <a href="soa.html" class="btn btn-next">下一篇：SOA 適用性聲明書 →</a>
+  </div>
+</div>
+</body>
+</html>
