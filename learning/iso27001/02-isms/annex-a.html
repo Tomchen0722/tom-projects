@@ -258,6 +258,104 @@
     </ul>
   </div>
 
+  <div class="card">
+    <h2>🛠️ 技術實作深入:關鍵控制項怎麼做?</h2>
+    <p>光知道「要做」不夠,這裡給你幾個最重要技術控制項的實際做法和參數:</p>
+
+    <div class="control-section">
+      <h3>🔑 A.8.5 安全身份驗證 — 密碼與 MFA 實務</h3>
+      <div class="table-wrap">
+        <table>
+          <tr><th>項目</th><th>建議設定</th><th>說明</th></tr>
+          <tr><td>密碼長度</td><td>至少 12 碼(管理員 16 碼)</td><td>長度比複雜度更重要</td></tr>
+          <tr><td>密碼策略</td><td>不強制定期更換,但外洩立即換</td><td>NIST 新版建議:頻繁換反而讓人用弱密碼</td></tr>
+          <tr><td>MFA</td><td>全員強制,尤其管理員與遠端</td><td>用 TOTP App 或硬體金鑰,少用簡訊</td></tr>
+          <tr><td>帳號鎖定</td><td>連續 5-10 次失敗鎖定</td><td>防暴力破解</td></tr>
+          <tr><td>密碼儲存</td><td>用 bcrypt/Argon2 雜湊加鹽</td><td>絕不明文儲存密碼</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <h3>💾 A.8.13 資訊備份 — 3-2-1 原則詳解</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:10px 0;">
+        <div style="background:#eff6ff;border-radius:10px;padding:16px;text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:#1d4ed8;">3</div>
+          <div style="font-size:.85rem;color:#374151;font-weight:600;">份資料副本</div>
+          <div style="font-size:.78rem;color:#64748b;margin-top:4px;">1 份正本 + 2 份備份</div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:16px;text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:#16a34a;">2</div>
+          <div style="font-size:.85rem;color:#374151;font-weight:600;">種不同媒介</div>
+          <div style="font-size:.78rem;color:#64748b;margin-top:4px;">如本地硬碟 + 雲端</div>
+        </div>
+        <div style="background:#fff7ed;border-radius:10px;padding:16px;text-align:center;">
+          <div style="font-size:2rem;font-weight:900;color:#c2410c;">1</div>
+          <div style="font-size:.85rem;color:#374151;font-weight:600;">份異地存放</div>
+          <div style="font-size:.78rem;color:#64748b;margin-top:4px;">防火災/水災/勒索</div>
+        </div>
+      </div>
+      <div class="highlight" style="margin-top:10px;">
+        💡 <strong>抗勒索加碼:</strong>至少一份備份要「離線」或「不可竄改(immutable)」,否則勒索軟體會連備份一起加密。並且每季測試還原一次,確認備份真的能用。
+      </div>
+    </div>
+
+    <div class="control-section">
+      <h3>🔒 A.8.24 密碼學 — 演算法選擇</h3>
+      <div class="table-wrap">
+        <table>
+          <tr><th>用途</th><th>建議演算法</th><th>避免使用(已不安全)</th></tr>
+          <tr><td>對稱加密</td><td>AES-256</td><td>DES、3DES</td></tr>
+          <tr><td>非對稱加密</td><td>RSA-2048 以上、ECC</td><td>RSA-1024</td></tr>
+          <tr><td>雜湊</td><td>SHA-256、SHA-3</td><td>MD5、SHA-1</td></tr>
+          <tr><td>傳輸加密</td><td>TLS 1.2 / 1.3</td><td>SSL、TLS 1.0/1.1</td></tr>
+          <tr><td>密碼儲存</td><td>Argon2、bcrypt</td><td>直接用 MD5/SHA</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <h3>🌐 A.8.20-22 網路安全 — 分區與防火牆</h3>
+      <p style="font-size:.87rem;color:#374151;margin-bottom:8px;">把網路切成不同區段,一區被攻破不會波及全部:</p>
+      <ul class="control-list">
+        <li><div class="ctrl-num">DMZ</div><div class="ctrl-content"><h4>非軍事區</h4><p>對外服務(網站、郵件伺服器)放這裡,和內網隔離</p></div></li>
+        <li><div class="ctrl-num">內網</div><div class="ctrl-content"><h4>辦公網路</h4><p>員工日常使用,與生產環境隔離</p></div></li>
+        <li><div class="ctrl-num">生產</div><div class="ctrl-content"><h4>生產環境</h4><p>核心系統、資料庫,最嚴格管制,只有必要人員能存取</p></div></li>
+        <li><div class="ctrl-num">訪客</div><div class="ctrl-content"><h4>訪客 Wi-Fi</h4><p>完全獨立,訪客上不了公司內網</p></div></li>
+      </ul>
+    </div>
+
+    <div class="control-section">
+      <h3>🔍 A.8.8 / A.8.15-16 漏洞管理與監控 — 工具參考</h3>
+      <div class="table-wrap">
+        <table>
+          <tr><th>功能</th><th>常見工具</th><th>作用</th></tr>
+          <tr><td>漏洞掃描</td><td>Nessus、OpenVAS、Qualys</td><td>定期掃描系統找出已知漏洞</td></tr>
+          <tr><td>端點防護</td><td>CrowdStrike、SentinelOne、Defender</td><td>偵測並阻擋惡意程式(EDR)</td></tr>
+          <tr><td>日誌集中</td><td>Splunk、ELK、Graylog</td><td>集中收集各系統日誌</td></tr>
+          <tr><td>SIEM</td><td>Splunk、Microsoft Sentinel、Wazuh</td><td>關聯分析、異常告警</td></tr>
+          <tr><td>DLP</td><td>Forcepoint、Microsoft Purview</td><td>防止機密資料外流</td></tr>
+        </table>
+      </div>
+      <div class="highlight" style="margin-top:10px;">
+        💡 <strong>中小企業務實建議:</strong>不必一開始就買昂貴的商業工具。微軟 365 商業版內建的 Defender、Purview 已能涵蓋不少需求;開源的 Wazuh(SIEM)、OpenVAS(漏洞掃描)也能起步。重點是「有在做、有記錄」,工具可以隨成熟度升級。
+      </div>
+    </div>
+
+    <div class="control-section">
+      <h3>⏱️ A.8.8 修補時效 — 分級 SLA</h3>
+      <div class="table-wrap">
+        <table>
+          <tr><th>漏洞等級(CVSS)</th><th>建議修補時限</th><th>範例</th></tr>
+          <tr><td><span style="background:#7f1d1d;color:#fff;padding:2px 8px;border-radius:6px;">危急 9.0-10</span></td><td>24-72 小時內</td><td>可遠端執行任意程式的漏洞</td></tr>
+          <tr><td><span style="background:#dc2626;color:#fff;padding:2px 8px;border-radius:6px;">高 7.0-8.9</span></td><td>1-2 週內</td><td>權限提升漏洞</td></tr>
+          <tr><td><span style="background:#f59e0b;color:#fff;padding:2px 8px;border-radius:6px;">中 4.0-6.9</span></td><td>1 個月內</td><td>資訊洩漏漏洞</td></tr>
+          <tr><td><span style="background:#22c55e;color:#fff;padding:2px 8px;border-radius:6px;">低 0.1-3.9</span></td><td>下次維護窗口</td><td>影響輕微的問題</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div class="nav-btns">
     <a href="framework.html" class="btn btn-prev">← 上一篇</a>
     <a href="documents.html" class="btn btn-next">下一篇：必備文件清單 →</a>
