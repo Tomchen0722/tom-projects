@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DFM 可製造性檢查 | InCAM Pro 指南</title>
+<style>
+  :root{--main:#059669;--accent:#6ee7b7;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#ecfdf5;min-height:100vh;}
+  .topbar{background:#059669;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#052e16,#065f46);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(59,130,246,.2);color:#93c5fd;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(59,130,246,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#ecfdf5;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#065f46;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .op-box{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:20px;margin:16px 0;}
+  .op-box .op-title{font-weight:700;color:#15803d;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .op-step{display:flex;gap:12px;margin-bottom:10px;}
+  .op-step:last-child{margin-bottom:0;}
+  .op-step .n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;}
+  .op-step .t{font-size:.87rem;color:#374151;line-height:1.7;}
+  .op-step .t b{color:#15803d;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .case{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:12px;padding:18px;margin:12px 0;}
+  .case .t{font-weight:700;color:#1d4ed8;font-size:.92rem;margin-bottom:8px;}
+  .case p{font-size:.86rem;color:#1e3a8a;line-height:1.8;margin:0;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#047857;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔧 InCAM Pro 指南</a><span class="sep">/</span>
+  <span>模組二:核心工作流</span><span class="sep">/</span><span>DFM 可製造性檢查</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🔵 中級 01</div>
+  <h1><span>DFM</span> 可製造性檢查</h1>
+  <p>CAM 最重要的一關:檢查設計「工廠到底做不做得出來」。這篇含完整操作流程與檢核表。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🔍 什麼是 DFM?</h2>
+    <p><strong>DFM(Design for Manufacturability,可製造性設計檢查)</strong>就是檢查一份設計「以工廠的製程能力,能不能順利、穩定地做出來」。</p>
+    <p>設計師畫電路時,主要想的是「電路功能對不對」,不一定清楚每家工廠的製程極限。例如他畫了一條超細的線,在螢幕上看起來沒問題,但工廠的蝕刻製程根本做不到那麼細,做出來會斷線。DFM 就是要在生產前,把這類「做不出來或良率會很差」的地方全部找出來。</p>
+    <div class="highlight">
+      💡 <strong>DFM 的價值 = 省錢。</strong>一個問題如果在 CAM 階段(生產前)發現,改一下就好;如果流到生產後才發現,可能整批板子報廢,損失幾萬到幾十萬。DFM 抓得越準,工廠賠得越少。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 DFM 常見檢查項目</h2>
+    <p>DFM 要檢查的項目很多,以下是最核心的幾類:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>檢查項目</th><th>在檢查什麼</th><th>做不好會怎樣</th></tr>
+        <tr><td>線寬 / 線距(Trace / Spacing)</td><td>線夠不夠寬、線與線間隔夠不夠</td><td>太細會斷線、太近會短路</td></tr>
+        <tr><td>孔環(Annular Ring)</td><td>孔周圍的銅環夠不夠寬</td><td>鑽孔稍偏就破環、斷路</td></tr>
+        <tr><td>防焊開窗(Solder Mask)</td><td>防焊有沒有正確露出焊墊</td><td>蓋到焊墊會焊不上、開太大會短路</td></tr>
+        <tr><td>銅到板邊(Copper to Edge)</td><td>銅離板子邊緣夠不夠遠</td><td>太近切割時會露銅、氧化</td></tr>
+        <tr><td>文字壓焊墊(Silk on Pad)</td><td>白色文字有沒有壓到要焊的地方</td><td>影響焊接品質</td></tr>
+        <tr><td>細銅渣 / 尖角(Sliver / Acid Trap)</td><td>有沒有過細的銅、易積蝕刻液的銳角</td><td>蝕刻不均、殘留、可靠度差</td></tr>
+        <tr><td>鑽孔對位(Drill Registration)</td><td>孔和銅環、各層有沒有對準</td><td>層間錯位、導通失敗</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 這些檢查的「標準值」來自工廠的<strong>製程能力(Design Rule)</strong>——每家廠能做到的最小線寬、最小孔徑都不同。所以 DFM 前要先設定「這批板子用哪一套製程規則」,規則設錯,檢查就失去意義。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ 操作說明:執行一次 DFM 的完整流程</h2>
+    <div class="op-box">
+      <div class="op-title">🔍 DFM 檢查標準操作流程</div>
+      <div class="op-step"><div class="n">1</div><div class="t"><b>選定製程規則(Rule Set)</b>:依這批板子要投產的工廠與製程能力,載入對應的設計規則(最小線寬、線距、孔環、孔徑等門檻)。</div></div>
+      <div class="op-step"><div class="n">2</div><div class="t"><b>設定檢查範圍</b>:選擇要檢查哪些層、哪些項目(線距、孔環、防焊⋯)。首次可全開,熟練後可依板子特性取捨。</div></div>
+      <div class="op-step"><div class="n">3</div><div class="t"><b>執行分析(Run DFM / DRC)</b>:讓軟體自動掃描整塊板,標出所有違反規則的位置。</div></div>
+      <div class="op-step"><div class="n">4</div><div class="t"><b>逐項檢視違規(Review Violations)</b>:軟體會列出違規清單並在圖上標記。逐一放大檢視,判斷每個是「真問題」還是「誤報」。</div></div>
+      <div class="op-step"><div class="n">5</div><div class="t"><b>分類與判斷</b>:把違規分成三類——①可自行修正(如微調間距)②需回饋客戶確認(如線太細影響功能)③誤報可忽略。</div></div>
+      <div class="op-step"><div class="n">6</div><div class="t"><b>修正或回饋</b>:能改的直接修;要客戶決定的,整理成問題清單(常稱 EQ / Engineering Query)發回客戶確認。</div></div>
+      <div class="op-step"><div class="n">7</div><div class="t"><b>複查(Re-run)</b>:修正後再跑一次 DFM,確認違規都已清除或已被合理放行,並保留檢查報告存檔。</div></div>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>DFM 不是「全部照軟體說的改」。</strong>軟體會有誤報,也有些違規其實客戶有意為之。CAM 工程師的專業就在於「判斷」——哪些該改、哪些該問客戶、哪些可放行。這需要經驗,不能無腦全改。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💡 範例情境:一塊板子的 DFM</h2>
+    <div class="case">
+      <div class="t">📋 情境:客戶送來一塊 4 層工控板,要投產前做 DFM</div>
+      <p>
+      <strong>Step 1-3:</strong>載入該廠 4 層板製程規則,全項目執行 DFM,軟體回報 47 處違規。<br><br>
+      <strong>Step 4-5 檢視分類:</strong><br>
+      • 12 處「線距不足」→ 多在密集區,微調走線即可自行修正<br>
+      • 3 處「孔環過小」→ 已接近破環風險,需回饋客戶確認可否加大焊盤<br>
+      • 8 處「文字壓焊墊」→ 自行把白字位移即可<br>
+      • 20 處「銅渣 sliver」→ 檢視後多為誤報(是正常的大銅面邊緣),放行<br>
+      • 4 處「銅到板邊過近」→ 回饋客戶或微縮銅面<br><br>
+      <strong>Step 6-7:</strong>可自行修的 20 處直接修;7 處整理成 EQ 發客戶;複查後違規清空,存檔報告,進入下一關(拼板)。</p>
+    </div>
+    <div class="highlight">
+      💡 看到重點了嗎?47 處違規,真正需要客戶介入的只有 7 處,其餘靠 CAM 工程師的判斷就地解決。這種「分流處理」的能力,就是 CAM 工程師的價值所在。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習 + DFM 檢核表</h2>
+    <div style="background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;margin-bottom:12px;">
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q1.</strong> 為什麼同一份設計,在 A 廠通過 DFM、在 B 廠卻不通過?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q2.</strong> 「孔環過小」為什麼危險?會造成什麼後果?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:0;"><strong>Q3.</strong> 跑完 DFM 發現違規,CAM 工程師應該怎麼分類處理?</p>
+    </div>
+    <details>
+      <summary style="cursor:pointer;color:#059669;font-weight:600;font-size:.9rem;">▶ 看參考答案</summary>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#065f46;line-height:1.9;">
+        <strong>A1.</strong> 因為兩廠的製程能力(設計規則)不同,B 廠能做的最小線寬/孔徑可能比 A 廠寬鬆或嚴格,所以同一設計的判定結果不同。<br>
+        <strong>A2.</strong> 孔環是孔周圍的銅環,太小的話鑽孔只要稍微偏移就會「破環」,造成斷路、導通失敗。<br>
+        <strong>A3.</strong> 分三類:①可自行修正 ②需回饋客戶確認(EQ)③誤報可放行;修正後再複查並存檔報告。
+      </div>
+    </details>
+    <div class="op-box" style="margin-top:14px;">
+      <div class="op-title">✅ DFM 檢核表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">已載入正確的工廠製程規則</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">線寬/線距、孔環、防焊、銅到板邊都已檢查</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">每個違規都已逐一檢視、判斷真偽</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">需客戶確認的問題已整理成 EQ 清單</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">修正後已複查、違規清空或合理放行</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">DFM 報告已存檔備查</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="../01-basics/pcb-and-files.html" class="btn btn-prev">← 上一篇</a>
+    <a href="panelization.html" class="btn btn-next">下一篇:拼板 Panelization →</a>
+  </div>
+</div>
+</body>
+</html>

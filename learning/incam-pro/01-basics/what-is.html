@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>什麼是 PCB CAM / InCAM Pro? | InCAM Pro 指南</title>
+<style>
+  :root{--main:#059669;--accent:#6ee7b7;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#ecfdf5;min-height:100vh;}
+  .topbar{background:#059669;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem;}
+  .topbar a:hover{color:#fff;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#052e16,#065f46);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(16,185,129,.2);color:#6ee7b7;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(16,185,129,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#ecfdf5;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#065f46;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+  .item{background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;}
+  .item .icon{font-size:1.8rem;margin-bottom:8px;}
+  .item h3{font-size:.95rem;color:#1e293b;margin-bottom:6px;}
+  .item p{font-size:.84rem;color:#64748b;line-height:1.7;}
+  .flow{display:flex;align-items:stretch;flex-wrap:wrap;gap:6px;margin:16px 0;}
+  .flow-step{background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:10px 12px;font-size:.8rem;color:#065f46;text-align:center;flex:1;min-width:88px;display:flex;flex-direction:column;justify-content:center;}
+  .flow-step b{display:block;font-size:.85rem;margin-bottom:2px;}
+  .flow-step.cam{background:#059669;color:#fff;border-color:#059669;}
+  .flow-arrow{display:flex;align-items:center;color:#94a3b8;font-size:1.1rem;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.88rem;}
+  th{background:var(--main);color:#fff;padding:10px 14px;text-align:left;}
+  td{padding:10px 14px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#047857;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔧 InCAM Pro 指南</a><span class="sep">/</span>
+  <span>模組一:初級基礎</span><span class="sep">/</span><span>什麼是 PCB CAM?</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟢 初級 01</div>
+  <h1>什麼是 <span>PCB CAM</span> / InCAM Pro?</h1>
+  <p>用「蓋房子看藍圖」的比喻,搞懂電路板從設計圖變成量產品,中間 CAM 這關在做什麼。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🏗️ 用蓋房子理解 CAM</h2>
+    <p>想像設計師畫好了一棟房子的設計圖,但這張圖不能直接拿給工人蓋。中間需要一位「營造技師」把設計圖轉成:每一層的施工圖、水電管線圖、材料清單,還要檢查「這樣蓋安不安全、蓋不蓋得出來」。</p>
+    <p>電路板(PCB)的生產也一樣。工程師用設計軟體畫好電路,但這份設計檔<strong>不能直接拿去工廠生產</strong>。中間需要一個關卡,把設計檔轉成工廠機台看得懂、且確認做得出來的資料——這個關卡就是 <strong>CAM(Computer-Aided Manufacturing,電腦輔助製造)</strong>,而 <strong>InCAM Pro 就是做這件事的軟體</strong>。</p>
+    <div class="highlight">
+      💡 <strong>一句話:</strong>CAM 是「設計」與「生產」之間的橋樑。它負責檢查、修正、整理設計檔,產出工廠實際生產所需的資料。這個階段在業界稱為「前製工程」或「CAM 工程」。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛣️ 一塊電路板的完整旅程</h2>
+    <p>看 CAM 在整個 PCB 製造中的位置(綠色那格就是 InCAM Pro 的主場):</p>
+    <div class="flow">
+      <div class="flow-step"><b>1. 設計</b>工程師畫電路(EDA 軟體)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step cam"><b>2. CAM 前製</b>檢查·修正·拼板·輸出<br>(InCAM Pro)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>3. 製造</b>曝光·蝕刻·鑽孔·電鍍</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>4. 檢驗</b>AOI·電測</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>5. 出貨</b>成品交客戶</div>
+    </div>
+    <div class="highlight">
+      💡 CAM 雖然只是其中一站,卻是「品質守門員」。設計檔的問題若沒在 CAM 階段抓出來,後面整批板子做出來可能全部報廢,損失很大。所以 CAM 工程師的判斷,直接影響工廠的良率和成本。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔧 InCAM Pro 的定位</h2>
+    <p>InCAM Pro 由 <strong>Ucamco</strong> 公司開發。這家公司大有來頭——PCB 業界最通用的設計檔格式 <strong>Gerber</strong> 就是他們制定並維護的。所以他們做的 CAM 軟體,對各種設計檔的支援與解析特別權威。</p>
+    <div class="grid2">
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">📥</div>
+        <h3>輸入</h3>
+        <p>讀入各種設計檔:Gerber、ODB++、IPC-2581、鑽孔檔等</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">🔍</div>
+        <h3>檢查(DFM)</h3>
+        <p>分析設計「做不做得出來」,找出線太細、間距太近等問題</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">✏️</div>
+        <h3>編輯與拼板</h3>
+        <p>修正問題、補償製程、把小板拼成生產大板</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">📤</div>
+        <h3>輸出</h3>
+        <p>產生各機台要的生產資料:底片、鑽孔、AOI、電測等</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👷 CAM 工程師在做什麼?</h2>
+    <p>InCAM Pro 是工具,操作它的人叫 <strong>CAM 工程師</strong>。他們是電路板廠裡承先啟後的關鍵角色:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>工作</th><th>說明</th></tr>
+        <tr><td>接收與檢查設計檔</td><td>讀入客戶的設計檔,確認完整、可讀</td></tr>
+        <tr><td>DFM 可製造性分析</td><td>檢查設計是否符合工廠的製程能力</td></tr>
+        <tr><td>與客戶溝通</td><td>發現問題時,回饋客戶確認怎麼改</td></tr>
+        <tr><td>製程補償</td><td>依工廠製程特性微調(如線寬、蝕刻補償)</td></tr>
+        <tr><td>拼板</td><td>把小板排成最有效率的生產大板</td></tr>
+        <tr><td>輸出生產資料</td><td>產生後段每一站機台需要的檔案</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>CAM 工程師 = 工廠的翻譯兼校對。</strong>「翻譯」設計檔給機台看,「校對」抓出會導致報廢的錯誤。經驗豐富的 CAM 工程師能替工廠省下大量成本,是很有價值的專業。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💡 為什麼不能設計檔直接生產?</h2>
+    <p>很多新手會問:設計師都畫好了,為什麼還要 CAM 這一關?原因有三:</p>
+    <div class="grid2">
+      <div class="item" style="border-color:#fca5a5;">
+        <div class="icon">🏭</div>
+        <h3>每家工廠能力不同</h3>
+        <p>同一份設計,A 廠做得出來、B 廠可能做不到。要依各廠製程能力調整。</p>
+      </div>
+      <div class="item" style="border-color:#fca5a5;">
+        <div class="icon">🔬</div>
+        <h3>製程需要補償</h3>
+        <p>蝕刻會讓線變細、電鍍會讓孔變小,CAM 要先「預留」補償量。</p>
+      </div>
+      <div class="item" style="border-color:#fca5a5;">
+        <div class="icon">📦</div>
+        <h3>要拼板才划算</h3>
+        <p>一小片板子單獨生產超浪費,要拼成大板一次做很多片。</p>
+      </div>
+    </div>
+    <div class="warn">
+      ⚠️ 設計師關心「電路對不對」,CAM 工程師關心「這樣工廠做不做得出來、划不划算」。兩者角度不同,所以中間一定要有 CAM 這道把關。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習</h2>
+    <div style="background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;">
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q1.</strong> CAM 在 PCB 製造流程中,位於哪兩個階段「之間」?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q2.</strong> 用自己的話說明:為什麼設計檔不能直接拿去工廠生產?(至少講出一個原因)</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:0;"><strong>Q3.</strong> Ucamco 這家公司,和哪個知名的 PCB 設計檔格式有關?</p>
+    </div>
+    <details style="margin-top:12px;">
+      <summary style="cursor:pointer;color:#059669;font-weight:600;font-size:.9rem;">▶ 看參考答案</summary>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#065f46;line-height:1.9;">
+        <strong>A1.</strong> 位於「設計」與「製造(生產)」之間。<br>
+        <strong>A2.</strong> 任一即可:①每家工廠製程能力不同,需依廠調整 ②製程(蝕刻/電鍍)會改變尺寸,需先補償 ③要拼板才符合生產效益。<br>
+        <strong>A3.</strong> Gerber 格式(Ucamco 是 Gerber 格式的制定與維護者)。
+      </div>
+    </details>
+  </div>
+
+  <div class="nav-btns">
+    <a href="../index.html" class="btn btn-prev">← 返回主目錄</a>
+    <a href="pcb-and-files.html" class="btn btn-next">下一篇:PCB 與設計檔案 →</a>
+  </div>
+</div>
+</body>
+</html>

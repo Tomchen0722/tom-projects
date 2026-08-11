@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCB 與設計檔案基礎 | InCAM Pro 指南</title>
+<style>
+  :root{--main:#059669;--accent:#6ee7b7;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#ecfdf5;min-height:100vh;}
+  .topbar{background:#059669;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#052e16,#065f46);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(16,185,129,.2);color:#6ee7b7;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(16,185,129,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#ecfdf5;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#065f46;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .op-box{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:20px;margin:16px 0;}
+  .op-box .op-title{font-weight:700;color:#15803d;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .op-step{display:flex;gap:12px;margin-bottom:10px;}
+  .op-step:last-child{margin-bottom:0;}
+  .op-step .n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;}
+  .op-step .t{font-size:.87rem;color:#374151;line-height:1.7;}
+  .op-step .t b{color:#15803d;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .layer{display:flex;flex-direction:column;gap:3px;margin:14px 0;}
+  .layer-row{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:6px;font-size:.83rem;color:#fff;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#047857;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔧 InCAM Pro 指南</a><span class="sep">/</span>
+  <span>模組一:初級基礎</span><span class="sep">/</span><span>PCB 與設計檔案</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟢 初級 02</div>
+  <h1><span>PCB</span> 與設計<span>檔案</span>基礎</h1>
+  <p>認識電路板的結構,以及 Gerber、ODB++、鑽孔檔這些 CAM 每天要讀的設計檔。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🧱 電路板是怎麼組成的?</h2>
+    <p>電路板不是一片平板,而是像「千層蛋糕」一樣由多層疊起來的。最基本的雙面板有兩層銅箔,多層板可能有 4、6、8 甚至更多層。每一層都有它的角色:</p>
+    <div class="layer">
+      <div class="layer-row" style="background:#374151;">🖨️ 文字層(Silkscreen)— 白色標示字、元件位置</div>
+      <div class="layer-row" style="background:#15803d;">🟩 防焊層(Solder Mask)— 綠色保護漆,只露出要焊接的地方</div>
+      <div class="layer-row" style="background:#b45309;">🟫 銅箔線路層(Copper)— 真正導電的線路(訊號在這走)</div>
+      <div class="layer-row" style="background:#78716c;">⬜ 基材(Substrate)— 中間的絕緣板材(常見 FR-4)</div>
+      <div class="layer-row" style="background:#b45309;">🟫 銅箔線路層(Copper)— 另一面的線路</div>
+      <div class="layer-row" style="background:#15803d;">🟩 防焊層(Solder Mask)</div>
+      <div class="layer-row" style="background:#374151;">🖨️ 文字層(Silkscreen)</div>
+    </div>
+    <div class="highlight">
+      💡 為什麼電路板大多是綠色?那是「防焊層」的顏色。防焊層像一層保護漆,蓋住不需要焊接的銅線(防止氧化和短路),只在要焊元件的地方開窗露出銅。綠色是最傳統常見的顏色,也有藍、紅、黑等。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔩 三種「孔」與導通</h2>
+    <p>多層板各層之間要能導電相通,靠的是「孔」。CAM 要正確處理各種孔:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>孔的種類</th><th>白話說明</th></tr>
+        <tr><td>通孔(Through Hole)</td><td>從最上層貫穿到最下層的孔,最常見</td></tr>
+        <tr><td>盲孔(Blind Via)</td><td>從表層通到內層、不貫穿的孔(像沒打通的洞)</td></tr>
+        <tr><td>埋孔(Buried Via)</td><td>只在內層之間、表面看不到的孔</td></tr>
+        <tr><td>鍍通孔(PTH)/ 非鍍通孔(NPTH)</td><td>孔壁有沒有電鍍銅來導電的差別</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📄 CAM 要讀的設計檔格式</h2>
+    <p>工程師畫完電路後,會輸出設計檔給工廠。CAM 工程師每天就是在讀這些檔案。主要有三大類:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>格式</th><th>特性</th><th>白話比喻</th></tr>
+        <tr><td><strong>Gerber(RS-274X)</strong></td><td>業界最通用,一層一個檔,描述每層的圖形</td><td>像「分層的黑白圖」,一疊圖對應各層</td></tr>
+        <tr><td><strong>ODB++</strong></td><td>單一資料包,含所有層+鑽孔+網表等完整資訊</td><td>像「打包好的資料夾」,資訊最完整</td></tr>
+        <tr><td><strong>IPC-2581</strong></td><td>開放的智慧格式,資訊完整且中立標準</td><td>像 ODB++ 的「開放標準版」</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>Gerber vs ODB++ 的關鍵差別:</strong>傳統 Gerber 只有「圖形」,像一張張圖片,少了元件、網路連線等智慧資訊,CAM 有時要自己補。ODB++ / IPC-2581 是「智慧格式」,把層別、鑽孔、網表(哪些點該相連)、料號等都打包在一起,CAM 處理更順、更少出錯。現代趨勢是往智慧格式走。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🕳️ 鑽孔檔(Excellon)</h2>
+    <p>除了各層圖形,還有一個獨立的「鑽孔檔」,告訴機台<strong>要在哪些座標鑽多大的孔</strong>。最常見的格式叫 <strong>Excellon</strong>。</p>
+    <p>它包含兩部分:<strong>孔徑表(Tool)</strong>——定義有哪幾種尺寸的鑽頭;<strong>座標</strong>——每個孔的 X、Y 位置對應用哪支鑽頭。</p>
+    <div class="warn">
+      ⚠️ 鑽孔檔常見的坑:①單位是「英吋還是公厘」搞錯,孔位就全跑掉 ②有沒有含前導/後補零(zero suppression)沒對好,座標會錯位。CAM 讀入鑽孔檔時,務必確認單位與格式設定正確。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ 操作說明:把設計檔載入 CAM(通用流程)</h2>
+    <p>不論用哪套 CAM 軟體(InCAM Pro 亦然),把客戶設計檔載入並整理好的通用步驟如下:</p>
+    <div class="op-box">
+      <div class="op-title">📥 載入與對齊設計檔的標準流程</div>
+      <div class="op-step"><div class="n">1</div><div class="t"><b>匯入(Import)</b>:選擇正確的輸入格式(Gerber / ODB++ / IPC-2581),把各層檔案讀進來。ODB++ 通常一次匯入整包。</div></div>
+      <div class="op-step"><div class="n">2</div><div class="t"><b>指定層別(Layer Assignment)</b>:告訴軟體每個檔案是哪一層——頂層線路、底層線路、防焊、文字、鑽孔等。智慧格式通常會自動對應。</div></div>
+      <div class="op-step"><div class="n">3</div><div class="t"><b>設定單位與格式</b>:確認公制/英制、座標格式(小數位、補零方式)正確,尤其是鑽孔檔。</div></div>
+      <div class="op-step"><div class="n">4</div><div class="t"><b>對齊各層(Alignment)</b>:確認所有層以同一原點對齊、疊起來位置正確(可用基準點或孔位對齊)。</div></div>
+      <div class="op-step"><div class="n">5</div><div class="t"><b>初步檢視(Review)</b>:疊圖檢視,肉眼確認沒有層別放錯、缺層、鏡像顛倒等明顯問題。</div></div>
+      <div class="op-step"><div class="n">6</div><div class="t"><b>存成工作檔(Job)</b>:整理好的資料存成 CAM 的工作檔,後續 DFM、拼板、輸出都以它為基礎。</div></div>
+    </div>
+    <div class="highlight">
+      💡 這一步看似簡單,卻是後面所有工作的地基。層別放錯、單位設錯、對齊沒對好,後面 DFM 和拼板全都會跟著錯。所以「載入即檢查」是 CAM 的好習慣。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習 + 檢核表</h2>
+    <div style="background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;margin-bottom:12px;">
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q1.</strong> 電路板為什麼大多是綠色?那是哪一層的顏色?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q2.</strong> Gerber 和 ODB++ 最大的差別是什麼?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:0;"><strong>Q3.</strong> 讀鑽孔檔時,有哪兩個設定沒對好會導致孔位全錯?</p>
+    </div>
+    <details>
+      <summary style="cursor:pointer;color:#059669;font-weight:600;font-size:.9rem;">▶ 看參考答案</summary>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#065f46;line-height:1.9;">
+        <strong>A1.</strong> 綠色是「防焊層(Solder Mask)」的顏色。<br>
+        <strong>A2.</strong> Gerber 只有分層的「圖形」;ODB++ 是打包好的智慧格式,含層別、鑽孔、網表等完整資訊,CAM 處理更順、更少出錯。<br>
+        <strong>A3.</strong> ①單位(英吋/公厘)②補零方式(zero suppression)/座標格式。
+      </div>
+    </details>
+    <div class="op-box" style="margin-top:14px;">
+      <div class="op-title">✅ 載入設計檔檢核表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">所有層別都正確指定(線路/防焊/文字/鑽孔)</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">單位與座標格式設定正確(尤其鑽孔檔)</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">各層以同一原點對齊,疊圖位置正確</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">沒有缺層、放錯層或鏡像顛倒</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">層數與客戶指定的疊構(stack-up)一致</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="what-is.html" class="btn btn-prev">← 上一篇</a>
+    <a href="../02-workflow/dfm.html" class="btn btn-next">下一篇:DFM 可製造性檢查 →</a>
+  </div>
+</div>
+</body>
+</html>

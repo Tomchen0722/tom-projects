@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拼板 Panelization | InCAM Pro 指南</title>
+<style>
+  :root{--main:#059669;--accent:#6ee7b7;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#ecfdf5;min-height:100vh;}
+  .topbar{background:#059669;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#052e16,#065f46);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(59,130,246,.2);color:#93c5fd;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(59,130,246,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#ecfdf5;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#065f46;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .op-box{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:20px;margin:16px 0;}
+  .op-box .op-title{font-weight:700;color:#15803d;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .op-step{display:flex;gap:12px;margin-bottom:10px;}
+  .op-step:last-child{margin-bottom:0;}
+  .op-step .n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;}
+  .op-step .t{font-size:.87rem;color:#374151;line-height:1.7;}
+  .op-step .t b{color:#15803d;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .panel-demo{display:flex;justify-content:center;margin:16px 0;}
+  .panel{background:#065f46;border-radius:8px;padding:16px;display:inline-grid;grid-template-columns:repeat(3,1fr);gap:8px;position:relative;}
+  .unit{width:56px;height:44px;background:#10b981;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;}
+  .case{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:12px;padding:18px;margin:12px 0;}
+  .case .t{font-weight:700;color:#1d4ed8;font-size:.92rem;margin-bottom:8px;}
+  .case p{font-size:.86rem;color:#1e3a8a;line-height:1.8;margin:0;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#047857;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔧 InCAM Pro 指南</a><span class="sep">/</span>
+  <span>模組二:核心工作流</span><span class="sep">/</span><span>拼板 Panelization</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🔵 中級 02</div>
+  <h1>拼板 <span>Panelization</span></h1>
+  <p>把一小片電路板排成一大片生產板,提升效率與良率。含拼板元素、操作流程與檢核表。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🧩 為什麼要拼板?</h2>
+    <p>假設你的產品是一片只有 3×4 公分的小電路板。如果工廠一次只生產一小片,機台跑一趟才做一片,超級浪費。所以 CAM 會把很多片小板「拼」成一大片(通常 30×40 公分等級)一起生產,做完再切開。這就是<strong>拼板(Panelization)</strong>。</p>
+    <div class="panel-demo">
+      <div class="panel">
+        <div class="unit">小板</div><div class="unit">小板</div><div class="unit">小板</div>
+        <div class="unit">小板</div><div class="unit">小板</div><div class="unit">小板</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:.82rem;color:#64748b;">▲ 一大片生產板(深綠)上排了 6 片相同的小板(淺綠),做完再分割</p>
+    <div class="highlight">
+      💡 <strong>拼板的三大好處:</strong>①<strong>效率</strong>——一次做很多片,機台利用率高 ②<strong>良率與強度</strong>——外框(出邊)方便機台夾持、過爐,避免小板變形 ③<strong>省成本</strong>——把大板面積用好用滿,單片成本最低。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔧 拼板的關鍵元素</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>元素</th><th>作用</th></tr>
+        <tr><td>出邊 / 工藝邊(Rail / Border)</td><td>大板四周的框,供機台夾持、放基準點與工具孔</td></tr>
+        <tr><td>基準點(Fiducial Mark)</td><td>讓後段機台(如貼片、AOI)辨識定位的圓點</td></tr>
+        <tr><td>工具孔(Tooling Hole)</td><td>生產與加工時固定板子的定位孔</td></tr>
+        <tr><td>分割方式:V-Cut</td><td>在板間刻 V 型溝,之後可折斷分開(適合直線邊)</td></tr>
+        <tr><td>分割方式:郵票孔(Mouse Bite)</td><td>在連接處鑽一排小孔,像郵票般可撕開(適合異形板)</td></tr>
+        <tr><td>間距(Spacing)</td><td>板與板之間、板到出邊的距離,要留給切割與製程</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>V-Cut vs 郵票孔怎麼選?</strong>板子是規則的直線矩形 → 用 V-Cut,乾淨省空間;板子是不規則形狀(有凸出、圓弧)→ 用郵票孔,才切得開。有時兩者混用。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ 操作說明:拼板標準操作流程</h2>
+    <div class="op-box">
+      <div class="op-title">🧩 從單片到生產大板的流程</div>
+      <div class="op-step"><div class="n">1</div><div class="t"><b>確認單片資訊</b>:確定單片(單元)的尺寸、外形、是否有方向性(要不要全部同方向或可旋轉)。</div></div>
+      <div class="op-step"><div class="n">2</div><div class="t"><b>決定生產板尺寸</b>:依工廠標準生產板尺寸與有效可用區,決定這片大板的規格。</div></div>
+      <div class="op-step"><div class="n">3</div><div class="t"><b>排列單片(Step &amp; Repeat)</b>:設定行列數與間距,把單片陣列複製排滿,並最佳化排法以提高利用率(擺放率)。</div></div>
+      <div class="op-step"><div class="n">4</div><div class="t"><b>加出邊與工藝邊</b>:在四周加上工藝邊(rail),寬度依機台夾持與過爐需求。</div></div>
+      <div class="op-step"><div class="n">5</div><div class="t"><b>放基準點與工具孔</b>:在出邊放基準點(通常對角至少 2-3 個)與定位工具孔。</div></div>
+      <div class="op-step"><div class="n">6</div><div class="t"><b>設定分割方式</b>:依板形選 V-Cut 或郵票孔,設定溝深/孔位;確認分割線不切到線路或元件。</div></div>
+      <div class="op-step"><div class="n">7</div><div class="t"><b>加識別資訊</b>:在出邊加上料號、版本、日期碼、廠商標記等,方便追溯。</div></div>
+      <div class="op-step"><div class="n">8</div><div class="t"><b>檢查與確認</b>:確認利用率、間距、分割、基準點都合理,無干涉,再進入輸出階段。</div></div>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>擺放率(利用率)是拼板的關鍵指標。</strong>同樣一片大板,排得好可放 24 片、排不好只放 20 片——差 4 片就是差 20% 成本。CAM 工程師要在「利用率最高」和「留足製程間距」之間拿捏,這很吃經驗。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💡 範例情境:小板拼板決策</h2>
+    <div class="case">
+      <div class="t">📋 情境:一片 40×50mm 的感測器板,要拼到 300×400mm 的生產板</div>
+      <p>
+      <strong>Step 1-2:</strong>單片 40×50mm、矩形規則外形、無方向性;生產板扣掉出邊後有效區約 280×360mm。<br><br>
+      <strong>Step 3 排列試算:</strong>橫放每片含間距約 42mm,280÷42 ≈ 6 行;直向 360÷52 ≈ 6 列 → 約可排 6×6 = 36 片。試著旋轉 90° 排列比較,取利用率較高者。<br><br>
+      <strong>Step 4-6:</strong>四周加 8mm 工藝邊;對角放 3 個基準點 + 2 個工具孔;因外形規則,選 <strong>V-Cut</strong> 直線分割最省空間。<br><br>
+      <strong>Step 7-8:</strong>出邊加料號與日期碼;檢查 V-Cut 線沒切到板內銅面與元件,利用率達標,完成拼板。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習 + 拼板檢核表</h2>
+    <div style="background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;margin-bottom:12px;">
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q1.</strong> 拼板有哪三大好處?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q2.</strong> V-Cut 和郵票孔各適合什麼形狀的板子?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:0;"><strong>Q3.</strong> 為什麼「擺放率(利用率)」對成本這麼重要?</p>
+    </div>
+    <details>
+      <summary style="cursor:pointer;color:#059669;font-weight:600;font-size:.9rem;">▶ 看參考答案</summary>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#065f46;line-height:1.9;">
+        <strong>A1.</strong> ①效率(一次做多片)②良率與強度(出邊利於夾持過爐、防變形)③省成本(面積用好用滿)。<br>
+        <strong>A2.</strong> V-Cut 適合規則的直線矩形板;郵票孔適合不規則/異形板。<br>
+        <strong>A3.</strong> 一片大板成本固定,排越多片、單片成本越低;利用率差幾片就等於單片成本差好幾個百分點。
+      </div>
+    </details>
+    <div class="op-box" style="margin-top:14px;">
+      <div class="op-title">✅ 拼板檢核表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">單片方向與排列符合需求,利用率已最佳化</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">出邊寬度足夠機台夾持與過爐</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">基準點與工具孔位置正確、數量足夠</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">分割方式(V-Cut/郵票孔)適合板形</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">分割線未切到線路、元件或銅面</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">出邊已加料號、版本、日期等識別資訊</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="dfm.html" class="btn btn-prev">← 上一篇</a>
+    <a href="output.html" class="btn btn-next">下一篇:產生生產資料 →</a>
+  </div>
+</div>
+</body>
+</html>

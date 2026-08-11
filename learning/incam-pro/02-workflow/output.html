@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>產生生產資料 | InCAM Pro 指南</title>
+<style>
+  :root{--main:#059669;--accent:#6ee7b7;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#ecfdf5;min-height:100vh;}
+  .topbar{background:#059669;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#052e16,#065f46);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(59,130,246,.2);color:#93c5fd;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(59,130,246,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#ecfdf5;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#065f46;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .op-box{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:20px;margin:16px 0;}
+  .op-box .op-title{font-weight:700;color:#15803d;font-size:.95rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .op-step{display:flex;gap:12px;margin-bottom:10px;}
+  .op-step:last-child{margin-bottom:0;}
+  .op-step .n{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;}
+  .op-step .t{font-size:.87rem;color:#374151;line-height:1.7;}
+  .op-step .t b{color:#15803d;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#047857;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔧 InCAM Pro 指南</a><span class="sep">/</span>
+  <span>模組二:核心工作流</span><span class="sep">/</span><span>產生生產資料</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🔵 中級 03</div>
+  <h1>產生<span>生產資料</span></h1>
+  <p>CAM 的最後一哩路:把整理好的板子,輸出成後段每一站機台要的資料。含流程與檢核表。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>📤 為什麼要「輸出」這一步?</h2>
+    <p>經過載入、DFM、拼板,板子在 CAM 系統裡已經整理得很完美。但後段生產有很多不同的機台——曝光機、鑽孔機、AOI、電測機⋯<strong>每一台機台要的資料格式都不一樣</strong>。輸出這一步,就是把 CAM 工作檔「翻譯」成每一站看得懂的專屬檔案。</p>
+    <div class="highlight">
+      💡 <strong>比喻:</strong>你煮好一桌菜(CAM 工作檔),但每個客人(機台)有不同的餐具和吃法。輸出就是幫每位客人準備好他專用的那一份。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏭 各生產站需要什麼資料?</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>生產站</th><th>需要的資料</th><th>用途</th></tr>
+        <tr><td>曝光 / 底片</td><td>各層線路底片(Photo Plot)</td><td>把線路圖案轉到板上</td></tr>
+        <tr><td>鑽孔</td><td>鑽孔檔(Drill Data)+ 鑽帶</td><td>控制鑽孔機在何處鑽多大孔</td></tr>
+        <tr><td>防焊 / 文字</td><td>防焊層、文字層資料</td><td>印上防焊漆與白色標示</td></tr>
+        <tr><td>AOI 自動光學檢測</td><td>AOI 參考資料</td><td>比對成品與設計,抓瑕疵</td></tr>
+        <tr><td>電測(Electrical Test)</td><td>電測點 / 網表資料</td><td>測試線路是否斷路/短路</td></tr>
+        <tr><td>成型 / 外形</td><td>外形 / 路由(Routing)資料</td><td>切割板子外形、V-Cut</td></tr>
+        <tr><td>鋼板(SMT)</td><td>鋼板(Stencil)資料</td><td>後段貼片印錫膏用</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 這也是為什麼 CAM 的資料「一份設計,多種輸出」。同一塊板子,要同時產出給七八個不同機台的檔案,而且每一份都要正確,漏一個生產就卡關。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ 操作說明:輸出生產資料流程</h2>
+    <div class="op-box">
+      <div class="op-title">📤 標準輸出流程</div>
+      <div class="op-step"><div class="n">1</div><div class="t"><b>最終複查</b>:輸出前再確認一次板子沒問題——DFM 已過、拼板正確、層別齊全。輸出後就進生產,是最後的把關點。</div></div>
+      <div class="op-step"><div class="n">2</div><div class="t"><b>套用輸出範本(Output Job)</b>:依這批要送的機台,選對應的輸出設定範本(哪些層、什麼格式、什麼參數)。</div></div>
+      <div class="op-step"><div class="n">3</div><div class="t"><b>底片 / 光繪輸出</b>:輸出各線路層的底片資料,設定解析度、極性(正片/負片)、鏡像方向。</div></div>
+      <div class="op-step"><div class="n">4</div><div class="t"><b>鑽孔資料輸出</b>:輸出鑽孔檔與鑽帶,確認孔徑表、單位、座標格式正確。</div></div>
+      <div class="op-step"><div class="n">5</div><div class="t"><b>檢測資料輸出</b>:輸出 AOI 參考、電測網表等後段檢驗要用的資料。</div></div>
+      <div class="op-step"><div class="n">6</div><div class="t"><b>外形與其他</b>:輸出成型/路由、防焊、文字、鋼板等資料。</div></div>
+      <div class="op-step"><div class="n">7</div><div class="t"><b>核對與打包</b>:核對所有輸出檔齊全、命名清楚、對應正確版本,打包連同工單/說明交給生產,並存檔留底。</div></div>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>輸出是「不可逆的最後一關」。</strong>資料一送進生產,機台就照做。若極性反了、鏡像錯了、鑽孔單位錯了,整批板子直接報廢。所以 Step 1 的最終複查與 Step 7 的核對絕不能省。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧭 底片輸出的兩個關鍵觀念</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:14px 0;">
+      <div style="background:#f8fafc;border-radius:10px;padding:16px;border:1px solid #e2e8f0;">
+        <div style="font-weight:700;color:#065f46;font-size:.9rem;margin-bottom:6px;">🔲 極性(Polarity)</div>
+        <div style="font-size:.83rem;color:#374151;line-height:1.7;">正片(有銅處為黑)還是負片(相反)。不同製程要求不同,搞反整層就錯。</div>
+      </div>
+      <div style="background:#f8fafc;border-radius:10px;padding:16px;border:1px solid #e2e8f0;">
+        <div style="font-weight:700;color:#065f46;font-size:.9rem;margin-bottom:6px;">🪞 鏡像(Mirror)</div>
+        <div style="font-size:.83rem;color:#374151;line-height:1.7;">底層或某些層輸出時要不要左右翻轉。鏡像錯了,線路就整層反過來。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習 + 輸出檢核表</h2>
+    <div style="background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;margin-bottom:12px;">
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q1.</strong> 為什麼一塊板子要輸出「很多份」不同的資料?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:10px;"><strong>Q2.</strong> 電測(Electrical Test)資料是用來檢查什麼?</p>
+      <p style="font-size:.9rem;color:#374151;margin-bottom:0;"><strong>Q3.</strong> 底片輸出時,哪兩個設定弄錯會導致整層報廢?</p>
+    </div>
+    <details>
+      <summary style="cursor:pointer;color:#059669;font-weight:600;font-size:.9rem;">▶ 看參考答案</summary>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#065f46;line-height:1.9;">
+        <strong>A1.</strong> 因為後段有很多不同機台(曝光、鑽孔、AOI、電測⋯),每台要的資料格式不同,所以同一塊板要輸出多種對應資料。<br>
+        <strong>A2.</strong> 檢查線路的電氣連通性——是否有該通不通(斷路)或不該通卻通(短路)。<br>
+        <strong>A3.</strong> 極性(正/負片)與鏡像(左右翻轉)。
+      </div>
+    </details>
+    <div class="op-box" style="margin-top:14px;">
+      <div class="op-title">✅ 輸出前檢核表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">DFM 已通過、拼板正確、層別齊全</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">底片極性、鏡像方向正確</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">鑽孔檔孔徑表、單位、座標格式正確</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">AOI、電測等檢驗資料已輸出</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">外形/成型、防焊、文字、鋼板資料齊全</label>
+        <label style="display:flex;gap:10px;font-size:.87rem;color:#374151;"><input type="checkbox" style="margin-top:2px;">所有檔案命名清楚、對應正確版本、已存檔留底</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="panelization.html" class="btn btn-prev">← 上一篇</a>
+    <a href="../03-enterprise/automation.html" class="btn btn-next">下一篇:自動化與腳本 →</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InCAM Pro 完全指南 · PCB CAM 前製工程</title>
+<style>
+  :root{--main:#059669;--accent:#6ee7b7;--dark:#052e16;--bg:#ecfdf5;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);min-height:100vh;}
+  .hero{background:linear-gradient(135deg,#052e16,#065f46,#059669);color:#fff;padding:52px 24px 44px;text-align:center;}
+  .hero h1{font-size:2.1rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.88;max-width:660px;margin:0 auto;line-height:1.8;font-size:1rem;}
+  .pills{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+  .pill{background:rgba(255,255,255,.12);padding:8px 18px;border-radius:24px;font-size:.85rem;}
+  .pill b{color:var(--accent);}
+  .container{max-width:960px;margin:-28px auto 0;padding:0 16px 60px;}
+  .section-title{font-size:1rem;font-weight:700;color:#555;letter-spacing:.05em;text-transform:uppercase;margin:32px 0 14px;display:flex;align-items:center;gap:8px;}
+  .section-title::after{content:'';flex:1;height:1px;background:#ddd;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+  .module{background:#fff;border-radius:16px;padding:26px;box-shadow:0 3px 14px rgba(0,0,0,.08);text-decoration:none;color:#222;transition:.2s;display:block;border-left:5px solid #eee;}
+  .module:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,.14);}
+  .module.lv1{border-color:#10b981;}
+  .module.lv2{border-color:#3b82f6;}
+  .module.lv3{border-color:#f43f5e;}
+  .module .badge{display:inline-block;padding:3px 12px;border-radius:12px;font-size:.75rem;font-weight:700;margin-bottom:12px;}
+  .lv1 .badge{background:#d1fae5;color:#059669;}
+  .lv2 .badge{background:#dbeafe;color:#1d4ed8;}
+  .lv3 .badge{background:#ffe4e6;color:#be123c;}
+  .module .icon{font-size:2.2rem;margin-bottom:12px;}
+  .module h2{font-size:1.12rem;margin-bottom:8px;}
+  .module p{font-size:.85rem;color:#666;line-height:1.7;}
+  .module ul{margin-top:10px;padding-left:0;list-style:none;}
+  .module ul li{font-size:.82rem;color:#777;padding:3px 0;padding-left:16px;position:relative;}
+  .module ul li::before{content:'→';position:absolute;left:0;color:var(--main);}
+  .path{background:#fff;border-radius:14px;padding:24px;box-shadow:0 3px 12px rgba(0,0,0,.08);margin-top:16px;}
+  .path h2{font-size:1.05rem;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .steps{display:flex;align-items:center;flex-wrap:wrap;gap:0;}
+  .step{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:76px;}
+  .step .dot{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.9rem;}
+  .step .label{font-size:.72rem;color:#666;text-align:center;}
+  .arrow{font-size:1.4rem;color:#ccc;margin:0 4px;padding-bottom:20px;}
+  .s1 .dot{background:#10b981;} .s2 .dot{background:#3b82f6;} .s3 .dot{background:#f43f5e;}
+  .tip-box{background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1px solid #6ee7b7;border-radius:12px;padding:18px 20px;margin-top:16px;}
+  .tip-box p{font-size:.88rem;line-height:1.8;color:#065f46;}
+  .intro-banner{background:linear-gradient(135deg,#059669,#6ee7b7);color:#fff;border-radius:14px;padding:24px;text-align:center;margin-top:16px;}
+  .intro-banner h3{font-size:1.2rem;margin-bottom:8px;}
+  .intro-banner p{font-size:.88rem;opacity:.96;line-height:1.7;}
+  .note{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:16px 18px;margin-top:16px;font-size:.85rem;color:#92400e;line-height:1.8;}
+  footer{text-align:center;padding:20px;color:#999;font-size:.8rem;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>🔧 <span>InCAM Pro</span> 完全指南</h1>
+  <p>從零認識 PCB(印刷電路板)的「前製工程」:設計檔怎麼變成能量產的生產資料,<br>DFM 檢查、拼板、底片與鑽孔輸出,高中程度白話解說,含操作流程與範例。</p>
+  <div class="pills">
+    <span class="pill">📚 <b>3</b> 大模組</span>
+    <span class="pill">📄 <b>7</b> 篇文章</span>
+    <span class="pill">🛠️ 含實作流程 + 檢核表</span>
+    <span class="pill">🎯 適合:PCB 新手 / CAM 工程師 / 採購管理</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="intro-banner">
+    <h3>🤔 一句話說明 InCAM Pro</h3>
+    <p>它是電路板工廠的「翻譯兼校對員」——把工程師畫的電路板設計圖,<br>翻譯、檢查、整理成工廠機台看得懂、能實際生產的資料。</p>
+  </div>
+
+  <div class="note">
+    📌 <strong>學習說明:</strong>InCAM Pro 是 Ucamco 公司的商業授權軟體,無法免費安裝。本教材聚焦「PCB CAM 的通用工作流程與原理」——你看懂觀念後,實際操作軟體時就能對應。文中「操作流程」以概念步驟與檢核為主,不涉及特定選單或快捷鍵。
+  </div>
+
+  <div class="section-title">學習路徑</div>
+  <div class="path">
+    <h2>🗺️ 建議閱讀順序</h2>
+    <div class="steps">
+      <div class="step s1"><div class="dot">1</div><div class="label">初級<br>基礎</div></div>
+      <div class="arrow">→</div>
+      <div class="step s2"><div class="dot">2</div><div class="label">核心<br>工作流</div></div>
+      <div class="arrow">→</div>
+      <div class="step s3"><div class="dot">3</div><div class="label">企業<br>應用</div></div>
+    </div>
+    <div class="tip-box">
+      <p>💡 <strong>建議:</strong>完全不懂 PCB 就從第 1 模組開始,先搞懂電路板和設計檔。第 2 模組是 CAM 工程師的日常核心(DFM、拼板、輸出),每篇都有操作流程與檢核表。第 3 模組談工廠如何用自動化與系統整合來大量生產。</p>
+    </div>
+  </div>
+
+  <div class="section-title">模組一:初級基礎</div>
+  <div class="grid">
+    <a href="01-basics/what-is.html" class="module lv1">
+      <div class="badge">初級 01</div>
+      <div class="icon">🔧</div>
+      <h2>什麼是 PCB CAM / InCAM Pro?</h2>
+      <p>用「蓋房子看藍圖」的比喻,理解電路板從設計到生產,CAM 這一關在做什麼。</p>
+      <ul>
+        <li>PCB 前製工程是什麼</li>
+        <li>InCAM Pro 的定位</li>
+        <li>CAM 工程師的角色</li>
+      </ul>
+    </a>
+    <a href="01-basics/pcb-and-files.html" class="module lv1">
+      <div class="badge">初級 02</div>
+      <div class="icon">📐</div>
+      <h2>PCB 與設計檔案基礎</h2>
+      <p>認識電路板的結構(層、孔、線),以及 Gerber、ODB++、IPC-2581 這些設計檔。</p>
+      <ul>
+        <li>電路板怎麼組成</li>
+        <li>Gerber / ODB++ / IPC-2581</li>
+        <li>鑽孔與鑽帶檔</li>
+      </ul>
+    </a>
+  </div>
+
+  <div class="section-title">模組二:核心工作流(實作)</div>
+  <div class="grid">
+    <a href="02-workflow/dfm.html" class="module lv2">
+      <div class="badge">中級 01</div>
+      <div class="icon">🔍</div>
+      <h2>DFM 可製造性檢查</h2>
+      <p>CAM 最重要的一關:檢查設計「工廠做不做得出來」。線寬間距、孔環、防焊逐項檢查。</p>
+      <ul>
+        <li>DFM 常見檢查項目</li>
+        <li>操作流程 + 範例情境</li>
+        <li>DFM 檢核表</li>
+      </ul>
+    </a>
+    <a href="02-workflow/panelization.html" class="module lv2">
+      <div class="badge">中級 02</div>
+      <div class="icon">🧩</div>
+      <h2>拼板 Panelization</h2>
+      <p>把小板拼成一大片生產板,提升良率與效率。含出邊、郵票孔、工具孔、基準點。</p>
+      <ul>
+        <li>為什麼要拼板</li>
+        <li>拼板操作流程</li>
+        <li>拼板檢核表</li>
+      </ul>
+    </a>
+    <a href="02-workflow/output.html" class="module lv2">
+      <div class="badge">中級 03</div>
+      <div class="icon">📤</div>
+      <h2>產生生產資料</h2>
+      <p>輸出各機台要的資料:底片、鑽孔、AOI、電測、防焊、鋼板。生產的最後一哩路。</p>
+      <ul>
+        <li>各站需要什麼資料</li>
+        <li>輸出操作流程</li>
+        <li>輸出前檢核表</li>
+      </ul>
+    </a>
+  </div>
+
+  <div class="section-title">模組三:企業應用</div>
+  <div class="grid">
+    <a href="03-enterprise/automation.html" class="module lv3">
+      <div class="badge">企業 01</div>
+      <div class="icon">⚙️</div>
+      <h2>自動化與腳本</h2>
+      <p>量產工廠靠自動化。用範本、自動化流程、規則腳本,把重複的 CAM 工作標準化、加速。</p>
+      <ul>
+        <li>為什麼要自動化 CAM</li>
+        <li>範本與自動化流程</li>
+        <li>標準化的好處</li>
+      </ul>
+    </a>
+    <a href="03-enterprise/integration.html" class="module lv3">
+      <div class="badge">企業 02</div>
+      <div class="icon">🏭</div>
+      <h2>企業整合與量產管理</h2>
+      <p>CAM 不是孤島。與 MES、ERP 串接,連結報價、排程、良率追蹤,構成智慧工廠。</p>
+      <ul>
+        <li>與 MES / ERP 整合</li>
+        <li>良率與品質追蹤</li>
+        <li>未來趨勢</li>
+      </ul>
+    </a>
+  </div>
+
+  <div class="section-title">快速參考</div>
+  <div style="background:#fff;border-radius:14px;padding:24px;box-shadow:0 3px 12px rgba(0,0,0,.08);">
+    <h2 style="font-size:1rem;margin-bottom:16px;color:#374151;">📊 InCAM Pro 重要概念</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;border-left:4px solid #10b981;">
+        <div style="font-size:.8rem;color:#6b7280;">分類</div>
+        <div style="font-size:1.15rem;font-weight:700;color:#047857;">PCB CAM 系統</div>
+        <div style="font-size:.78rem;color:#6b7280;margin-top:2px;">電路板前製工程軟體</div>
+      </div>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;border-left:4px solid #10b981;">
+        <div style="font-size:.8rem;color:#6b7280;">開發商</div>
+        <div style="font-size:1.3rem;font-weight:700;color:#047857;">Ucamco</div>
+        <div style="font-size:.78rem;color:#6b7280;margin-top:2px;">Gerber 格式的擁有者</div>
+      </div>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;border-left:4px solid #10b981;">
+        <div style="font-size:.8rem;color:#6b7280;">核心任務</div>
+        <div style="font-size:1.2rem;font-weight:700;color:#047857;">設計 → 生產資料</div>
+        <div style="font-size:.78rem;color:#6b7280;margin-top:2px;">DFM · 拼板 · 輸出</div>
+      </div>
+      <div style="background:#ecfdf5;border-radius:10px;padding:14px;border-left:4px solid #10b981;">
+        <div style="font-size:.8rem;color:#6b7280;">關鍵價值</div>
+        <div style="font-size:1.2rem;font-weight:700;color:#047857;">良率 · 效率</div>
+        <div style="font-size:.78rem;color:#6b7280;margin-top:2px;">少出錯、少報廢</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<footer>InCAM Pro 完全指南 · 聚焦 PCB CAM 通用工作流程 · 僅供學習參考,InCAM Pro 為 Ucamco 之商標</footer>
+</body>
+</html>
