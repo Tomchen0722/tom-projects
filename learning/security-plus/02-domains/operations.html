@@ -221,6 +221,129 @@
     </details>
   </div>
 
+  <div class="card">
+    <h2>📄 深入:日誌類型與各自的用途</h2>
+    <p>調查事件時,不同問題要看不同日誌。這是實務與考試都常見的判斷:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>日誌類型</th><th>記錄什麼</th><th>能回答什麼問題</th></tr>
+        <tr><td>驗證/安全日誌</td><td>登入成功與失敗、權限變更</td><td>「誰在什麼時候登入?有沒有暴力破解?」</td></tr>
+        <tr><td>系統日誌</td><td>作業系統事件、服務啟停</td><td>「系統何時重開?什麼服務被裝上去?」</td></tr>
+        <tr><td>應用程式日誌</td><td>應用內的行為與錯誤</td><td>「使用者在系統裡做了什麼操作?」</td></tr>
+        <tr><td>防火牆日誌</td><td>允許/拒絕的連線</td><td>「有沒有對外連到可疑 IP?」</td></tr>
+        <tr><td>網路流量 / NetFlow</td><td>誰跟誰通訊、傳了多少量</td><td>「有沒有大量資料外傳?」</td></tr>
+        <tr><td>端點/EDR 日誌</td><td>程序執行、檔案異動</td><td>「這台機器上跑了什麼可疑程式?」</td></tr>
+        <tr><td>DNS 日誌</td><td>查詢了哪些網域</td><td>「有沒有連到惡意中繼站(C2)?」</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>實務調查的思路:</strong>先從「異常告警」出發 → 用<strong>驗證日誌</strong>確認帳號是否被盜 → 用<strong>端點日誌</strong>看機器上跑了什麼 → 用<strong>網路/DNS 日誌</strong>看有沒有對外連線與資料外傳 → 拼出完整時間軸。<br><br>
+      這也是為什麼<strong>時間同步(NTP)</strong>如此關鍵——各來源時間不一致,時間軸就拼不起來。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🤖 深入:自動化與 SOAR Playbook</h2>
+    <p>SY0-701 加重了自動化。核心概念:<strong>把重複的處置動作寫成標準劇本,讓系統自動執行</strong>。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>可自動化的情境</th><th>自動處置動作</th></tr>
+        <tr><td>偵測到惡意檔案</td><td>自動隔離主機、封鎖檔案雜湊</td></tr>
+        <tr><td>使用者回報釣魚信</td><td>自動分析連結、從全公司信箱移除相同郵件</td></tr>
+        <tr><td>異常地點登入</td><td>自動要求重新 MFA 驗證或暫時鎖定帳號</td></tr>
+        <tr><td>新員工到職</td><td>依角色自動開通對應權限(Provisioning)</td></tr>
+        <tr><td>員工離職</td><td>自動停用所有帳號、回收權限(De-provisioning)</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>自動化的好處</th><th>要注意的風險</th></tr>
+        <tr><td>反應快(秒級,不用等人)</td><td>誤判時可能自動封鎖正常業務</td></tr>
+        <tr><td>一致性(每次都照標準做)</td><td>劇本沒維護會過時失準</td></tr>
+        <tr><td>減少人力疲勞與遺漏</td><td>過度依賴,人員技能退化</td></tr>
+        <tr><td>可擴展(量大也應付得來)</td><td>建置與維護需要投入成本</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>自動化的黃金原則:高信心的處置才自動,模糊的留給人判斷。</strong>例如「已知惡意軟體雜湊」→ 可放心自動隔離;「可疑的異常行為」→ 先告警給分析師判斷,別直接封鎖整個網段。而且一定要能<strong>快速回退</strong>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎭 深入:應變演練的類型</h2>
+    <p>應變計畫寫得再漂亮,沒演練過都是紙上談兵。演練有不同強度:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>做法</th><th>成本/風險</th></tr>
+        <tr><td>文件審查(Walkthrough)</td><td>大家一起讀過計畫,確認內容完整</td><td>最低</td></tr>
+        <tr><td>桌上演練(Tabletop)</td><td>坐在會議室沙盤推演「如果發生 X 我們怎麼做」</td><td>低,<strong>CP 值最高</strong></td></tr>
+        <tr><td>模擬演練(Simulation)</td><td>模擬情境,實際操作部分流程</td><td>中</td></tr>
+        <tr><td>平行測試(Parallel)</td><td>啟動備援系統,但不中斷正式系統</td><td>中高</td></tr>
+        <tr><td>全中斷測試(Full Interruption)</td><td>真的把正式系統關掉,切到備援</td><td><strong>最高風險</strong>,最真實</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>桌上演練是最推薦的起點。</strong>不用真的關系統、成本低,卻常常能發現致命問題——「原來沒人知道誰有權限切網路」「原來備份負責人請假時沒有代理人」「原來緊急聯絡清單是三年前的」。這些發現比演練本身更有價值。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📞 深入:事件通報與溝通</h2>
+    <p>技術處理之外,「該通知誰」也是應變的一部分,而且常有法律時限:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>對象</th><th>時機與考量</th></tr>
+        <tr><td>內部管理層</td><td>依嚴重度分級,重大事件立即上報</td></tr>
+        <tr><td>法務 / 法遵</td><td>涉及個資外洩或法規義務時,及早介入</td></tr>
+        <tr><td>公關 / 客服</td><td>若可能曝光或影響客戶,統一對外說法</td></tr>
+        <tr><td>主管機關</td><td>個資外洩等情況<strong>依法可能有通報時限</strong></td></tr>
+        <tr><td>受影響的客戶</td><td>依法規與合約義務通知</td></tr>
+        <tr><td>執法機關</td><td>涉及犯罪行為時報案(注意保全證據)</td></tr>
+        <tr><td>保險公司</td><td>若有資安保險,依保單規定時限通報</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>台灣實務提醒:</strong>依《個人資料保護法》,發生個資外洩時對當事人有通知義務;特定產業(如金融、關鍵基礎設施)另有主管機關的通報規定與時限。<strong>實際時限與程序請依最新法規與主管機關函令辦理</strong>,建議事前就把「通報流程與聯絡窗口」寫進應變計畫,不要事到臨頭才查。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 深入:威脅獵捕(Threat Hunting)</h2>
+    <p>傳統監控是「等告警」,威脅獵捕是<strong>「主動去找」——假設攻擊者已經在裡面,主動尋找他的痕跡</strong>。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>被動監控</th><th>主動獵捕</th></tr>
+        <tr><td>觸發方式</td><td>等系統產生告警</td><td>分析師主動發起</td></tr>
+        <tr><td>前提假設</td><td>偵測規則能抓到攻擊</td><td><strong>假設偵測已失效、攻擊者已潛入</strong></td></tr>
+        <tr><td>能找到什麼</td><td>已知的攻擊模式</td><td>繞過既有偵測的未知威脅</td></tr>
+        <tr><td>需要什麼</td><td>SIEM 規則</td><td>豐富的日誌 + 有經驗的分析師</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>威脅獵捕的典型起手式:</strong>提出假設 →「如果攻擊者用了某種手法,會在日誌留下什麼痕跡?」→ 到資料中搜尋驗證 → 找到就轉入事件應變,沒找到也<strong>把這次的查詢變成新的偵測規則</strong>。<br><br>
+      這正好呼應前面的「偽陰性最危險」——威脅獵捕就是專門用來對付「有攻擊但沒告警」這種最可怕的情況。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 進階練習</h2>
+    <div class="quiz">
+      <p><strong>Q6.</strong> 懷疑某台主機正在把資料外傳。你會優先查看哪幾種日誌?各能回答什麼問題?</p>
+      <p><strong>Q7.</strong> 公司想導入自動化處置。哪類情境適合「完全自動」?哪類應該「先告警給人判斷」?為什麼?</p>
+      <p><strong>Q8.</strong> 公司從沒做過應變演練,預算與時間都有限。你會建議先做哪一種演練?理由是什麼?</p>
+      <p><strong>Q9.</strong> 威脅獵捕與傳統的 SIEM 告警監控,最根本的差異是什麼?它主要對付哪一種風險?</p>
+    </div>
+    <details>
+      <summary>▶ 看參考答案</summary>
+      <div class="ans">
+        <strong>A6.</strong> 優先看:<strong>網路流量/NetFlow</strong>(是否有大量對外傳輸)、<strong>防火牆日誌</strong>(連到哪些外部 IP、是否可疑)、<strong>DNS 日誌</strong>(是否查詢惡意中繼站網域)、<strong>端點/EDR 日誌</strong>(哪個程序在發起連線)。四者交叉比對可拼出「什麼程式、把什麼資料、傳到哪裡」。<br>
+        <strong>A7.</strong> <strong>高信心、明確的情境適合完全自動</strong>(如已知惡意檔案雜湊 → 自動隔離;員工離職 → 自動停用帳號);<strong>模糊、可能誤判的情境應先告警給人判斷</strong>(如「異常行為」偵測),因為自動封鎖若誤判會中斷正常業務。原則是:自動化要能<strong>快速回退</strong>。<br>
+        <strong>A8.</strong> 建議先做<strong>桌上演練(Tabletop)</strong>。成本最低、不影響正式系統,卻最容易發現致命的流程缺口(誰有權限、聯絡清單過期、代理人未指定),CP 值最高。<br>
+        <strong>A9.</strong> 根本差異在<strong>「等告警」vs「主動找」</strong>:SIEM 依既有規則被動觸發;威脅獵捕<strong>假設偵測已經失效、攻擊者已潛入</strong>,由分析師主動提出假設並到資料中搜尋。它主要對付<strong>偽陰性(有攻擊卻沒告警)</strong>這種最危險的風險。
+      </div>
+    </details>
+  </div>
+
   <div class="nav-btns">
     <a href="architecture.html" class="btn btn-prev">← 上一篇</a>
     <a href="../03-exam/governance.html" class="btn btn-next">下一篇:治理、風險與合規 →</a>

@@ -210,6 +210,122 @@
     </details>
   </div>
 
+  <div class="card">
+    <h2>📶 深入:無線網路安全</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>加密標準</th><th>狀態</th><th>說明</th></tr>
+        <tr><td>WEP</td><td>🚫 已破解</td><td>絕對不可使用,幾分鐘就能破</td></tr>
+        <tr><td>WPA</td><td>🚫 已淘汰</td><td>過渡方案,存在弱點</td></tr>
+        <tr><td>WPA2</td><td>⚠️ 仍常見</td><td>目前多數環境使用,但已有已知弱點</td></tr>
+        <tr><td>WPA3</td><td>✅ 建議</td><td>更強的加密與金鑰交換,可抵抗離線字典攻擊</td></tr>
+      </table>
+    </div>
+    <h3 style="font-size:1rem;color:#374151;margin:16px 0 8px;">個人版 vs 企業版</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>Personal(PSK)</th><th>Enterprise(802.1X)</th></tr>
+        <tr><td>驗證方式</td><td>大家共用一組密碼</td><td><strong>每人各自的帳號</strong>,透過 RADIUS 驗證</td></tr>
+        <tr><td>離職處理</td><td>要換密碼,全公司都得重設</td><td>停用該員帳號即可</td></tr>
+        <tr><td>可追溯</td><td>不知道是誰連的</td><td>知道每個連線是誰</td></tr>
+        <tr><td>適合</td><td>家庭、小型場所</td><td><strong>企業環境</strong></td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>802.1X 是常考的「連接埠存取控制」標準,三個角色要記:</strong><br>
+      • <strong>Supplicant</strong>(請求者)= 想連線的裝置<br>
+      • <strong>Authenticator</strong>(驗證者)= 交換器或 AP,像門口的警衛<br>
+      • <strong>Authentication Server</strong>(驗證伺服器)= RADIUS,真正判斷帳密對不對的人<br><br>
+      802.1X <strong>不只用於無線</strong>,有線網路連接埠也能用——插上網路線也要先驗證身分才給網路。
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>無線威脅</th><th>說明</th><th>防範</th></tr>
+        <tr><td>惡意 AP(Rogue AP)</td><td>未經授權接上公司網路的 AP</td><td>定期無線掃描、802.1X</td></tr>
+        <tr><td>邪惡雙胞胎(Evil Twin)</td><td>架設同名假熱點誘騙連線</td><td>企業版驗證、VPN、驗證憑證</td></tr>
+        <tr><td>解除認證攻擊</td><td>強制踢掉使用者,誘導改連假 AP</td><td>WPA3、管理框架保護</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔒 深入:VPN 與遠端存取</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>說明</th><th>適用</th></tr>
+        <tr><td>Site-to-Site VPN</td><td>兩個據點的網路整個打通</td><td>總公司 ↔ 分公司</td></tr>
+        <tr><td>Remote Access VPN</td><td>個人裝置連回公司網路</td><td>員工在家工作</td></tr>
+        <tr><td>全通道(Full Tunnel)</td><td><strong>所有</strong>流量都走 VPN 回公司</td><td>安全性高、可統一監控,但佔頻寬</td></tr>
+        <tr><td>分離通道(Split Tunnel)</td><td>只有公司內部流量走 VPN,上網直接出去</td><td>效能好,但公司看不到一般上網行為</td></tr>
+        <tr><td>永遠連線(Always-on)</td><td>開機自動連線,使用者無感</td><td>確保管控不被繞過</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>全通道 vs 分離通道是經典取捨題:</strong>全通道<strong>安全性與可視性高</strong>(所有流量都能檢查),但頻寬與延遲成本高;分離通道<strong>效能好</strong>,但員工上網行為不經過公司防護,若裝置同時連著公司網路,可能成為跳板。<br><br>
+      <strong>零信任趨勢:</strong>現在越來越多改用 ZTNA(零信任網路存取)取代傳統 VPN——不是「連進內網就通行」,而是<strong>只授權存取特定應用</strong>,大幅縮小攻擊面。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏭 深入:IoT、OT 與嵌入式系統安全</h2>
+    <p>這些「非傳統電腦」的裝置越來越多,但安全特性完全不同,是 SY0-701 的重點:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>例子</th><th>安全挑戰</th></tr>
+        <tr><td>IoT</td><td>攝影機、智慧插座、感測器</td><td>預設密碼、少更新、廠商不支援</td></tr>
+        <tr><td>OT / ICS / SCADA</td><td>工廠產線、電力、水處理控制系統</td><td><strong>可用性優先於機密性</strong>、不能隨便停機更新</td></tr>
+        <tr><td>嵌入式系統</td><td>醫療設備、車用電腦、印表機</td><td>韌體難更新、生命週期長達 10 年以上</td></tr>
+        <tr><td>RTOS 即時作業系統</td><td>需要即時反應的控制系統</td><td>資源受限,難裝防護軟體</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>OT 環境的優先順序和 IT 是相反的!</strong><br>
+      • IT world:機密性 &gt; 完整性 &gt; 可用性(資料外洩最嚴重)<br>
+      • OT world:<strong>可用性 &gt; 完整性 &gt; 機密性</strong>(產線停機或安全事故最嚴重,甚至危及人命)<br><br>
+      所以在 OT 環境,「立刻套用修補程式重開機」這種 IT 的標準做法<strong>可能是災難</strong>。常見策略改為:<strong>網路隔離(甚至氣隙)+ 補償性控制 + 排定的維護窗口</strong>。
+    </div>
+    <div class="highlight">
+      💡 <strong>IoT 防護的實務做法:</strong>①放在<strong>獨立 VLAN</strong>,不與辦公網路混在一起 ②改掉預設密碼 ③關閉不需要的功能與對外連線 ④採購時就把「廠商是否提供安全更新」列入評估。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚖️ 深入:可用性與負載設計</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>作用</th></tr>
+        <tr><td>負載平衡(Load Balancer)</td><td>把流量分散到多台伺服器,兼顧效能與容錯</td></tr>
+        <tr><td>叢集(Clustering)</td><td>多台機器組成一體,一台故障其他接手</td></tr>
+        <tr><td>主動-主動 / 主動-被動</td><td>兩台都在服務 / 一台待命備援</td></tr>
+        <tr><td>RAID</td><td>磁碟陣列容錯(注意:<strong>RAID 不是備份</strong>,它防硬碟故障不防誤刪與勒索)</td></tr>
+        <tr><td>UPS / 發電機</td><td>不斷電系統應付短暫停電;發電機應付長時間</td></tr>
+        <tr><td>地理備援</td><td>不同地區的資料中心,防範區域性災害</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>常考陷阱:「RAID 可以取代備份嗎?」→ 不行。</strong>RAID 保護的是「硬碟壞掉」,但如果你誤刪檔案、中了勒索軟體、或整個機房失火,RAID 完全幫不上忙——因為所有硬碟都在同一台機器裡、同步壞掉。備份(尤其異地與離線備份)才是最後防線。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 進階練習</h2>
+    <div class="quiz">
+      <p><strong>Q5.</strong> 公司無線網路目前用 WPA2-Personal(全公司共用一組密碼)。有員工離職,IT 主管擔心風險。請說明問題所在與建議的改善方案。</p>
+      <p><strong>Q6.</strong> 802.1X 的三個角色分別是什麼?它只能用在無線網路嗎?</p>
+      <p><strong>Q7.</strong> 工廠的產線控制系統(OT)發現一個高風險漏洞,IT 部門建議「立刻更新並重開機」。這個建議有什麼問題?應該怎麼處理較妥當?</p>
+      <p><strong>Q8.</strong> 公司使用 RAID 5 磁碟陣列,主管認為「已經有 RAID 就不用備份了」。請說明這個想法的問題。</p>
+    </div>
+    <details>
+      <summary>▶ 看參考答案</summary>
+      <div class="ans">
+        <strong>A5.</strong> 問題:共用密碼<strong>無法追溯是誰連線</strong>,且離職員工仍知道密碼、可繼續連入;要斷絕就得替全公司換密碼,成本高。建議改為 <strong>WPA2/WPA3-Enterprise 搭配 802.1X</strong>,每人使用個人帳號驗證,離職時<strong>停用該帳號即可</strong>,且每筆連線都可追溯。<br>
+        <strong>A6.</strong> 三個角色:<strong>Supplicant</strong>(請求連線的裝置)、<strong>Authenticator</strong>(交換器/AP,負責轉介)、<strong>Authentication Server</strong>(RADIUS,實際驗證)。<strong>不只用於無線</strong>——有線網路連接埠也能用 802.1X,要求插線後先通過驗證才給網路。<br>
+        <strong>A7.</strong> 問題:OT 環境<strong>可用性優先於機密性</strong>,任意重開機可能造成產線停擺,甚至引發安全事故。妥當做法:<strong>先用網路隔離與補償性控制降低風險</strong>(如把該系統移入隔離網段、加強監控、限制存取),再<strong>排定計畫性維護窗口</strong>並經充分測試後才更新。<br>
+        <strong>A8.</strong> <strong>RAID 不是備份</strong>。RAID 只能容忍硬碟硬體故障,但無法防範:誤刪檔案、勒索軟體加密(所有硬碟同步被加密)、機房火災水災、設備整台失竊。必須另有備份,並遵循 <strong>3-2-1 原則</strong>(含異地與離線副本)。
+      </div>
+    </details>
+  </div>
+
   <div class="nav-btns">
     <a href="threats.html" class="btn btn-prev">← 上一篇</a>
     <a href="operations.html" class="btn btn-next">下一篇:安全維運 →</a>
