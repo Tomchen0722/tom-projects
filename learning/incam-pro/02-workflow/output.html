@@ -142,6 +142,79 @@
     </div>
   </div>
 
+  <div class="card">
+    <h2>💡 深入:傳統底片 vs 雷射直接成像(LDI)</h2>
+    <p>把線路圖案「印」到板子上,有兩種主流做法,輸出的資料也不同:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>傳統底片曝光</th><th>LDI 雷射直接成像</th></tr>
+        <tr><td>做法</td><td>先輸出實體底片,再用底片遮光曝光</td><td>雷射直接依數位資料掃描曝光,不用底片</td></tr>
+        <tr><td>精度</td><td>受底片漲縮、對位影響</td><td>更高,無底片變形問題</td></tr>
+        <tr><td>換線</td><td>要重新製作底片</td><td>改資料即可,適合小量多樣</td></tr>
+        <tr><td>成本</td><td>設備便宜,底片是耗材</td><td>設備貴,但省底片與人工</td></tr>
+        <tr><td>適合</td><td>大量、線路較粗</td><td>細線高階板、少量多樣</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>對 CAM 的影響:</strong>LDI 因為是直接讀數位資料,可以做「<strong>逐片動態補償</strong>」——依每片板實際量測到的漲縮量,即時調整曝光尺寸。這是傳統底片做不到的,對高階多層板的層間對位精度幫助很大。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🕳️ 深入:進階鑽孔資料</h2>
+    <p>高階板的孔不只是「打穿」那麼單純,CAM 要輸出更複雜的鑽孔資訊:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>說明</th><th>CAM 要注意</th></tr>
+        <tr><td>機械鑽孔</td><td>用鑽針鑽,一般通孔用</td><td>孔徑表、鑽針壽命分組</td></tr>
+        <tr><td>雷射鑽孔</td><td>雷射燒出微孔(通常盲孔),孔徑可到 0.1mm 以下</td><td>需分開輸出雷射孔資料</td></tr>
+        <tr><td>疊孔 / 階梯孔(Stacked / Staggered Via)</td><td>多層盲孔上下相疊或錯開</td><td>層對(layer pair)定義必須精確</td></tr>
+        <tr><td>背鑽(Back Drill)</td><td>把通孔用不到的殘段鑽掉,減少高速訊號反射</td><td>要輸出「鑽多深」的深度控制資料</td></tr>
+        <tr><td>非鍍通孔(NPTH)</td><td>不電鍍的孔(如螺絲固定孔)</td><td>必須與 PTH 分開輸出,不可混在一起</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>PTH / NPTH 分不清是常見大錯。</strong>若把螺絲孔當成導通孔去電鍍,孔壁會鍍上銅,可能造成短路;反之該導通的孔沒鍍,電路就不通。輸出時務必分開兩份資料並標示清楚。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔌 深入:電測的兩種方式</h2>
+    <p>電測是出貨前確認「線路有沒有斷路/短路」的關卡。有兩種做法,CAM 輸出的資料也不同:</p>
+    <div class="grid2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:14px 0;">
+      <div style="background:#eff6ff;border:1px solid #93c5fd;border-radius:12px;padding:18px;">
+        <div style="font-weight:700;color:#1d4ed8;font-size:.95rem;margin-bottom:6px;">📍 飛針測試(Flying Probe)</div>
+        <div style="font-size:.85rem;color:#1e3a8a;line-height:1.8;">用幾根可移動探針逐點去測。<br><strong>優點:</strong>不用做治具,改版靈活。<br><strong>缺點:</strong>逐點測,速度慢。<br><strong>適合:</strong>樣品、小量、常改版。</div>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:18px;">
+        <div style="font-weight:700;color:#16a34a;font-size:.95rem;margin-bottom:6px;">🛏️ 針床治具(Bed of Nails)</div>
+        <div style="font-size:.85rem;color:#166534;line-height:1.8;">做一個佈滿探針的專用治具,一次壓下全測。<br><strong>優點:</strong>極快。<br><strong>缺點:</strong>要製作治具、有成本、改版要重做。<br><strong>適合:</strong>大量生產的固定料號。</div>
+      </div>
+    </div>
+    <div class="highlight">
+      💡 <strong>CAM 的角色:</strong>不論哪種方式,都需要 CAM 提供<strong>網表與測試點資料</strong>——告訴機台哪些點該通、哪些點該絕緣。針床治具還要 CAM 輸出治具的鑽孔資料(探針位置)。所以電測能不能順利,源頭在 CAM 的網表正確與否。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚨 輸出階段的真實錯誤案例</h2>
+    <div style="background:#fff1f2;border:1px solid #fca5a5;border-radius:12px;padding:18px;margin-bottom:10px;">
+      <div style="font-weight:700;color:#dc2626;margin-bottom:6px;">❌ 案例一:鏡像搞反</div>
+      <p style="font-size:.86rem;color:#7f1d1d;line-height:1.8;margin:0;">底層線路輸出時鏡像設定錯誤,做出來的板子底層線路完全左右相反,所有元件焊不上去。整批報廢。<br><strong>防範:</strong>輸出前用「元件文字是否可正讀」快速目視檢查——文字反了就是鏡像錯了。</p>
+    </div>
+    <div style="background:#fff1f2;border:1px solid #fca5a5;border-radius:12px;padding:18px;margin-bottom:10px;">
+      <div style="font-weight:700;color:#dc2626;margin-bottom:6px;">❌ 案例二:鑽孔單位錯置</div>
+      <p style="font-size:.86rem;color:#7f1d1d;line-height:1.8;margin:0;">鑽孔檔以英吋輸出、機台以公厘讀取,孔位全部偏移到板外或擠在角落。<br><strong>防範:</strong>輸出後把鑽孔資料疊回線路圖檢視,孔應落在焊墊中心。</p>
+    </div>
+    <div style="background:#fff1f2;border:1px solid #fca5a5;border-radius:12px;padding:18px;">
+      <div style="font-weight:700;color:#dc2626;margin-bottom:6px;">❌ 案例三:版本錯亂</div>
+      <p style="font-size:.86rem;color:#7f1d1d;line-height:1.8;margin:0;">客戶改版後,CAM 用舊版資料輸出,生產出已作廢的版本。<br><strong>防範:</strong>檔名與工單強制帶版本號,輸出前核對客戶最新版本確認信。</p>
+    </div>
+    <div class="highlight">
+      💡 這三個案例的共通點:<strong>都不是技術太難,而是「檢查沒做確實」。</strong>所以輸出前的複查清單不是形式,是真的能擋下報廢的最後防線。
+    </div>
+  </div>
+
   <div class="nav-btns">
     <a href="panelization.html" class="btn btn-prev">← 上一篇</a>
     <a href="../03-enterprise/automation.html" class="btn btn-next">下一篇:自動化與腳本 →</a>

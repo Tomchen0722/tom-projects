@@ -158,6 +158,108 @@
     </div>
   </div>
 
+  <div class="card">
+    <h2>🥞 深入:疊構(Stack-up)怎麼看?</h2>
+    <p>多層板的「疊構」就是它的層次配置表——每一層是什麼、多厚、用什麼材料。這是 CAM 一定要跟客戶確認清楚的關鍵資訊。以常見的 4 層板為例:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>層序</th><th>名稱</th><th>典型用途</th><th>厚度示意</th></tr>
+        <tr><td>L1</td><td>Top 頂層</td><td>訊號線 + 元件焊墊</td><td>銅厚 1 oz</td></tr>
+        <tr><td>—</td><td>Prepreg 膠片</td><td>絕緣黏合</td><td>約 0.1 mm</td></tr>
+        <tr><td>L2</td><td>內層 GND</td><td>接地層(整片銅)</td><td>銅厚 1 oz</td></tr>
+        <tr><td>—</td><td>Core 芯板</td><td>結構主體</td><td>約 1.0 mm</td></tr>
+        <tr><td>L3</td><td>內層 Power</td><td>電源層</td><td>銅厚 1 oz</td></tr>
+        <tr><td>—</td><td>Prepreg 膠片</td><td>絕緣黏合</td><td>約 0.1 mm</td></tr>
+        <tr><td>L4</td><td>Bottom 底層</td><td>訊號線 + 焊墊</td><td>銅厚 1 oz</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>為什麼中間兩層常是「整片銅」的接地層與電源層?</strong>①供電穩定 ②形成屏蔽,減少訊號互相干擾 ③提供訊號的回流路徑。這種「訊號-地-電-訊號」的對稱配置,是 4 層板最經典的設計。<br><br>
+      <strong>對稱很重要:</strong>疊構要盡量上下對稱,否則板子在高溫製程後會像洋芋片一樣<strong>翹曲</strong>變形。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚡ 深入:阻抗控制(Impedance Control)</h2>
+    <p>高速訊號(如 USB、HDMI、記憶體)對線路的「阻抗」很敏感。阻抗不對,訊號會反射失真、通訊出錯。所以客戶常會指定:「這幾條線必須是 50 歐姆」。</p>
+    <p>阻抗由什麼決定?主要是這四個:</p>
+    <div class="grid2">
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">📏</div>
+        <h3>線寬</h3>
+        <p>線越寬,阻抗越低</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">📐</div>
+        <h3>介質厚度</h3>
+        <p>離參考層(地層)越遠,阻抗越高</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">🥉</div>
+        <h3>銅厚</h3>
+        <p>銅越厚,阻抗略降</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">🧪</div>
+        <h3>材料 Dk 值</h3>
+        <p>板材的介電常數,影響阻抗</p>
+      </div>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>這與 CAM 直接相關:</strong>如果客戶要求 50Ω,但依實際疊構算出來線寬不對,CAM 就必須<strong>調整線寬</strong>來達成阻抗目標——這叫「阻抗補償」。改線寬會影響 DFM 判定,所以阻抗需求一定要在前期就釐清,不能等到後面才發現。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🕸️ 深入:網表(Netlist)是什麼?</h2>
+    <p>網表是一份清單,記錄「<strong>哪些接點應該要互相連通</strong>」。例如:晶片的第 3 腳、電阻的一端、連接器的第 7 腳,這三點屬於同一個網路(net),應該要通。</p>
+    <p>網表在 CAM 有兩個關鍵用途:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>用途</th><th>說明</th></tr>
+        <tr><td>比對驗證</td><td>拿設計的網表 vs 從圖形反推出的實際連線,比對是否一致。不一致代表資料可能有誤或缺層。</td></tr>
+        <tr><td>產生電測資料</td><td>後段電測機要知道「哪些點該通、哪些點不該通」,才能測出斷路與短路。這份資料就來自網表。</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 這也是 ODB++ 比傳統 Gerber 好用的原因之一——ODB++ 直接帶網表資訊,CAM 可以直接比對;純 Gerber 沒有網表,CAM 得自己從圖形「反推」連線關係,多一道工也多一分風險。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📑 深入:Gerber 的版本差異</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>版本</th><th>特性</th><th>現況</th></tr>
+        <tr><td>RS-274-D(舊版)</td><td>孔徑表(aperture)要另外附檔,常搞丟</td><td>已淘汰,不建議使用</td></tr>
+        <tr><td>RS-274X(擴充版)</td><td>孔徑定義內嵌在檔案裡,自我完整</td><td>目前最通用</td></tr>
+        <tr><td>Gerber X2</td><td>在 X2 加入屬性(層別、鑽孔對、極性等中繼資訊)</td><td>逐漸普及,更接近智慧格式</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>Gerber X2 的意義:</strong>傳統 Gerber 只有「圖形」,CAM 拿到一堆檔案還要人工判斷「這個檔是第幾層」。X2 把這些屬性寫進檔案裡,CAM 可以自動辨識層別,大幅減少人工設定與出錯機會。收到客戶檔案時,若能請對方提供 X2 或 ODB++,會省下不少麻煩。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚨 檔案問題排查指南</h2>
+    <p>CAM 每天都在跟「客戶檔案有問題」奮戰。以下是最常見的狀況與判斷方式:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>症狀</th><th>可能原因</th><th>怎麼處理</th></tr>
+        <tr><td>圖形大小明顯不對(放大或縮小很多倍)</td><td>單位設錯(英吋 ↔ 公厘)</td><td>改用正確單位重新匯入</td></tr>
+        <tr><td>孔位與線路完全對不上</td><td>鑽孔檔座標格式/補零設定錯</td><td>調整格式設定,或請客戶重出</td></tr>
+        <tr><td>某一層整個左右相反</td><td>鏡像設定錯,或層別放錯面</td><td>確認該層是頂/底層,調整鏡像</td></tr>
+        <tr><td>層數與客戶說的不符</td><td>缺層、多層,或內層檔漏給</td><td>與客戶核對疊構,補齊檔案</td></tr>
+        <tr><td>防焊看起來蓋住所有焊墊</td><td>防焊層極性(正/負)理解相反</td><td>確認該層是「開窗」還是「覆蓋」定義</td></tr>
+        <tr><td>圖形有破洞或線段斷裂</td><td>檔案不完整或轉檔損毀</td><td>請客戶重新輸出</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>黃金原則:有疑問就問客戶,不要自己猜。</strong>猜錯的代價是整批報廢;問一句只花幾分鐘。這也是為什麼 CAM 工程師的溝通能力這麼重要。
+    </div>
+  </div>
+
   <div class="nav-btns">
     <a href="what-is.html" class="btn btn-prev">← 上一篇</a>
     <a href="../02-workflow/dfm.html" class="btn btn-next">下一篇:DFM 可製造性檢查 →</a>

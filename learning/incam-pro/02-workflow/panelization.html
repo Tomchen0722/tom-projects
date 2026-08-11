@@ -153,6 +153,80 @@
     </div>
   </div>
 
+  <div class="card">
+    <h2>🧮 深入:利用率怎麼算?成本差多少?</h2>
+    <p>「擺放率」直接等於錢。用一個具體試算感受一下:</p>
+    <div style="background:#f8fafc;border-radius:10px;padding:16px;font-size:.87rem;color:#374151;line-height:1.9;border:1px solid #e2e8f0;">
+      <strong>假設:</strong>一片生產大板的製造成本 = 600 元(不論上面排幾片,成本幾乎固定)<br><br>
+      <strong>排法 A:</strong>排 30 片 → 單片成本 600 ÷ 30 = <span style="color:#16a34a;font-weight:700;">20 元</span><br>
+      <strong>排法 B:</strong>排 24 片 → 單片成本 600 ÷ 24 = <span style="color:#dc2626;font-weight:700;">25 元</span><br><br>
+      差距:每片貴 5 元(<strong>+25%</strong>)。若這張單要 10 萬片 → <strong>多花 50 萬元</strong>。
+    </div>
+    <div class="highlight">
+      💡 這就是為什麼資深 CAM 工程師值錢。同一片板,他多排出幾片,一張單就替公司省下數十萬。拼板不是「排得下就好」,而是<strong>在符合製程要求的前提下,把面積壓榨到極限</strong>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔄 深入:進階拼板手法</h2>
+    <p>當板子形狀不規則時,單純的整齊排列很浪費。有幾種進階手法:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>手法</th><th>做法</th><th>適用</th></tr>
+        <tr><td>旋轉拼(Rotate)</td><td>部分單片旋轉 90° 或 180° 再排</td><td>長寬差異大的板,可省空間</td></tr>
+        <tr><td>陰陽拼(Mirror / 交錯)</td><td>相鄰單片上下顛倒交錯咬合</td><td>梯形、L 形等異形板,咬合後省很多</td></tr>
+        <tr><td>混拼(Mixed)</td><td>同一張大板放<strong>不同料號</strong>的小板</td><td>小量多樣訂單,湊滿大板降成本</td></tr>
+        <tr><td>子拼板(Sub-panel)</td><td>先拼成中型小組,再把小組排進大板</td><td>方便後段分批處理與交付</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>旋轉拼要注意方向性!</strong>如果板子有極性元件、或後段 SMT 要求所有板同方向進機,就<strong>不能</strong>隨意旋轉。拼板前一定要先確認「這片板能不能轉」。混拼也要注意:不同料號的製程需求(銅厚、板厚、表面處理)必須相同才能拼在一起。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌡️ 深入:變形控制與銅面平衡</h2>
+    <p>電路板在製程中要經過高溫壓合、烘烤,如果設計不平衡就會<strong>翹曲變形</strong>,後段貼片就吃不準、甚至報廢。拼板階段能做的防範:</p>
+    <div class="grid2">
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">⚖️</div>
+        <h3>銅面平衡</h3>
+        <p>各層銅分布盡量均勻。空曠處加「假銅(Copper Thieving / Dummy Pad)」補滿,避免局部銅太少造成蝕刻與應力不均。</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">📐</div>
+        <h3>對稱設計</h3>
+        <p>拼板整體上下左右對稱,受熱時應力抵消,不易翹。</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">🔲</div>
+        <h3>足夠出邊</h3>
+        <p>出邊提供剛性支撐,減少大板在傳送與過爐時的下垂變形。</p>
+      </div>
+      <div class="item" style="border-color:#6ee7b7;">
+        <div class="icon">🎯</div>
+        <h3>電鍍均勻性</h3>
+        <p>邊緣電流較大會鍍得厚,加「電鍍假點」讓電流分布均勻。</p>
+      </div>
+    </div>
+    <div class="highlight">
+      💡 <strong>「假銅」是什麼?</strong>就是加在空白區、不接任何電路的銅塊。它不導電、不影響功能,純粹是為了「讓銅分布均勻」——蝕刻時藥水消耗一致、壓合時應力平衡。這是 CAM 常做的隱形工作,外行看不出來,但對良率影響很大。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 拼板決策的四個取捨</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>取捨</th><th>兩難</th><th>怎麼拿捏</th></tr>
+        <tr><td>利用率 vs 製程間距</td><td>排太密省面積,但切割與製程需要空間</td><td>以廠內最小間距規範為底線,不可為省空間犧牲</td></tr>
+        <tr><td>大板 vs 小板</td><td>大板效率高,但變形風險與單片報廢損失也大</td><td>依板厚、層數與設備能力選標準尺寸</td></tr>
+        <tr><td>V-Cut vs 郵票孔</td><td>V-Cut 省空間但只能直線;郵票孔靈活但留毛邊</td><td>依外形決定,必要時混用</td></tr>
+        <tr><td>單一料號 vs 混拼</td><td>混拼湊滿面積,但管理與分揀變複雜</td><td>小量多樣才考慮混拼,且製程條件須一致</td></tr>
+      </table>
+    </div>
+  </div>
+
   <div class="nav-btns">
     <a href="dfm.html" class="btn btn-prev">← 上一篇</a>
     <a href="output.html" class="btn btn-next">下一篇:產生生產資料 →</a>

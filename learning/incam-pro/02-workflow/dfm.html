@@ -152,6 +152,80 @@
     </div>
   </div>
 
+  <div class="card">
+    <h2>⚖️ 深入:製程補償(Compensation)</h2>
+    <p>這是 CAM 最「反直覺」但最關鍵的一環:<strong>CAM 送給機台的圖形,故意跟設計圖不一樣。</strong>為什麼?因為製程本身會讓尺寸跑掉,必須事先「預留」。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>補償項目</th><th>製程會造成什麼</th><th>CAM 怎麼補</th></tr>
+        <tr><td>蝕刻補償</td><td>蝕刻藥水會從側面咬蝕,線變細</td><td>圖形上把線<strong>加寬</strong>,蝕刻後剛好是設計值</td></tr>
+        <tr><td>電鍍補償</td><td>孔壁電鍍會讓孔徑<strong>變小</strong></td><td>鑽孔時<strong>鑽大一點</strong>,鍍完剛好符合</td></tr>
+        <tr><td>漲縮補償</td><td>板材受熱壓後會微幅漲縮</td><td>整體圖形按係數<strong>縮放</strong>,對位才準</td></tr>
+        <tr><td>阻抗補償</td><td>線寬影響阻抗值</td><td>依疊構<strong>微調線寬</strong>達成目標阻抗</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>用做衣服比喻:</strong>你知道這塊布洗過會縮水,所以裁的時候就故意裁大一點,洗完剛好合身。製程補償就是這個道理——「先做大/做小,製程後剛好對」。<br><br>
+      補償值來自各廠的<strong>製程實測數據</strong>,不是憑感覺。這也是各廠的 know-how,同樣的設計在不同廠補償值不同。
+    </div>
+    <div class="warn">
+      ⚠️ 補償方向搞反(該加寬卻縮窄)後果很嚴重——線做出來會過細甚至斷路。所以補償參數通常由資深工程師設定並鎖在製程規則裡,不讓一般人隨意改。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 範例:一份製程能力規則表</h2>
+    <p>DFM 檢查的門檻值就來自這種表。以下是示意性的「一般級 vs 高階級」對照,讓你感受規則長什麼樣:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>一般級製程</th><th>高階級製程</th><th>意義</th></tr>
+        <tr><td>最小線寬</td><td>4 mil</td><td>2 mil 以下</td><td>能做多細的線</td></tr>
+        <tr><td>最小線距</td><td>4 mil</td><td>2 mil 以下</td><td>線與線最近能多近</td></tr>
+        <tr><td>最小孔徑</td><td>0.3 mm</td><td>0.1 mm 以下(雷射孔)</td><td>能鑽多小的孔</td></tr>
+        <tr><td>最小孔環</td><td>5 mil</td><td>3 mil</td><td>孔周圍銅環寬度</td></tr>
+        <tr><td>防焊橋寬</td><td>4 mil</td><td>2.5 mil</td><td>兩焊墊間防焊能多細</td></tr>
+        <tr><td>銅到板邊</td><td>0.3 mm</td><td>0.2 mm</td><td>銅離邊緣的安全距離</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>mil 是什麼?</strong>PCB 業界常用單位,1 mil = 千分之一英吋 ≈ 0.0254 mm。所以「4 mil 線寬」約等於 0.1 mm,大概是一根頭髮的粗細。<br><br>
+      <strong>為什麼分等級?</strong>越高階的製程,設備越貴、良率越難控、價格越高。所以 CAM 判定「這片板要用哪一級製程」,直接影響報價與能不能接單。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚦 DFM 違規的嚴重度分級</h2>
+    <p>不是所有違規都一樣嚴重。實務上會分級處理,才能把力氣花在刀口上:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>等級</th><th>定義</th><th>處理方式</th></tr>
+        <tr><td><span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:6px;font-weight:700;">致命</span></td><td>一定做不出來或必然失效(如線寬 0、短路)</td><td>必須修正或退回客戶,不可投產</td></tr>
+        <tr><td><span style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:6px;font-weight:700;">嚴重</span></td><td>超出製程能力,良率會很差(如線寬低於下限)</td><td>發 EQ 與客戶確認,或升級製程等級</td></tr>
+        <tr><td><span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:6px;font-weight:700;">警告</span></td><td>接近極限但勉強可做</td><td>CAM 自行微調,或記錄後放行</td></tr>
+        <tr><td><span style="background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:6px;font-weight:700;">提示</span></td><td>多為誤報或不影響功能(如大銅面邊緣)</td><td>檢視後放行</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>✉️ 範本:EQ(工程疑問)怎麼寫?</h2>
+    <p>發現需要客戶決定的問題時,要寫 EQ(Engineering Query)。寫得好,客戶一次就能回覆;寫不好,來回三五趟耽誤交期。</p>
+    <div class="op-box">
+      <div class="op-title">📝 EQ 撰寫範本</div>
+      <div class="op-step"><div class="n">1</div><div class="t"><b>料號與版本</b>:明確標示是哪張料號、哪個版本的檔案。</div></div>
+      <div class="op-step"><div class="n">2</div><div class="t"><b>問題位置</b>:給座標或截圖,讓客戶一眼找到位置(附圖最有效)。</div></div>
+      <div class="op-step"><div class="n">3</div><div class="t"><b>問題描述</b>:客觀陳述事實與數據。例:「此處孔環僅 2 mil,低於本廠最小 4 mil 需求。」</div></div>
+      <div class="op-step"><div class="n">4</div><div class="t"><b>影響說明</b>:講清楚不改會怎樣。例:「鑽孔公差下易破環,恐造成斷路。」</div></div>
+      <div class="op-step"><div class="n">5</div><div class="t"><b>提供建議方案</b>:<b>最關鍵的一步</b>——給客戶選項而非只丟問題。例:「建議 A:焊盤加大至 X;建議 B:改用高階製程(交期+2 天、價格調整)。」</div></div>
+      <div class="op-step"><div class="n">6</div><div class="t"><b>請對方確認並回覆期限</b>:註明需要回覆的時間,避免卡交期。</div></div>
+    </div>
+    <div class="highlight">
+      💡 <strong>好 EQ 與壞 EQ 的差別:</strong><br>
+      ❌ 壞:「你的板子孔環有問題,請確認。」(客戶不知道在哪、要怎麼改)<br>
+      ✅ 好:「料號 ABC-v2,座標 (12.5, 30.2) 處孔環 2 mil,低於本廠 4 mil 下限,鑽孔偏移時恐破環斷路。建議 A:焊盤放大到 0.6mm;建議 B:維持設計但改高階製程(交期+2天)。請於 3/15 前回覆。」
+    </div>
+  </div>
+
   <div class="nav-btns">
     <a href="../01-basics/pcb-and-files.html" class="btn btn-prev">← 上一篇</a>
     <a href="panelization.html" class="btn btn-next">下一篇:拼板 Panelization →</a>
