@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>威脅、弱點與緩解 | Security+ 指南</title>
+<style>
+  :root{--main:#e11d48;--accent:#fda4af;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#fff1f2;min-height:100vh;}
+  .topbar{background:#e11d48;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.88);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#4c0519,#9f1239);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(59,130,246,.2);color:#93c5fd;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(59,130,246,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#fff1f2;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#9f1239;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .case{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #93c5fd;border-radius:12px;padding:18px;margin:12px 0;}
+  .case .t{font-weight:700;color:#1d4ed8;font-size:.92rem;margin-bottom:8px;}
+  .case p{font-size:.86rem;color:#1e3a8a;line-height:1.8;margin:0;}
+  .quiz{background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;}
+  .quiz p{font-size:.9rem;color:#374151;margin-bottom:10px;}
+  .quiz p:last-child{margin-bottom:0;}
+  details{margin-top:12px;}
+  summary{cursor:pointer;color:var(--main);font-weight:600;font-size:.9rem;}
+  .ans{background:#fff1f2;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#9f1239;line-height:1.9;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#be123c;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🛡️ Security+ 指南</a><span class="sep">/</span>
+  <span>模組二:核心領域</span><span class="sep">/</span><span>威脅、弱點與緩解(領域2)</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🔵 中級 01 · 領域 2 · 佔 22%</div>
+  <h1><span>威脅</span>、弱點與緩解</h1>
+  <p>認識敵人:誰會攻擊你、用什麼手法,以及對應的防禦措施。這是考試第二大配分。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎭 威脅來源(Threat Actors)</h2>
+    <p>考試會問「這種攻擊最可能是誰做的」,關鍵在判斷<strong>動機</strong>與<strong>資源能力</strong>:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>威脅來源</th><th>動機</th><th>資源能力</th><th>特徵</th></tr>
+        <tr><td>國家級(Nation-state / APT)</td><td>間諜、政治、破壞</td><td>極高</td><td>長期潛伏、極隱蔽、目標明確</td></tr>
+        <tr><td>組織型犯罪集團</td><td>金錢</td><td>高</td><td>勒索軟體、專業分工、有客服(!)</td></tr>
+        <tr><td>駭客行動主義者(Hacktivist)</td><td>政治/意識形態</td><td>中</td><td>網站置換、DDoS、公開洩密</td></tr>
+        <tr><td>內部威脅(Insider)</td><td>報復、貪財、疏忽</td><td>中(但有內部權限)</td><td>已在牆內,最難防</td></tr>
+        <tr><td>腳本小子(Script Kiddie)</td><td>炫耀、好玩</td><td>低(用現成工具)</td><td>亂槍打鳥、技術含量低</td></tr>
+        <tr><td>影子 IT(Shadow IT)</td><td>非惡意,求方便</td><td>—</td><td>員工私自用未授權服務造成風險</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>解題訣竅:</strong>看到「長期潛伏、極度隱蔽、針對特定政府或高科技」→ 國家級 APT;看到「加密檔案要贖金」→ 犯罪集團;看到「離職員工帶走資料」→ 內部威脅;看到「用網路上下載的工具亂掃」→ 腳本小子。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎣 社交工程:攻擊「人」而非「機器」</h2>
+    <p>最有效的攻擊往往不是破解系統,而是騙人。這一段是考試熱區,務必記熟名詞差異:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>手法</th><th>白話說明</th><th>關鍵字</th></tr>
+        <tr><td>釣魚(Phishing)</td><td>大量發假郵件騙帳密</td><td>email、廣撒網</td></tr>
+        <tr><td>魚叉式釣魚(Spear Phishing)</td><td>針對特定人客製化的釣魚</td><td>指名道姓、有背景資料</td></tr>
+        <tr><td>捕鯨(Whaling)</td><td>專門釣高階主管、CEO</td><td>大魚、高階主管</td></tr>
+        <tr><td>語音釣魚(Vishing)</td><td>用電話詐騙</td><td>Voice、打電話</td></tr>
+        <tr><td>簡訊釣魚(Smishing)</td><td>用簡訊詐騙</td><td>SMS、簡訊連結</td></tr>
+        <tr><td>假借身分(Pretexting)</td><td>編一個劇本假扮某身分取信</td><td>「我是IT部門⋯」</td></tr>
+        <tr><td>尾隨(Tailgating)</td><td>跟在有門禁的人後面溜進去</td><td>實體入侵</td></tr>
+        <tr><td>誘餌(Baiting)</td><td>丟惡意 USB 讓人撿去插</td><td>好奇心、隨身碟</td></tr>
+        <tr><td>水坑攻擊(Watering Hole)</td><td>入侵目標常去的網站,等他上鉤</td><td>常去的網站被下毒</td></tr>
+        <tr><td>BEC 商業郵件詐騙</td><td>冒充老闆/供應商要求匯款</td><td>變更匯款帳號</td></tr>
+      </table>
+    </div>
+    <div class="case">
+      <div class="t">📋 情境判斷練習</div>
+      <p>財務經理接到一通電話,對方自稱是公司往來銀行的專員,語氣急促表示「帳戶有異常,需要立即核對網銀密碼」。<br><br>
+      <strong>這是什麼攻擊?</strong>→ 用電話進行 = <strong>Vishing(語音釣魚)</strong>,同時運用了 <strong>Pretexting</strong>(假扮銀行專員)與<strong>急迫感</strong>這個心理操控技巧。</p>
+    </div>
+    <div class="highlight">
+      💡 <strong>社交工程的心理槓桿(考試常考):</strong>權威(冒充主管)、急迫(限時)、稀缺(名額有限)、恐懼(帳號將停用)、信任(冒充熟人)、從眾(大家都做了)。認出這些「情緒操控」訊號,是防禦的第一步。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🦠 惡意軟體(Malware)分類</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>特徵</th></tr>
+        <tr><td>病毒(Virus)</td><td>需附著在檔案上,靠使用者執行才傳播</td></tr>
+        <tr><td>蠕蟲(Worm)</td><td><strong>自我複製、自動傳播</strong>,不需人操作</td></tr>
+        <tr><td>木馬(Trojan)</td><td>偽裝成正常軟體,誘使你自己安裝</td></tr>
+        <tr><td>勒索軟體(Ransomware)</td><td>加密你的檔案索取贖金</td></tr>
+        <tr><td>間諜軟體(Spyware)</td><td>偷偷監看、蒐集你的資料</td></tr>
+        <tr><td>鍵盤側錄(Keylogger)</td><td>記錄鍵盤輸入以竊取帳密</td></tr>
+        <tr><td>Rootkit</td><td>躲在系統深層(甚至核心),極難偵測與移除</td></tr>
+        <tr><td>邏輯炸彈(Logic Bomb)</td><td>滿足特定條件才觸發(如某日期、某人被離職)</td></tr>
+        <tr><td>殭屍網路(Botnet)</td><td>大量被控制的電腦,常用於發動 DDoS</td></tr>
+        <tr><td>無檔案惡意程式(Fileless)</td><td>只在記憶體執行、不落地成檔案,躲過傳統防毒</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>最容易搞混的:病毒 vs 蠕蟲。</strong>記住關鍵字——<strong>蠕蟲會自己爬(自我傳播,不需人)</strong>;病毒要「宿主」且需要人去執行。考題問「不需使用者互動就能在網路中擴散」→ 一定是蠕蟲。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💥 常見攻擊手法與緩解</h2>
+    <h3 style="font-size:1rem;color:#374151;margin:14px 0 8px;">應用程式攻擊</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>攻擊</th><th>原理</th><th>緩解措施</th></tr>
+        <tr><td>SQL 注入(SQLi)</td><td>在輸入欄塞 SQL 指令操控資料庫</td><td>參數化查詢、輸入驗證、最小權限帳號</td></tr>
+        <tr><td>跨站腳本(XSS)</td><td>把惡意腳本注入網頁,在別人瀏覽器執行</td><td>輸出編碼、輸入驗證、CSP</td></tr>
+        <tr><td>跨站請求偽造(CSRF)</td><td>誘騙已登入的使用者送出非本意的請求</td><td>CSRF token、SameSite Cookie</td></tr>
+        <tr><td>緩衝區溢位</td><td>塞超量資料覆蓋記憶體、執行惡意碼</td><td>邊界檢查、安全編碼、ASLR/DEP</td></tr>
+        <tr><td>權限提升</td><td>從一般權限想辦法變成管理員</td><td>及時修補、最小權限、監控異常提權</td></tr>
+        <tr><td>競爭條件(Race Condition)</td><td>利用檢查與使用之間的時間差(TOCTOU)</td><td>原子操作、鎖定機制</td></tr>
+      </table>
+    </div>
+    <h3 style="font-size:1rem;color:#374151;margin:16px 0 8px;">網路攻擊</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>攻擊</th><th>原理</th><th>緩解措施</th></tr>
+        <tr><td>DDoS</td><td>大量流量灌爆服務</td><td>CDN、流量清洗、速率限制</td></tr>
+        <tr><td>中間人(MITM / On-path)</td><td>攔在通訊中間竊聽或竄改</td><td>TLS 加密、憑證驗證、避免公共 Wi-Fi 傳機密</td></tr>
+        <tr><td>ARP 欺騙</td><td>偽造 ARP 讓流量繞經攻擊者</td><td>動態 ARP 檢測、網路分區</td></tr>
+        <tr><td>DNS 毒化</td><td>竄改 DNS 把你導向假網站</td><td>DNSSEC、可信 DNS</td></tr>
+        <tr><td>惡意 AP / Evil Twin</td><td>架假 Wi-Fi 熱點騙你連上</td><td>企業級 WPA、驗證 SSID、VPN</td></tr>
+        <tr><td>重放攻擊(Replay)</td><td>攔截合法封包後重複送出</td><td>時間戳、一次性隨機值(nonce)</td></tr>
+      </table>
+    </div>
+    <h3 style="font-size:1rem;color:#374151;margin:16px 0 8px;">密碼攻擊</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>攻擊</th><th>原理</th><th>緩解措施</th></tr>
+        <tr><td>暴力破解(Brute Force)</td><td>把所有可能組合都試一遍</td><td>帳號鎖定、長密碼、MFA</td></tr>
+        <tr><td>字典攻擊</td><td>用常見密碼清單去試</td><td>禁用常見密碼、密碼複雜度</td></tr>
+        <tr><td>密碼噴灑(Spraying)</td><td>用一個常見密碼去試「很多帳號」,避開鎖定</td><td>偵測異常登入模式、MFA</td></tr>
+        <tr><td>撞庫(Credential Stuffing)</td><td>拿別站外洩的帳密來試你的站</td><td>MFA、不重複用密碼、外洩密碼比對</td></tr>
+        <tr><td>彩虹表</td><td>用預算好的雜湊對照表反推密碼</td><td>加鹽(salt)、用慢雜湊 bcrypt/Argon2</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🕳️ 弱點類型</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>弱點</th><th>說明</th></tr>
+        <tr><td>零時差(Zero-day)</td><td>尚無修補程式的未知漏洞,最危險</td></tr>
+        <tr><td>未修補系統</td><td>已有修補卻沒更新,是最常見的入侵途徑</td></tr>
+        <tr><td>設定錯誤(Misconfiguration)</td><td>如雲端儲存桶設成公開、預設密碼沒改</td></tr>
+        <tr><td>供應鏈弱點</td><td>信任的軟體/廠商被入侵,連帶波及你</td></tr>
+        <tr><td>過時系統(EOL/Legacy)</td><td>廠商已停止支援,不再有安全更新</td></tr>
+        <tr><td>影子 IT</td><td>未經核准的裝置或雲端服務,不在管控內</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>考試觀念:「零時差最危險,但未修補最常見。」</strong>大多數實際入侵不是靠高深的零時差,而是利用「早就有修補但公司沒更新」的已知漏洞。所以<strong>修補管理(Patch Management)</strong>是 CP 值最高的防禦。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習</h2>
+    <div class="quiz">
+      <p><strong>Q1.</strong> 一段惡意程式在公司網路中自動從一台電腦擴散到數百台,過程中沒有任何使用者點擊。這最可能是什麼?</p>
+      <p><strong>Q2.</strong> 攻擊者用「Summer2024!」這個密碼,去嘗試登入公司 500 個員工帳號。這是什麼攻擊?為什麼攻擊者要這樣做?</p>
+      <p><strong>Q3.</strong> CEO 收到一封看似來自董事長、要求緊急匯款到新帳戶的郵件。請指出這是什麼攻擊(兩個名詞),以及最有效的防範流程。</p>
+      <p><strong>Q4.</strong> 公司網站的搜尋欄若沒做防護,使用者輸入的內容會被當成資料庫指令執行。這是什麼漏洞?最根本的解法是什麼?</p>
+    </div>
+    <details>
+      <summary>▶ 看參考答案</summary>
+      <div class="ans">
+        <strong>A1.</strong> <strong>蠕蟲(Worm)</strong>。關鍵是「自我複製、自動傳播、不需使用者互動」。若需要使用者執行才擴散,那才是病毒。<br>
+        <strong>A2.</strong> <strong>密碼噴灑(Password Spraying)</strong>。因為對單一帳號猛試會觸發「帳號鎖定」;改成「一個密碼試很多帳號」就能避開鎖定機制,又利用了很多人用弱密碼的習慣。<br>
+        <strong>A3.</strong> <strong>捕鯨(Whaling,針對高階主管)</strong>+ <strong>BEC 商業郵件詐騙</strong>。最有效的防範是流程面:<strong>「變更匯款帳號或大額匯款,必須透過另一個管道(如電話)向本人二次確認」</strong>,不能只靠郵件。技術面則加上郵件 MFA 與寄件人驗證。<br>
+        <strong>A4.</strong> <strong>SQL 注入(SQL Injection)</strong>。最根本的解法是<strong>參數化查詢(Prepared Statement)</strong>,讓輸入永遠被當成「資料」而非「指令」;搭配輸入驗證與資料庫最小權限帳號。
+      </div>
+    </details>
+  </div>
+
+  <div class="nav-btns">
+    <a href="../01-basics/concepts.html" class="btn btn-prev">← 上一篇</a>
+    <a href="architecture.html" class="btn btn-next">下一篇:安全架構 →</a>
+  </div>
+</div>
+</body>
+</html>

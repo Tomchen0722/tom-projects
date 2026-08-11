@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>安全架構 | Security+ 指南</title>
+<style>
+  :root{--main:#e11d48;--accent:#fda4af;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#fff1f2;min-height:100vh;}
+  .topbar{background:#e11d48;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.88);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#4c0519,#9f1239);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(139,92,246,.2);color:#c4b5fd;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(139,92,246,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#fff1f2;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#9f1239;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .zones{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .zone{padding:12px 16px;border-radius:8px;font-size:.85rem;color:#fff;}
+  .quiz{background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;}
+  .quiz p{font-size:.9rem;color:#374151;margin-bottom:10px;}
+  .quiz p:last-child{margin-bottom:0;}
+  details{margin-top:12px;}
+  summary{cursor:pointer;color:var(--main);font-weight:600;font-size:.9rem;}
+  .ans{background:#fff1f2;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#9f1239;line-height:1.9;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#be123c;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🛡️ Security+ 指南</a><span class="sep">/</span>
+  <span>模組二:核心領域</span><span class="sep">/</span><span>安全架構(領域3)</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟣 中級 02 · 領域 3 · 佔 18%</div>
+  <h1><span>安全架構</span></h1>
+  <p>把防禦蓋在對的地方:網路分區、雲端安全、資料保護與備援設計。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🏰 縱深防禦(Defense in Depth)</h2>
+    <p>安全架構的核心思想:<strong>不要只靠一道防線</strong>。像城堡有護城河、城牆、內城、衛兵——一層被突破還有下一層。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>層次</th><th>防護措施範例</th></tr>
+        <tr><td>實體層</td><td>門禁、監視器、機櫃上鎖</td></tr>
+        <tr><td>周邊層</td><td>防火牆、IPS、DDoS 防護</td></tr>
+        <tr><td>網路層</td><td>網路分區、VLAN、微分割</td></tr>
+        <tr><td>主機層</td><td>EDR、主機防火牆、系統強化</td></tr>
+        <tr><td>應用層</td><td>WAF、安全編碼、輸入驗證</td></tr>
+        <tr><td>資料層</td><td>加密、DLP、存取控制</td></tr>
+        <tr><td>人員層</td><td>教育訓練、政策、意識提升</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌐 網路分區(Network Segmentation)</h2>
+    <p>把網路切成不同區域,一區淪陷不會波及全部。這是考試必考的架構觀念:</p>
+    <div class="zones">
+      <div class="zone" style="background:#dc2626;">🌍 <strong>外部網際網路</strong>(完全不可信)</div>
+      <div class="zone" style="background:#f59e0b;">🛡️ <strong>DMZ 非軍事區</strong>——對外服務放這:網頁伺服器、郵件伺服器</div>
+      <div class="zone" style="background:#3b82f6;">🏢 <strong>內部網路</strong>——員工辦公環境</div>
+      <div class="zone" style="background:#8b5cf6;">🔒 <strong>受限區</strong>——伺服器、資料庫(嚴格管控)</div>
+      <div class="zone" style="background:#059669;">🏭 <strong>OT/ICS 區</strong>——工控與生產設備(需獨立隔離)</div>
+      <div class="zone" style="background:#6b7280;">📶 <strong>訪客網路</strong>——與內網完全隔離</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>概念</th><th>說明</th></tr>
+        <tr><td>DMZ</td><td>放「必須對外開放」的服務,即使被攻破也碰不到內網</td></tr>
+        <tr><td>VLAN</td><td>用邏輯方式切分網段,不必實體拉線</td></tr>
+        <tr><td>微分割(Microsegmentation)</td><td>切到「單機/單應用」等級,零信任的重要手段</td></tr>
+        <tr><td>氣隙(Air Gap)</td><td>實體完全斷網,最高等級隔離(如關鍵工控)</td></tr>
+        <tr><td>跳板機(Jump Server / Bastion)</td><td>要進受限區必須先登入這台,集中管控與記錄</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>經典考題:</strong>「公司要架設對外的網站伺服器,應該放在哪?」→ <strong>DMZ</strong>。理由:它必須讓外部存取,但不能讓它直接接觸內部網路,萬一被入侵才不會直接淪陷內網。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧱 防火牆與網路防護設備</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>設備</th><th>做什麼</th></tr>
+        <tr><td>封包過濾防火牆</td><td>依 IP/port/協定決定放行或阻擋(最基本)</td></tr>
+        <tr><td>狀態檢視防火牆</td><td>記得連線狀態,能判斷封包是否屬於合法連線</td></tr>
+        <tr><td>次世代防火牆(NGFW)</td><td>能看到應用層,可辨識「這是 Facebook 流量」並依應用管控</td></tr>
+        <tr><td>WAF 網頁應用防火牆</td><td>專門擋 SQLi、XSS 等針對網站的攻擊</td></tr>
+        <tr><td>IDS 入侵偵測系統</td><td>只「偵測並告警」,不會擋</td></tr>
+        <tr><td>IPS 入侵防禦系統</td><td>偵測到就「主動阻擋」</td></tr>
+        <tr><td>代理伺服器(Proxy)</td><td>代替使用者對外連線,可過濾與記錄</td></tr>
+        <tr><td>蜜罐(Honeypot)</td><td>刻意設置的誘餌系統,引誘攻擊者以觀察其手法</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>IDS 與 IPS 的差別是考試高頻題。</strong>記法:<strong>D = Detection 只看不擋</strong>(像監視器);<strong>P = Prevention 會擋</strong>(像保全)。IPS 擋錯會影響營運(誤判造成正常流量被阻斷),IDS 較安全但需要人去處理告警。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>☁️ 雲端與虛擬化安全</h2>
+    <h3 style="font-size:1rem;color:#374151;margin:14px 0 8px;">責任共擔模型(Shared Responsibility)</h3>
+    <p>雲端最重要的觀念:<strong>安全責任由雲端商與你共同承擔</strong>,分界依服務模式而不同。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>模式</th><th>雲端商負責</th><th>你負責</th></tr>
+        <tr><td>IaaS(基礎設施)</td><td>實體機房、硬體、虛擬化層</td><td>作業系統、應用、資料、帳號設定</td></tr>
+        <tr><td>PaaS(平台)</td><td>再加上作業系統、執行環境</td><td>應用程式、資料、存取管理</td></tr>
+        <tr><td>SaaS(軟體)</td><td>幾乎全包(含應用)</td><td>資料、帳號權限、使用方式</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>不論哪種模式,「你的資料」和「誰能存取」永遠是你的責任。</strong>雲端外洩事件最常見的原因是「客戶自己把儲存桶設成公開」——這不是雲端商的錯,是使用者的設定錯誤。
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>雲端安全概念</th><th>說明</th></tr>
+        <tr><td>CASB</td><td>雲端存取安全代理,監控與管控員工使用雲服務的行為</td></tr>
+        <tr><td>SASE</td><td>把網路與資安服務整合到雲端邊緣提供</td></tr>
+        <tr><td>虛擬機逃逸(VM Escape)</td><td>從虛擬機突破到宿主機的攻擊,虛擬化最嚴重威脅</td></tr>
+        <tr><td>容器安全</td><td>映像檔掃描、最小化基底、不用 root 執行</td></tr>
+        <tr><td>IaC 基礎設施即程式碼</td><td>用程式碼管理設定,可版本控管與掃描設定錯誤</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🗄️ 資料保護</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>說明</th><th>可逆?</th></tr>
+        <tr><td>加密(Encryption)</td><td>用金鑰把資料變成看不懂的密文</td><td>有金鑰可還原</td></tr>
+        <tr><td>雜湊(Hashing)</td><td>產生單向指紋,驗證完整性</td><td>不可逆</td></tr>
+        <tr><td>遮蔽(Masking)</td><td>部分隱藏,如信用卡顯示 ****1234</td><td>通常不可逆</td></tr>
+        <tr><td>權杖化(Tokenization)</td><td>用無意義代碼取代真值,對照表另存安全處</td><td>查表可還原</td></tr>
+        <tr><td>匿名化 / 去識別化</td><td>移除可識別個人的資訊</td><td>設計上不可還原</td></tr>
+        <tr><td>DLP 資料外洩防護</td><td>監控並阻止機密資料外流</td><td>—</td></tr>
+      </table>
+    </div>
+    <h3 style="font-size:1rem;color:#374151;margin:16px 0 8px;">資料分類與狀態</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>面向</th><th>分類</th></tr>
+        <tr><td>敏感度分級</td><td>公開 → 內部 → 機密 → 極機密</td></tr>
+        <tr><td>資料狀態</td><td>傳輸中(in transit)、靜態(at rest)、使用中(in use)</td></tr>
+        <tr><td>相關角色</td><td>資料擁有者(Owner)、資料保管者(Custodian)、資料處理者(Processor)、資料保護長(DPO)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔄 韌性與備援設計</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>概念</th><th>說明</th></tr>
+        <tr><td>RTO 復原時間目標</td><td>可容忍「多久」內必須恢復服務</td></tr>
+        <tr><td>RPO 復原點目標</td><td>可容忍「遺失多少」資料(決定備份頻率)</td></tr>
+        <tr><td>MTTR 平均修復時間</td><td>壞掉後平均多久修好</td></tr>
+        <tr><td>MTBF 平均故障間隔</td><td>兩次故障之間平均多久</td></tr>
+        <tr><td>高可用(HA)</td><td>用叢集、負載平衡讓服務不中斷</td></tr>
+        <tr><td>備援站點</td><td>熱站(隨時可切)、溫站(部分就緒)、冷站(只有場地,最便宜最慢)</td></tr>
+        <tr><td>3-2-1 備份原則</td><td>3 份資料、2 種媒介、1 份異地</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>RTO 與 RPO 是必考的一組。</strong>記法:<strong>RTO 看「時間軸往後」——多久要救回來;RPO 看「時間軸往前」——能接受丟掉多久的資料。</strong>若 RPO = 1 小時,代表備份至少要每小時做一次。<br><br>
+      <strong>抗勒索加碼:</strong>備份要有一份「離線或不可竄改(immutable)」,否則勒索軟體會連備份一起加密。而且<strong>沒測試過還原的備份等於沒有備份</strong>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習</h2>
+    <div class="quiz">
+      <p><strong>Q1.</strong> 公司要架設對外提供服務的網頁伺服器,應該放在網路的哪一區?為什麼?</p>
+      <p><strong>Q2.</strong> IDS 與 IPS 的核心差異是什麼?各有什麼風險?</p>
+      <p><strong>Q3.</strong> 某公司使用 SaaS 服務,員工誤將機密檔案分享成「任何人皆可檢視」導致外洩。依責任共擔模型,這是誰的責任?</p>
+      <p><strong>Q4.</strong> 某系統的 RPO 設為 4 小時、RTO 設為 1 小時。請解釋這兩個數字各代表什麼要求。</p>
+    </div>
+    <details>
+      <summary>▶ 看參考答案</summary>
+      <div class="ans">
+        <strong>A1.</strong> 放在 <strong>DMZ(非軍事區)</strong>。因為它必須被外部存取,但要與內部網路隔離——即使伺服器被攻破,攻擊者也無法直接進入內網。<br>
+        <strong>A2.</strong> IDS 只<strong>偵測告警不阻擋</strong>;IPS 會<strong>主動阻擋</strong>。風險:IPS 若誤判會擋掉正常流量、影響營運;IDS 較安全但需要人力即時處理告警,否則告警堆積等於沒防護。<br>
+        <strong>A3.</strong> <strong>客戶(公司自己)的責任</strong>。在 SaaS 模式下雲端商負責應用與基礎設施,但「資料本身」與「誰能存取(權限設定)」永遠是客戶的責任。<br>
+        <strong>A4.</strong> <strong>RPO 4 小時</strong>:最多可容忍遺失 4 小時的資料 → 備份頻率至少要每 4 小時一次。<strong>RTO 1 小時</strong>:系統中斷後必須在 1 小時內恢復服務 → 需要快速切換的備援機制(如熱站或 HA 叢集)。
+      </div>
+    </details>
+  </div>
+
+  <div class="nav-btns">
+    <a href="threats.html" class="btn btn-prev">← 上一篇</a>
+    <a href="operations.html" class="btn btn-next">下一篇:安全維運 →</a>
+  </div>
+</div>
+</body>
+</html>
