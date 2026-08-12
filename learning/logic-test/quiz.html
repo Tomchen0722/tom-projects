@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>實戰測驗 | 數理邏輯測驗</title>
+<style>
+  :root{--main:#7c3aed;--accent:#c4b5fd;--ok:#16a34a;--no:#dc2626;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f5f3ff;min-height:100vh;}
+  .topbar{background:#7c3aed;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.9);text-decoration:none;font-size:.85rem;}
+  .topbar a:hover{color:#fff;}
+  .timer{background:rgba(255,255,255,.2);padding:6px 14px;border-radius:20px;font-size:.9rem;font-weight:700;font-variant-numeric:tabular-nums;}
+  .timer.warn{background:#dc2626;animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+  .container{max-width:800px;margin:0 auto;padding:28px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:18px;}
+  h1{font-size:1.5rem;color:#2e1065;margin-bottom:8px;}
+  .sub{font-size:.9rem;color:#64748b;line-height:1.7;margin-bottom:18px;}
+  .fieldset{margin-bottom:20px;}
+  .flabel{font-size:.88rem;font-weight:700;color:#374151;margin-bottom:10px;display:block;}
+  .opts{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{padding:9px 16px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;cursor:pointer;font-size:.87rem;color:#475569;transition:.15s;user-select:none;}
+  .chip:hover{border-color:#c4b5fd;}
+  .chip.on{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600;}
+  .btn{display:inline-block;padding:12px 26px;border-radius:11px;border:none;font-size:.95rem;font-weight:700;cursor:pointer;transition:.2s;text-decoration:none;text-align:center;}
+  .btn-main{background:#7c3aed;color:#fff;width:100%;font-size:1.05rem;padding:15px;}
+  .btn-main:hover{background:#6d28d9;}
+  .btn-main:disabled{background:#cbd5e1;cursor:not-allowed;}
+  .btn-sm{background:#f1f5f9;color:#475569;padding:9px 18px;font-size:.87rem;}
+  .btn-sm:hover{background:#e2e8f0;}
+  .btn-sm.primary{background:#7c3aed;color:#fff;}
+  .btn-sm.primary:hover{background:#6d28d9;}
+  .progress-wrap{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .pbar{flex:1;height:8px;background:#e9e5ff;border-radius:99px;overflow:hidden;min-width:120px;}
+  .pbar i{display:block;height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);transition:width .3s;}
+  .pnum{font-size:.85rem;color:#64748b;font-weight:600;white-space:nowrap;}
+  .qtype{display:inline-block;background:#ede9fe;color:#6d28d9;font-size:.75rem;font-weight:700;padding:3px 11px;border-radius:8px;margin-bottom:12px;}
+  .qstem{font-size:1.05rem;color:#1e293b;line-height:1.85;margin-bottom:16px;}
+  .qsvg{background:#fafafa;border:1px solid #eee;border-radius:12px;padding:16px;margin-bottom:18px;text-align:center;overflow-x:auto;}
+  .qsvg svg{max-width:100%;height:auto;}
+  .answers{display:flex;flex-direction:column;gap:10px;}
+  .answers.fig{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));}
+  .aopt{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:.15s;background:#fff;}
+  .aopt:hover{border-color:#c4b5fd;background:#faf9ff;}
+  .aopt.sel{border-color:#7c3aed;background:#f5f3ff;}
+  .aopt .k{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#f1f5f9;color:#64748b;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;}
+  .aopt.sel .k{background:#7c3aed;color:#fff;}
+  .aopt .v{font-size:.95rem;color:#334155;}
+  .answers.fig .aopt{flex-direction:column;padding:12px;}
+  .answers.fig .aopt svg{width:84px;height:84px;}
+  .navrow{display:flex;justify-content:space-between;gap:10px;margin-top:20px;flex-wrap:wrap;}
+  .navrow .right{display:flex;gap:8px;}
+  .mark{font-size:.85rem;color:#b45309;background:#fef3c7;border:1px solid #fcd34d;padding:8px 14px;border-radius:9px;cursor:pointer;}
+  .mark.on{background:#f59e0b;color:#fff;border-color:#f59e0b;}
+  .score{text-align:center;padding:10px 0 6px;}
+  .score .big{font-size:3.2rem;font-weight:900;color:#7c3aed;line-height:1;}
+  .score .lbl{font-size:.9rem;color:#64748b;margin-top:6px;}
+  .score .pass{display:inline-block;margin-top:12px;padding:7px 20px;border-radius:20px;font-weight:700;font-size:.9rem;}
+  .bytype{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:18px;}
+  .tstat{background:#f8fafc;border:1px solid #e2e8f0;border-radius:11px;padding:14px;}
+  .tstat .n{font-size:.82rem;color:#64748b;margin-bottom:4px;}
+  .tstat .v{font-size:1.25rem;font-weight:800;color:#5b21b6;}
+  .tstat .bar{height:6px;background:#e9e5ff;border-radius:99px;margin-top:8px;overflow:hidden;}
+  .tstat .bar i{display:block;height:100%;background:#7c3aed;}
+  .rev{border:1px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:12px;}
+  .rev.right{border-left:5px solid #16a34a;}
+  .rev.wrong{border-left:5px solid #dc2626;}
+  .rev .rh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .rev .rq{font-size:.95rem;color:#1e293b;line-height:1.8;margin-bottom:10px;}
+  .rev .tag{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:7px;}
+  .tag-ok{background:#dcfce7;color:#16a34a;}
+  .tag-no{background:#fee2e2;color:#dc2626;}
+  .rev .yours{font-size:.87rem;margin-bottom:6px;}
+  .rev .exp{background:#f5f3ff;border-radius:9px;padding:13px;font-size:.87rem;color:#5b21b6;line-height:1.85;margin-top:10px;}
+  .rev .optlist{font-size:.87rem;color:#475569;line-height:1.9;margin-bottom:8px;}
+  .rev .optlist .c{color:#16a34a;font-weight:700;}
+  .rev .optlist .w{color:#dc2626;}
+  .revsvg{background:#fafafa;border-radius:10px;padding:12px;margin:8px 0;text-align:center;overflow-x:auto;}
+  .revsvg svg{max-width:100%;height:auto;}
+  .revopts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;}
+  .revopts .ro{border:2px solid #e2e8f0;border-radius:9px;padding:6px;text-align:center;background:#fff;}
+  .revopts .ro.c{border-color:#16a34a;background:#f0fdf4;}
+  .revopts .ro.w{border-color:#dc2626;background:#fef2f2;}
+  .revopts .ro svg{width:56px;height:56px;display:block;}
+  .revopts .ro span{font-size:.72rem;color:#64748b;font-weight:700;}
+  .hint{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:13px 16px;font-size:.85rem;color:#92400e;line-height:1.7;margin-top:14px;}
+  .loading{text-align:center;padding:40px;color:#64748b;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">← 🧠 返回教材</a>
+  <span id="timerBox" class="timer" hidden>⏱ 00:00</span>
+</div>
+
+<div class="container">
+
+  <!-- ============ 設定畫面 ============ -->
+  <div id="setup">
+    <div class="card">
+      <h1>📝 實戰測驗</h1>
+      <p class="sub">模擬企業求職甄試。選好設定後開始作答,結束會有分題型的成績分析與完整解析。</p>
+
+      <div class="fieldset">
+        <label class="flabel">題型範圍</label>
+        <div class="opts" id="typeOpts">
+          <div class="chip on" data-t="all">全部題型</div>
+          <div class="chip" data-t="sequence">數列規律</div>
+          <div class="chip" data-t="figural">圖形推理</div>
+          <div class="chip" data-t="word">數學應用</div>
+          <div class="chip" data-t="deduction">邏輯推導</div>
+        </div>
+      </div>
+
+      <div class="fieldset">
+        <label class="flabel">題數</label>
+        <div class="opts" id="countOpts">
+          <div class="chip" data-c="5">5 題</div>
+          <div class="chip on" data-c="10">10 題</div>
+          <div class="chip" data-c="20">20 題</div>
+          <div class="chip" data-c="0">全部</div>
+        </div>
+      </div>
+
+      <div class="fieldset">
+        <label class="flabel">計時模式</label>
+        <div class="opts" id="timeOpts">
+          <div class="chip on" data-m="0">不計時(先熟悉題型)</div>
+          <div class="chip" data-m="60">每題 60 秒</div>
+          <div class="chip" data-m="45">每題 45 秒(挑戰)</div>
+        </div>
+      </div>
+
+      <button class="btn btn-main" id="startBtn">開始測驗</button>
+      <div class="hint">💡 <b>建議流程:</b>第一次選「不計時 + 全部題型」把觀念弄懂;之後改「每題 60 秒」訓練速度。真實甄試通常每題只有 45–60 秒。</div>
+      <div id="bankInfo" class="sub" style="margin-top:14px;margin-bottom:0;text-align:center;">題庫載入中…</div>
+    </div>
+  </div>
+
+  <!-- ============ 作答畫面 ============ -->
+  <div id="quiz" hidden>
+    <div class="card">
+      <div class="progress-wrap">
+        <span class="pnum" id="pnum">1 / 10</span>
+        <div class="pbar"><i id="pbar" style="width:0%"></i></div>
+      </div>
+      <span class="qtype" id="qtype">數列規律</span>
+      <div class="qstem" id="qstem"></div>
+      <div class="qsvg" id="qsvg" hidden></div>
+      <div class="answers" id="answers"></div>
+      <div class="navrow">
+        <button class="btn btn-sm" id="prevBtn">← 上一題</button>
+        <div class="right">
+          <button class="mark" id="markBtn">🔖 標記</button>
+          <button class="btn btn-sm primary" id="nextBtn">下一題 →</button>
+        </div>
+      </div>
+      <div class="hint" id="skipHint">💡 想不出來就先按「下一題」跳過,最後再回頭。<b>卡題是甄試最大的殺手。</b></div>
+    </div>
+  </div>
+
+  <!-- ============ 結果畫面 ============ -->
+  <div id="result" hidden>
+    <div class="card">
+      <div class="score">
+        <div class="big" id="scoreNum">0%</div>
+        <div class="lbl" id="scoreDetail">答對 0 / 0 題</div>
+        <div id="scoreTag" class="pass"></div>
+        <div class="lbl" id="timeUsed" style="margin-top:8px;"></div>
+      </div>
+      <div class="bytype" id="byType"></div>
+      <div class="navrow" style="margin-top:22px;">
+        <button class="btn btn-sm" id="againBtn">🔄 再測一次</button>
+        <div class="right">
+          <a class="btn btn-sm" href="index.html">📚 回教材</a>
+          <button class="btn btn-sm primary" id="reviewBtn">📖 看解析</button>
+        </div>
+      </div>
+    </div>
+    <div id="reviewList" hidden></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+var ALL = [], pool = [], cur = 0, picked = [], marks = [];
+var cfg = { type:'all', count:10, perQ:0 };
+var timerId = null, timeLeft = 0, elapsed = 0, startedAt = 0;
+
+var TYPE_NAMES = { sequence:'數列規律', figural:'圖形推理', word:'數學應用', deduction:'邏輯推導' };
+var KEYS = ['A','B','C','D'];
+
+function $(id){ return document.getElementById(id); }
+
+/* ---------- 載入題庫 ---------- */
+fetch('questions_data.json')
+  .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(d){
+    ALL = d.questions || [];
+    var byType = {};
+    ALL.forEach(function(q){ byType[q.type] = (byType[q.type]||0)+1; });
+    var parts = Object.keys(TYPE_NAMES).map(function(t){
+      return TYPE_NAMES[t] + ' ' + (byType[t]||0);
+    });
+    $('bankInfo').innerHTML = '題庫共 <b>' + ALL.length + '</b> 題　(' + parts.join('・') + ')';
+    // 依實際題數更新題型選項
+    document.querySelectorAll('#typeOpts .chip').forEach(function(c){
+      var t = c.dataset.t;
+      if (t !== 'all') c.textContent = TYPE_NAMES[t] + '(' + (byType[t]||0) + ')';
+      else c.textContent = '全部題型(' + ALL.length + ')';
+    });
+  })
+  .catch(function(e){
+    $('bankInfo').innerHTML = '<span style="color:#dc2626">題庫載入失敗:' + e.message + '</span>';
+    $('startBtn').disabled = true;
+  });
+
+/* ---------- 設定畫面互動 ---------- */
+function bindChips(wrapId, onPick){
+  $(wrapId).addEventListener('click', function(e){
+    var c = e.target.closest('.chip');
+    if (!c) return;
+    this.querySelectorAll('.chip').forEach(function(x){ x.classList.remove('on'); });
+    c.classList.add('on');
+    onPick(c);
+  });
+}
+bindChips('typeOpts',  function(c){ cfg.type = c.dataset.t; });
+bindChips('countOpts', function(c){ cfg.count = parseInt(c.dataset.c,10); });
+bindChips('timeOpts',  function(c){ cfg.perQ = parseInt(c.dataset.m,10); });
+
+/* ---------- 開始測驗 ---------- */
+$('startBtn').addEventListener('click', function(){
+  var src = (cfg.type === 'all') ? ALL.slice() : ALL.filter(function(q){ return q.type === cfg.type; });
+  if (!src.length) { alert('這個題型目前沒有題目'); return; }
+  shuffle(src);
+  var n = (cfg.count === 0) ? src.length : Math.min(cfg.count, src.length);
+  pool = src.slice(0, n);
+  picked = new Array(n).fill(null);
+  marks  = new Array(n).fill(false);
+  cur = 0;
+  elapsed = 0;
+  startedAt = Date.now();
+
+  $('setup').hidden = true;
+  $('result').hidden = true;
+  $('reviewList').hidden = true;
+  $('quiz').hidden = false;
+
+  if (cfg.perQ > 0) {
+    timeLeft = cfg.perQ * n;
+    $('timerBox').hidden = false;
+    startTimer();
+  } else {
+    $('timerBox').hidden = true;
+  }
+  render();
+});
+
+function shuffle(a){
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+}
+
+/* ---------- 計時 ---------- */
+function startTimer(){
+  updateTimer();
+  timerId = setInterval(function(){
+    timeLeft--;
+    if (timeLeft <= 0) { timeLeft = 0; updateTimer(); finish(true); return; }
+    updateTimer();
+  }, 1000);
+}
+function updateTimer(){
+  var m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+  var box = $('timerBox');
+  box.textContent = '⏱ ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  box.classList.toggle('warn', timeLeft <= 30);
+}
+function stopTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } }
+
+/* ---------- 顯示題目 ---------- */
+function render(){
+  var q = pool[cur];
+  $('pnum').textContent = (cur + 1) + ' / ' + pool.length;
+  $('pbar').style.width = ((cur + 1) / pool.length * 100) + '%';
+  $('qtype').textContent = q.typeLabel || TYPE_NAMES[q.type] || '';
+  $('qstem').innerHTML = q.stem;
+
+  var sv = $('qsvg');
+  if (q.svg) { sv.innerHTML = q.svg; sv.hidden = false; }
+  else { sv.innerHTML = ''; sv.hidden = true; }
+
+  var isFig = !!(q.optionSvgs && q.optionSvgs.length);
+  var box = $('answers');
+  box.className = 'answers' + (isFig ? ' fig' : '');
+  box.innerHTML = '';
+
+  for (var i = 0; i < 4; i++) {
+    var d = document.createElement('div');
+    d.className = 'aopt' + (picked[cur] === i ? ' sel' : '');
+    d.dataset.i = i;
+    if (isFig) {
+      d.innerHTML = '<div class="k">' + KEYS[i] + '</div>' + q.optionSvgs[i];
+    } else {
+      d.innerHTML = '<div class="k">' + KEYS[i] + '</div><div class="v">' + q.options[i] + '</div>';
+    }
+    box.appendChild(d);
+  }
+
+  $('markBtn').classList.toggle('on', !!marks[cur]);
+  $('prevBtn').disabled = (cur === 0);
+  $('nextBtn').textContent = (cur === pool.length - 1) ? '完成作答 ✓' : '下一題 →';
+}
+
+$('answers').addEventListener('click', function(e){
+  var o = e.target.closest('.aopt');
+  if (!o) return;
+  picked[cur] = parseInt(o.dataset.i, 10);
+  this.querySelectorAll('.aopt').forEach(function(x){ x.classList.remove('sel'); });
+  o.classList.add('sel');
+});
+
+$('markBtn').addEventListener('click', function(){
+  marks[cur] = !marks[cur];
+  this.classList.toggle('on', marks[cur]);
+});
+
+$('prevBtn').addEventListener('click', function(){ if (cur > 0) { cur--; render(); window.scrollTo(0,0); } });
+
+$('nextBtn').addEventListener('click', function(){
+  if (cur < pool.length - 1) { cur++; render(); window.scrollTo(0,0); return; }
+  var blank = picked.filter(function(p){ return p === null; }).length;
+  var msg = blank > 0
+    ? ('還有 ' + blank + ' 題未作答(空白一定是零分,建議先猜一個)。確定要交卷嗎?')
+    : '確定要交卷嗎?';
+  if (confirm(msg)) finish(false);
+});
+
+/* ---------- 交卷與計分 ---------- */
+function finish(timeUp){
+  stopTimer();
+  elapsed = Math.round((Date.now() - startedAt) / 1000);
+
+  var correct = 0, stats = {};
+  pool.forEach(function(q, i){
+    var t = q.type;
+    if (!stats[t]) stats[t] = { ok:0, total:0 };
+    stats[t].total++;
+    if (picked[i] === q.answer) { correct++; stats[t].ok++; }
+  });
+
+  var pct = pool.length ? Math.round(correct / pool.length * 100) : 0;
+  $('scoreNum').textContent = pct + '%';
+  $('scoreDetail').textContent = '答對 ' + correct + ' / ' + pool.length + ' 題'
+    + (timeUp ? '(時間到,自動交卷)' : '');
+
+  var tag = $('scoreTag');
+  if (pct >= 80)      { tag.textContent = '🏆 表現優異'; tag.style.background = '#dcfce7'; tag.style.color = '#16a34a'; }
+  else if (pct >= 60) { tag.textContent = '👍 及格水準,仍有進步空間'; tag.style.background = '#fef3c7'; tag.style.color = '#b45309'; }
+  else                { tag.textContent = '💪 需要加強,建議回頭讀教材'; tag.style.background = '#fee2e2'; tag.style.color = '#dc2626'; }
+
+  var mm = Math.floor(elapsed / 60), ss = elapsed % 60;
+  var avg = pool.length ? Math.round(elapsed / pool.length) : 0;
+  $('timeUsed').textContent = '用時 ' + mm + ' 分 ' + ss + ' 秒　平均每題 ' + avg + ' 秒';
+
+  var html = '';
+  Object.keys(TYPE_NAMES).forEach(function(t){
+    if (!stats[t]) return;
+    var s = stats[t], p = Math.round(s.ok / s.total * 100);
+    html += '<div class="tstat"><div class="n">' + TYPE_NAMES[t] + '</div>'
+          + '<div class="v">' + s.ok + ' / ' + s.total + '　<span style="font-size:.85rem;color:#64748b">' + p + '%</span></div>'
+          + '<div class="bar"><i style="width:' + p + '%"></i></div></div>';
+  });
+  $('byType').innerHTML = html;
+
+  $('quiz').hidden = true;
+  $('result').hidden = false;
+  $('timerBox').hidden = true;
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 解析 ---------- */
+$('reviewBtn').addEventListener('click', function(){
+  var el = $('reviewList');
+  if (!el.hidden) { el.hidden = true; this.textContent = '📖 看解析'; return; }
+  var html = '';
+  pool.forEach(function(q, i){
+    var my = picked[i], ok = (my === q.answer);
+    var isFig = !!(q.optionSvgs && q.optionSvgs.length);
+    html += '<div class="card rev ' + (ok ? 'right' : 'wrong') + '">';
+    html += '<div class="rh"><span class="qtype">' + (q.typeLabel || '') + '　第 ' + (i+1) + ' 題</span>'
+          + '<span class="tag ' + (ok ? 'tag-ok' : 'tag-no') + '">' + (ok ? '✓ 答對' : '✗ 答錯') + '</span></div>';
+    html += '<div class="rq">' + q.stem + '</div>';
+    if (q.svg) html += '<div class="revsvg">' + q.svg + '</div>';
+
+    if (isFig) {
+      html += '<div class="revopts">';
+      for (var k = 0; k < 4; k++) {
+        var cls = (k === q.answer) ? 'ro c' : (k === my ? 'ro w' : 'ro');
+        var lbl = KEYS[k] + (k === q.answer ? ' ✓' : (k === my ? ' ✗你選' : ''));
+        html += '<div class="' + cls + '">' + q.optionSvgs[k] + '<span>' + lbl + '</span></div>';
+      }
+      html += '</div>';
+    } else {
+      html += '<div class="optlist">';
+      for (var j = 0; j < 4; j++) {
+        var mark = '';
+        var c2 = '';
+        if (j === q.answer) { c2 = 'c'; mark = ' ✓ 正解'; }
+        if (j === my && j !== q.answer) { c2 = 'w'; mark = ' ✗ 你的答案'; }
+        html += '<div class="' + c2 + '">' + KEYS[j] + '. ' + q.options[j] + mark + '</div>';
+      }
+      html += '</div>';
+    }
+    if (my === null) html += '<div class="yours" style="color:#b45309">⚠️ 這題未作答</div>';
+    html += '<div class="exp">💡 ' + q.explanation + '</div>';
+    html += '</div>';
+  });
+  el.innerHTML = html;
+  el.hidden = false;
+  this.textContent = '📖 收合解析';
+  el.scrollIntoView({ behavior:'smooth' });
+});
+
+$('againBtn').addEventListener('click', function(){
+  stopTimer();
+  $('result').hidden = true;
+  $('reviewList').hidden = true;
+  $('reviewBtn').textContent = '📖 看解析';
+  $('setup').hidden = false;
+  window.scrollTo(0, 0);
+});
+
+/* ---------- 鍵盤快捷 ---------- */
+document.addEventListener('keydown', function(e){
+  if ($('quiz').hidden) return;
+  var k = e.key.toUpperCase();
+  var idx = KEYS.indexOf(k);
+  if (idx >= 0) {
+    picked[cur] = idx;
+    render();
+  } else if (e.key === 'ArrowRight') {
+    if (cur < pool.length - 1) { cur++; render(); }
+  } else if (e.key === 'ArrowLeft') {
+    if (cur > 0) { cur--; render(); }
+  }
+});
+</script>
+</body>
+</html>
