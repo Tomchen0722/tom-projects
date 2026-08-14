@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九宮格例題詳解 | 數理邏輯測驗</title>
+<style>
+  :root{--main:#7c3aed;--accent:#c4b5fd;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f5f3ff;min-height:100vh;}
+  .topbar{background:#7c3aed;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.88);text-decoration:none;font-size:.85rem;}
+  .topbar a:hover{color:#fff;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#2e1065,#5b21b6);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(139,92,246,.25);color:#ddd6fe;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(196,181,253,.4);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:600px;margin:0 auto;line-height:1.8;}
+  .container{max-width:880px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#f5f3ff;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#5b21b6;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+
+  /* 例題區塊 */
+  .ex{border:2px solid #ede9fe;border-radius:16px;padding:24px;margin-bottom:24px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.06);}
+  .ex-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .ex-no{background:#7c3aed;color:#fff;font-weight:800;font-size:.85rem;padding:5px 14px;border-radius:20px;}
+  .ex-rule{background:#ede9fe;color:#6d28d9;font-size:.78rem;font-weight:700;padding:4px 12px;border-radius:8px;}
+  .ex-lv{font-size:.78rem;color:#94a3b8;}
+  .ex-title{font-size:1.05rem;color:#1e293b;font-weight:700;margin-bottom:14px;}
+  .puzzle{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;justify-content:center;background:#fafafa;border:1px solid #eee;border-radius:12px;padding:18px;margin-bottom:16px;}
+  .puzzle svg{background:#fff;border-radius:6px;}
+  .optrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .opt{text-align:center;}
+  .opt svg{display:block;border:2px solid #e2e8f0;border-radius:8px;background:#fff;}
+  .opt span{display:block;font-size:.8rem;color:#64748b;font-weight:700;margin-top:4px;}
+  .opt.ans svg{border-color:#16a34a;background:#f0fdf4;}
+  .opt.ans span{color:#16a34a;}
+
+  /* 解題步驟 */
+  .steps{margin-top:8px;}
+  .stp{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;}
+  .stp .n{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:#7c3aed;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;}
+  .stp .b{flex:1;}
+  .stp .t{font-size:.92rem;font-weight:700;color:#5b21b6;margin-bottom:4px;}
+  .stp .d{font-size:.9rem;color:#374151;line-height:1.85;}
+  .stp .d b{color:#6d28d9;}
+
+  /* 數字表 */
+  .numtab{display:inline-block;margin:10px 0;}
+  .numtab table{width:auto;border-collapse:separate;border-spacing:4px;font-size:.9rem;}
+  .numtab td{background:#f1f5f9;border:none;width:44px;height:38px;text-align:center;font-weight:700;color:#334155;border-radius:6px;padding:0;}
+  .numtab td.q{background:#ede9fe;color:#7c3aed;font-size:1.05rem;}
+  .numtab td.hl{background:#dcfce7;color:#16a34a;}
+  .numtab th{background:transparent;color:#94a3b8;font-size:.75rem;font-weight:600;padding:2px 6px;text-align:center;}
+  .numcap{font-size:.83rem;color:#64748b;margin-top:2px;}
+
+  .verdict{background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px;margin-top:12px;font-size:.9rem;color:#166534;line-height:1.85;}
+  .verdict b{color:#15803d;}
+  .why{background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:14px 16px;margin-top:10px;font-size:.88rem;color:#7f1d1d;line-height:1.85;}
+  .learn{background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:14px 16px;margin-top:10px;font-size:.88rem;color:#92400e;line-height:1.85;}
+  .learn b{color:#b45309;}
+
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#6d28d9;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🧠 數理邏輯測驗</a><span class="sep">/</span>
+  <span>題型 02 延伸</span><span class="sep">/</span><span>九宮格例題詳解</span>
+</div>
+
+<div class="hero">
+  <div class="badge">⬛ 七道例題 · 完整解法拆解</div>
+  <h1><span>九宮格</span>例題詳解</h1>
+  <p>七種規律、七道例題。每一題都把「拿到題目後腦袋該怎麼跑」一步步寫出來,<br>不是只公布答案。看完你會有一套穩定的解題流程。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 先記住這套流程</h2>
+    <p>後面每一道例題,我都會照這套流程走一遍。看多了你就會內化成直覺:</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>步驟</th><th>做什麼</th><th>如果沒發現規律 →</th></tr>
+        <tr><td><b>1</b></td><td><b>數線條</b>,寫成 3×3 數字表</td><td>往下一步</td></tr>
+        <tr><td><b>2</b></td><td>看<b>橫列</b>數字(左→右)</td><td>看直行</td></tr>
+        <tr><td><b>3</b></td><td>看<b>直行</b>數字(上→下)</td><td>看是否疊加</td></tr>
+        <tr><td><b>4</b></td><td>數字沒變化 → 想<b>疊加運算</b>(OR/AND/XOR)</td><td>看種類/位置</td></tr>
+        <tr><td><b>5</b></td><td>每格數量都一樣 → 看<b>種類分布</b>或<b>位置移動</b></td><td>—</td></tr>
+        <tr><td><b>6</b></td><td>推出答案該有<b>幾條線</b> → 刪掉數量不符的選項</td><td>—</td></tr>
+        <tr><td><b>7</b></td><td>用<b>另一列驗證</b>規律成立,再作答</td><td>—</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>為什麼第一步永遠是「數線條」?</strong>因為數字是<b>客觀的</b>——不需要靈感、不會看走眼。而且出題者約有七成的規律建立在數量上。先把數字表寫出來,規律常常自己就跳出來了。
+    </div>
+  </div>
+
+  <!-- ========== 例題 1 ========== -->
+  <div class="ex">
+    <div class="ex-head">
+      <span class="ex-no">例題 1</span>
+      <span class="ex-rule">數量遞減</span>
+      <span class="ex-lv">難度:★☆☆(入門,完整示範數線條法)</span>
+    </div>
+    <div class="ex-title">問號處應該填哪一個?</div>
+    <div class="puzzle">
+      <svg viewBox="0 0 196 148" width="196" height="148">
+        <g transform="translate(0,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <rect x="136" y="104" width="60" height="44" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5 4"/><text x="166" y="133" text-anchor="middle" font-size="22" fill="#7c3aed" font-weight="bold">?</text>
+      </svg>
+      <div class="optrow">
+        <div class="opt ans"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>A ✓</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>B</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>C</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/></g></svg><span>D</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="stp"><div class="n">1</div><div class="b"><div class="t">數線條,寫成數字表</div><div class="d">
+        別急著看圖形長怎樣,先<b>一格一格數裡面有幾條線</b>(外框不算):
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>3</td><td>2</td><td>1</td></tr>
+          <tr><th>第2列</th><td>3</td><td>2</td><td>1</td></tr>
+          <tr><th>第3列</th><td>3</td><td>2</td><td class="q">?</td></tr>
+        </table><div class="numcap">▲ 把九格的線條數寫成這張表</div></div>
+      </div></div></div>
+
+      <div class="stp"><div class="n">2</div><div class="b"><div class="t">看橫列:規律出現了</div><div class="d">
+        每一列由左到右都是 <b>3 → 2 → 1</b>,每次<b>少一條線</b>。<br>
+        第三列已經是 3 → 2 → 所以問號處應該是 <b>1 條線</b>。
+      </div></div></div>
+
+      <div class="stp"><div class="n">3</div><div class="b"><div class="t">用另一列驗證</div><div class="d">
+        第一列:3 → 2 → 1 ✓　第二列:3 → 2 → 1 ✓<br>
+        <b>兩列都成立</b>,規律確定不是巧合。(這一步很重要,別跳過)
+      </div></div></div>
+
+      <div class="stp"><div class="n">4</div><div class="b"><div class="t">數選項的線條數,直接刪</div><div class="d">
+        A = <b>1</b> 條　B = 2 條　C = 3 條　D = 0 條<br>
+        只有 <b>A</b> 是 1 條 → <b>答案就是 A</b>,連「是哪一條線」都不用想。
+      </div></div></div>
+    </div>
+
+    <div class="verdict">✅ <b>答案:A(↗ 對角線)</b>　解題只用了「數數字」,完全沒有猜。</div>
+    <div class="learn">💡 <b>這題學到:</b>數線條法的威力。很多人看到滿滿的線就慌了,但只要把它翻譯成 <b>3、2、1</b> 這種數字,難度立刻降到小學程度。<br><br><b>另外注意:</b>這題四個選項的線條數剛好都不一樣(1/2/3/0),所以「算出數量」就直接定答案。這是甄試常見的設計,善用它可以省下大量時間。</div>
+  </div>
+
+  <!-- ========== 例題 2 ========== -->
+  <div class="ex">
+    <div class="ex-head">
+      <span class="ex-no">例題 2</span>
+      <span class="ex-rule">相加疊合 OR</span>
+      <span class="ex-lv">難度:★★☆(數量只能縮小範圍,還要看組成)</span>
+    </div>
+    <div class="ex-title">問號處應該填哪一個?</div>
+    <div class="puzzle">
+      <svg viewBox="0 0 196 148" width="196" height="148">
+        <g transform="translate(0,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <rect x="136" y="104" width="60" height="44" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5 4"/><text x="166" y="133" text-anchor="middle" font-size="22" fill="#7c3aed" font-weight="bold">?</text>
+      </svg>
+      <div class="optrow">
+        <div class="opt ans"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>A ✓</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>B</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>C</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>D</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="stp"><div class="n">1</div><div class="b"><div class="t">數線條</div><div class="d">
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>1</td><td>1</td><td class="hl">2</td></tr>
+          <tr><th>第2列</th><td>1</td><td>1</td><td class="hl">2</td></tr>
+          <tr><th>第3列</th><td>1</td><td>1</td><td class="q">?</td></tr>
+        </table></div>
+      </div></div></div>
+
+      <div class="stp"><div class="n">2</div><div class="b"><div class="t">看橫列:1 + 1 = 2</div><div class="d">
+        前兩格都是 1 條,第三格是 2 條——<b>剛好等於前兩格相加</b>。<br>
+        這是<b>相加疊合(OR)</b>的招牌特徵:第三格 = 前兩格的線<b>全部合併</b>。
+      </div></div></div>
+
+      <div class="stp"><div class="n">3</div><div class="b"><div class="t">驗證組成(不能只看數字)</div><div class="d">
+        第一列:水平 + 垂直 → 第三格是<b>十字</b> ✓ 確實是兩條合併<br>
+        第二列:↘ + ↗ → 第三格是 <b>X 交叉</b> ✓ 也是合併<br>
+        規律確認:<b>第三格 = 第一格 ∪ 第二格</b>
+      </div></div></div>
+
+      <div class="stp"><div class="n">4</div><div class="b"><div class="t">套用到第三列</div><div class="d">
+        第三列:第一格是<b>水平線</b>,第二格是<b>↘ 對角線</b><br>
+        合併起來 → <b>水平線 + ↘ 對角線</b>
+      </div></div></div>
+
+      <div class="stp"><div class="n">5</div><div class="b"><div class="t">對照選項</div><div class="d">
+        先用數量刪:A、B、D 都是 2 條,C 只有 1 條 → <b>先刪掉 C</b><br>
+        再看組成:A = 水平+↘ ✓　B = 水平+垂直 ✗　D = ↘+↗ ✗<br>
+        → <b>答案是 A</b>
+      </div></div></div>
+    </div>
+
+    <div class="verdict">✅ <b>答案:A(水平線 + ↘ 對角線)</b></div>
+    <div class="why">❌ <b>為什麼 B、D 是陷阱?</b><br>它們的線條數都對(2 條),但<b>組成錯了</b>。B 抄了第一列的答案(十字)、D 抄了第二列的答案(X)。出題者故意把「其他列的正確答案」放進選項,測你有沒有真的套用規律。</div>
+    <div class="learn">💡 <b>這題學到:</b>當數字表出現 <b>1、1、2</b> 或 <b>2、2、4</b> 這種「<b>前兩個相加等於第三個</b>」的形態時,幾乎可以確定是 OR 疊加。<br><br>但要注意:<b>數量只能幫你刪掉一部分選項</b>,最後還是要回頭確認「是哪幾條線」。這一步不能省。</div>
+  </div>
+
+  <!-- ========== 例題 3 ========== -->
+  <div class="ex">
+    <div class="ex-head">
+      <span class="ex-no">例題 3</span>
+      <span class="ex-rule">去同存異 XOR</span>
+      <span class="ex-lv">難度:★★☆(數字全一樣,要想到疊加)</span>
+    </div>
+    <div class="ex-title">問號處應該填哪一個?</div>
+    <div class="puzzle">
+      <svg viewBox="0 0 196 148" width="196" height="148">
+        <g transform="translate(0,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <rect x="136" y="104" width="60" height="44" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5 4"/><text x="166" y="133" text-anchor="middle" font-size="22" fill="#7c3aed" font-weight="bold">?</text>
+      </svg>
+      <div class="optrow">
+        <div class="opt ans"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>A ✓</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>B</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>C</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>D</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="stp"><div class="n">1</div><div class="b"><div class="t">數線條</div><div class="d">
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>2</td><td>2</td><td>2</td></tr>
+          <tr><th>第2列</th><td>2</td><td>2</td><td>2</td></tr>
+          <tr><th>第3列</th><td>2</td><td>2</td><td class="q">?</td></tr>
+        </table></div>
+      </div></div></div>
+
+      <div class="stp"><div class="n">2</div><div class="b"><div class="t">數字全是 2 → 數量規律不存在</div><div class="d">
+        沒有遞增、沒有遞減、也不是相加(1+1=2 才是相加,這裡是 2+2≠2)。<br>
+        <b>數量完全沒有變化 → 立刻跳到「疊加運算」這條路。</b><br>
+        而且問號處也應該是 <b>2 條線</b>。
+      </div></div></div>
+
+      <div class="stp"><div class="n">3</div><div class="b"><div class="t">判斷是哪種疊加</div><div class="d">
+        三種疊加的判斷法:<br>
+        • 第三格<b>最複雜</b> → 相加 OR(這題不是,都一樣是 2 條)<br>
+        • 第三格<b>最簡單</b> → 求同 AND(這題也不是)<br>
+        • 三格<b>差不多,但第三格少了重複那條</b> → <b>去同存異 XOR</b> ✓
+      </div></div></div>
+
+      <div class="stp"><div class="n">4</div><div class="b"><div class="t">用第一列驗證 XOR</div><div class="d">
+        第一列:格1 = {<b>水平</b>, 垂直}　格2 = {垂直, <b>↘</b>}<br>
+        兩格<b>共同有「垂直」→ 刪掉</b>;只出現一次的「水平」和「↘」→ 保留<br>
+        結果 = {水平, ↘} → 對照圖,第三格正是水平+↘ ✓
+      </div></div></div>
+
+      <div class="stp"><div class="n">5</div><div class="b"><div class="t">再用第二列確認</div><div class="d">
+        格1 = {↘, ↗}　格2 = {↘, 水平}<br>
+        共同的 <b>↘ 刪掉</b> → 剩 {↗, 水平} → 對照圖第三格 ✓ <b>規律確定</b>
+      </div></div></div>
+
+      <div class="stp"><div class="n">6</div><div class="b"><div class="t">套用到第三列</div><div class="d">
+        格1 = {<b>水平</b>, ↗}　格2 = {<b>水平</b>, 垂直}<br>
+        共同的<b>水平刪掉</b> → 剩 <b>{↗, 垂直}</b> → <b>答案 A</b>
+      </div></div></div>
+    </div>
+
+    <div class="verdict">✅ <b>答案:A(↗ 對角線 + 垂直線)</b></div>
+    <div class="why">❌ <b>陷阱在哪?</b>B、C、D 全都是 2 條線,光靠數量<b>一個都刪不掉</b>。這題非得看懂 XOR 規則不可。<br>其中 B(水平+↗)是最容易選錯的——因為它保留了「水平」,而水平正是<b>該被刪掉</b>的那條共同線。</div>
+    <div class="learn">💡 <b>這題學到:</b>看到數字表<b>整片都一樣</b>(2、2、2),不要愣住——這正是在告訴你「規律不在數量,在<b>組成</b>」,直接跳到疊加運算去試。<br><br><b>XOR 的白話記法:</b>「<b>兩張都有的消掉,只有一張有的留下</b>」。像兩張投影片疊起來,重疊的地方反而變不見。</div>
+  </div>
+
+  <!-- ========== 例題 4 ========== -->
+  <div class="ex">
+    <div class="ex-head">
+      <span class="ex-no">例題 4</span>
+      <span class="ex-rule">直行規律</span>
+      <span class="ex-lv">難度:★★☆(橫列失效,必須換方向)</span>
+    </div>
+    <div class="ex-title">問號處應該填哪一個?</div>
+    <div class="puzzle">
+      <svg viewBox="0 0 196 148" width="196" height="148">
+        <g transform="translate(0,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <rect x="136" y="104" width="60" height="44" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5 4"/><text x="166" y="133" text-anchor="middle" font-size="22" fill="#7c3aed" font-weight="bold">?</text>
+      </svg>
+      <div class="optrow">
+        <div class="opt ans"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>A ✓</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>B</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>C</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>D</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="stp"><div class="n">1</div><div class="b"><div class="t">數線條</div><div class="d">
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>1</td><td>1</td><td>1</td></tr>
+          <tr><th>第2列</th><td>2</td><td>2</td><td>2</td></tr>
+          <tr><th>第3列</th><td>3</td><td>3</td><td class="q">?</td></tr>
+        </table></div>
+      </div></div></div>
+
+      <div class="stp"><div class="n">2</div><div class="b"><div class="t">看橫列:沒有變化</div><div class="d">
+        第一列 1、1、1;第二列 2、2、2 —— <b>左右完全沒變</b>。<br>
+        橫列這條路走不通,<b>不要卡住,立刻換方向</b>。
+      </div></div></div>
+
+      <div class="stp"><div class="n">3</div><div class="b"><div class="t">改看直行:規律出現了</div><div class="d">
+        由上往下看:<br>
+        左行 <b>1 → 2 → 3</b>　中行 <b>1 → 2 → 3</b>　右行 <b>1 → 2 → ?</b><br>
+        每一行都是<b>往下每次多一條線</b> → 問號處是 <b>3 條</b>。
+      </div></div></div>
+
+      <div class="stp"><div class="n">4</div><div class="b"><div class="t">確認「多的那條是怎麼加的」</div><div class="d">
+        右行:第一格 = ↘　第二格 = ↘ + ↗(保留舊的、加一條新的)<br>
+        第三格 = ↘ + ↗ + <b>再加一條</b> → 應該是 3 條
+      </div></div></div>
+
+      <div class="stp"><div class="n">5</div><div class="b"><div class="t">數選項刪答案</div><div class="d">
+        A = 3 條　B = 2 條　C = 1 條　D = 4 條<br>
+        只有 <b>A</b> 是 3 條 → <b>答案 A</b>
+      </div></div></div>
+    </div>
+
+    <div class="verdict">✅ <b>答案:A(↘ + ↗ + 垂直,共 3 條)</b></div>
+    <div class="learn">💡 <b>這題學到:</b>橫列沒規律<b>不代表題目無解</b>,只代表你看錯方向。<br><br><b>數字表最大的好處就在這裡</b>——一旦寫成表格,你可以<b>免費地</b>橫著看一遍、直著看一遍,不用重新盯圖。如果只用眼睛看圖形,換方向要重看九次,很容易亂掉、也很花時間。</div>
+  </div>
+
+  <!-- ========== 例題 5 ========== -->
+  <div class="ex">
+    <div class="ex-head">
+      <span class="ex-no">例題 5</span>
+      <span class="ex-rule">種類分布(拉丁方陣)</span>
+      <span class="ex-lv">難度:★★★(數線條完全無效)</span>
+    </div>
+    <div class="ex-title">問號處應該填哪一個?</div>
+    <div class="puzzle">
+      <svg viewBox="0 0 196 148" width="196" height="148">
+        <g transform="translate(0,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <rect x="136" y="104" width="60" height="44" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5 4"/><text x="166" y="133" text-anchor="middle" font-size="22" fill="#7c3aed" font-weight="bold">?</text>
+      </svg>
+      <div class="optrow">
+        <div class="opt ans"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>A ✓</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g></svg><span>B</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>C</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>D</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="stp"><div class="n">1</div><div class="b"><div class="t">數線條:全部都是 1</div><div class="d">
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>1</td><td>1</td><td>1</td></tr>
+          <tr><th>第2列</th><td>1</td><td>1</td><td>1</td></tr>
+          <tr><th>第3列</th><td>1</td><td>1</td><td class="q">?</td></tr>
+        </table></div>
+        每一格都只有 1 條線。<b>數量這條路徹底沒用了</b>——橫的直的都沒變化。
+      </div></div></div>
+
+      <div class="stp"><div class="n">2</div><div class="b"><div class="t">數量無效 → 改記錄「種類」</div><div class="d">
+        既然每格都是 1 條,那差別一定在<b>「是哪一種線」</b>。<br>
+        用代號重畫一次表格:<b>H</b>=水平、<b>V</b>=垂直、<b>D</b>=↘對角
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>H</td><td>V</td><td>D</td></tr>
+          <tr><th>第2列</th><td>V</td><td>D</td><td>H</td></tr>
+          <tr><th>第3列</th><td>D</td><td>H</td><td class="q">?</td></tr>
+        </table></div>
+      </div></div></div>
+
+      <div class="stp"><div class="n">3</div><div class="b"><div class="t">看出來了:像數獨</div><div class="d">
+        每一列都<b>剛好出現 H、V、D 各一次</b>:<br>
+        第1列 H V D ✓　第2列 V D H ✓　第3列 D H <b>?</b><br>
+        第三列已經有 D 和 H → <b>還缺 V(垂直線)</b>
+      </div></div></div>
+
+      <div class="stp"><div class="n">4</div><div class="b"><div class="t">用直行雙重驗證</div><div class="d">
+        右行由上到下是 D、H、? → 也剛好缺 <b>V</b> ✓<br>
+        <b>橫看直看都指向垂直線</b>,答案非常確定。
+      </div></div></div>
+    </div>
+
+    <div class="verdict">✅ <b>答案:A(垂直線)</b></div>
+    <div class="learn">💡 <b>這題學到:</b>當數字表<b>整片都是同一個數字</b>時,不要繼續在數量上鑽——那是死路。要立刻切換到<b>「種類」</b>這個維度。<br><br><b>好用的做法:把圖形換成代號(H、V、D)重畫表格。</b>把圖變成字母後,規律會變得非常明顯——這題一旦寫成字母表,你會發現它其實就是一個 3×3 的數獨,而數獨誰都會解。<br><br><b>這也是圖形題的通則:想辦法把「圖」翻譯成「符號或數字」,大腦處理起來會快很多。</b></div>
+  </div>
+
+  <!-- ========== 例題 6 ========== -->
+  <div class="ex">
+    <div class="ex-head">
+      <span class="ex-no">例題 6</span>
+      <span class="ex-rule">位置移動</span>
+      <span class="ex-lv">難度:★★★(數量相同,規律藏在位置)</span>
+    </div>
+    <div class="ex-title">問號處應該填哪一個?</div>
+    <div class="puzzle">
+      <svg viewBox="0 0 196 148" width="196" height="148">
+        <g transform="translate(0,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="13" x2="60" y2="13" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="31" x2="60" y2="31" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="13" x2="60" y2="13" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="31" x2="60" y2="31" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="13" x2="60" y2="13" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <rect x="136" y="104" width="60" height="44" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5 4"/><text x="166" y="133" text-anchor="middle" font-size="22" fill="#7c3aed" font-weight="bold">?</text>
+      </svg>
+      <div class="optrow">
+        <div class="opt ans"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="31" x2="60" y2="31" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>A ✓</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="13" x2="60" y2="13" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>B</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>C</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="31" x2="60" y2="31" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>D</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="stp"><div class="n">1</div><div class="b"><div class="t">數線條</div><div class="d">
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>1</td><td>1</td><td>1</td></tr>
+          <tr><th>第2列</th><td>2</td><td>2</td><td>2</td></tr>
+          <tr><th>第3列</th><td>2</td><td>2</td><td class="q">?</td></tr>
+        </table></div>
+        橫列沒變化;直行是 1、2、2 也不成規律。<b>數量這條路又斷了。</b>
+      </div></div></div>
+
+      <div class="stp"><div class="n">2</div><div class="b"><div class="t">數量無效 → 檢查「位置」</div><div class="d">
+        數量斷了之後,依流程下一個要看的是<b>位置</b>。<br>
+        仔細看第一列的三格:都只有一條水平線,但<b>高度不一樣</b>——<br>
+        <b>靠上 → 中間 → 靠下</b>,水平線<b>一格一格往下移</b>!
+      </div></div></div>
+
+      <div class="stp"><div class="n">3</div><div class="b"><div class="t">用第二列驗證</div><div class="d">
+        第二列每格都多了一條<b>垂直線</b>(整列固定不變),而水平線一樣是<br>
+        <b>靠上 → 中間 → 靠下</b> ✓ 規律成立。
+      </div></div></div>
+
+      <div class="stp"><div class="n">4</div><div class="b"><div class="t">拆解第三列的兩層規律</div><div class="d">
+        第三列有<b>兩個要素</b>要同時滿足:<br>
+        ① <b>水平線位置</b>:靠上 → 中間 → <b>靠下</b><br>
+        ② <b>固定搭配的第二條線</b>:這一列都是 <b>↘ 對角線</b><br>
+        → 答案 = <b>靠下的水平線 + ↘ 對角線</b>
+      </div></div></div>
+
+      <div class="stp"><div class="n">5</div><div class="b"><div class="t">對照選項</div><div class="d">
+        A = 下水平 + ↘ ✓<br>
+        B = <b>上</b>水平 + ↘ ✗(位置錯)<br>
+        C = <b>中</b>水平 + ↘ ✗(位置錯)<br>
+        D = 下水平 + <b>垂直</b> ✗(第二條線錯,那是第二列的)
+      </div></div></div>
+    </div>
+
+    <div class="verdict">✅ <b>答案:A(靠下的水平線 + ↘ 對角線)</b></div>
+    <div class="why">❌ <b>這題的選項設計很陰險:</b>四個選項<b>全都是 2 條線</b>,而且都長得很像。B、C 只錯在水平線的高度,D 只錯在第二條線的種類。<b>只要有一個維度沒檢查到就會選錯。</b></div>
+    <div class="learn">💡 <b>這題學到:</b>當一題同時有<b>兩層規律</b>(位置在變 + 某條線固定),要<b>分開處理、各自確認</b>,不要混在一起想。<br><br><b>實用做法:在紙上把兩層分開寫</b>——<br>「第①層:水平線位置 上/中/下」<br>「第②層:附加線 第1列無、第2列垂直、第3列↘」<br>寫成兩行之後,答案就是把兩層的結論合起來,不容易漏。</div>
+  </div>
+
+  <!-- ========== 例題 7 ========== -->
+  <div class="ex">
+    <div class="ex-head">
+      <span class="ex-no">例題 7</span>
+      <span class="ex-rule">求同 AND</span>
+      <span class="ex-lv">難度:★★★(第三格反而變簡單)</span>
+    </div>
+    <div class="ex-title">問號處應該填哪一個?</div>
+    <div class="puzzle">
+      <svg viewBox="0 0 196 148" width="196" height="148">
+        <g transform="translate(0,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,0)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(136,52)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(0,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <g transform="translate(68,104)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g>
+        <rect x="136" y="104" width="60" height="44" fill="none" stroke="#c4b5fd" stroke-width="2" stroke-dasharray="5 4"/><text x="166" y="133" text-anchor="middle" font-size="22" fill="#7c3aed" font-weight="bold">?</text>
+      </svg>
+      <div class="optrow">
+        <div class="opt ans"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>A ✓</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="0" x2="60" y2="44" stroke="#7c3aed" stroke-width="2"/></g></svg><span>B</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>C</span></div>
+        <div class="opt"><svg viewBox="0 0 64 48" width="64" height="48"><g transform="translate(2,2)"><rect width="60" height="44" fill="none" stroke="#475569" stroke-width="2"/><line x1="0" y1="22" x2="60" y2="22" stroke="#7c3aed" stroke-width="2"/><line x1="30" y1="0" x2="30" y2="44" stroke="#7c3aed" stroke-width="2"/><line x1="0" y1="44" x2="60" y2="0" stroke="#7c3aed" stroke-width="2"/></g></svg><span>D</span></div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="stp"><div class="n">1</div><div class="b"><div class="t">數線條</div><div class="d">
+        <div class="numtab"><table>
+          <tr><th></th><th>左</th><th>中</th><th>右</th></tr>
+          <tr><th>第1列</th><td>3</td><td>3</td><td class="hl">2</td></tr>
+          <tr><th>第2列</th><td>3</td><td>3</td><td class="hl">2</td></tr>
+          <tr><th>第3列</th><td>3</td><td>3</td><td class="q">?</td></tr>
+        </table></div>
+      </div></div></div>
+
+      <div class="stp"><div class="n">2</div><div class="b"><div class="t">關鍵觀察:第三格反而「變少」</div><div class="d">
+        3、3 → 2。第三格<b>比前兩格都簡單</b>。<br>
+        這不可能是相加(相加會變 6 條),<b>只可能是「刪掉了一些線」</b>。<br>
+        → 問號處應該是 <b>2 條線</b>。
+      </div></div></div>
+
+      <div class="stp"><div class="n">3</div><div class="b"><div class="t">是 AND 還是 XOR?</div><div class="d">
+        兩者都會讓線變少,怎麼分?<br>
+        • <b>AND(求同)</b>:只留下<b>兩格都有</b>的線<br>
+        • <b>XOR(去同存異)</b>:剛好相反,把兩格都有的<b>刪掉</b><br>
+        直接拿第一列驗算看看是哪一種。
+      </div></div></div>
+
+      <div class="stp"><div class="n">4</div><div class="b"><div class="t">用第一列驗算</div><div class="d">
+        格1 = {水平, <b>垂直</b>, <b>↘</b>}　格2 = {<b>垂直</b>, <b>↘</b>, ↗}<br>
+        兩格<b>共同有</b>:垂直、↘<br>
+        對照圖中的第三格 → 正是<b>垂直 + ↘</b> ✓<br>
+        <b>確定是 AND(保留共同的)</b>,不是 XOR。
+      </div></div></div>
+
+      <div class="stp"><div class="n">5</div><div class="b"><div class="t">用第二列再確認一次</div><div class="d">
+        格1 = {<b>水平</b>, ↘, <b>↗</b>}　格2 = {<b>水平</b>, 垂直, <b>↗</b>}<br>
+        共同的:水平、↗ → 對照第三格 ✓ <b>規律穩了</b>
+      </div></div></div>
+
+      <div class="stp"><div class="n">6</div><div class="b"><div class="t">套用到第三列</div><div class="d">
+        格1 = {水平, <b>垂直</b>, <b>↗</b>}　格2 = {<b>垂直</b>, ↘, <b>↗</b>}<br>
+        共同的 = <b>垂直、↗</b> → <b>答案 A</b>
+      </div></div></div>
+    </div>
+
+    <div class="verdict">✅ <b>答案:A(垂直線 + ↗ 對角線)</b></div>
+    <div class="why">❌ <b>D 是最大的陷阱</b>——它有 3 條線,一看就跟前兩格「感覺比較搭」。但數字表明明白白告訴你第三格是 <b>2</b> 條。<b>先算數量,就不會被視覺感覺騙走。</b></div>
+    <div class="learn">💡 <b>這題學到:</b>看到第三格<b>比前兩格簡單</b>,就是在喊「我是 AND 或 XOR」。分辨方法很簡單——<b>拿第一列直接驗算一次</b>就知道是哪一種,不用猜。<br><br><b>三種疊加的一句話總結:</b><br>• <b>OR 相加</b> → 第三格<b>最複雜</b>(1+1=2)<br>• <b>AND 求同</b> → 第三格<b>最簡單</b>(3、3→2)<br>• <b>XOR 去同存異</b> → 三格<b>差不多</b>(2、2、2)<br>光看數字表的「胖瘦」,就能三選一。</div>
+  </div>
+
+  <div class="card">
+    <h2>🎓 七題總複習:遇到什麼狀況、做什麼事</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>數字表長這樣</th><th>代表什麼</th><th>對應例題</th></tr>
+        <tr><td>3、2、1 或 1、2、3</td><td>數量遞減/遞增</td><td>例題 1</td></tr>
+        <tr><td>1、1、<b>2</b>(前兩個相加)</td><td>相加疊合 OR</td><td>例題 2</td></tr>
+        <tr><td>2、2、2(整片一樣)</td><td>去同存異 XOR</td><td>例題 3</td></tr>
+        <tr><td>橫的沒變、<b>直的</b>在變</td><td>規律在直行</td><td>例題 4</td></tr>
+        <tr><td>全部都是 1(完全沒差)</td><td>看種類分布(拉丁方陣)</td><td>例題 5</td></tr>
+        <tr><td>數量一樣但圖不同</td><td>看位置移動</td><td>例題 6</td></tr>
+        <tr><td>3、3、<b>2</b>(第三格變少)</td><td>求同 AND</td><td>例題 7</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>把這張表記起來,九宮格就贏一半了。</strong>因為你不再是「盯著圖等靈感」,而是<b>先寫出數字表,再用表格的形狀去對照該用哪一招</b>。這是一個機械式的流程,壓力再大也不會當機。
+    </div>
+    <div class="warn">
+      ⚠️ <strong>最後三個提醒:</strong><br>
+      ① <b>永遠用第二列驗證</b>——只看第一列就下結論,很容易踩到出題者設計的假規律。<br>
+      ② <b>算出數量先刪選項</b>——就算看不出「是哪幾條線」,光靠數量常常就能刪掉 2–3 個,剩下用猜的期望值也高很多。<br>
+      ③ <b>60 秒沒方向就跳過</b>——標記起來最後再回頭。<b>卡題是甄試最大的殺手</b>,一題卡三分鐘等於放棄三題。
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="figural.html" class="btn btn-prev">← 回圖形推理總覽</a>
+    <a href="../quiz.html" class="btn btn-next">上場實戰測驗 →</a>
+  </div>
+</div>
+</body>
+</html>
