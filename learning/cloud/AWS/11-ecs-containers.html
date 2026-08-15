@@ -73,17 +73,19 @@
   <!-- 2 -->
   <div class="card" id="taskdef">
     <h2>2. Task Definition 關鍵參數</h2>
-    <table class="t">
-      <thead><tr><th>參數</th><th>說明</th><th>考試重點</th></tr></thead>
-      <tbody>
-        <tr><td><b>Network Mode</b></td><td><code>awsvpc</code>：每個 Task 獨立 ENI（Fargate 強制）<br><code>bridge</code>：共享 Host 的 ENI（EC2 Launch Type，動態埠映射）<br><code>host</code>：直接用 Host 的網路介面</td><td>Fargate = 只能 awsvpc；EC2 = 三種都可以</td></tr>
-        <tr><td><b>Task Role</b></td><td>容器內的應用程式 call AWS API 用的 IAM Role（如 S3、DynamoDB）</td><td>這是授予<b>應用程式</b>的權限</td></tr>
-        <tr><td><b>Task Execution Role</b></td><td>ECS Agent 代替你拉映像、送日誌用的 Role（AmazonECSTaskExecutionRolePolicy）</td><td>這是授予 <b>ECS 基礎設施</b>的權限</td></tr>
-        <tr><td><b>Secrets</b></td><td>從 SSM Parameter Store 或 Secrets Manager 注入環境變數，不用硬編碼</td><td>需要 Task Execution Role 有讀取 SSM/SM 的權限</td></tr>
-        <tr><td><b>CPU/記憶體</b></td><td>Fargate 需要在 Task Definition 指定（256 CPU 單位 = 0.25 vCPU）</td><td>設太小會有 OOM；設太大浪費錢</td></tr>
-        <tr><td><b>Log Driver</b></td><td><code>awslogs</code>：送到 CloudWatch Logs；<code>awsfirelens</code>：送到 Fluent Bit（可轉到 Splunk、Kinesis 等）</td><td>FireLens 是 log aggregation 的標準答案</td></tr>
-      </tbody>
-    </table>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>參數</th><th>說明</th><th>考試重點</th></tr></thead>
+        <tbody>
+          <tr><td><b>Network Mode</b></td><td><code>awsvpc</code>：每個 Task 獨立 ENI（Fargate 強制）<br><code>bridge</code>：共享 Host 的 ENI（EC2 Launch Type，動態埠映射）<br><code>host</code>：直接用 Host 的網路介面</td><td>Fargate = 只能 awsvpc；EC2 = 三種都可以</td></tr>
+          <tr><td><b>Task Role</b></td><td>容器內的應用程式 call AWS API 用的 IAM Role（如 S3、DynamoDB）</td><td>這是授予<b>應用程式</b>的權限</td></tr>
+          <tr><td><b>Task Execution Role</b></td><td>ECS Agent 代替你拉映像、送日誌用的 Role（AmazonECSTaskExecutionRolePolicy）</td><td>這是授予 <b>ECS 基礎設施</b>的權限</td></tr>
+          <tr><td><b>Secrets</b></td><td>從 SSM Parameter Store 或 Secrets Manager 注入環境變數，不用硬編碼</td><td>需要 Task Execution Role 有讀取 SSM/SM 的權限</td></tr>
+          <tr><td><b>CPU/記憶體</b></td><td>Fargate 需要在 Task Definition 指定（256 CPU 單位 = 0.25 vCPU）</td><td>設太小會有 OOM；設太大浪費錢</td></tr>
+          <tr><td><b>Log Driver</b></td><td><code>awslogs</code>：送到 CloudWatch Logs；<code>awsfirelens</code>：送到 Fluent Bit（可轉到 Splunk、Kinesis 等）</td><td>FireLens 是 log aggregation 的標準答案</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="trap"><b>陷阱：Task Role vs Task Execution Role</b><br>
     Task Role = 你的<b>應用程式</b>要存取 DynamoDB，設這個。<br>
@@ -94,19 +96,21 @@
   <!-- 3 -->
   <div class="card" id="launchtype">
     <h2>3. Fargate vs EC2 Launch Type</h2>
-    <table class="t">
-      <thead><tr><th>特性</th><th>Fargate</th><th>EC2 Launch Type</th></tr></thead>
-      <tbody>
-        <tr><td><b>基礎設施管理</b></td><td>AWS 全管（無伺服器）</td><td>你管 EC2 Instance（打補丁、容量規劃）</td></tr>
-        <tr><td><b>計費</b></td><td>按 Task 使用的 vCPU + 記憶體，精確到秒</td><td>按 EC2 Instance 計費（不管 Task 是否跑滿）</td></tr>
-        <tr><td><b>成本</b></td><td>低流量時更貴（每個 Task 獨立計費）</td><td>高密度 Task 時更划算（Instance 可塞很多 Task）</td></tr>
-        <tr><td><b>GPU 支援</b></td><td>❌（Fargate 不支援 GPU Task）</td><td>✅（用 GPU Instance 如 g4dn）</td></tr>
-        <tr><td><b>Windows Container</b></td><td>✅ 支援</td><td>✅ 支援</td></tr>
-        <tr><td><b>Network Mode</b></td><td>只能 awsvpc</td><td>awsvpc / bridge / host</td></tr>
-        <tr><td><b>ECS Agent</b></td><td>AWS 管（你看不到）</td><td>需在 EC2 安裝 ECS Agent</td></tr>
-        <tr><td><b>適合情境</b></td><td>無伺服器、Dev/Test、不確定流量</td><td>GPU 工作負載、需要自訂 AMI、高密度部署</td></tr>
-      </tbody>
-    </table>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>特性</th><th>Fargate</th><th>EC2 Launch Type</th></tr></thead>
+        <tbody>
+          <tr><td><b>基礎設施管理</b></td><td>AWS 全管（無伺服器）</td><td>你管 EC2 Instance（打補丁、容量規劃）</td></tr>
+          <tr><td><b>計費</b></td><td>按 Task 使用的 vCPU + 記憶體，精確到秒</td><td>按 EC2 Instance 計費（不管 Task 是否跑滿）</td></tr>
+          <tr><td><b>成本</b></td><td>低流量時更貴（每個 Task 獨立計費）</td><td>高密度 Task 時更划算（Instance 可塞很多 Task）</td></tr>
+          <tr><td><b>GPU 支援</b></td><td>❌（Fargate 不支援 GPU Task）</td><td>✅（用 GPU Instance 如 g4dn）</td></tr>
+          <tr><td><b>Windows Container</b></td><td>✅ 支援</td><td>✅ 支援</td></tr>
+          <tr><td><b>Network Mode</b></td><td>只能 awsvpc</td><td>awsvpc / bridge / host</td></tr>
+          <tr><td><b>ECS Agent</b></td><td>AWS 管（你看不到）</td><td>需在 EC2 安裝 ECS Agent</td></tr>
+          <tr><td><b>適合情境</b></td><td>無伺服器、Dev/Test、不確定流量</td><td>GPU 工作負載、需要自訂 AMI、高密度部署</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="analogy">Fargate 像叫 Uber（隨叫隨到，依趟計費）；EC2 Launch Type 像買一輛車（固定成本，自己管保養，但每公里成本更低）。</div>
   </div>
@@ -164,14 +168,16 @@
   <div class="card" id="capacity">
     <h2>6. Capacity Provider 與 Fargate Spot</h2>
 
-    <table class="t">
-      <thead><tr><th>類型</th><th>說明</th><th>折扣</th><th>適合場景</th></tr></thead>
-      <tbody>
-        <tr><td><b>Fargate</b></td><td>標準 Fargate，任何時候可用</td><td>無</td><td>生產環境，需要穩定性</td></tr>
-        <tr><td><b>Fargate Spot</b></td><td>利用 AWS 閒置容量，隨時可能被中斷（2 分鐘通知）</td><td>最高 70%</td><td>批次處理、CI/CD、可重試的工作</td></tr>
-        <tr><td><b>Auto Scaling Group</b><br>(EC2)</td><td>EC2 Auto Scaling 與 ECS Cluster 整合，自動增減 EC2</td><td>依 EC2 類型</td><td>需要 GPU、高密度工作負載</td></tr>
-      </tbody>
-    </table>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>類型</th><th>說明</th><th>折扣</th><th>適合場景</th></tr></thead>
+        <tbody>
+          <tr><td><b>Fargate</b></td><td>標準 Fargate，任何時候可用</td><td>無</td><td>生產環境，需要穩定性</td></tr>
+          <tr><td><b>Fargate Spot</b></td><td>利用 AWS 閒置容量，隨時可能被中斷（2 分鐘通知）</td><td>最高 70%</td><td>批次處理、CI/CD、可重試的工作</td></tr>
+          <tr><td><b>Auto Scaling Group</b><br>(EC2)</td><td>EC2 Auto Scaling 與 ECS Cluster 整合，自動增減 EC2</td><td>依 EC2 類型</td><td>需要 GPU、高密度工作負載</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>Capacity Provider Strategy（混合策略）</h3>
     <div class="formula"><code>Service 設定：<br>
@@ -188,14 +194,16 @@ FARGATE_SPOT: weight=4     ← 其餘 Task 盡量用 Spot（70% 折扣）<br><br
     <h2>7. 服務探索（Service Discovery）</h2>
     <p>微服務之間需要互相找到對方。在 ECS 裡有幾種方式：</p>
 
-    <table class="t">
-      <thead><tr><th>方法</th><th>機制</th><th>適合場景</th></tr></thead>
-      <tbody>
-        <tr><td><b>ALB / NLB</b></td><td>固定 DNS（ALB 的 DNS Name），服務透過 Load Balancer 互訪</td><td>HTTP 服務的南北向流量（外部到內部）</td></tr>
-        <tr><td><b>AWS Cloud Map</b><br>(ECS Service Discovery)</td><td>自動在 Route 53 Private Hosted Zone 登記 Task 的 IP（SRV/A 記錄），服務透過 DNS 直接找 Task</td><td>東西向微服務通訊（Service to Service），延遲更低</td></tr>
-        <tr><td><b>App Mesh</b></td><td>Service Mesh（每個 Task 注入 Envoy Proxy Sidecar），提供流量控制、熔斷、mTLS</td><td>需要進階流量管理、安全需求的微服務架構</td></tr>
-      </tbody>
-    </table>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>方法</th><th>機制</th><th>適合場景</th></tr></thead>
+        <tbody>
+          <tr><td><b>ALB / NLB</b></td><td>固定 DNS（ALB 的 DNS Name），服務透過 Load Balancer 互訪</td><td>HTTP 服務的南北向流量（外部到內部）</td></tr>
+          <tr><td><b>AWS Cloud Map</b><br>(ECS Service Discovery)</td><td>自動在 Route 53 Private Hosted Zone 登記 Task 的 IP（SRV/A 記錄），服務透過 DNS 直接找 Task</td><td>東西向微服務通訊（Service to Service），延遲更低</td></tr>
+          <tr><td><b>App Mesh</b></td><td>Service Mesh（每個 Task 注入 Envoy Proxy Sidecar），提供流量控制、熔斷、mTLS</td><td>需要進階流量管理、安全需求的微服務架構</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>Cloud Map 整合</h3>
     <div class="arch">

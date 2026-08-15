@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遷移與資料轉移 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.rename{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#4C1D95;}
+.rename b{color:#6B21A8;}
+.rbox{border:1px solid var(--border);border-left:4px solid var(--sky);border-radius:0 10px 10px 0;padding:14px 18px;margin:10px 0;background:#F8FBFF;}
+.rbox b{color:var(--dark);font-size:.92rem;}
+.rbox p{margin:6px 0 0;font-size:.85rem;color:var(--muted);line-height:1.75;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">15 · 遷移與資料轉移</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 15 · 遷移</div>
+  <h1><span>遷移與資料轉移</span>完全指南</h1>
+  <p>7R 策略、Snow 家族、DMS、DataSync——搞懂「多少資料、多少時間、多少頻寬」怎麼決定工具,這是 SAA-C03 的送分題型。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#7r">遷移的 7R 策略</a></li>
+      <li><a href="#phases">遷移三階段與對應工具</a></li>
+      <li><a href="#snow">Snow 家族:實體搬運</a></li>
+      <li><a href="#online">線上傳輸:DataSync 與 Transfer Family</a></li>
+      <li><a href="#dms">DMS:資料庫遷移</a></li>
+      <li><a href="#server">伺服器與應用程式遷移</a></li>
+      <li><a href="#calc">動手算:該用網路還是 Snowball?</a></li>
+      <li><a href="#hybrid">混合雲的資料橋樑</a></li>
+      <li><a href="#choose">選型決策表</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="7r">
+    <h2>1. 遷移的 7R 策略</h2>
+    <div class="analogy">搬家時每件家具你都要決定:直接搬走、換新的、修一修再搬、還是乾脆丟掉。7R 就是 AWS 幫每個應用程式做的這個決定。</div>
+
+    <div class="rbox">
+      <b>① Rehost(重新託管)—— 俗稱 Lift &amp; Shift</b>
+      <p>原封不動搬上 EC2,不改程式。<b>最快、風險最低</b>,但也最沒享受到雲的好處。大型遷移專案通常先全部 Rehost,上雲後再慢慢優化。</p>
+    </div>
+    <div class="rbox">
+      <b>② Replatform(平台轉換)—— Lift, Tinker &amp; Shift</b>
+      <p>搬的時候順手換掉一小塊,例如自建 MySQL 換成 RDS、自建 Tomcat 換成 Elastic Beanstalk。<b>改動小、效益明顯</b>,是實務上最常見的甜蜜點。</p>
+    </div>
+    <div class="rbox">
+      <b>③ Refactor / Re-architect(重構)</b>
+      <p>打掉重寫成雲原生架構,例如單體改微服務、改成 Serverless。<b>效益最高、成本與風險也最高</b>,通常只對核心系統做。</p>
+    </div>
+    <div class="rbox">
+      <b>④ Repurchase(重新購買)</b>
+      <p>不搬了,直接換成 SaaS。例如自建 CRM 改用 Salesforce、自建郵件改用 Microsoft 365。</p>
+    </div>
+    <div class="rbox">
+      <b>⑤ Relocate(重新安置)</b>
+      <p>整個 VMware 環境搬到 VMware Cloud on AWS,不用改任何虛擬機。適合大量 VMware 資產的企業。</p>
+    </div>
+    <div class="rbox">
+      <b>⑥ Retain(保留)</b>
+      <p>暫時不搬。可能因為法規、剛投資完硬體、或系統即將除役。</p>
+    </div>
+    <div class="rbox">
+      <b>⑦ Retire(除役)</b>
+      <p>直接關掉。實務上盤點後常發現 10-20% 的系統根本沒人在用——這是遷移專案最快的省錢方式。</p>
+    </div>
+
+    <div class="trap"><b>陷阱:題目怎麼暗示要選哪個 R?</b><br>
+    • 「<b>盡快</b>搬完」「<b>最少改動</b>」「時間壓力大」→ <b>Rehost</b><br>
+    • 「想<b>減少維運負擔</b>但不想改程式」→ <b>Replatform</b>(例如換 RDS)<br>
+    • 「要享受<b>自動擴展與雲原生</b>」「願意投入開發」→ <b>Refactor</b><br>
+    • 「大量 <b>VMware</b> 虛擬機」→ <b>Relocate</b></div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="phases">
+    <h2>2. 遷移三階段與對應工具</h2>
+
+    <div class="arch">
+<span class="c">階段一:評估與探索 Assess</span><br>
+   <span class="y">Application Discovery Service</span><br>
+      └── 蒐集現有伺服器的規格、使用率、<span class="o">相依關係</span><br>
+      └── 匯出 CSV,用來估算上雲後的 TCO<br>
+<br>
+<span class="c">階段二:規劃與追蹤 Mobilize</span><br>
+   <span class="y">Migration Hub</span><br>
+      └── 一個地方看所有遷移工具的進度<br>
+      └── 跨 DMS / MGN / 合作夥伴工具的統一儀表板<br>
+<br>
+<span class="c">階段三:執行 Migrate</span><br>
+   資料 → DataSync / Snow 家族 / Transfer Family<br>
+   資料庫 → <span class="o">DMS</span>(+ SCT 做異質轉換)<br>
+   伺服器 → <span class="o">MGN</span>(Application Migration Service)
+    </div>
+
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;">
+      <span>📋</span>
+      <span><b>考試怎麼分辨這兩個「規劃類」服務:</b><br>
+      • <b>Discovery Service</b> = 我還<b>不知道</b>機房裡有什麼 → 去「發現」<br>
+      • <b>Migration Hub</b> = 我已經在搬了,要<b>看進度</b> → 是「儀表板」<br>
+      題目說「找出應用程式之間的相依關係」→ Discovery Service。</span>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="snow">
+    <h2>3. Snow 家族:實體搬運</h2>
+    <div class="analogy">當資料太多、網路太慢,AWS 會「寄一台加固的儲存設備給你」,你把資料倒進去再寄回 AWS。這聽起來很土,但幾百 TB 的資料用貨運真的比拉網路快得多。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>裝置</th><th>容量級距</th><th>特色</th><th>典型情境</th></tr></thead>
+        <tbody>
+          <tr><td><b>Snowcone</b></td><td>TB 級(最小)</td><td>可手提、耐惡劣環境,可用電池供電</td><td>無人機、車載、狹小空間的邊緣蒐集</td></tr>
+          <tr><td><b>Snowball Edge</b><br>Storage Optimized</td><td>約 80 TB 可用</td><td>以<b>儲存</b>為主,附帶運算能力</td><td>大量資料遷移(數十 TB 到 PB 級)</td></tr>
+          <tr><td><b>Snowball Edge</b><br>Compute Optimized</td><td>儲存較少</td><td>以<b>運算</b>為主,可選配 GPU</td><td>斷網環境的邊緣運算、影像分析、ML 推論</td></tr>
+          <tr><td><b>Snowmobile</b></td><td>最高 100 PB</td><td>一整台<b>貨櫃拖車</b></td><td>EB 級、整個資料中心搬遷</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>安全性</b><span>防篡改外殼、256 位元加密(金鑰由 KMS 管理)、TPM 模組。AWS 收到後會執行軟體抹除。</span></div>
+      <div class="cmp"><b>追蹤</b><span>電子墨水運送標籤自動更新,可用 SNS 或主控台追蹤狀態。</span></div>
+      <div class="cmp"><b>邊緣運算</b><span>Snowball Edge 可跑特定 EC2 執行個體與 Lambda 函數,適合離線現場先處理再回傳。</span></div>
+      <div class="cmp"><b>叢集</b><span>多台 Snowball Edge 可組成叢集,構成較大的臨時儲存空間。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱:Snowball 選哪一款?</b><br>
+    判斷順序很固定:<br>
+    ① 資料量 <b>PB 級以上、整個機房</b> → Snowmobile<br>
+    ② 資料量 <b>數十 TB 到數 PB</b> → Snowball Edge Storage Optimized<br>
+    ③ 需要在<b>現場運算</b>(GPU、ML 推論、影像處理) → Snowball Edge <b>Compute</b> Optimized<br>
+    ④ <b>空間受限、要能手提、環境嚴苛</b> → Snowcone<br><br>
+    看到「GPU」「斷線環境做機器學習」就選 Compute Optimized,不要看到大資料就反射選 Storage Optimized。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="online">
+    <h2>4. 線上傳輸:DataSync 與 Transfer Family</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>服務</th><th>做什麼</th><th>來源 / 目的</th><th>考試關鍵字</th></tr></thead>
+        <tbody>
+          <tr><td><b>DataSync</b></td><td>自動化的大量檔案同步,內建加密、驗證、排程</td><td>地端 NFS/SMB ↔ S3 / EFS / FSx</td><td><b>持續同步</b>、<b>排程複製</b>、比開源工具快很多</td></tr>
+          <tr><td><b>Transfer Family</b></td><td>託管的 SFTP / FTPS / FTP 端點,背後直通 S3 或 EFS</td><td>合作夥伴上傳 → S3</td><td>題目直接出現 <b>SFTP</b> / <b>FTP</b></td></tr>
+          <tr><td><b>Storage Gateway</b></td><td>地端與雲端之間的<b>常駐橋樑</b>(見第 8 節)</td><td>地端應用 ↔ S3 / Glacier</td><td><b>混合雲</b>、地端要保留快取</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rename">
+      <b>⚠️ 名稱已更新:</b>白皮書寫的是「<b>AWS Transfer for SFTP</b>」。此服務已擴充並更名為 <b>AWS Transfer Family</b>,現在同時支援 SFTP、FTPS 與 FTP。考試用的是新名字。
+    </div>
+
+    <div class="trap"><b>陷阱:DataSync vs Storage Gateway</b><br>
+    這兩個最容易混:<br>
+    • <b>DataSync</b> = <b>一次性或排程的「搬運」</b>。搬完就結束,地端不需要保留這份資料。<br>
+    • <b>Storage Gateway</b> = <b>長期的「橋樑」</b>。地端應用程式持續讀寫,雲端當作無限容量的後端。<br><br>
+    題目說「<b>遷移完成後地端就退役</b>」→ DataSync;說「<b>地端應用要繼續使用,但想把冷資料放雲端</b>」→ Storage Gateway。</div>
+
+    <div class="ok">
+      ✅ <b>DataSync 常考的加分點:</b>內建<b>資料完整性驗證</b>、支援<b>增量同步</b>(只傳異動)、可設<b>頻寬節流</b>(避免佔滿公司對外網路)、可走 Direct Connect 或網際網路。題目提到「不能影響上班時間的網路」→ 頻寬節流 + 排程在離峰。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="dms">
+    <h2>5. DMS:資料庫遷移</h2>
+
+    <div class="arch">
+<span class="c">同質遷移 Homogeneous</span>  <span class="w">(同一種資料庫)</span><br>
+   Oracle → Oracle,MySQL → RDS MySQL<br>
+   只需要 <span class="y">DMS</span><br>
+<br>
+<span class="c">異質遷移 Heterogeneous</span>  <span class="w">(換一種資料庫)</span><br>
+   Oracle → Aurora PostgreSQL,SQL Server → MySQL<br>
+   需要 <span class="o">SCT(Schema Conversion Tool)</span> + <span class="y">DMS</span><br>
+      └── SCT 先轉換<span class="o">結構與預存程序</span><br>
+      └── DMS 再搬<span class="o">資料</span>
+    </div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>來源不中斷</b><span>遷移期間來源資料庫維持可用,把停機時間壓到最低。</span></div>
+      <div class="cmp"><b>CDC 持續複製</b><span>Change Data Capture:先做全量搬移,再持續同步異動,直到你決定切換。</span></div>
+      <div class="cmp"><b>可當複寫工具</b><span>不只搬家,也能長期做跨區/跨引擎的持續複製。</span></div>
+      <div class="cmp"><b>可送進分析</b><span>把交易資料庫的異動持續串流到 Redshift 或 S3,做即時分析。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱:最小停機時間怎麼做?</b><br>
+    標準答案是 <b>DMS + CDC(持續複製)</b>:<br>
+    ① 先做 full load 把既有資料搬過去(此時來源照常運作)<br>
+    ② 開啟 CDC,持續同步新產生的異動<br>
+    ③ 選一個離峰時段,停掉應用、等最後幾筆同步完、把連線切到新資料庫<br><br>
+    停機時間只有第 ③ 步的幾分鐘。看到「minimal downtime」「near-zero downtime」就是這個組合。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="server">
+    <h2>6. 伺服器與應用程式遷移</h2>
+
+    <div class="rename">
+      <b>⚠️ 白皮書已過時之處:</b>白皮書介紹的 <b>AWS Server Migration Service(SMS)</b> 已經淘汰,AWS 現在的主力是 <b>AWS Application Migration Service(MGN)</b>。若考題出現伺服器 Lift &amp; Shift,答案應該是 <b>MGN</b>。白皮書適合理解「AWS 有伺服器遷移這類服務」,但服務名稱要更新。
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>服務</th><th>用途</th><th>特點</th></tr></thead>
+        <tbody>
+          <tr><td><b>MGN</b><br>(Application Migration Service)</td><td>把地端/其他雲的伺服器 Lift &amp; Shift 到 EC2</td><td>持續區塊級複製,切換時停機極短;<b>Rehost 的主力工具</b></td></tr>
+          <tr><td><b>DRS</b><br>(Elastic Disaster Recovery)</td><td>災難復原,不是遷移</td><td>技術和 MGN 同源,但目的是「平常待命,出事時接手」</td></tr>
+          <tr><td><b>VMware Cloud on AWS</b></td><td>整套 VMware 環境搬到 AWS</td><td>對應 7R 的 <b>Relocate</b>,VM 不用轉換</td></tr>
+          <tr><td><b>Migration Hub</b></td><td>跨工具的進度追蹤</td><td>本身不搬東西,只是儀表板</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap"><b>陷阱:MGN vs DRS</b><br>
+    兩者機制幾乎一樣,差在<b>意圖</b>:<br>
+    • 題目說「把地端伺服器<b>搬</b>到 AWS」→ <b>MGN</b><br>
+    • 題目說「地端<b>繼續運作</b>,但要在 AWS 準備<b>災難備援</b>」→ <b>DRS</b><br>
+    關鍵字:migration / cutover → MGN;disaster recovery / RTO / RPO → DRS。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="calc">
+    <h2>7. 動手算:該用網路還是 Snowball?</h2>
+    <p>這是 SAA 很愛考的計算題,公式其實只有一條:</p>
+
+    <div class="formula"><code>傳輸時間(小時) = 資料量(Gb) ÷ 頻寬(Gbps) ÷ 3600<br><br>
+※ 注意單位!TB 是 Byte,頻寬是 bit。<br>
+1 TB = 8,000 Gb(粗算用 1 Byte = 8 bit)</code></div>
+
+    <div class="ex-box">
+      <b>範例:要搬 100 TB,公司對外頻寬 500 Mbps(且只有一半可用於遷移)</b>
+      <p style="font-size:.87rem;color:var(--muted);line-height:1.9;margin-top:8px;">
+      ① 資料量換算:100 TB × 8,000 = <b>800,000 Gb</b><br>
+      ② 可用頻寬:500 Mbps × 50% = 250 Mbps = <b>0.25 Gbps</b><br>
+      ③ 時間:800,000 ÷ 0.25 ÷ 3600 ≈ <b>889 小時 ≈ 37 天</b><br><br>
+      → 37 天顯然太久,而且整段期間會嚴重影響公司正常網路。<br>
+      → <b>結論:改用 Snowball Edge(通常一週內可完成往返)。</b></p>
+    </div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;">
+      <span>💡</span>
+      <span><b>考場上的快速判斷法(不用真的算):</b><br>
+      • 資料量 <b>&lt; 10 TB</b> 且頻寬還可以 → 走網路(DataSync)<br>
+      • 資料量 <b>10 TB ~ 幾百 TB</b>,或算出來要好幾週 → <b>Snowball Edge</b><br>
+      • 資料量 <b>PB 級以上</b> → <b>Snowmobile</b><br>
+      • 題目強調「<b>頻寬有限</b>」「<b>不能影響現有業務網路</b>」→ 幾乎都是 Snow 家族</span>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="hybrid">
+    <h2>8. 混合雲的資料橋樑</h2>
+    <p>不是所有東西都要搬完。很多企業會長期維持「一腳在地端、一腳在雲端」,這時要用 Storage Gateway:</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>類型</th><th>地端看起來像什麼</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><b>File Gateway</b></td><td>NFS / SMB 網路磁碟</td><td>檔案存到雲端 S3,地端保留熱資料快取</td></tr>
+          <tr><td><b>Volume Gateway</b></td><td>iSCSI 區塊磁碟</td><td>備份地端磁碟到雲端,可做快照</td></tr>
+          <tr><td><b>Tape Gateway</b></td><td>虛擬磁帶櫃(VTL)</td><td>用既有備份軟體,把磁帶備份改存到 S3 Glacier</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ok">
+      ✅ <b>Tape Gateway 是很好認的送分題:</b>只要題目提到「公司有既有的<b>磁帶備份</b>流程,不想改備份軟體,但想淘汰實體磁帶櫃」→ 一定是 <b>Tape Gateway</b>。
+    </div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Direct Connect</b><span>專線。頻寬穩定、延遲低,但要幾週到幾個月才申裝好。長期混合雲的標準做法。</span></div>
+      <div class="cmp"><b>Site-to-Site VPN</b><span>走網際網路的加密通道。幾小時就能建好,常用來當 Direct Connect 的備援或過渡方案。</span></div>
+      <div class="cmp"><b>Outposts</b><span>把 AWS 的機架直接放進你的機房,適合法規要求資料落地、或延遲極度敏感的場景。</span></div>
+      <div class="cmp"><b>DataSync over DX</b><span>DataSync 可以走 Direct Connect,兼顧速度與不佔用公司對外頻寬。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱:急著要專線怎麼辦?</b><br>
+    題目說「Direct Connect 還要 <b>3 個月</b>才裝好,但下個月就要開始遷移」→ 答案是<b>先用 Site-to-Site VPN 過渡</b>,等專線好了再切換。這題常出現在混合雲與遷移的組合題。</div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="choose">
+    <h2>9. 選型決策表</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>題目怎麼描述</th><th>答案</th></tr></thead>
+        <tbody>
+          <tr><td>盤點機房有哪些伺服器、彼此如何相依</td><td><b>Application Discovery Service</b></td></tr>
+          <tr><td>統一看各種遷移工具的進度</td><td><b>Migration Hub</b></td></tr>
+          <tr><td>幾百 TB 資料、頻寬不足</td><td><b>Snowball Edge</b></td></tr>
+          <tr><td>PB 級、整個資料中心搬遷</td><td><b>Snowmobile</b></td></tr>
+          <tr><td>斷網環境要邊蒐集邊做 ML</td><td><b>Snowball Edge Compute Optimized</b></td></tr>
+          <tr><td>地端 NAS 定期同步到 S3 / EFS</td><td><b>DataSync</b></td></tr>
+          <tr><td>合作夥伴要用 SFTP 上傳檔案</td><td><b>Transfer Family</b></td></tr>
+          <tr><td>Oracle 搬到 Aurora PostgreSQL</td><td><b>SCT + DMS</b></td></tr>
+          <tr><td>資料庫遷移且停機時間要最短</td><td><b>DMS + CDC</b></td></tr>
+          <tr><td>地端伺服器 Lift &amp; Shift 到 EC2</td><td><b>MGN</b></td></tr>
+          <tr><td>地端繼續跑,AWS 當災備</td><td><b>Elastic Disaster Recovery(DRS)</b></td></tr>
+          <tr><td>大量 VMware 虛擬機整批搬</td><td><b>VMware Cloud on AWS</b>(Relocate)</td></tr>
+          <tr><td>地端應用長期讀寫,冷資料放雲端</td><td><b>Storage Gateway</b></td></tr>
+          <tr><td>淘汰實體磁帶櫃但保留備份軟體</td><td><b>Tape Gateway</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1:單位換算是計算題的唯一考點</b><br>
+    TB 是 <b>Byte</b>,Mbps 是 <b>bit</b>。忘了乘 8 會算出小八倍的時間,然後選錯答案。這是最常見的失分點。</div>
+
+    <div class="trap"><b>陷阱 2:DataSync 不是長期橋樑</b><br>
+    「地端應用程式要持續存取」→ Storage Gateway,不是 DataSync。DataSync 是搬運工,搬完就走。</div>
+
+    <div class="trap"><b>陷阱 3:異質遷移不能只用 DMS</b><br>
+    Oracle → PostgreSQL 這種換引擎的情況,<b>一定要先用 SCT 轉結構</b>。只選 DMS 的選項是錯的,因為預存程序、觸發器、資料型別都需要轉換。</div>
+
+    <div class="trap"><b>陷阱 4:Snowcone 容量很小</b><br>
+    Snowcone 是 TB 級的小裝置,看到「幾十 TB」不要選它。它的賣點是<b>體積小、能在惡劣環境運作</b>,不是容量大。</div>
+
+    <div class="trap"><b>陷阱 5:Migration Hub 不搬東西</b><br>
+    它只是儀表板。題目問「用什麼工具<b>執行</b>遷移」時選它就錯了。它回答的是「怎麼<b>追蹤</b>遷移」。</div>
+
+    <div class="trap"><b>陷阱 6:白皮書的服務名已更新</b><br>
+    這份 2020 年的白皮書提到 <b>AWS Server Migration Service(SMS)</b> 與 <b>AWS Transfer for SFTP</b>,現行對應為 <b>Application Migration Service(MGN)</b> 與 <b>Transfer Family</b>。白皮書用來建立全貌很好用,但個別服務的現況請以 AWS 官方文件為準。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;">
+      <span>💡</span>
+      <span><b>一句話記憶法:</b><br>
+      搬<b>前</b>先 Discovery,搬<b>中</b>看 Migration Hub;<br>
+      搬<b>檔案</b>用 DataSync,搬<b>資料庫</b>用 DMS,搬<b>伺服器</b>用 MGN;<br>
+      <b>網路不夠快</b>就寄 Snowball,<b>不打算全搬</b>就架 Storage Gateway。</span>
+    </div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="14-ai-ml.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 14 · AI / ML 服務</a>
+    <a href="index.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">回到學習中心 →</a>
+  </div>
+
+</div>
+</body>
+</html>

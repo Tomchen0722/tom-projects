@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分析與大數據 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.rename{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#4C1D95;}
+.rename b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">13 · 分析與大數據</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 13 · 分析</div>
+  <h1><span>分析與大數據</span>服務全解</h1>
+  <p>Kinesis、Athena、Redshift、EMR、Glue、QuickSight——搞懂「哪個服務解哪種資料問題」，這是 SAA-C03 情境題最愛出的一組選擇題。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#map">先建立地圖：資料的一生</a></li>
+      <li><a href="#kinesis">Kinesis 四兄弟：最容易混淆的一組</a></li>
+      <li><a href="#athena">Athena：直接查 S3</a></li>
+      <li><a href="#redshift">Redshift：資料倉儲</a></li>
+      <li><a href="#emr">EMR：託管的 Hadoop / Spark</a></li>
+      <li><a href="#glue">Glue 與 Lake Formation</a></li>
+      <li><a href="#opensearch">OpenSearch 與 MSK</a></li>
+      <li><a href="#quicksight">QuickSight：把結果變成圖</a></li>
+      <li><a href="#choose">選型決策表</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="map">
+    <h2>1. 先建立地圖：資料的一生</h2>
+    <div class="analogy">把資料想成自來水：<b>取水</b>（收集）→ <b>輸水管</b>（傳輸）→ <b>水庫</b>（儲存）→ <b>淨水廠</b>（處理）→ <b>水龍頭</b>（分析與呈現）。AWS 的分析服務就是分別負責這五段,你只要知道每個服務站在哪一段,選型題就答得出來。</div>
+
+    <div class="arch">
+<span class="c">① 收集 Ingest</span><br>
+   Kinesis Data Streams / Firehose ← 即時串流<br>
+   Snowball / DataSync / DMS      ← 批次搬移<br>
+<br>
+<span class="c">② 儲存 Store</span><br>
+   <span class="o">S3（資料湖的地基）</span> / Redshift（資料倉儲）<br>
+<br>
+<span class="c">③ 處理 Process</span><br>
+   Glue（ETL）/ EMR（Spark、Hadoop）/ Lambda<br>
+<br>
+<span class="c">④ 分析 Analyze</span><br>
+   Athena（查 S3）/ Redshift（查倉儲）/ OpenSearch（查日誌）<br>
+<br>
+<span class="c">⑤ 呈現 Visualize</span><br>
+   <span class="y">QuickSight（BI 儀表板）</span>
+    </div>
+
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;">
+      <span>📋</span>
+      <span><b>考試的關鍵直覺:S3 是資料湖的中心。</b>幾乎所有分析架構的題目,最後資料都會落在 S3,再由不同服務去查它。看到「最低成本」「不想管伺服器」的字眼,答案通常是 S3 + Athena 這組。</span>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="kinesis">
+    <h2>2. Kinesis 四兄弟:最容易混淆的一組</h2>
+    <p>Kinesis 是一整個家族,名字很像但用途完全不同。考試每次都考,這張表要背熟:</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>服務</th><th>做什麼</th><th>資料保留</th><th>誰來消費</th><th>關鍵字</th></tr></thead>
+        <tbody>
+          <tr><td><b>Data Streams</b><br>(KDS)</td><td>即時串流的「管道」,你自己寫程式讀取</td><td>預設 24 小時<br>(最長 365 天)</td><td>自己寫 Consumer<br>(Lambda / KCL)</td><td>需要<b>自訂處理</b>、需要<b>重播</b>資料</td></tr>
+          <tr><td><b>Data Firehose</b></td><td>全託管的「輸送帶」,自動送到目的地</td><td>不保留<br>(直接送走)</td><td>AWS 自動送到<br>S3/Redshift/OpenSearch/Splunk</td><td><b>不想寫程式</b>、<b>近即時</b>、自動轉檔</td></tr>
+          <tr><td><b>Data Analytics</b></td><td>用 SQL 直接查串流中的資料</td><td>—</td><td>查詢結果再輸出</td><td>串流上做<b>即時 SQL 聚合</b></td></tr>
+          <tr><td><b>Video Streams</b></td><td>把攝影機影像串流進 AWS</td><td>可設定</td><td>Rekognition Video、自訂 ML</td><td><b>影像</b>、監視器、電腦視覺</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap"><b>陷阱:Data Streams vs Firehose 怎麼選?</b><br>
+    這是 SAA 最高頻的一題。三個判斷點:<br>
+    ① 題目說「<b>near real-time</b>(近即時,可接受 60 秒延遲)」→ <b>Firehose</b><br>
+    ② 題目說「<b>real-time</b>(毫秒級)」或「需要<b>重播/重新處理</b>」→ <b>Data Streams</b><br>
+    ③ 題目說「<b>不想管理基礎設施</b>」「<b>自動送到 S3</b>」→ <b>Firehose</b><br><br>
+    記憶法:Firehose 是「一條水管直接接到水塔」,你不能中途撈水;Data Streams 是「一條河」,你可以派很多人在不同位置舀水,而且水會停留一段時間。</div>
+
+    <h3>Firehose 的加值功能(常考)</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>格式轉換</b><span>寫入 S3 前自動轉成 Parquet / ORC 這類「欄式格式」,讓後續 Athena 查詢更快更便宜。</span></div>
+      <div class="cmp"><b>Lambda 轉換</b><span>途中可呼叫 Lambda 做清洗、加欄位、過濾。</span></div>
+      <div class="cmp"><b>壓縮與加密</b><span>GZIP/Snappy 壓縮,KMS 加密,減少儲存成本。</span></div>
+      <div class="cmp"><b>緩衝設定</b><span>依「大小」或「時間」觸發寫出(例如 5 MB 或 60 秒,先到先送)。</span></div>
+    </div>
+
+    <div class="cost">
+      💰 <b>成本觀念:</b>Firehose 按「送進去的資料量」計費,沒有預先配置的成本;Data Streams 傳統模式要自己配 Shard(分片),不管有沒有資料都在計費(On-Demand 模式則按量計費)。流量不穩定又想省錢 → Firehose 或 Data Streams On-Demand。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="athena">
+    <h2>3. Athena:直接查 S3</h2>
+    <div class="analogy">Athena 像是「直接對著倉庫喊話問東西在哪」,不用先把貨搬到辦公室。資料留在 S3 原地不動,你用 SQL 直接查它。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>特性</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td><b>Serverless</b></td><td>沒有伺服器要管,不用預先配置任何東西</td></tr>
+          <tr><td><b>計費方式</b></td><td>按<b>掃描的資料量</b>計費(每 TB 計價)——這是所有優化的核心</td></tr>
+          <tr><td><b>資料來源</b></td><td>S3(也可透過 Federated Query 查 RDS、DynamoDB 等)</td></tr>
+          <tr><td><b>底層引擎</b></td><td>Presto / Trino,標準 SQL</td></tr>
+          <tr><td><b>Schema 來源</b></td><td>Glue Data Catalog(表定義存在這裡)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>降低 Athena 費用的四個手段(必考)</h3>
+    <div class="arch">
+<span class="c">① 用欄式格式(Columnar)</span><br>
+   CSV/JSON → <span class="o">Parquet / ORC</span><br>
+   只讀取需要的欄位,掃描量可降 <span class="y">80-90%</span><br>
+<br>
+<span class="c">② 分割(Partition)</span><br>
+   s3://bucket/logs/<span class="y">year=2026/month=08/day=15/</span><br>
+   查特定日期時只掃該資料夾,不掃全部<br>
+<br>
+<span class="c">③ 壓縮(Compression)</span><br>
+   GZIP / Snappy → 檔案變小,掃描量變小<br>
+<br>
+<span class="c">④ 合併小檔案</span><br>
+   大量的小檔案會拖慢查詢,合併成較大的檔案較有效率
+    </div>
+
+    <div class="trap"><b>陷阱:Athena 的成本題</b><br>
+    題目常說「查詢費用太高,怎麼降低?」——標準答案幾乎都是<b>「轉成 Parquet + 分割」</b>。<br>
+    注意:選項裡如果有「改用 Redshift」,通常是錯的,因為 Redshift 要一直開著、成本更高。Athena 貴在<b>掃描量</b>,不是貴在服務本身。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="redshift">
+    <h2>4. Redshift:資料倉儲</h2>
+    <p>Redshift 是給「大量歷史資料做複雜分析」用的資料倉儲(OLAP),不是拿來當網站的資料庫(OLTP)。</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>OLTP</b><span>線上交易處理。頻繁的小筆讀寫,例如「查這個會員的訂單」。→ RDS / DynamoDB</span></div>
+      <div class="cmp"><b>OLAP</b><span>線上分析處理。少量但巨大的查詢,例如「過去三年各區域每月營收趨勢」。→ Redshift</span></div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>功能</th><th>說明</th><th>考試關鍵字</th></tr></thead>
+        <tbody>
+          <tr><td><b>欄式儲存</b></td><td>按欄存放,分析型查詢只讀需要的欄位</td><td>分析效能</td></tr>
+          <tr><td><b>MPP</b></td><td>大規模平行處理,查詢分散到多個節點同時跑</td><td>PB 級資料</td></tr>
+          <tr><td><b>Redshift Spectrum</b></td><td>讓 Redshift 直接查 <b>S3 上的資料</b>,不用先載入</td><td>倉儲 + 資料湖<b>一起查</b></td></tr>
+          <tr><td><b>Concurrency Scaling</b></td><td>查詢併發高時自動加算力,尖峰過後收回</td><td>報表尖峰、很多人同時查</td></tr>
+          <tr><td><b>Redshift Serverless</b></td><td>免管理叢集,按用量計費</td><td>用量不固定、不想管容量</td></tr>
+          <tr><td><b>RA3 節點</b></td><td>運算與儲存分離,可獨立擴充儲存</td><td>資料成長快但算力夠用</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap"><b>陷阱:Spectrum vs Athena</b><br>
+    兩者都能查 S3,差別在:<br>
+    • <b>Athena</b>:完全 Serverless,適合臨時查詢、不需要有 Redshift 叢集<br>
+    • <b>Spectrum</b>:需要有 Redshift 叢集,適合「倉儲裡的熱資料」要和「S3 上的冷資料」<b>join 在一起查</b><br>
+    題目出現「既有 Redshift 資料,又要關聯 S3 歷史資料」→ Spectrum。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="emr">
+    <h2>5. EMR:託管的 Hadoop / Spark</h2>
+    <div class="analogy">EMR 像「租一整座工廠加現成的產線設備」。你要跑 Spark、Hadoop、Hive、HBase 這些開源大數據框架,但不想自己裝、自己調、自己修,就用 EMR。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>節點類型</th><th>角色</th><th>能不能關掉</th></tr></thead>
+        <tbody>
+          <tr><td><b>Master 主節點</b></td><td>管理叢集、分派工作</td><td>不能(關了叢集就掛)</td></tr>
+          <tr><td><b>Core 核心節點</b></td><td>執行任務 + 存放 HDFS 資料</td><td>可增減,但減少會影響資料</td></tr>
+          <tr><td><b>Task 任務節點</b></td><td>只執行任務,<b>不存資料</b></td><td>可隨時增減 → <b>最適合用 Spot</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ok">
+      ✅ <b>成本優化標準答案:</b>Master 和 Core 用 On-Demand(穩定),<b>Task 節點用 Spot Instance</b>(最高省 90%)。因為 Task 節點不存資料,被中斷也不會掉資料,重跑就好。這是 EMR 成本題的固定答案。
+    </div>
+
+    <div class="trap"><b>陷阱:EMR vs Glue 怎麼選?</b><br>
+    • 題目說「要用 <b>Spark / Hadoop / Hive / 現有的開源程式碼</b>」「需要調整叢集參數」→ <b>EMR</b><br>
+    • 題目說「<b>Serverless ETL</b>」「不想管叢集」「只是做資料格式轉換與編目」→ <b>Glue</b><br>
+    Glue 底層其實也是 Spark,但你看不到叢集。要「控制權」選 EMR,要「省事」選 Glue。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="glue">
+    <h2>6. Glue 與 Lake Formation</h2>
+
+    <h3>AWS Glue 的三個組件</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>Glue Crawler</b><span>自動掃描 S3 上的資料,推斷欄位與型別,把表定義寫進 Data Catalog。</span></div>
+      <div class="cmp"><b>Glue Data Catalog</b><span>中央的「資料目錄」,存放所有表的 Schema。Athena、Redshift Spectrum、EMR 都共用它。</span></div>
+      <div class="cmp"><b>Glue ETL Job</b><span>Serverless 的 Spark 作業,做清洗、轉檔、合併。可用 Python 或 Scala。</span></div>
+    </div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;">
+      <span>💡</span>
+      <span><b>Glue Data Catalog 是整個分析生態的「共用戶口名簿」。</b>Crawler 登記完之後,Athena 就查得到、Spectrum 也查得到、EMR 也讀得到。考試看到「統一的中央 metadata 目錄」→ Glue Data Catalog。</span>
+    </div>
+
+    <h3>AWS Lake Formation</h3>
+    <p>Lake Formation 蓋在 Glue 之上,負責<b>資料湖的權限管理</b>。它最大的價值是提供「<b>欄位級 / 列級</b>」的細緻權限——例如讓行銷部門看得到訂單金額,但看不到客戶身分證字號。</p>
+
+    <div class="trap"><b>陷阱:權限題選 Lake Formation 還是 IAM?</b><br>
+    • 「誰可以存取這個 S3 bucket」→ <b>IAM / Bucket Policy</b><br>
+    • 「誰可以看到這張表的<b>哪些欄位</b>、<b>哪些列</b>」→ <b>Lake Formation</b><br>
+    題目出現「column-level / row-level security」「集中管理資料湖權限」→ Lake Formation。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="opensearch">
+    <h2>7. OpenSearch 與 MSK</h2>
+
+    <div class="rename">
+      <b>⚠️ 名稱已更新:</b>白皮書寫的是「Amazon Elasticsearch Service」,AWS 已在 2021 年將它更名為 <b>Amazon OpenSearch Service</b>。現行考試與主控台都用 OpenSearch 這個名字,看到 Elasticsearch 請自動對應過去。
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>服務</th><th>本質</th><th>典型用途</th><th>考試關鍵字</th></tr></thead>
+        <tbody>
+          <tr><td><b>OpenSearch Service</b></td><td>託管的搜尋與日誌分析引擎</td><td>日誌分析、全文檢索、應用監控、點擊流分析</td><td><b>全文搜尋</b>、<b>日誌即時查詢</b>、Kibana/Dashboards</td></tr>
+          <tr><td><b>MSK</b><br>(Managed Streaming for Kafka)</td><td>託管的 Apache Kafka</td><td>已有 Kafka 應用要搬上雲、需要 Kafka API</td><td>題目直接出現 <b>Kafka</b> 這個字</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap"><b>陷阱:MSK vs Kinesis Data Streams</b><br>
+    兩者功能高度重疊,判斷點只有一個:<br>
+    <b>題目有沒有提到「既有的 Kafka 應用程式」或「要用 Kafka API」?</b><br>
+    有 → MSK(不用改程式碼就能搬上雲)<br>
+    沒有,只是要做串流 → Kinesis Data Streams(更 AWS 原生、更省事)<br><br>
+    另一個小差異:Kafka 的訊息大小上限預設 1 MB 可調大;Kinesis 單筆上限 1 MB 固定。題目提到「單筆訊息很大」時要注意。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="quicksight">
+    <h2>8. QuickSight:把結果變成圖</h2>
+    <p>QuickSight 是 AWS 的 BI(商業智慧)工具,負責最後一哩路——把資料變成老闆看得懂的儀表板。</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>SPICE 引擎</b><span>記憶體內的快取引擎。把資料先載進 SPICE,查詢就不用每次打回源頭,速度快又省錢。</span></div>
+      <div class="cmp"><b>資料來源</b><span>Athena、Redshift、RDS、S3、Aurora,也支援第三方與本地資料。</span></div>
+      <div class="cmp"><b>嵌入式儀表板</b><span>可把儀表板嵌進自家應用,給客戶做自助分析。</span></div>
+      <div class="cmp"><b>權限控管</b><span>支援列級安全性(RLS),不同使用者看到不同範圍的資料。</span></div>
+    </div>
+
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;">
+      <span>📋</span>
+      <span>考試看到「<b>不想架 BI 伺服器</b>」「<b>把儀表板嵌入應用程式</b>」「按用量付費的 BI」→ QuickSight。看到 SPICE 這個字,直接對應 QuickSight 的記憶體快取。</span>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="choose">
+    <h2>9. 選型決策表</h2>
+    <p>把整章濃縮成一張「看到題目怎麼選」的對照表:</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>題目怎麼描述</th><th>答案</th><th>為什麼</th></tr></thead>
+        <tbody>
+          <tr><td>即時串流,要自己寫消費程式、要能重播</td><td><b>Kinesis Data Streams</b></td><td>資料會保留,可多個消費者</td></tr>
+          <tr><td>串流資料自動送進 S3,不想寫程式</td><td><b>Kinesis Data Firehose</b></td><td>全託管,自動交付</td></tr>
+          <tr><td>對串流資料做即時 SQL 聚合</td><td><b>Kinesis Data Analytics</b></td><td>串流上直接下 SQL</td></tr>
+          <tr><td>臨時查 S3 上的資料,最低成本</td><td><b>Athena</b></td><td>Serverless,按掃描量計費</td></tr>
+          <tr><td>PB 級歷史資料,複雜分析報表</td><td><b>Redshift</b></td><td>資料倉儲,MPP 架構</td></tr>
+          <tr><td>倉儲資料要和 S3 冷資料 join</td><td><b>Redshift Spectrum</b></td><td>跨倉儲與資料湖查詢</td></tr>
+          <tr><td>要跑既有的 Spark / Hadoop 程式</td><td><b>EMR</b></td><td>託管開源框架,可調叢集</td></tr>
+          <tr><td>Serverless 的 ETL 與資料編目</td><td><b>Glue</b></td><td>免管叢集,含 Data Catalog</td></tr>
+          <tr><td>資料湖的欄位級 / 列級權限</td><td><b>Lake Formation</b></td><td>細緻權限控管</td></tr>
+          <tr><td>日誌全文搜尋與即時分析</td><td><b>OpenSearch Service</b></td><td>搜尋引擎 + 視覺化</td></tr>
+          <tr><td>既有 Kafka 應用要上雲</td><td><b>MSK</b></td><td>相容 Kafka API,不改程式</td></tr>
+          <tr><td>做儀表板給主管看</td><td><b>QuickSight</b></td><td>託管 BI,可嵌入</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1:「near real-time」是 Firehose 的暗號</b><br>
+    只要題目寫「near real-time」,幾乎都是 Firehose(最短緩衝約 60 秒)。寫「real-time」「sub-second」才是 Data Streams。這一個字就決定答案。</div>
+
+    <div class="trap"><b>陷阱 2:Athena 降成本 ≠ 換服務</b><br>
+    Athena 查詢太貴,答案是「轉 Parquet + 分割 + 壓縮」,不是「改用 Redshift」或「加大機器」。Athena 沒有機器可以加。</div>
+
+    <div class="trap"><b>陷阱 3:EMR 的 Spot 只能用在 Task 節點</b><br>
+    Master 用 Spot = 叢集隨時可能整個掛掉;Core 用 Spot = HDFS 資料可能遺失。只有 Task 節點是安全的。</div>
+
+    <div class="trap"><b>陷阱 4:Glue Data Catalog 是共用的</b><br>
+    題目問「如何讓 Athena、EMR、Redshift Spectrum 用同一套表定義」→ Glue Data Catalog。不要選「各自建立 schema」。</div>
+
+    <div class="trap"><b>陷阱 5:Kinesis Shard 與吞吐量</b><br>
+    傳統(Provisioned)模式下,每個 Shard 寫入上限約 1 MB/秒 或 1,000 筆/秒,讀取約 2 MB/秒。題目給你流量要你算 Shard 數時,用<b>寫入量 ÷ 1 MB</b> 取進位。吞吐不夠的解法是<b>增加 Shard</b>,不是換服務。</div>
+
+    <div class="trap"><b>陷阱 6:白皮書裡的舊服務名</b><br>
+    這份 2020 年的白皮書提到 <b>AWS Data Pipeline</b> 與 <b>Amazon Elastic Transcoder</b>,兩者 AWS 均已停止接受新客戶/走向淘汰,現行考試不會要你選它們。資料搬移與排程請往 <b>Glue / Step Functions / MWAA</b> 方向想。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;">
+      <span>💡</span>
+      <span><b>一句話記憶法:</b><br>
+      即時進來找 <b>Kinesis</b>,存起來放 <b>S3</b>,整理交給 <b>Glue</b>,臨時查用 <b>Athena</b>,大報表用 <b>Redshift</b>,跑開源用 <b>EMR</b>,找日誌用 <b>OpenSearch</b>,畫圖用 <b>QuickSight</b>。</span>
+    </div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="12-identity-api.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 12 · Cognito &amp; API GW</a>
+    <a href="14-ai-ml.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">14 · AI / ML 服務 →</a>
+  </div>
+
+</div>
+</body>
+</html>

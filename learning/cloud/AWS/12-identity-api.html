@@ -103,15 +103,17 @@
     <p>User Pool 內建一個託管的登入頁（Cognito Hosted UI），不用自己寫登入介面。支援 OAuth 2.0 標準流程（Authorization Code + PKCE），可以自訂網域（如 <code>auth.yourapp.com</code>）。</p>
 
     <h3>Triggers（Lambda 觸發器）</h3>
-    <table class="t">
-      <thead><tr><th>觸發時機</th><th>用途</th></tr></thead>
-      <tbody>
-        <tr><td>Pre Sign-up</td><td>自訂驗證邏輯（如：只允許公司域名 Email）</td></tr>
-        <tr><td>Post Confirmation</td><td>使用者確認帳號後，把使用者資料寫入 DynamoDB</td></tr>
-        <tr><td>Pre Token Generation</td><td>在 JWT Token 裡加入自訂屬性（如：使用者的訂閱層級）</td></tr>
-        <tr><td>Custom Authentication</td><td>自訂挑戰（如：簡訊驗證碼 OTP）</td></tr>
-      </tbody>
-    </table>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>觸發時機</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>Pre Sign-up</td><td>自訂驗證邏輯（如：只允許公司域名 Email）</td></tr>
+          <tr><td>Post Confirmation</td><td>使用者確認帳號後，把使用者資料寫入 DynamoDB</td></tr>
+          <tr><td>Pre Token Generation</td><td>在 JWT Token 裡加入自訂屬性（如：使用者的訂閱層級）</td></tr>
+          <tr><td>Custom Authentication</td><td>自訂挑戰（如：簡訊驗證碼 OTP）</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- 3 -->
@@ -144,29 +146,31 @@
   <!-- 4 -->
   <div class="card" id="apigw-types">
     <h2>4. API Gateway 三種類型</h2>
-    <table class="t">
-      <thead><tr><th>類型</th><th>協議</th><th>適合場景</th><th>考試關鍵點</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><b>REST API</b></td>
-          <td>HTTP/HTTPS</td>
-          <td>標準 RESTful API，功能最完整（快取、使用量計劃、WAF 整合）</td>
-          <td>支援 API Key、Usage Plan（限流）；較貴</td>
-        </tr>
-        <tr>
-          <td><b>HTTP API</b></td>
-          <td>HTTP/HTTPS</td>
-          <td>低延遲輕量 API（比 REST API 便宜 70%），適合 Lambda + OIDC/JWT 授權</td>
-          <td>不支援 AWS WAF；不支援 API Key；支援 OIDC/OAuth 2.0 JWT Authorizer</td>
-        </tr>
-        <tr>
-          <td><b>WebSocket API</b></td>
-          <td>WebSocket</td>
-          <td>雙向即時通訊（聊天室、即時通知、遊戲）</td>
-          <td>連線管理用 connection ID；後端可 push 到客戶端</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>類型</th><th>協議</th><th>適合場景</th><th>考試關鍵點</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>REST API</b></td>
+            <td>HTTP/HTTPS</td>
+            <td>標準 RESTful API，功能最完整（快取、使用量計劃、WAF 整合）</td>
+            <td>支援 API Key、Usage Plan（限流）；較貴</td>
+          </tr>
+          <tr>
+            <td><b>HTTP API</b></td>
+            <td>HTTP/HTTPS</td>
+            <td>低延遲輕量 API（比 REST API 便宜 70%），適合 Lambda + OIDC/JWT 授權</td>
+            <td>不支援 AWS WAF；不支援 API Key；支援 OIDC/OAuth 2.0 JWT Authorizer</td>
+          </tr>
+          <tr>
+            <td><b>WebSocket API</b></td>
+            <td>WebSocket</td>
+            <td>雙向即時通訊（聊天室、即時通知、遊戲）</td>
+            <td>連線管理用 connection ID；後端可 push 到客戶端</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="trap"><b>REST API vs HTTP API 選擇關鍵</b><br>
     需要 WAF、API Key 限流、Request/Response 轉換、Edge-Optimized → <b>REST API</b><br>
@@ -233,16 +237,18 @@ IAM 允許 但 SCP 拒絕 → 不能執行<br>
 IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
 明確 Deny（在任何地方）→ 永遠勝過任何 Allow</code></div>
 
-    <table class="t">
-      <thead><tr><th>SCP 常見用途</th><th>範例</th></tr></thead>
-      <tbody>
-        <tr><td>Region 限制</td><td>Deny 所有非 ap-northeast-1 的操作（只允許日本 Region）</td></tr>
-        <tr><td>禁止關閉 CloudTrail</td><td>Deny cloudtrail:DeleteTrail / StopLogging（防止稽核紀錄被刪）</td></tr>
-        <tr><td>禁止建立外部 IAM 使用者</td><td>Deny iam:CreateUser（強制用 SSO 登入，不允許長期憑證）</td></tr>
-        <tr><td>禁止離開組織</td><td>Deny organizations:LeaveOrganization（防止成員帳號自己脫離）</td></tr>
-        <tr><td>資源標籤強制</td><td>Deny 建立 EC2 / S3 但沒有 cost-center tag 的操作</td></tr>
-      </tbody>
-    </table>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>SCP 常見用途</th><th>範例</th></tr></thead>
+        <tbody>
+          <tr><td>Region 限制</td><td>Deny 所有非 ap-northeast-1 的操作（只允許日本 Region）</td></tr>
+          <tr><td>禁止關閉 CloudTrail</td><td>Deny cloudtrail:DeleteTrail / StopLogging（防止稽核紀錄被刪）</td></tr>
+          <tr><td>禁止建立外部 IAM 使用者</td><td>Deny iam:CreateUser（強制用 SSO 登入，不允許長期憑證）</td></tr>
+          <tr><td>禁止離開組織</td><td>Deny organizations:LeaveOrganization（防止成員帳號自己脫離）</td></tr>
+          <tr><td>資源標籤強制</td><td>Deny 建立 EC2 / S3 但沒有 cost-center tag 的操作</td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="trap"><b>最重要的 SCP 陷阱：Management Account 不受 SCP 限制</b><br>
     題目說「用 SCP 限制整個組織不能刪除 S3 Bucket」——但 Management Account 的使用者還是可以刪！SCP 對 Management Account 無效，這是 AWS 的設計（Management Account 是最後的緊急存取點）。解決方案：不要把工作資源放在 Management Account 裡。</div>
@@ -291,7 +297,7 @@ Organizations<br>
 
   <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
     <a href="11-ecs-containers.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 11 · ECS/Fargate</a>
-    <a href="exam-strategy.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">應試策略 →</a>
+    <a href="13-analytics.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">13 · 分析與大數據 →</a>
   </div>
 
 </div>
