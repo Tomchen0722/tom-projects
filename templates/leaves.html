@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}請假 — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <h1>請假</h1>
+  <div>
+    <a class="btn sm {{ 'primary' if not current_status }}" href="{{ url_for('web.leaves') }}">全部</a>
+    <a class="btn sm {{ 'primary' if current_status == 'pending' }}" href="{{ url_for('web.leaves', status='pending') }}">待審</a>
+    <a class="btn sm {{ 'primary' if current_status == 'approved' }}" href="{{ url_for('web.leaves', status='approved') }}">已核准</a>
+    <a class="btn sm {{ 'primary' if current_status == 'rejected' }}" href="{{ url_for('web.leaves', status='rejected') }}">已退回</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>代填請假</h2>
+  <p class="tiny muted">店長在這裡填的假會直接生效,自動排班時就會避開這些日子。</p>
+  <form method="post" action="{{ url_for('web.leave_create') }}">
+    <div class="row">
+      <div>
+        <label>員工 *</label>
+        <select name="employee_id" required>
+          {% for e in employees %}<option value="{{ e.id }}">{{ e.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div><label>開始日 *</label><input type="date" name="start_date" value="{{ today }}" required></div>
+      <div><label>結束日</label><input type="date" name="end_date" value="{{ today }}"></div>
+      <div>
+        <label>假別</label>
+        <select name="leave_type">
+          <option>特休</option><option>事假</option><option>病假</option>
+          <option>喪假</option><option>婚假</option><option>公假</option><option>排休</option>
+        </select>
+      </div>
+      <div style="flex:2 1 220px"><label>事由</label><input type="text" name="reason"></div>
+      <div style="flex:0 0 auto"><button class="btn primary">新增</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>請假紀錄</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>員工</th><th>日期</th><th>假別</th><th>事由</th><th>來源</th><th>狀態</th><th></th></tr></thead>
+      <tbody>
+      {% for l in leaves %}
+        {% if edit_id == l.id %}
+        <tr>
+          <td colspan="7">
+            <form method="post" action="{{ url_for('web.leave_update', leave_id=l.id) }}">
+              <div class="row">
+                <div><label>開始日</label><input type="date" name="start_date" value="{{ l.start_date }}"></div>
+                <div><label>結束日</label><input type="date" name="end_date" value="{{ l.end_date }}"></div>
+                <div>
+                  <label>假別</label>
+                  <select name="leave_type">
+                    {% for t in ['特休','事假','病假','喪假','婚假','公假','排休'] %}
+                      <option {{ 'selected' if l.leave_type == t }}>{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div style="flex:2 1 200px"><label>事由</label><input type="text" name="reason" value="{{ l.reason }}"></div>
+                <div>
+                  <label>狀態</label>
+                  <select name="status">
+                    <option value="pending" {{ 'selected' if l.status == 'pending' }}>待審</option>
+                    <option value="approved" {{ 'selected' if l.status == 'approved' }}>核准</option>
+                    <option value="rejected" {{ 'selected' if l.status == 'rejected' }}>退回</option>
+                  </select>
+                </div>
+                <div style="flex:0 0 auto">
+                  <button class="btn primary">儲存</button>
+                  <a class="btn ghost" href="{{ url_for('web.leaves') }}">取消</a>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td>{{ l.employee_name }}</td>
+          <td class="tiny">{{ l.start_date }}{% if l.end_date != l.start_date %} ~ {{ l.end_date }}{% endif %}</td>
+          <td><span class="tag plain">{{ l.leave_type }}</span></td>
+          <td class="tiny muted">{{ l.reason or '—' }}</td>
+          <td class="tiny muted">{{ 'LINE' if l.source == 'line' else '後台' }}</td>
+          <td>
+            {% if l.status == 'approved' %}<span class="tag ok">已核准</span>
+            {% elif l.status == 'rejected' %}<span class="tag err">已退回</span>
+            {% else %}<span class="tag warn">待審</span>{% endif %}
+          </td>
+          <td class="actions">
+            {% if l.status == 'pending' %}
+              <form method="post" action="{{ url_for('web.leave_decide', leave_id=l.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="approved">
+                <input type="hidden" name="filter" value="{{ current_status }}">
+                <button class="btn sm">核准</button>
+              </form>
+              <form method="post" action="{{ url_for('web.leave_decide', leave_id=l.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="rejected">
+                <input type="hidden" name="filter" value="{{ current_status }}">
+                <button class="btn sm danger">退回</button>
+              </form>
+            {% endif %}
+            <a class="btn sm" href="{{ url_for('web.leaves', edit=l.id, status=current_status) }}">修改</a>
+            <form method="post" action="{{ url_for('web.leave_delete', leave_id=l.id) }}" style="display:inline"
+                  data-confirm="確定刪除這筆請假紀錄?">
+              <button class="btn sm danger">刪除</button>
+            </form>
+          </td>
+        </tr>
+        {% endif %}
+      {% else %}
+        <tr><td colspan="7"><div class="empty">沒有符合條件的請假紀錄。</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

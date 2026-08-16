@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}設定 — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="topbar"><h1>設定與 LINE</h1></div>
+
+<div class="grid c2">
+  <div class="card">
+    <h2>系統狀態</h2>
+    <div class="table-wrap">
+      <table>
+        <tbody>
+          <tr>
+            <td>LINE 推播</td>
+            <td>{% if line_ready %}<span class="tag ok">已啟用</span>{% else %}<span class="tag warn">demo 模式</span>{% endif %}</td>
+          </tr>
+          <tr>
+            <td>LIFF ID</td>
+            <td class="tiny">{{ liff_id or '尚未設定' }}</td>
+          </tr>
+          <tr>
+            <td>最佳化排班(OR-Tools)</td>
+            <td>{% if solver_ok %}<span class="tag ok">可用</span>{% else %}<span class="tag warn">未安裝</span>{% endif %}</td>
+          </tr>
+          <tr><td>最多連上天數</td><td>{{ max_consecutive }} 天</td></tr>
+          <tr><td>兩班最少間隔</td><td>{{ min_rest }} 小時</td></tr>
+          <tr><td>對外網址</td><td class="tiny">{{ public_base_url }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny muted" style="margin-top:12px">
+      這些值改在專案根目錄的 <code>.env</code> 與 <code>config.py</code>,改完重開服務。
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>員工 LINE 綁定狀況</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>員工</th><th>編號</th><th>LINE</th></tr></thead>
+        <tbody>
+        {% for e in employees %}
+          <tr class="{{ '' if e.active else 'off' }}">
+            <td>{{ e.name }}</td>
+            <td class="tiny muted">{{ e.employee_no or '—' }}</td>
+            <td>{% if e.line_user_id %}<span class="tag ok">已綁</span>{% else %}<span class="tag plain">未綁</span>{% endif %}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>怎麼把 LINE 接上</h2>
+  <p class="tiny muted">下面步驟做完,員工就能在 LINE 裡查班表、請假、申請調班,班表發布時也會自動收到通知。</p>
+  <ol style="font-size:.88rem;line-height:2">
+    <li>到 <a href="https://developers.line.biz/console/" target="_blank" rel="noopener">LINE Developers</a> 建立一個 Provider。</li>
+    <li>在 Provider 底下建 <b>Messaging API channel</b>(這是官方帳號,負責發訊息)。
+        取得 <code>Channel secret</code> 與 <code>Channel access token</code>。</li>
+    <li>在同一個 Provider 建 <b>LINE Login channel</b>,在裡面新增一個 <b>LIFF</b> app:
+      <ul>
+        <li>Endpoint URL 填 <code>{{ public_base_url }}/liff</code></li>
+        <li>Size 選 <code>Full</code>,Scope 勾 <code>profile</code> 和 <code>openid</code></li>
+      </ul>
+      取得 <code>LIFF ID</code> 與這個 Login channel 的 <code>Channel ID</code>。</li>
+    <li>把上面四個值填進專案根目錄的 <code>.env</code>:
+      <pre class="tiny" style="background:var(--washi-2);padding:12px;border-radius:6px;overflow-x:auto">LINE_CHANNEL_SECRET=...
+LINE_CHANNEL_ACCESS_TOKEN=...
+LINE_LIFF_ID=...
+LINE_LOGIN_CHANNEL_ID=...
+PUBLIC_BASE_URL=https://你的網址</pre></li>
+    <li>Messaging API channel 的 <b>Webhook URL</b> 填 <code>{{ public_base_url }}/line/webhook</code>,
+        並把 Use webhook 打開、自動回覆訊息關掉。</li>
+    <li>重開服務。員工加官方帳號好友後,在聊天室輸入 <code>綁定 A001</code>(自己的員工編號)就完成綁定。</li>
+  </ol>
+  <div class="msg warn tiny">
+    本機測試時 LINE 連不到 <code>127.0.0.1</code>,要用 ngrok 之類的工具開一個對外的 https 網址,
+    再把那個網址填進 <code>PUBLIC_BASE_URL</code> 和 Webhook URL。
+  </div>
+</div>
+
+<div class="card">
+  <h2>員工在 LINE 可以打的指令</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>輸入</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td><code>綁定 A001</code></td><td>第一次使用,把 LINE 帳號和員工資料綁在一起</td></tr>
+        <tr><td><code>班表</code></td><td>看未來 14 天自己的班</td></tr>
+        <tr><td><code>本月班表</code></td><td>看這個月自己的班</td></tr>
+        <tr><td><code>請假 2026-08-20 事假 家裡有事</code></td><td>送出請假申請,等店長審核</td></tr>
+        <tr><td><code>調班</code></td><td>開啟調班畫面</td></tr>
+        <tr><td><code>功能</code></td><td>看所有指令</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>我的班表</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  {% if liff_id %}<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>{% endif %}
+</head>
+<body class="liff-body">
+<div class="liff">
+  <div class="liff-head">
+    <span class="mark">班</span>
+    <div class="who" id="who">載入中…</div>
+    <div class="sub">MY SHIFTS</div>
+  </div>
+
+  {% if demo_mode %}
+  <div class="demo-bar">
+    <b>Demo 模式</b> — 還沒設定 LINE Login,先手動選一位員工來試用。
+    <select id="demoEmp">
+      {% for e in employees %}<option value="{{ e.id }}">{{ e.name }}({{ e.employee_no or '—' }})</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  <div class="tabs">
+    <button data-tab="schedule" class="on">班表</button>
+    <button data-tab="leave">請假</button>
+    <button data-tab="swap">調班</button>
+  </div>
+
+  <div id="msg"></div>
+
+  <!-- 班表 -->
+  <section class="pane on" id="pane-schedule">
+    <div id="shiftList"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 請假 -->
+  <section class="pane" id="pane-leave">
+    <div class="card">
+      <h3>申請請假</h3>
+      <div class="field"><label>開始日</label><input type="date" id="lvStart" value="{{ today }}"></div>
+      <div class="field"><label>結束日</label><input type="date" id="lvEnd" value="{{ today }}"></div>
+      <div class="field">
+        <label>假別</label>
+        <select id="lvType">
+          <option>特休</option><option>事假</option><option>病假</option>
+          <option>喪假</option><option>婚假</option><option>公假</option><option>排休</option>
+        </select>
+      </div>
+      <div class="field"><label>事由</label><input type="text" id="lvReason" placeholder="選填"></div>
+      <button class="btn primary" id="lvSubmit" style="width:100%">送出申請</button>
+    </div>
+    <h3>我的請假紀錄</h3>
+    <div id="leaveList"><div class="empty">載入中…</div></div>
+  </section>
+
+  <!-- 調班 -->
+  <section class="pane" id="pane-swap">
+    <div class="card">
+      <h3>申請調班</h3>
+      <div class="field">
+        <label>要調整的班</label>
+        <select id="swAssignment"><option value="">載入中…</option></select>
+      </div>
+      <div class="field"><label>希望改成哪天</label><input type="date" id="swDate" value="{{ today }}"></div>
+      <div class="field">
+        <label>希望改成哪個班別</label>
+        <select id="swShift">
+          <option value="">不變</option>
+          {% for s in shifts %}<option value="{{ s.id }}">{{ s.name }} {{ s.start_time }}-{{ s.end_time }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field"><label>原因</label><input type="text" id="swReason" placeholder="選填"></div>
+      <button class="btn primary" id="swSubmit" style="width:100%">送出申請</button>
+    </div>
+    <h3>我的調班紀錄</h3>
+    <div id="swapList"><div class="empty">載入中…</div></div>
+  </section>
+</div>
+
+<script>
+const LIFF_ID   = {{ (liff_id or '') | tojson }};
+const DEMO_MODE = {{ demo_mode | tojson }};
+const WEEK = ['一','二','三','四','五','六','日'];
+let idToken = '';
+let me = null;
+
+// ---- 送 API 用的共用參數:正式走 ID Token,demo 走 ?emp=
+function authQuery() {
+  if (DEMO_MODE) {
+    const sel = document.getElementById('demoEmp');
+    return sel ? '?emp=' + sel.value : '';
+  }
+  return '';
+}
+function authHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (!DEMO_MODE && idToken) h['X-Liff-Id-Token'] = idToken;
+  return h;
+}
+async function api(path, options = {}) {
+  const sep = path.includes('?') ? '&' : '?';
+  const q = authQuery().replace('?', '');
+  const url = path + (q ? sep + q : '');
+  const res = await fetch(url, { headers: authHeaders(), ...options });
+  return res.json();
+}
+function flash(text, kind = 'ok') {
+  document.getElementById('msg').innerHTML =
+    '<div class="msg ' + kind + '">' + text + '</div>';
+  setTimeout(() => { document.getElementById('msg').innerHTML = ''; }, 4000);
+}
+
+// ---- 分頁切換
+document.querySelectorAll('.tabs button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('pane-' + btn.dataset.tab).classList.add('on');
+  };
+});
+
+// ---- 載入資料
+async function loadMe() {
+  const r = await api('/line/api/me');
+  if (!r.ok) { document.getElementById('who').textContent = r.error; return false; }
+  me = r.data;
+  document.getElementById('who').textContent = me.name;
+  return true;
+}
+
+async function loadSchedule() {
+  const r = await api('/line/api/schedule');
+  const box = document.getElementById('shiftList');
+  const sel = document.getElementById('swAssignment');
+  if (!r.ok) { box.innerHTML = '<div class="empty">' + r.error + '</div>'; return; }
+  if (!r.data.length) {
+    box.innerHTML = '<div class="empty">未來 30 天還沒有排班。</div>';
+    sel.innerHTML = '<option value="">沒有可調整的班</option>';
+    return;
+  }
+  box.innerHTML = r.data.map(a => {
+    const d = new Date(a.work_date + 'T00:00:00');
+    return `<div class="shift-item">
+      <div class="date">
+        <div class="d">${d.getDate()}</div>
+        <div class="w">${d.getMonth() + 1}月 週${WEEK[(d.getDay() + 6) % 7]}</div>
+      </div>
+      <div class="info">
+        <div class="n">${a.shift_name}</div>
+        <div class="t">${a.start_time} – ${a.end_time}</div>
+      </div>
+      <span class="tag ${a.status === 'published' ? 'ok' : 'plain'}">
+        ${a.status === 'published' ? '已發布' : '草稿'}</span>
+    </div>`;
+  }).join('');
+  sel.innerHTML = r.data.map(a =>
+    `<option value="${a.id}">${a.work_date} ${a.shift_name}</option>`).join('');
+}
+
+async function loadLeaves() {
+  const r = await api('/line/api/leaves');
+  const box = document.getElementById('leaveList');
+  if (!r.ok) { box.innerHTML = '<div class="empty">' + r.error + '</div>'; return; }
+  if (!r.data.length) { box.innerHTML = '<div class="empty">還沒有請假紀錄。</div>'; return; }
+  const label = { approved: ['ok', '已核准'], rejected: ['err', '已退回'], pending: ['warn', '待審'] };
+  box.innerHTML = r.data.map(l => {
+    const [cls, txt] = label[l.status] || ['plain', l.status];
+    const cancel = l.status === 'pending'
+      ? `<button class="btn sm danger" onclick="cancelLeave(${l.id})">取消</button>` : '';
+    return `<div class="shift-item">
+      <div class="info">
+        <div class="n">${l.start_date}${l.end_date !== l.start_date ? ' ~ ' + l.end_date : ''}</div>
+        <div class="t">${l.leave_type}${l.reason ? ' · ' + l.reason : ''}</div>
+      </div>
+      <span class="tag ${cls}">${txt}</span>${cancel}
+    </div>`;
+  }).join('');
+}
+
+async function loadSwaps() {
+  const r = await api('/line/api/swaps');
+  const box = document.getElementById('swapList');
+  if (!r.ok) { box.innerHTML = '<div class="empty">' + r.error + '</div>'; return; }
+  if (!r.data.length) { box.innerHTML = '<div class="empty">還沒有調班紀錄。</div>'; return; }
+  const label = { approved: ['ok', '已核准'], rejected: ['err', '已退回'], pending: ['warn', '待審'] };
+  box.innerHTML = r.data.map(s => {
+    const [cls, txt] = label[s.status] || ['plain', s.status];
+    return `<div class="shift-item">
+      <div class="info">
+        <div class="n">${s.work_date} ${s.shift_name}</div>
+        <div class="t">改成 ${s.target_date || s.work_date} ${s.target_shift_name || s.shift_name}</div>
+      </div>
+      <span class="tag ${cls}">${txt}</span>
+    </div>`;
+  }).join('');
+}
+
+async function cancelLeave(id) {
+  if (!confirm('取消這筆請假申請?')) return;
+  const r = await api('/line/api/leaves/' + id, { method: 'DELETE' });
+  if (r.ok) { flash('已取消'); loadLeaves(); } else { flash(r.error, 'error'); }
+}
+
+document.getElementById('lvSubmit').onclick = async () => {
+  const body = {
+    start_date: document.getElementById('lvStart').value,
+    end_date:   document.getElementById('lvEnd').value,
+    leave_type: document.getElementById('lvType').value,
+    reason:     document.getElementById('lvReason').value,
+  };
+  if (DEMO_MODE) body.emp = document.getElementById('demoEmp').value;
+  const r = await api('/line/api/leaves', { method: 'POST', body: JSON.stringify(body) });
+  if (r.ok) { flash('已送出,等店長審核'); document.getElementById('lvReason').value = ''; loadLeaves(); }
+  else { flash(r.error, 'error'); }
+};
+
+document.getElementById('swSubmit').onclick = async () => {
+  const body = {
+    assignment_id:        document.getElementById('swAssignment').value,
+    target_date:          document.getElementById('swDate').value,
+    target_shift_type_id: document.getElementById('swShift').value || null,
+    reason:               document.getElementById('swReason').value,
+  };
+  if (!body.assignment_id) { flash('請先選要調整的班', 'error'); return; }
+  if (DEMO_MODE) body.emp = document.getElementById('demoEmp').value;
+  const r = await api('/line/api/swaps', { method: 'POST', body: JSON.stringify(body) });
+  if (r.ok) { flash('已送出,等店長審核'); document.getElementById('swReason').value = ''; loadSwaps(); }
+  else { flash(r.error, 'error'); }
+};
+
+async function refreshAll() {
+  if (!await loadMe()) return;
+  loadSchedule(); loadLeaves(); loadSwaps();
+}
+
+const demoSel = document.getElementById('demoEmp');
+if (demoSel) demoSel.onchange = refreshAll;
+
+(async () => {
+  if (LIFF_ID && window.liff) {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      idToken = liff.getIDToken() || '';
+    } catch (e) {
+      document.getElementById('who').textContent = 'LINE 初始化失敗';
+    }
+  }
+  // 網址帶 ?tab=swap 時直接開調班分頁
+  const tab = new URLSearchParams(location.search).get('tab');
+  if (tab) {
+    const btn = document.querySelector(`.tabs button[data-tab="${tab}"]`);
+    if (btn) btn.click();
+  }
+  refreshAll();
+})();
+</script>
+</body>
+</html>

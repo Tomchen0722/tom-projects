@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}排班表 — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <h1>排班表</h1>
+  <div>
+    <a class="btn sm" href="{{ url_for('web.schedule', month=prev_month) }}">← 上個月</a>
+    <span style="margin:0 10px;letter-spacing:.1em">{{ month }}</span>
+    <a class="btn sm" href="{{ url_for('web.schedule', month=next_month) }}">下個月 →</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>自動排班</h2>
+  <p class="tiny muted">
+    <b>規則排班</b>:一格一格照輪值順序填,速度快、好解釋。<br>
+    <b>最佳化排班</b>:把所有限制交給求解器一次算出整體最好的解,人多、限制多時效果明顯。<br>
+    兩種都會避開已核准的假、遵守每週上限、連上天數與休息時數。
+  </p>
+  <form method="post" action="{{ url_for('web.schedule_generate') }}">
+    <input type="hidden" name="start" value="{{ start }}">
+    <input type="hidden" name="end" value="{{ end }}">
+    <div class="row">
+      <div class="narrow">
+        <label>方式</label>
+        <select name="engine">
+          <option value="rules">規則排班</option>
+          <option value="solver">最佳化排班</option>
+        </select>
+      </div>
+      <label class="check" style="flex:0 0 auto">
+        <input type="checkbox" name="keep_locked" checked> 保留手動鎖定的班
+      </label>
+      <div style="flex:0 0 auto">
+        <button class="btn primary">開始排班</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="row" style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
+    <form method="post" action="{{ url_for('web.schedule_publish') }}" style="flex:0 0 auto"
+          data-confirm="要發布 {{ start }} ~ {{ end }} 的班表嗎?已綁定 LINE 的同仁會收到自己的班表。">
+      <input type="hidden" name="start" value="{{ start }}">
+      <input type="hidden" name="end" value="{{ end }}">
+      <button class="btn">發布班表{% if line_ready %}並用 LINE 通知{% endif %}</button>
+    </form>
+    <form method="post" action="{{ url_for('web.schedule_clear') }}" style="flex:0 0 auto"
+          data-confirm="會清掉本月所有「沒有鎖定」的班次,鎖定的會保留。確定嗎?">
+      <input type="hidden" name="start" value="{{ start }}">
+      <input type="hidden" name="end" value="{{ end }}">
+      <button class="btn danger">清空未鎖定班次</button>
+    </form>
+  </div>
+</div>
+
+{% if warnings %}
+<div class="card" style="border-color:#E8D3A8">
+  <h2>需要留意({{ warnings|length }})</h2>
+  <ul class="tiny" style="margin:0;padding-left:1.2em;color:#8A6220">
+    {% for w in warnings[:25] %}<li>{{ w }}</li>{% endfor %}
+    {% if warnings|length > 25 %}<li>…另外還有 {{ warnings|length - 25 }} 項</li>{% endif %}
+  </ul>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>{{ month }} 月曆</h2>
+  <table class="cal">
+    <thead>
+      <tr>{% for w in ['一','二','三','四','五','六','日'] %}<th>{{ w }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+    {% for week in weeks %}
+      <tr>
+      {% for day in week %}
+        {% if not day %}
+          <td class="blank"></td>
+        {% else %}
+          {% set idx = loop.index0 %}
+          <td class="{{ 'today' if day == today }} {{ 'weekend' if idx >= 5 }}">
+            <div class="dnum">
+              {{ day[8:] | int }}
+              {% if leave_days.get(day) %}<span class="lv">休{{ leave_days[day]|length }}</span>{% endif %}
+            </div>
+            {% for a in by_day.get(day, []) %}
+              <span class="chip {{ 'locked' if a.locked }}" style="border-left-color:{{ a.color }}"
+                    title="{{ a.shift_name }} {{ a.start_time }}-{{ a.end_time }} / {{ a.employee_name }}">
+                {% if a.locked %}<span class="lk">◆</span>{% endif %}{{ a.shift_name }} {{ a.employee_name }}
+              </span>
+            {% endfor %}
+          </td>
+        {% endif %}
+      {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="tiny muted" style="margin-top:10px">◆ = 手動鎖定,自動排班不會動它。</p>
+</div>
+
+<div class="grid c2">
+  <div class="card">
+    <h2>手動加班次</h2>
+    <p class="tiny muted">手動加的班會自動鎖定,重排時不會被蓋掉。</p>
+    <form method="post" action="{{ url_for('web.schedule_assign') }}">
+      <input type="hidden" name="start" value="{{ start }}">
+      <input type="hidden" name="end" value="{{ end }}">
+      <div class="field">
+        <label>日期</label>
+        <input type="date" name="work_date" value="{{ today }}" min="{{ start }}" max="{{ end }}" required>
+      </div>
+      <div class="field">
+        <label>班別</label>
+        <select name="shift_type_id" required>
+          {% for s in shifts %}<option value="{{ s.id }}">{{ s.name }} {{ s.start_time }}-{{ s.end_time }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>員工</label>
+        <select name="employee_id" required>
+          {% for e in employees %}<option value="{{ e.id }}">{{ e.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn primary">加入班表</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>本月班數</h2>
+    {% set maxn = (stats | map(attribute='shifts') | max) if stats else 0 %}
+    <div class="table-wrap">
+      <table>
+        <tbody>
+        {% for s in stats %}
+          <tr>
+            <td style="width:80px">{{ s.name }}</td>
+            <td>
+              <div style="background:var(--washi-2);border-radius:4px;height:14px;overflow:hidden">
+                <div style="height:100%;background:var(--kaki-soft);border-right:2px solid var(--kaki);
+                            width:{{ (s.shifts / maxn * 100) if maxn else 0 }}%"></div>
+              </div>
+            </td>
+            <td class="right" style="width:44px">{{ s.shifts }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>班次明細</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>日期</th><th>班別</th><th>時間</th><th>員工</th><th>狀態</th><th></th></tr></thead>
+      <tbody>
+      {% for day in by_day.keys()|sort %}
+        {% for a in by_day[day] %}
+        <tr>
+          <td class="tiny">{{ a.work_date }}</td>
+          <td>
+            <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:{{ a.color }}"></span>
+            {{ a.shift_name }}
+          </td>
+          <td class="tiny muted">{{ a.start_time }} – {{ a.end_time }}</td>
+          <td>{{ a.employee_name }}</td>
+          <td>
+            {% if a.locked %}<span class="tag info">鎖定</span>{% endif %}
+            {% if a.status == 'published' %}<span class="tag ok">已發布</span>
+            {% else %}<span class="tag plain">草稿</span>{% endif %}
+          </td>
+          <td class="actions">
+            <form method="post" action="{{ url_for('web.schedule_update', assignment_id=a.id) }}" style="display:inline">
+              <input type="hidden" name="start" value="{{ start }}">
+              <input type="hidden" name="end" value="{{ end }}">
+              <select name="employee_id" class="tiny" style="width:auto;display:inline-block;padding:3px 6px">
+                {% for e in employees %}
+                  <option value="{{ e.id }}" {{ 'selected' if e.id == a.employee_id }}>{{ e.name }}</option>
+                {% endfor %}
+              </select>
+              <input type="hidden" name="locked" value="1">
+              <button class="btn sm">換人</button>
+            </form>
+            <form method="post" action="{{ url_for('web.schedule_delete', assignment_id=a.id) }}" style="display:inline"
+                  data-confirm="刪除 {{ a.work_date }} 的 {{ a.shift_name }}({{ a.employee_name }})?">
+              <input type="hidden" name="start" value="{{ start }}">
+              <input type="hidden" name="end" value="{{ end }}">
+              <button class="btn sm danger">刪除</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="6"><div class="empty">這個月還沒有排班,按上面的「開始排班」試試。</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

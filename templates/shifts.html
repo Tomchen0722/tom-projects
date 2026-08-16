@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}班別 — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <h1>班別</h1>
+  <span class="muted tiny">下班時間比上班時間早,系統會當成跨夜班</span>
+</div>
+
+<div class="card">
+  <h2>新增班別</h2>
+  <form method="post" action="{{ url_for('web.shift_create') }}">
+    <div class="row">
+      <div><label>班別名稱 *</label><input type="text" name="name" placeholder="早班" required></div>
+      <div class="narrow"><label>代號</label><input type="text" name="code" placeholder="A"></div>
+      <div class="narrow"><label>上班 *</label><input type="time" name="start_time" value="07:00" required></div>
+      <div class="narrow"><label>下班 *</label><input type="time" name="end_time" value="15:00" required></div>
+      <div class="narrow"><label>需要人數</label><input type="number" name="required_headcount" value="1" min="1" max="20"></div>
+      <div><label>需要技能</label><input type="text" name="required_skill" placeholder="留空=誰都可以"></div>
+      <div class="narrow"><label>顏色</label><input type="color" name="color" value="#D98E5A"></div>
+      <div class="narrow"><label>排序</label><input type="number" name="sort_order" value="0"></div>
+      <div style="flex:0 0 auto"><button class="btn primary">新增</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>班別清單</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th></th><th>名稱</th><th>代號</th><th>時間</th><th>需要人數</th>
+            <th>需要技能</th><th>排序</th><th>狀態</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for s in shifts %}
+        {% if edit_id == s.id %}
+        <tr>
+          <td colspan="9">
+            <form method="post" action="{{ url_for('web.shift_update', shift_id=s.id) }}">
+              <div class="row">
+                <div><label>名稱</label><input type="text" name="name" value="{{ s.name }}" required></div>
+                <div class="narrow"><label>代號</label><input type="text" name="code" value="{{ s.code }}"></div>
+                <div class="narrow"><label>上班</label><input type="time" name="start_time" value="{{ s.start_time }}" required></div>
+                <div class="narrow"><label>下班</label><input type="time" name="end_time" value="{{ s.end_time }}" required></div>
+                <div class="narrow"><label>人數</label><input type="number" name="required_headcount" value="{{ s.required_headcount }}" min="1"></div>
+                <div><label>需要技能</label><input type="text" name="required_skill" value="{{ s.required_skill }}"></div>
+                <div class="narrow"><label>顏色</label><input type="color" name="color" value="{{ s.color }}"></div>
+                <div class="narrow"><label>排序</label><input type="number" name="sort_order" value="{{ s.sort_order }}"></div>
+              </div>
+              <div class="row" style="margin-top:12px">
+                <label class="check" style="flex:0 0 auto">
+                  <input type="checkbox" name="active" {{ 'checked' if s.active }}> 啟用
+                </label>
+                <div style="flex:0 0 auto">
+                  <button class="btn primary">儲存</button>
+                  <a class="btn ghost" href="{{ url_for('web.shifts') }}">取消</a>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr class="{{ '' if s.active else 'off' }}">
+          <td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:{{ s.color }}"></span></td>
+          <td>{{ s.name }}</td>
+          <td class="tiny muted">{{ s.code or '—' }}</td>
+          <td class="tiny">
+            {{ s.start_time }} – {{ s.end_time }}
+            {% if s.end_time <= s.start_time %}<span class="tag info">跨夜</span>{% endif %}
+          </td>
+          <td>{{ s.required_headcount }} 人</td>
+          <td class="tiny">{{ s.required_skill or '不限' }}</td>
+          <td>{{ s.sort_order }}</td>
+          <td>{% if s.active %}<span class="tag ok">啟用</span>{% else %}<span class="tag plain">停用</span>{% endif %}</td>
+          <td class="actions">
+            <a class="btn sm" href="{{ url_for('web.shifts', edit=s.id) }}">修改</a>
+            <form method="post" action="{{ url_for('web.shift_delete', shift_id=s.id) }}" style="display:inline"
+                  data-confirm="確定刪除「{{ s.name }}」?這個班別排過的班會一起消失,無法復原。">
+              <button class="btn sm danger">刪除</button>
+            </form>
+          </td>
+        </tr>
+        {% endif %}
+      {% else %}
+        <tr><td colspan="9"><div class="empty">還沒有班別,用上面的表單新增。</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
