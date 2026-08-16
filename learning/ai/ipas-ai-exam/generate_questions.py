@@ -30,7 +30,7 @@ generation_config = {
 }
 
 model = genai.GenerativeModel(
-  model_name="gemini-1.5-pro",
+  model_name="gemini-flash-latest",
   generation_config=generation_config,
 )
 
@@ -117,7 +117,7 @@ def main():
     # 讀取現有題庫
     file_path = "questions_data.json"
     if os.path.exists(file_path):
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding="utf-8-sig") as f:
             try:
                 db = json.load(f)
             except json.JSONDecodeError:
@@ -134,8 +134,8 @@ def main():
     while generated_count < target_questions:
         current_subject = subjects[subject_idx % len(subjects)]
         
-        # 以 3 次為一個循環：2 次情境題，1 次一般題，以達到 2/3 情境題比例
-        is_scenario = (generated_count // batch_size) % 3 != 2 
+        # 依要求全面改為情境題
+        is_scenario = True 
 
         print(f"[{generated_count + 1}/{target_questions}] 正在生成 {batch_size} 題 (科目: {current_subject}, 情境題: {is_scenario})...")
         
