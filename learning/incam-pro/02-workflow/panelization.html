@@ -46,6 +46,23 @@
   .btn-next:hover{background:#047857;}
   .btn-prev{background:#f1f5f9;color:#475569;}
   .btn-prev:hover{background:#e2e8f0;}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0;}
+  .item{background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;}
+  .item .icon{font-size:1.8rem;margin-bottom:8px;}
+  .item h3{font-size:.95rem;color:#1e293b;margin-bottom:6px;}
+  .item p{font-size:.84rem;color:#64748b;line-height:1.7;}
+  .sci{background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:0 10px 10px 0;padding:16px 18px;margin:14px 0;}
+  .sci h4{font-size:.93rem;color:#1d4ed8;margin-bottom:8px;}
+  .sci p{font-size:.88rem;color:#1e3a8a;line-height:1.9;margin-bottom:8px;}
+  .sci p:last-child{margin-bottom:0;}
+  .sci .eq{background:#dbeafe;border-radius:8px;padding:11px 14px;margin:10px 0;font-family:"Consolas","Courier New",monospace;font-size:.85rem;color:#1e3a8a;line-height:1.95;overflow-x:auto;white-space:pre;}
+  .sci .lv{display:inline-block;background:#2563eb;color:#fff;font-size:.71rem;padding:2px 10px;border-radius:10px;margin-bottom:9px;letter-spacing:.03em;}
+  .biz{background:#fdf4ff;border:1px solid #f0abfc;border-left:4px solid #a21caf;border-radius:0 10px 10px 0;padding:16px 18px;margin:14px 0;}
+  .biz h4{font-size:.93rem;color:#86198f;margin-bottom:8px;}
+  .biz p{font-size:.88rem;color:#701a75;line-height:1.9;margin-bottom:8px;}
+  .biz p:last-child{margin-bottom:0;}
+  .biz .tag{display:inline-block;background:#a21caf;color:#fff;font-size:.71rem;padding:2px 10px;border-radius:10px;margin-bottom:9px;letter-spacing:.03em;}
+  .biz .num{background:#fae8ff;border-radius:8px;padding:11px 14px;margin:10px 0;font-size:.86rem;color:#701a75;line-height:1.95;}
 </style>
 </head>
 <body>
@@ -224,6 +241,130 @@
         <tr><td>V-Cut vs 郵票孔</td><td>V-Cut 省空間但只能直線;郵票孔靈活但留毛邊</td><td>依外形決定,必要時混用</td></tr>
         <tr><td>單一料號 vs 混拼</td><td>混拼湊滿面積,但管理與分揀變複雜</td><td>小量多樣才考慮混拼,且製程條件須一致</td></tr>
       </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧮 用高中數學算拼板:這是一道最佳化題</h2>
+    <p>拼板本質上是高中數學的<strong>面積與整數規劃</strong>問題。把它拆開來算一次,你就知道為什麼資深 CAM 工程師的價值這麼高。</p>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 面積與取整</span>
+      <h4>① 基本算式:一張大板能排幾片?</h4>
+      <p>關鍵在於——<strong>只能取整數,小數要無條件捨去</strong>。因為排不下就是排不下,沒有「排 0.7 片」這種事。</p>
+      <div class="eq">設:大板可用區 W × H
+    小板 w × h,板間距 g
+
+橫向可排:Nx = ⌊(W + g) / (w + g)⌋   ← 無條件捨去
+縱向可排:Ny = ⌊(H + g) / (h + g)⌋
+
+總片數 N = Nx × Ny
+利用率 = (N × w × h) / (W × H) × 100%</div>
+      <p><strong>實際算一次:</strong>大板可用區 460 × 610 mm,小板 100 × 80 mm,板間距 3 mm。</p>
+      <div class="eq">直放(小板 100 寬 × 80 高):
+Nx = ⌊(460+3)/(100+3)⌋ = ⌊4.49⌋ = <strong>4</strong>
+Ny = ⌊(610+3)/(80+3)⌋  = ⌊7.38⌋ = <strong>7</strong>
+N = 4 × 7 = <strong>28 片</strong>
+利用率 = 28×100×80 / (460×610) = 224000/280600 ≈ <strong>79.8%</strong>
+
+橫放(小板 80 寬 × 100 高):
+Nx = ⌊(460+3)/(80+3)⌋  = ⌊5.58⌋ = <strong>5</strong>
+Ny = ⌊(610+3)/(100+3)⌋ = ⌊5.95⌋ = <strong>5</strong>
+N = 5 × 5 = <strong>25 片</strong>
+利用率 ≈ <strong>71.3%</strong></div>
+      <p><strong>結論:直放多 3 片,利用率高 8.5 個百分點。</strong>只是把板子轉 90 度,結果差這麼多——這就是為什麼拼板一定要兩個方向都算過。</p>
+    </div>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 小數的威力</span>
+      <h4>② 注意那個「⌊5.95⌋ = 5」</h4>
+      <p>橫放時縱向算出 5.95,離 6 只差 0.05——換算成實際尺寸只差約 5 mm,但因為要無條件捨去,<strong>整整少排一整排(5 片)</strong>。</p>
+      <p>這是拼板最重要的直覺:<strong>當計算結果的小數部分接近 1 的時候,只要想辦法擠出一點點空間,就能多排一整排。</strong></p>
+      <div class="eq">可以擠出空間的手段:
+
+① 縮小板間距 3 mm → 2.5 mm
+   Ny = ⌊(610+2.5)/(100+2.5)⌋ = ⌊5.97⌋ = 5  ← 還是不夠
+
+② 與客戶確認外形公差,小板高度 100 → 99 mm
+   Ny = ⌊(610+3)/(99+3)⌋ = ⌊6.01⌋ = <strong>6</strong>  ← 成功!
+   N = 5 × 6 = 30 片,利用率躍升至 <strong>84.6%</strong>
+
+③ 改用旋轉混排、交錯排列(視外形而定)</div>
+      <p>所以資深 CAM 看到 5.95 這個數字時,會立刻去追「有沒有辦法生出那 5 mm」——這 5 mm 的價值,是整批訂單多出 20% 的產出。</p>
+    </div>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 百分比與成本</span>
+      <h4>③ 利用率差 5%,對公司值多少錢?</h4>
+      <p>把上面的數字換算成金額。假設一張大板的完全成本(材料 + 加工)是 <strong>200 元</strong>,客戶要 <strong>30,000 片</strong>小板:</p>
+      <div class="eq">方案 A:每張大板 25 片(利用率 71.3%)
+需要大板數 = ⌈30000 / 25⌉ = <strong>1,200 張</strong>
+成本 = 1200 × 200 = <strong>240,000 元</strong>
+
+方案 B:每張大板 30 片(利用率 84.6%)
+需要大板數 = ⌈30000 / 30⌉ = <strong>1,000 張</strong>
+成本 = 1000 × 200 = <strong>200,000 元</strong>
+
+<strong>差額 = 40,000 元(省下 16.7%)</strong>
+而這只是「把板子轉個方向 + 跟客戶確認 1 mm 公差」的結果。</div>
+      <p><strong>再放大來看:</strong>如果這家廠一年做 500 個這種規模的訂單,平均每單多榨出 5% 的利用率,一年就是數百萬的差距——而且是<strong>純利潤</strong>,因為完全沒有增加任何設備或人力。</p>
+    </div>
+
+    <div class="highlight">
+      💡 <strong>這一節想傳達的核心觀念:</strong>拼板看起來只是「排排看」,實際上是整個 CAM 工作中<strong>對公司獲利影響最直接</strong>的一環。<br><br>
+      DFM 做得好是「避免損失」,拼板做得好是「創造利潤」。這也是為什麼很多廠會把最資深的工程師放在拼板這一關,甚至專門寫程式去做自動最佳化。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏢 企業範例:拼板決策的真實場景</h2>
+
+    <div class="biz">
+      <span class="tag">企業範例 J</span>
+      <h4>案例:為了利用率把間距縮太小,整批切壞</h4>
+      <p><strong>狀況:</strong>某廠 CAM 為了把利用率從 78% 拉到 83%,把板間距從 3 mm 壓到 1.5 mm,多排了一排。</p>
+      <p><strong>結果:</strong>成型段的銑刀直徑是 2 mm,加上刀具擺動與定位公差,實際需要的走刀空間超過 1.5 mm。切割時銑刀啃到<strong>相鄰板子的邊緣</strong>,一片壞就連累旁邊那片。</p>
+      <div class="num">
+        <strong>批量:</strong>800 張大板<br>
+        <strong>預期多產出:</strong>因多排一排,約多 4,000 片<br>
+        <strong>實際結果:</strong>邊緣板大量報廢,<strong>淨產出反而低於原方案</strong><br>
+        <strong>額外成本:</strong>重工與交期延誤
+      </div>
+      <p><strong>教訓:</strong>利用率的上限不是數學決定的,是<strong>設備決定的</strong>。算式再漂亮,如果銑刀過不去就是零。拼板前必須確認:成型方式是什麼?刀具多大?需要多少走刀空間?</p>
+      <p><strong>正確的思考順序:</strong>先問製程要多少空間(下限),再在這個限制下做最佳化——而不是先算出最佳解,再回頭壓製程。</p>
+    </div>
+
+    <div class="biz">
+      <span class="tag">企業範例 K</span>
+      <h4>案例:混拼救活小量多樣訂單</h4>
+      <p><strong>狀況:</strong>某樣品廠接到一批訂單,是同一個客戶的 6 種不同小板,每種只要 20 片。如果各自拼板,每種都只用掉大板的一小塊,利用率慘不忍睹。</p>
+      <p><strong>做法:</strong>確認這 6 種板子的<strong>製程條件一致</strong>(同層數、同板厚、同銅厚、同表面處理)後,把它們<strong>混拼在同一張大板</strong>上。</p>
+      <div class="num">
+        <strong>原方案:</strong>6 種各自拼板,共需大板 18 張,平均利用率約 45%<br>
+        <strong>混拼後:</strong>共需大板 7 張,利用率約 82%<br>
+        <strong>成本降低:</strong>約 60%<br>
+        <strong>代價:</strong>後段分揀變複雜,需要在板上加雷射標記區分
+      </div>
+      <p><strong>混拼的前提條件(缺一不可):</strong>層數相同、板材與板厚相同、銅厚相同、表面處理相同、交期相近。只要有一項不同就不能混——因為它們會走不同的製程參數。</p>
+      <p><strong>這是樣品廠的核心競爭力。</strong>同樣接小量訂單,會混拼的廠成本可能只有不會混拼的一半,報價自然更有競爭力。</p>
+    </div>
+
+    <div class="biz">
+      <span class="tag">企業範例 L</span>
+      <h4>案例:用大板尺寸的選擇打贏對手</h4>
+      <p><strong>狀況:</strong>兩家板廠報同一個案子。板廠甲用慣用的 18"×24" 大板,板廠乙的 CAM 主管把客戶的小板尺寸拿去<strong>試算了三種大板規格</strong>。</p>
+      <div class="num">
+        <strong>18"×24"</strong>(甲廠慣用):利用率 74%<br>
+        <strong>21"×24"</strong>:利用率 71%(反而更差,因為排不進整排)<br>
+        <strong>16"×22"</strong>:利用率 <strong>88%</strong> ← 乙廠選這個
+      </div>
+      <p><strong>結果:</strong>乙廠的材料成本比甲廠低約 16%,報價因此更低而拿下訂單。而且因為利用率高,單片的製造成本也更低,利潤反而比甲廠報高價還好。</p>
+      <p><strong>關鍵洞察:</strong>「大板越大越划算」是錯的直覺。大板尺寸與小板尺寸的<strong>整除關係</strong>才是決定因素——有時候小一號的大板反而排得更滿。</p>
+      <p><strong>實務建議:</strong>廠內應該常備 2-4 種大板規格,並在報價階段就讓 CAM 參與試算,而不是等接單後才開始排。<strong>拼板應該是報價流程的一部分,不是生產流程的一部分。</strong></p>
+    </div>
+
+    <div class="warn">
+      ⚠️ <strong>本節的成本數字為示意用的典型量級,實際會因板材、層數、批量、地區與當期銅價而有明顯差異。</strong>拿去做實際報價前,請用貴廠自己的成本結構重算一次。這裡要建立的是「怎麼算、該算哪些」的方法,不是可直接套用的數字。
     </div>
   </div>
 

@@ -43,6 +43,18 @@
   .btn-next:hover{background:#047857;}
   .btn-prev{background:#f1f5f9;color:#475569;}
   .btn-prev:hover{background:#e2e8f0;}
+  .sci{background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:0 10px 10px 0;padding:16px 18px;margin:14px 0;}
+  .sci h4{font-size:.93rem;color:#1d4ed8;margin-bottom:8px;}
+  .sci p{font-size:.88rem;color:#1e3a8a;line-height:1.9;margin-bottom:8px;}
+  .sci p:last-child{margin-bottom:0;}
+  .sci .eq{background:#dbeafe;border-radius:8px;padding:11px 14px;margin:10px 0;font-family:"Consolas","Courier New",monospace;font-size:.85rem;color:#1e3a8a;line-height:1.95;overflow-x:auto;white-space:pre;}
+  .sci .lv{display:inline-block;background:#2563eb;color:#fff;font-size:.71rem;padding:2px 10px;border-radius:10px;margin-bottom:9px;letter-spacing:.03em;}
+  .biz{background:#fdf4ff;border:1px solid #f0abfc;border-left:4px solid #a21caf;border-radius:0 10px 10px 0;padding:16px 18px;margin:14px 0;}
+  .biz h4{font-size:.93rem;color:#86198f;margin-bottom:8px;}
+  .biz p{font-size:.88rem;color:#701a75;line-height:1.9;margin-bottom:8px;}
+  .biz p:last-child{margin-bottom:0;}
+  .biz .tag{display:inline-block;background:#a21caf;color:#fff;font-size:.71rem;padding:2px 10px;border-radius:10px;margin-bottom:9px;letter-spacing:.03em;}
+  .biz .num{background:#fae8ff;border-radius:8px;padding:11px 14px;margin:10px 0;font-size:.86rem;color:#701a75;line-height:1.95;}
 </style>
 </head>
 <body>
@@ -223,6 +235,133 @@
       💡 <strong>好 EQ 與壞 EQ 的差別:</strong><br>
       ❌ 壞:「你的板子孔環有問題,請確認。」(客戶不知道在哪、要怎麼改)<br>
       ✅ 好:「料號 ABC-v2,座標 (12.5, 30.2) 處孔環 2 mil,低於本廠 4 mil 下限,鑽孔偏移時恐破環斷路。建議 A:焊盤放大到 0.6mm;建議 B:維持設計但改高階製程(交期+2天)。請於 3/15 前回覆。」
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 用高中數學理解:為什麼 DFM 是「機率問題」</h2>
+    <p>新人常以為 DFM 是「這樣做得出來 / 做不出來」的是非題。其實不是——<strong>它是機率問題</strong>。理解這一點,你對 DFM 的判斷會完全不同。</p>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 常態分布</span>
+      <h4>① 製程一定有誤差,而誤差呈常態分布</h4>
+      <p>高中數學教過<strong>常態分布</strong>(鐘形曲線)。工廠的鑽孔機不可能每次都鑽在完全一樣的位置——會有微小的隨機偏移,而這些偏移的分布就是一個鐘形曲線。</p>
+      <div class="eq">鑽孔位置的實際分布:
+
+            ╱▔▔╲          ← 大部分落在中心附近
+          ╱      ╲
+        ╱          ╲
+    ──╱──────┼──────╲──
+      -3σ    目標值    +3σ
+
+σ(標準差)= 這台機器的「穩定度」
+σ 越小 = 機器越準 = 分布越窄</div>
+      <p>高中課本教過的結論:常態分布下,約 <strong>68%</strong> 落在 ±1σ 內、<strong>95%</strong> 在 ±2σ 內、<strong>99.7%</strong> 在 ±3σ 內。</p>
+    </div>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 比例與不等式</span>
+      <h4>② 孔環為什麼是 DFM 的頭號檢查項?</h4>
+      <p>「孔環」是孔的邊緣到焊盤邊緣的那一圈銅。如果鑽孔偏移量大於孔環寬度,就會<strong>破環</strong>——孔鑽到焊盤外面去,線路斷掉。</p>
+      <div class="eq">設:焊盤直徑 D,孔徑 d
+孔環寬度 = (D - d) / 2
+
+破環的條件:鑽孔偏移量 > 孔環寬度
+
+假設某廠鑽孔精度 σ = 25 μm(1 mil):
+  孔環 = 25 μm (1 mil) → 偏移超過 1σ 就破環 → 失敗率約 <strong>32%</strong>
+  孔環 = 50 μm (2 mil) → 要超過 2σ 才破環 → 失敗率約 <strong>5%</strong>
+  孔環 = 75 μm (3 mil) → 要超過 3σ 才破環 → 失敗率約 <strong>0.3%</strong>
+  孔環 = 100 μm (4 mil) → 要超過 4σ → 失敗率 <strong>約十萬分之六</strong></div>
+      <p><strong>看出關鍵了嗎?</strong>孔環從 1 mil 加到 4 mil,只是多了 3 mil(0.076 mm,肉眼幾乎看不出來),但失敗率從三成掉到十萬分之幾——<strong>差了好幾個數量級</strong>。</p>
+      <p>這就是為什麼 CAM 規則書會寫「最小孔環 4 mil」。這個數字不是憑感覺訂的,是從機台的 σ 反推出來的。</p>
+    </div>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 機率的乘法</span>
+      <h4>③ 最可怕的是:一片板子有幾千個孔</h4>
+      <p>上面算的是「單一個孔」的失敗率。但一片板子動輒上千個孔,而<strong>只要有一個孔破環,整片板子就報廢</strong>。</p>
+      <div class="eq">高中機率的乘法原理:
+
+單孔良率 = p
+板子有 n 個孔
+整片板子良率 = p^n
+
+若單孔良率 95%(孔環 2 mil),板上有 1000 個孔:
+  0.95^1000 ≈ <strong>0.00000...</strong> → 幾乎必然報廢!
+
+若單孔良率 99.7%(孔環 3 mil):
+  0.997^1000 ≈ <strong>4.9%</strong> → 還是幾乎全報廢
+
+若單孔良率 99.994%(孔環 4 mil):
+  0.99994^1000 ≈ <strong>94%</strong> → 這才能量產</div>
+      <p><strong>這是整章最重要的觀念。</strong>「單一個孔 95% 成功」聽起來很高,但乘上 1000 次之後就是災難。製造業要求的良率標準之所以看起來嚴苛到不合理,原因就在這個指數。</p>
+    </div>
+
+    <div class="warn">
+      ⚠️ <strong>新人最常見的誤判:</strong>「這個孔環只差一點點,應該還好吧?」——不,在指數面前沒有「差一點點」。DFM 規則的每一條數字背後都有機率計算,不要憑感覺放行。<br><br>
+      如果真的要放行,正確做法是<strong>發 EQ 讓客戶決定並留下紀錄</strong>,而不是自己吸收風險。
+    </div>
+
+    <div class="highlight">
+      💡 <strong>補充:業界常聽到的 Cpk 是什麼?</strong><br>
+      Cpk(製程能力指數)就是把上面的邏輯包成一個數字:<strong>Cpk = 規格容許範圍 ÷ 製程實際變異</strong>。<br><br>
+      • Cpk = 1.0 → 規格剛好等於 ±3σ,約有 0.27% 超出<br>
+      • Cpk = 1.33 → 等於 ±4σ,業界常見的合格門檻<br>
+      • Cpk = 1.67 → 等於 ±5σ,高階產品要求<br><br>
+      當客戶問「你們這個製程 Cpk 多少」,他其實是在問「你們的鐘形曲線,相對於我的規格夠不夠窄」。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏢 企業範例:DFM 在不同廠的實際運作</h2>
+
+    <div class="biz">
+      <span class="tag">企業範例 G</span>
+      <h4>案例:DFM 標準太鬆,良率長期偏低</h4>
+      <p><strong>狀況:</strong>某中型量產廠為了「不要一直發 EQ 得罪客戶」,把最小孔環標準從 4 mil 放寬到 3 mil,想說「應該還好」。</p>
+      <p><strong>結果:</strong>接下來三個月,鑽孔段的報廢率從 2% 上升到 7%。因為板子孔數多,3 mil 孔環在指數效應下,整片良率從 94% 掉到 5% 附近(對高孔數板)。</p>
+      <div class="num">
+        <strong>表面上省下的:</strong>少發約 40 封 EQ,少跟客戶來回<br>
+        <strong>實際損失:</strong>三個月多報廢的板子,遠超過那些 EQ 的溝通成本<br>
+        <strong>根本問題:</strong>把「客戶關係」和「物理限制」搞混了
+      </div>
+      <p><strong>修正做法:</strong>標準改回 4 mil,但同時改善 EQ 的品質——附上計算依據與建議方案,讓客戶覺得「這家廠很專業」而不是「這家廠很難搞」。三個月後良率回穩,客訴反而下降。</p>
+    </div>
+
+    <div class="biz">
+      <span class="tag">企業範例 H</span>
+      <h4>案例:分級 DFM,把 EQ 數量砍半</h4>
+      <p><strong>狀況:</strong>某樣品廠每天處理 20+ 個新料號,CAM 工程師平均每個料號要發 2-3 封 EQ,大量時間耗在等客戶回覆,交期一直延誤。</p>
+      <p><strong>改善:</strong>把 DFM 違規分成三級,並事先與客戶簽訂「授權處理範圍」:</p>
+      <div class="num">
+        <strong>紅色(必停)</strong>:短路、斷路、孔環嚴重不足 → 一定發 EQ,不做就不生產<br>
+        <strong>黃色(可自主處理)</strong>:焊盤微幅不足、字元壓線 → <strong>客戶事先授權 CAM 依標準規則自行修正</strong>,事後在報告中列出<br>
+        <strong>綠色(僅記錄)</strong>:輕微的美觀問題 → 不處理,只記錄
+      </div>
+      <p><strong>成效:</strong>EQ 數量減少約一半,平均交期縮短。關鍵在於「事先取得授權」——把逐案詢問,變成一次性的規則協議。</p>
+      <p><strong>可複製的重點:</strong>這個做法不需要買任何軟體,只需要跟主要客戶開一次會、簽一份文件。對高頻往來的客戶,投資報酬率非常高。</p>
+    </div>
+
+    <div class="biz">
+      <span class="tag">企業範例 I</span>
+      <h4>案例:把 DFM 資料回饋給客戶,變成業務優勢</h4>
+      <p><strong>狀況:</strong>某高階板廠發現,同一個客戶的設計團隊反覆犯同樣的錯誤(孔環不足、線距過小),每個月都要發一堆重複的 EQ。</p>
+      <p><strong>做法:</strong>該廠整理出「這位客戶過去半年的 DFM 違規統計」,做成一份報告,主動去客戶那裡開了一場<strong>設計規範說明會</strong>,教客戶的 RD 怎麼避開這些問題,並提供一份「符合本廠製程能力的設計規則檔」給客戶匯入設計軟體。</p>
+      <div class="num">
+        <strong>對客戶的價值:</strong>設計一次就過,不用一直改<br>
+        <strong>對板廠的價值:</strong>EQ 大幅減少、交期縮短、良率提升<br>
+        <strong>意外的效果:</strong>客戶把更多高階訂單轉給這家廠——因為「他們最懂我們的設計」
+      </div>
+      <p><strong>觀念:</strong>DFM 資料通常被當成內部品管紀錄,但它其實是<strong>最有說服力的業務工具</strong>。能講出「你們過去半年最常犯的三個問題」的供應商,客戶很難換掉。</p>
+    </div>
+
+    <div class="highlight">
+      💡 <strong>三個案例串起來的結論:</strong><br>
+      案例 G 說明<strong>不能為了關係犧牲原則</strong>(物理不會給你面子);<br>
+      案例 H 說明<strong>要把逐案判斷變成事先規則</strong>(節省的是時間);<br>
+      案例 I 說明<strong>DFM 資料本身有商業價值</strong>(從成本中心變成價值中心)。<br><br>
+      這三層剛好對應 CAM 部門的成熟度:守住底線 → 提升效率 → 創造價值。
     </div>
   </div>
 

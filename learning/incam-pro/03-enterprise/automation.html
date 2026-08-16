@@ -45,6 +45,18 @@
   .btn-next:hover{background:#047857;}
   .btn-prev{background:#f1f5f9;color:#475569;}
   .btn-prev:hover{background:#e2e8f0;}
+  .sci{background:#eff6ff;border:1px solid #bfdbfe;border-left:4px solid #2563eb;border-radius:0 10px 10px 0;padding:16px 18px;margin:14px 0;}
+  .sci h4{font-size:.93rem;color:#1d4ed8;margin-bottom:8px;}
+  .sci p{font-size:.88rem;color:#1e3a8a;line-height:1.9;margin-bottom:8px;}
+  .sci p:last-child{margin-bottom:0;}
+  .sci .eq{background:#dbeafe;border-radius:8px;padding:11px 14px;margin:10px 0;font-family:"Consolas","Courier New",monospace;font-size:.85rem;color:#1e3a8a;line-height:1.95;overflow-x:auto;white-space:pre;}
+  .sci .lv{display:inline-block;background:#2563eb;color:#fff;font-size:.71rem;padding:2px 10px;border-radius:10px;margin-bottom:9px;letter-spacing:.03em;}
+  .biz{background:#fdf4ff;border:1px solid #f0abfc;border-left:4px solid #a21caf;border-radius:0 10px 10px 0;padding:16px 18px;margin:14px 0;}
+  .biz h4{font-size:.93rem;color:#86198f;margin-bottom:8px;}
+  .biz p{font-size:.88rem;color:#701a75;line-height:1.9;margin-bottom:8px;}
+  .biz p:last-child{margin-bottom:0;}
+  .biz .tag{display:inline-block;background:#a21caf;color:#fff;font-size:.71rem;padding:2px 10px;border-radius:10px;margin-bottom:9px;letter-spacing:.03em;}
+  .biz .num{background:#fae8ff;border-radius:8px;padding:11px 14px;margin:10px 0;font-size:.86rem;color:#701a75;line-height:1.95;}
 </style>
 </head>
 <body>
@@ -189,6 +201,142 @@
     </div>
     <div class="highlight">
       💡 <strong>最重要的原則:自動化要「可監控、可回退」。</strong>要能看到每張料號自動處理的結果與例外率,出問題時能立刻切回人工模式。沒有這兩點,自動化就是把風險放大。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📈 用高中數學算自動化:什麼時候該投資?</h2>
+    <p>「要不要自動化」不該憑感覺,可以算。以下用高中的一次函數與不等式就能決定。</p>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 一次函數與損益兩平</span>
+      <h4>① 損益兩平點怎麼算?</h4>
+      <p>高中數學的<strong>損益兩平</strong>:找出「投入成本」等於「累積效益」的那個點。</p>
+      <div class="eq">設:
+  C = 開發自動化的一次性成本(工時 × 時薪)
+  s = 每個料號節省的時間(小時)
+  r = 工程師時薪(元/小時)
+  n = 累積處理的料號數
+
+累積效益 = n × s × r
+損益兩平:C = n × s × r
+
+<strong>n = C / (s × r)</strong>  ← 需要處理幾個料號才回本</div>
+      <p><strong>實際代入:</strong>寫一支自動拼板腳本,開發花 80 小時,工程師時薪抓 500 元,每個料號可省 25 分鐘。</p>
+      <div class="eq">C = 80 × 500 = 40,000 元
+s = 25/60 ≈ 0.417 小時
+r = 500 元
+
+n = 40000 / (0.417 × 500) = 40000 / 208.5 ≈ <strong>192 個料號</strong></div>
+      <p><strong>怎麼判讀這個數字?</strong>如果你的廠一個月處理 400 個料號,<strong>不到半個月就回本</strong>,毫無疑問該做。如果一個月只有 20 個料號,要 10 個月才回本,就要再想想。</p>
+    </div>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 不等式</span>
+      <h4>② 什麼情況「不該」自動化?</h4>
+      <p>把上面的式子反過來寫成不等式,就得到判斷準則:</p>
+      <div class="eq">值得做的條件:  n × s × r > C
+
+也就是:<strong>總節省 > 開發成本</strong>
+
+不值得做的三種情況:
+  ① n 太小 → 料號種類少,做了也用不到幾次
+  ② s 太小 → 本來就只花 2 分鐘的事,自動化省不了多少
+  ③ C 太大 → 規則太複雜、例外太多,寫到天荒地老</div>
+      <p><strong>最容易被忽略的是 ③。</strong>很多自動化專案失敗不是因為沒效益,而是<strong>低估了 C</strong>——以為兩週能寫完,結果因為例外情況一個接一個冒出來,寫了半年還在改。</p>
+      <div class="eq">實務上抓 C 的經驗法則:
+
+先問「這件事有多少比例是規則明確的?」
+
+規則明確度 90% 以上 → C 抓估計值 × 1.5
+規則明確度 70-90%   → C 抓估計值 × 2~3
+規則明確度 70% 以下 → <strong>先別自動化</strong>,先去把規則整理清楚</div>
+    </div>
+
+    <div class="sci">
+      <span class="lv">高中數學 · 加權平均</span>
+      <h4>③ 部分自動化的效益怎麼算?</h4>
+      <p>實務上很少有「100% 自動」。通常是「八成的標準料號自動跑,兩成的特殊料號還是人工」。這時要用<strong>加權平均</strong>算實際效益:</p>
+      <div class="eq">設:自動化涵蓋率 p(能自動處理的比例)
+    自動處理耗時 t_auto
+    人工處理耗時 t_manual
+
+平均耗時 = p × t_auto + (1-p) × t_manual
+
+例:原本人工 60 分鐘,自動化後 5 分鐘
+  涵蓋率 80%:
+  平均 = 0.8×5 + 0.2×60 = 4 + 12 = <strong>16 分鐘</strong>
+  節省 = 60 - 16 = 44 分鐘(節省 73%)
+
+  涵蓋率 50%:
+  平均 = 0.5×5 + 0.5×60 = 2.5 + 30 = <strong>32.5 分鐘</strong>
+  節省 = 27.5 分鐘(節省 46%)</div>
+      <p><strong>注意這個現象:</strong>涵蓋率從 50% 提到 80%(提升 30 個百分點),節省率從 46% 跳到 73%。<strong>涵蓋率的提升,效益是非線性放大的</strong>——因為剩下的人工部分才是耗時大頭。</p>
+      <p>所以自動化上線後,持續<strong>擴大涵蓋率</strong>(把更多例外納入規則)比優化已自動部分的速度更有價值。</p>
+    </div>
+
+    <div class="warn">
+      ⚠️ <strong>算式裡沒有、但真實存在的成本:維護。</strong>自動化腳本不是寫完就沒事——製程規則會改、軟體會升級、客戶會有新要求。維護成本通常是開發成本的每年 15-25%。做長期評估時要把它加進去,否則會高估報酬。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏢 企業範例:自動化導入的三種結果</h2>
+
+    <div class="biz">
+      <span class="tag">企業範例 P</span>
+      <h4>成功案例:從最無聊的那件事開始</h4>
+      <p><strong>狀況:</strong>某量產廠想做 CAM 自動化,但不知道從哪開始。CAM 主管沒有直接去挑「最難、最有價值」的拼板最佳化,而是先做了一週的<strong>工時紀錄</strong>——請每位工程師記下每天各項工作花的時間。</p>
+      <div class="num">
+        統計結果(佔總工時比例):<br>
+        • 檔案匯入與層別設定 —— <strong>約 22%</strong>(高度重複、規則明確)<br>
+        • DFM 檢查與判讀 —— 約 30%(需要判斷)<br>
+        • 拼板 —— 約 18%(需要判斷)<br>
+        • 輸出與檢查 —— <strong>約 20%</strong>(高度重複、規則明確)<br>
+        • 其他 —— 約 10%
+      </div>
+      <p><strong>決策:</strong>先自動化「檔案匯入」與「輸出檢查」這兩塊——它們合計佔 42% 的工時,<strong>而且幾乎沒有判斷成分</strong>,規則明確度接近 100%,開發成本低、風險小。</p>
+      <p><strong>成效:</strong>三個月上線,人均產能明顯提升,而且因為第一個專案成功,團隊對自動化有了信心,後續推動阻力大幅降低。</p>
+      <p><strong>可複製的重點:</strong><strong>先量測,再決定。</strong>不要憑印象猜哪裡最花時間——實測結果常常和直覺不同。而且第一個自動化專案的首要目標是「<strong>成功</strong>」,不是「效益最大」。</p>
+    </div>
+
+    <div class="biz">
+      <span class="tag">企業範例 Q</span>
+      <h4>失敗案例:一次做太大,兩年沒上線</h4>
+      <p><strong>狀況:</strong>某廠決心做「全自動 CAM」,目標是料號進來後<strong>完全不需要人工介入</strong>,直接輸出生產資料。專案編列了大筆預算與兩名專職工程師。</p>
+      <p><strong>問題:</strong>每當系統跑到某個沒見過的板型就卡住,於是就加一條規則。兩年下來規則越加越多、互相衝突,系統變得沒人看得懂,連原本的開發者都不敢改。</p>
+      <div class="num">
+        <strong>投入:</strong>兩名工程師 × 兩年<br>
+        <strong>上線比例:</strong>始終停留在「試運行」<br>
+        <strong>根本錯誤:</strong>把目標訂成「100% 自動」,而不是「<strong>80% 自動 + 20% 人工例外</strong>」
+      </div>
+      <p><strong>問題出在哪:</strong>回到前面的加權平均——從 80% 涵蓋率提到 100%,節省率只從 73% 提到 92%,<strong>多的那 19 個百分點,卻要花掉超過八成的開發力氣</strong>。因為剩下的都是最奇怪、最少見、最難寫成規則的板型。</p>
+      <p><strong>正確做法:</strong>訂一個明確的<strong>「例外出口」</strong>——系統遇到不確定的狀況就標記起來丟給人工處理,而不是硬要自己解決。這樣系統可以很快上線,人工也只需處理真正困難的那少數。</p>
+    </div>
+
+    <div class="biz">
+      <span class="tag">企業範例 R</span>
+      <h4>轉折案例:自動化之後,工程師做什麼?</h4>
+      <p><strong>狀況:</strong>某廠自動化上線後,CAM 部門的重複工作大幅減少。老闆的第一反應是「那是不是可以減人?」</p>
+      <p><strong>CAM 主管的提案:</strong>不減人,而是把釋出的人力轉去做三件原本「沒空做」的事:</p>
+      <div class="num">
+        <strong>① 製程參數優化</strong><br>
+        有空去分析歷史良率資料,把補償參數調得更準 → 良率提升<br><br>
+        <strong>② 客戶端設計輔導</strong><br>
+        主動去教客戶怎麼設計才好做(見 DFM 章的案例 I) → 拿到更多訂單<br><br>
+        <strong>③ 承接高階板</strong><br>
+        有時間鑽研 HDI、軟硬結合板等高難度產品 → 進入高毛利市場
+      </div>
+      <p><strong>一年後的結果:</strong>人數沒減,但部門處理的料號量成長,而且開始能接原本做不了的高階單。<strong>自動化的價值不在省人力,在於把人從重複工作中釋放出來做更值錢的事。</strong></p>
+      <p><strong>管理啟示:</strong>如果自動化的目的被設定成「減人」,員工一定會消極抵抗(見前面的導入陷阱表)。把目的設定成「升級」,員工才會主動幫你把自動化做好——因為那對他自己的職涯也有利。</p>
+    </div>
+
+    <div class="highlight">
+      💡 <strong>三個案例的總結:</strong><br>
+      <strong>P 教你怎麼開始</strong>——先量測、挑規則最明確的、第一個專案求成功不求最大;<br>
+      <strong>Q 教你別做什麼</strong>——不要追求 100%,要留人工例外出口;<br>
+      <strong>R 教你之後怎麼辦</strong>——自動化是為了升級,不是為了裁員。<br><br>
+      三者合起來就是一句話:<strong>自動化是管理專案,不是技術專案。</strong>技術難度通常不是失敗的原因,目標設定與人的配合才是。
     </div>
   </div>
 
