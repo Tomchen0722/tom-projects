@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}總覽 — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <h1>總覽</h1>
+  <span class="muted tiny">{{ start }} ~ {{ end }}</span>
+</div>
+
+<div class="grid c4" style="margin-bottom:20px">
+  <div class="stat"><div class="n">{{ employees|length }}</div><div class="l">在職員工</div></div>
+  <div class="stat"><div class="n">{{ shifts|length }}</div><div class="l">啟用班別</div></div>
+  <div class="stat"><div class="n">{{ assignments|length }}</div><div class="l">本月排班數</div></div>
+  <div class="stat"><div class="n">{{ pending_leaves|length + pending_swaps|length }}</div><div class="l">待審申請</div></div>
+</div>
+
+{% if not line_ready %}
+<div class="msg warn">
+  LINE 尚未設定完成,目前是 demo 模式(網頁功能全部可用,只是不會真的推播訊息)。
+  設定方式看 <a href="{{ url_for('web.settings') }}">設定與 LINE</a>。
+</div>
+{% endif %}
+
+<div class="grid c2">
+  <div class="card">
+    <h2>待審請假</h2>
+    {% if pending_leaves %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>員工</th><th>日期</th><th>假別</th><th></th></tr></thead>
+        <tbody>
+        {% for l in pending_leaves[:8] %}
+          <tr>
+            <td>{{ l.employee_name }}</td>
+            <td class="tiny">{{ l.start_date }}{% if l.end_date != l.start_date %}<br>~ {{ l.end_date }}{% endif %}</td>
+            <td><span class="tag plain">{{ l.leave_type }}</span></td>
+            <td class="actions">
+              <form method="post" action="{{ url_for('web.leave_decide', leave_id=l.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="approved">
+                <button class="btn sm">核准</button>
+              </form>
+              <form method="post" action="{{ url_for('web.leave_decide', leave_id=l.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="rejected">
+                <button class="btn sm danger">退回</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="empty">沒有待審的請假</div>{% endif %}
+  </div>
+
+  <div class="card">
+    <h2>待審調班</h2>
+    {% if pending_swaps %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>員工</th><th>原班</th><th>希望改成</th><th></th></tr></thead>
+        <tbody>
+        {% for s in pending_swaps[:8] %}
+          <tr>
+            <td>{{ s.requester_name }}</td>
+            <td class="tiny">{{ s.work_date }} {{ s.shift_name }}</td>
+            <td class="tiny">{{ s.target_date or s.work_date }} {{ s.target_shift_name or s.shift_name }}</td>
+            <td class="actions">
+              <form method="post" action="{{ url_for('web.swap_decide', swap_id=s.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="approved">
+                <button class="btn sm">核准</button>
+              </form>
+              <form method="post" action="{{ url_for('web.swap_decide', swap_id=s.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="rejected">
+                <button class="btn sm danger">退回</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="empty">沒有待審的調班</div>{% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>本月班數分布</h2>
+  <p class="tiny muted">數字差距越小,代表排班越公平。</p>
+  {% set maxn = (stats | map(attribute='shifts') | max) if stats else 0 %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>員工</th><th style="width:60%">班數</th><th class="right">合計</th></tr></thead>
+      <tbody>
+      {% for s in stats %}
+        <tr>
+          <td>{{ s.name }}</td>
+          <td>
+            <div style="background:var(--washi-2);border-radius:4px;height:14px;overflow:hidden">
+              <div style="height:100%;background:var(--kaki-soft);border-right:2px solid var(--kaki);
+                          width:{{ (s.shifts / maxn * 100) if maxn else 0 }}%"></div>
+            </div>
+          </td>
+          <td class="right">{{ s.shifts }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

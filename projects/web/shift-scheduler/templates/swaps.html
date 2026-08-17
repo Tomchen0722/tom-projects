@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}調班 — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <h1>調班申請</h1>
+  <div>
+    <a class="btn sm {{ 'primary' if not current_status }}" href="{{ url_for('web.swaps') }}">全部</a>
+    <a class="btn sm {{ 'primary' if current_status == 'pending' }}" href="{{ url_for('web.swaps', status='pending') }}">待審</a>
+    <a class="btn sm {{ 'primary' if current_status == 'approved' }}" href="{{ url_for('web.swaps', status='approved') }}">已核准</a>
+    <a class="btn sm {{ 'primary' if current_status == 'rejected' }}" href="{{ url_for('web.swaps', status='rejected') }}">已退回</a>
+  </div>
+</div>
+
+<div class="card">
+  <p class="tiny muted">
+    員工在 LINE 的自助頁送出調班申請後會出現在這裡。核准後系統會直接改掉那筆班次,並鎖定它。
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>申請人</th><th>原本的班</th><th>希望改成</th><th>原因</th><th>來源</th><th>狀態</th><th></th></tr></thead>
+      <tbody>
+      {% for s in swaps %}
+        <tr>
+          <td>{{ s.requester_name }}</td>
+          <td class="tiny">{{ s.work_date }} {{ s.shift_name }}</td>
+          <td class="tiny">{{ s.target_date or s.work_date }} {{ s.target_shift_name or s.shift_name }}</td>
+          <td class="tiny muted">{{ s.reason or '—' }}</td>
+          <td class="tiny muted">{{ 'LINE' if s.source == 'line' else '後台' }}</td>
+          <td>
+            {% if s.status == 'approved' %}<span class="tag ok">已核准</span>
+            {% elif s.status == 'rejected' %}<span class="tag err">已退回</span>
+            {% else %}<span class="tag warn">待審</span>{% endif %}
+          </td>
+          <td class="actions">
+            {% if s.status == 'pending' %}
+              <form method="post" action="{{ url_for('web.swap_decide', swap_id=s.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="approved">
+                <input type="hidden" name="filter" value="{{ current_status }}">
+                <button class="btn sm">核准</button>
+              </form>
+              <form method="post" action="{{ url_for('web.swap_decide', swap_id=s.id) }}" style="display:inline">
+                <input type="hidden" name="status" value="rejected">
+                <input type="hidden" name="filter" value="{{ current_status }}">
+                <button class="btn sm danger">退回</button>
+              </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('web.swap_delete', swap_id=s.id) }}" style="display:inline"
+                  data-confirm="確定刪除這筆調班紀錄?">
+              <button class="btn sm danger">刪除</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7"><div class="empty">沒有符合條件的調班申請。</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

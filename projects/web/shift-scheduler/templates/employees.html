@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}員工 — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <h1>員工</h1>
+  <span class="muted tiny">共 {{ employees|length }} 人</span>
+</div>
+
+<div class="card">
+  <h2>新增員工</h2>
+  <form method="post" action="{{ url_for('web.employee_create') }}">
+    <div class="row">
+      <div><label>姓名 *</label><input type="text" name="name" required></div>
+      <div class="narrow"><label>員工編號</label><input type="text" name="employee_no" placeholder="A008"></div>
+      <div class="narrow"><label>電話</label><input type="text" name="phone"></div>
+      <div>
+        <label>身分</label>
+        <select name="role"><option value="staff">一般員工</option><option value="manager">店長</option></select>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div><label>技能(逗號分隔)</label><input type="text" name="skills" placeholder="收銀,咖啡"></div>
+      <div class="narrow"><label>每週最多</label><input type="number" name="max_shifts_per_week" value="5" min="0" max="7"></div>
+      <div class="narrow"><label>每週最少</label><input type="number" name="min_shifts_per_week" value="0" min="0" max="7"></div>
+      <div><label>LINE User ID</label><input type="text" name="line_user_id" placeholder="員工用 LINE 綁定後自動填入"></div>
+      <div style="flex:0 0 auto"><button class="btn primary">新增</button></div>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <h2>員工清單</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>姓名</th><th>編號</th><th>身分</th><th>技能</th>
+          <th>週上限</th><th>週下限</th><th>LINE</th><th>狀態</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for e in employees %}
+        {% if edit_id == e.id %}
+        <tr>
+          <td colspan="9">
+            <form method="post" action="{{ url_for('web.employee_update', emp_id=e.id) }}">
+              <div class="row">
+                <div><label>姓名</label><input type="text" name="name" value="{{ e.name }}" required></div>
+                <div class="narrow"><label>編號</label><input type="text" name="employee_no" value="{{ e.employee_no }}"></div>
+                <div class="narrow"><label>電話</label><input type="text" name="phone" value="{{ e.phone }}"></div>
+                <div>
+                  <label>身分</label>
+                  <select name="role">
+                    <option value="staff" {{ 'selected' if e.role == 'staff' }}>一般員工</option>
+                    <option value="manager" {{ 'selected' if e.role == 'manager' }}>店長</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row" style="margin-top:12px">
+                <div><label>技能</label><input type="text" name="skills" value="{{ e.skills }}"></div>
+                <div class="narrow"><label>週上限</label><input type="number" name="max_shifts_per_week" value="{{ e.max_shifts_per_week }}" min="0" max="7"></div>
+                <div class="narrow"><label>週下限</label><input type="number" name="min_shifts_per_week" value="{{ e.min_shifts_per_week }}" min="0" max="7"></div>
+                <div><label>LINE User ID</label><input type="text" name="line_user_id" value="{{ e.line_user_id or '' }}"></div>
+              </div>
+              <div class="row" style="margin-top:12px">
+                <label class="check" style="flex:0 0 auto">
+                  <input type="checkbox" name="active" {{ 'checked' if e.active }}> 在職
+                </label>
+                <div style="flex:0 0 auto">
+                  <button class="btn primary">儲存</button>
+                  <a class="btn ghost" href="{{ url_for('web.employees') }}">取消</a>
+                </div>
+              </div>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr class="{{ '' if e.active else 'off' }}">
+          <td>{{ e.name }}</td>
+          <td class="tiny muted">{{ e.employee_no or '—' }}</td>
+          <td>{% if e.role == 'manager' %}<span class="tag info">店長</span>{% else %}<span class="tag plain">員工</span>{% endif %}</td>
+          <td class="tiny">{{ e.skills or '—' }}</td>
+          <td>{{ e.max_shifts_per_week }}</td>
+          <td>{{ e.min_shifts_per_week }}</td>
+          <td>{% if e.line_user_id %}<span class="tag ok">已綁</span>{% else %}<span class="tag plain">未綁</span>{% endif %}</td>
+          <td>{% if e.active %}<span class="tag ok">在職</span>{% else %}<span class="tag plain">停用</span>{% endif %}</td>
+          <td class="actions">
+            <a class="btn sm" href="{{ url_for('web.employees', edit=e.id) }}">修改</a>
+            <form method="post" action="{{ url_for('web.employee_delete', emp_id=e.id) }}" style="display:inline"
+                  data-confirm="確定要停用「{{ e.name }}」嗎?班表會保留。">
+              <input type="hidden" name="mode" value="deactivate">
+              <button class="btn sm">停用</button>
+            </form>
+            <form method="post" action="{{ url_for('web.employee_delete', emp_id=e.id) }}" style="display:inline"
+                  data-confirm="確定刪除「{{ e.name }}」?他的所有排班紀錄會一起消失,無法復原。">
+              <button class="btn sm danger">刪除</button>
+            </form>
+          </td>
+        </tr>
+        {% endif %}
+      {% else %}
+        <tr><td colspan="9"><div class="empty">還沒有員工,用上面的表單新增。</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

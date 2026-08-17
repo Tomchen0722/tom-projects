@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="mark">班</span>
+      <span class="name">{{ app_name }}</span>
+      <span class="sub">SHIFT SCHEDULER</span>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('web.dashboard') }}" class="{{ 'on' if request.endpoint == 'web.dashboard' }}">總覽</a>
+      <a href="{{ url_for('web.schedule') }}"  class="{{ 'on' if request.endpoint == 'web.schedule' }}">排班表</a>
+      <div class="sep">資料管理</div>
+      <a href="{{ url_for('web.employees') }}" class="{{ 'on' if request.endpoint == 'web.employees' }}">員工</a>
+      <a href="{{ url_for('web.shifts') }}"    class="{{ 'on' if request.endpoint == 'web.shifts' }}">班別</a>
+      <div class="sep">申請審核</div>
+      <a href="{{ url_for('web.leaves') }}"    class="{{ 'on' if request.endpoint == 'web.leaves' }}">請假</a>
+      <a href="{{ url_for('web.swaps') }}"     class="{{ 'on' if request.endpoint == 'web.swaps' }}">調班</a>
+      <div class="sep">其他</div>
+      <a href="{{ url_for('web.settings') }}"  class="{{ 'on' if request.endpoint == 'web.settings' }}">設定與 LINE</a>
+      <a href="{{ url_for('line.liff_page') }}" target="_blank">員工自助頁 ↗</a>
+      <a href="{{ url_for('web.logout') }}">登出</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="flash">
+        {% for category, message in messages %}
+          <div class="msg {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
