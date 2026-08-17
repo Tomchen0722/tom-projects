@@ -6,7 +6,7 @@
 <title>Cognito / API Gateway / Organizations SCP — AWS SAA-C03</title>
 <link rel="stylesheet" href="assets/lesson.css">
 <style>
-.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;}
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
 .arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
 .cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:16px 0;}
 .cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
@@ -86,18 +86,16 @@
   <div class="card" id="user-pool">
     <h2>2. User Pool 深入</h2>
 
-    <div class="arch">
-<span class="c">用戶端（手機 App / SPA）</span><br>
-  ↓  帳密 / 第三方 SSO 登入<br>
-<span class="y">Cognito User Pool</span><br>
-  ↓  回傳 3 個 Token<br>
-  ├── <span class="o">ID Token</span>（JWT）：包含使用者身分資訊（email、sub、groups）<br>
-  ├── <span class="o">Access Token</span>（JWT）：用於呼叫受保護的 API<br>
-  └── <span class="o">Refresh Token</span>：刷新 Access Token（預設 30 天）<br>
-<br>
-<span class="c">API Gateway</span>（設定 Cognito Authorizer）<br>
-  └── 驗證 Access Token 的簽章和有效期 → 通過才放行
-    </div>
+    <div class="arch"><span class="c">用戶端（手機 App / SPA）</span>
+  ↓  帳密 / 第三方 SSO 登入
+<span class="y">Cognito User Pool</span>
+  ↓  回傳 3 個 Token
+  ├── <span class="o">ID Token</span>（JWT）：包含使用者身分資訊（email、sub、groups）
+  ├── <span class="o">Access Token</span>（JWT）：用於呼叫受保護的 API
+  └── <span class="o">Refresh Token</span>：刷新 Access Token（預設 30 天）
+
+<span class="c">API Gateway</span>（設定 Cognito Authorizer）
+  └── 驗證 Access Token 的簽章和有效期 → 通過才放行</div>
 
     <h3>Hosted UI</h3>
     <p>User Pool 內建一個託管的登入頁（Cognito Hosted UI），不用自己寫登入介面。支援 OAuth 2.0 標準流程（Authorization Code + PKCE），可以自訂網域（如 <code>auth.yourapp.com</code>）。</p>
@@ -120,15 +118,13 @@
   <div class="card" id="identity-pool">
     <h2>3. Identity Pool 深入</h2>
 
-    <div class="arch">
-<span class="c">App</span> → User Pool 拿 JWT<br>
-       ↓<br>
-<span class="y">Identity Pool</span>（設定信任的 User Pool）<br>
-       ↓ 呼叫 STS:AssumeRoleWithWebIdentity<br>
-<span class="o">STS</span> → 回傳臨時憑證（最長 12 小時）<br>
-       ↓<br>
-<span class="c">App 直接 call AWS API</span>（S3 / DynamoDB / Kinesis）
-    </div>
+    <div class="arch"><span class="c">App</span> → User Pool 拿 JWT
+       ↓
+<span class="y">Identity Pool</span>（設定信任的 User Pool）
+       ↓ 呼叫 STS:AssumeRoleWithWebIdentity
+<span class="o">STS</span> → 回傳臨時憑證（最長 12 小時）
+       ↓
+<span class="c">App 直接 call AWS API</span>（S3 / DynamoDB / Kinesis）</div>
 
     <h3>精細化授權（Row-Level Security）</h3>
     <div class="formula"><code>IAM Policy 中可以用 Cognito Sub 當條件：<br><br>
@@ -196,17 +192,15 @@
       </div>
     </div>
 
-    <div class="arch">
-<span class="w">Cognito Authorizer：</span><br>
-  App → API GW → 驗 JWT（User Pool 公鑰） → Lambda<br>
-<br>
-<span class="w">Lambda Authorizer：</span><br>
-  App → API GW → Lambda Authorizer（自訂邏輯） → IAM Policy → Lambda<br>
-  （Lambda Authorizer 可快取授權結果 TTL 最長 3600 秒）<br>
-<br>
-<span class="w">IAM 授權：</span><br>
-  Service → STS 拿臨時憑證 → 用 SigV4 簽署請求 → API GW → Lambda
-    </div>
+    <div class="arch"><span class="w">Cognito Authorizer：</span>
+  App → API GW → 驗 JWT（User Pool 公鑰） → Lambda
+
+<span class="w">Lambda Authorizer：</span>
+  App → API GW → Lambda Authorizer（自訂邏輯） → IAM Policy → Lambda
+  （Lambda Authorizer 可快取授權結果 TTL 最長 3600 秒）
+
+<span class="w">IAM 授權：</span>
+  Service → STS 拿臨時憑證 → 用 SigV4 簽署請求 → API GW → Lambda</div>
 
     <h3>Resource Policy</h3>
     <p>API Gateway 還有 <strong>Resource Policy</strong>（資源政策），可以用 IP 白名單、VPC Endpoint 限制誰能存取 API，即使有認證也可以額外限制來源。</p>
@@ -218,17 +212,15 @@
 
     <div class="analogy">SCP（Service Control Policy）是 Organizations 組織層級的「硬上限」：即使帳號的 IAM Policy 允許某個操作，SCP 說「不行」就是不行。SCP 是守門員，IAM 是通行證——有通行證但守門員不讓過，還是進不去。</div>
 
-    <div class="arch">
-<span class="c">AWS Organizations 架構</span><br>
-├── <span class="o">Management Account（主管理帳號）</span><br>
-│   └── <span class="w">⚠️  SCP 不影響 Management Account！</span><br>
-│       <span class="w">Management Account 永遠有全部權限</span><br>
-├── <span class="y">OU（組織單位）</span><br>
-│   ├── SCP 套用到整個 OU，OU 下所有帳號都受限<br>
-│   └── OU 可以嵌套，子 OU 繼承父 OU 的 SCP（更嚴格）<br>
-└── <span class="c">Member Account（成員帳號）</span><br>
-    └── 同時受：帳號本身的 IAM Policy + 所在 OU 的 SCP
-    </div>
+    <div class="arch"><span class="c">AWS Organizations 架構</span>
+├── <span class="o">Management Account（主管理帳號）</span>
+│   └── <span class="w">⚠️  SCP 不影響 Management Account！</span>
+│       <span class="w">Management Account 永遠有全部權限</span>
+├── <span class="y">OU（組織單位）</span>
+│   ├── SCP 套用到整個 OU，OU 下所有帳號都受限
+│   └── OU 可以嵌套，子 OU 繼承父 OU 的 SCP（更嚴格）
+└── <span class="c">Member Account（成員帳號）</span>
+    └── 同時受：帳號本身的 IAM Policy + 所在 OU 的 SCP</div>
 
     <h3>SCP 評估邏輯</h3>
     <div class="formula"><code>有效權限 = IAM 允許的 ∩ SCP 允許的<br><br>
@@ -259,32 +251,26 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
     <h2>7. 常見架構模式</h2>
 
     <h3>模式一：行動 App 用戶直接存取 S3</h3>
-    <div class="arch">
-手機 App<br>
-  → Cognito User Pool 登入，拿 JWT<br>
-  → Cognito Identity Pool 換 STS 臨時憑證<br>
-  → 直接呼叫 S3 API（上傳/下載自己的檔案）<br>
-  → S3 Bucket Policy + IAM Policy 控制存取（用 cognito sub 隔離）
-    </div>
+    <div class="arch">手機 App
+  → Cognito User Pool 登入，拿 JWT
+  → Cognito Identity Pool 換 STS 臨時憑證
+  → 直接呼叫 S3 API（上傳/下載自己的檔案）
+  → S3 Bucket Policy + IAM Policy 控制存取（用 cognito sub 隔離）</div>
 
     <h3>模式二：API Gateway + Lambda 後端</h3>
-    <div class="arch">
-手機 App<br>
-  → Cognito User Pool 登入，拿 JWT Access Token<br>
-  → 呼叫 API Gateway（Header: Authorization: Bearer {JWT}）<br>
-  → API Gateway Cognito Authorizer 驗 JWT<br>
-  → 驗通過 → 呼叫 Lambda（context 裡有使用者資訊）<br>
-  → Lambda 回傳結果
-    </div>
+    <div class="arch">手機 App
+  → Cognito User Pool 登入，拿 JWT Access Token
+  → 呼叫 API Gateway（Header: Authorization: Bearer {JWT}）
+  → API Gateway Cognito Authorizer 驗 JWT
+  → 驗通過 → 呼叫 Lambda（context 裡有使用者資訊）
+  → Lambda 回傳結果</div>
 
     <h3>模式三：多帳號企業（Organizations）</h3>
-    <div class="arch">
-Organizations<br>
-  ├── Management Account：只放 Billing、Organizations 管理<br>
-  ├── Security OU：Security Tooling Account（GuardDuty、Security Hub 集中）<br>
-  ├── Production OU：Production Account（SCP：禁止 Region 外操作）<br>
-  └── Dev OU：Dev Account（SCP：禁止大型 EC2、禁止高費用服務）
-    </div>
+    <div class="arch">Organizations
+  ├── Management Account：只放 Billing、Organizations 管理
+  ├── Security OU：Security Tooling Account（GuardDuty、Security Hub 集中）
+  ├── Production OU：Production Account（SCP：禁止 Region 外操作）
+  └── Dev OU：Dev Account（SCP：禁止大型 EC2、禁止高費用服務）</div>
 
     <div class="note" style="background:#E3F2FD;color:#0D47A1;">
       <span>📋</span>

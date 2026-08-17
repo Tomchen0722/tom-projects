@@ -6,7 +6,7 @@
 <title>分析與大數據 — AWS SAA-C03</title>
 <link rel="stylesheet" href="assets/lesson.css">
 <style>
-.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;}
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
 .arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
 .cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:16px 0;}
 .cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
@@ -54,23 +54,21 @@
     <h2>1. 先建立地圖：資料的一生</h2>
     <div class="analogy">把資料想成自來水：<b>取水</b>（收集）→ <b>輸水管</b>（傳輸）→ <b>水庫</b>（儲存）→ <b>淨水廠</b>（處理）→ <b>水龍頭</b>（分析與呈現）。AWS 的分析服務就是分別負責這五段,你只要知道每個服務站在哪一段,選型題就答得出來。</div>
 
-    <div class="arch">
-<span class="c">① 收集 Ingest</span><br>
-   Kinesis Data Streams / Firehose ← 即時串流<br>
-   Snowball / DataSync / DMS      ← 批次搬移<br>
-<br>
-<span class="c">② 儲存 Store</span><br>
-   <span class="o">S3（資料湖的地基）</span> / Redshift（資料倉儲）<br>
-<br>
-<span class="c">③ 處理 Process</span><br>
-   Glue（ETL）/ EMR（Spark、Hadoop）/ Lambda<br>
-<br>
-<span class="c">④ 分析 Analyze</span><br>
-   Athena（查 S3）/ Redshift（查倉儲）/ OpenSearch（查日誌）<br>
-<br>
-<span class="c">⑤ 呈現 Visualize</span><br>
-   <span class="y">QuickSight（BI 儀表板）</span>
-    </div>
+    <div class="arch"><span class="c">① 收集 Ingest</span>
+   Kinesis Data Streams / Firehose ← 即時串流
+   Snowball / DataSync / DMS      ← 批次搬移
+
+<span class="c">② 儲存 Store</span>
+   <span class="o">S3（資料湖的地基）</span> / Redshift（資料倉儲）
+
+<span class="c">③ 處理 Process</span>
+   Glue（ETL）/ EMR（Spark、Hadoop）/ Lambda
+
+<span class="c">④ 分析 Analyze</span>
+   Athena（查 S3）/ Redshift（查倉儲）/ OpenSearch（查日誌）
+
+<span class="c">⑤ 呈現 Visualize</span>
+   <span class="y">QuickSight（BI 儀表板）</span></div>
 
     <div class="note" style="background:#E3F2FD;color:#0D47A1;">
       <span>📋</span>
@@ -134,21 +132,19 @@
     </div>
 
     <h3>降低 Athena 費用的四個手段(必考)</h3>
-    <div class="arch">
-<span class="c">① 用欄式格式(Columnar)</span><br>
-   CSV/JSON → <span class="o">Parquet / ORC</span><br>
-   只讀取需要的欄位,掃描量可降 <span class="y">80-90%</span><br>
-<br>
-<span class="c">② 分割(Partition)</span><br>
-   s3://bucket/logs/<span class="y">year=2026/month=08/day=15/</span><br>
-   查特定日期時只掃該資料夾,不掃全部<br>
-<br>
-<span class="c">③ 壓縮(Compression)</span><br>
-   GZIP / Snappy → 檔案變小,掃描量變小<br>
-<br>
-<span class="c">④ 合併小檔案</span><br>
-   大量的小檔案會拖慢查詢,合併成較大的檔案較有效率
-    </div>
+    <div class="arch"><span class="c">① 用欄式格式(Columnar)</span>
+   CSV/JSON → <span class="o">Parquet / ORC</span>
+   只讀取需要的欄位,掃描量可降 <span class="y">80-90%</span>
+
+<span class="c">② 分割(Partition)</span>
+   s3://bucket/logs/<span class="y">year=2026/month=08/day=15/</span>
+   查特定日期時只掃該資料夾,不掃全部
+
+<span class="c">③ 壓縮(Compression)</span>
+   GZIP / Snappy → 檔案變小,掃描量變小
+
+<span class="c">④ 合併小檔案</span>
+   大量的小檔案會拖慢查詢,合併成較大的檔案較有效率</div>
 
     <div class="trap"><b>陷阱:Athena 的成本題</b><br>
     題目常說「查詢費用太高,怎麼降低?」——標準答案幾乎都是<b>「轉成 Parquet + 分割」</b>。<br>

@@ -6,7 +6,7 @@
 <title>ECS / Fargate 容器化 — AWS SAA-C03</title>
 <link rel="stylesheet" href="assets/lesson.css">
 <style>
-.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;}
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
 .arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
 .cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:16px 0;}
 .cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
@@ -50,17 +50,15 @@
     <h2>1. ECS 架構概覽</h2>
     <div class="analogy">把 ECS 想成「AWS 幫你管的 Docker Compose 升級版」：你告訴 AWS 要跑什麼容器、要幾個，AWS 負責找機器、排程、監控健康狀態。</div>
 
-    <div class="arch">
-<span class="c">Cluster（叢集）</span><br>
-  ├── <span class="y">Service（服務）</span>  ← 維持 N 個 Task 持續運行<br>
-  │     ├── <span class="o">Task（任務）</span>  ← 一次性工作（批次處理）<br>
-  │     └── <span class="o">Task（任務）</span>  ← 一個以上容器的組合<br>
-  └── <span class="y">Task Definition（任務定義）</span>  ← 藍圖（不是跑起來的東西）<br>
-          ├── 映像 URI<br>
-          ├── CPU / 記憶體<br>
-          ├── 環境變數 / Secrets<br>
-          └── 網路模式（awsvpc / bridge / host）
-    </div>
+    <div class="arch"><span class="c">Cluster（叢集）</span>
+  ├── <span class="y">Service（服務）</span>  ← 維持 N 個 Task 持續運行
+  │     ├── <span class="o">Task（任務）</span>  ← 一次性工作（批次處理）
+  │     └── <span class="o">Task（任務）</span>  ← 一個以上容器的組合
+  └── <span class="y">Task Definition（任務定義）</span>  ← 藍圖（不是跑起來的東西）
+          ├── 映像 URI
+          ├── CPU / 記憶體
+          ├── 環境變數 / Secrets
+          └── 網路模式（awsvpc / bridge / host）</div>
 
     <div class="cmprow">
       <div class="cmp"><b>Cluster</b><span>資源的邏輯邊界，可包含多個 Service 和 Task。EC2 Launch Type 時，EC2 Instance 也在 Cluster 裡。</span></div>
@@ -118,22 +116,20 @@
   <!-- 4 -->
   <div class="card" id="iam">
     <h2>4. ECS IAM 三層角色</h2>
-    <div class="arch">
-<span class="c">① EC2 Instance Profile</span>  <span class="w">（只有 EC2 Launch Type 才有）</span><br>
-   └── EC2 Instance 本身需要的權限<br>
-       ECS Agent 用這個 Role 向 ECS Control Plane 回報<br>
-       需要：<span class="y">AmazonEC2ContainerServiceforEC2Role</span><br>
-<br>
-<span class="c">② Task Execution Role</span>  <span class="w">（Fargate + EC2 都需要）</span><br>
-   └── ECS 基礎設施的權限<br>
-       拉 ECR 映像、送 CloudWatch 日誌、讀 SSM/Secrets Manager<br>
-       需要：<span class="y">AmazonECSTaskExecutionRolePolicy</span><br>
-<br>
-<span class="c">③ Task Role</span>  <span class="w">（你的應用程式需要的權限）</span><br>
-   └── 應用程式 call AWS API 的權限<br>
-       如：S3 GetObject、DynamoDB PutItem、SQS SendMessage<br>
-       <span class="o">自訂，按最小權限原則設定</span>
-    </div>
+    <div class="arch"><span class="c">① EC2 Instance Profile</span>  <span class="w">（只有 EC2 Launch Type 才有）</span>
+   └── EC2 Instance 本身需要的權限
+       ECS Agent 用這個 Role 向 ECS Control Plane 回報
+       需要：<span class="y">AmazonEC2ContainerServiceforEC2Role</span>
+
+<span class="c">② Task Execution Role</span>  <span class="w">（Fargate + EC2 都需要）</span>
+   └── ECS 基礎設施的權限
+       拉 ECR 映像、送 CloudWatch 日誌、讀 SSM/Secrets Manager
+       需要：<span class="y">AmazonECSTaskExecutionRolePolicy</span>
+
+<span class="c">③ Task Role</span>  <span class="w">（你的應用程式需要的權限）</span>
+   └── 應用程式 call AWS API 的權限
+       如：S3 GetObject、DynamoDB PutItem、SQS SendMessage
+       <span class="o">自訂，按最小權限原則設定</span></div>
 
     <div class="note" style="background:#E8F5E9;color:#1B5E20;">
       <span>💡</span>
@@ -147,14 +143,12 @@
     <h3>EC2 Launch Type 的動態埠映射</h3>
     <p>bridge 網路模式下，多個 Task 可以在同一個 EC2 Instance 上用不同的隨機 Host Port 運行同一個容器（容器 Port 固定，Host Port 動態分配）。ALB Target Group 用 Instance 模式，會追蹤動態分配的埠。</p>
 
-    <div class="arch">
-<span class="w">EC2 Instance</span><br>
-  ├── Task 1: Container Port 8080 → Host Port <span class="o">32768</span><br>
-  ├── Task 2: Container Port 8080 → Host Port <span class="o">32769</span><br>
-  └── Task 3: Container Port 8080 → Host Port <span class="o">32770</span><br>
-<br>
-<span class="c">ALB</span> → Target Group (Instance 模式) → 自動知道每個 Task 的 Host Port
-    </div>
+    <div class="arch"><span class="w">EC2 Instance</span>
+  ├── Task 1: Container Port 8080 → Host Port <span class="o">32768</span>
+  ├── Task 2: Container Port 8080 → Host Port <span class="o">32769</span>
+  └── Task 3: Container Port 8080 → Host Port <span class="o">32770</span>
+
+<span class="c">ALB</span> → Target Group (Instance 模式) → 自動知道每個 Task 的 Host Port</div>
 
     <h3>Fargate 的 IP 模式</h3>
     <p>Fargate 每個 Task 有獨立 ENI（有自己的私有 IP）。ALB Target Group 用 <strong>IP 模式</strong>，直接指向 Task 的私有 IP。不需要動態埠映射。</p>
@@ -206,13 +200,11 @@ FARGATE_SPOT: weight=4     ← 其餘 Task 盡量用 Spot（70% 折扣）<br><br
     </div>
 
     <h3>Cloud Map 整合</h3>
-    <div class="arch">
-Service A 想找 Service B<br>
-  → DNS 查詢：<span class="y">api.prod.local</span><br>
-  → Route 53 Private Zone 回傳 Task B 的私有 IP<br>
-  → Service A 直接連線到 Task B<br>
-  → 新 Task 啟動時自動登記；Task 結束時自動登出<br>
-    </div>
+    <div class="arch">Service A 想找 Service B
+  → DNS 查詢：<span class="y">api.prod.local</span>
+  → Route 53 Private Zone 回傳 Task B 的私有 IP
+  → Service A 直接連線到 Task B
+  → 新 Task 啟動時自動登記；Task 結束時自動登出</div>
   </div>
 
   <!-- 8 -->
