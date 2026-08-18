@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資安服務家族 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">18 · 資安服務家族</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 18 · 資安</div>
+  <h1><span>資安服務</span>家族全解</h1>
+  <p>GuardDuty、Inspector、Macie、Security Hub、WAF、Shield——名字都很像，但各看一個不同的面向。這一課把它們排進一張圖，讓你看到題目就知道該選誰。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#map">先建立地圖：六個服務各看什麼</a></li>
+      <li><a href="#guardduty">GuardDuty：威脅偵測</a></li>
+      <li><a href="#inspector">Inspector：漏洞掃描</a></li>
+      <li><a href="#macie">Macie：敏感資料發現</a></li>
+      <li><a href="#hub">Security Hub：集中儀表板</a></li>
+      <li><a href="#edge">邊界防禦：WAF、Shield、Network Firewall</a></li>
+      <li><a href="#respond">自動化應變</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="map">
+    <h2>1. 先建立地圖：六個服務各看什麼</h2>
+    <div class="analogy">把公司想成一棟大樓：<br>
+    <b>Shield / WAF</b> = 大門的警衛與門禁（擋外面的壞人）<br>
+    <b>GuardDuty</b> = 保全監視系統（發現有人在做奇怪的事）<br>
+    <b>Inspector</b> = 定期消防安檢（找出建築本身的缺陷）<br>
+    <b>Macie</b> = 資料室盤點（哪裡放了機密文件卻沒鎖）<br>
+    <b>Security Hub</b> = 保全中控室（把所有警報集中在一面牆上）</div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>服務</th><th>看什麼</th><th>資料來源</th><th>一句話關鍵字</th></tr></thead>
+      <tbody>
+        <tr><td><b>GuardDuty</b></td><td><b>行為</b>異常</td><td>CloudTrail、VPC Flow Logs、DNS 日誌</td><td>可疑<b>活動</b>、加密貨幣挖礦、外洩憑證</td></tr>
+        <tr><td><b>Inspector</b></td><td><b>漏洞</b></td><td>EC2、ECR 映像、Lambda</td><td>CVE、未修補的軟體</td></tr>
+        <tr><td><b>Macie</b></td><td><b>敏感資料</b></td><td>S3 物件內容</td><td>S3 裡有沒有<b>個資</b></td></tr>
+        <tr><td><b>Security Hub</b></td><td><b>彙整</b></td><td>上面全部 + 合規基準</td><td>統一儀表板、CIS/PCI 合規分數</td></tr>
+        <tr><td><b>WAF</b></td><td>第 7 層攻擊</td><td>HTTP 請求</td><td>SQL 注入、XSS、速率限制</td></tr>
+        <tr><td><b>Shield</b></td><td>DDoS</td><td>網路層流量</td><td>大流量攻擊</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;"><span>📋</span><span><b>最重要的一組分辨：GuardDuty vs Inspector。</b><br>
+    • <b>Inspector</b> 問「<u>我的系統有沒有已知的弱點</u>」——這是<b>預防</b>，沒被攻擊也會有發現。<br>
+    • <b>GuardDuty</b> 問「<u>現在有沒有人正在做壞事</u>」——這是<b>偵測</b>，看的是實際發生的行為。<br>
+    考試把這兩個放同一題選項是常態。</span></div>
+  </div>
+
+  <div class="card" id="guardduty">
+    <h2>2. GuardDuty：威脅偵測</h2>
+    <p>GuardDuty 持續分析三種日誌，用機器學習與威脅情報找出異常行為。<b>它不需要你安裝任何代理程式</b>，開啟就開始看。</p>
+
+    <div class="arch"><span class="c">GuardDuty 分析的三個來源</span>
+   CloudTrail 事件 ──→ 誰呼叫了什麼 API
+   VPC Flow Logs ──→ 誰跟誰在通訊
+   DNS 日誌      ──→ 查詢了什麼網域
+
+<span class="c">典型的發現</span>
+   • EC2 正在與已知的<span class="o">挖礦礦池</span>通訊
+   • IAM 憑證從<span class="o">異常的國家</span>被使用
+   • EC2 對外進行<span class="o">連接埠掃描</span>
+   • 有人嘗試停用 CloudTrail（<span class="y">攻擊者在湮滅證據</span>）
+   • S3 資料被<span class="o">異常大量下載</span>
+
+<span class="c">可額外啟用的保護</span>
+   S3 Protection / EKS Protection / Malware Protection / RDS Protection</div>
+
+    <div class="ok">✅ <b>考試關鍵字：</b>「<b>不需安裝代理程式</b>」「<b>持續監控可疑活動</b>」「<b>偵測遭外洩的憑證</b>」→ GuardDuty。</div>
+
+    <div class="biz">
+      <b>企業實務：一定要開在 Organization 層級</b><br>
+      GuardDuty 支援指定一個<b>委派管理員帳號</b>，一次涵蓋組織下所有帳號，新開的帳號自動納管。<br>
+      <u>如果一個帳號一個帳號手動開，一定會漏</u>——而攻擊者最愛的就是那個被遺忘的測試帳號。<br><br>
+      同樣的原則適用於 Security Hub、Inspector、Config：<b>組織層級啟用 + 自動納管新帳號</b>。
+    </div>
+  </div>
+
+  <div class="card" id="inspector">
+    <h2>3. Inspector：漏洞掃描</h2>
+    <p>Inspector 檢查你的運算資源有沒有<b>已知漏洞（CVE）</b>與不安全的網路暴露。</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>EC2 掃描</b><span>透過 <b>SSM Agent</b> 檢查安裝的套件版本，比對 CVE 資料庫。所以 EC2 要先被 Systems Manager 納管。</span></div>
+      <div class="cmp"><b>ECR 映像掃描</b><span>映像推上去就自動掃，找出基底映像與相依套件的漏洞。可設定持續重掃（新 CVE 公布時回頭比對）。</span></div>
+      <div class="cmp"><b>Lambda 掃描</b><span>檢查函式的相依套件與程式碼。</span></div>
+      <div class="cmp"><b>網路可達性</b><span>分析 SG/NACL/路由，找出「這台機器意外地能從網際網路直接連到」。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：Inspector 需要 SSM Agent</b><br>
+    EC2 掃描不是憑空發生的——<u>Inspector 透過 Systems Manager 的代理程式取得套件清單</u>。<br>
+    所以題目若說「Inspector 掃不到某些 EC2」，方向是：SSM Agent 沒裝、EC2 沒有 SSM 的 IAM 角色、或沒有到 SSM 端點的網路路徑（私有子網路要有 VPC Endpoint）。<br><br>
+    <b>對照記憶：GuardDuty 不需要代理程式（看日誌），Inspector 需要（看機器內部）。</b></div>
+
+    <div class="biz">
+      <b>企業實務：把掃描往左移</b><br>
+      等到 EC2 上線才掃漏洞，發現了也很難改。成熟做法是<b>在 CI 階段就掃</b>（第 17 課）：<br>
+      映像推上 ECR 時掃 → 有 critical 漏洞就<b>擋下管線</b>，不讓它進到正式環境。<br><br>
+      再搭配 <b>ECR 的持續重掃</b>：新 CVE 公布時，已經在跑的映像也會被重新標記——<u>因為「當時安全」不等於「現在安全」</u>。
+    </div>
+  </div>
+
+  <div class="card" id="macie">
+    <h2>4. Macie：敏感資料發現</h2>
+    <p>Macie 專門掃 <b>S3 裡的物件內容</b>，找出個資與機密。它回答的問題是「<u>我到底把什麼東西放在哪裡了</u>」。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>Macie 能找出</th><th>例子</th></tr></thead>
+      <tbody>
+        <tr><td>個人識別資訊（PII）</td><td>姓名、地址、身分證字號、護照號碼</td></tr>
+        <tr><td>金融資料</td><td>信用卡號、銀行帳號</td></tr>
+        <tr><td>憑證與金鑰</td><td>不小心上傳的 API key、私鑰</td></tr>
+        <tr><td>儲存桶風險</td><td>哪些 bucket 是<b>公開的</b>、沒加密、與外部帳號共享</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱：Macie vs Comprehend 的 PII 偵測</b><br>
+    第 14 課提過 Comprehend 也能找個資，兩者差在<b>切入點</b>：<br>
+    • <b>Macie</b> = 從<u>資產面</u>掃描。「我的 S3 裡有沒有個資」，會自動探索 bucket、抽樣、評估風險。<br>
+    • <b>Comprehend</b> = 從<u>內容面</u>分析。你把一段文字丟給它，它告訴你裡面有哪些 PII 實體。<br><br>
+    題目說「<b>盤點 S3 中的敏感資料</b>」→ Macie。說「<b>在應用流程中即時遮蔽文字裡的個資</b>」→ Comprehend。</div>
+
+    <div class="biz">
+      <b>企業實務：Macie 是按掃描量計費的</b><br>
+      對著 PB 級的資料湖無差別全掃，帳單會很可觀。務實做法：<br>
+      ① 先讓 Macie 做<b>bucket 層級的盤點</b>（哪些公開、哪些沒加密）——這部分便宜且價值高<br>
+      ② 只對<b>可能有個資的 bucket</b> 開內容掃描<br>
+      ③ 用<b>抽樣</b>而非全量，並設定排程而非持續<br><br>
+      <u>這件事在導入前就要試算，不然第一張帳單會嚇到人。</u>
+    </div>
+  </div>
+
+  <div class="card" id="hub">
+    <h2>5. Security Hub：集中儀表板</h2>
+    <p>前面每個服務都各自產生發現（findings）。服務一多，沒有人看得完。Security Hub 解決這個問題。</p>
+
+    <div class="arch"><span class="c">Security Hub 的兩個角色</span>
+
+<span class="w">① 聚合器</span>
+   GuardDuty ─┐
+   Inspector ─┤
+   Macie ─────┼──→ <span class="y">Security Hub</span> ──→ 統一格式（ASFF）
+   Config ────┤          │
+   IAM Access ┘          └─→ 依嚴重度排序、去重、跨帳號彙總
+   Analyzer
+
+<span class="w">② 合規檢查</span>
+   內建基準,自動打分數：
+   • AWS 基礎安全最佳實務
+   • CIS AWS Foundations Benchmark
+   • PCI DSS
+   → 產出「你有 87% 的檢查項目通過」這種可向管理層報告的數字</div>
+
+    <div class="ok">✅ <b>考試關鍵字：</b>「<b>跨帳號彙整所有資安發現</b>」「<b>統一檢視</b>」「<b>合規分數</b>」→ Security Hub。<br>
+    注意它<b>自己不做偵測</b>——它是把別人的發現集中起來。題目若問「誰去偵測威脅」，答案是 GuardDuty 不是 Security Hub。</div>
+  </div>
+
+  <div class="card" id="edge">
+    <h2>6. 邊界防禦：WAF、Shield、Network Firewall</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>服務</th><th>OSI 層</th><th>擋什麼</th><th>掛在哪</th></tr></thead>
+      <tbody>
+        <tr><td><b>Shield Standard</b></td><td>3/4 層</td><td>常見 DDoS，<b>免費且自動啟用</b></td><td>全 AWS 自動</td></tr>
+        <tr><td><b>Shield Advanced</b></td><td>3/4/7 層</td><td>大規模 DDoS + <b>費用保護</b> + 24/7 應變團隊</td><td>需訂閱（月費高）</td></tr>
+        <tr><td><b>WAF</b></td><td><b>7 層</b></td><td>SQL 注入、XSS、惡意 Bot、地理封鎖、速率限制</td><td>CloudFront、ALB、API Gateway、AppSync</td></tr>
+        <tr><td><b>Network Firewall</b></td><td>3-7 層</td><td>VPC 層級的流量過濾、網域白名單、IPS</td><td>VPC（需專用子網路）</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱：WAF 不能掛在 EC2 或 NLB 上</b><br>
+    WAF 只能關聯到 <b>CloudFront、ALB、API Gateway、AppSync、Cognito User Pool</b>。<br>
+    <u>NLB 是第 4 層，看不到 HTTP 內容，所以掛不了 WAF。</u><br>
+    如果架構是「NLB → EC2」而需要 WAF，就要改成 ALB，或在前面加 CloudFront。</div>
+
+    <div class="trap"><b>陷阱：Shield Advanced 的隱藏價值是「費用保護」</b><br>
+    被 DDoS 攻擊時，就算服務沒掛，<u>自動擴展與流量費用會暴增</u>。Shield Advanced 提供這部分的費用抵免。<br>
+    題目若提到「<b>擔心 DDoS 造成的意外帳單</b>」→ 這是 Shield Advanced 的賣點之一，不只是防護能力。</div>
+
+    <div class="biz">
+      <b>企業實務：WAF 一定要先用「計數模式」</b><br>
+      直接把 WAF 規則開成封鎖，很可能<u>擋掉正常使用者</u>——尤其是託管規則組裡的一些規則對正常流量誤判率不低。<br><br>
+      正確流程：<br>
+      ① 規則先設為 <b>Count</b>（只計數不封鎖）<br>
+      ② 觀察一到兩週，看哪些規則會誤傷正常流量<br>
+      ③ 調整例外後，才改成 <b>Block</b><br><br>
+      <u>跳過這一步而在上線日直接開封鎖，是很典型的自己打自己。</u>
+    </div>
+  </div>
+
+  <div class="card" id="respond">
+    <h2>7. 自動化應變</h2>
+    <p>偵測到問題之後，人不可能 24 小時盯著儀表板。企業會把常見的處置自動化。</p>
+
+    <div class="arch"><span class="c">標準的自動應變架構</span>
+
+   GuardDuty 發現 ──→ <span class="y">EventBridge 規則</span> ──→ 動作
+                            │
+        ┌───────────────────┼───────────────────┐
+        ↓                   ↓                   ↓
+   <span class="o">Lambda</span>              <span class="o">SNS</span>              <span class="o">Systems Manager</span>
+   自動隔離主機        通知資安團隊         執行 Runbook
+   （換成隔離用 SG）    （或進 Slack）       （收集鑑識資料）
+
+<span class="c">常見的自動處置</span>
+   • 憑證外洩 → 立即撤銷該 IAM 使用者的金鑰
+   • EC2 被入侵 → 換成隔離 SG、建立快照留證、移出 ASG
+   • S3 意外公開 → 自動關閉公開存取並通知擁有者</div>
+
+    <div class="trap"><b>陷阱：自動處置要考慮誤判</b><br>
+    自動關機、自動撤銷憑證聽起來很帥，但<u>誤判一次就是自己造成的服務中斷</u>。<br>
+    實務上的分級：<br>
+    • <b>高信心且低風險</b>的處置才全自動（例如關閉 S3 公開存取）<br>
+    • <b>影響服務</b>的處置（隔離主機、撤銷憑證）先送通知 + 一鍵執行的 Runbook，由人按下去<br><br>
+    <b>「自動偵測 + 人工決策 + 一鍵處置」通常比全自動更實用。</b></div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>8. 考試陷阱整理</h2>
+    <div class="trap"><b>陷阱 1：GuardDuty vs Inspector</b><br>行為異常（正在被攻擊）→ GuardDuty；已知漏洞（有弱點）→ Inspector。</div>
+    <div class="trap"><b>陷阱 2：Macie 只管 S3</b><br>它掃的是 S3 物件內容。要找 RDS 或 DynamoDB 裡的個資不是 Macie 的工作。</div>
+    <div class="trap"><b>陷阱 3：Security Hub 不做偵測</b><br>它只彙整。偵測是 GuardDuty/Inspector/Macie 的事。</div>
+    <div class="trap"><b>陷阱 4：WAF 掛不上 NLB</b><br>只能是 CloudFront / ALB / API Gateway / AppSync / Cognito。</div>
+    <div class="trap"><b>陷阱 5：Shield Standard 是免費且已經啟用的</b><br>題目問「如何取得基本 DDoS 防護」→ 已經有了，不用做任何事。要進階才需 Advanced。</div>
+    <div class="trap"><b>陷阱 6：Inspector 需要 SSM Agent</b><br>掃不到 EC2 → 檢查 SSM Agent、IAM 角色、VPC Endpoint。</div>
+    <div class="trap"><b>陷阱 7：組織層級啟用</b><br>多帳號環境的資安服務，答案幾乎都是「用委派管理員在 Organization 層級啟用並自動納管新帳號」。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>看<b>行為</b>找 GuardDuty，看<b>漏洞</b>找 Inspector，看 <b>S3 個資</b>找 Macie，看<b>總表</b>找 Security Hub，擋 <b>7 層</b>找 WAF，擋 <b>DDoS</b> 找 Shield。</span></div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="17-cicd.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 17 · CI/CD 與部署管線</a>
+    <a href="index.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">回到學習中心 →</a>
+  </div>
+
+</div>
+</body>
+</html>

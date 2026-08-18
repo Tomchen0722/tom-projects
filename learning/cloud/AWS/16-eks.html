@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EKS 與容器選型 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">16 · EKS 與容器選型</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 16 · Kubernetes</div>
+  <h1><span>EKS</span> 與容器平台選型</h1>
+  <p>第 11 課講完 ECS，這一課補上另一半：什麼時候該用 Kubernetes、EKS 幫你管了什麼、以及企業選型時真正該問的問題。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">先問：你真的需要 Kubernetes 嗎？</a></li>
+      <li><a href="#arch">EKS 架構：AWS 管什麼、你管什麼</a></li>
+      <li><a href="#node">三種節點模式</a></li>
+      <li><a href="#network">EKS 網路：VPC CNI 與 IP 耗盡</a></li>
+      <li><a href="#iam">IRSA：Pod 層級的 IAM 權限</a></li>
+      <li><a href="#scale">兩層擴展：HPA 與 Karpenter</a></li>
+      <li><a href="#cost">成本與企業選型</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="why">
+    <h2>1. 先問：你真的需要 Kubernetes 嗎？</h2>
+    <div class="analogy">ECS 像<b>自排車</b>——AWS 幫你決定大部分的事，上手快、夠用。<br>EKS 像<b>手排車</b>——控制權全給你，但你要懂離合器。開得好比自排快，開不好比自排慢很多。</div>
+
+    <p>SAA 考試與實務都會問「ECS 還是 EKS」。判斷點其實只有四個：</p>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>判斷點</th><th>選 ECS</th><th>選 EKS</th></tr></thead>
+      <tbody>
+        <tr><td><b>團隊技能</b></td><td>沒有 K8s 經驗，人力有限</td><td>已有 K8s 團隊或專職平台工程師</td></tr>
+        <tr><td><b>可攜性需求</b></td><td>就長期待在 AWS</td><td>需要<b>多雲或混合雲</b>，或客戶要求不綁單一雲</td></tr>
+        <tr><td><b>生態系需求</b></td><td>內建功能夠用</td><td>要用 Helm、Istio、Argo CD、Prometheus 等 K8s 生態工具</td></tr>
+        <tr><td><b>複雜度</b></td><td>幾十個服務以內</td><td>大量微服務、多團隊共用平台</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱：考試最愛的一句話</b><br>
+    題目出現「<b>希望維持與地端 Kubernetes 一致</b>」「<b>避免供應商鎖定</b>」「<b>要用既有的 Helm chart</b>」→ <b>EKS</b>。<br>
+    出現「<b>團隊沒有 Kubernetes 經驗</b>」「<b>最少維運負擔</b>」「<b>最快上線</b>」→ <b>ECS</b>（甚至 App Runner）。<br><br>
+    AWS 官方立場其實很務實：<u>沒有特殊理由的話，ECS 更簡單</u>。EKS 的價值在可攜性與生態系，不在「比較厲害」。</div>
+
+    <div class="biz">
+      <b>企業實務：一個常見的誤判</b><br>
+      很多團隊選 EKS 的理由是「以後可能要多雲」。但實際上，只要你用了 ALB Ingress Controller、EBS CSI、IRSA、Route 53、ACM，<u>你的 K8s YAML 早就綁定 AWS 了</u>——真要搬到別的雲，改的量不會比 ECS 少太多。<br><br>
+      <b>可攜性是要刻意設計才有的，不是選了 K8s 就自動獲得。</b>如果多雲只是「以後可能」，這個理由撐不起 EKS 的維運成本。
+    </div>
+  </div>
+
+  <div class="card" id="arch">
+    <h2>2. EKS 架構：AWS 管什麼、你管什麼</h2>
+    <div class="arch"><span class="c">控制平面 Control Plane</span>  <span class="w">← AWS 全託管</span>
+   ├── API Server（跨 3 個 AZ,自動修復）
+   ├── etcd（狀態資料庫,自動備份）
+   ├── Scheduler / Controller Manager
+   └── <span class="o">按小時計費,不管你有沒有跑 Pod</span>
+
+<span class="c">資料平面 Data Plane</span>  <span class="w">← 你管（或部分託管）</span>
+   ├── 節點（EC2 / Fargate）
+   ├── kubelet、容器執行環境
+   ├── <span class="y">版本升級要你自己排</span>
+   └── <span class="y">節點的作業系統修補要你負責</span>
+
+<span class="c">附加元件 Add-ons</span>
+   ├── VPC CNI（網路）
+   ├── CoreDNS（服務名稱解析）
+   ├── kube-proxy
+   └── EBS/EFS CSI Driver（儲存）
+       ↑ 這些可以用 <span class="o">EKS Managed Add-ons</span> 讓 AWS 幫你管版本</div>
+
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;"><span>📋</span><span><b>責任分界是考試重點。</b>AWS 保證控制平面的高可用與 SLA，但<b>節點上的作業系統修補、K8s 版本升級的排程、應用的高可用設計，都是你的責任</b>。這是共同責任模型在 EKS 上的具體體現。</span></div>
+
+    <div class="trap"><b>陷阱：EKS 版本會過期</b><br>
+    Kubernetes 每年出多個版本，AWS 對每個版本的標準支援期有限（約 14 個月，之後進入延長支援並<b>額外收費</b>）。<br>
+    <u>「買了就不用管」在 EKS 不成立</u>——你必須定期升級，而升級要同時處理控制平面、節點、以及所有 add-on 的相容性。<br><br>
+    企業實務上這是 EKS 最被低估的長期成本：<b>每年至少要排 1-2 次升級演練</b>。</div>
+  </div>
+
+  <div class="card" id="node">
+    <h2>3. 三種節點模式</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>模式</th><th>誰管節點</th><th>適合</th><th>限制</th></tr></thead>
+      <tbody>
+        <tr><td><b>自管節點</b><br>Self-managed</td><td>你全包</td><td>需要特殊 AMI、GPU 驅動、自訂核心參數</td><td>維運負擔最重</td></tr>
+        <tr><td><b>Managed Node Group</b></td><td>AWS 協助建立與輪替</td><td><b>多數情況的預設選擇</b></td><td>仍需你決定升級時機</td></tr>
+        <tr><td><b>Fargate</b></td><td>完全不用管節點</td><td>不想碰機器、工作負載零散</td><td>不支援 GPU、DaemonSet、特權容器；單價較高</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱：EKS on Fargate 的限制比 ECS on Fargate 更多</b><br>
+    K8s 有很多功能預設依賴「節點」這個概念，在 Fargate 上不成立：<br>
+    • <b>DaemonSet 不能用</b>（沒有節點可以「每台跑一個」）→ 日誌收集要改用 sidecar 或 Fluent Bit 的 Fargate 日誌路由<br>
+    • <b>不支援 GPU</b><br>
+    • <b>不支援特權容器與 HostPath</b><br>
+    • 每個 Pod 都是獨立的微型 VM，<u>啟動比 EC2 節點上的 Pod 慢</u><br><br>
+    題目說「跑 GPU 推論的 Pod」→ 一定是 EC2 節點，不是 Fargate。</div>
+
+    <div class="biz">
+      <b>企業實務：混合配置是常態</b><br>
+      成熟的 EKS 叢集通常同時用兩種：<br>
+      • <b>Managed Node Group（含 Spot）</b> 跑無狀態、可中斷的工作負載——成本低<br>
+      • <b>Fargate</b> 跑少量但重要的系統元件，或是需要強隔離的租戶工作負載<br><br>
+      用 <b>節點親和性（nodeAffinity）</b> 與 <b>污點/容忍（taints/tolerations）</b> 決定哪個 Pod 落在哪裡。
+    </div>
+  </div>
+
+  <div class="card" id="network">
+    <h2>4. EKS 網路：VPC CNI 與 IP 耗盡</h2>
+    <p>這是 EKS 最容易在正式環境炸掉、而且純學理論不會遇到的問題。</p>
+
+    <div class="arch"><span class="c">AWS VPC CNI 的運作方式</span>
+   每個 Pod 都拿到一個 <span class="o">VPC 內的真實 IP</span>
+   （不是 overlay 網路的虛擬 IP）
+
+<span class="w">好處：</span>
+   Security Group、VPC Flow Logs、路由都能直接作用在 Pod 上
+   Pod 與 VPC 內其他資源可直接通訊,沒有額外封裝開銷
+
+<span class="w">代價：</span>
+   <span class="y">Pod 數量 = 消耗的 VPC IP 數量</span>
+   子網路 /24 只有約 251 個可用 IP
+   → 一個節點跑 30 個 Pod,8 台節點就把子網路吃光
+   → 新 Pod 卡在 Pending,錯誤訊息是 <span class="o">"failed to assign an IP address"</span></div>
+
+    <div class="trap"><b>陷阱：IP 耗盡的四個解法</b><br>
+    ① <b>規劃夠大的子網路</b>——EKS 的工作節點子網路建議 /19 以上，不要用 /24<br>
+    ② <b>Prefix Delegation</b>——讓每個節點一次配一段 /28，提高每節點可容納的 Pod 數與 IP 使用效率<br>
+    ③ <b>自訂網路（Custom Networking）</b>——把 Pod 放到<u>次要 CIDR</u>（例如 100.64.0.0/16 這類非路由的空間），節點本身留在主 CIDR<br>
+    ④ 極端情況才考慮換 CNI（Calico 等 overlay），但會失去「Pod 用 Security Group」的好處<br><br>
+    <u>考試看到「Pod 無法啟動、IP 不足」→ 想子網路規劃與 Prefix Delegation。</u></div>
+
+    <div class="biz">
+      <b>企業實務：這件事要在建 VPC 時就決定</b><br>
+      IP 規劃是<b>建立叢集前</b>的決策，事後幾乎無法補救——你不能把跑著的叢集搬到另一個子網路。<br>
+      實務建議：EKS 專用 VPC，節點子網路每個 AZ 至少 /19，並預留次要 CIDR 給未來的 Custom Networking。<br>
+      <u>這條規劃錯了，兩年後整個平台要重建。</u>
+    </div>
+  </div>
+
+  <div class="card" id="iam">
+    <h2>5. IRSA：Pod 層級的 IAM 權限</h2>
+    <p>這是 EKS 最重要的安全機制，也是必考題。</p>
+
+    <div class="arch"><span class="c">錯誤做法（很多團隊一開始都這樣）</span>
+   把 S3、DynamoDB 權限直接給<span class="y">節點的 Instance Profile</span>
+   → 節點上<span class="o">所有 Pod 都拿得到那些權限</span>
+   → 一個被入侵的 Pod = 整台節點的權限全洩漏
+
+<span class="c">正確做法：IRSA</span>
+   <span class="w">IAM Roles for Service Accounts</span>
+
+   K8s ServiceAccount ──綁定──→ IAM Role
+          ↑                          ↑
+      Pod 使用                  只給這個 Pod 需要的權限
+
+   原理:EKS 提供 OIDC 供應商,
+        Pod 用投影的 SA token 去 STS 換臨時憑證
+        （和第 10 課 CI/CD 用 OIDC 免金鑰是同一套機制）</div>
+
+    <div class="ok">✅ <b>考試關鍵字：</b>「<b>讓特定 Pod 存取 S3，但同節點其他 Pod 不能</b>」→ <b>IRSA</b>。不要選「加在節點的 IAM Role 上」——那是最小權限原則的反面教材。<br><br>
+    延伸：較新的 <b>EKS Pod Identity</b> 提供類似效果但設定更簡單，不需要為每個叢集管理 OIDC 供應商。看到兩者都出現時，先確認題目強調的是「跨叢集集中管理」（Pod Identity）還是通用相容性（IRSA）。</div>
+  </div>
+
+  <div class="card" id="scale">
+    <h2>6. 兩層擴展：HPA 與 Karpenter</h2>
+    <p>和 ECS 一樣，K8s 的擴展也分兩層，但名字不同：</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>HPA（Pod 層）</b><span>Horizontal Pod Autoscaler。依 CPU/記憶體/自訂指標增減 <b>Pod 數量</b>。</span></div>
+      <div class="cmp"><b>VPA（Pod 層）</b><span>Vertical Pod Autoscaler。調整單一 Pod 的資源<b>規格</b>，而不是數量。</span></div>
+      <div class="cmp"><b>Cluster Autoscaler（節點層）</b><span>傳統方案。依 Node Group 增減<b>節點數量</b>，受限於預先定義的機型。</span></div>
+      <div class="cmp"><b>Karpenter（節點層）</b><span>AWS 開源的新一代。<b>直接依待調度 Pod 的實際需求挑機型並開機</b>，更快也更省。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：Cluster Autoscaler vs Karpenter</b><br>
+    • <b>Cluster Autoscaler</b>：只能在你事先定義好的 Node Group 裡加減機器。如果 Pod 需要 GPU 但你沒建 GPU 的 Node Group，它幫不了你。<br>
+    • <b>Karpenter</b>：看到 Pending 的 Pod，<u>直接依它的 CPU/記憶體/GPU/架構需求去挑最合適也最便宜的機型開機</u>，不需要預先定義群組。<br><br>
+    題目強調「<b>更快的節點供應</b>」「<b>自動挑選最省成本的機型</b>」「<b>減少節點群組管理</b>」→ <b>Karpenter</b>。</div>
+
+    <div class="biz">
+      <b>企業實務：Karpenter + Spot 是目前的成本最佳解</b><br>
+      Karpenter 可以設定「優先用 Spot，沒有就退回 On-Demand」，並在 Spot 中斷通知時自動把 Pod 遷走。<br>
+      搭配 <b>PodDisruptionBudget</b> 確保遷移過程中每個服務至少留幾個副本活著，就能在不影響可用性的前提下大幅降低運算成本。<br><br>
+      <u>前提是你的應用要能容忍 Pod 隨時被殺掉——這是雲原生設計的基本要求，不是 Karpenter 的限制。</u>
+    </div>
+  </div>
+
+  <div class="card" id="cost">
+    <h2>7. 成本與企業選型</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>成本項目</th><th>ECS</th><th>EKS</th></tr></thead>
+      <tbody>
+        <tr><td>控制平面</td><td><b>免費</b></td><td><b>按小時計費（每叢集）</b></td></tr>
+        <tr><td>運算資源</td><td>EC2 或 Fargate 用量</td><td>同左</td></tr>
+        <tr><td>人力成本</td><td>低</td><td><b>高——通常是真正的大頭</b></td></tr>
+        <tr><td>升級維運</td><td>幾乎不用管</td><td>每年 1-2 次版本升級</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>多叢集的成本陷阱</b><br>
+    控制平面是<b>按叢集</b>計費的。如果你為 dev / test / staging / prod 各開一個叢集，控制平面費用就是四份。<br>
+    <u>小團隊常見的替代做法</u>：用 <b>namespace + ResourceQuota + NetworkPolicy</b> 在同一個叢集裡隔離環境，只有 prod 獨立叢集。<br><br>
+    但要注意：namespace 不是強隔離邊界。<b>如果是多租戶或有法規要求，還是要分叢集甚至分帳號。</b></div>
+
+    <div class="ok">✅ <b>選型的一句話總結：</b><br>
+    <b>「我們有沒有人願意也有能力長期照顧這個平台？」</b>——有，EKS 的彈性與生態系會回報你；沒有，ECS 或 App Runner 才是對的答案。<br><br>
+    技術選型失敗最常見的原因不是選錯工具，是<u>選了一個團隊養不起的工具</u>。</div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>8. 考試陷阱整理</h2>
+    <div class="trap"><b>陷阱 1：可攜性題目</b><br>「與地端 K8s 一致」「避免鎖定」「既有 Helm chart」→ EKS。「團隊沒經驗」「最少維運」→ ECS。</div>
+    <div class="trap"><b>陷阱 2：Pod 權限題目</b><br>「只讓某個 Pod 存取 S3」→ <b>IRSA</b>（或 EKS Pod Identity），不是節點 Instance Profile。</div>
+    <div class="trap"><b>陷阱 3：Pod Pending 且 IP 不足</b><br>→ VPC CNI 的 IP 耗盡。想 Prefix Delegation、次要 CIDR、子網路規劃。</div>
+    <div class="trap"><b>陷阱 4：EKS on Fargate 不支援 DaemonSet 與 GPU</b><br>要跑 GPU 或每節點一份的日誌代理 → 必須用 EC2 節點。</div>
+    <div class="trap"><b>陷阱 5：控制平面免費的是 ECS 不是 EKS</b><br>成本比較題常拿這點當差異。</div>
+    <div class="trap"><b>陷阱 6：節點擴展選 Karpenter</b><br>看到「自動挑最省的機型」「不想管 Node Group」→ Karpenter，不是 Cluster Autoscaler。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>要不要 K8s 看<b>團隊</b>，節點怎麼開看 <b>Karpenter</b>，Pod 權限看 <b>IRSA</b>，會不會炸看 <b>IP 規劃</b>。</span></div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="15-migration.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 15 · 遷移與轉移</a>
+    <a href="17-cicd.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">17 · CI/CD 與部署管線 →</a>
+  </div>
+
+</div>
+</body>
+</html>

@@ -10,6 +10,12 @@
 .pk{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--sky);background:#fff;}
 .pk b{display:block;font-size:.87rem;color:var(--dark);margin-bottom:3px;}
 .pk span{font-size:.77rem;color:var(--muted);line-height:1.65;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
 </style>
 </head>
 <body>
@@ -42,6 +48,7 @@
       <li><a href="#cache">快取層：ElastiCache 與 DAX</a></li>
       <li><a href="#cost">費用與省錢</a></li>
       <li><a href="#lab">完整實作 Lab</a></li>
+      <li><a href="#purpose-built">專用資料庫：不要只記名字</a></li>
     </ol>
   </div>
 
@@ -824,6 +831,98 @@ $ aws rds describe-db-snapshots --snapshot-type manual --query 'DBSnapshots[].DB
       <li>快取 DynamoDB 用 <strong>DAX</strong>，其他用 <strong>Redis</strong>；策略用 <strong>Lazy Loading + TTL</strong></li>
     </ul>
     <div class="note">資料庫題在 SAA-C03 每個領域都會出現，尤其「Multi-AZ vs Read Replica」和「DynamoDB 容量計算」是必考。去 <a href="quiz.html" style="color:var(--sky);font-weight:600">模擬試題</a> 練一輪。</div>
+  </div>
+
+  <!-- 專用資料庫深入 -->
+  <div class="card" id="purpose-built">
+    <h2>專用資料庫：不要只記名字</h2>
+    <p>上面那張表把六種專用資料庫各用一行帶過，但考試與實務都會問得更深。這一節把每一個「為什麼存在、解決什麼別人解不了的問題」講清楚。</p>
+
+    <div class="analogy">AWS 的資料庫策略叫 <b>purpose-built（專用）</b>——不做一個什麼都能幹的萬用資料庫，而是每種資料形狀配一個最擅長的引擎。就像廚房不會只有一把刀。</div>
+
+    <h3>DocumentDB：MongoDB 相容的文件資料庫</h3>
+    <div class="tbl-wrap"><table class="t">
+      <tbody>
+        <tr><td><b>資料長什麼樣</b></td><td>巢狀 JSON 文件，每一筆的欄位可以不一樣</td></tr>
+        <tr><td><b>解決什麼</b></td><td>自建 MongoDB 要自己做備份、修補、擴充、故障轉移</td></tr>
+        <tr><td><b>典型場景</b></td><td>商品目錄（每種商品屬性都不同）、使用者設定檔、內容管理</td></tr>
+        <tr><td><b>考試關鍵字</b></td><td>看到 <b>MongoDB</b> 就選它</td></tr>
+      </tbody>
+    </table></div>
+    <div class="trap"><b>陷阱：DocumentDB vs DynamoDB</b><br>
+    兩個都是 NoSQL，但差別很大：<br>
+    • <b>DynamoDB</b>：key-value 為主，要先想好存取模式，查詢方式受限，但擴充能力近乎無限、延遲極穩<br>
+    • <b>DocumentDB</b>：文件導向，支援較豐富的查詢（巢狀欄位、二級索引），但底層是叢集架構，擴充不像 DynamoDB 那樣無感<br><br>
+    <b>題目說「現有 MongoDB 應用要上雲、不想改程式」→ DocumentDB。</b>說「要無限擴充、毫秒延遲、Serverless」→ DynamoDB。</div>
+
+    <h3>Neptune：圖形資料庫</h3>
+    <p>當你的問題是「<b>關係本身</b>」而不是「資料本身」時，關聯式資料庫會很痛苦。</p>
+    <div class="formula"><code>問題：「找出 A 的朋友的朋友裡，也買過這個商品的人」
+
+用 SQL：每多一層關係就多一次 JOIN
+        三層關係 = 三次自我 JOIN，資料量一大就跑不動
+
+用 Neptune：這是一次圖形遍歷（graph traversal）
+        關係就是資料結構本身，走幾層都很快</code></div>
+    <div class="tbl-wrap"><table class="t">
+      <tbody>
+        <tr><td><b>典型場景</b></td><td>社群關係、推薦引擎、<b>詐欺偵測</b>（找出共用裝置/地址的帳號網）、知識圖譜、供應鏈追溯</td></tr>
+        <tr><td><b>查詢語言</b></td><td>Gremlin、openCypher、SPARQL</td></tr>
+        <tr><td><b>考試關鍵字</b></td><td><b>高度連結的關係</b>、社群網路、詐欺偵測、推薦</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Timestream：時序資料庫</h3>
+    <p>時序資料有兩個特性讓一般資料庫很吃力：<b>寫入量極大</b>（每秒幾萬筆感測器讀數），而且<b>資料價值隨時間遞減</b>（一年前的每秒讀數沒人要看）。</p>
+    <div class="formula"><code>Timestream 的分層儲存（自動）：
+
+  記憶體層 ── 最近的資料，查詢極快，單價高
+      ↓ 依保留政策自動搬遷
+  磁性層 ──── 歷史資料，查詢較慢，單價低很多
+
+你只要設「記憶體層留 12 小時、磁性層留 1 年」
+資料會自己搬，不用寫搬遷程式</code></div>
+    <div class="tbl-wrap"><table class="t">
+      <tbody>
+        <tr><td><b>典型場景</b></td><td>IoT 感測器、應用效能指標、工業設備監控、DevOps 監控資料</td></tr>
+        <tr><td><b>內建功能</b></td><td>時間序列專用函式（插值、平滑、移動平均），SQL 就能寫</td></tr>
+        <tr><td><b>考試關鍵字</b></td><td><b>IoT 感測器讀數</b>、時間序列、大量寫入、資料有生命週期</td></tr>
+      </tbody>
+    </table></div>
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;"><span>📋</span><span><b>為什麼不用 DynamoDB 存 IoT 資料？</b>可以，但你要自己處理分層搬遷與過期刪除，而且時間範圍查詢與聚合要自己寫。Timestream 把這些做成內建功能，成本也針對這個模式優化過。</span></div>
+
+    <h3>QLDB：不可竄改的帳本資料庫</h3>
+    <p>一般資料庫的稽核靠「觸發器寫一張 audit 表」——但那張表本身也能被有權限的人改掉。QLDB 的賣點是<b>連 DBA 都改不了歷史</b>。</p>
+    <div class="formula"><code>QLDB 的 journal 是「僅可追加」的：
+
+  每筆異動 → 產生一個雜湊 → 串進雜湊鏈
+  想竄改第 100 筆 → 後面所有雜湊全部對不上 → 立刻被驗出
+
+可以用 API 取得「加密證明」，向稽核單位證明某筆紀錄未被更動</code></div>
+    <div class="tbl-wrap"><table class="t">
+      <tbody>
+        <tr><td><b>典型場景</b></td><td>金流交易紀錄、保險理賠歷程、供應鏈履歷、法遵稽核軌跡</td></tr>
+        <tr><td><b>考試關鍵字</b></td><td><b>不可變更</b>、完整稽核軌跡、加密可驗證、中央信任</td></tr>
+      </tbody>
+    </table></div>
+    <div class="trap"><b>陷阱：QLDB vs 區塊鏈（Managed Blockchain）</b><br>
+    兩個都講「不可竄改」，差別在<b>誰說了算</b>：<br>
+    • <b>QLDB</b>：<u>單一擁有者</u>（你的公司）。你信任自己，只是要能對外證明沒改過。<br>
+    • <b>Managed Blockchain</b>：<u>多方互不信任</u>，需要共識機制讓大家都同意。<br><br>
+    題目說「公司內部要稽核軌跡」→ QLDB。說「多家公司共同維護、去中心化」→ Managed Blockchain。<br>
+    <b>多數企業情境其實是 QLDB，不是區塊鏈。</b></div>
+
+    <h3>Keyspaces 與 MemoryDB：容易被忽略的兩個</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>Keyspaces</b><span>相容 <b>Cassandra</b> 的託管服務。既有 Cassandra 應用上雲用它，不用改 CQL 程式碼。Serverless，按用量計費。</span></div>
+      <div class="cmp"><b>MemoryDB for Redis</b><span>相容 Redis，但<b>資料是持久化的</b>——多可用區交易日誌，重啟不掉資料。<u>可以當主資料庫用</u>，這是它和 ElastiCache 的關鍵差別。</span></div>
+    </div>
+    <div class="trap"><b>陷阱：MemoryDB vs ElastiCache for Redis</b><br>
+    • <b>ElastiCache</b>：<u>快取</u>。資料可以掉，掉了就回源頭重讀。<br>
+    • <b>MemoryDB</b>：<u>資料庫</u>。保證持久性與強一致，可以當唯一的資料儲存。<br><br>
+    題目說「需要微秒級延遲<b>且不能掉資料</b>」→ MemoryDB。說「減輕資料庫負擔」→ ElastiCache。</div>
+
+    <div class="ok">✅ <b>一句話記憶：</b>關係複雜找 <b>Neptune</b>、時間序列找 <b>Timestream</b>、要證明沒被改找 <b>QLDB</b>、MongoDB 相容找 <b>DocumentDB</b>、Cassandra 相容找 <b>Keyspaces</b>、Redis 但不能掉資料找 <b>MemoryDB</b>。</div>
   </div>
 
   <div class="page-nav">

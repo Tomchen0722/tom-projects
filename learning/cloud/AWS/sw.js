@@ -1,5 +1,5 @@
 // 改版時記得把版本號 +1，activate 會自動清掉舊快取
-const CACHE = "aws-saa-v4";
+const CACHE = "aws-saa-v5";
 
 const ASSETS = [
   "index.html",
@@ -24,6 +24,9 @@ const ASSETS = [
   "13-analytics.html",
   "14-ai-ml.html",
   "15-migration.html",
+  "16-eks.html",
+  "17-cicd.html",
+  "18-security-services.html",
   "exam-strategy.html",
   "notes/01-服務對照速查表.md",
   "notes/02-四大領域重點筆記.md",

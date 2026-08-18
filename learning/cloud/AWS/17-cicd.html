@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI/CD 與部署管線 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">17 · CI/CD 與部署管線</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 17 · 交付流程</div>
+  <h1><span>CI/CD</span> 與部署管線</h1>
+  <p>第 10 課教了用程式碼管基礎設施，這一課處理「程式碼怎麼安全地變成線上服務」——以及出事時怎麼在使用者發現之前退回去。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼手動部署撐不住</a></li>
+      <li><a href="#family">AWS 的 Code 家族四兄弟</a></li>
+      <li><a href="#pipeline">一條典型的管線長什麼樣</a></li>
+      <li><a href="#strategy">四種部署策略</a></li>
+      <li><a href="#multiaccount">企業多帳號部署</a></li>
+      <li><a href="#secure">管線本身的資安</a></li>
+      <li><a href="#choose">選型：什麼時候不用 AWS 的工具</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="why">
+    <h2>1. 為什麼手動部署撐不住</h2>
+    <div class="analogy">手動部署像<b>每次都手寫一張支票</b>——寫十次可能都對，寫第一百次一定會有一次金額寫錯。<br>而且出錯的那次，你不會知道是哪裡不一樣。</div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>手動部署的問題</th><th>造成什麼</th></tr></thead>
+      <tbody>
+        <tr><td>步驟靠人記或靠文件</td><td>換人做就出錯；文件永遠比實際落後</td></tr>
+        <tr><td>環境之間有差異</td><td>「在我機器上是好的」</td></tr>
+        <tr><td>沒有紀錄誰在何時部署了什麼</td><td>出事時不知道要退回哪個版本</td></tr>
+        <tr><td>回退要靠手動重來</td><td>故障時間拉長，壓力下更容易再出錯</td></tr>
+        <tr><td>部署很痛苦</td><td>→ 大家減少部署次數 → <b>每次改動變更大 → 風險更高</b></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;"><span>📋</span><span>最後一列是最關鍵的惡性循環。<b>部署越痛苦，部署頻率越低，每次的變更量越大，出事機率越高，於是更害怕部署。</b>CI/CD 真正在解的是這個循環，不只是「省下手動的時間」。</span></div>
+  </div>
+
+  <div class="card" id="family">
+    <h2>2. AWS 的 Code 家族四兄弟</h2>
+    <p>名字很像，但各管一段，考試常考「哪一個負責什麼」：</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>服務</th><th>負責</th><th>一句話</th></tr></thead>
+      <tbody>
+        <tr><td><b>CodeCommit</b></td><td>原始碼託管</td><td>AWS 版的 Git 儲存庫（多數企業其實用 GitHub/GitLab）</td></tr>
+        <tr><td><b>CodeBuild</b></td><td>編譯與測試</td><td>託管的建置環境，跑 <code>buildspec.yml</code>，按分鐘計費</td></tr>
+        <tr><td><b>CodeDeploy</b></td><td>部署到目標</td><td>負責<b>怎麼換版</b>：藍綠、金絲雀、滾動</td></tr>
+        <tr><td><b>CodePipeline</b></td><td>串接與編排</td><td>把上面三個（或第三方工具）串成一條有階段的流水線</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱：CodeDeploy 與 CodePipeline 最容易混</b><br>
+    • <b>CodePipeline</b> = <u>流程</u>。定義「先建置、再測試、要人工核准、最後部署」這個順序。<br>
+    • <b>CodeDeploy</b> = <u>換版動作</u>。定義「新版本怎麼取代舊版本，以及失敗怎麼自動退回」。<br><br>
+    題目問「如何在部署失敗時<b>自動回退</b>」→ <b>CodeDeploy</b>。<br>
+    問「如何加入<b>人工核准關卡</b>」→ <b>CodePipeline</b>。</div>
+
+    <div class="biz">
+      <b>企業實務：不一定要用 CodeCommit</b><br>
+      多數企業的原始碼已經在 GitHub 或 GitLab，沒有理由搬家。CodePipeline 可以直接以 GitHub 為來源。<br>
+      <u>AWS 也已宣布 CodeCommit 不再向新客戶開放</u>，新專案請直接用 GitHub/GitLab 當來源，考試若出現「既有 GitHub 儲存庫」也不用糾結要不要搬。
+    </div>
+  </div>
+
+  <div class="card" id="pipeline">
+    <h2>3. 一條典型的管線長什麼樣</h2>
+    <div class="arch"><span class="c">Source</span>  GitHub / CodeCommit / S3
+   └─ 開發者 push 到 main 分支就觸發
+
+<span class="c">Build</span>  CodeBuild
+   ├─ 安裝相依套件
+   ├─ 跑單元測試
+   ├─ <span class="o">安全掃描（相依套件漏洞、機密外洩）</span>
+   ├─ 建置 Docker 映像
+   └─ 推到 ECR,並用 <span class="y">commit SHA 當標籤</span>（不要用 latest）
+
+<span class="c">Deploy to Staging</span>
+   └─ 部署到測試環境,跑整合測試
+
+<span class="c">Manual Approval</span>  <span class="w">← 正式環境前的人工關卡</span>
+   └─ 通知 SNS,主管在主控台按核准
+
+<span class="c">Deploy to Production</span>  CodeDeploy
+   ├─ 藍綠或金絲雀切換
+   ├─ CloudWatch 告警當作健康檢查
+   └─ <span class="o">告警觸發 → 自動回退</span></div>
+
+    <div class="trap"><b>陷阱：映像標籤不要用 latest</b><br>
+    用 <code>latest</code> 會讓你<u>無法確定線上跑的到底是哪一版</u>，回退時也不知道要退到什麼。<br>
+    正確做法：用 <b>commit SHA</b> 或語意化版本當標籤，讓「線上版本」與「原始碼某一次提交」一對一對應。<br>
+    這在事故調查時是決定性的——<b>你必須能回答「線上現在跑的是哪一行程式碼」</b>。</div>
+  </div>
+
+  <div class="card" id="strategy">
+    <h2>4. 四種部署策略</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>策略</th><th>怎麼換版</th><th>回退速度</th><th>成本</th><th>適合</th></tr></thead>
+      <tbody>
+        <tr><td><b>In-place<br>（就地）</b></td><td>直接在原機器上換掉</td><td>慢（要重新部署舊版）</td><td>最低</td><td>開發/測試環境</td></tr>
+        <tr><td><b>Rolling<br>（滾動）</b></td><td>一批一批換</td><td>中等</td><td>低</td><td>一般正式環境</td></tr>
+        <tr><td><b>Blue/Green<br>（藍綠）</b></td><td>另開一整套新環境，驗證後切流量</td><td><b>極快（切回去就好）</b></td><td>高（雙倍資源）</td><td>不能停機的關鍵系統</td></tr>
+        <tr><td><b>Canary<br>（金絲雀）</b></td><td>先放 5% 流量給新版，觀察後再全量</td><td>快</td><td>中</td><td>要控制爆炸半徑</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="arch"><span class="c">藍綠部署的實際運作</span>
+
+   <span class="w">Route 53 / ALB Target Group</span>
+            │
+      ┌─────┴─────┐
+      ↓           ↓
+  <span class="c">藍(舊版)</span>    <span class="y">綠(新版)</span>
+   100% 流量     0% 流量 ← 先部署好、跑健康檢查
+      │           │
+      └── 切換 ──→┘
+   0% 流量      100% 流量
+
+   出事怎麼辦?<span class="o">把流量切回藍色,幾秒完成</span>
+   舊環境保留一段時間才刪掉</div>
+
+    <div class="trap"><b>陷阱：藍綠部署最大的難題不是流量，是資料庫</b><br>
+    應用可以有兩套，<u>資料庫通常只有一套</u>。所以：<br>
+    • 資料庫的 schema 變更必須<b>向前相容</b>——舊版程式碼要能在新 schema 上正常運作<br>
+    • 常見做法是<b>擴展再收縮</b>（expand / contract）：先加新欄位（不刪舊的）→ 部署新程式 → 確認穩定 → 之後才移除舊欄位<br>
+    • <u>絕對不要在同一次部署裡「改 schema + 換程式」並期待能乾淨回退</u><br><br>
+    這是實務上藍綠部署最常翻車的地方，也是進階考題會問的。</div>
+
+    <div class="biz">
+      <b>企業實務：自動回退的觸發條件要事先定義</b><br>
+      「出事就退回」聽起來理所當然，但系統要知道什麼叫「出事」。實務上會綁 CloudWatch 告警當健康檢查：<br>
+      • 5xx 錯誤率超過門檻<br>
+      • p99 延遲超過門檻<br>
+      • 業務指標異常（例如訂單成功率驟降）<br><br>
+      <u>第三項最有價值也最常被忽略</u>——技術指標全綠但訂單掉一半的狀況真的會發生。
+    </div>
+  </div>
+
+  <div class="card" id="multiaccount">
+    <h2>5. 企業多帳號部署</h2>
+    <p>企業幾乎都是多帳號架構（第 12 課的 Organizations）。管線要能跨帳號部署，這是企業級 CI/CD 的核心設計。</p>
+
+    <div class="arch"><span class="c">典型的三帳號結構</span>
+
+  <span class="y">工具帳號 Tooling</span>
+     ├── CodePipeline / CodeBuild 都在這裡
+     ├── ECR（映像集中存放）
+     └── KMS 金鑰（跨帳號共用,要設金鑰政策）
+              │
+     ┌────────┼────────┐
+     ↓        ↓        ↓
+  <span class="c">Dev</span>     <span class="c">Staging</span>   <span class="c">Prod</span>
+   各自獨立帳號,爆炸半徑互相隔離
+
+<span class="w">跨帳號的做法：</span>
+   管線用 <span class="o">sts:AssumeRole</span> 取得目標帳號的部署角色
+   目標帳號的角色只信任工具帳號,且權限最小化</div>
+
+    <div class="ok">✅ <b>為什麼要分帳號而不是分 VPC？</b>帳號是 AWS 最強的隔離邊界——<u>權限、配額、帳單、資源命名空間都天然分開</u>。開發環境的失控腳本不可能誤刪正式環境的資源，因為它根本沒有那個帳號的憑證。</div>
+
+    <div class="biz">
+      <b>企業實務：Control Tower 與 Service Catalog</b><br>
+      多帳號管到一定規模，會用到這兩個服務：<br>
+      • <b>Control Tower</b>——自動化建立符合規範的新帳號（landing zone），內建護欄（guardrails）、集中日誌、SSO。新部門要帳號時不用手工開一堆設定。<br>
+      • <b>Service Catalog</b>——把核准過的架構包成「產品」，讓開發團隊自助佈建，但只能用 IT 事先審過的組態。<u>兼顧敏捷與治理</u>。<br><br>
+      考試關鍵字：「<b>快速建立符合標準的新帳號</b>」→ Control Tower；「<b>讓團隊自助但限制在核准範圍內</b>」→ Service Catalog。
+    </div>
+  </div>
+
+  <div class="card" id="secure">
+    <h2>6. 管線本身的資安</h2>
+    <div class="trap"><b>最危險的認知：把 CI/CD 當成內部工具就不用管安全</b><br>
+    部署管線擁有<b>改變正式環境的權限</b>。攻破管線比攻破應用更值錢——不用找漏洞，直接發一版惡意程式碼上去就好。</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>不要放長期金鑰</b><span>CI 用 <b>OIDC</b> 換臨時憑證（第 10 課教過），不要在 GitHub Secrets 放 IAM access key。</span></div>
+      <div class="cmp"><b>最小權限</b><span>部署角色只給「部署這個應用」需要的權限，不要用 PowerUser 或 Admin。</span></div>
+      <div class="cmp"><b>掃描相依套件</b><span>Build 階段跑漏洞掃描，ECR 也可開啟映像掃描（背後是 <b>Inspector</b>）。</span></div>
+      <div class="cmp"><b>機密不進原始碼</b><span>用 <b>Secrets Manager</b> 或 Parameter Store，Build 時才注入。並在管線加機密外洩掃描。</span></div>
+      <div class="cmp"><b>人工核准</b><span>正式環境前設關卡，並確保核准者不是提交者本人。</span></div>
+      <div class="cmp"><b>稽核軌跡</b><span>CloudTrail 記錄誰觸發了哪次部署，這在事故調查與法遵都需要。</span></div>
+    </div>
+
+    <div class="ok">✅ <b>考試高頻題：</b>「GitHub Actions 要部署到 AWS，如何<b>不儲存長期憑證</b>？」→ 設定 <b>IAM OIDC 身分供應商</b>，讓 Actions 用 workflow 的 OIDC token 去 <code>AssumeRoleWithWebIdentity</code>。<u>這題在第 10 課與本課都會出現。</u></div>
+  </div>
+
+  <div class="card" id="choose">
+    <h2>7. 選型：什麼時候不用 AWS 的工具</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>情況</th><th>建議</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>程式碼已在 GitHub，團隊熟 Actions</td><td><b>GitHub Actions</b> + OIDC</td><td>不用多學一套；生態系與市集豐富</td></tr>
+        <tr><td>純 AWS 環境，要與 IAM 深度整合</td><td><b>CodePipeline</b></td><td>權限模型一致，跨帳號部署較單純</td></tr>
+        <tr><td>已用 GitLab 全套</td><td><b>GitLab CI</b> + OIDC</td><td>同上，不要為了用 AWS 而搬</td></tr>
+        <tr><td>K8s 環境要 GitOps</td><td><b>Argo CD / Flux</b></td><td>宣告式、以 Git 為單一真實來源</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="biz">
+      <b>務實建議：混用是常態</b><br>
+      很常見的組合是 <b>GitHub Actions 做 CI（建置與測試）+ CodeDeploy 做 CD（換版與回退）</b>。<br>
+      因為 CI 的生態系 GitHub 較強，而 CD 要深入 AWS 的 ALB、ASG、ECS 與告警，用 AWS 原生工具較順。<br><br>
+      <u>不要陷入「一定要全套同一家」的迷思</u>——用各自最擅長的那一段。
+    </div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>8. 考試陷阱整理</h2>
+    <div class="trap"><b>陷阱 1：CodeDeploy vs CodePipeline</b><br>自動回退 → CodeDeploy；人工核准與階段編排 → CodePipeline。</div>
+    <div class="trap"><b>陷阱 2：藍綠 vs 金絲雀</b><br>「立即完整切換、可秒退」→ 藍綠；「先給一小部分使用者、逐步放大」→ 金絲雀。</div>
+    <div class="trap"><b>陷阱 3：免金鑰 CI/CD</b><br>「不要儲存長期 access key」→ IAM OIDC 供應商 + AssumeRoleWithWebIdentity。</div>
+    <div class="trap"><b>陷阱 4：跨帳號部署</b><br>管線在工具帳號，用 AssumeRole 進目標帳號。不要在每個帳號各建一條管線。</div>
+    <div class="trap"><b>陷阱 5：Control Tower vs Organizations</b><br>Organizations 是帳號與 SCP 的基礎；<b>Control Tower 是蓋在它上面的自動化 landing zone</b>。題目說「快速佈建合規的新帳號」選 Control Tower。</div>
+    <div class="trap"><b>陷阱 6：藍綠部署的資料庫</b><br>schema 變更要向前相容，用「擴展再收縮」，不要一次改完。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>編排找 <b>CodePipeline</b>，建置找 <b>CodeBuild</b>，換版與回退找 <b>CodeDeploy</b>，免金鑰找 <b>OIDC</b>，多帳號找 <b>AssumeRole + Control Tower</b>。</span></div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="16-eks.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 16 · EKS 與容器選型</a>
+    <a href="18-security-services.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">18 · 資安服務家族 →</a>
+  </div>
+
+</div>
+</body>
+</html>
