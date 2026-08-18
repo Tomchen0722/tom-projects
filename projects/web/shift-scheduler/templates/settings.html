@@ -4,12 +4,77 @@
 {% block content %}
 <div class="topbar"><h1>設定與 LINE</h1></div>
 
+<div class="card">
+  <h2>資料庫</h2>
+  <div class="row" style="align-items:center">
+    <div style="flex:0 0 auto">
+      {% if db_is_supabase %}<span class="tag ok">Supabase</span>
+      {% else %}<span class="tag plain">本機 SQLite</span>{% endif %}
+    </div>
+    <div class="tiny muted" style="flex:1">
+      {% if db_is_supabase %}{{ db_host }}
+      {% else %}{{ sqlite_path }}{% endif %}
+    </div>
+  </div>
+
+  {% if db_error %}
+    <div class="msg error" style="margin-top:12px">{{ db_error }}</div>
+  {% endif %}
+  {% for w in db_warnings %}
+    <div class="msg warn" style="margin-top:12px">{{ w }}</div>
+  {% endfor %}
+  {% if db_is_supabase and not has_psycopg2 %}
+    <div class="msg error" style="margin-top:12px">
+      找不到 psycopg2,連不了 Supabase。請執行 <code>pip install psycopg2-binary</code>。
+    </div>
+  {% endif %}
+
+  {% if not db_is_supabase %}
+  <p class="tiny muted" style="margin-top:12px">
+    現在資料存在這台電腦的一個檔案裡。要改成放雲端(多台裝置共用、手機也連得到),
+    照下面步驟接上 Supabase。
+  </p>
+  <ol style="font-size:.88rem;line-height:2">
+    <li>到 <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a> 註冊,建立一個 Project(免費方案就夠用),記下你設定的資料庫密碼。</li>
+    <li>進 <b>Project Settings > Database > Connection string</b>,
+        切到 <b>Connection pooling</b> 那一段複製連線字串。
+        <div class="msg warn tiny" style="margin:8px 0">
+          一定要用 Connection pooling 的位址(主機名含 <code>pooler.supabase.com</code>)。
+          上面那個 Direct connection 的 <code>db.xxx.supabase.co</code> 只有 IPv6 位址,
+          這台電腦沒有對外 IPv6,填了一定連不上。
+        </div></li>
+    <li>把它填進專案根目錄的 <code>.env</code>:
+      <pre class="tiny" style="background:var(--washi-2);padding:12px;border-radius:6px;overflow-x:auto">SUPABASE_DB_URL=postgresql://postgres.專案代號:你的密碼@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres</pre>
+      複製過來常會連 <code>[YOUR-PASSWORD]</code> 佔位符一起帶上,記得換成真正的密碼。
+      密碼含特殊符號不用自己處理,程式會自動編碼。</li>
+    <li>執行 <code>python scripts/db_check.py</code> 確認連得上。</li>
+    <li>想把現有資料一起帶上雲端,執行
+        <code>python scripts/migrate_to_supabase.py --run</code>
+        (先不加 <code>--run</code> 可以試跑看看會搬什麼)。</li>
+    <li>重開服務。這一頁的標籤會變成 Supabase。</li>
+  </ol>
+  {% else %}
+  <p class="tiny muted" style="margin-top:12px">
+    資料存在 Supabase 雲端。建表語法在 <code>supabase_schema.sql</code>,
+    連線有問題時執行 <code>python scripts/db_check.py</code> 會告訴你哪裡出錯。
+  </p>
+  <div class="msg warn tiny">
+    Supabase 免費方案的專案閒置一段時間會被暫停,暫停期間系統會連不上,
+    到後台按一下恢復即可。正式營運建議升級付費方案並開啟自動備份。
+  </div>
+  {% endif %}
+</div>
+
 <div class="grid c2">
   <div class="card">
     <h2>系統狀態</h2>
     <div class="table-wrap">
       <table>
         <tbody>
+          <tr>
+            <td>資料庫</td>
+            <td><span class="tag {{ 'ok' if db_is_supabase else 'plain' }}">{{ db_label }}</span></td>
+          </tr>
           <tr>
             <td>LINE 推播</td>
             <td>{% if line_ready %}<span class="tag ok">已啟用</span>{% else %}<span class="tag warn">demo 模式</span>{% endif %}</td>

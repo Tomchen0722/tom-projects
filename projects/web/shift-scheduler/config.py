@@ -22,7 +22,16 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-me")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin1234")
 
+    # ---- 資料庫 ----
+    # 有填 SUPABASE_DB_URL(或 DATABASE_URL)就用 Supabase,沒填就用本機 SQLite。
+    # 連線字串要用 Supabase 後台的 Connection Pooler 位址,不要用直連位址,
+    # 因為直連主機只有 IPv6,這台電腦連不上去。
+    DATABASE_URL = ""
+    DATABASE_URL_ERROR = ""
+
     DB_PATH = str(DATA_DIR / "shift.db")
+    DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "8"))
+    DB_CONNECT_TIMEOUT = int(os.getenv("DB_CONNECT_TIMEOUT", "10"))
 
     # LINE
     LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", "")
@@ -38,6 +47,30 @@ class Config:
     DEFAULT_WEEK_START = 0        # 0=星期一
 
     @classmethod
+    def uses_supabase(cls) -> bool:
+        return bool(cls.DATABASE_URL)
+
+    @classmethod
     def line_enabled(cls) -> bool:
         """有填 token 才算真的接上 LINE,否則走 demo 模式。"""
         return bool(cls.LINE_CHANNEL_ACCESS_TOKEN and cls.LINE_CHANNEL_SECRET)
+
+
+def _load_database_url() -> None:
+    """讀 .env 的 Supabase 連線字串並整理格式。
+
+    格式有問題時不讓程式直接掛掉,而是記下錯誤訊息、退回 SQLite,
+    這樣使用者還是進得了後台,能在「設定」頁看到到底哪裡填錯。
+    """
+    from scheduler.db import DbUrlError, normalize_db_url
+
+    raw = os.getenv("SUPABASE_DB_URL") or os.getenv("DATABASE_URL") or ""
+    if not raw:
+        return
+    try:
+        Config.DATABASE_URL = normalize_db_url(raw)
+    except DbUrlError as exc:
+        Config.DATABASE_URL_ERROR = str(exc)
+
+
+_load_database_url()

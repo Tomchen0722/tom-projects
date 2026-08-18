@@ -359,10 +359,19 @@ def swap_delete(swap_id):
 @bp.route("/settings")
 @login_required
 def settings():
+    from ..db import HAS_PSYCOPG2, backend_label, db_url_warnings
     from ..solver import available as solver_available
 
+    db_url = current_app.config.get("DATABASE_URL", "")
     return render_template(
         "settings.html",
+        db_label=backend_label(),
+        db_is_supabase=bool(db_url),
+        db_host=_db_host(db_url),
+        db_warnings=db_url_warnings(db_url),
+        db_error=current_app.config.get("DB_ERROR", ""),
+        has_psycopg2=HAS_PSYCOPG2,
+        sqlite_path=current_app.config.get("DB_PATH", ""),
         line_ready=line_ready(),
         liff_id=current_app.config.get("LINE_LIFF_ID", ""),
         public_base_url=current_app.config.get("PUBLIC_BASE_URL", ""),
@@ -371,3 +380,11 @@ def settings():
         min_rest=current_app.config["MIN_REST_HOURS"],
         employees=repo.list_employees(include_inactive=True),
     )
+
+
+def _db_host(url: str) -> str:
+    """只取主機與埠號顯示,不要把密碼印在畫面上。"""
+    import re
+
+    match = re.search(r"@([^/?]+)", url or "")
+    return match.group(1) if match else ""

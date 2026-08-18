@@ -4,7 +4,8 @@
 員工在 LINE 裡查自己的班表、請假、申請調班。
 
 - 介面:暖色系日式簡約,手機也能用
-- 後端:Flask + SQLite(單一檔案資料庫,不用另外裝資料庫)
+- 後端:Flask
+- 資料庫:Supabase(PostgreSQL)為主,本機 SQLite 為輔,填不填 `.env` 決定用哪個
 - 自動排班:規則排班(快)+ OR-Tools 最佳化排班(強)
 
 ---
@@ -24,8 +25,89 @@ python app.py
 | 老闆後台 | <http://127.0.0.1:5000> | `admin1234` |
 | 員工自助頁(demo) | <http://127.0.0.1:5000/liff?emp=1> | 不用登入 |
 
-第一次啟動會自動建好資料庫,並灌入 7 位範例員工 + 3 個班別(早班 / 中班 / 大夜),
-可以直接按「開始排班」看效果。要清空重來,把 `data/shift.db` 刪掉再啟動即可。
+第一次啟動會自動建好資料表,並灌入 9 位範例員工 + 3 個班別(早班 / 中班 / 大夜),
+可以直接按「開始排班」看效果。
+
+**沒設定 Supabase 時資料存在本機的 `data/shift.db`**,要清空重來把這個檔案刪掉再啟動即可。
+接上 Supabase 的方法看下面「資料庫」一節。
+
+---
+
+## 資料庫
+
+系統可以接兩種資料庫,靠 `.env` 有沒有填 `SUPABASE_DB_URL` 自動判斷:
+
+| 情況 | 用哪個 | 適合 |
+|---|---|---|
+| `.env` 沒填 | 本機 `data/shift.db`(SQLite) | 一台電腦自己用、開發測試 |
+| `.env` 有填 | Supabase(PostgreSQL) | 正式營運、多台裝置共用、要從外面連 |
+
+程式碼只寫一套 SQL,由 `scheduler/db.py` 負責翻譯成兩種資料庫各自的語法,
+所以換資料庫不用改任何業務邏輯。
+
+### 接上 Supabase
+
+1. 到 [supabase.com](https://supabase.com) 註冊,建立 Project(免費方案就夠),
+   **記下你設定的資料庫密碼**,那個密碼之後看不到第二次。
+
+2. 進 **Project Settings > Database > Connection string**,
+   切到 **Connection pooling** 那一段複製連線字串。
+
+   > ⚠️ **一定要用 Connection pooling 的位址**(主機名含 `pooler.supabase.com`)。
+   > 上面那個 Direct connection 的 `db.xxxxx.supabase.co` **只有 IPv6 位址**,
+   > 一般家用 / 辦公室網路沒有對外 IPv6,填了會連不上。
+
+3. 複製 `.env.example` 成 `.env`,填進去:
+
+   ```
+   SUPABASE_DB_URL=postgresql://postgres.專案代號:你的密碼@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+   ```
+
+   從後台複製常會連 `[YOUR-PASSWORD]` 佔位符一起帶上,記得換成真的密碼。
+   密碼含 `/ @ # ? &` 這些符號不用自己處理,程式會自動編碼。
+
+4. 確認連得上:
+
+   ```bash
+   python scripts/db_check.py
+   ```
+
+   連不上時它會直接告訴你是密碼錯、位址錯、還是 IPv6 的問題,不用自己看英文錯誤。
+
+5. 啟動 `python app.py`,資料表會自動建好。
+   想自己在後台建也可以,把 `supabase_schema.sql` 貼到 Supabase 的 SQL Editor 執行。
+
+6. 後台「設定與 LINE」頁最上面會顯示現在接的是哪一個資料庫。
+
+### 把現有資料搬上雲端
+
+本機已經排了一堆班,想直接帶上去:
+
+```bash
+python scripts/migrate_to_supabase.py
+```
+
+先試跑,只列出會搬什麼、不寫入。確認數字沒問題再加 `--run`:
+
+```bash
+python scripts/migrate_to_supabase.py --run --wipe
+```
+
+`--wipe` 是先清空 Supabase 現有資料再搬。搬完會自動重設流水號並逐表比對筆數,
+對不上就整批復原,不會搬一半。本機的 SQLite 檔案不會被刪掉。
+
+### 資料安全
+
+建表時會對所有表打開 **Row Level Security 但不建任何 policy**。
+意思是:Supabase 對外的 anon / service 前端金鑰完全讀不到這些表,
+只有我們用資料庫帳號直連才存取得到。員工姓名電話是個資,不應該讓拿到前端金鑰的人直接撈走。
+
+### 已知限制
+
+- Supabase 免費方案的專案**閒置一段時間會被自動暫停**,暫停期間系統會連不上,
+  要到後台按一下恢復。正式營運建議升級付費方案。
+- 資料在雲端不等於有備份。Supabase 免費方案沒有自動備份,
+  重要資料請自己定期匯出,或升級到有 Point-in-Time Recovery 的方案。
 
 ---
 
@@ -133,9 +215,15 @@ shift-scheduler/
 ├─ config.py                 全站設定(讀 .env)
 ├─ requirements.txt
 ├─ .env.example              設定範本
-├─ data/shift.db             SQLite 資料庫(自動產生,已 gitignore)
+├─ supabase_schema.sql       Supabase 建表語法(可貼進 SQL Editor)
+├─ data/shift.db             本機 SQLite(沒接 Supabase 時才用,已 gitignore)
+├─ scripts/
+│  ├─ db_check.py            檢查資料庫連線,連不上會說明原因
+│  └─ migrate_to_supabase.py 把本機資料搬上 Supabase
+├─ tests/
+│  └─ test_db_dialect.py     SQL 方言翻譯與兩種資料庫的端對端測試
 ├─ scheduler/
-│  ├─ db.py                  資料表結構與連線
+│  ├─ db.py                  連線層:SQLite / PostgreSQL 雙支援與方言翻譯
 │  ├─ repo.py                CRUD(路由層只呼叫這裡,不寫 SQL)
 │  ├─ engine.py              排班共用資料結構、時間計算、結果檢查
 │  ├─ rules.py               規則排班(貪婪演算法)
@@ -180,7 +268,26 @@ W_ROTATION  = 1       # 班別跳來跳去
 ## 上線注意
 
 - `.env` 的 `SECRET_KEY` 和 `ADMIN_PASSWORD` 一定要換掉
-- `.env` 不要 commit 進 git(已在 `.gitignore`)
+- `.env` 裡有資料庫密碼,**絕對不要 commit 進 git**(已在 `.gitignore`)
 - 正式環境不要用 `python app.py`(那是開發用伺服器),改用 waitress / gunicorn
-- `data/shift.db` 要定期備份,那是全部的資料
+- 資料備份:用 Supabase 就靠它的備份機制(免費方案沒有,要自己匯出);
+  用 SQLite 就定期複製 `data/shift.db`
 - 排班結果只是輔助,實際工時、加班、休息時間仍需符合勞基法規定,上線前請自行確認
+
+---
+
+## 測試
+
+```bash
+python tests/test_db_dialect.py
+```
+
+驗證 SQL 方言翻譯、連線字串處理,以及在 SQLite 上跑完整套 CRUD 加排班。
+
+想連真的 PostgreSQL 一起測(Supabase 就是 PostgreSQL,本機測得過就會過):
+
+```bash
+python tests/test_db_dialect.py --pg "postgresql://postgres:密碼@127.0.0.1:5432/postgres?sslmode=disable"
+```
+
+它會開一個獨立的 schema 跑測試,跑完刪掉,不會動到你的正式資料。
