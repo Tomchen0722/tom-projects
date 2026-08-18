@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Systems Manager 與目錄服務 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">21 · Systems Manager 與目錄服務</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 21 · 維運自動化</div>
+  <h1><span>Systems Manager</span> 與目錄服務</h1>
+  <p>機器開起來之後才是真正的工作：怎麼登入、怎麼修補、怎麼確認組態沒跑掉、怎麼讓公司的網域帳號在雲上也能用。這一課把 SSM 全家與 Directory Service 三種一次講完。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">SSM 不是一個服務，是一組維運工具</a></li>
+      <li><a href="#prereq">三個前置條件（連不上都是這裡出問題）</a></li>
+      <li><a href="#session">Session Manager：淘汰堡壘主機</a></li>
+      <li><a href="#run">Run Command / Automation / State Manager</a></li>
+      <li><a href="#patch">Patch Manager：修補基準與維護時段</a></li>
+      <li><a href="#param">Parameter Store vs Secrets Manager</a></li>
+      <li><a href="#fleet">Inventory / Fleet Manager / 合規</a></li>
+      <li><a href="#ds">Directory Service 三種怎麼選</a></li>
+      <li><a href="#lab">實作 Lab：無堡壘主機登入 + 自動修補</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="why">
+    <h2>1. SSM 不是一個服務，是一組維運工具</h2>
+
+    <div class="analogy">SSM 像<b>一整套工具箱</b>，不是單一把螺絲起子。考試不會問「SSM 是什麼」，只會問「這個維運需求用工具箱裡的<b>哪一把</b>」。所以重點是把每把工具的<b>用途邊界</b>記清楚。</div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>工具</th><th>回答什麼問題</th><th>考題關鍵字</th></tr></thead>
+      <tbody>
+        <tr><td><b>Session Manager</b></td><td>我怎麼登入這台機器？</td><td>不開 22 埠、不要堡壘主機、要稽核紀錄</td></tr>
+        <tr><td><b>Run Command</b></td><td>我怎麼對 500 台一次下指令？</td><td>一次性、大量、免 SSH</td></tr>
+        <tr><td><b>Automation</b></td><td>我怎麼把多步驟流程自動化？</td><td>Runbook、自動修復、建立 AMI</td></tr>
+        <tr><td><b>State Manager</b></td><td>我怎麼確保組態<b>一直</b>是對的？</td><td>期望狀態、防止漂移、定期套用</td></tr>
+        <tr><td><b>Patch Manager</b></td><td>我怎麼修補作業系統？</td><td>修補、合規報表、維護時段</td></tr>
+        <tr><td><b>Parameter Store</b></td><td>組態與密文放哪？</td><td>免費、階層式、SecureString</td></tr>
+        <tr><td><b>Inventory</b></td><td>我的機器上裝了什麼？</td><td>軟體清單、資產盤點</td></tr>
+        <tr><td><b>Fleet Manager</b></td><td>我怎麼用 GUI 管機器？</td><td>看檔案系統、登錄檔、程序</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ok"><strong>SSM 在 SAA 裡的地位：</strong>它是「<b>減少維運負擔</b>」與「<b>不開連接埠</b>」這兩類題目的萬用答案。只要選項裡出現「在 EC2 上自己裝 agent／寫 cron／架堡壘主機」，而另一個選項是 SSM 的某個功能，答案幾乎都是 SSM。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="prereq">
+    <h2>2. 三個前置條件（連不上都是這裡出問題）</h2>
+
+    <div class="warn"><strong>「機器沒出現在 Systems Manager 清單裡」是實務與考試都超高頻的題目。</strong>原因永遠是下面三個之一，而且要照順序檢查。</div>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>SSM Agent 有沒有裝、有沒有在跑</b>Amazon Linux 2／2023、Ubuntu 較新版與 Windows 官方 AMI 都<b>預設內建</b>。自訂 AMI 或舊映像檔要自己裝。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>EC2 有沒有掛 IAM 執行個體設定檔</b>需要 <span class="inline-code">AmazonSSMManagedInstanceCore</span> 這個 AWS 受管政策。<b>沒有 Role 就一定看不到機器</b>——這是最常見的原因。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>網路通不通</b>Agent 要能對外連到 SSM 服務端點。走 NAT／IGW，或在私有子網路建 <b>Interface Endpoint</b>。</div></div>
+    </div>
+
+    <h3>私有子網路需要哪些 Endpoint</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>Endpoint</th><th>做什麼</th><th>不建會怎樣</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">com.amazonaws.<i>region</i>.ssm</span></td><td>SSM 核心 API</td><td>機器完全不上線</td></tr>
+        <tr><td><span class="inline-code">com.amazonaws.<i>region</i>.ssmmessages</span></td><td><b>Session Manager 的連線通道</b></td><td>看得到機器但<b>連不進去</b></td></tr>
+        <tr><td><span class="inline-code">com.amazonaws.<i>region</i>.ec2messages</span></td><td>Run Command 等訊息通道</td><td>指令送不到</td></tr>
+        <tr><td><b>S3 Gateway Endpoint</b></td><td>Patch Manager 取得修補程式、工作階段日誌寫入</td><td>修補失敗、日誌寫不出去</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ok"><strong>這張表就是考題本身。</strong>「私有子網路的 EC2 出現在 SSM 清單，但 Session Manager 連不上」→ 少了 <b><span class="inline-code">ssmmessages</span></b> Endpoint。這個「看得到但連不上」的症狀對應到哪個 Endpoint，是很典型的細節題。</div>
+
+    <pre><code><span class="comment"># 一次建好三個 Interface Endpoint（私有子網路的標準做法）</span>
+$ <span class="cmd">for svc in ssm ssmmessages ec2messages; do
+    aws ec2 create-vpc-endpoint \
+      --vpc-id vpc-0abc123 \
+      --vpc-endpoint-type Interface \
+      --service-name com.amazonaws.ap-northeast-1.$svc \
+      --subnet-ids subnet-a subnet-c \
+      --security-group-ids sg-ssm-endpoint \
+      --private-dns-enabled
+  done</span>
+
+<span class="comment"># Endpoint 的 SG 要放行來自 EC2 的 HTTPS(443)</span>
+<span class="comment"># 沒開 443 的話症狀跟「沒建 Endpoint」一模一樣，很難查</span>
+
+<span class="comment"># 確認機器有沒有上線</span>
+$ <span class="cmd">aws ssm describe-instance-information \
+    --query 'InstanceInformationList[].[InstanceId,PingStatus,PlatformName,AgentVersion]' \
+    --output table</span></code></pre>
+
+    <div class="biz"><b>成本提醒：</b>三個 Interface Endpoint × 每個 AZ 一個 ENI，在多 AZ 環境是一筆固定月費。如果 VPC 本來就有 NAT Gateway 而且流量不大，走 NAT 反而更便宜——<b>Endpoint 是為了「不出網際網路」的合規需求，不是為了省錢</b>。這個取捨在成本題與安全題會有不同的正確答案，要看題目強調哪一邊。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="session">
+    <h2>3. Session Manager：淘汰堡壘主機</h2>
+
+    <div class="arch"><span class="w">   傳統做法（考題裡的錯誤選項）        Session Manager（正解）</span>
+
+   工程師 ──SSH──▶ <span class="y">堡壘主機</span>              工程師 ──▶ <span class="o">AWS API</span>
+                    │ 公有 IP                        │ IAM 驗證
+                    │ 開 22 埠                       ▼
+                    ▼                          <span class="c">SSM Agent 主動外連</span>
+                <span class="c">私有 EC2</span>                        │
+                                                    ▼
+   <span class="w">✗ 要維護一台機器</span>                        <span class="c">私有 EC2</span>
+   <span class="w">✗ 要管 SSH 金鑰</span>
+   <span class="w">✗ 要開放入站連接埠</span>                <span class="w">✓ 零入站規則  ✓ 無金鑰  ✓ 全程稽核</span>
+   <span class="w">✗ 誰登入做了什麼很難查</span></div>
+
+    <h3>它為什麼安全</h3>
+    <div class="svc-grid">
+      <div class="svc"><b>零入站連接埠</b><span>Agent 是<b>主動向外</b>建立連線的，Security Group 可以<b>完全不開任何入站規則</b>。</span></div>
+      <div class="svc"><b>不需要 SSH 金鑰</b><span>權限用 <b>IAM 政策</b>控制，員工離職停用 IAM 即可，不用去每台機器刪公鑰。</span></div>
+      <div class="svc"><b>完整稽核</b><span>誰在什麼時間連了哪台機器記在 <b>CloudTrail</b>；<b>指令與輸出</b>可送 S3 或 CloudWatch Logs。</span></div>
+      <div class="svc"><b>連接埠轉發</b><span>可以把遠端連接埠轉到本機，例如安全地連私有子網路的 <b>RDS</b>，不用開 VPN。</span></div>
+    </div>
+
+    <h3>用 IAM 精準控制「誰能連哪一台」</h3>
+    <div class="ex-box">
+      <div class="ex-title">只允許連 Env=dev 的機器</div>
+      <pre style="margin-bottom:0"><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    <span class="var">"Effect"</span>: <span class="kw">"Allow"</span>,
+    "Action": "ssm:StartSession",
+    "Resource": "arn:aws:ec2:*:*:instance/*",
+    "Condition": {
+      "StringEquals": {
+        <span class="comment">// 用標籤限制範圍，比列 instance-id 好維護</span>
+        "ssm:resourceTag/Env": "dev"
+      }
+    }
+  }]
+}</code></pre>
+    </div>
+
+    <pre><code><span class="comment"># 開一個工作階段（本機要先裝 session-manager-plugin）</span>
+$ <span class="cmd">aws ssm start-session --target i-0abc123def456</span>
+
+<span class="comment"># 連接埠轉發：把私有 RDS 的 3306 轉到本機 13306</span>
+$ <span class="cmd">aws ssm start-session --target i-0abc123def456 \
+    --document-name AWS-StartPortForwardingSessionToRemoteHost \
+    --parameters '{"host":["mydb.abc123.ap-northeast-1.rds.amazonaws.com"],
+                   "portNumber":["3306"],"localPortNumber":["13306"]}'</span>
+
+<span class="comment"># 之後本機就能這樣連，完全不用開任何入站規則</span>
+$ <span class="cmd">mysql -h 127.0.0.1 -P 13306 -u admin -p</span></code></pre>
+
+    <div class="ok"><strong>連接埠轉發是實務上最被低估的功能。</strong>「開發人員需要從筆電連到私有子網路的資料庫做查詢」——標準答案是 <b>Session Manager 連接埠轉發</b>，不是「開 VPN」也不是「把 RDS 設成公開存取」。</div>
+
+    <div class="trap"><b>陷阱：以為 Session Manager 要開 SSH 埠</b><br>
+    完全不用。Security Group 可以<b>零入站規則</b>。選項裡出現「開放 22 埠給公司 IP」的都是錯的——那正是題目想淘汰的做法。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="run">
+    <h2>4. Run Command / Automation / State Manager</h2>
+
+    <p>這三個常被搞混，差別在<b>執行次數</b>與<b>對象</b>。</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Run Command</b><span><b>執行一次</b>命令在<b>一批機器</b>上。例如「所有 web 機重啟 nginx」。</span></div>
+      <div class="cmp"><b>Automation</b><span><b>執行一次多步驟流程</b>，對象可以是<b>任何 AWS 資源</b>。例如「建 AMI → 修補 → 測試 → 註冊」。</span></div>
+      <div class="cmp"><b>State Manager</b><span><b>持續維持</b>某個狀態。例如「確保 CloudWatch Agent 永遠是裝著且在跑的」。</span></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">一句話區分</div>
+      <p style="margin-bottom:0"><b>Run Command</b> = 現在幫我做一件事。<br>
+      <b>Automation</b> = 現在幫我做一連串事（可跨服務）。<br>
+      <b>State Manager</b> = 以後也要一直是這樣（<b>防組態漂移</b>）。</p>
+    </div>
+
+    <pre><code><span class="comment"># Run Command：對所有帶 Role=web 標籤的機器重啟服務</span>
+$ <span class="cmd">aws ssm send-command \
+    --document-name "AWS-RunShellScript" \
+    --targets "Key=tag:Role,Values=web" \
+    --parameters 'commands=["systemctl restart nginx","systemctl is-active nginx"]' \
+    --max-concurrency "20%" --max-errors "5" \
+    --output-s3-bucket-name my-ssm-logs</span>
+
+<span class="comment"># 看執行結果（不用一台一台 SSH 進去看）</span>
+$ <span class="cmd">aws ssm list-command-invocations --command-id 1234-abcd --details \
+    --query 'CommandInvocations[].[InstanceId,Status]' --output table</span></code></pre>
+
+    <div class="note"><b><span class="inline-code">--max-concurrency</span> 與 <span class="inline-code">--max-errors</span> 是正式環境的救命參數。</b>一次對 500 台下指令，如果指令有問題就是 500 台一起壞。設成「一次 20%、錯 5 台就停」，出事時還有 80% 的機器是好的。考題會用「如何安全地大規模執行變更」來問這兩個參數的概念。</div>
+
+    <h3>Automation 的典型用途：自動修復</h3>
+    <div class="arch"><span class="c">AWS Config 偵測到「S3 儲存貯體未加密」</span>
+                    │
+                    ▼
+        <span class="y">EventBridge 規則</span>
+                    │
+                    ▼
+      <span class="o">SSM Automation Runbook</span>
+      <span class="w">AWS-EnableS3BucketEncryption</span>
+                    │
+                    ▼
+        <span class="c">自動改回合規狀態 + 通知</span></div>
+
+    <div class="ok"><strong>「偵測到不合規要自動修正」= Config 規則 + SSM Automation 修復動作。</strong>這在第 08 章的自動修復出現過，這裡補上 SSM 這一端的細節：真正動手改的是 <b>Automation Runbook</b>。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="patch">
+    <h2>5. Patch Manager：修補基準與維護時段</h2>
+
+    <p>修補是稽核第一個會問的事。Patch Manager 把它變成「宣告規則 → 自動執行 → 產生合規報表」。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>元件</th><th>作用</th><th>要記的重點</th></tr></thead>
+      <tbody>
+        <tr><td><b>Patch Baseline</b><br>（修補基準）</td><td>定義「哪些修補要裝」</td><td>可設<b>自動核准延遲天數</b>（例如發布 7 天後才裝，避開有問題的更新）、嚴重性條件、<b>明確核准／拒絕清單</b></td></tr>
+        <tr><td><b>Patch Group</b><br>（修補群組）</td><td>把機器分組套用不同基準</td><td>用標籤 <span class="inline-code">Patch Group</span> 指定（<b>鍵名固定，中間有空格</b>）</td></tr>
+        <tr><td><b>Maintenance Window</b><br>（維護時段）</td><td>什麼時候可以動手</td><td>cron 排程 + 持續時間 + <b>截止前停止新任務的緩衝</b></td></tr>
+        <tr><td><b>Compliance</b><br>（合規檢視）</td><td>誰修好了、誰沒有</td><td>可送 <b>Security Hub</b>、可產生稽核報表</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ex-box">
+      <div class="ex-title">典型的分階段修補策略</div>
+      <p><b>Patch Group = dev</b> → 基準：核准延遲 <b>0 天</b>，維護時段：每週二 02:00 → 最快踩到問題。<br>
+      <b>Patch Group = staging</b> → 核准延遲 <b>3 天</b>，維護時段：每週四 02:00。<br>
+      <b>Patch Group = prod</b> → 核准延遲 <b>7 天</b>，維護時段：每月第二個週日 03:00。</p>
+      <p style="margin-bottom:0">這個「延遲天數」設計就是 Patch Baseline 最重要的參數——它讓你<b>不必人工審核每一個更新</b>，也不會第一時間吃到有問題的修補。</p>
+    </div>
+
+    <pre><code><span class="comment"># 建立修補基準：只裝重要與安全性更新，且發布 7 天後才核准</span>
+$ <span class="cmd">aws ssm create-patch-baseline \
+    --name "prod-linux-baseline" \
+    --operating-system AMAZON_LINUX_2 \
+    --approval-rules '{
+      "PatchRules":[{
+        "PatchFilterGroup":{"PatchFilters":[
+           {"Key":"CLASSIFICATION","Values":["Security","Bugfix"]},
+           {"Key":"SEVERITY","Values":["Critical","Important"]}]},
+        "ApproveAfterDays":7,
+        "ComplianceLevel":"CRITICAL"
+      }]}' \
+    --rejected-patches "kernel-5.10.0-buggy"</span>
+
+<span class="comment"># 把基準關聯到 Patch Group（機器要打 tag: Patch Group = prod）</span>
+$ <span class="cmd">aws ssm register-patch-baseline-for-patch-group \
+    --baseline-id pb-0abc123 --patch-group "prod"</span>
+
+<span class="comment"># 先「只掃描不安裝」，看看目前缺哪些（正式環境務必先做這一步）</span>
+$ <span class="cmd">aws ssm send-command \
+    --document-name "AWS-RunPatchBaseline" \
+    --targets "Key=tag:Patch Group,Values=prod" \
+    --parameters 'Operation=Scan'</span>
+
+<span class="comment"># 看合規結果</span>
+$ <span class="cmd">aws ssm list-compliance-summaries --output table</span></code></pre>
+
+    <div class="warn"><strong>標籤鍵名是 <span class="inline-code">Patch Group</span>，中間有一個空格，而且大小寫敏感。</strong>寫成 <span class="inline-code">PatchGroup</span> 或 <span class="inline-code">patch group</span> 都不會生效，而且不會報錯——機器就是默默地套用預設基準。這是實務上很難查的坑，考題也愛拿它當錯誤選項。</div>
+
+    <div class="trap"><b>陷阱：修補要開 SSH 或裝第三方工具</b><br>
+    都不用。Patch Manager 走 SSM Agent，<b>零入站連接埠</b>。選項裡出現「架 WSUS 伺服器」「用 Ansible 從堡壘主機推」的，在 SAA 裡都是要被淘汰的做法。</div>
+
+    <div class="biz"><b>實務提醒：</b>Patch Manager 預設<b>裝完不會自動重開機</b>（可設定），但很多更新要重開才生效——結果就是「合規報表說已修補，實際上還在跑舊核心」。正式環境要把<b>重開機策略</b>連同 ASG 的滾動更新一起設計，或乾脆走<b>不可變基礎設施</b>：修補做在 AMI 上（用 Automation + Image Builder），機器直接換新的，不在跑的機器上動手術。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="param">
+    <h2>6. Parameter Store vs Secrets Manager</h2>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>SSM Parameter Store</th><th>Secrets Manager</th></tr></thead>
+      <tbody>
+        <tr><td>費用</td><td><b>Standard 免費</b>（Advanced 付費）</td><td><b>每個密文每月計費</b> + API 呼叫費</td></tr>
+        <tr><td><b>自動輪換</b></td><td><b>沒有內建</b>（要自己寫 Lambda）</td><td><b>原生支援</b>，與 RDS / Redshift / DocumentDB 整合</td></tr>
+        <tr><td>大小上限</td><td>Standard 4 KB / Advanced 8 KB</td><td>64 KB</td></tr>
+        <tr><td>跨帳號共享</td><td>不支援（Advanced 也不行）</td><td><b>支援</b>（資源型政策）</td></tr>
+        <tr><td>加密</td><td>SecureString 用 KMS</td><td>一律 KMS 加密</td></tr>
+        <tr><td>階層與版本</td><td><b>階層式路徑</b>、自動版本</td><td>版本與階段標籤</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ok"><strong>判斷只看一句話：<b>「要不要自動輪換」。</b></strong><br>
+    要自動輪換（尤其是資料庫密碼）→ <b>Secrets Manager</b>。<br>
+    只是存組態、API 端點、功能開關，或要<b>免費</b> → <b>Parameter Store</b>。<br>
+    這是 SAA 最愛考的一組二選一，答案幾乎都由「輪換」這個詞決定。</div>
+
+    <h3>階層式命名：實務上一定要這樣做</h3>
+    <pre><code><span class="comment"># 用路徑分層，一次抓一整組</span>
+$ <span class="cmd">aws ssm put-parameter --name "/myapp/prod/db/host" \
+    --value "mydb.abc.ap-northeast-1.rds.amazonaws.com" --type String</span>
+$ <span class="cmd">aws ssm put-parameter --name "/myapp/prod/db/password" \
+    --value "..." --type SecureString --key-id alias/myapp-kms</span>
+
+<span class="comment"># 應用程式啟動時一次讀整棵子樹並自動解密</span>
+$ <span class="cmd">aws ssm get-parameters-by-path --path "/myapp/prod/" \
+    --recursive --with-decryption \
+    --query 'Parameters[].[Name,Value]' --output table</span></code></pre>
+
+    <div class="note"><b>階層命名的好處是權限也能分層</b>：IAM 政策寫 <span class="inline-code">arn:aws:ssm:*:*:parameter/myapp/prod/*</span>，就能讓正式環境的角色只讀得到正式環境的參數，開發角色碰不到。扁平命名（<span class="inline-code">myapp-prod-db-password</span>）做不到這件事。</div>
+
+    <div class="trap"><b>陷阱：把密碼寫在 User Data 或環境變數</b><br>
+    User Data 對任何能呼叫 <span class="inline-code">describe-instance-attribute</span> 的人都是可見的明文，環境變數也會出現在程序清單與日誌裡。<br>
+    正解是 <b>SecureString 參數或 Secrets Manager，執行期用 IAM Role 取用</b>。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="fleet">
+    <h2>7. Inventory / Fleet Manager / 合規</h2>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Inventory</b><span>定期蒐集每台機器的<b>已安裝軟體、更新、網路組態、服務</b>，可匯總到 S3 用 Athena 查詢。</span></div>
+      <div class="cmp"><b>Fleet Manager</b><span>用<b>瀏覽器 GUI</b> 看檔案系統、Windows 登錄檔、效能計數器、程序——不用登入機器。</span></div>
+      <div class="cmp"><b>Compliance</b><span>彙總<b>修補合規</b>與<b>組態合規</b>，可送到 <b>Security Hub</b> 統一檢視。</span></div>
+    </div>
+
+    <div class="ok"><strong>Inventory 的經典考題：</strong>「安全團隊需要知道<b>全公司哪些機器裝了某個有漏洞的套件版本</b>」——<br>
+    答案是 <b>SSM Inventory 匯總到 S3 再用 Athena 查詢</b>。<br>
+    不是 Config（它看的是 AWS 資源組態，不是機器裡面裝了什麼），也不是 Inspector（它掃漏洞，但題目問的是「盤點清單」）。</div>
+
+    <div class="note"><b>Inventory vs Config vs Inspector 的分界：</b><br>
+    <b>Inventory</b> = 機器<b>裡面</b>有什麼（軟體清單）。<br>
+    <b>Config</b> = AWS <b>資源</b>的組態與變更歷史（SG 開了什麼埠、S3 有沒有加密）。<br>
+    <b>Inspector</b> = 有沒有<b>已知漏洞</b>（CVE）與網路可達性風險。<br>
+    三個都跟「檢查」有關，但看的層次完全不同，考題常拿來互相當誘答。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="ds">
+    <h2>8. Directory Service 三種怎麼選</h2>
+
+    <p>企業上雲最現實的一題：「公司有幾千個 AD 帳號，難道要在 AWS 重建一套嗎？」Directory Service 提供三個答案，差別在<b>目錄資料放哪</b>。</p>
+
+    <div class="arch"><span class="y">   AWS Managed Microsoft AD</span>      真正的 Microsoft AD 跑在 AWS
+     <span class="c">目錄資料在 AWS</span>              可與地端 AD 建立<span class="w">信任關係</span>
+                                    地端斷線<span class="w">仍可獨立驗證</span>
+
+<span class="o">   AD Connector</span>                  只是一個<span class="w">代理／轉送器</span>
+     <span class="c">目錄資料留在地端</span>            驗證請求原路轉回地端 AD
+                                    <span class="w">地端斷線就無法驗證</span>
+
+<span class="c">   Simple AD</span>                     Samba 4 相容的輕量目錄
+     <span class="c">目錄資料在 AWS</span>              <span class="w">不支援信任關係、不支援 MFA</span>
+                                    小規模、低成本</div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>Managed Microsoft AD</th><th>AD Connector</th><th>Simple AD</th></tr></thead>
+      <tbody>
+        <tr><td>本質</td><td>AWS 代管的<b>真 AD</b></td><td><b>代理</b>，不存資料</td><td>Samba 4 相容目錄</td></tr>
+        <tr><td>與地端 AD 建立信任</td><td><b>✓</b></td><td>不適用（本來就用地端）</td><td><b>✗</b></td></tr>
+        <tr><td>地端斷線時</td><td><b>仍可運作</b></td><td><b>無法驗證</b></td><td>不適用</td></tr>
+        <tr><td>群組原則（GPO）</td><td>✓</td><td>用地端的</td><td>有限</td></tr>
+        <tr><td>MFA</td><td>✓（RADIUS）</td><td>✓（RADIUS）</td><td><b>✗</b></td></tr>
+        <tr><td>支援 FSx for Windows<br>/ RDS SQL Server / WorkSpaces</td><td><b>✓</b></td><td>部分服務不支援</td><td>部分支援</td></tr>
+        <tr><td>典型選用理由</td><td>要在雲端有<b>獨立可用</b>的 AD</td><td><b>不想在雲端存放目錄副本</b></td><td>小型、<b>成本最低</b>、無 AD 需求</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ex-box">
+      <div class="ex-title">三題典型情境</div>
+      <p><b>Q：</b>「公司已有地端 AD，希望員工用既有帳號登入 AWS 資源，但<b>安全政策不允許在雲端存放目錄副本</b>。」<br>
+      <b>A：AD Connector</b>——關鍵字是「不存放副本」。</p>
+      <p><b>Q：</b>「要在 AWS 部署 <b>FSx for Windows</b> 與 <b>RDS for SQL Server</b>，需要 AD 驗證，並希望與地端 AD 共用身分，<b>即使專線中斷仍要能登入</b>。」<br>
+      <b>A：AWS Managed Microsoft AD 並與地端建立信任</b>——關鍵字是「斷線仍要能運作」。</p>
+      <p style="margin-bottom:0"><b>Q：</b>「50 人的新創要一個便宜的目錄做 Linux 機器與 WorkSpaces 的基本驗證，<b>不需要與任何既有 AD 整合</b>。」<br>
+      <b>A：Simple AD</b>——關鍵字是「不需整合、成本最低」。</p>
+    </div>
+
+    <div class="trap"><b>陷阱 1：AD Connector 拿來給 FSx for Windows 用</b><br>
+    FSx for Windows 需要真正的 AD（<b>AWS Managed Microsoft AD 或自建 AD</b>）。AD Connector 只是驗證代理，撐不起這類服務的目錄需求。</div>
+
+    <div class="trap"><b>陷阱 2：把 Cognito 當成企業目錄</b><br>
+    <b>Cognito 是給「應用程式的終端使用者」用的</b>（App 註冊、社交登入、發放暫時 AWS 憑證）。<br>
+    <b>Directory Service 是給「公司員工」用的</b>（AD、GPO、Windows 驗證）。<br>
+    題目主角是「客戶／App 使用者」→ Cognito；是「員工／網域帳號」→ Directory Service 或 IAM Identity Center。</div>
+
+    <div class="note"><b>與 IAM Identity Center 的關係：</b>Identity Center 負責「員工登入<b>多個 AWS 帳號</b>」這件事，它的<b>身分來源</b>可以是自己的目錄、<b>AWS Managed Microsoft AD</b>，或外部 IdP（Okta、Entra ID 等）。<br>
+    所以完整的企業做法常是：<b>地端 AD ←信任→ Managed Microsoft AD ←身分來源→ IAM Identity Center → 各 AWS 帳號的權限集</b>。</div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>實作 Lab：無堡壘主機登入 + 自動修補</h3>
+    <p>約 50 分鐘。做完你會有一台<b>沒有任何入站規則、沒有公有 IP</b>，卻能登入與自動修補的 EC2。</p>
+
+    <div class="cost">費用極低：一台 t3.micro 加上私有子網路的 NAT 或 Endpoint。<b>如果為了省錢用 NAT Gateway，記得 Lab 結束一定要刪</b>——NAT Gateway 是這裡唯一會持續跳表的東西。想避開它就改用三個 Interface Endpoint（也有時數費，但這個 Lab 開一小時的差距不大）。</div>
+
+    <h4>階段一：建立零入站的 EC2</h4>
+    <ol>
+      <li>建立 IAM Role，附加 <strong><span class="inline-code">AmazonSSMManagedInstanceCore</span></strong>，建立執行個體設定檔</li>
+      <li>在<strong>私有子網路</strong>開一台 Amazon Linux 2023，掛上該 Role，<strong>不要配公有 IP</strong></li>
+      <li>Security Group：<strong>入站規則留空</strong>，出站允許 443</li>
+      <li>建立三個 Interface Endpoint（<span class="inline-code">ssm</span>、<span class="inline-code">ssmmessages</span>、<span class="inline-code">ec2messages</span>）與一個 <strong>S3 Gateway Endpoint</strong></li>
+      <li>執行 <span class="inline-code">aws ssm describe-instance-information</span>，確認機器 <span class="inline-code">PingStatus=Online</span></li>
+      <li>用 <span class="inline-code">aws ssm start-session</span> 登入——<strong>入站規則是空的，但你進得去</strong></li>
+    </ol>
+
+    <div class="warn"><strong>機器沒上線？照第 2 節的三個前置條件依序檢查：</strong>① Role 掛了嗎（<span class="inline-code">describe-instances</span> 看 <span class="inline-code">IamInstanceProfile</span>）② Endpoint 的 SG 有沒有放行 EC2 過來的 443 ③ Endpoint 有沒有開 <span class="inline-code">--private-dns-enabled</span>。<br>
+    <b>看得到機器但連不進去</b> → 一定是少了 <span class="inline-code">ssmmessages</span>。</div>
+
+    <h4>階段二：開啟工作階段稽核</h4>
+    <ol>
+      <li>建一個 S3 儲存貯體，在 Session Manager 的<strong>偏好設定</strong>指定日誌輸出位置（也可同時送 CloudWatch Logs）</li>
+      <li>再連一次線，隨便下幾個指令</li>
+      <li>到 S3 看那份逐字稿——<strong>你打的每個字都在裡面</strong></li>
+    </ol>
+    <div class="note">這一步是稽核題的實體證據。「如何證明誰在什麼時候對正式機器做了什麼」→ <b>Session Manager 工作階段日誌 + CloudTrail</b>。</div>
+
+    <h4>階段三：Patch Manager</h4>
+    <ol>
+      <li>幫機器打標籤 <strong><span class="inline-code">Patch Group = lab</span></strong>（注意中間有空格）</li>
+      <li>建立 Patch Baseline（Amazon Linux 2023，只收 Security + Critical，<span class="inline-code">ApproveAfterDays=0</span> 方便測試）</li>
+      <li>把基準註冊到 Patch Group <span class="inline-code">lab</span></li>
+      <li>先用 <strong><span class="inline-code">Operation=Scan</span></strong> 掃描，看報表列出缺哪些修補</li>
+      <li>再用 <strong><span class="inline-code">Operation=Install</span></strong> 實際安裝</li>
+      <li>用 <span class="inline-code">list-compliance-summaries</span> 確認變成合規</li>
+    </ol>
+
+    <h4>階段四：Parameter Store</h4>
+    <ol>
+      <li>建立 <span class="inline-code">/lab/app/db/password</span>（<strong>SecureString</strong>）與 <span class="inline-code">/lab/app/db/host</span>（String）</li>
+      <li>在 EC2 上用 <span class="inline-code">get-parameters-by-path --with-decryption</span> 讀出來——<strong>沒有任何金鑰寫在機器上</strong></li>
+      <li>把 Role 的權限縮成只能讀 <span class="inline-code">/lab/app/*</span>，驗證讀別的路徑會被拒絕</li>
+    </ol>
+
+    <h4>階段五：清理</h4>
+    <ol>
+      <li>終止 EC2</li>
+      <li><strong>刪除 NAT Gateway 或 Interface Endpoint</strong>（這是唯一持續計費的部分）</li>
+      <li>刪除 Patch Baseline、參數、S3 日誌儲存貯體</li>
+    </ol>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1：EC2 沒出現在 SSM 清單</b><br>依序查：① SSM Agent ② <b>IAM 執行個體設定檔（<span class="inline-code">AmazonSSMManagedInstanceCore</span>）</b> ③ 網路。<b>第二項是最常見的原因</b>。</div>
+
+    <div class="trap"><b>陷阱 2：看得到機器但 Session Manager 連不上</b><br>少了 <b><span class="inline-code">ssmmessages</span> Endpoint</b>。這個「看得到／連不上」的症狀對應非常明確。</div>
+
+    <div class="trap"><b>陷阱 3：以為 Session Manager 要開 22 埠</b><br>不用。Security Group <b>零入站規則</b>也能連。選項出現「開 22 給公司 IP」的都是被淘汰的做法。</div>
+
+    <div class="trap"><b>陷阱 4：Patch Group 標籤寫錯</b><br>鍵名固定是 <span class="inline-code">Patch Group</span>（<b>中間有空格、大小寫敏感</b>）。寫錯不會報錯，只會默默套用預設基準。</div>
+
+    <div class="trap"><b>陷阱 5：Parameter Store 要自動輪換</b><br>它<b>沒有內建輪換</b>。題目一出現「<b>自動輪換</b>」就是 <b>Secrets Manager</b>；一出現「<b>免費</b>／單純存組態」就是 Parameter Store。</div>
+
+    <div class="trap"><b>陷阱 6：Run Command / Automation / State Manager 混用</b><br>做<b>一次</b>在機器上 → Run Command；做<b>一連串</b>跨資源 → Automation；<b>一直維持</b>某狀態 → State Manager。</div>
+
+    <div class="trap"><b>陷阱 7：Inventory 與 Config 搞混</b><br>機器<b>裡面</b>裝了什麼 → <b>Inventory</b>；AWS <b>資源</b>的組態與變更歷史 → <b>Config</b>；有沒有<b>已知漏洞</b> → <b>Inspector</b>。</div>
+
+    <div class="trap"><b>陷阱 8：AD Connector 用在需要真 AD 的服務</b><br>FSx for Windows、RDS for SQL Server 這類需要 <b>AWS Managed Microsoft AD 或自建 AD</b>。AD Connector 只是驗證代理。</div>
+
+    <div class="trap"><b>陷阱 9：AD Connector 在專線中斷時還能用</b><br>不能。它<b>不存目錄資料</b>，地端 AD 連不到就驗證不了。要「斷線仍可運作」→ <b>Managed Microsoft AD</b>。</div>
+
+    <div class="trap"><b>陷阱 10：Simple AD 拿來做信任關係或 MFA</b><br>兩個都<b>不支援</b>。有這些需求就要 Managed Microsoft AD。</div>
+
+    <div class="trap"><b>陷阱 11：用 Cognito 管員工帳號</b><br>Cognito 是<b>應用程式的終端使用者</b>；員工／網域帳號是 <b>Directory Service 或 IAM Identity Center</b>。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>
+    要<b>登入</b>用 Session Manager，要<b>下指令</b>用 Run Command，要<b>維持狀態</b>用 State Manager，要<b>修補</b>用 Patch Manager；<br>
+    要<b>輪換</b>找 Secrets Manager，要<b>免費</b>找 Parameter Store；<br>
+    目錄<b>放雲上</b>是 Managed Microsoft AD，<b>留地端</b>是 AD Connector，<b>都不要</b>就 Simple AD。</span></div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="20-file-backup.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 20 · 檔案儲存與集中備份</a>
+    <a href="22-governance-edge.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">22 · 多帳號治理與邊緣基礎架構 →</a>
+  </div>
+
+</div>
+</body>
+</html>
