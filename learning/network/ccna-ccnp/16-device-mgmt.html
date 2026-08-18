@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>設備管理、監控與加固 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補充篇</a><span class="sep">/</span>
+  <span class="cur">CH 5-4 · 設備管理與監控</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 5-4 · 維運</div>
+  <h1>設備管理、監控與加固</h1>
+  <p>CDP/LLDP 怎麼畫出拓撲、NTP 為什麼是所有排錯的前提、Syslog 的八個等級、SNMP 三個版本的差別，以及 IOS 升級與設備加固的標準流程。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#discovery">CDP 與 LLDP：自動畫出拓撲</a></li>
+      <li><a href="#ntp">NTP：所有排錯的前提</a></li>
+      <li><a href="#syslog">Syslog：八個嚴重等級</a></li>
+      <li><a href="#snmp">SNMP：三個版本的差別</a></li>
+      <li><a href="#image">IOS Image 備份與升級</a></li>
+      <li><a href="#harden">設備加固標準流程</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="discovery">
+    <h2>1. CDP 與 LLDP：自動畫出拓撲</h2>
+    <div class="analogy">接手一個沒有文件的機房時，你面對的是幾十條沒標籤的線。<br>CDP/LLDP 就像<b>每台設備都會自我介紹</b>：「我是 SW-2F-01，我的 Gi0/1 接到你的 Gi0/24，我是 Catalyst 9300。」</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>CDP</th><th>LLDP</th></tr>
+      <tr><td>標準</td><td><b>Cisco 專有</b></td><td><b>IEEE 802.1AB 開放標準</b></td></tr>
+      <tr><td>預設狀態</td><td>Cisco 設備<b>預設開啟</b></td><td>多數 Cisco 設備<b>預設關閉</b></td></tr>
+      <tr><td>Hello / Hold</td><td>60 秒 / 180 秒</td><td>30 秒 / 120 秒</td></tr>
+      <tr><td>混廠牌環境</td><td>❌ 只認 Cisco</td><td>✅ <b>跨廠牌可用</b></td></tr>
+    </table></div>
+
+    <div class="formula"><code># CDP
+SW# show cdp neighbors                 ← 摘要
+SW# show cdp neighbors detail          ← 含對方 IP 與 IOS 版本
+SW(config)# no cdp run                 ← 全域關閉
+SW(config-if)# no cdp enable           ← 單一介面關閉
+
+# LLDP（要手動開）
+SW(config)# lldp run
+SW# show lldp neighbors detail</code></div>
+
+    <div class="trap"><b>資安考點：CDP 應該關掉嗎？</b><br>
+    CDP 會把<b>設備型號、IOS 版本、管理 IP、介面名稱</b>廣播出去——攻擊者接上一條線就拿到完整情資，還能據此查對應的已知漏洞。<br><br>
+    <b>標準做法：</b><br>
+    • <u>面向使用者與外部的埠</u> → <code>no cdp enable</code> 關掉<br>
+    • <u>交換器之間的骨幹埠</u> → 保留，維運要用<br><br>
+    <b>但有個例外：Cisco IP 電話依賴 CDP 取得語音 VLAN 資訊。</b>接電話的埠關掉 CDP 會讓電話無法正常運作，這是實務上常見的自找麻煩。</div>
+  </div>
+
+  <div class="card" id="ntp">
+    <h2>2. NTP：所有排錯的前提</h2>
+    <div class="trap"><b>先講為什麼這件事很重要</b><br>
+    設備時間不同步時會發生：<br>
+    • <b>日誌無法比對</b>——三台設備的事件時間各差幾分鐘，你排不出因果順序<br>
+    • <b>憑證驗證失敗</b>——時間超出憑證有效期就被拒（AP 註冊 WLC 失敗的經典原因）<br>
+    • <b>Kerberos 登入失敗</b>——時鐘差超過 5 分鐘就不給過<br>
+    • <b>稽核紀錄失去法律效力</b>——時間戳記不可信<br><br>
+    <u>所以「先確認 NTP 有沒有同步」是排錯的第一步，不是最後一步。</u></div>
+
+    <div class="diag"><span class="g">Stratum:離原子鐘幾層</span>
+
+   <span class="y">Stratum 0</span>  原子鐘 / GPS（不直接連網）
+        ↓
+   <span class="y">Stratum 1</span>  直接接 Stratum 0 的伺服器
+        ↓
+   <span class="y">Stratum 2</span>  向 Stratum 1 同步
+        ↓
+   <span class="y">Stratum 3</span>  ...以此類推,最多到 15
+                 <span class="r">Stratum 16 = 未同步（無效）</span>
+
+<span class="w">數字越小越權威。設備會挑 stratum 最小的來源。</span></div>
+
+    <div class="formula"><code># 基本設定
+R1(config)# ntp server 10.1.1.100 prefer
+R1(config)# ntp server 10.1.1.101
+R1(config)# clock timezone TPE 8              ← 台灣 UTC+8
+
+# 讓日誌帶上精確時間（很重要）
+R1(config)# service timestamps log datetime msec localtime show-timezone
+R1(config)# service timestamps debug datetime msec
+
+# 驗證
+R1# show ntp status
+Clock is synchronized, stratum 3, reference is 10.1.1.100    ← 要看到 synchronized
+R1# show ntp associations
+ *~10.1.1.100    .GPS.    1   45   64  377   1.2   0.05   0.1   ← * 代表目前選用</code></div>
+
+    <div class="trap"><b>NTP 驗證（考試會問）</b><br>
+    攻擊者若能偽造 NTP 回應，就能把設備時間調亂，藉此讓憑證失效或干擾日誌。<br>
+    <div class="formula"><code>R1(config)# ntp authenticate
+R1(config)# ntp authentication-key 1 md5 MySecretKey
+R1(config)# ntp trusted-key 1
+R1(config)# ntp server 10.1.1.100 key 1</code></div>
+    <u>正式環境的 NTP 應該向內部的可信來源同步，而不是每台設備各自連到網際網路。</u></div>
+  </div>
+
+  <div class="card" id="syslog">
+    <h2>3. Syslog：八個嚴重等級</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>等級</th><th>名稱</th><th>意義</th><th>要不要立刻處理</th></tr>
+      <tr><td><b>0</b></td><td>Emergency</td><td>系統無法使用</td><td>🔴 立即</td></tr>
+      <tr><td><b>1</b></td><td>Alert</td><td>需要立即處理</td><td>🔴 立即</td></tr>
+      <tr><td><b>2</b></td><td>Critical</td><td>嚴重狀況</td><td>🔴 立即</td></tr>
+      <tr><td><b>3</b></td><td>Error</td><td>錯誤訊息</td><td>🟠 儘快</td></tr>
+      <tr><td><b>4</b></td><td>Warning</td><td>警告</td><td>🟡 觀察</td></tr>
+      <tr><td><b>5</b></td><td>Notification</td><td>正常但重要（<b>介面 up/down</b>）</td><td>🟡 觀察</td></tr>
+      <tr><td><b>6</b></td><td>Informational</td><td>一般資訊</td><td>⚪ 參考</td></tr>
+      <tr><td><b>7</b></td><td>Debugging</td><td>除錯訊息</td><td>⚪ 排錯時才開</td></tr>
+    </table></div>
+
+    <div class="trap"><b>必考：設定的等級是「含以下全部」</b><br>
+    設 <code>logging trap 4</code> 代表<b>記錄等級 0 到 4</b>（Emergency 到 Warning），<u>不是只記等級 4</u>。<br><br>
+    <b>記憶口訣（由 0 到 7）：</b>Every Awesome Cisco Engineer Will Need Ice-cream Daily<br>
+    （Emergency, Alert, Critical, Error, Warning, Notification, Informational, Debugging）<br><br>
+    另一個必考：<b>介面 up/down 是等級 5（Notification）</b>。</div>
+
+    <div class="formula"><code># 送到 Syslog 伺服器
+R1(config)# logging host 10.1.1.50
+R1(config)# logging trap informational        ← 送出 0-6 級
+R1(config)# logging source-interface loopback 0
+
+# 本機緩衝區
+R1(config)# logging buffered 16384 debugging
+R1(config)# no logging console                ← 建議關掉,否則 console 會被洗版
+
+# SSH 連線時要看即時日誌
+R1# terminal monitor
+
+R1# show logging</code></div>
+
+    <div class="trap"><b>實務陷阱：不要在正式環境開 console logging</b><br>
+    如果設備正在大量產生日誌（例如介面持續 flapping），console 輸出會<u>佔用 CPU 並讓你連指令都打不進去</u>。<br>
+    標準做法：<code>no logging console</code> + <code>logging buffered</code> + 送到外部 Syslog 伺服器。</div>
+  </div>
+
+  <div class="card" id="snmp">
+    <h2>4. SNMP：三個版本的差別</h2>
+    <div class="diag"><span class="g">SNMP 的三個角色</span>
+
+   <span class="y">Manager</span>（NMS 網管系統）
+        │
+        │ ① <span class="o">Get / GetNext / GetBulk</span>  ── 主動去問
+        │ ② <span class="o">Set</span>                       ── 去改設定
+        ↓
+   <span class="y">Agent</span>（網路設備上的代理程式）
+        │
+        │ ③ <span class="o">Trap / Inform</span>             ── 設備主動回報
+        ↓
+   <span class="y">Manager</span>
+
+<span class="w">MIB</span> = 可以查詢的資料項目清單（樹狀結構）
+<span class="w">OID</span> = 每個項目的唯一編號,例如 1.3.6.1.2.1.1.5.0 = 主機名稱</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>版本</th><th>驗證方式</th><th>加密</th><th>評價</th></tr>
+      <tr><td><b>v1</b></td><td>Community String（明文）</td><td>❌ 無</td><td>❌ 不要用</td></tr>
+      <tr><td><b>v2c</b></td><td>Community String（明文）</td><td>❌ 無</td><td>⚠️ 仍常見但不安全</td></tr>
+      <tr><td><b>v3</b></td><td><b>使用者名稱 + 驗證</b></td><td>✅ <b>可加密</b></td><td>✅ <b>正式環境唯一正解</b></td></tr>
+    </table></div>
+
+    <div class="trap"><b>必考：SNMPv3 的三種安全等級</b><br>
+    • <b>noAuthNoPriv</b>——不驗證、不加密（等於 v2c）<br>
+    • <b>authNoPriv</b>——<u>驗證</u>但不加密（MD5 或 SHA）<br>
+    • <b>authPriv</b>——<u>驗證 + 加密</u>（加上 DES/AES）← <b>正式環境要用這個</b><br><br>
+    記法：<b>auth = 確認是誰送的；Priv（Privacy）= 內容加密。</b></div>
+
+    <div class="formula"><code># v2c（僅供理解，正式環境不要用）
+R1(config)# snmp-server community MyRO ro 10
+R1(config)# snmp-server community MyRW rw 10       ← rw 極危險
+
+# v3（建議做法）
+R1(config)# snmp-server group NETADMIN v3 priv
+R1(config)# snmp-server user tomchen NETADMIN v3 auth sha AuthPass123 priv aes 128 PrivPass123
+R1(config)# snmp-server host 10.1.1.50 version 3 priv tomchen
+R1(config)# snmp-server enable traps</code></div>
+
+    <div class="trap"><b>Trap vs Inform（考試會問）</b><br>
+    • <b>Trap</b>：送出去就算了，<u>不確認對方有沒有收到</u>（UDP，沒有回應）。<br>
+    • <b>Inform</b>：<u>要求對方確認</u>，沒收到會重送。可靠但佔用較多資源。<br><br>
+    重要告警（例如設備重開機）建議用 Inform，一般狀態用 Trap。</div>
+  </div>
+
+  <div class="card" id="image">
+    <h2>5. IOS Image 備份與升級</h2>
+    <div class="trap"><b>升級前一定要做的四件事</b><br>
+    ① <b>備份現有設定</b>（<code>copy running-config tftp:</code>）<br>
+    ② <b>備份現有 IOS</b>——出事才有東西可以退回<br>
+    ③ <b>確認 flash 空間夠</b>（<code>show flash:</code>）<br>
+    ④ <b>核對新映像的完整性</b>——比對 MD5，確保檔案沒損毀也沒被掉包<br><br>
+    <u>跳過第 ② 步是很多人升級失敗後回不去的原因。</u></div>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body">
+        <b>檢查現況</b>
+        <div class="formula"><code>R1# show version              ← 目前版本與 flash 大小
+R1# show flash:               ← 現有檔案與剩餘空間
+R1# dir flash:</code></div>
+      </div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body">
+        <b>備份設定與現有映像</b>
+        <div class="formula"><code>R1# copy running-config startup-config
+R1# copy startup-config tftp:
+Address or name of remote host []? 10.1.1.50
+Destination filename [r1-confg]? r1-backup-20260818.cfg
+
+R1# copy flash:c2900-universalk9-mz.SPA.157-3.M.bin tftp:</code></div>
+      </div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body">
+        <b>上傳新映像並驗證完整性</b>
+        <div class="formula"><code>R1# copy tftp: flash:
+Address or name of remote host []? 10.1.1.50
+Source filename []? c2900-universalk9-mz.SPA.158-3.M2.bin
+
+R1# verify /md5 flash:c2900-universalk9-mz.SPA.158-3.M2.bin
+  ← 把結果與 Cisco 官網公布的 MD5 比對,不一致就不要用</code></div>
+      </div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body">
+        <b>設定開機順序並重開</b>
+        <div class="formula"><code>R1(config)# boot system flash:c2900-universalk9-mz.SPA.158-3.M2.bin
+R1(config)# boot system flash:c2900-universalk9-mz.SPA.157-3.M.bin   ← 舊版當備援
+R1# copy running-config startup-config
+R1# reload
+
+# 重開後確認
+R1# show version</code></div>
+        <u>保留兩行 boot system：新版開不起來時會自動退回舊版。</u>
+      </div></div>
+    </div>
+
+    <div class="trap"><b>Configuration Register 的兩個常考值</b><br>
+    • <code>0x2102</code>——<b>正常</b>，開機讀取 startup-config<br>
+    • <code>0x2142</code>——<b>略過 startup-config</b>，用於密碼救援<br><br>
+    密碼救援流程：開機時 Break → <code>confreg 0x2142</code> → reset → 進入後 <code>copy startup-config running-config</code>（<u>注意方向，不要反了，反了會清掉設定</u>）→ 改密碼 → <code>config-register 0x2102</code> → 存檔重開。</div>
+  </div>
+
+  <div class="card" id="harden">
+    <h2>6. 設備加固標準流程</h2>
+    <p>對應官方大綱的「保護管理存取」與「設備加固」兩項。</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>① 密碼加密</b><span><code>service password-encryption</code>（弱）<br><code>enable secret</code>（強，用雜湊）<br>使用者密碼用 <code>secret</code> 不要用 <code>password</code></span></div>
+      <div class="cmp"><b>② 只允許 SSH</b><span>停用 Telnet：<code>transport input ssh</code><br>並使用 <b>SSHv2</b></span></div>
+      <div class="cmp"><b>③ 限制來源</b><span>用 ACL 限定只有管理網段能連 VTY</span></div>
+      <div class="cmp"><b>④ 關閉未用服務</b><span>關掉不需要的服務與未使用的實體埠</span></div>
+      <div class="cmp"><b>⑤ 登入橫幅</b><span><code>banner motd</code> 放法律警告（不要寫 Welcome）</span></div>
+      <div class="cmp"><b>⑥ 逾時與稽核</b><span><code>exec-timeout</code> 自動登出、AAA 記錄誰下了什麼指令</span></div>
+    </div>
+
+    <div class="formula"><code># SSH 設定（四個前置條件缺一不可）
+R1(config)# hostname R1                       ← ① 要有主機名
+R1(config)# ip domain-name example.com        ← ② 要有網域名
+R1(config)# crypto key generate rsa modulus 2048   ← ③ 要有金鑰(≥768 才能用 v2)
+R1(config)# username admin secret StrongPass  ← ④ 要有本機帳號
+
+R1(config)# ip ssh version 2
+R1(config)# line vty 0 15
+R1(config-line)# transport input ssh          ← 只允許 SSH,擋掉 Telnet
+R1(config-line)# login local
+R1(config-line)# exec-timeout 5 0
+R1(config-line)# access-class MGMT-ONLY in    ← 限制來源網段
+
+R1(config)# banner motd ^
+  ** 授權人員限定。所有存取行為均被記錄。 **
+^</code></div>
+
+    <div class="trap"><b>陷阱：登入橫幅不要寫「Welcome」</b><br>
+    這在資安與法律上是實際會被討論的問題——寫 Welcome 可能被辯稱為「系統邀請我進入」。<br>
+    正確寫法是明確的<b>授權警告</b>：僅限授權人員、所有行為均被記錄、未經授權存取將依法處理。</div>
+
+    <div class="trap"><b>陷阱：SSH 的四個前置條件</b><br>
+    主機名、網域名、RSA 金鑰、本機帳號——<u>缺任何一個 SSH 都起不來</u>，而且錯誤訊息不一定明確。<br>
+    另外 <code>crypto key generate rsa</code> 的 modulus 要 <b>≥ 768</b> 才支援 SSHv2，實務上建議 2048。</div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>7. 考試陷阱整理</h2>
+    <div class="trap"><b>陷阱 1：CDP 專有、LLDP 標準</b><br>CDP 預設開、LLDP 預設關。混廠牌要用 LLDP。</div>
+    <div class="trap"><b>陷阱 2：Syslog 等級是「含以下全部」</b><br><code>logging trap 4</code> = 記錄 0–4 級。介面 up/down 是等級 5。</div>
+    <div class="trap"><b>陷阱 3：SNMPv3 的 authPriv</b><br>只有 v3 能加密；authPriv 才是驗證加加密。</div>
+    <div class="trap"><b>陷阱 4：Trap 不可靠、Inform 會確認</b></div>
+    <div class="trap"><b>陷阱 5：Stratum 16 代表未同步</b><br>數字越小越權威，最大 15 有效。</div>
+    <div class="trap"><b>陷阱 6：0x2142 是密碼救援</b><br>救援時是 <code>copy startup-config running-config</code>，方向不要反。</div>
+    <div class="trap"><b>陷阱 7：SSH 四前置條件</b><br>主機名、網域名、RSA 金鑰、本機帳號。</div>
+
+    <div class="ok">✅ <b>一句話記憶：</b><br>
+    畫拓撲用 <b>CDP/LLDP</b>，對時間用 <b>NTP</b>（排錯第一步），<br>
+    看日誌用 <b>Syslog</b>（0–7 八級），做監控用 <b>SNMPv3</b>（authPriv），<br>
+    升級前先<b>備份舊映像</b>，加固從<b>只留 SSH</b> 開始。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="15-wireless.html">← CH 5-3：無線網路與 WLC</a>
+    <a href="quiz.html">前往模擬試題 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 5-4</footer>
+</body>
+</html>

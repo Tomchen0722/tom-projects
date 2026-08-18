@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>無線網路與 WLC 設定 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補充篇</a><span class="sep">/</span>
+  <span class="cur">CH 5-3 · 無線網路與 WLC</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 5-3 · 無線</div>
+  <h1>無線網路與 WLC 設定</h1>
+  <p>CCNA 官方大綱有八個項目在講無線與 WLC，而這是有線工程師最容易忽略的一塊。這一章從無線本質講到 WLC 上實際建一個 WLAN。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#basic">無線和有線根本的三個不同</a></li>
+      <li><a href="#rf">頻段、通道與干擾</a></li>
+      <li><a href="#arch">三種部署架構</a></li>
+      <li><a href="#capwap">CAPWAP 與 Split-MAC</a></li>
+      <li><a href="#wlcport">WLC 的埠與介面（最容易混淆）</a></li>
+      <li><a href="#security">無線安全：WEP 到 WPA3</a></li>
+      <li><a href="#lab">實作：在 WLC 上建立 WLAN</a></li>
+      <li><a href="#trouble">排錯與考試陷阱</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="basic">
+    <h2>1. 無線和有線根本的三個不同</h2>
+    <div class="analogy">有線網路像<b>每個人有自己的專用電話線</b>——你講話不影響別人。<br>無線網路像<b>一群人在同一個會議室講話</b>——同一時間只能有一個人說，而且隔壁會議室的聲音會傳過來干擾。</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>差異</th><th>有線</th><th>無線</th></tr>
+      <tr><td><b>傳輸媒介</b></td><td>獨占的銅線／光纖</td><td><b>共享的空氣</b>——所有人搶同一個頻道</td></tr>
+      <tr><td><b>碰撞處理</b></td><td>全雙工，基本上沒有碰撞</td><td><b>半雙工</b>，用 CSMA/CA <u>事前避免</u></td></tr>
+      <tr><td><b>安全邊界</b></td><td>要插上線才進得來</td><td><b>訊號穿牆</b>，停車場就能嘗試連線</td></tr>
+    </table></div>
+
+    <div class="trap"><b>必考：CSMA/CD vs CSMA/CA</b><br>
+    • <b>有線用 CSMA/CD（Collision Detection）</b>——邊送邊聽，撞到了才處理。<br>
+    • <b>無線用 CSMA/CA（Collision Avoidance）</b>——<u>因為無線網卡不能同時收發，撞了根本偵測不到</u>，所以只能事前避免：先聽有沒有人在講，沒有才送，還要等一段隨機時間。<br><br>
+    這也解釋了為什麼<b>無線的實際吞吐量大約只有標稱值的一半</b>——大量時間花在協調誰可以講話。</div>
+  </div>
+
+  <div class="card" id="rf">
+    <h2>2. 頻段、通道與干擾</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>頻段</th><th>穿透力</th><th>速度</th><th>不重疊通道</th><th>特性</th></tr>
+      <tr><td><b>2.4 GHz</b></td><td>好（傳得遠）</td><td>慢</td><td><b>只有 3 個</b>（1、6、11）</td><td>擁擠，微波爐/藍牙都在這</td></tr>
+      <tr><td><b>5 GHz</b></td><td>差（穿牆衰減大）</td><td>快</td><td><b>20 個以上</b></td><td>企業主力</td></tr>
+      <tr><td><b>6 GHz</b></td><td>最差</td><td>最快</td><td>更多</td><td>Wi-Fi 6E／7，需新設備</td></tr>
+    </table></div>
+
+    <div class="diag"><span class="g">2.4 GHz 為什麼只能用 1、6、11</span>
+
+   每個通道佔 22 MHz 寬,但通道間距只有 5 MHz
+   → 相鄰通道會<span class="r">互相重疊干擾</span>
+
+   ch1     ch6     ch11
+   ▓▓▓▓   ▓▓▓▓   ▓▓▓▓     ← 完全不重疊 ✓
+      ch3
+      ▓▓▓▓                  ← 與 ch1 重疊 ✗
+
+<span class="w">部署原則</span>
+   相鄰的 AP 要用<span class="g">不同通道</span>,並排成蜂巢狀
+   同通道的 AP 要離得夠遠</div>
+
+    <div class="trap"><b>陷阱：同通道干擾 vs 相鄰通道干擾</b><br>
+    • <b>同通道干擾（Co-channel）</b>：兩台 AP 用同一個通道 → 它們會「輪流講話」，<u>頻寬被瓜分但還能運作</u>。<br>
+    • <b>相鄰通道干擾（Adjacent-channel）</b>：用了 ch1 和 ch3 → 訊號重疊但無法協調，<u>變成純粹的雜訊，比同通道更糟</u>。<br><br>
+    <b>所以寧可讓兩台 AP 同用 ch1，也不要一台 ch1 一台 ch3。</b>這是很反直覺但必考的觀念。</div>
+  </div>
+
+  <div class="card" id="arch">
+    <h2>3. 三種部署架構</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>架構</th><th>AP 類型</th><th>怎麼管</th><th>適合規模</th></tr>
+      <tr><td><b>自主式</b><br>Autonomous</td><td>Autonomous AP</td><td>每台 AP 各自設定，各自獨立</td><td>幾台以內的小辦公室</td></tr>
+      <tr><td><b>集中式</b><br>Centralized</td><td><b>Lightweight AP</b></td><td><b>WLC 集中管理</b>，AP 開機自動下載設定</td><td><b>企業標準</b></td></tr>
+      <tr><td><b>雲端式</b><br>Cloud</td><td>Meraki 等</td><td>雲端儀表板管理</td><td>多分點、無 IT 人力</td></tr>
+    </table></div>
+
+    <div class="trap"><b>為什麼企業一定要 WLC</b><br>
+    想像 200 台自主式 AP：要改一個 SSID 密碼，得逐台登入改 200 次。<br>
+    而且沒有 WLC 就沒有：<b>集中的通道與功率自動調整（RRM）、無縫漫遊、統一的安全政策、集中監控與 Rogue AP 偵測</b>。<br><br>
+    <u>大綱裡「登入 WLC、監控 WLC、配置 Dynamic Interface、配置 DHCP Scope、配置 WLAN」這五個實驗，講的都是集中式架構。</u></div>
+  </div>
+
+  <div class="card" id="capwap">
+    <h2>4. CAPWAP 與 Split-MAC</h2>
+    <p><b>CAPWAP</b>（Control and Provisioning of Wireless Access Points）是 Lightweight AP 與 WLC 之間的通道協定。</p>
+
+    <div class="diag"><span class="g">CAPWAP 的兩條通道</span>
+
+   Lightweight AP ══════════════ WLC
+                    │
+        ┌───────────┴───────────┐
+        │                       │
+   <span class="y">控制通道 UDP 5246</span>      <span class="y">資料通道 UDP 5247</span>
+   <span class="g">一定加密（DTLS）</span>         預設<span class="r">不加密</span>（可開啟）
+   設定下發、韌體、狀態         使用者的實際流量
+
+<span class="w">Split-MAC:把 802.11 的工作拆成兩半</span>
+
+   <span class="o">AP 負責（即時性要求高）</span>       <span class="o">WLC 負責（需要全域視野）</span>
+   • 信標 Beacon 發送               • 驗證與關聯的決策
+   • 封包確認 ACK                   • 安全政策（金鑰管理）
+   • 資料加解密                     • <span class="y">漫遊決策</span>
+   • 佇列與優先權                   • RRM（通道與功率調整）
+                                    • Rogue AP 偵測</div>
+
+    <div class="trap"><b>必考：CAPWAP 的兩個埠與加密狀態</b><br>
+    <b>UDP 5246 = 控制</b>（一定用 DTLS 加密）<br>
+    <b>UDP 5247 = 資料</b>（預設不加密）<br><br>
+    另外：CAPWAP 會把使用者流量<b>封裝</b>後送到 WLC，所以 <u>AP 與 WLC 之間的路徑要能承載額外的封裝開銷</u>——MTU 不足會造成分片與效能問題。</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Local Mode</b><span>預設。<b>所有流量都繞回 WLC</b> 才出去。管理集中，但分點會有「髮夾彎」延遲。</span></div>
+      <div class="cmp"><b>FlexConnect</b><span>分點專用。控制走 WLC，但<b>資料在本地直接出去</b>。WAN 斷掉時 AP 還能繼續服務。</span></div>
+      <div class="cmp"><b>Monitor Mode</b><span>不服務用戶端，專門掃描偵測 Rogue AP 與干擾。</span></div>
+      <div class="cmp"><b>Sniffer Mode</b><span>把收到的封包轉給分析工具，用於排錯。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：分點該用 FlexConnect</b><br>
+    題目情境：「分公司的 AP 透過 WAN 連到總部 WLC，使用者抱怨連內部伺服器很慢，而且 WAN 一斷無線就全掛。」<br>
+    → 答案是改用 <b>FlexConnect</b>。Local Mode 會把分點使用者的流量全部繞回總部再送出去，既慢又浪費 WAN 頻寬；FlexConnect 讓資料在本地交換。</div>
+  </div>
+
+  <div class="card" id="wlcport">
+    <h2>5. WLC 的埠與介面（最容易混淆）</h2>
+    <p>這一段是 WLC 設定的核心，也是新手最容易搞混的地方。<b>「埠」是實體的，「介面」是邏輯的。</b></p>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>名稱</th><th>類型</th><th>用途</th></tr>
+      <tr><td><b>Management Interface</b></td><td>邏輯</td><td><b>管理 WLC 用</b>，也是 AP 註冊 CAPWAP 的目標位址</td></tr>
+      <tr><td><b>Dynamic Interface</b></td><td>邏輯</td><td><b>對應到一個 VLAN</b>，使用者流量從這裡進入有線網路</td></tr>
+      <tr><td><b>Virtual Interface</b></td><td>邏輯</td><td>給 Web 認證、DHCP 中繼用的虛擬位址（傳統上設 1.1.1.1）</td></tr>
+      <tr><td><b>Service Port</b></td><td>實體</td><td>頻外管理專用，獨立於資料網路</td></tr>
+      <tr><td><b>Distribution Port</b></td><td>實體</td><td>接到交換器的資料埠，通常做成 LAG</td></tr>
+    </table></div>
+
+    <div class="diag"><span class="g">一個 WLAN 怎麼對應到有線 VLAN</span>
+
+   使用者連上 SSID「Corp-WiFi」
+        │
+        ↓
+   <span class="y">WLAN 設定檔</span>（SSID + 安全設定）
+        │  綁定
+        ↓
+   <span class="y">Dynamic Interface「vlan10-staff」</span>
+        │  對應
+        ↓
+   <span class="o">VLAN 10</span> ──→ 交換器 ──→ 有線網路
+
+<span class="w">關鍵:一個 WLAN 綁一個 Dynamic Interface</span>
+   要做員工/訪客分流,就建兩個 WLAN + 兩個 Dynamic Interface
+   對應到不同 VLAN,再用 ACL 隔離</div>
+
+    <div class="trap"><b>陷阱：WLC 與交換器之間一定要設 Trunk</b><br>
+    因為 WLC 要同時承載多個 VLAN 的使用者流量（員工 VLAN 10、訪客 VLAN 20……），<u>交換器上連到 WLC 的埠必須是 trunk 且放行這些 VLAN</u>。<br>
+    設成 access port 是最常見的錯誤——結果只有一個 VLAN 通，其他 WLAN 全部不通。</div>
+  </div>
+
+  <div class="card" id="security">
+    <h2>6. 無線安全：WEP 到 WPA3</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>標準</th><th>加密</th><th>狀態</th><th>說明</th></tr>
+      <tr><td><b>WEP</b></td><td>RC4</td><td>❌ <b>完全破解</b></td><td>幾分鐘就能破，絕對不可使用</td></tr>
+      <tr><td><b>WPA</b></td><td>TKIP</td><td>❌ 已淘汰</td><td>WEP 的過渡方案</td></tr>
+      <tr><td><b>WPA2</b></td><td><b>AES-CCMP</b></td><td>✅ 目前主流</td><td>企業標準；有 KRACK 弱點但已修補</td></tr>
+      <tr><td><b>WPA3</b></td><td><b>AES-GCMP</b> + SAE</td><td>✅ 新標準</td><td>抗離線字典攻擊、強制 PMF</td></tr>
+    </table></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Personal（PSK）</b><span>大家共用一組密碼。<b>缺點：離職員工也知道密碼，要換就全部要換。</b>適合家庭與小店。</span></div>
+      <div class="cmp"><b>Enterprise（802.1X）</b><span>每人用<b>自己的帳號</b>向 RADIUS 驗證。可依身分指派不同 VLAN，離職停用帳號即可。<b>企業標準。</b></span></div>
+    </div>
+
+    <div class="trap"><b>必考：WPA3 改進了什麼</b><br>
+    ① <b>SAE 取代 PSK 的四向交握</b>——WPA2-PSK 可以被離線暴力破解（抓到交握封包後回家慢慢猜），<u>WPA3 的 SAE 讓離線猜測失效，每次嘗試都要與 AP 互動</u>。<br>
+    ② <b>強制 PMF</b>（受保護管理框架）——防止偽造的解除關聯攻擊。<br>
+    ③ <b>前向保密</b>——就算密碼之後外洩，先前錄下的流量也解不開。</div>
+
+    <div class="trap"><b>陷阱：Rogue AP 與 Evil Twin</b><br>
+    • <b>Rogue AP</b>：未經授權接到公司網路的 AP（常常是員工自己帶來的分享器）——<u>它是一個繞過所有防護的後門</u>。<br>
+    • <b>Evil Twin</b>：攻擊者架一台<b>同名 SSID</b> 且訊號更強的假 AP，騙使用者連上去做中間人攻擊。<br><br>
+    WLC 的 <b>Rogue Detection</b> 會比對偵測到的 AP 是否出現在自家有線網路上，藉此區分「隔壁公司的 AP」與「真正插在我們網路上的 Rogue」。</div>
+  </div>
+
+  <div class="card" id="lab">
+    <h2>7. 實作：在 WLC 上建立 WLAN</h2>
+    <p>這一節對應官方大綱的五個實驗：登入 WLC、監控 WLC、配置 Dynamic Interface、配置 DHCP Scope、配置 WLAN。</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body">
+        <b>登入與檢視狀態</b><br>
+        用瀏覽器連到 Management Interface 的 IP（<code>https://10.1.1.10</code>）。<br>
+        <b>Monitor → Summary</b> 可以看到：加入的 AP 數量、目前的用戶端數、各 AP 的通道與功率、Rogue AP 清單。<br>
+        <u>AP 沒出現在清單就是沒註冊成功，先查第 8 節的排錯。</u>
+      </div></div>
+
+      <div class="step"><div class="step-num">2</div><div class="step-body">
+        <b>建立 Dynamic Interface（對應員工 VLAN 10）</b><br>
+        <b>Controller → Interfaces → New</b>
+        <div class="formula"><code>Interface Name : vlan10-staff
+VLAN Identifier: 10
+IP Address     : 10.10.10.5
+Netmask        : 255.255.255.0
+Gateway        : 10.10.10.1        ← VLAN 10 的閘道（通常是交換器 SVI）
+DHCP Server    : 10.1.1.50         ← 主要 DHCP 伺服器</code></div>
+        <u>這個介面就是「無線使用者進入有線網路的門」。</u>
+      </div></div>
+
+      <div class="step"><div class="step-num">3</div><div class="step-body">
+        <b>交換器端設定 Trunk（很容易漏掉）</b>
+        <div class="formula"><code>SW(config)# interface gi1/0/48
+SW(config-if)# description === 連到 WLC ===
+SW(config-if)# switchport mode trunk
+SW(config-if)# switchport trunk allowed vlan 10,20,99
+SW(config-if)# spanning-tree portfast trunk</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">4</div><div class="step-body">
+        <b>設定 DHCP Scope</b><br>
+        兩種做法，實務上多用第二種：<br>
+        • <b>WLC 內建 DHCP</b>：<b>Controller → Internal DHCP Server → DHCP Scope</b>，適合小環境或訪客網路。<br>
+        • <b>外部 DHCP 伺服器</b>：在 Dynamic Interface 指定 DHCP Server IP，由 WLC 做中繼。<u>企業幾乎都用這種，因為位址管理要集中。</u>
+      </div></div>
+
+      <div class="step"><div class="step-num">5</div><div class="step-body">
+        <b>建立 WLAN（WPA2-Enterprise）</b><br>
+        <b>WLANs → Create New</b>
+        <div class="formula"><code>【General 頁籤】
+Profile Name  : Corp-Staff
+SSID          : Corp-WiFi
+Status        : Enabled
+Interface     : vlan10-staff        ← 綁到剛才建的 Dynamic Interface
+
+【Security → Layer 2】
+Layer 2 Security : WPA+WPA2
+WPA2 Policy      : Enabled
+WPA2 Encryption  : AES              ← 不要選 TKIP
+Auth Key Mgmt    : 802.1X           ← 企業模式
+
+【Security → AAA Servers】
+Authentication Server 1 : 10.1.1.20（RADIUS，埠 1812）
+
+【Advanced】
+Session Timeout    : 1800
+Client Exclusion   : Enabled
+FlexConnect Local Switching : （分點才勾）</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">6</div><div class="step-body">
+        <b>定義 RADIUS 伺服器</b><br>
+        <b>Security → AAA → RADIUS → Authentication → New</b>
+        <div class="formula"><code>Server IP Address : 10.1.1.20
+Shared Secret     : （與 RADIUS 端一致）
+Port Number       : 1812
+Server Status     : Enabled
+Support for RFC 3576 (CoA) : Enabled   ← 允許動態變更授權</code></div>
+        <u>Shared Secret 兩邊不一致是最常見的驗證失敗原因，而錯誤訊息不會直接告訴你。</u>
+      </div></div>
+
+      <div class="step"><div class="step-num">7</div><div class="step-body">
+        <b>建立訪客 WLAN（WPA2-PSK，對應大綱的 WPA2-PSK 實驗）</b>
+        <div class="formula"><code>Profile Name  : Guest
+SSID          : Guest-WiFi
+Interface     : vlan20-guest       ← 另一個 Dynamic Interface
+
+【Security → Layer 2】
+Layer 2 Security : WPA+WPA2
+WPA2 Encryption  : AES
+Auth Key Mgmt    : PSK
+PSK Format       : ASCII
+Pre-Shared Key   : （設定密碼）</code></div>
+        <b>訪客網路務必再做兩件事：</b>用 ACL 阻擋訪客 VLAN 存取內部網段，並限制頻寬避免影響公司業務。
+      </div></div>
+    </div>
+  </div>
+
+  <div class="card" id="trouble">
+    <h2>8. 排錯與考試陷阱</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>症狀</th><th>先查什麼</th></tr>
+      <tr><td><b>AP 註冊不到 WLC</b></td><td>AP 有沒有拿到 IP、能不能連到 Management Interface、DHCP Option 43 或 DNS 有沒有指對、時間是否同步（<b>憑證驗證會因時間差失敗</b>）</td></tr>
+      <tr><td>使用者連得上但拿不到 IP</td><td>Dynamic Interface 的 VLAN 與 DHCP 設定、<b>交換器埠是不是 trunk</b>、DHCP Scope 有沒有位址</td></tr>
+      <tr><td>802.1X 驗證失敗</td><td>RADIUS 的 Shared Secret、WLC 的 IP 有沒有加進 RADIUS 的用戶端清單、憑證是否過期</td></tr>
+      <tr><td>訊號滿格但很慢</td><td>同通道干擾、太多用戶擠一台 AP、2.4GHz 頻段擁擠、<b>是否有非 Wi-Fi 干擾源</b></td></tr>
+      <tr><td>移動時會斷線</td><td>AP 之間的通道與功率規劃、漫遊門檻設定、覆蓋是否有死角</td></tr>
+    </table></div>
+
+    <div class="trap"><b>陷阱 1：CAPWAP 的埠</b><br>控制 <b>UDP 5246</b>（DTLS 加密）、資料 <b>UDP 5247</b>（預設不加密）。</div>
+    <div class="trap"><b>陷阱 2：2.4GHz 只有 1、6、11</b><br>而且<u>同通道干擾比相鄰通道干擾好</u>。</div>
+    <div class="trap"><b>陷阱 3：CSMA/CA 不是 CD</b><br>無線不能邊送邊聽，所以只能事前避免。</div>
+    <div class="trap"><b>陷阱 4：WLC 上連埠要 trunk</b><br>多個 WLAN 對應多個 VLAN，access port 會讓大部分 WLAN 不通。</div>
+    <div class="trap"><b>陷阱 5：分點用 FlexConnect</b><br>Local Mode 會把流量繞回總部，WAN 斷了無線就掛。</div>
+    <div class="trap"><b>陷阱 6：一個 WLAN 綁一個 Dynamic Interface</b><br>要做員工／訪客分流就要建兩組。</div>
+
+    <div class="ok">✅ <b>一句話記憶：</b><br>
+    AP 與 WLC 之間走 <b>CAPWAP</b>（5246 控制／5247 資料）；<br>
+    <b>WLAN</b> 是無線那一側的 SSID，<b>Dynamic Interface</b> 是有線那一側的 VLAN，兩者綁在一起才通；<br>
+    企業用 <b>802.1X</b>、訪客用 <b>PSK</b>，分點用 <b>FlexConnect</b>。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="14-l2-security.html">← CH 5-2：二層資安防護</a>
+    <a href="16-device-mgmt.html">CH 5-4：設備管理與監控 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 5-3</footer>
+</body>
+</html>
