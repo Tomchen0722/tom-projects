@@ -43,6 +43,7 @@
       <li><a href="#idempotent">冪等性：最常被忽略的坑</a></li>
       <li><a href="#step">Step Functions 編排</a></li>
       <li><a href="#cost">費用與適用邊界</a></li>
+      <li><a href="#integration">整合服務補充：MQ / AppFlow / SES</a></li>
       <li><a href="#lab">完整實作 Lab</a></li>
     </ol>
   </div>
@@ -821,6 +822,60 @@ $ aws logs describe-log-groups --log-group-name-prefix /aws/lambda/ \
     echo "設定 $lg"
     aws logs put-retention-policy --log-group-name "$lg" --retention-in-days 14
   done</code></pre>
+  </div>
+
+  <div class="card" id="integration">
+    <h2>12. 整合服務補充：MQ / AppFlow / SES</h2>
+
+    <p>第 8 節講完 SQS / SNS / EventBridge 這組主力，但考試還會出現三個「特定情境才選」的整合服務。它們的共同點是：<b>都有一個很明確的關鍵字，一出現就是它</b>。</p>
+
+    <div class="svcrow">
+      <div class="sv"><b>Amazon MQ</b><span>受管的 <b>ActiveMQ / RabbitMQ</b>。支援 <b>JMS、AMQP、MQTT、STOMP、OpenWire</b> 等標準協定。</span></div>
+      <div class="sv"><b>AppFlow</b><span>SaaS 與 AWS 之間的<b>免寫程式</b>資料流。Salesforce、SAP、Slack、Zendesk、Google Analytics 等。</span></div>
+      <div class="sv"><b>Amazon SES</b><span>大量<b>電子郵件</b>收發。交易信、通知信、行銷信。</span></div>
+    </div>
+
+    <h3>Amazon MQ vs SQS/SNS：只看「要不要改程式」</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>SQS / SNS</th><th>Amazon MQ</th></tr>
+        <tr><td>協定</td><td><b>AWS 專屬 API</b></td><td><b>業界標準</b>（JMS / AMQP / MQTT…）</td></tr>
+        <tr><td>擴展性</td><td><b>幾乎無限、全受管</b></td><td>受限於代理程式規格，要自己選機型</td></tr>
+        <tr><td>高可用</td><td>天生跨 AZ</td><td>要選 <b>Active/Standby</b> 部署</td></tr>
+        <tr><td>什麼時候選</td><td><b>新開發</b>的雲原生應用</td><td><b>既有應用程式遷移上雲、不想改程式碼</b></td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>Amazon MQ 的考題句型幾乎只有一種：</strong>「公司要把地端使用 <b>ActiveMQ / RabbitMQ / JMS</b> 的應用程式遷移到 AWS，希望<b>盡量不修改應用程式碼</b>」→ <b>Amazon MQ</b>。<br>
+    如果題目允許改程式或是全新開發，答案就回到 <b>SQS / SNS</b>（更便宜、更好擴展、免維運）。<b>判斷點是「既有協定」四個字。</b></div>
+
+    <div class="trap"><b>陷阱：看到「訊息佇列」就選 SQS</b><br>
+    只要題目提到 <b>JMS、AMQP、MQTT、ActiveMQ、RabbitMQ</b> 這些具體協定或產品名稱，就是 <b>Amazon MQ</b>。SQS 不支援這些標準協定，遷移過去必須改寫程式。</div>
+
+    <h3>AppFlow：SaaS 資料流不用自己寫 Lambda</h3>
+    <div class="note">典型情境是「每天把 <b>Salesforce</b> 的訂單同步到 <b>S3 / Redshift</b> 做分析」。<br>
+    傳統做法要寫 Lambda 呼叫 SaaS API、處理分頁、處理權杖更新、處理重試——AppFlow 把這些變成主控台上的設定。支援排程、事件觸發與隨選執行，傳輸中可做欄位對應、過濾與遮罩。<br>
+    <b>考題關鍵字：</b>「<b>SaaS 應用程式</b>（Salesforce / SAP / Zendesk）的資料要進 AWS」＋「<b>最少的開發工作</b>」。</div>
+
+    <h3>Amazon SES：寄信的正解</h3>
+    <div class="ok"><strong>「應用程式要寄大量交易信或通知信」→ Amazon SES。</strong><br>
+    <b>不要選 SNS 寄 email</b>——SNS 的 email 訂閱是給告警通知用的純文字，沒有 HTML 範本、沒有退信處理、沒有信譽管理，不能拿來當產品的寄信管道。</div>
+
+    <div class="warn"><strong>EC2 上自己架郵件伺服器是錯誤選項。</strong>AWS <b>預設封鎖 EC2 的對外 25 埠</b>，而且自架的 IP 幾乎一定進黑名單、信送不到。實務與考試的答案都是 <b>SES</b>。<br>
+    另外 SES 新帳號預設在<b>沙箱模式</b>（只能寄給已驗證的地址、每日有限額），要正式使用必須申請解除——這個細節偶爾會出現在「為什麼信寄不出去」的題目裡。</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th>需求</th><th>選誰</th></tr>
+        <tr><td>解耦、緩衝、拉取式處理</td><td><b>SQS</b></td></tr>
+        <tr><td>一對多推播 fan-out</td><td><b>SNS</b>（+ SQS）</td></tr>
+        <tr><td>事件路由、排程、SaaS 事件</td><td><b>EventBridge</b></td></tr>
+        <tr><td><b>既有 JMS / AMQP / MQTT</b> 應用遷移</td><td><b>Amazon MQ</b></td></tr>
+        <tr><td><b>SaaS</b> 資料同步、免寫程式</td><td><b>AppFlow</b></td></tr>
+        <tr><td>寄<b>電子郵件</b>給使用者</td><td><b>SES</b></td></tr>
+        <tr><td>簡訊 / 行動推播</td><td><b>SNS</b></td></tr>
+      </table>
+    </div>
   </div>
 
   <!-- LAB -->

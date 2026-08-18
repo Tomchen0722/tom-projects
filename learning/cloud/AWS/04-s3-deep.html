@@ -41,6 +41,8 @@
       <li><a href="#static">靜態網站 + CloudFront</a></li>
       <li><a href="#lock">Object Lock 與合規</a></li>
       <li><a href="#cost">費用結構與省錢清單</a></li>
+      <li><a href="#advanced">S3 進階功能（存取點與 Select）</a></li>
+      <li><a href="#cfprotect">CloudFront 內容保護與邊緣運算</a></li>
       <li><a href="#lab">完整實作 Lab</a></li>
     </ol>
   </div>
@@ -723,6 +725,111 @@ done</code></pre>
       <pre style="margin:8px 0 0"><code>$ <span class="cmd">aws s3control get-storage-lens-configuration</span> \
     --account-id 123456789012 --config-id default-account-dashboard</code></pre>
     </div>
+  </div>
+
+  <!-- 12 -->
+  <div class="card" id="advanced">
+    <h2>12. S3 進階功能（存取點與 Select）</h2>
+
+    <p>前面十一節講的是「怎麼把東西放進 S3、放得安全又便宜」。這一節補上四個<b>考試會考、但很多人沒用過</b>的功能。</p>
+
+    <h3>S3 Select：把過濾工作丟給 S3 做</h3>
+    <div class="analogy">傳統做法像<b>把整箱資料搬回家再挑</b>；S3 Select 像<b>請倉庫幫你挑好再寄出來</b>——傳輸量與運算量都少很多。</div>
+
+    <div class="formula"><code><b>不用 S3 Select：</b>下載 5 GB CSV → 在 EC2 上過濾 → 只需要其中 50 MB<br>
+    <span class="inline-code">傳輸 5 GB + EC2 運算時間</span><br><br>
+    <b>用 S3 Select：</b>送一句 SQL 過去 → S3 只回傳符合的 50 MB<br>
+    <span class="inline-code">傳輸 50 MB，速度可快數倍</span></code></div>
+
+    <pre><code><span class="comment"># 直接對 S3 上的 CSV 下 SQL，只取需要的欄位與列</span>
+$ <span class="cmd">aws s3api select-object-content     --bucket my-data --key sales/2026.csv     --expression "SELECT s.region, s.amount FROM S3Object s WHERE s.amount &gt; 10000"     --expression-type SQL     --input-serialization '{"CSV":{"FileHeaderInfo":"USE"},"CompressionType":"GZIP"}'     --output-serialization '{"CSV":{}}'     result.csv</span></code></pre>
+
+    <div class="note"><b>S3 Select 與 Athena 的分界（考題會這樣問）：</b><br>
+    <b>S3 Select</b>＝<b>單一物件</b>的簡單過濾，程式碼裡呼叫，沒有資料表概念。<br>
+    <b>Athena</b>＝<b>跨大量物件</b>的完整 SQL 分析，有資料表、可 JOIN、可搭 Glue Catalog。<br>
+    題目說「應用程式只需要大檔案裡的一小部分欄位、想減少傳輸量」→ S3 Select；說「對整個資料湖下 SQL 分析」→ Athena。</div>
+
+    <h3>Access Point：一個用途一個門</h3>
+    <p>一個 bucket 被十個團隊共用時，bucket policy 會長到沒有人看得懂，而且改一次影響所有人。<b>Access Point 讓每個用途有自己的端點與自己的政策。</b></p>
+
+    <div class="svc-grid">
+      <div class="svc"><b>一般 Access Point</b><span>每個存取點有<b>獨立的 DNS 名稱與政策</b>，可限定只能存取某個前綴。bucket policy 只要授權給存取點即可。</span></div>
+      <div class="svc"><b>VPC-only Access Point</b><span>建立時指定 VPC，該存取點<b>只能從那個 VPC 使用</b>——比在 bucket policy 裡寫一堆條件乾淨得多。</span></div>
+      <div class="svc"><b>Multi-Region Access Point</b><span><b>一個全球端點</b>對應多個區域的 bucket，自動導向<b>延遲最低</b>的那個，並走 AWS 全球網路加速。</span></div>
+      <div class="svc"><b>Object Lambda Access Point</b><span>讀取時<b>即時轉換</b>物件內容（去識別化、加浮水印、格式轉換），<b>原始物件不動</b>。</span></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">Object Lambda 的經典考題</div>
+      <p style="margin-bottom:0">「同一份客戶資料，<b>分析團隊要看去識別化版本</b>，稽核團隊要看完整版本，<b>但不想儲存兩份</b>。」<br>
+      → <b>S3 Object Lambda Access Point</b>：分析團隊走 Lambda 存取點（讀取時遮蔽個資），稽核團隊走一般存取點。<br>
+      錯誤選項通常是「複製一份遮蔽過的資料到另一個 bucket」——那會有兩份資料要同步、要管理、要付錢。</p>
+    </div>
+
+    <h3>Requester Pays：讓下載方付錢</h3>
+    <div class="note">開啟後，下載方要用<b>自己的 AWS 帳號</b>並在請求中帶上 <span class="inline-code">x-amz-request-payer</span>，請求費與傳出費就算在他們頭上，你只付儲存費。<br>
+    <b>考題關鍵字：</b>「公開／共享大型資料集」＋「不想負擔龐大的資料傳出費用」。<br>
+    <b>限制：</b>請求者必須是已驗證的 AWS 身分，所以<b>匿名存取不能用</b>。</div>
+
+    <pre><code>$ <span class="cmd">aws s3api put-bucket-request-payment --bucket public-dataset     --request-payment-configuration Payer=Requester</span>
+
+<span class="comment"># 下載方要明確表示「我付錢」，否則會被拒絕</span>
+$ <span class="cmd">aws s3 cp s3://public-dataset/big.parquet . --request-payer requester</span></code></pre>
+
+    <h3>Batch Operations：對幾百萬個物件做同一件事</h3>
+    <div class="ok"><strong>「要把 5,000 萬個既有物件全部加上標籤／改儲存類別／套用 Object Lock／呼叫 Lambda 處理」</strong>——寫腳本一個一個 API 呼叫會跑到天荒地老。<br>
+    正解是 <b>S3 Batch Operations</b>：吃一份 <b>S3 Inventory 清單</b>當輸入，由 AWS 平行執行，並產生完成報告。<br>
+    <b>注意跟生命週期規則的分界：</b>生命週期是「<b>以後</b>符合條件的自動處理」，Batch Operations 是「<b>現在</b>把既有的一次處理完」。</div>
+  </div>
+
+  <!-- 13 -->
+  <div class="card" id="cfprotect">
+    <h2>13. CloudFront 內容保護與邊緣運算</h2>
+
+    <p>第 9 節用 OAC 把 bucket 鎖起來了，但 <b>CloudFront 的網址本身還是公開的</b>。付費影片、私人相簿這類內容還需要下一層保護。</p>
+
+    <h3>Signed URL vs Signed Cookie</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>Signed URL（簽章網址）</th><th>Signed Cookie（簽章 Cookie）</th></tr>
+        <tr><td>保護範圍</td><td><b>單一檔案</b></td><td><b>多個檔案</b>（整個路徑）</td></tr>
+        <tr><td>典型情境</td><td>單支影片下載連結、一次性檔案</td><td>整套線上課程、會員專區<b>所有</b>內容</td></tr>
+        <tr><td>要改用戶端嗎</td><td>要改網址</td><td><b>網址不用改</b>，瀏覽器自動帶 Cookie</td></tr>
+        <tr><td>可設定</td><td colspan="2">到期時間、可用 IP 範圍、生效時間</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>一句話判斷：</strong>要保護<b>「一個」</b>檔案 → <b>Signed URL</b>；要保護<b>「一整個目錄／一系列」</b>檔案而且不想改每個網址 → <b>Signed Cookie</b>。<br>
+    這組二選一在 SAA 出現頻率很高，判斷點就是<b>檔案數量</b>。</div>
+
+    <div class="note"><b>S3 預簽章網址（Presigned URL）不一樣。</b>它是<b>直接對 S3</b> 產生的臨時網址，繞過 CloudFront。<br>
+    <b>要走 CDN 快取</b>就用 CloudFront Signed URL／Cookie；<b>只是讓某人臨時上傳或下載一個物件</b>（例如使用者上傳頭像）就用 S3 預簽章網址。題目提到「使用者直接上傳到 S3、不經過我的伺服器」→ <b>S3 預簽章網址</b>。</div>
+
+    <h3>地理限制（Geo Restriction）</h3>
+    <div class="note">CloudFront 內建依<b>國家</b>的允許／封鎖清單，適合版權授權區域限制。<br>
+    需要更細的規則（依國家 + 路徑 + 速率）就用 <b>WAF 的地理比對規則</b>。考題問「僅限特定國家觀看」→ CloudFront Geo Restriction 就夠了。</div>
+
+    <h3>邊緣運算：CloudFront Functions vs Lambda@Edge</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <tr><th></th><th>CloudFront Functions</th><th>Lambda@Edge</th></tr>
+        <tr><td>執行位置</td><td><b>邊緣站點</b>（數量最多，離使用者最近）</td><td>區域邊緣快取</td></tr>
+        <tr><td>執行時間</td><td><b>次毫秒</b>級</td><td>可達數秒</td></tr>
+        <tr><td>語言</td><td>JavaScript（受限子集）</td><td>Node.js / Python（完整）</td></tr>
+        <tr><td>能不能連網路</td><td><b>不能</b></td><td><b>可以</b>（可呼叫其他服務、讀 S3）</td></tr>
+        <tr><td>能不能讀請求主體</td><td>不能</td><td>可以</td></tr>
+        <tr><td>觸發時機</td><td>Viewer Request / Response</td><td>Viewer 與 <b>Origin</b> Request / Response 四種</td></tr>
+        <tr><td>成本</td><td><b>明顯較便宜</b></td><td>較貴</td></tr>
+        <tr><td>典型用途</td><td>標頭改寫、URL 重寫、<b>快取鍵正規化</b>、簡單的重新導向</td><td>依裝置回傳不同影像、<b>A/B 測試</b>、呼叫 API 做驗證</td></tr>
+      </table>
+    </div>
+
+    <div class="ok"><strong>判斷順序：先問「需要網路存取或讀請求主體嗎？」</strong><br>
+    需要 → <b>Lambda@Edge</b>（只有它做得到）。<br>
+    不需要，只是改標頭或網址 → <b>CloudFront Functions</b>（更快、更便宜）。<br>
+    題目強調「<b>極高 QPS</b>」「<b>最低延遲</b>」「<b>最低成本</b>」而動作又很簡單 → 一定是 CloudFront Functions。</div>
+
+    <div class="warn"><strong>Lambda@Edge 有幾個實務限制要記：</strong>函式必須建在 <b>us-east-1</b>（維吉尼亞北部）才能關聯到 CloudFront，而且<b>不支援環境變數</b>——組態要寫在程式碼裡或去 Parameter Store 抓。這兩點常出現在「為什麼部署失敗」的題目裡。</div>
   </div>
 
   <!-- LAB -->
