@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FHRP 閘道備援：HSRP / VRRP / GLBP — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補充篇</a><span class="sep">/</span>
+  <span class="cur">CH 5-1 · FHRP 閘道備援</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 5-1 · 高可用</div>
+  <h1>FHRP 閘道備援：HSRP / VRRP / GLBP</h1>
+  <p>你把核心層做了雙機、線路做了 EtherChannel，但如果電腦的預設閘道那台路由器掛了，整個網段還是全斷。這一章補上這個洞——CCNA 必考，實務上也是每個企業網路都會有的設計。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">問題：預設閘道是單點故障</a></li>
+      <li><a href="#how">FHRP 的共同原理：虛擬 IP 與虛擬 MAC</a></li>
+      <li><a href="#hsrp">HSRP：Cisco 的主力</a></li>
+      <li><a href="#vrrp">VRRP：業界標準版</a></li>
+      <li><a href="#glbp">GLBP：能同時分擔流量的那個</a></li>
+      <li><a href="#compare">三者比較表（必背）</a></li>
+      <li><a href="#track">介面追蹤：避免「假活著」</a></li>
+      <li><a href="#lab">實作：HSRP 雙機備援</a></li>
+      <li><a href="#trouble">故障排除與考試陷阱</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="why">
+    <h2>1. 問題：預設閘道是單點故障</h2>
+    <div class="analogy">你家有兩條網路可以出門，但你的手機只設定了「從大門走」。<br>大門鎖住的那天，就算後門開著，手機也不知道要改走後門——因為它只認得那一個出口。</div>
+
+    <p>電腦要送封包到其他網段時，會丟給<b>預設閘道</b>。這個閘道 IP 是寫死在電腦裡的（DHCP 發的也一樣）。</p>
+
+    <div class="diag"><span class="g">正常狀態</span>
+   PC (192.168.1.10)
+   預設閘道 = 192.168.1.1
+        │
+        ↓
+   <span class="y">R1 (192.168.1.1)</span> ──→ 網際網路
+   R2 (192.168.1.2) ← 備援,但沒人用它
+
+<span class="r">R1 掛掉</span>
+   PC 還是拚命送給 192.168.1.1
+   → <span class="r">全網段斷線</span>
+   → R2 明明還活著,但 PC 不知道要改用它
+
+<span class="w">要解決,有三種爛方法和一種好方法：</span>
+   ✗ 手動改每台 PC 的閘道  → 幾百台改到天亮
+   ✗ 縮短 DHCP 租約        → 還是要等,而且不可靠
+   ✗ 用動態路由跑到 PC 上  → PC 不跑路由協定
+   <span class="g">✓ 讓兩台路由器共用一個「虛擬 IP」</span> ← 這就是 FHRP</div>
+
+    <div class="note">FHRP = <b>First Hop Redundancy Protocol</b>，「第一跳備援協定」。第一跳指的就是預設閘道——封包離開電腦的第一站。</div>
+  </div>
+
+  <div class="card" id="how">
+    <h2>2. FHRP 的共同原理：虛擬 IP 與虛擬 MAC</h2>
+    <p>三種 FHRP 的實作細節不同，但核心概念完全一樣，先把這個吃透，後面就只是背差異。</p>
+
+    <div class="diag"><span class="g">FHRP 的運作</span>
+
+   PC 的預設閘道設成 <span class="y">192.168.1.254</span>  ← 這是「虛擬 IP」
+                              沒有任何一台實體路由器叫這個名字
+
+        ┌─────────────────┴─────────────────┐
+        ↓                                   ↓
+   <span class="o">R1</span> 實體 IP 192.168.1.1          <span class="o">R2</span> 實體 IP 192.168.1.2
+   目前是 <span class="g">Active</span>（扛流量）           目前是 <span class="w">Standby</span>（待命）
+        │                                   │
+        └──── 互相發 Hello 確認對方還活著 ────┘
+
+<span class="w">關鍵：虛擬 MAC</span>
+   PC 送 ARP 問「192.168.1.254 的 MAC 是多少」
+   → Active 路由器回覆一個<span class="y">虛擬 MAC</span>
+   → PC 的 ARP 表記住這個虛擬 MAC
+
+<span class="w">切換時發生什麼</span>
+   R1 掛掉 → R2 接手,<span class="g">連虛擬 MAC 一起接手</span>
+   → PC 的 ARP 表<span class="o">完全不用更新</span>
+   → PC 甚至不知道換了一台機器</div>
+
+    <div class="ok">✅ <b>這就是 FHRP 的精髓：</b>切換時<u>虛擬 IP 和虛擬 MAC 都不變</u>，所以終端裝置無感。<br>如果只有虛擬 IP 沒有虛擬 MAC，每次切換都要等所有 PC 的 ARP 表過期（可能好幾分鐘），那就沒意義了。</div>
+  </div>
+
+  <div class="card" id="hsrp">
+    <h2>3. HSRP：Cisco 的主力</h2>
+    <p><b>HSRP（Hot Standby Router Protocol）</b>是 Cisco 專有協定，也是實務上在 Cisco 環境最常見的。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>項目</th><th>HSRPv1</th><th>HSRPv2</th></tr></thead>
+      <tbody>
+        <tr><td>群組編號範圍</td><td>0–255</td><td>0–4095</td></tr>
+        <tr><td>虛擬 MAC</td><td><code>0000.0C07.ACxx</code></td><td><code>0000.0C9F.Fxxx</code></td></tr>
+        <tr><td>multicast 位址</td><td>224.0.0.2</td><td>224.0.0.102</td></tr>
+        <tr><td>IPv6 支援</td><td>不支援</td><td>支援</td></tr>
+      </tbody>
+    </table></div>
+    <p><code>xx</code> 是群組編號的十六進位。<b>群組 1 的虛擬 MAC 就是 <code>0000.0C07.AC01</code></b>——考試很愛考這個對應。</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>角色</b><span><b>Active</b>（扛流量）、<b>Standby</b>（第一順位備援）、其餘是 <b>Listen</b>。<u>注意 HSRP 只有一台 Standby</u>。</span></div>
+      <div class="cmp"><b>優先權</b><span>預設 100，越大越優先。相同時比實體 IP，大的贏。</span></div>
+      <div class="cmp"><b>計時器</b><span>Hello 預設 3 秒、Hold 10 秒。可調到毫秒級加快收斂。</span></div>
+      <div class="cmp"><b>搶佔</b><span><b>預設關閉</b>。原本的 Active 修好回來不會自動搶回，要 <code>standby preempt</code> 才會。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：HSRP 的 preempt 預設是關的</b><br>
+    這是 HSRP 與 VRRP 最常考的差異之一。<br>
+    情境：R1 優先權 110（本來是 Active）→ R1 掛掉，R2 接手 → R1 修好回來<br>
+    • <u>沒設 preempt</u>：R1 乖乖當 Standby，R2 繼續當 Active（即使 R1 優先權比較高）<br>
+    • <u>有設 preempt</u>：R1 立刻搶回 Active<br><br>
+    <b>實務上通常會開 preempt</b>，讓角色回到你設計的樣子，但要搭配 <code>delay minimum</code> 避免 R1 剛開機、路由表還沒收斂就搶回去造成黑洞。</div>
+  </div>
+
+  <div class="card" id="vrrp">
+    <h2>4. VRRP：業界標準版</h2>
+    <p><b>VRRP（Virtual Router Redundancy Protocol）</b>是 IETF 標準（RFC），<b>非 Cisco 設備也支援</b>。混廠牌環境要做閘道備援就得用它。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>項目</th><th>VRRP</th><th>與 HSRP 的差異</th></tr></thead>
+      <tbody>
+        <tr><td>標準</td><td>IETF 開放標準</td><td>HSRP 是 Cisco 專有</td></tr>
+        <tr><td>角色名稱</td><td><b>Master</b> / <b>Backup</b></td><td>HSRP 叫 Active / Standby</td></tr>
+        <tr><td>虛擬 MAC</td><td><code>0000.5E00.01xx</code></td><td>不同前綴</td></tr>
+        <tr><td>multicast</td><td>224.0.0.18</td><td>—</td></tr>
+        <tr><td>計時器</td><td>Hello 1 秒、Hold 3 秒</td><td><b>比 HSRP 快</b></td></tr>
+        <tr><td>搶佔</td><td><b>預設開啟</b></td><td><b>與 HSRP 相反</b></td></tr>
+        <tr><td>可用虛擬 IP</td><td>可以直接用實體介面 IP 當虛擬 IP</td><td>HSRP 的虛擬 IP 必須另外指定</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱：VRRP 的 preempt 預設是開的</b><br>
+    和 HSRP 剛好相反，這組對照幾乎必考：<br>
+    <b>HSRP preempt 預設關 ／ VRRP preempt 預設開</b><br><br>
+    記憶法：VRRP 是標準協定，行為比較「符合直覺」——優先權高的本來就該當老大，修好就搶回來。</div>
+  </div>
+
+  <div class="card" id="glbp">
+    <h2>5. GLBP：能同時分擔流量的那個</h2>
+    <p>HSRP 和 VRRP 有一個共同的浪費：<b>備援那台平常完全閒著</b>。你買了兩台路由器，但只有一台在做事。</p>
+
+    <p><b>GLBP（Gateway Load Balancing Protocol）</b>是 Cisco 專有協定，解決的就是這件事。</p>
+
+    <div class="diag"><span class="g">GLBP 怎麼做到負載分擔</span>
+
+   關鍵：<span class="y">每台路由器有「不同的」虛擬 MAC</span>
+        但共用同一個虛擬 IP
+
+   <span class="o">AVG</span>（Active Virtual Gateway）= 負責回答 ARP 的那台
+        └─ 它決定「這次 ARP 要回哪一個虛擬 MAC」
+
+   <span class="o">AVF</span>（Active Virtual Forwarder）= 實際轉送封包的角色
+        R1 = AVF1,虛擬 MAC ...0001
+        R2 = AVF2,虛擬 MAC ...0002
+
+<span class="w">實際流程</span>
+   PC-A 問「閘道的 MAC?」→ AVG 回 <span class="g">R1 的虛擬 MAC</span> → PC-A 走 R1
+   PC-B 問「閘道的 MAC?」→ AVG 回 <span class="g">R2 的虛擬 MAC</span> → PC-B 走 R2
+   PC-C 問 → 回 R1 ... 輪流分配
+
+   結果:<span class="y">兩台路由器同時在扛流量</span></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Round-robin</b><span>預設。輪流分配虛擬 MAC，最平均。</span></div>
+      <div class="cmp"><b>Weighted</b><span>依權重分配，適合兩台效能不同時。</span></div>
+      <div class="cmp"><b>Host-dependent</b><span>同一台主機永遠拿到同一個 MAC，適合需要連線黏性的場景。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：GLBP 的負載分擔是「以主機為單位」</b><br>
+    它不是把單一條連線拆開走兩邊，而是<u>把不同的主機分配到不同路由器</u>。<br>
+    所以如果你的網段只有 2 台主機，分擔效果趨近於零；有 200 台才會平均。<br><br>
+    另外 GLBP 是 <b>Cisco 專有</b>——混廠牌環境不能用。</div>
+  </div>
+
+  <div class="card" id="compare">
+    <h2>6. 三者比較表（必背）</h2>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>HSRP</th><th>VRRP</th><th>GLBP</th></tr></thead>
+      <tbody>
+        <tr><td><b>標準</b></td><td>Cisco 專有</td><td><b>IETF 開放標準</b></td><td>Cisco 專有</td></tr>
+        <tr><td><b>角色名稱</b></td><td>Active / Standby</td><td>Master / Backup</td><td>AVG / AVF</td></tr>
+        <tr><td><b>負載分擔</b></td><td>❌ 單台扛<br>（可用多群組變通）</td><td>❌ 單台扛<br>（可用多群組變通）</td><td>✅ <b>原生支援</b></td></tr>
+        <tr><td><b>虛擬 MAC</b></td><td>0000.0C07.ACxx</td><td>0000.5E00.01xx</td><td>0007.B400.xxxx</td></tr>
+        <tr><td><b>multicast</b></td><td>224.0.0.2（v1）</td><td>224.0.0.18</td><td>224.0.0.102</td></tr>
+        <tr><td><b>預設計時器</b></td><td>3 / 10 秒</td><td>1 / 3 秒</td><td>3 / 10 秒</td></tr>
+        <tr><td><b>preempt 預設</b></td><td><b>關</b></td><td><b>開</b></td><td>開</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note"><b>選型的一句話：</b><br>
+    • 全 Cisco 環境、要簡單 → <b>HSRP</b><br>
+    • 混廠牌 → <b>VRRP</b>（唯一選擇）<br>
+    • 全 Cisco 且想讓兩台都做事 → <b>GLBP</b><br><br>
+    <u>但要注意：現代資料中心更常用 StackWise / VSS / vPC 把兩台實體交換器變成邏輯上的一台</u>，這樣連 FHRP 都不需要了，因為對下游來說本來就只有一台。</div>
+
+    <div class="ok">✅ <b>HSRP/VRRP 也能做負載分擔——用「多群組」。</b><br>
+    做法：VLAN 10 用群組 1（R1 當 Active），VLAN 20 用群組 2（R2 當 Active）。<br>
+    這樣兩台都在扛流量，只是分擔的單位是 VLAN 而不是主機。<u>實務上這比 GLBP 更常見，因為它不綁 Cisco。</u></div>
+  </div>
+
+  <div class="card" id="track">
+    <h2>7. 介面追蹤：避免「假活著」</h2>
+    <div class="trap"><b>沒有追蹤的話，會發生這種災難</b><br>
+    R1 是 Active，內網介面好好的，但<u>對外的 WAN 介面斷了</u>。<br>
+    → R1 還是繼續當 Active（因為 HSRP 只看內網介面的 Hello）<br>
+    → 所有流量繼續送給 R1<br>
+    → R1 送不出去，<b>全部丟掉</b><br>
+    → R2 的 WAN 明明是通的，但它還在 Standby 乖乖等<br><br>
+    這叫「<b>黑洞</b>」——路由器活著，但路不通。</div>
+
+    <p>解法是<b>介面追蹤（tracking）</b>：讓 FHRP 監看其他介面的狀態，出事就自動降低自己的優先權。</p>
+
+    <div class="diag"><span class="g">追蹤的運作</span>
+
+   R1 優先權 110，追蹤 WAN 介面（decrement 20）
+
+   WAN 正常 → 優先權 <span class="g">110</span> → R1 是 Active   ✓
+   WAN 斷線 → 優先權 <span class="r">110 - 20 = 90</span>
+            → 低於 R2 的 100
+            → <span class="y">R2 搶佔成為 Active</span>（前提:R2 有開 preempt）
+   WAN 恢復 → 優先權回到 110 → R1 搶回
+
+<span class="w">重點：decrement 值要夠大</span>
+   如果 R1 是 110、R2 是 100,decrement 設 5
+   → 110-5 = 105 <span class="r">還是比 100 大 → 不會切換 → 追蹤形同虛設</span></div>
+
+    <div class="ok">✅ <b>設定追蹤的口訣：降完之後一定要比對方低。</b>這是設定 tracking 最常犯的錯——設了但數值不夠大，等於沒設。<br>
+    進階做法是追蹤 <b>IP SLA</b>（例如持續 ping 上游閘道），這樣連「介面是 up 但對端不通」也能偵測到。</div>
+  </div>
+
+  <div class="card" id="lab">
+    <h2>8. 實作：HSRP 雙機備援</h2>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body">
+        <b>R1 設定（主要）</b>
+        <div class="formula"><code>R1(config)# interface gi0/1
+R1(config-if)# ip address 192.168.1.1 255.255.255.0
+
+! HSRP 群組 1,虛擬 IP 192.168.1.254
+R1(config-if)# standby version 2
+R1(config-if)# standby 1 ip 192.168.1.254
+R1(config-if)# standby 1 priority 110
+R1(config-if)# standby 1 preempt delay minimum 60
+R1(config-if)# standby 1 authentication md5 key-string S3cr3t
+
+! 追蹤 WAN 介面,斷了就降 20
+R1(config-if)# standby 1 track gi0/0 20</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">2</div><div class="step-body">
+        <b>R2 設定（備援）</b>
+        <div class="formula"><code>R2(config)# interface gi0/1
+R2(config-if)# ip address 192.168.1.2 255.255.255.0
+R2(config-if)# standby version 2
+R2(config-if)# standby 1 ip 192.168.1.254
+R2(config-if)# standby 1 priority 100          ! 預設值,可省略
+R2(config-if)# standby 1 preempt
+R2(config-if)# standby 1 authentication md5 key-string S3cr3t</code></div>
+        <p><u>兩邊的虛擬 IP、群組編號、認證金鑰必須一致</u>，否則會各自成為 Active（雙主）。</p>
+      </div></div>
+
+      <div class="step"><div class="step-num">3</div><div class="step-body">
+        <b>驗證</b>
+        <div class="formula"><code>R1# show standby brief
+Interface  Grp  Pri P State    Active          Standby         Virtual IP
+Gi0/1      1    110 P Active   local           192.168.1.2     192.168.1.254
+
+R1# show standby gi0/1 1
+  ! 看得到虛擬 MAC、計時器、追蹤狀態
+
+! 從 PC 驗證
+C:\> arp -a
+  192.168.1.254    0000-0c9f-f001    ← 虛擬 MAC,不是 R1 的實體 MAC</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">4</div><div class="step-body">
+        <b>測試切換</b>
+        <div class="formula"><code>! 從 PC 開一個持續 ping
+C:\> ping 8.8.8.8 -t
+
+! 在 R1 關掉介面模擬故障
+R1(config)# interface gi0/1
+R1(config-if)# shutdown
+
+! 觀察:應該只掉 1-3 個封包就恢復
+! R2 上確認已接手
+R2# show standby brief
+Gi0/1      1    100 P Active   local           unknown         192.168.1.254</code></div>
+      </div></div>
+    </div>
+
+    <div class="warn"><b>實驗完記得收尾：</b>把 <code>shutdown</code> 的介面 <code>no shutdown</code> 開回來，並確認 R1 有依 preempt 設定搶回 Active。</div>
+  </div>
+
+  <div class="card" id="trouble">
+    <h2>9. 故障排除與考試陷阱</h2>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>症狀</th><th>可能原因</th><th>怎麼查</th></tr></thead>
+      <tbody>
+        <tr><td><b>兩台都是 Active</b>（雙主）</td><td>彼此收不到 Hello：VLAN 不通、群組編號不同、認證不符</td><td><code>show standby</code> 比對群組與認證；確認二層路徑</td></tr>
+        <tr><td>切換後流量還是不通</td><td>沒設追蹤，或上游路由沒收斂</td><td>檢查 track 設定與 decrement 值</td></tr>
+        <tr><td>Active 一直跳來跳去</td><td>Hello 太短、線路不穩、CPU 過載</td><td><code>show log</code> 看切換紀錄；放寬計時器</td></tr>
+        <tr><td>修好的路由器不搶回</td><td>HSRP 沒開 preempt</td><td>加 <code>standby X preempt</code></td></tr>
+        <tr><td>剛開機就搶回造成短暫斷線</td><td>preempt 沒設 delay</td><td>加 <code>preempt delay minimum 60</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱 1：preempt 預設值</b><br>HSRP <b>關</b>、VRRP <b>開</b>。這組對照極常考。</div>
+    <div class="trap"><b>陷阱 2：虛擬 MAC 前綴</b><br>HSRP <code>0000.0C07.AC</code>、VRRP <code>0000.5E00.01</code>、GLBP <code>0007.B400</code>。看到 MAC 就要認得出是哪個協定。</div>
+    <div class="trap"><b>陷阱 3：只有 GLBP 原生支援負載分擔</b><br>但題目若限定「必須是標準協定」→ VRRP + 多群組，不能選 GLBP。</div>
+    <div class="trap"><b>陷阱 4：追蹤的 decrement 要夠大</b><br>降完之後必須低於對方，否則不會切換。</div>
+    <div class="trap"><b>陷阱 5：HSRP 只有一台 Standby</b><br>三台以上的話，第三台之後是 Listen 狀態，不是 Standby。</div>
+
+    <div class="ok">✅ <b>一句話記憶：</b><br>
+    <b>HSRP</b> = Cisco、Active/Standby、preempt 預設關<br>
+    <b>VRRP</b> = 標準、Master/Backup、preempt 預設開、計時器較快<br>
+    <b>GLBP</b> = Cisco、AVG/AVF、<u>唯一原生負載分擔</u></div>
+  </div>
+
+  <div class="page-nav">
+    <a href="12-automation.html">← CH 4-2：網路自動化</a>
+    <a href="14-l2-security.html">CH 5-2：二層資安防護 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 5-1</footer>
+</body>
+</html>

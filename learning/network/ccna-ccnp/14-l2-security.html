@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二層資安防護：DHCP Snooping / DAI / 802.1X — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.atk{background:#FDECEA;border-left:4px solid #D93025;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#8C1D18;}
+.atk b{color:#B3261E;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補充篇</a><span class="sep">/</span>
+  <span class="cur">CH 5-2 · 二層資安防護</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 5-2 · 資安</div>
+  <h1>二層資安防護：DHCP Snooping / DAI / 802.1X</h1>
+  <p>防火牆擋的是從外面進來的攻擊。但如果攻擊者已經在你的辦公室插了一條網路線，防火牆完全看不到他。這一章處理內網的第一道防線——CCNA 資安領域的核心考點。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼二層特別脆弱</a></li>
+      <li><a href="#dhcp">DHCP 欺騙與 DHCP Snooping</a></li>
+      <li><a href="#dai">ARP 欺騙與動態 ARP 檢查（DAI）</a></li>
+      <li><a href="#ipsg">IP Source Guard</a></li>
+      <li><a href="#dot1x">802.1X：連上線之前先驗身分</a></li>
+      <li><a href="#stack">整體防護堆疊</a></li>
+      <li><a href="#lab">實作：完整的接入層安全設定</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="why">
+    <h2>1. 為什麼二層特別脆弱</h2>
+    <div class="analogy">大樓的門禁做得很嚴，但一旦有人混進來，<b>裡面的每一間辦公室都沒鎖</b>。<br>二層網路就是這種狀態——OSI 第二層的協定（ARP、DHCP）設計於「網路裡的人都是好人」的年代，<u>完全沒有身分驗證機制</u>。</div>
+
+    <div class="diag"><span class="w">二層協定的先天問題</span>
+
+   <span class="r">ARP</span>  ── 誰都可以宣稱「我是那個 IP」,沒有驗證
+   <span class="r">DHCP</span> ── 誰都可以架一台 DHCP 伺服器發 IP
+   <span class="r">STP</span>  ── 誰都可以發 BPDU 宣稱自己是 Root
+
+<span class="w">攻擊者只要能插上一條線,就能：</span>
+   • 假冒閘道,把全網段流量導到自己身上（中間人）
+   • 發假 IP 讓大家連不上網（阻斷服務）
+   • 竊聽、竄改、注入流量
+
+<span class="g">而防火牆在網段外面,對這些完全看不見。</span></div>
+
+    <div class="note">這一章的四個機制是<b>層層堆疊</b>的，順序有意義：<br>
+    <b>802.1X</b>（你是誰才能上線）→ <b>DHCP Snooping</b>（誰能發 IP）→ <b>DAI</b>（誰能宣稱這個 IP）→ <b>IPSG</b>（誰能用這個 IP 送封包）。<br>
+    後三個都建立在 DHCP Snooping 的資料庫之上，所以 DHCP Snooping 是地基。</div>
+  </div>
+
+  <div class="card" id="dhcp">
+    <h2>2. DHCP 欺騙與 DHCP Snooping</h2>
+
+    <div class="atk"><b>攻擊：DHCP Spoofing（假冒 DHCP 伺服器）</b><br>
+    攻擊者在辦公室角落插一台筆電，開一個 DHCP 伺服器，<u>把預設閘道設成自己</u>。<br>
+    因為 DHCP 是「誰先回應就用誰」，離得近的攻擊者常常贏過真正的伺服器。<br>
+    結果：受害者的所有流量都先經過攻擊者 → <b>完整的中間人攻擊</b>。<br><br>
+    <b>另一種：DHCP 耗竭（Starvation）</b>——攻擊者用大量偽造 MAC 狂要 IP，把位址池抽乾，讓正常使用者拿不到 IP。</div>
+
+    <div class="diag"><span class="g">DHCP Snooping 的原理：把埠分成兩類</span>
+
+   <span class="y">Trusted（信任埠）</span>
+      → 通往<span class="g">真正的 DHCP 伺服器</span>或上層交換器
+      → 允許通過 DHCP 「伺服器端」訊息（OFFER、ACK）
+
+   <span class="o">Untrusted（不信任埠,預設）</span>
+      → 接使用者的埠
+      → <span class="r">只允許客戶端訊息（DISCOVER、REQUEST）</span>
+      → 收到 OFFER/ACK <span class="r">→ 直接丟棄並把埠關掉</span>
+
+<span class="w">同時建立「綁定表」（Binding Table）</span>
+   記錄每次合法配發:
+   ┌──────────────┬────────────┬──────┬─────────┐
+   │ MAC          │ IP         │ VLAN │ 介面    │
+   ├──────────────┼────────────┼──────┼─────────┤
+   │ aabb.cc00.01 │ 10.1.1.50  │ 10   │ Gi1/0/5 │
+   └──────────────┴────────────┴──────┴─────────┘
+   <span class="y">這張表是 DAI 和 IPSG 的資料來源</span></div>
+
+    <div class="formula"><code>! 全域啟用,並指定要保護的 VLAN
+SW(config)# ip dhcp snooping
+SW(config)# ip dhcp snooping vlan 10,20
+
+! 上行埠設為信任（通往真正的 DHCP 伺服器）
+SW(config)# interface gi1/0/24
+SW(config-if)# ip dhcp snooping trust
+
+! 使用者埠限制每秒 DHCP 封包數,防耗竭
+SW(config)# interface range gi1/0/1-20
+SW(config-if-range)# ip dhcp snooping limit rate 10
+
+! 驗證
+SW# show ip dhcp snooping
+SW# show ip dhcp snooping binding</code></div>
+
+    <div class="trap"><b>陷阱：Option 82 導致 DHCP 失效</b><br>
+    DHCP Snooping 預設會在轉發時插入 <b>Option 82</b>（記錄來源交換器與埠）。<br>
+    但很多 DHCP 伺服器<u>看到 giaddr 為 0 卻帶著 Option 82 的封包會直接丟棄</u>——結果就是「開了 snooping 之後大家都拿不到 IP」。<br><br>
+    兩個解法：<br>
+    ① 交換器上關掉插入：<code>no ip dhcp snooping information option</code><br>
+    ② 或在 DHCP 伺服器端設定接受<br><br>
+    <b>這是實務上啟用 DHCP Snooping 最常見的翻車點。</b></div>
+  </div>
+
+  <div class="card" id="dai">
+    <h2>3. ARP 欺騙與動態 ARP 檢查（DAI）</h2>
+
+    <div class="atk"><b>攻擊：ARP Spoofing / ARP Poisoning</b><br>
+    ARP 沒有任何驗證機制。攻擊者只要持續廣播「<u>192.168.1.254（閘道）的 MAC 是我</u>」，<br>
+    網段內所有電腦的 ARP 表就會被污染，流量全部送到攻擊者那裡。<br><br>
+    這個攻擊<b>極其容易執行</b>——現成工具一行指令就能做，而且受害者完全無感。<br>
+    <u>它也是內網滲透最常用的第一步。</u></div>
+
+    <div class="diag"><span class="g">DAI 的原理</span>
+
+   攔截所有 ARP 封包,拿去比對 <span class="y">DHCP Snooping 綁定表</span>
+
+   ARP 說：「10.1.1.50 的 MAC 是 aabb.cc00.01」
+        ↓
+   查表:10.1.1.50 ←→ aabb.cc00.01 在 Gi1/0/5  <span class="g">✓ 相符 → 放行</span>
+
+   ARP 說：「10.1.1.254 的 MAC 是 <span class="r">dead.beef.0001</span>」
+        ↓
+   查表:綁定表裡沒有這組  <span class="r">✗ → 丟棄 + 記錄 + 可關埠</span>
+
+<span class="w">埠的信任狀態</span>
+   Untrusted（使用者埠）→ 要檢查
+   Trusted（上行埠）    → 不檢查,直接放行
+   <span class="o">上行埠一定要設 trust,否則交換器之間的 ARP 全被擋掉</span></div>
+
+    <div class="formula"><code>! 對指定 VLAN 啟用
+SW(config)# ip arp inspection vlan 10,20
+
+! 上行埠設信任
+SW(config)# interface gi1/0/24
+SW(config-if)# ip arp inspection trust
+
+! 靜態 IP 的裝置(印表機、伺服器)沒有 DHCP 紀錄
+! 要手動建立 ARP ACL,否則會被擋
+SW(config)# arp access-list STATIC-HOSTS
+SW(config-arp-nacl)# permit ip host 10.1.1.100 mac host aabb.cc00.0099
+SW(config)# ip arp inspection filter STATIC-HOSTS vlan 10
+
+! 驗證
+SW# show ip arp inspection
+SW# show ip arp inspection statistics</code></div>
+
+    <div class="trap"><b>陷阱：DAI 依賴 DHCP Snooping</b><br>
+    DAI 比對的是 DHCP Snooping 建立的綁定表。<b>沒有先開 DHCP Snooping，DAI 就沒有依據</b>，<u>所有 ARP 都會被判定為非法</u>——整個網段直接癱瘓。<br><br>
+    順序一定是：<b>先 DHCP Snooping → 等綁定表建立 → 再開 DAI</b>。<br>
+    而且<b>靜態 IP 的裝置一定要先用 ARP ACL 放行</b>，否則印表機、伺服器全部不通。</div>
+  </div>
+
+  <div class="card" id="ipsg">
+    <h2>4. IP Source Guard</h2>
+    <p>DAI 管的是「你能不能<b>宣稱</b>這個 IP」，IPSG 管的是「你能不能<b>用</b>這個 IP 送封包」。</p>
+
+    <div class="atk"><b>攻擊：IP Spoofing（來源位址偽造）</b><br>
+    攻擊者把自己的來源 IP 改成別人的，用來繞過以 IP 為基礎的 ACL、或讓攻擊流量看起來來自無辜的主機。</div>
+
+    <div class="diag"><span class="g">IPSG 的原理</span>
+
+   在埠上動態建立過濾規則（依 DHCP Snooping 綁定表）
+
+   Gi1/0/5 的綁定:10.1.1.50 / aabb.cc00.01
+        ↓
+   從 Gi1/0/5 進來的封包
+     來源 IP = 10.1.1.50   <span class="g">✓ 放行</span>
+     來源 IP = <span class="r">10.1.1.99</span>   <span class="r">✗ 丟棄</span>
+
+   加上 port-security 還能一併驗 MAC</div>
+
+    <div class="formula"><code>SW(config)# interface range gi1/0/1-20
+SW(config-if-range)# ip verify source                  ! 只驗 IP
+SW(config-if-range)# ip verify source port-security    ! IP + MAC 都驗
+
+! 靜態 IP 裝置要手動綁
+SW(config)# ip source binding aabb.cc00.0099 vlan 10 10.1.1.100 interface gi1/0/8
+
+SW# show ip verify source</code></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Port Security</b><span>管 <b>MAC</b>——這個埠允許幾個、哪些 MAC。（第 04 章已教）</span></div>
+      <div class="cmp"><b>DHCP Snooping</b><span>管 <b>誰能發 IP</b>，並建立綁定表。</span></div>
+      <div class="cmp"><b>DAI</b><span>管 <b>ARP 宣告</b>是否與綁定表相符。</span></div>
+      <div class="cmp"><b>IPSG</b><span>管 <b>來源 IP</b> 是否與綁定表相符。</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="dot1x">
+    <h2>5. 802.1X：連上線之前先驗身分</h2>
+    <p>前面四個機制都是「先讓你上線，再限制你能做什麼」。802.1X 更前面一步——<b>驗證通過之前，這個埠根本不通</b>。</p>
+
+    <div class="diag"><span class="g">802.1X 的三個角色</span>
+
+   <span class="y">Supplicant</span>（請求者）
+      = 使用者的裝置,內建 802.1X 用戶端
+              │
+              │ EAPOL（EAP over LAN）
+              ↓
+   <span class="y">Authenticator</span>（驗證者）
+      = 交換器。它只是傳話的,不做判斷
+              │
+              │ RADIUS
+              ↓
+   <span class="y">Authentication Server</span>（驗證伺服器）
+      = RADIUS 伺服器（Cisco ISE、Windows NPS、FreeRADIUS）
+      = <span class="o">真正決定放不放行的人</span>
+
+<span class="w">驗證前 vs 驗證後</span>
+   驗證前:埠只放行 EAPOL,<span class="r">其他流量全擋</span>
+   驗證後:埠打開,還可由 RADIUS <span class="g">動態指派 VLAN 與 ACL</span></div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>埠模式</th><th>行為</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>force-authorized</code></td><td>永遠放行（預設）</td><td>等於沒開 802.1X</td></tr>
+        <tr><td><code>force-unauthorized</code></td><td>永遠拒絕</td><td>停用的埠</td></tr>
+        <tr><td><code>auto</code></td><td><b>要驗證才放行</b></td><td>正式使用的設定</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="formula"><code>! RADIUS 伺服器
+SW(config)# radius server ISE
+SW(config-radius-server)# address ipv4 10.1.1.10 auth-port 1812 acct-port 1813
+SW(config-radius-server)# key R4d1usK3y
+
+SW(config)# aaa new-model
+SW(config)# aaa authentication dot1x default group radius
+SW(config)# aaa authorization network default group radius
+SW(config)# dot1x system-auth-control
+
+! 埠上啟用
+SW(config)# interface gi1/0/5
+SW(config-if)# switchport mode access
+SW(config-if)# authentication port-control auto
+SW(config-if)# dot1x pae authenticator
+
+! 沒有 802.1X 用戶端的裝置(印表機、IP 電話)改用 MAC 驗證
+SW(config-if)# mab
+
+SW# show dot1x interface gi1/0/5 details
+SW# show authentication sessions</code></div>
+
+    <div class="trap"><b>陷阱：不是所有裝置都支援 802.1X</b><br>
+    印表機、IP 攝影機、門禁讀卡機這類裝置通常<u>沒有 802.1X 用戶端</u>。<br>
+    解法有兩個：<br>
+    • <b>MAB（MAC Authentication Bypass）</b>——改用 MAC 位址當帳號向 RADIUS 驗證。安全性較低（MAC 可偽造），但實務上必要。<br>
+    • <b>Guest VLAN</b>——驗證失敗的裝置丟進一個只能上網、碰不到內網的 VLAN。<br><br>
+    <b>企業導入 802.1X 最大的工作量不是設定交換器，是盤點「有哪些裝置驗證不過」。</b>建議先用 monitor 模式（只記錄不阻擋）跑一兩個月，把清單整理出來再正式啟用。</div>
+  </div>
+
+  <div class="card" id="stack">
+    <h2>6. 整體防護堆疊</h2>
+    <div class="diag"><span class="g">一個接入埠應該有的完整防護</span>
+
+   ┌─ <span class="y">802.1X / MAB</span> ──── 你是誰?不是自己人不給上線
+   │
+   ├─ <span class="y">Port Security</span> ──── 這個埠只准 N 個 MAC
+   │
+   ├─ <span class="y">DHCP Snooping</span> ──── 你不能假扮 DHCP 伺服器
+   │
+   ├─ <span class="y">DAI</span> ─────────────── 你不能宣稱別人的 IP
+   │
+   ├─ <span class="y">IP Source Guard</span> ── 你不能用別人的 IP 送封包
+   │
+   └─ <span class="y">BPDU Guard</span> ──────── 你不能宣稱自己是 STP Root
+                              （第 06 章已教）
+
+<span class="w">層層堆疊,每一層擋一種攻擊手法。</span>
+<span class="o">缺任何一層,對應的攻擊就有機會成功。</span></div>
+
+    <div class="ok">✅ <b>導入順序的實務建議：</b><br>
+    ① <b>BPDU Guard + Port Security</b>——風險最低，先做<br>
+    ② <b>DHCP Snooping</b>——注意 Option 82 的坑<br>
+    ③ <b>DAI</b>——確認綁定表已建立、靜態裝置已加 ARP ACL<br>
+    ④ <b>IPSG</b>——同樣要處理靜態綁定<br>
+    ⑤ <b>802.1X</b>——最後做，因為要先盤點裝置、建 RADIUS<br><br>
+    <u>每一步都先在一個測試 VLAN 跑過再推全網。</u></div>
+  </div>
+
+  <div class="card" id="lab">
+    <h2>7. 實作：完整的接入層安全設定</h2>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body">
+        <b>先建立地基（DHCP Snooping）</b>
+        <div class="formula"><code>SW(config)# ip dhcp snooping
+SW(config)# ip dhcp snooping vlan 10
+SW(config)# no ip dhcp snooping information option    ! 避開 Option 82 的坑
+
+SW(config)# interface gi1/0/24
+SW(config-if)# description === 上行到核心 ===
+SW(config-if)# ip dhcp snooping trust</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">2</div><div class="step-body">
+        <b>等綁定表建立，確認有資料才往下做</b>
+        <div class="formula"><code>SW# show ip dhcp snooping binding
+MacAddress        IpAddress    Lease(sec) Type          VLAN Interface
+----------------- ------------ ---------- ------------- ---- ---------
+AA:BB:CC:00:00:01 10.1.1.50    86400      dhcp-snooping 10   Gi1/0/5
+
+! 沒看到資料就不要開 DAI,會全斷</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">3</div><div class="step-body">
+        <b>處理靜態 IP 裝置</b>
+        <div class="formula"><code>! 印表機是固定 IP,沒有 DHCP 紀錄,要先放行
+SW(config)# arp access-list STATIC
+SW(config-arp-nacl)# permit ip host 10.1.1.100 mac host aabb.cc00.0099
+SW(config)# ip arp inspection filter STATIC vlan 10
+
+SW(config)# ip source binding aabb.cc00.0099 vlan 10 10.1.1.100 interface gi1/0/8</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">4</div><div class="step-body">
+        <b>開啟 DAI 與 IPSG</b>
+        <div class="formula"><code>SW(config)# ip arp inspection vlan 10
+SW(config)# interface gi1/0/24
+SW(config-if)# ip arp inspection trust
+
+SW(config)# interface range gi1/0/1-20
+SW(config-if-range)# ip verify source port-security
+SW(config-if-range)# ip arp inspection limit rate 15</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">5</div><div class="step-body">
+        <b>加上 Port Security 與 BPDU Guard</b>
+        <div class="formula"><code>SW(config)# interface range gi1/0/1-20
+SW(config-if-range)# switchport mode access
+SW(config-if-range)# switchport port-security
+SW(config-if-range)# switchport port-security maximum 2       ! 電腦 + IP 電話
+SW(config-if-range)# switchport port-security violation restrict
+SW(config-if-range)# switchport port-security mac-address sticky
+SW(config-if-range)# spanning-tree portfast
+SW(config-if-range)# spanning-tree bpduguard enable</code></div>
+      </div></div>
+
+      <div class="step"><div class="step-num">6</div><div class="step-body">
+        <b>驗證與監看</b>
+        <div class="formula"><code>SW# show ip dhcp snooping
+SW# show ip arp inspection statistics
+SW# show ip verify source
+SW# show port-security
+SW# show errdisable recovery
+
+! 建議設定自動恢復,避免誤觸要人工去開
+SW(config)# errdisable recovery cause bpduguard
+SW(config)# errdisable recovery cause psecure-violation
+SW(config)# errdisable recovery interval 300</code></div>
+      </div></div>
+    </div>
+
+    <div class="warn"><b>正式環境務必先用 restrict 而非 shutdown。</b><br>
+    <code>violation shutdown</code> 會把埠關進 err-disabled，要人工去開。導入初期誤判很常見，用 <code>restrict</code>（丟棄違規流量但埠仍通）加上告警，觀察一段時間再收緊。</div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>8. 考試陷阱整理</h2>
+    <div class="trap"><b>陷阱 1：DAI 與 IPSG 都依賴 DHCP Snooping</b><br>沒有綁定表就沒有比對依據。順序永遠是 DHCP Snooping 先。</div>
+    <div class="trap"><b>陷阱 2：上行埠一定要 trust</b><br>DHCP Snooping 與 DAI 的上行埠都要設 trust，否則交換器之間的正常流量會被擋。</div>
+    <div class="trap"><b>陷阱 3：靜態 IP 裝置要手動綁定</b><br>沒有 DHCP 紀錄的裝置，DAI 要 ARP ACL、IPSG 要 <code>ip source binding</code>。</div>
+    <div class="trap"><b>陷阱 4：802.1X 的三個角色</b><br>Supplicant（裝置）、Authenticator（交換器）、Authentication Server（RADIUS）。<u>交換器不做判斷，只轉送</u>。</div>
+    <div class="trap"><b>陷阱 5：沒有 802.1X 用戶端的裝置用 MAB</b><br>印表機、IP 電話 → MAB 或 Guest VLAN。</div>
+    <div class="trap"><b>陷阱 6：Option 82</b><br>「開了 DHCP Snooping 後大家拿不到 IP」→ 想 Option 82。</div>
+    <div class="trap"><b>陷阱 7：分清楚各機制管什麼</b><br>Port Security 管 <b>MAC 數量</b>、DAI 管 <b>ARP 宣告</b>、IPSG 管 <b>來源 IP</b>、802.1X 管 <b>身分</b>。</div>
+
+    <div class="ok">✅ <b>一句話記憶：</b><br>
+    假冒<b>發 IP 的人</b> → DHCP Snooping<br>
+    假冒<b>別人的 MAC-IP 對應</b> → DAI<br>
+    假冒<b>來源 IP</b> → IP Source Guard<br>
+    <b>根本不該上線的人</b> → 802.1X</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="13-fhrp.html">← CH 5-1：FHRP 閘道備援</a>
+    <a href="quiz.html">前往模擬試題 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 5-2</footer>
+</body>
+</html>
