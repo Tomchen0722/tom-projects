@@ -1211,6 +1211,67 @@ CH.append({
                     "**Suricata** 是 IDS/IPS，可用規則即時偵測。"
                     "Wireshark 適合深入單一事件，Zeek/Suricata 適合持續監控。",
         },
+        {
+            "heading": "AAA：RADIUS 與 TACACS+ 的分工",
+            "body": "上一段講 WPA2-Enterprise 時提到 **RADIUS**。它其實屬於一組更大的概念叫 **AAA**：\n\n"
+                    "- **Authentication（驗證）**：你是誰？\n"
+                    "- **Authorization（授權）**：你能做什麼？\n"
+                    "- **Accounting（計帳／稽核）**：你做了什麼？\n\n"
+                    "把這三件事集中到一台伺服器管理，好處是**帳號只有一份**——"
+                    "員工離職時停用一個帳號，他對所有設備與網路的存取就同時斷掉。"
+                    "**不用一台一台去刪本機帳號**，而那正是實務上最常漏掉的地方。\n\n"
+                    "業界有兩個主要協定，名字都很像但用途分工很清楚：\n\n"
+                    "**RADIUS（Remote Authentication Dial-In User Service）**\n"
+                    "- 傳輸：**UDP**（1812 驗證 / 1813 計帳）\n"
+                    "- 加密：**只加密封包裡的密碼欄位**，其餘（使用者名稱、授權屬性）是明文\n"
+                    "- AAA 拆分：**驗證與授權綁在一起**，無法分開\n"
+                    "- 主戰場：**使用者接入網路** —— Wi-Fi 802.1X、VPN 登入、有線埠認證\n"
+                    "- 相容性：業界標準，**幾乎所有廠牌都支援**\n\n"
+                    "**TACACS+（Terminal Access Controller Access-Control System Plus）**\n"
+                    "- 傳輸：**TCP 49**\n"
+                    "- 加密：**整個封包本體都加密**\n"
+                    "- AAA 拆分：**三者完全獨立**，可以用不同來源分別處理\n"
+                    "- 主戰場：**設備管理** —— 誰能登入路由器/交換器/防火牆、能下哪些指令\n"
+                    "- 出身：Cisco 開發，但現在多數網路設備都支援\n\n"
+                    "**為什麼設備管理一定要用 TACACS+**：\n"
+                    "因為它能做到 **指令層級的授權與稽核**。\n"
+                    "你可以規定「網管實習生只能下 `show` 開頭的指令，不能 `configure`」，"
+                    "而且每一條下過的指令都會被記錄下來——**誰、在幾點、對哪台設備、下了什麼**。\n"
+                    "RADIUS 做不到這種粒度，它只能回答「這個人可不可以登入」。\n\n"
+                    "**這在法遵稽核是硬需求**：ISO 27001、金融業的資安規範都會要求"
+                    "「特權操作必須可追溯到個人」。共用一組 admin 密碼在稽核時一定被開不符合。",
+            "example": "**同一家公司會同時用到兩個協定**：\n\n"
+                       "```\n"
+                       "情境 A：員工的筆電要連公司 Wi-Fi\n"
+                       "  筆電 → AP → 交換器 → RADIUS 伺服器\n"
+                       "  問題：這個員工帳密對不對？可以連哪個 VLAN？\n"
+                       "  → 用 RADIUS（這是「使用者接入網路」）\n"
+                       "\n"
+                       "情境 B：網管要 SSH 進交換器改設定\n"
+                       "  網管 → SSH → 交換器 → TACACS+ 伺服器\n"
+                       "  問題：這個人能不能登入？能下哪些指令？下了什麼要記錄\n"
+                       "  → 用 TACACS+（這是「設備管理」）\n"
+                       "```\n\n"
+                       "**TACACS+ 指令授權的實際效果**：\n"
+                       "```\n"
+                       "實習生登入交換器後：\n"
+                       "  SW# show interface brief          ← 允許，正常執行\n"
+                       "  SW# configure terminal\n"
+                       "  Command authorization failed      ← 被 TACACS+ 擋下\n"
+                       "\n"
+                       "同時 TACACS+ 伺服器留下紀錄：\n"
+                       "  2026-08-18 14:32 | intern01 | SW-CORE-01 | show interface brief | PERMIT\n"
+                       "  2026-08-18 14:33 | intern01 | SW-CORE-01 | configure terminal    | DENY\n"
+                       "```\n\n"
+                       "**這份紀錄就是稽核要的東西**——出事時可以精確回答「當天是誰動了設定」。",
+            "note": "**實務上最重要的一條設定：一定要留本機帳號當後備。**\n\n"
+                    "如果 AAA 只設定成「一律問 TACACS+ 伺服器」，"
+                    "那台伺服器掛掉時**你會完全登不進任何一台網路設備**。\n"
+                    "而且這種事通常發生在網路本來就出問題的時候——你最需要進去查的那一刻，剛好進不去。\n\n"
+                    "正確的設定會加上 `local` 當第二順位：先問 TACACS+，問不到就用本機帳號。\n"
+                    "本機帳號的密碼要夠強、要定期輪替、而且要收在password manager 裡讓值班人員拿得到。\n\n"
+                    "**這是網路工程師最經典的自我封鎖事故之一，考試與實務都會遇到。**",
+        },
     ],
     "table": {
         "caption": "Wi-Fi 加密標準對照",
@@ -1298,13 +1359,14 @@ CH.append({
          "answer": 1,
          "why": "同樣行為在不同環境可能正常或異常。基準線是 SIEM 與 UEBA 能運作的基礎。"},
     ],
-    "keywords": ["WEP", "WPA2", "WPA3", "SAE", "802.1X", "Evil Twin", "Rogue AP",
+    "keywords": ["AAA", "RADIUS", "TACACS+", "指令授權", "WEP", "WPA2", "WPA3", "SAE", "802.1X", "Evil Twin", "Rogue AP",
                  "Deauth", "PMF", "WPS", "Wireshark", "tshark", "顯示過濾器",
                  "SNI", "基準線", "Zeek", "Suricata"],
     "takeaway": [
         "企業無線必須用 WPA2/3-Enterprise + 802.1X 憑證驗證，Personal 只適合家用。",
         "Wireshark 的價值是把猜測變成證據；擷取過濾器與顯示過濾器語法不同。",
         "所有異常偵測都建立在基準線之上 — 先知道什麼是正常，才認得出異常。",
+        "設備管理用 TACACS+（TCP 49、全封包加密、可做指令層級授權與稽核），使用者接入網路用 RADIUS；兩者都要留本機帳號當後備，否則伺服器一掛就自我封鎖。",
     ],
 })
 
