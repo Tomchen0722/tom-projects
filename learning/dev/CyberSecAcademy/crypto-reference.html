@@ -306,6 +306,42 @@ HMAC 同時驗完整性 + 來源（只有知道金鑰的人才能產生正確的
       <div class="card"><b>Self-signed（自簽憑證）</b><span>自己簽給自己，瀏覽器不信任。僅適合測試環境或內部系統（配合自有 CA）。</span></div>
     </div>
 
+    <h3>X.509：憑證裡面到底裝了什麼</h3>
+    <p>所有的 TLS 憑證都遵循 <b>X.509</b> 這個格式標準。知道裡面有哪些欄位，排錯時才知道要看什麼。</p>
+    <table>
+      <thead><tr><th>欄位</th><th>內容</th><th>排錯時的用途</th></tr></thead>
+      <tbody>
+        <tr><td><b>Subject</b></td><td>這張憑證發給誰（CN、O、C）</td><td>確認憑證是不是發給正確的網域</td></tr>
+        <tr><td><b>Issuer</b></td><td>誰簽發的（哪個 CA）</td><td>信任鏈斷掉時從這裡往上追</td></tr>
+        <tr><td><b>Validity</b></td><td>Not Before / Not After</td><td><b>憑證過期是最常見的故障</b></td></tr>
+        <tr><td><b>Public Key</b></td><td>公鑰與演算法（RSA 2048、ECDSA P-256）</td><td>確認金鑰強度是否符合政策</td></tr>
+        <tr><td><b>SAN</b></td><td>涵蓋的所有網域名稱</td><td><u>現代瀏覽器只看 SAN，不看 CN</u></td></tr>
+        <tr><td><b>Key Usage / EKU</b></td><td>這張憑證能拿來做什麼（伺服器驗證、用戶端驗證、簽章）</td><td>用途不符會被拒絕</td></tr>
+        <tr><td><b>Signature</b></td><td>CA 用自己的私鑰對以上內容的簽章</td><td>驗證憑證未被竄改</td></tr>
+      </tbody>
+    </table>
+    <div class="formula">
+<span class="hi">實際查看一張憑證：</span><br>
+<code>openssl s_client -connect example.com:443 -servername example.com &lt; /dev/null \<br>
+&nbsp;&nbsp;| openssl x509 -noout -text</code><br><br>
+<span class="hi">只看關鍵欄位：</span><br>
+<code>openssl x509 -noout -subject -issuer -dates -ext subjectAltName</code>
+    </div>
+    <div class="note"><b>常見陷阱：CN 已經不夠用了。</b>從 2017 年起主流瀏覽器<u>只檢查 SAN 欄位</u>。如果憑證只寫了 CN 沒寫 SAN，Chrome 會直接判定不安全——這是自簽憑證最常見的失敗原因。</div>
+
+    <h3>mTLS：雙向驗證</h3>
+    <p>一般的 TLS 只有<b>用戶端驗證伺服器</b>（你確認銀行網站是真的）。<b>mTLS（Mutual TLS）</b>則是<u>雙方互相驗證</u>。</p>
+    <table>
+      <thead><tr><th></th><th>一般 TLS</th><th>mTLS</th></tr></thead>
+      <tbody>
+        <tr><td>誰驗誰</td><td>用戶端驗伺服器</td><td><b>雙方互驗</b></td></tr>
+        <tr><td>用戶端要有憑證嗎</td><td>不用</td><td><b>要</b>，每個用戶端各有一張</td></tr>
+        <tr><td>典型場景</td><td>一般網站 HTTPS</td><td>API 對 API、微服務之間、IoT 裝置、零信任架構</td></tr>
+        <tr><td>身分依據</td><td>帳號密碼／Token</td><td><b>憑證本身就是身分</b></td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>為什麼機器對機器要用 mTLS：</b>API 金鑰會外洩、會被寫進程式碼、輪替麻煩。<u>憑證有明確的有效期、可以被撤銷、而且私鑰不會離開持有者</u>。這是服務網格（Istio、Linkerd）預設啟用 mTLS 的原因。<br><br><b>代價：</b>要自建 CA 並管理憑證生命週期——幾百個微服務就是幾百張憑證要簽發、輪替、撤銷。這也是為什麼要用自動化的憑證管理。</div>
+
     <div class="formula">
 <span class="hi">憑證信任鏈驗證：</span><br>
 瀏覽器收到伺服器憑證<br>
