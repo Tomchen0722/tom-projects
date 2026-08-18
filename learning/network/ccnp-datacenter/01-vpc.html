@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料中心交換與 vPC — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">01 · 資料中心交換與 vPC</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · 交換</div>
+  <h1>資料中心交換與 vPC</h1>
+  <p>企業網路可以忍受 STP 擋掉一半頻寬，資料中心不行。這一章講 vPC 怎麼讓兩台 Nexus 對下游偽裝成一台，以及它壞掉時會發生什麼事。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#why">資料中心為什麼不能忍受 STP</a></li><li><a href="#pc">先打好基礎：Port Channel</a></li><li><a href="#vpc">vPC 的組成元件</a></li><li><a href="#split">三種故障情境（考試核心）</a></li><li><a href="#check">驗證與排錯</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="why">
+    <h2>1. 資料中心為什麼不能忍受 STP</h2>
+    <div class="analogy">企業辦公室的網路可以接受「一條路通、一條路備援」——反正一台電腦也用不了多少頻寬。<br>但資料中心是<b>幾百台伺服器塞在同一個機櫃列</b>，你買了兩條 40G 上行，STP 卻叫其中一條閒著。<u>等於一半的錢丟到水裡。</u></div>
+
+    <div class="diag"><span class="g">傳統 STP 的浪費</span>
+   Access Switch
+      │        │
+   40G│        │40G
+      │        │
+   <span class="y">Agg-1</span>    <span class="y">Agg-2</span>
+      ↑        ↑
+   轉發     <span class="r">STP 阻斷（閒置）</span>
+
+   實際可用頻寬:<span class="r">40G</span>（買了 80G）
+   而且切換要靠 STP 收斂,秒級
+
+<span class="g">vPC 之後</span>
+   Access Switch
+      └─ Port-Channel（邏輯上一條）
+           │        │
+        <span class="y">Nexus-1</span>  <span class="y">Nexus-2</span>  ← 對下游看起來像「一台」
+
+   實際可用頻寬:<span class="g">80G，兩條都在轉發</span>
+   而且沒有 STP 阻斷埠</div>
+
+    <div class="note">這就是 <b>vPC（Virtual Port Channel）</b>要解決的問題：<b>讓兩台實體 Nexus 交換器，對下游裝置而言表現得像同一台</b>，於是下游可以把兩條線綁成一個 Port-Channel，兩條都轉發。</div>
+  </div>
+
+  <div class="card" id="pc">
+    <h2>2. 先打好基礎：Port Channel</h2>
+    <p>vPC 是 Port Channel 的延伸，所以要先確認 Port Channel 的觀念。</p>
+    <div class="tbl-wrap"><table>
+      <tr><th>協商協定</th><th>標準</th><th>模式</th><th>說明</th></tr>
+      <tr><td><b>LACP</b></td><td>IEEE 802.3ad<br>（開放標準）</td><td><code>active</code> / <code>passive</code></td><td><b>建議使用</b>。會協商，能偵測配線錯誤</td></tr>
+      <tr><td><b>PAgP</b></td><td>Cisco 專有</td><td><code>desirable</code> / <code>auto</code></td><td>Nexus <b>不支援</b>，只有 Catalyst 有</td></tr>
+      <tr><td><b>Static (on)</b></td><td>不協商</td><td><code>on</code></td><td>兩端硬綁，設錯會產生迴圈</td></tr>
+    </table></div>
+
+    <div class="trap"><b>陷阱：Nexus 沒有 PAgP</b><br>
+    這是 DCCOR 常考的一點。<b>NX-OS 只支援 LACP 與 static</b>，不支援 Cisco 自家的 PAgP。<br>
+    所以 Nexus 與 Catalyst 對接時，Catalyst 那端也必須用 LACP 或 static。</div>
+
+    <div class="formula"><code># Nexus 上建立 Port Channel
+N9K(config)# feature lacp                    ← NX-OS 要先啟用 feature
+N9K(config)# interface ethernet 1/1-2
+N9K(config-if-range)# channel-group 10 mode active
+N9K(config)# interface port-channel 10
+N9K(config-if)# switchport mode trunk</code></div>
+
+    <div class="note"><b>NX-OS 的 feature 機制：</b>和 IOS 不同，NX-OS 預設不載入大部分功能模組，要用 <code>feature xxx</code> 開啟。<u>忘記開 feature 是新手最常見的「指令打不出來」原因。</u><br>
+    常用的：<code>feature lacp</code>、<code>feature vpc</code>、<code>feature ospf</code>、<code>feature interface-vlan</code>、<code>feature hsrp</code>。</div>
+  </div>
+
+  <div class="card" id="vpc">
+    <h2>3. vPC 的組成元件</h2>
+    <div class="diag"><span class="g">vPC 架構全圖</span>
+
+        <span class="y">Nexus-1</span> ═══════════════ <span class="y">Nexus-2</span>
+           │   ↑                    ↑   │
+           │   └── <span class="o">vPC Peer-Link</span> ────┘   │   ← 兩台之間的主幹
+           │   └── <span class="o">Peer-Keepalive</span> ───┘   │   ← 心跳（走 mgmt0）
+           │                            │
+           └──────┐            ┌────────┘
+                  │            │
+              <span class="g">vPC Member Port</span>  <span class="g">vPC Member Port</span>
+                  └─── Port-Channel ───┘
+                          │
+                    下游交換器/伺服器
+                    （它以為對面只有一台）
+
+<span class="w">四個必要元件</span>
+  ① <span class="o">vPC Domain</span>        ── 兩台要設同一個 domain ID
+  ② <span class="o">vPC Peer-Keepalive</span>── 心跳,判斷對方是否還活著（<b>不走 peer-link</b>）
+  ③ <span class="o">vPC Peer-Link</span>     ── 承載控制訊息與部分資料流量
+  ④ <span class="o">vPC Member Port</span>   ── 實際連到下游的成員埠</div>
+
+    <div class="trap"><b>陷阱：Peer-Link 與 Peer-Keepalive 的差別必考</b><br>
+    • <b>Peer-Link</b>：<u>資料層</u>。走 10G/40G 以上的實體介面，通常是 Port-Channel。承載 CFS 控制訊息、同步 MAC 表、以及孤兒埠的流量。<br>
+    • <b>Peer-Keepalive</b>：<u>心跳</u>。只是輕量的 UDP 探測，<b>必須走與 Peer-Link 不同的路徑</b>（通常是 mgmt0 管理網路）。<br><br>
+    <b>為什麼要分開？</b>因為要能區分「對方掛了」和「只是 Peer-Link 斷了」——這兩種情況的處理方式完全不同。</div>
+
+    <div class="formula"><code>N9K-1(config)# feature vpc
+N9K-1(config)# vpc domain 10
+N9K-1(config-vpc-domain)# peer-keepalive destination 10.1.1.2 source 10.1.1.1
+N9K-1(config-vpc-domain)# peer-switch                 ← 兩台對外顯示同一個 STP 橋接 ID
+N9K-1(config-vpc-domain)# peer-gateway                ← 允許代對方回應封包
+N9K-1(config-vpc-domain)# ip arp synchronize          ← 同步 ARP,加快收斂
+
+N9K-1(config)# interface port-channel 1
+N9K-1(config-if)# vpc peer-link
+
+N9K-1(config)# interface port-channel 20
+N9K-1(config-if)# vpc 20                              ← 成員埠,兩台要用同一個 vPC ID</code></div>
+  </div>
+
+  <div class="card" id="split">
+    <h2>4. 三種故障情境（考試核心）</h2>
+
+    <div class="diag"><span class="g">情境 A：Peer-Link 斷，Keepalive 還在</span>
+   → 兩台都知道對方活著,但資料主幹沒了
+   → <span class="y">Secondary 會把自己的 vPC 成員埠全部 shutdown</span>
+   → 避免流量分裂造成迴圈與 MAC 學習錯亂
+   → 所有流量集中走 Primary
+
+<span class="g">情境 B：Keepalive 斷，Peer-Link 還在</span>
+   → 只是心跳路徑掛了,資料還通
+   → <span class="g">什麼都不會發生</span>,系統只記錄警告
+   → 但要盡快修,因為此時失去了雙重確認
+
+<span class="r">情境 C：兩個都斷（Dual-Active / Split-Brain）</span>
+   → 兩台都認為自己是唯一存活者
+   → 兩台都變成 Primary,同時轉發
+   → <span class="r">MAC 表分裂、流量迴圈</span>
+   → 這是最糟的情況,設計上要盡量避免</div>
+
+    <div class="trap"><b>必考：Peer-Link 斷掉時是「Secondary 關閉成員埠」</b><br>
+    很多人會直覺以為「兩台都繼續跑」，那是錯的——那樣會造成迴圈。<br>
+    <b>vPC 的設計是犧牲 Secondary 保全一致性</b>：Secondary 把 vPC 埠關掉，讓下游的 Port-Channel 只剩一半但仍然通，流量全走 Primary。<br><br>
+    這也是為什麼 <b>Peer-Link 一定要做成 Port-Channel 且跨不同板卡</b>——單條線斷掉就觸發這個機制，代價太大。</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>orphan port（孤兒埠）</b><span>連在 vPC 交換器上但<b>不屬於任何 vPC</b> 的埠。例如單接的伺服器。Peer-Link 斷掉時它的流量會受影響。</span></div>
+      <div class="cmp"><b>peer-gateway</b><span>允許一台代替另一台回應以對方 MAC 為目的地的封包。解決某些儲存陣列不遵守標準的行為。</span></div>
+      <div class="cmp"><b>peer-switch</b><span>兩台對外宣告<b>同一個 STP 橋接 ID</b>，讓下游看起來真的只有一台，加快收斂。</span></div>
+      <div class="cmp"><b>vPC 一致性檢查</b><span>兩台的關鍵設定必須一致（MTU、VLAN、STP 模式）。Type-1 不一致會直接停用 vPC；Type-2 只警告。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：Type-1 vs Type-2 一致性</b><br>
+    • <b>Type-1</b>（嚴重）：不一致會<u>直接把 vPC 或該 VLAN 停用</u>。例如 STP 模式、MTU、Port-Channel 模式。<br>
+    • <b>Type-2</b>（次要）：只發出警告，vPC 繼續運作。例如某些 ACL、QoS 設定差異。<br><br>
+    排錯指令：<code>show vpc consistency-parameters global</code></div>
+  </div>
+
+  <div class="card" id="check">
+    <h2>5. 驗證與排錯</h2>
+    <div class="formula"><code>N9K# show vpc                          ← 最重要的一條,先看這個
+Legend:
+  (*) - local vPC is down, forwarding via vPC peer-link
+
+vPC domain id                     : 10
+Peer status                       : peer adjacency formed ok    ← 要看到 ok
+vPC keep-alive status             : peer is alive               ← 要看到 alive
+Configuration consistency status  : success                     ← 要看到 success
+vPC role                          : primary
+
+N9K# show vpc peer-keepalive           ← 心跳細節
+N9K# show vpc consistency-parameters global   ← 一致性比對
+N9K# show port-channel summary         ← 成員埠狀態</code></div>
+
+    <div class="trap"><b>排錯順序（照這個查最快）</b><br>
+    ① <code>show vpc</code> 看三個狀態：peer adjacency、keepalive、consistency<br>
+    ② keepalive 不通 → 檢查 mgmt0 的 IP、VRF（keepalive 預設走 management VRF）<br>
+    ③ consistency failed → 跑 <code>show vpc consistency-parameters</code> 找出哪個參數不同<br>
+    ④ 成員埠 down → 確認兩台的 vPC ID 一致、下游確實設成 Port-Channel<br><br>
+    <u>最常見的錯：兩台的 vPC ID 設成不同數字，或下游忘了設 Port-Channel。</u></div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>6. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>觀念</th><th>要記住的</th></tr>
+      <tr><td>vPC 解決什麼</td><td>讓 STP 不再阻斷一半的上行頻寬</td></tr>
+      <tr><td>Peer-Link</td><td>資料層，走高速介面，做成 Port-Channel</td></tr>
+      <tr><td>Peer-Keepalive</td><td>心跳，<b>必須走不同路徑</b>（通常 mgmt0）</td></tr>
+      <tr><td>Peer-Link 斷</td><td><b>Secondary 關閉 vPC 成員埠</b></td></tr>
+      <tr><td>Keepalive 斷</td><td>沒事，只警告</td></tr>
+      <tr><td>兩者都斷</td><td>Split-brain，最糟情況</td></tr>
+      <tr><td>NX-OS 特性</td><td>要 <code>feature</code> 開啟功能；<b>不支援 PAgP</b></td></tr>
+      <tr><td>一致性</td><td>Type-1 會停用，Type-2 只警告</td></tr>
+    </table></div>
+    <div class="ok">✅ <b>一句話：</b>vPC 讓兩台 Nexus 對下游偽裝成一台，換取雙倍頻寬與快速切換；代價是要維護 Peer-Link、Keepalive 與設定一致性這三件事。</div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="index.html">← 回課程總覽</a>
+    <a href="02-multicast.html">02 · 資料中心 Multicast →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 01</footer>
+</body>
+</html>

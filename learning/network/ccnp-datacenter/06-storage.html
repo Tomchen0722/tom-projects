@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>儲存網路：FC、VSAN 與 FCoE — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">06 · 儲存網路：FC、VSAN 與 FCoE</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · 儲存</div>
+  <h1>儲存網路：FC、VSAN 與 FCoE</h1>
+  <p>儲存網路的哲學是「絕對不能丟包」，和乙太網的盡力而為完全不同。這一章講 FC 的定址與登入、VSAN 與 Zoning 的兩層隔離，以及 FCoE 需要的無損乙太網。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#why">儲存網路的不同</a></li><li><a href="#wwn">WWN、FCID 與登入</a></li><li><a href="#vsan">VSAN 與 Zoning</a></li><li><a href="#npv">NPIV 與 NPV</a></li><li><a href="#fcoe">FCoE 統一網狀架構</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="why">
+    <h2>1. 儲存網路和一般網路差在哪</h2>
+    <div class="analogy">一般網路（乙太網）的設計哲學是「<b>盡力而為</b>」——塞車就丟封包，上層 TCP 自己重送。<br>儲存網路的哲學是「<b>絕對不能丟</b>」——因為那是硬碟的讀寫，丟一個封包可能就是<u>資料損毀</u>，作業系統會直接報 I/O 錯誤。</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>一般乙太網</th><th>Fibre Channel</th></tr>
+      <tr><td>設計哲學</td><td>Best-effort，允許丟包</td><td><b>Lossless，零丟包</b></td></tr>
+      <tr><td>流量控制</td><td>TCP 端對端重送</td><td><b>Buffer-to-Buffer Credit</b>（送之前先確認對方有空間）</td></tr>
+      <tr><td>定址</td><td>MAC / IP</td><td><b>WWN</b>（World Wide Name）+ FCID</td></tr>
+      <tr><td>隔離</td><td>VLAN</td><td><b>VSAN</b> + <b>Zoning</b></td></tr>
+      <tr><td>典型速率</td><td>10/25/40/100G</td><td>8/16/32/64G FC</td></tr>
+    </table></div>
+
+    <div class="trap"><b>核心觀念：B2B Credit</b><br>
+    FC 不像乙太網「先送再說」。發送端有一個 credit 計數器，<u>對方每接收一個訊框就回傳一個 credit</u>，credit 用完就停止發送。<br><br>
+    <b>這保證了永遠不會因為對方緩衝區滿而丟包。</b><br>
+    <b>但也帶來一個實務問題：距離。</b>光在光纖裡有傳播延遲，距離越遠、在途訊框越多，需要的 credit 就越多。<u>長距離 FC 連線 credit 不足時，吞吐量會嚴重下降</u>——這是跨機房 SAN 最常見的效能問題。</div>
+  </div>
+
+  <div class="card" id="wwn">
+    <h2>2. WWN、FCID 與登入流程</h2>
+    <div class="diag"><span class="g">兩種名字</span>
+
+   <span class="y">WWN</span>（World Wide Name）── 64 bit,像 MAC,<span class="o">燒在硬體上永不改變</span>
+      WWNN = 節點的名字（整台設備）
+      WWPN = <span class="g">單一埠的名字</span>  ← Zoning 用這個
+
+   <span class="y">FCID</span> ── 24 bit,像 IP,<span class="o">登入 fabric 時動態配發</span>
+      ┌────────┬────────┬────────┐
+      │ Domain │  Area  │  Port  │
+      └────────┴────────┴────────┘
+        交換器    群組     實際埠
+
+<span class="w">主機開機後的三步登入</span>
+   ① <span class="o">FLOGI</span>（Fabric Login）── 向交換器報到,<span class="g">取得 FCID</span>
+   ② <span class="o">PLOGI</span>（Port Login）  ── 與目標儲存埠建立連線
+   ③ <span class="o">PRLI</span>（Process Login） ── 協商 SCSI 層參數
+
+<span class="r">排錯口訣:先看 FLOGI 有沒有成功</span>
+   沒有 FLOGI = 實體層或 VSAN 設定有問題,後面都不用查了</div>
+
+    <div class="formula"><code>MDS# show flogi database            ← 誰登入了、拿到什麼 FCID
+MDS# show fcns database             ← fabric 的名稱伺服器（誰在線上）
+MDS# show interface fc1/1           ← 實體埠狀態與 credit</code></div>
+  </div>
+
+  <div class="card" id="vsan">
+    <h2>3. VSAN 與 Zoning：兩層隔離</h2>
+    <div class="diag"><span class="g">兩者不是二選一,是搭配使用</span>
+
+<span class="y">VSAN</span> ── 像 VLAN,把實體 fabric 切成多個<span class="o">獨立的邏輯 fabric</span>
+   • 各自獨立的服務（名稱伺服器、Zoning 資料庫、路由）
+   • <span class="g">一個 VSAN 的故障不會影響另一個</span>
+   • 用途:把正式與測試環境徹底分開
+
+<span class="y">Zoning</span> ── 在<span class="o">同一個 VSAN 內</span>控制「誰能看到誰」
+   • 沒有 Zoning 的話,所有主機都看得到所有儲存
+   • <span class="r">那是災難</span>:Windows 看到別人的磁碟會想「初始化」它
+
+<span class="w">結構</span>
+   VSAN 10
+     └── Zoneset（一次只能啟用一個）
+            ├── Zone: 主機A + 儲存埠1
+            └── Zone: 主機B + 儲存埠1</div>
+
+    <div class="trap"><b>必考：Single Initiator Zoning</b><br>
+    <b>每個 Zone 只放「一個主機埠 + 一個或多個儲存埠」</b>，<u>絕對不要把多個主機放在同一個 Zone</u>。<br><br>
+    <b>為什麼：</b>同一個 Zone 內的成員會互相收到 fabric 的狀態變更通知（RSCN）。<br>
+    如果 50 台主機在同一個 Zone，<u>其中一台重開機會讓另外 49 台都收到通知並重新掃描</u>——造成不必要的 I/O 中斷。<br><br>
+    <b>這是 SAN 設計的鐵律，考試必考。</b></div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>Zoning 方式</th><th>依據</th><th>評價</th></tr>
+      <tr><td><b>WWPN Zoning</b>（軟體）</td><td>埠的 WWPN</td><td>✅ <b>建議</b>。換交換器埠不用改設定</td></tr>
+      <tr><td>Port Zoning（硬體）</td><td>實體埠位置</td><td>換線就要改，維護麻煩</td></tr>
+      <tr><td><b>Smart Zoning</b></td><td>標記 initiator/target</td><td>自動只建立必要的組合，大幅減少規則數</td></tr>
+    </table></div>
+
+    <div class="formula"><code>MDS(config)# vsan database
+MDS(config-vsan-db)# vsan 10 name PROD
+MDS(config-vsan-db)# vsan 10 interface fc1/1
+
+# 用別名讓設定可讀
+MDS(config)# device-alias database
+MDS(config-device-alias-db)# device-alias name ESX01-HBA1 pwwn 10:00:00:00:c9:aa:bb:01
+MDS(config)# device-alias commit          ← 別忘了 commit
+
+MDS(config)# zone name ESX01-to-ARRAY vsan 10
+MDS(config-zone)# member device-alias ESX01-HBA1
+MDS(config-zone)# member device-alias ARRAY-CTRL-A
+
+MDS(config)# zoneset name PROD-ZS vsan 10
+MDS(config-zoneset)# member ESX01-to-ARRAY
+MDS(config)# zoneset activate name PROD-ZS vsan 10   ← 啟用才生效</code></div>
+  </div>
+
+  <div class="card" id="npv">
+    <h2>4. NPIV 與 NPV</h2>
+    <div class="trap"><b>名字超像，但解決完全不同的問題</b></div>
+    <div class="diag"><span class="y">NPIV</span>（N-Port ID Virtualization）
+   <span class="w">解決:一個實體 HBA 只能拿一個 FCID</span>
+   → 但一台實體主機上有 20 台虛擬機,每台都想要自己的身分
+
+   啟用 NPIV 後:
+     一個實體埠 → <span class="g">可以註冊多個 WWPN / FCID</span>
+     → 每台 VM 有自己的身分
+     → <span class="g">可以對「單一台 VM」做 Zoning 與 LUN 遮罩</span>
+
+<span class="y">NPV</span>（N-Port Virtualization）
+   <span class="w">解決:Domain ID 數量有限（一個 fabric 最多 239 個）</span>
+   → 刀鋒伺服器機箱裡塞很多台交換器,很快就用完
+
+   啟用 NPV 後:
+     交換器<span class="o">不再是獨立的 fabric 成員</span>
+     → 變成一個「代理」,把後面主機的登入<span class="g">轉送給上游交換器</span>
+     → <span class="g">不佔用 Domain ID</span>,也不用管 Zoning</div>
+
+    <div class="ok">✅ <b>一句話分辨：</b><br>
+    <b>NPIV</b> = 讓<u>一個埠有多個身分</u>（虛擬化用，在<b>主機端／上游交換器</b>啟用）<br>
+    <b>NPV</b> = 讓<u>交換器不佔 Domain ID</u>（規模用，在<b>邊緣交換器</b>啟用）<br><br>
+    <b>兩者常一起用：</b>刀鋒機箱的交換器跑 NPV，上游的核心交換器要開 NPIV 才能接受它轉送過來的多個登入。</div>
+  </div>
+
+  <div class="card" id="fcoe">
+    <h2>5. FCoE：統一網狀架構</h2>
+    <p>傳統資料中心每台伺服器要拉兩套線：乙太網（資料）+ FC（儲存）。<b>FCoE 把 FC 訊框裝進乙太網訊框</b>，一套線兩用。</p>
+
+    <div class="diag"><span class="g">FCoE 要成立,乙太網必須先變成「不丟包」</span>
+
+   <span class="y">DCB</span>（Data Center Bridging）的三個關鍵協定
+
+   <span class="o">PFC</span>（Priority Flow Control, 802.1Qbb）
+      → <span class="g">針對特定優先權「暫停」</span>,而不是整條線停
+      → 讓儲存流量不丟包,但一般流量照跑
+
+   <span class="o">ETS</span>（Enhanced Transmission Selection, 802.1Qaz）
+      → 保障頻寬分配（例:儲存 40%、資料 60%）
+
+   <span class="o">DCBX</span>（DCB Exchange）
+      → 兩端自動協商上述能力,設定不一致會警告
+
+<span class="w">其他要點</span>
+   • FCoE 需要 <span class="y">MTU 2240 以上</span>（FC 訊框 2112 + 標頭）
+   • 伺服器端用 <span class="y">CNA</span>（Converged Network Adapter）取代 NIC + HBA
+   • <span class="r">FCoE 不可路由</span>——它是二層封裝,只能在同一個二層網域</div>
+
+    <div class="trap"><b>陷阱：FCoE 沒有取代 FC</b><br>
+    FCoE 主要用在<b>伺服器到第一台交換器</b>這一段（存取層），減少線材與網卡數量。<br>
+    <u>再往上到儲存陣列通常還是原生 FC</u>——因為核心 SAN 交換器與陣列大多還是 FC 介面。<br><br>
+    而且近年 <b>iSCSI 與 NVMe over TCP</b> 因為只需要一般乙太網、不用 DCB，在很多場景反而更受歡迎。FCoE 的採用率不如當初預期。</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>協定</th><th>底層</th><th>特點</th></tr>
+      <tr><td><b>FC</b></td><td>專用 FC 網路</td><td>效能最穩，成本最高，要專門技能</td></tr>
+      <tr><td><b>FCoE</b></td><td>乙太網 + DCB</td><td>省線材，但要 DCB 支援</td></tr>
+      <tr><td><b>iSCSI</b></td><td><b>一般 TCP/IP</b></td><td>最便宜、可路由，<b>中小企業首選</b></td></tr>
+      <tr><td><b>NVMe over Fabrics</b></td><td>FC / TCP / RoCE</td><td>延遲最低，全快閃陣列的趨勢</td></tr>
+      <tr><td><b>NAS</b>（NFS/SMB）</td><td>一般網路</td><td><b>檔案層級</b>（前面都是區塊層級）</td></tr>
+    </table></div>
+
+    <div class="ok">✅ <b>區塊 vs 檔案的差別（常考）：</b><br>
+    <b>SAN（區塊）</b>——給伺服器一顆「裸磁碟」，作業系統自己格式化。適合資料庫、虛擬機。<br>
+    <b>NAS（檔案）</b>——給的是「共享資料夾」，檔案系統在儲存端。適合共享文件、使用者家目錄。</div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>6. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>觀念</th><th>要記住的</th></tr>
+      <tr><td>FC 的哲學</td><td><b>零丟包</b>，靠 B2B Credit；長距離要注意 credit 不足</td></tr>
+      <tr><td>WWN vs FCID</td><td>WWN 像 MAC（固定）、FCID 像 IP（登入時配發）</td></tr>
+      <tr><td>登入順序</td><td>FLOGI → PLOGI → PRLI；排錯先看 FLOGI</td></tr>
+      <tr><td>VSAN vs Zoning</td><td>VSAN 切邏輯 fabric、Zoning 管誰看得到誰</td></tr>
+      <tr><td><b>Single Initiator</b></td><td>一個 Zone 只放一個主機埠（避免 RSCN 風暴）</td></tr>
+      <tr><td>NPIV</td><td>一個埠<b>多個身分</b>（虛擬化）</td></tr>
+      <tr><td>NPV</td><td>交換器<b>不佔 Domain ID</b>（規模）</td></tr>
+      <tr><td>FCoE</td><td>需要 <b>DCB</b>（PFC/ETS/DCBX）、MTU 2240、<b>不可路由</b></td></tr>
+    </table></div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="05-aci.html">← 05 · Cisco ACI</a>
+    <a href="07-ucs.html">07 · UCS 統一運算 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 06</footer>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料中心自動化 — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">08 · 資料中心自動化</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · 自動化</div>
+  <h1>資料中心自動化</h1>
+  <p>從腳本化到事件驅動的三個層次。NX-API、Guest Shell、EEM、POAP、Ansible 與 Streaming Telemetry——以及為什麼「冪等」是自動化的門檻。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#why">自動化的三個層次</a></li><li><a href="#nxapi">NX-OS 可程式化介面</a></li><li><a href="#eem">EEM 與 POAP</a></li><li><a href="#tools">Ansible、Puppet 與 Terraform</a></li><li><a href="#telemetry">Streaming Telemetry</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="why">
+    <h2>1. 資料中心自動化的三個層次</h2>
+    <div class="diag"><span class="g">從手動到自動的階梯</span>
+
+<span class="y">L1 腳本化</span> ── 把重複的 CLI 包成腳本
+   Bash / Python + SSH
+   <span class="o">問題:還是命令式,而且沒有狀態管理</span>
+
+<span class="y">L2 設定管理</span> ── 宣告「應該長什麼樣」
+   Ansible / Puppet
+   <span class="g">好處:冪等（跑幾次結果都一樣）、可版控</span>
+
+<span class="y">L3 事件驅動</span> ── 系統自己反應
+   EEM / POAP / Intersight
+   <span class="g">好處:不用人介入</span>
+
+<span class="w">實務建議:不要跳級</span>
+   先把設定寫成程式碼並版控（L2）
+   再考慮讓它自己動（L3）
+   <span class="r">直接做 L3 但沒有 L2 的基礎,出事時你不知道現在的狀態該是什麼</span></div>
+  </div>
+
+  <div class="card" id="nxapi">
+    <h2>2. NX-OS 的可程式化介面</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>介面</th><th>說明</th><th>適合</th></tr>
+      <tr><td><b>NX-API REST</b></td><td>HTTP + JSON/XML 操作物件模型</td><td>與現有系統整合</td></tr>
+      <tr><td><b>NX-API CLI</b></td><td>把 CLI 指令包進 HTTP 送出，回傳結構化結果</td><td><b>從既有腳本遷移最快</b></td></tr>
+      <tr><td><b>NETCONF / RESTCONF</b></td><td>標準協定 + <b>YANG</b> 資料模型</td><td>跨廠牌自動化</td></tr>
+      <tr><td><b>Guest Shell</b></td><td>交換器內建的 Linux 容器，<b>可直接跑 Python</b></td><td>在設備上就地執行腳本</td></tr>
+      <tr><td><b>Bash Shell</b></td><td>直接進 NX-OS 底層 Linux</td><td>進階排錯</td></tr>
+    </table></div>
+
+    <div class="formula"><code># 啟用 NX-API
+N9K(config)# feature nxapi
+N9K(config)# nxapi https port 443
+
+# 從外部呼叫（NX-API CLI 模式）
+curl -k -u admin:pass https://10.1.1.1/ins \
+  -H "Content-Type: application/json" \
+  -d '{"ins_api":{"version":"1.0","type":"cli_show",
+       "chunk":"0","sid":"1","input":"show interface brief",
+       "output_format":"json"}}'
+
+# Guest Shell:在交換器上直接跑 Python
+N9K# guestshell
+[guestshell@N9K ~]$ python3 my_script.py</code></div>
+
+    <div class="ok">✅ <b>YANG 是什麼：</b>一種<u>描述設定與狀態資料結構的模型語言</u>。它定義「一個介面有哪些欄位、型別是什麼、必填還是選填」。<br>
+    NETCONF/RESTCONF 是<b>傳輸方式</b>，YANG 是<b>資料的規格</b>——兩者搭配才能做到跨廠牌的自動化。</div>
+  </div>
+
+  <div class="card" id="eem">
+    <h2>3. EEM 與 POAP：讓設備自己動</h2>
+    <h3>EEM（Embedded Event Manager）</h3>
+    <p>在設備<b>內部</b>設定「發生什麼事，就做什麼反應」，<u>不需要外部系統介入</u>。</p>
+    <div class="formula"><code># 例：偵測到某介面斷線就自動記錄診斷資訊並通知
+N9K(config)# event manager applet LINK-DOWN-CAPTURE
+N9K(config-applet)# event syslog pattern "Interface Ethernet1/1.*down"
+N9K(config-applet)# action 1.0 cli command "show interface Ethernet1/1"
+N9K(config-applet)# action 2.0 cli command "show logging last 50"
+N9K(config-applet)# action 3.0 syslog priority critical msg "Eth1/1 斷線，已擷取診斷"
+
+N9K# show event manager policy internal</code></div>
+    <div class="ok">✅ <b>EEM 最實用的場景是「偶發性故障」。</b>問題只在半夜出現、你到現場時已經恢復——<u>用 EEM 在事件發生的當下自動擷取現場資訊</u>，隔天就有資料可以分析。</div>
+
+    <h3>POAP（Power On Auto Provisioning）</h3>
+    <div class="diag"><span class="g">開箱即用的自動佈建</span>
+
+   新交換器<span class="o">出廠設定</span>開機
+        ↓
+   沒有 startup-config → <span class="y">自動進入 POAP 模式</span>
+        ↓
+   DHCP 取得 IP + <span class="o">Option 67 指向腳本位置</span>
+        ↓
+   下載並執行佈建腳本
+        ↓
+   <span class="g">自動下載指定韌體 + 套用設定 + 重開</span>
+        ↓
+   <span class="g">上線,完全沒有人碰過 console</span>
+
+<span class="w">價值:上架 50 台交換器不用逐台設定</span>
+   而且每一台的設定都<span class="g">保證一致</span>（來自同一個範本）</div>
+    <div class="trap"><b>陷阱：POAP 只在「沒有 startup-config」時觸發</b><br>
+    如果設備曾經被設定過，開機不會進 POAP。要重新觸發必須先 <code>write erase</code> 並重開。<br>
+    這也是保護機制——避免正式環境的設備意外被重新佈建。</div>
+  </div>
+
+  <div class="card" id="tools">
+    <h2>4. Ansible、Puppet 與 Terraform</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>Ansible</th><th>Puppet</th><th>Terraform</th></tr>
+      <tr><td><b>模式</b></td><td><b>Push</b>（從控制端推）</td><td><b>Pull</b>（代理定期拉）</td><td>Push</td></tr>
+      <tr><td><b>需要代理程式</b></td><td><b>不用</b>（走 SSH/API）</td><td>要裝 agent</td><td>不用</td></tr>
+      <tr><td><b>語言</b></td><td>YAML</td><td>Puppet DSL</td><td>HCL</td></tr>
+      <tr><td><b>強項</b></td><td><b>網路設備最常用</b></td><td>大量伺服器的持續合規</td><td><b>基礎設施佈建</b>（含雲端）</td></tr>
+      <tr><td><b>狀態管理</b></td><td>無狀態檔</td><td>持續收斂</td><td><b>有 state 檔</b></td></tr>
+    </table></div>
+
+    <div class="formula"><code># Ansible 設定 Nexus VLAN 的 playbook
+- name: 設定資料中心 VLAN
+  hosts: nexus_switches
+  connection: network_cli
+  tasks:
+    - name: 確保 VLAN 存在
+      cisco.nxos.nxos_vlans:
+        config:
+          - vlan_id: 100
+            name: WEB-TIER
+          - vlan_id: 200
+            name: DB-TIER
+        state: merged
+
+    - name: 設定介面
+      cisco.nxos.nxos_l2_interfaces:
+        config:
+          - name: Ethernet1/5
+            access:
+              vlan: 100
+        state: merged</code></div>
+
+    <div class="ok">✅ <b>為什麼網路自動化多半選 Ansible：</b><u>不需要在設備上裝代理程式</u>——網路設備通常不允許裝第三方軟體。Ansible 走 SSH 或 API，設備端什麼都不用改。<br><br>
+    <b>Puppet 在 DC 的位置</b>：比較常用在伺服器（尤其大量 Linux 主機的持續合規），網路設備上較少見但 NX-OS 有支援。</div>
+
+    <div class="trap"><b>冪等（Idempotent）是自動化的核心要求</b><br>
+    意思是：<b>同一份設定跑一次和跑十次，結果完全相同。</b><br>
+    Ansible 的模組會先檢查現況，只在需要時才做變更。<u>如果你只是把 CLI 指令用腳本連續送出去，那不是冪等的</u>——重跑可能產生重複設定或錯誤。<br><br>
+    <b>這是 L1 腳本化與 L2 設定管理的關鍵差別。</b></div>
+  </div>
+
+  <div class="card" id="telemetry">
+    <h2>5. Streaming Telemetry：取代 SNMP 輪詢</h2>
+    <div class="diag"><span class="r">SNMP 輪詢的問題</span>
+   網管系統每 5 分鐘問一次:「介面流量多少?」
+   → <span class="r">5 分鐘內的突波完全看不到</span>
+   → 設備要花 CPU 回應大量查詢
+   → 設備越多,輪詢越慢
+
+<span class="g">Streaming Telemetry</span>
+   設備<span class="g">主動、持續</span>把資料推出去（秒級甚至次秒級）
+   → 用 <span class="y">gRPC / gNMI</span> 傳輸,<span class="y">YANG</span> 定義結構
+   → 推到 Kafka / 時序資料庫 / Grafana
+
+<span class="w">差別像什麼</span>
+   SNMP = <span class="o">每 5 分鐘拍一張照片</span>
+   Telemetry = <span class="o">連續錄影</span></div>
+
+    <div class="ok">✅ <b>Network Assurance 的概念：</b>從「<u>出事後去查</u>」變成「<u>持續確認網路是否符合預期</u>」。<br>
+    有了高解析度的遙測資料，可以做到：偵測微突發（microburst）、在效能劣化到影響使用者之前就發現、以及用歷史基準判斷「現在這個數字正不正常」。</div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>6. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>技術</th><th>用途</th><th>關鍵記憶點</th></tr>
+      <tr><td><b>NX-API</b></td><td>HTTP 操作設備</td><td>REST 模式操作物件、CLI 模式包指令</td></tr>
+      <tr><td><b>Guest Shell</b></td><td>設備內跑 Python</td><td>內建 Linux 容器</td></tr>
+      <tr><td><b>YANG</b></td><td>資料模型</td><td>NETCONF/RESTCONF 是傳輸、YANG 是規格</td></tr>
+      <tr><td><b>EEM</b></td><td>設備內事件反應</td><td>偶發故障的現場擷取</td></tr>
+      <tr><td><b>POAP</b></td><td>開箱自動佈建</td><td><b>只在沒有 startup-config 時觸發</b></td></tr>
+      <tr><td><b>Ansible</b></td><td>設定管理</td><td>Push、<b>免代理</b>、YAML、網路首選</td></tr>
+      <tr><td><b>Puppet</b></td><td>持續合規</td><td>Pull、要代理</td></tr>
+      <tr><td><b>Telemetry</b></td><td>即時監控</td><td>推送式，取代 SNMP 輪詢</td></tr>
+    </table></div>
+    <div class="ok">✅ <b>一句話：</b>先把設定變成<b>版控的程式碼</b>（Ansible），再讓設備<b>自己反應</b>（EEM/POAP），最後用<b>遙測</b>持續確認結果符合預期。</div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="07-ucs.html">← 07 · UCS 統一運算</a>
+    <a href="index.html">回課程總覽 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 08</footer>
+</body>
+</html>

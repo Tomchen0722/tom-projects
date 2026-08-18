@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料中心 Multicast — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">02 · 資料中心 Multicast</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · 多播</div>
+  <h1>資料中心 Multicast</h1>
+  <p>一份行情送給 500 個交易系統，用單播要 500 倍頻寬。這一章講 IGMP/MLD 怎麼訂閱、PIM 怎麼建立轉發樹，以及為什麼 SSM 不需要 RP。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#why">為什麼資料中心特別需要 Multicast</a></li><li><a href="#addr">多播位址與 MAC 對應</a></li><li><a href="#igmp">IGMP 與 MLD</a></li><li><a href="#pim">PIM：路由器怎麼送</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="why">
+    <h2>1. 為什麼資料中心特別需要 Multicast</h2>
+    <div class="analogy">單播（Unicast）像<b>一對一寄信</b>——要寄給 100 人就印 100 份。<br>廣播（Broadcast）像<b>對整棟大樓喊話</b>——不管你要不要聽都聽得到。<br>多播（Multicast）像<b>訂閱制的社區廣播</b>——只有訂閱的人收得到，而且來源只送一份，中途才複製。</div>
+
+    <div class="diag"><span class="g">同樣送一份 1Gbps 的影音給 50 台伺服器</span>
+
+   <span class="r">單播</span>:來源要送 50 份 = <span class="r">50 Gbps</span> 出口頻寬
+   <span class="y">廣播</span>:全網段都收到,包含不需要的機器（浪費 + 資安風險）
+   <span class="g">多播</span>:來源只送 <span class="g">1 份</span>,交換器在分歧點才複製
+
+<span class="w">資料中心的常見用途</span>
+   • 金融交易的行情推送（同一份報價給幾百個交易系統）
+   • 影音串流與監控
+   • 叢集心跳與狀態同步
+   • <span class="o">VXLAN 的 BUM 流量處理</span>（下一章會用到）
+   • 儲存陣列的複寫</div>
+  </div>
+
+  <div class="card" id="addr">
+    <h2>2. 多播位址與 MAC 對應</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>範圍</th><th>用途</th></tr>
+      <tr><td><code>224.0.0.0/24</code></td><td><b>Link-local</b>，路由器不轉發。如 224.0.0.5（OSPF）、224.0.0.18（VRRP）</td></tr>
+      <tr><td><code>232.0.0.0/8</code></td><td><b>SSM</b>（Source-Specific Multicast）專用</td></tr>
+      <tr><td><code>239.0.0.0/8</code></td><td><b>私有多播</b>，等同單播的 10.0.0.0/8。<u>企業內部自用一律選這段</u></td></tr>
+    </table></div>
+
+    <div class="trap"><b>必考：多播 IP 對應到 MAC 會「重疊」</b><br>
+    多播 MAC 的前 25 bit 固定是 <code>01:00:5E:0</code>，<u>只有後 23 bit 來自 IP</u>。<br>
+    但多播 IP 的主機部分有 28 bit——<b>等於有 5 bit 被丟掉，32 個不同的多播 IP 會對應到同一個 MAC</b>。<br><br>
+    例：<code>239.1.1.1</code> 和 <code>239.129.1.1</code> 對應到同一個多播 MAC。<br>
+    後果：交換器層級會把兩群流量都送給訂閱任一方的主機，造成非預期的流量。<u>規劃多播位址時要避開這種重疊。</u></div>
+  </div>
+
+  <div class="card" id="igmp">
+    <h2>3. IGMP 與 MLD：主機怎麼說「我要訂閱」</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>IGMP</th><th>MLD</th></tr>
+      <tr><td>用於</td><td><b>IPv4</b></td><td><b>IPv6</b></td></tr>
+      <tr><td>底層</td><td>獨立的 IP 協定（編號 2）</td><td>建構在 <b>ICMPv6</b> 之上</td></tr>
+      <tr><td>版本對應</td><td>IGMPv2 ↔ MLDv1<br>IGMPv3 ↔ MLDv2</td><td>同左</td></tr>
+    </table></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>IGMPv2</b><span>主機說「我要 239.1.1.1」，<b>不指定來源</b>。支援 Leave 訊息，離開較快。</span></div>
+      <div class="cmp"><b>IGMPv3</b><span>可指定<b>來源</b>：「我要來自 10.1.1.5 的 239.1.1.1」。這是 <b>SSM 的必要條件</b>。</span></div>
+      <div class="cmp"><b>Querier</b><span>網段上負責定期詢問「還有人要聽嗎」的路由器。IP 最小的當選。</span></div>
+      <div class="cmp"><b>IGMP Snooping</b><span>交換器<b>偷看</b> IGMP 訊息，只把多播送給真正訂閱的埠，而不是整個 VLAN 氾濫。<u>預設開啟，不要關。</u></span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：關掉 IGMP Snooping 會發生什麼</b><br>
+    交換器會把多播當成<b>廣播</b>處理——氾濫到 VLAN 內每一個埠。<br>
+    在資料中心，一條 1Gbps 的多播串流會瞬間打滿所有伺服器的網卡。<u>這是很經典的「一個設定搞垮整個機櫃」案例。</u></div>
+  </div>
+
+  <div class="card" id="pim">
+    <h2>4. PIM：路由器怎麼把流量送到訂閱者</h2>
+    <p>IGMP 處理「主機 ↔ 最近的路由器」，<b>PIM</b> 處理「路由器之間」怎麼建立轉發路徑。</p>
+
+    <div class="diag"><span class="g">兩種分佈樹</span>
+
+<span class="y">① Shared Tree（共享樹）  記法 (*, G)</span>
+   所有來源的流量都先送到一個<span class="o">會合點 RP</span>（Rendezvous Point）
+   接收者向 RP 註冊
+        Source ──→ <span class="o">RP</span> ──→ Receiver
+   優點:路由器只要記 (*, G),狀態少
+   缺點:路徑不一定最短,RP 是瓶頸與單點
+
+<span class="y">② Source Tree / SPT（來源樹）  記法 (S, G)</span>
+   接收者直接沿最短路徑找到來源
+        Source ──────────→ Receiver
+   優點:<span class="g">路徑最短、延遲最低</span>
+   缺點:每個來源都要一組狀態,記憶體用量大
+
+<span class="w">PIM Sparse Mode 的實際行為</span>
+   先用 Shared Tree 建立連線
+   → 流量開始後,<span class="g">自動切換到 SPT</span>（SPT Switchover）
+   → 兩者的優點都拿到</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>PIM 模式</th><th>行為</th><th>適用</th></tr>
+      <tr><td><b>Dense Mode</b></td><td>先氾濫給全部，再由不要的路由器「剪枝」</td><td><b>已淘汰</b>，浪費頻寬</td></tr>
+      <tr><td><b>Sparse Mode</b></td><td>要有人明確加入才建立路徑，需要 RP</td><td><b>企業與 DC 的標準做法</b></td></tr>
+      <tr><td><b>SSM</b></td><td>接收者直接指定來源，<b>完全不需要 RP</b></td><td>來源固定且已知（如行情推送）</td></tr>
+      <tr><td><b>Bidir-PIM</b></td><td>雙向共享樹，狀態最少</td><td>多對多（如金融交易撮合）</td></tr>
+    </table></div>
+
+    <div class="trap"><b>必考：SSM 不需要 RP</b><br>
+    這是常見選擇題。SSM 的接收者用 IGMPv3 直接說「我要來自某某來源的某某群組」，<u>路由器可以直接建 (S, G) 樹，不必經過 RP</u>。<br><br>
+    <b>所以 SSM 的優點：</b>沒有 RP 這個單點故障、沒有 RP 選舉的複雜度、路徑最短、也不怕別人亂送同一個群組的流量（因為指定了來源）。<br>
+    <b>限制：</b>接收者必須事先知道來源 IP，且主機要支援 IGMPv3。</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Static RP</b><span>手動指定，最簡單但沒有備援。小環境可用。</span></div>
+      <div class="cmp"><b>Auto-RP</b><span>Cisco 專有，用 224.0.1.39/40 宣告。較舊。</span></div>
+      <div class="cmp"><b>BSR</b><span>標準做法（Bootstrap Router），可自動選舉與備援。</span></div>
+      <div class="cmp"><b>Anycast RP</b><span>多台 RP 共用同一個 IP，用 MSDP 同步。<b>DC 最常用</b>，兼顧備援與負載。</span></div>
+    </div>
+
+    <div class="formula"><code># Nexus 上啟用 PIM
+N9K(config)# feature pim
+N9K(config)# ip pim rp-address 10.255.255.1 group-list 239.0.0.0/8
+N9K(config)# interface ethernet 1/1
+N9K(config-if)# ip pim sparse-mode
+
+# SSM（不用設 RP）
+N9K(config)# ip pim ssm range 232.0.0.0/8
+
+# 驗證
+N9K# show ip mroute
+N9K# show ip pim neighbor
+N9K# show ip igmp snooping</code></div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>5. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>觀念</th><th>要記住的</th></tr>
+      <tr><td>239.0.0.0/8</td><td>私有多播範圍，企業內部用這段</td></tr>
+      <tr><td>IP → MAC 重疊</td><td>32 個 IP 對應同一個 MAC（丟了 5 bit）</td></tr>
+      <tr><td>IGMP / MLD</td><td>IPv4 用 IGMP、IPv6 用 MLD（建在 ICMPv6 上）</td></tr>
+      <tr><td>IGMP Snooping</td><td>交換器只送給訂閱者，<b>關掉會變廣播氾濫</b></td></tr>
+      <tr><td>(*, G) vs (S, G)</td><td>共享樹經過 RP；來源樹直達，路徑最短</td></tr>
+      <tr><td>PIM Sparse Mode</td><td>先共享樹再切 SPT，DC 標準</td></tr>
+      <tr><td><b>SSM</b></td><td><b>不需要 RP</b>，但要 IGMPv3</td></tr>
+      <tr><td>Anycast RP</td><td>DC 的 RP 備援標準做法</td></tr>
+    </table></div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="01-vpc.html">← 01 · 資料中心交換與 vPC</a>
+    <a href="03-overlay.html">03 · Overlay：VXLAN 與 OTV →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 02</footer>
+</body>
+</html>

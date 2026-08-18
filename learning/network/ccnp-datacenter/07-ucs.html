@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cisco UCS 統一運算 — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">07 · Cisco UCS 統一運算</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · 運算</div>
+  <h1>Cisco UCS 統一運算</h1>
+  <p>UCS 的核心不是硬體比較快，而是把伺服器的身分（MAC、WWN、BIOS）抽離硬體變成一份設定檔——換機器像換電池一樣簡單。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#why">UCS 想解決的問題</a></li><li><a href="#arch">架構元件</a></li><li><a href="#pool">Pool、Policy 與 Template</a></li><li><a href="#san">儲存連接</a></li><li><a href="#hx">HyperFlex 與 Intersight</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="why">
+    <h2>1. UCS 想解決的問題</h2>
+    <div class="analogy">傳統上換一台故障的伺服器：拆下舊的、裝上新的、<b>重設 BIOS、重設網卡 MAC、重設 HBA 的 WWN、重做 Zoning、重裝作業系統</b>——半天到一天跑不掉。<br>UCS 的目標是把這件事變成：<b>新機器插上去，套用同一份「服務設定檔」，開機就是原本那台。</b></div>
+
+    <div class="diag"><span class="g">UCS 的核心概念:身分與硬體分離</span>
+
+<span class="r">傳統伺服器</span>
+   身分（MAC、WWN、UUID、BIOS 設定、韌體版本）
+   <span class="r">全部燒在那台實體機器上</span>
+   → 換機器 = 換身分 = 上下游全部要重設
+
+<span class="g">UCS</span>
+   身分抽出來變成 <span class="y">Service Profile（服務設定檔）</span>
+   實體伺服器只是<span class="o">一個沒有個性的算力容器</span>
+
+   Service Profile 內容:
+     • MAC 位址（從 MAC Pool 取）
+     • WWNN / WWPN（從 WWN Pool 取）
+     • UUID（從 UUID Pool 取）
+     • BIOS 政策、開機順序、韌體版本
+     • 網路與儲存的連接設定
+
+   <span class="g">把 Profile 從故障機器「解除關聯」再「關聯」到新機器
+   → 新機器完全繼承身分,上游的 Zoning 與 LUN 遮罩都不用改</span></div>
+
+    <div class="ok">✅ <b>這就是 UCS 最重要的價值主張。</b>不是硬體比較快，而是<u>把伺服器變成可替換的、由軟體定義的資源</u>。考試很愛問這個核心概念。</div>
+  </div>
+
+  <div class="card" id="arch">
+    <h2>2. 架構元件</h2>
+    <div class="diag"><span class="g">UCS 的組成</span>
+
+   <span class="y">Fabric Interconnect（FI）</span>  ── 大腦 + 統一出口
+      • <span class="o">UCS Manager 就跑在 FI 上</span>（不是獨立伺服器）
+      • 一定成對部署（A / B），叢集運作
+      • 所有網路與儲存流量都經過它
+           │
+      ┌────┴────┐
+      │         │
+   <span class="o">Chassis</span>      <span class="o">C-Series</span>
+   （刀鋒機箱）   （機架伺服器）
+      │
+   <span class="w">IOM / FEX</span>（機箱內的 I/O 模組）
+      • <span class="r">不是交換器</span>,只是「延伸線」
+      • 把刀鋒的流量集中送到 FI
+      │
+   <span class="w">B-Series 刀鋒伺服器</span>
+      └── <span class="y">VIC</span>（Virtual Interface Card）
+             可虛擬出多張 vNIC 與 vHBA
+
+<span class="w">兩種伺服器形式</span>
+   <span class="o">B-Series</span>（刀鋒）── 密度高、共用電源與散熱、適合大規模
+   <span class="o">C-Series</span>（機架）── 彈性高、可裝更多本機碟與 GPU</div>
+
+    <div class="trap"><b>必考：IOM 不是交換器</b><br>
+    機箱裡的 IOM（也叫 FEX）<u>不做本地交換</u>——即使同一個機箱裡的兩台刀鋒要互通，流量也要<b>先上到 FI 再繞回來</b>。<br><br>
+    <b>為什麼這樣設計：</b>所有流量都經過 FI，代表<u>所有政策與監控都集中在一個地方</u>，不會有「機箱內部的流量看不到」的死角。<br>
+    代價是機箱內通訊多繞一段，但在 10G 以上的環境影響很小。</div>
+  </div>
+
+  <div class="card" id="pool">
+    <h2>3. Pool、Policy 與 Template</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>元件</th><th>作用</th><th>例子</th></tr>
+      <tr><td><b>Pool</b></td><td>身分資源池，自動配發</td><td>MAC Pool、WWNN/WWPN Pool、UUID Pool、Server Pool</td></tr>
+      <tr><td><b>Policy</b></td><td>可重複套用的設定</td><td>BIOS 政策、開機順序、韌體套件、QoS</td></tr>
+      <tr><td><b>Template</b></td><td>Profile 的模子</td><td>vNIC/vHBA 範本、Service Profile 範本</td></tr>
+    </table></div>
+
+    <div class="trap"><b>Initial vs Updating Template（必考）</b><br>
+    • <b>Initial Template</b>——用它產生 Profile 之後，<u>兩者就脫鉤</u>。改範本不影響已建立的 Profile。<br>
+    • <b>Updating Template</b>——<u>保持連結</u>。改範本會<b>自動套用到所有由它產生的 Profile</b>。<br><br>
+    <b>威力與風險並存：</b>Updating 讓你改一次就更新 200 台伺服器的設定；<u>但改錯也會一次影響 200 台</u>，而且某些變更會觸發重開機。<br>
+    <b>實務：正式環境用 Updating 但變更前務必先在測試 Profile 驗證。</b></div>
+
+    <div class="ok">✅ <b>手動指定 vs Pool 配發：</b>絕對要用 Pool。<u>手動打 MAC 與 WWN 一定會有人打錯或重複</u>，而 SAN 環境裡兩個相同的 WWPN 會造成極難排查的故障。Pool 保證唯一性。</div>
+  </div>
+
+  <div class="card" id="san">
+    <h2>4. UCS 的儲存連接</h2>
+    <div class="cmprow">
+      <div class="cmp"><b>FC / FCoE 開機</b><span>Profile 裡指定 boot LUN 的目標 WWPN 與 LUN ID，<b>伺服器本身可以完全沒有硬碟</b>。</span></div>
+      <div class="cmp"><b>iSCSI 開機</b><span>用 IQN 而非 WWPN，走一般 IP 網路。成本低。</span></div>
+      <div class="cmp"><b>FI 的兩種模式</b><span><b>End-Host Mode</b>（預設，不參與 STP，像一台大主機）／<b>Switch Mode</b>（當交換器用，會跑 STP）。</span></div>
+      <div class="cmp"><b>無狀態運算</b><span>從 SAN 開機 + Service Profile = <u>伺服器完全無狀態</u>，這是 UCS 的理想型態。</span></div>
+    </div>
+
+    <div class="trap"><b>End-Host Mode 是預設也是建議</b><br>
+    在 End-Host Mode 下，FI <u>對上游交換器來說就像一台伺服器</u>——不跑 STP、不轉發上游之間的流量。<br>
+    好處是：<b>不會意外造成迴圈、不會捲進上游的 STP 拓撲、上游看到的 MAC 數量可控。</b><br>
+    只有在特殊需求（例如要讓 FI 直接接儲存陣列）才切到 Switch Mode。</div>
+  </div>
+
+  <div class="card" id="hx">
+    <h2>5. HyperFlex 與 Intersight</h2>
+    <h3>超融合（HCI）</h3>
+    <div class="diag"><span class="g">三種架構的演進</span>
+
+<span class="y">傳統三層</span>
+   伺服器 ── SAN 交換器 ── 儲存陣列
+   三種設備、三組管理介面、三批專業人員
+
+<span class="y">融合式（Converged）</span>
+   同樣的元件,但廠商<span class="o">預先整合驗證</span>過並當成一套賣
+   例:FlexPod（Cisco UCS + NetApp）
+
+<span class="g">超融合（Hyperconverged）= HyperFlex</span>
+   <span class="o">把儲存陣列拿掉</span>
+   → 用伺服器內建的硬碟組成<span class="g">分散式儲存</span>
+   → 軟體定義,擴充就是加一台節點
+   → <span class="g">一套介面管運算與儲存</span></div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>優點</th><th>限制</th></tr>
+      <tr><td><b>超融合</b></td><td>部署快、管理單純、<b>線性擴充</b></td><td>運算與儲存<b>綁在一起擴充</b>——只缺儲存也要買整台節點</td></tr>
+      <tr><td>傳統三層</td><td>運算與儲存可<b>各自獨立擴充</b></td><td>複雜、要多種專業</td></tr>
+    </table></div>
+
+    <div class="ok">✅ <b>選型判斷：</b>工作負載的運算與儲存需求<u>比例穩定</u> → 超融合很適合（VDI 是典型）。<br>如果是<u>資料成長遠快於運算需求</u>（例如影音歸檔），傳統三層的獨立擴充比較划算。</div>
+
+    <h3>Cisco Intersight</h3>
+    <p><b>Intersight</b> 是 Cisco 的雲端維運平台，把原本要逐一登入各套 UCS Manager 的工作集中起來。</p>
+    <div class="cmprow">
+      <div class="cmp"><b>跨站集中管理</b><span>不論設備在哪個機房，都在同一個雲端介面管理。</span></div>
+      <div class="cmp"><b>主動式支援</b><span>自動比對已知問題與韌體建議，出事前先提醒。</span></div>
+      <div class="cmp"><b>韌體協調</b><span>檢查各元件版本相容性，這在 UCS 是很痛的維運工作。</span></div>
+      <div class="cmp"><b>API 優先</b><span>所有功能都有 REST API，可接進既有的自動化流程。</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>6. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>觀念</th><th>要記住的</th></tr>
+      <tr><td><b>Service Profile</b></td><td>身分與硬體分離，換機器不用改上下游</td></tr>
+      <tr><td>UCS Manager</td><td><b>跑在 FI 上</b>，不是獨立伺服器</td></tr>
+      <tr><td>IOM / FEX</td><td><b>不是交換器</b>，不做本地交換</td></tr>
+      <tr><td>Pool</td><td>MAC/WWN/UUID 一律用 Pool，不要手動指定</td></tr>
+      <tr><td>Template</td><td><b>Updating</b> 會連動更新；<b>Initial</b> 產生後脫鉤</td></tr>
+      <tr><td>FI 模式</td><td><b>End-Host Mode</b> 是預設與建議（不跑 STP）</td></tr>
+      <tr><td>HyperFlex</td><td>超融合＝拿掉儲存陣列，但運算與儲存綁著擴充</td></tr>
+      <tr><td>Intersight</td><td>雲端集中維運與韌體協調</td></tr>
+    </table></div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="06-storage.html">← 06 · 儲存網路</a>
+    <a href="08-automation.html">08 · DC 自動化 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 07</footer>
+</body>
+</html>

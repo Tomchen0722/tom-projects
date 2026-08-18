@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cisco ACI：架構與政策模型 — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">05 · Cisco ACI：架構與政策模型</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCACI · 核心</div>
+  <h1>Cisco ACI：架構與政策模型</h1>
+  <p>ACI 把網路從「一台一台設定」變成「對整個機房下政策」。這一章講 Spine-Leaf 架構、Tenant 到 EPG 的階層，以及最容易卡住的 Contract 方向。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#what">ACI 改變了什麼</a></li><li><a href="#fabric">架構：Spine-Leaf 與 APIC</a></li><li><a href="#logical">邏輯模型：Tenant 到 EPG</a></li><li><a href="#contract">Contract：白名單模型</a></li><li><a href="#external">對外連線 L2Out/L3Out</a></li><li><a href="#vmm">VMM 整合與 Service Graph</a></li><li><a href="#mgmt">管理與維運</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="what">
+    <h2>1. ACI 到底改變了什麼</h2>
+    <div class="analogy">傳統網路管理像<b>一台一台交代</b>：這台交換器開這個 VLAN、那台設這條 ACL。你要記得每一台的狀態。<br>ACI 像<b>對整個機房下一份政策</b>：「財務系統只能被財務部存取」——<u>至於要在哪幾台交換器上設什麼，控制器自己去算。</u></div>
+
+    <div class="diag"><span class="g">兩種思維的根本差別</span>
+
+<span class="y">傳統（命令式 Imperative）</span>
+   你說:「在 Leaf-1 的 Eth1/5 設 VLAN 10」
+        「在 Leaf-2 的 Eth1/8 設 VLAN 10」
+        「在核心加一條 ACL 擋 A 到 B」
+   → 你要知道<span class="r">每一台的位置與狀態</span>
+   → 漏設一台就出問題,而且很難發現
+
+<span class="y">ACI（宣告式 Declarative）</span>
+   你說:「Web 群組可以用 TCP 443 連 App 群組」
+   → <span class="g">APIC 自己算出要在哪些 Leaf 下什麼設定</span>
+   → 伺服器搬到別的機櫃,政策<span class="g">自動跟著走</span>
+
+<span class="w">關鍵字:意圖（intent）</span>
+   你描述「想要什麼結果」,不描述「怎麼做」</div>
+
+    <div class="ok">✅ <b>ACI 最實際的價值：政策跟著工作負載走。</b>傳統上虛擬機從機櫃 A 搬到機櫃 B，網路組要重新設定 VLAN 與 ACL；在 ACI 裡，工作負載屬於哪個 EPG 就套用哪些政策，<u>換位置不用改設定</u>。</div>
+  </div>
+
+  <div class="card" id="fabric">
+    <h2>2. 架構：Spine-Leaf 與 APIC</h2>
+    <div class="diag"><span class="g">ACI Fabric 拓撲</span>
+
+        <span class="y">Spine-1</span>        <span class="y">Spine-2</span>
+        ╱  │  ╲       ╱  │  ╲
+       ╱   │   ╲     ╱   │   ╲
+   <span class="o">Leaf-1</span> <span class="o">Leaf-2</span> <span class="o">Leaf-3</span> <span class="o">Leaf-4</span> ...
+      │      │      │      │
+   伺服器  伺服器  防火牆  對外路由器
+
+<span class="w">規則（考試會問）</span>
+   • <span class="g">每個 Leaf 都連到每個 Spine</span>
+   • <span class="r">Leaf 之間不互連</span>
+   • <span class="r">Spine 之間不互連</span>
+   • 所有端點都接在 <span class="o">Leaf</span> 上,<u>Spine 不接任何終端裝置</u>
+   → 任兩台伺服器之間<span class="g">永遠只隔兩跳</span>（可預測的延遲）
+
+<span class="w">APIC</span>（Application Policy Infrastructure Controller）
+   • <span class="y">集中管理的控制器,通常 3 台一組</span>
+   • 只做<span class="o">管理平面</span>——<span class="r">APIC 全掛,資料流量照常轉發</span>
+   • 底層跑 IS-IS（自動化,你不用設）+ VXLAN 封裝</div>
+
+    <div class="trap"><b>必考：APIC 掛掉會怎樣</b><br>
+    <b>資料流量完全不受影響</b>，因為 APIC 只負責政策的下發與管理，實際轉發是 Leaf/Spine 在做。<br>
+    影響的是：<u>不能做設定變更、看不到集中監控</u>。<br><br>
+    APIC 建議三台叢集：<b>掛一台仍可讀寫；掛兩台只剩唯讀</b>（因為失去多數決）。</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Fabric Discovery</b><span>接上線後透過 <b>LLDP</b> 自動發現，管理員在 APIC 上逐台「註冊」即納入 fabric。不用手動設 IP。</span></div>
+      <div class="cmp"><b>底層自動化</b><span>IS-IS 與 VXLAN 都是 ACI 自己管的，<u>你不會也不該手動設定</u>。</span></div>
+      <div class="cmp"><b>Object Model</b><span>所有設定都是物件（MO），有唯一的 DN 路徑。整台 APIC 的功能都能透過 REST API 操作。</span></div>
+      <div class="cmp"><b>三種紀錄</b><span><b>Fault</b>（目前的問題）、<b>Event</b>（發生過的事）、<b>Audit Log</b>（誰改了什麼）。排錯先看 Fault。</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="logical">
+    <h2>3. 邏輯模型：Tenant 到 EPG</h2>
+    <div class="diag"><span class="g">由上而下的階層</span>
+
+<span class="y">Tenant（租戶）</span>  ── 最上層的隔離單位
+   │                  例:Production、Development、某個部門
+   │
+   ├── <span class="o">VRF</span>（Context）── 一個獨立的路由表
+   │      │             同一個 Tenant 可以有多個 VRF
+   │      │             <u>不同 VRF 的 IP 可以重複</u>
+   │      │
+   │      └── <span class="o">Bridge Domain（BD）</span> ── 二層的邊界
+   │             │        ≈ 傳統的 VLAN,但更靈活
+   │             │        一個 BD 可以有多個子網
+   │             │
+   │             └── <span class="g">EPG（Endpoint Group）</span> ── <b>政策的最小單位</b>
+   │                      端點依「角色」分組
+   │                      例:Web-EPG、App-EPG、DB-EPG
+   │
+   └── <span class="o">Application Profile（AP）</span> ── 把相關的 EPG 收在一起
+              例:「電商系統」含 Web / App / DB 三個 EPG</div>
+
+    <div class="trap"><b>最重要的觀念：EPG 與 VLAN 解耦</b><br>
+    傳統上「同一個 VLAN 的機器可以互通」。<b>ACI 不是這樣</b>：<br>
+    <u>同一個 Bridge Domain 裡的不同 EPG，預設「不能」互通</u>——必須有 Contract 才通。<br><br>
+    這就是 <b>白名單模型</b>：預設全部禁止，明確允許才通。和傳統網路「預設全通、用 ACL 擋」的黑名單模型剛好相反。<br><br>
+    <b>考試常問：兩台伺服器在同一個 BD、同一個子網，但屬於不同 EPG，能不能通？</b>→ <u>不能，除非有 Contract。</u></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>EPG 怎麼分類端點</b><span>可依 <b>實體埠 + VLAN</b>、VMM 整合（虛擬機的 port group）、IP 或 MAC。</span></div>
+      <div class="cmp"><b>BD 的關鍵設定</b><span><b>ARP Flooding</b>（預設關，用代答）、<b>Unicast Routing</b>（要做三層才開）、<b>L2 Unknown Unicast</b>（Hardware Proxy 或 Flood）。</span></div>
+      <div class="cmp"><b>Hardware Proxy</b><span>未知單播不氾濫，改送到 Spine 查詢代理資料庫。<u>這是 ACI 減少氾濫的關鍵。</u></span></div>
+      <div class="cmp"><b>Preferred Group</b><span>把幾個 EPG 放進偏好群組，群組內免 Contract 互通。方便但要謹慎用。</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="contract">
+    <h2>4. Contract：ACI 的防火牆規則</h2>
+    <div class="diag"><span class="g">Contract 的三層結構</span>
+
+   <span class="y">Contract</span>（合約）
+      └── <span class="o">Subject</span>（主題）
+             └── <span class="g">Filter</span>（過濾器）
+                    └── Entry:協定 + 埠號
+
+<span class="w">誰提供、誰消費</span>
+
+   <span class="o">Provider（提供者）</span> ←─── Contract ───→ <span class="o">Consumer（消費者）</span>
+      提供服務的一方                      發起連線的一方
+
+   例:Web-EPG 要連 App-EPG 的 8080
+      → <span class="g">App-EPG 是 Provider</span>（它提供 8080 服務）
+      → <span class="g">Web-EPG 是 Consumer</span>（它去用這個服務）
+
+<span class="r">方向搞反是最常見的設定錯誤</span></div>
+
+    <div class="trap"><b>必考：Provider vs Consumer 怎麼判斷</b><br>
+    問一句話：<b>「誰在監聽那個埠？」</b><br>
+    監聽的那一方就是 <b>Provider</b>；主動去連的是 <b>Consumer</b>。<br><br>
+    例：使用者瀏覽器連 Web 伺服器的 443 → <u>Web-EPG 是 Provider</u>，外部 EPG 是 Consumer。<br>
+    <b>方向設反的症狀：</b>連線不通，但 Contract 看起來「有設」——這是 ACI 新手最常卡住的地方。</div>
+
+    <div class="ok">✅ <b>vzAny 的用途：</b>如果某個服務要讓 VRF 內所有 EPG 都能用（例如 DNS、NTP），<u>不必為每個 EPG 各建一條 Contract</u>——用 <b>vzAny</b> 代表「這個 VRF 內的所有 EPG」，一條搞定。<br>這在大型環境能把 Contract 數量從幾百條降到幾十條。</div>
+  </div>
+
+  <div class="card" id="external">
+    <h2>5. 對外連線：L2Out 與 L3Out</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>L2Out</th><th>L3Out</th></tr>
+      <tr><td>用途</td><td>把 ACI 內的<b>二層</b>延伸到外部</td><td>ACI 與外部做<b>三層路由</b></td></tr>
+      <tr><td>典型場景</td><td>遷移期間與舊網路並存</td><td><b>連到 WAN、防火牆、其他機房</b></td></tr>
+      <tr><td>協定</td><td>—</td><td>靜態路由、OSPF、BGP、EIGRP</td></tr>
+      <tr><td>外部端點怎麼表示</td><td>External Bridged Network</td><td><b>External EPG</b>（用子網來分類）</td></tr>
+    </table></div>
+
+    <div class="trap"><b>陷阱：External EPG 也要 Contract</b><br>
+    很多人設好 L3Out、路由也通了，但流量還是不通——<u>因為忘了在 External EPG 與內部 EPG 之間建立 Contract</u>。<br><br>
+    記住 ACI 的白名單原則：<b>路由通 ≠ 政策通</b>。這兩件事是分開的。</div>
+
+    <div class="ok">✅ <b>L3Out 的 External EPG 用「子網」分類外部端點。</b>例如把 <code>0.0.0.0/0</code> 設成一個 External EPG 代表「整個外部世界」，或用更細的子網區分不同外部來源，套用不同的 Contract。</div>
+  </div>
+
+  <div class="card" id="vmm">
+    <h2>6. VMM 整合與 Service Graph</h2>
+    <h3>VMM Domain（虛擬機管理整合）</h3>
+    <p>ACI 可以直接與 VMware vCenter、Hyper-V、OpenStack 整合，<b>自動在虛擬化平台上建立對應的 port group</b>。</p>
+    <div class="diag"><span class="g">整合後的流程</span>
+
+   管理員在 APIC 建立 EPG「Web-EPG」
+        ↓ 自動
+   vCenter 上出現對應的 <span class="y">port group</span>
+        ↓
+   虛擬機管理員把 VM 接到那個 port group
+        ↓ 自動
+   <span class="g">ACI 知道這台 VM 屬於 Web-EPG,政策自動套用</span>
+        ↓
+   VM 遷移到別台主機 → <span class="g">政策跟著走,不用改設定</span>
+
+<span class="w">Resolution Immediacy（何時把政策下到 Leaf）</span>
+   <span class="o">On Demand</span>  ── 有 VM 真的上線才下（<b>最省硬體資源</b>）
+   <span class="o">Immediate</span>  ── 一整合就下
+   <span class="o">Pre-provision</span> ── 連 VMM 都還沒連上就先下（管理網路用）</div>
+
+    <h3>Service Graph（服務插入）</h3>
+    <p>要讓流量經過防火牆或負載平衡器，傳統做法是<b>手動改路由或 VLAN 把流量「拐」過去</b>——設定複雜且容易出錯。</p>
+    <div class="ok">✅ <b>Service Graph 讓你用宣告的方式指定：</b>「Web-EPG 到 App-EPG 的流量，中間要經過這台防火牆」。ACI 自動處理 VLAN 拼接與導流。<br><br>
+    <b>PBR（Policy-Based Redirect）</b>是最常用的模式：<u>不改變原本的路由，只是把符合條件的流量重導向到服務裝置</u>。這樣防火牆不用當閘道，架構單純很多。</div>
+  </div>
+
+  <div class="card" id="mgmt">
+    <h2>7. 管理與維運</h2>
+    <div class="cmprow">
+      <div class="cmp"><b>Out-of-Band (OOB)</b><span>走獨立的管理網路。<u>fabric 出事時仍能連上</u>，這是首選。</span></div>
+      <div class="cmp"><b>In-Band</b><span>走 fabric 本身。頻寬大但 fabric 掛了就連不上。</span></div>
+      <div class="cmp"><b>設定備份</b><span>APIC 可排程匯出設定快照，<u>變更前務必先做</u>。支援回滾。</span></div>
+      <div class="cmp"><b>升級</b><span>先升 APIC 叢集，再分批升 Spine 與 Leaf（維持冗餘不中斷）。</span></div>
+    </div>
+
+    <div class="trap"><b>排錯順序</b><br>
+    ① <b>看 Fault</b>——ACI 會主動把問題列出來，而且附建議。這是最快的路徑。<br>
+    ② <b>檢查 Contract 方向</b>——連線不通九成是 Provider/Consumer 設反或漏建。<br>
+    ③ <b>確認端點有沒有被學到</b>——在 APIC 查該 EPG 的 endpoint 清單。<br>
+    ④ <b>Audit Log</b>——「昨天還好好的」就去看誰改了什麼。</div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>8. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>觀念</th><th>要記住的</th></tr>
+      <tr><td>Spine-Leaf</td><td>Leaf 不互連、Spine 不接終端、任兩點兩跳</td></tr>
+      <tr><td>APIC</td><td>只管管理平面，<b>掛掉不影響轉發</b>；三台叢集</td></tr>
+      <tr><td>階層</td><td>Tenant → VRF → BD → EPG；AP 收納相關 EPG</td></tr>
+      <tr><td><b>白名單模型</b></td><td>不同 EPG <b>預設不通</b>，要 Contract</td></tr>
+      <tr><td>Provider/Consumer</td><td><b>監聽埠的是 Provider</b></td></tr>
+      <tr><td>vzAny</td><td>代表 VRF 內所有 EPG，簡化共用服務</td></tr>
+      <tr><td>L3Out</td><td>路由通 ≠ 政策通，External EPG 也要 Contract</td></tr>
+      <tr><td>VMM 整合</td><td>自動建 port group，政策跟著 VM 走</td></tr>
+      <tr><td>Service Graph</td><td>PBR 重導向，不用改路由</td></tr>
+      <tr><td>排錯</td><td>先看 <b>Fault</b>，再查 Contract 方向</td></tr>
+    </table></div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="04-security.html">← 04 · 基礎設施安全</a>
+    <a href="06-storage.html">06 · 儲存網路 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 05</footer>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料中心基礎設施安全 — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">04 · 資料中心基礎設施安全</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · 安全</div>
+  <h1>資料中心基礎設施安全</h1>
+  <p>RBAC、TACACS+、First Hop Security、MACsec、CoPP——資料中心的設備安全和企業網路的重點不太一樣，尤其是控制平面保護。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#rbac">RBAC 角色型存取</a></li><li><a href="#aaa">AAA 與 SSH</a></li><li><a href="#fhs">First Hop Security</a></li><li><a href="#macsec">MACsec 線路加密</a></li><li><a href="#copp">CoPP 控制平面保護</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="rbac">
+    <h2>1. RBAC：不要每個工程師都給 admin</h2>
+    <div class="analogy">很多機房的現況是「大家共用一組 admin 密碼」。<br>出事時你查不出<b>是誰</b>下的指令，離職時你也不敢改密碼（怕改了什麼會壞掉）。</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>NX-OS 內建角色</th><th>權限</th></tr>
+      <tr><td><code>network-admin</code></td><td>完整讀寫（等同 root）</td></tr>
+      <tr><td><code>network-operator</code></td><td><b>唯讀</b></td></tr>
+      <tr><td><code>vdc-admin</code></td><td>該 VDC 內完整權限</td></tr>
+      <tr><td><code>vdc-operator</code></td><td>該 VDC 內唯讀</td></tr>
+    </table></div>
+
+    <div class="formula"><code># 自訂角色：只讓儲存團隊管 VSAN，不能碰路由
+N9K(config)# role name storage-team
+N9K(config-role)# description 儲存團隊
+N9K(config-role)# rule 1 permit read
+N9K(config-role)# rule 2 permit command show *
+N9K(config-role)# rule 3 permit config feature vsan
+N9K(config-role)# rule 4 deny command configure terminal ; router *
+
+N9K(config)# username alice password S3cure role storage-team
+N9K# show role
+N9K# show user-account</code></div>
+
+    <div class="trap"><b>陷阱：規則編號由大到小評估</b><br>
+    NX-OS 的角色規則是<b>從編號最大的往下比對，第一個符合的就決定結果</b>。<br>
+    這和一般 ACL「由上往下」的直覺相反，設定時很容易搞錯優先順序。</div>
+  </div>
+
+  <div class="card" id="aaa">
+    <h2>2. AAA 與 SSH</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>RADIUS</th><th>TACACS+</th></tr>
+      <tr><td>傳輸</td><td>UDP 1812/1813</td><td><b>TCP 49</b></td></tr>
+      <tr><td>加密</td><td>只加密密碼</td><td><b>整個封包</b></td></tr>
+      <tr><td>AAA 拆分</td><td>驗證授權綁一起</td><td><b>三者獨立</b></td></tr>
+      <tr><td>DC 用途</td><td>使用者網路存取</td><td><b>設備管理與指令授權</b> ✅</td></tr>
+    </table></div>
+
+    <div class="ok">✅ <b>資料中心的設備管理一律用 TACACS+</b>，因為它能做到<u>指令層級的授權與稽核</u>——「誰在幾點下了哪一條指令」全部有紀錄。這是法遵稽核的基本要求。</div>
+
+    <div class="formula"><code>N9K(config)# feature tacacs+
+N9K(config)# tacacs-server host 10.1.1.20 key 7 MySecretKey
+N9K(config)# aaa group server tacacs+ TACGROUP
+N9K(config-tacacs+)#   server 10.1.1.20
+
+N9K(config)# aaa authentication login default group TACGROUP local
+N9K(config)# aaa accounting default group TACGROUP
+                                            ↑ local 當後備,避免 TACACS 掛掉就登不進去
+
+# SSH
+N9K(config)# ssh key rsa 2048 force
+N9K(config)# feature ssh
+N9K(config)# no feature telnet          ← 一定要關</code></div>
+
+    <div class="trap"><b>陷阱：一定要留 local 後備</b><br>
+    如果 AAA 只設 <code>group TACGROUP</code> 而沒有 <code>local</code>，<u>TACACS 伺服器一掛你就完全登不進交換器</u>——而且通常是在網路出事的時候一起掛。<br>
+    <b>這是實務上真的會發生的災難，務必留本機帳號當後備。</b></div>
+  </div>
+
+  <div class="card" id="fhs">
+    <h2>3. First Hop Security</h2>
+    <p>和第 14 章（CCNA）的二層資安同一套邏輯，但在資料中心規模更大、影響更廣。</p>
+    <div class="cmprow">
+      <div class="cmp"><b>DHCP Snooping</b><span>建立 IP-MAC-埠 綁定表，是後面兩者的地基。</span></div>
+      <div class="cmp"><b>DAI</b><span>比對 ARP 宣告是否與綁定表相符，擋 ARP 毒化。</span></div>
+      <div class="cmp"><b>IP Source Guard</b><span>擋來源 IP 偽造。</span></div>
+      <div class="cmp"><b>Port Security</b><span>限制每埠的 MAC 數量。<u>DC 要注意虛擬化環境一個埠後面有很多 VM</u>。</span></div>
+    </div>
+    <div class="trap"><b>DC 特有的注意事項</b><br>
+    伺服器埠後面可能有<b>幾十台虛擬機</b>，每台都有自己的 MAC。<br>
+    如果照企業網路的習慣設 <code>port-security maximum 2</code>，<u>一開機就會把整台實體主機的網路關掉</u>。<br>
+    DC 的接入埠要依實際 VM 密度調整上限，或改用其他機制。</div>
+  </div>
+
+  <div class="card" id="macsec">
+    <h2>4. MACsec：線路層加密</h2>
+    <div class="diag"><span class="g">MACsec 補的是哪個洞</span>
+
+   TLS/IPsec 保護的是<span class="y">應用層與網路層</span>
+   但<span class="r">實體線路上的原始訊框仍是明文</span>
+
+   威脅情境:
+     • 機房間的暗光纖被竊聽（光纖分光很容易）
+     • 跨大樓的線路經過不受控區域
+     • 內部人員在配線間接線側錄
+
+   <span class="g">MACsec（IEEE 802.1AE）</span>
+     在<span class="o">第二層</span>逐跳加密整個訊框
+     線上跑的東西即使被截走也是密文</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>項目</th><th>說明</th></tr>
+      <tr><td>標準</td><td>IEEE 802.1AE</td></tr>
+      <tr><td>加密</td><td>AES-GCM 128／256</td></tr>
+      <tr><td>金鑰協商</td><td><b>MKA</b>（MACsec Key Agreement）</td></tr>
+      <tr><td>特性</td><td><b>逐跳（hop-by-hop）</b>——每一段各自加密，中繼設備看得到明文</td></tr>
+    </table></div>
+
+    <div class="trap"><b>必考：MACsec 是逐跳，不是端對端</b><br>
+    這是它和 IPsec/TLS 最大的差別。MACsec 保護的是「<u>這一段線路</u>」，封包到了對端交換器會被解密，再由下一段重新加密。<br>
+    <b>所以它防的是「線路被竊聽」，不是「中繼設備不可信」。</b>如果連中繼設備都不信任，要用端對端的 IPsec。</div>
+  </div>
+
+  <div class="card" id="copp">
+    <h2>5. CoPP：保護控制平面</h2>
+    <div class="diag"><span class="g">為什麼交換器會被「打死」</span>
+
+   資料平面（Data Plane）= 硬體 ASIC 轉發,速度極快
+   控制平面（Control Plane）= <span class="y">CPU 處理</span>,速度慢很多
+
+   哪些封包會上送 CPU?
+     • 路由協定（OSPF、BGP）的 Hello 與更新
+     • ARP、ICMP
+     • SSH/SNMP 管理流量
+     • <span class="r">TTL 過期、需要 ICMP 回覆的封包</span>
+
+   <span class="r">攻擊手法</span>:大量送這類封包 → CPU 100%
+     → <span class="r">路由協定鄰居斷線 → 整台設備失效</span>
+     <u>不需要打穿任何漏洞,只要讓 CPU 忙不過來</u>
+
+   <span class="g">CoPP = 對「上送 CPU 的流量」套用 QoS 政策</span>
+     重要的（路由協定）優先且保障頻寬
+     次要的（ICMP）限速
+     可疑的直接丟</div>
+
+    <div class="formula"><code># NX-OS 內建幾種預設策略,通常直接套用即可
+N9K(config)# copp profile strict          ← 最嚴格
+N9K(config)# copp profile moderate
+N9K(config)# copp profile lenient
+
+N9K# show copp status
+N9K# show policy-map interface control-plane      ← 看有沒有被丟棄的封包</code></div>
+
+    <div class="ok">✅ <b>排錯用途：</b><code>show policy-map interface control-plane</code> 的 drop 計數如果一直增加，代表<u>有東西在對控制平面送過量流量</u>——可能是攻擊，也可能是某個設定錯誤造成的迴圈。這是很有價值的健康指標。</div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>6. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>機制</th><th>解決什麼</th><th>關鍵記憶點</th></tr>
+      <tr><td><b>RBAC</b></td><td>誰能做什麼</td><td>NX-OS 規則<b>由大編號往小比對</b></td></tr>
+      <tr><td><b>TACACS+</b></td><td>設備管理的驗證與稽核</td><td>TCP 49、全封包加密、<b>一定要留 local 後備</b></td></tr>
+      <tr><td><b>First Hop Security</b></td><td>二層欺騙</td><td>DC 要注意 VM 密度與 port-security 上限</td></tr>
+      <tr><td><b>MACsec</b></td><td>線路被竊聽</td><td>802.1AE、<b>逐跳</b>不是端對端</td></tr>
+      <tr><td><b>CoPP</b></td><td>控制平面被打死</td><td>對上送 CPU 的流量做 QoS</td></tr>
+    </table></div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="03-overlay.html">← 03 · Overlay：VXLAN 與 OTV</a>
+    <a href="index.html">回課程總覽 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 04</footer>
+</body>
+</html>

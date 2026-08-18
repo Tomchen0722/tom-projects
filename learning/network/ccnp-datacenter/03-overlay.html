@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overlay：VXLAN 與 OTV — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">03 · Overlay：VXLAN 與 OTV</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · Overlay</div>
+  <h1>Overlay：VXLAN 與 OTV</h1>
+  <p>VLAN 只有 4094 個、二層跨不了機房——這一章講怎麼把二層封裝進三層，讓網路格局能像活動隔板一樣重排。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol><li><a href="#why">為什麼需要 Overlay</a></li><li><a href="#vxlan">VXLAN：業界標準</a></li><li><a href="#bum">BUM 流量</a></li><li><a href="#otv">OTV：跨資料中心延伸</a></li><li><a href="#traps">本章重點整理</a></li></ol>
+  </div>
+
+
+  <div class="card" id="why">
+    <h2>1. 為什麼需要 Overlay</h2>
+    <div class="analogy">傳統網路像<b>把房間格局砌成磚牆</b>——要改格局就要打牆。<br>Overlay 像<b>用活動隔板分隔空間</b>——底下的地板（實體網路）不動，隔板隨時能重排。</div>
+
+    <div class="diag"><span class="g">傳統 VLAN 在資料中心的三個天花板</span>
+
+<span class="r">① VLAN 只有 4094 個</span>
+   多租戶雲端環境動輒上萬個租戶
+   → 12 bit 的 VLAN ID 根本不夠用
+
+<span class="r">② 二層網域無法跨機房</span>
+   虛擬機要在兩個機房之間搬移,IP 不能變
+   → 但傳統上二層不能跨越三層邊界
+
+<span class="r">③ STP 的規模限制</span>
+   大型二層網域的收斂與故障半徑都很可怕
+
+<span class="g">Overlay 的解法:把二層封裝進三層</span>
+   底層（Underlay）= 單純的 IP 網路,只管把封包送到對面
+   上層（Overlay）  = 邏輯的二層網域,想怎麼切就怎麼切
+   兩者<span class="y">互相獨立</span>——改上層不用動底層</div>
+  </div>
+
+  <div class="card" id="vxlan">
+    <h2>2. VXLAN：現在的業界標準</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>項目</th><th>內容</th></tr>
+      <tr><td><b>全名</b></td><td>Virtual Extensible LAN</td></tr>
+      <tr><td><b>封裝方式</b></td><td>MAC-in-UDP，外層是一般的 IP/UDP 封包</td></tr>
+      <tr><td><b>UDP 埠</b></td><td><b>4789</b>（考試會問）</td></tr>
+      <tr><td><b>識別碼</b></td><td><b>VNI</b>（VXLAN Network Identifier），<b>24 bit → 約 1600 萬個</b></td></tr>
+      <tr><td><b>端點</b></td><td><b>VTEP</b>（VXLAN Tunnel Endpoint），負責封裝與解封裝</td></tr>
+      <tr><td><b>額外開銷</b></td><td>約 50 bytes → <u>底層 MTU 建議設 9216（jumbo）</u></td></tr>
+    </table></div>
+
+    <div class="diag"><span class="g">VXLAN 封包結構</span>
+
+  ┌─────────────────────────────────────────┐
+  │ 外層 MAC │ 外層 IP │ UDP │ VXLAN │ 原始訊框 │
+  └─────────────────────────────────────────┘
+       ↑         ↑       ↑      ↑         ↑
+    底層轉發   VTEP 對    <span class="y">4789</span>   <span class="y">VNI</span>    <span class="o">使用者原本的
+              VTEP                     完整二層訊框</span>
+
+<span class="w">運作流程</span>
+  伺服器 A（VLAN 10）送訊框給伺服器 B
+     ↓
+  <span class="y">VTEP-1</span> 收到 → 查 VNI 對應 → 加上外層 IP/UDP/VXLAN 標頭
+     ↓
+  底層 IP 網路正常轉送（<span class="g">中間的設備完全不知道裡面是什麼</span>）
+     ↓
+  <span class="y">VTEP-2</span> 收到 → 拆掉外層 → 還原原始訊框 → 送給伺服器 B</div>
+
+    <div class="trap"><b>必考：MTU 一定要調大</b><br>
+    VXLAN 加了約 50 bytes。如果底層 MTU 還是預設 1500，<u>使用者送滿 1500 的封包就會超過而被丟棄或分片</u>。<br>
+    症狀很典型：<b>ping 通、小封包正常，但傳大檔案就斷</b>。<br>
+    解法：底層所有路徑（含中間交換器）都設 <b>MTU 9216</b>。</div>
+  </div>
+
+  <div class="card" id="bum">
+    <h2>3. BUM 流量：Overlay 最難的一段</h2>
+    <p><b>BUM = Broadcast、Unknown unicast、Multicast</b>。傳統二層靠氾濫解決，但 Overlay 底下是三層網路，沒有天然的廣播網域。</p>
+
+    <div class="diag"><span class="g">兩種處理方式</span>
+
+<span class="y">① Multicast 模式（傳統做法）</span>
+   每個 VNI 對應一個多播群組
+   VTEP 加入該群組 → BUM 流量用多播送出
+   <span class="o">優點</span>:底層只複製一次,效率高
+   <span class="r">缺點</span>:<u>底層網路必須支援並設定好多播</u>（第 2 章的 PIM）
+           很多企業的底層不想跑多播
+
+<span class="y">② Ingress Replication（頭端複製）</span>
+   來源 VTEP 自己複製 N 份,分別單播給每個對端 VTEP
+   <span class="o">優點</span>:底層<span class="g">只要能跑 IP 就好</span>,不用多播
+   <span class="r">缺點</span>:VTEP 數量多時來源端負擔重
+
+<span class="g">③ 更好的解法:根本不要氾濫 → EVPN</span></div>
+
+    <div class="trap"><b>陷阱：VXLAN 有兩種控制平面</b><br>
+    • <b>Flood and Learn</b>（傳統）：像傳統交換器一樣靠氾濫學習 MAC。設定簡單但效率差、規模受限。<br>
+    • <b>EVPN</b>（現代標準）：用 <b>BGP EVPN</b> 當控制平面，<u>VTEP 之間互相「宣告」自己後面有哪些 MAC 與 IP</u>，不需要氾濫學習。<br><br>
+    <b>EVPN 的三個好處：</b>① 抑制 ARP 氾濫（VTEP 直接代答）② 支援多租戶的三層路由 ③ 支援 Active-Active 多歸屬。<br>
+    <u>現在講 VXLAN 幾乎都預設是 VXLAN EVPN。</u></div>
+  </div>
+
+  <div class="card" id="otv">
+    <h2>4. OTV：跨資料中心的二層延伸</h2>
+    <p><b>OTV（Overlay Transport Virtualization）</b>是 Cisco 專有技術，專門解決「兩個機房之間要延伸二層」的問題。</p>
+
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>VXLAN</th><th>OTV</th></tr>
+      <tr><td>標準</td><td>IETF 標準</td><td><b>Cisco 專有</b></td></tr>
+      <tr><td>主要用途</td><td><b>資料中心內部</b>的多租戶與擴充</td><td><b>資料中心之間（DCI）</b>的二層延伸</td></tr>
+      <tr><td>控制平面</td><td>EVPN 或氾濫學習</td><td><b>IS-IS</b> 宣告 MAC</td></tr>
+      <tr><td>封裝</td><td>MAC-in-UDP</td><td>MAC-in-IP（GRE 類）</td></tr>
+      <tr><td>現況</td><td><b>主流，持續發展</b></td><td>逐漸被 VXLAN EVPN 取代</td></tr>
+    </table></div>
+
+    <div class="ok">✅ <b>OTV 最重要的設計特點：故障隔離。</b><br>
+    傳統把二層直接延伸到另一個機房，<u>一邊的廣播風暴會直接燒到另一邊</u>——兩個機房變成一個故障網域，失去了異地備援的意義。<br><br>
+    OTV 的做法：<br>
+    • <b>不轉發未知單播</b>——沒學到的 MAC 就不送過去，避免氾濫跨站<br>
+    • <b>STP 不跨站</b>——每個站點有自己獨立的 STP 網域<br>
+    • <b>ARP 快取代答</b>——減少跨站的 ARP 流量<br><br>
+    <u>這就是 OTV 與「直接拉一條二層專線」的關鍵差別。</u></div>
+
+    <div class="trap"><b>陷阱：跨機房延伸二層本身就是有爭議的設計</b><br>
+    很多架構師的立場是「<b>能不延伸就不要延伸</b>」——因為它讓兩個機房耦合在一起，違反故障隔離的原則。<br><br>
+    <b>但實務上還是有需要的場景：</b>虛擬機跨機房即時遷移（vMotion 要求同網段）、叢集心跳要求二層相鄰、舊系統寫死了 IP。<br>
+    <u>正確的態度是：先問「應用能不能改成三層就好」，真的不行才用 OTV 或 VXLAN EVPN 做多站延伸。</u></div>
+  </div>
+
+  <div class="card" id="traps">
+    <h2>5. 本章重點整理</h2>
+    <div class="tbl-wrap"><table>
+      <tr><th>觀念</th><th>要記住的</th></tr>
+      <tr><td>VXLAN 埠</td><td><b>UDP 4789</b></td></tr>
+      <tr><td>VNI</td><td><b>24 bit ≈ 1600 萬</b>，解決 VLAN 4094 的限制</td></tr>
+      <tr><td>VTEP</td><td>負責封裝解封裝的端點</td></tr>
+      <tr><td>MTU</td><td>加約 50 bytes，底層要設 <b>9216</b></td></tr>
+      <tr><td>BUM 處理</td><td>多播模式 或 頭端複製；最佳解是 EVPN 免氾濫</td></tr>
+      <tr><td>控制平面</td><td><b>BGP EVPN</b> 是現代標準</td></tr>
+      <tr><td>OTV</td><td>Cisco 專有、DCI 用、<b>IS-IS</b> 控制平面、<b>故障隔離</b></td></tr>
+    </table></div>
+  </div>
+
+
+  <div class="page-nav">
+    <a href="02-multicast.html">← 02 · 資料中心 Multicast</a>
+    <a href="04-security.html">04 · 基礎設施安全 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 03</footer>
+</body>
+</html>
