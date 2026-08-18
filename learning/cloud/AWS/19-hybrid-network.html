@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>混合雲網路深入 — AWS SAA-C03</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.arch .c{color:#50FA7B;}.arch .y{color:#FFD700;}.arch .o{color:#FF9900;}.arch .w{color:#F8F8F2;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--orange);background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:var(--dark);margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:var(--muted);line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
+  <a href="index.html">實作篇</a><span class="sep">/</span>
+  <span class="cur">19 · 混合雲網路深入</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">實作 19 · 混合網路</div>
+  <h1><span>混合雲網路</span>深入</h1>
+  <p>第 02 章把 VPC 內部打通了，但企業真正的難題在「機房怎麼連進來」。這一課處理 VPN、Direct Connect、Transit Gateway 與混合 DNS——SAA 領域 1 與領域 2 的高頻考點，也是實務上最容易做錯的一塊。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#map">混合雲的三條路：先看全景</a></li>
+      <li><a href="#vpn">Site-to-Site VPN：最快上線的那條</a></li>
+      <li><a href="#dx">Direct Connect：實體專線與三種 VIF</a></li>
+      <li><a href="#dxha">DX 的高可用與備援設計（必考）</a></li>
+      <li><a href="#tgw">Transit Gateway：區域級路由中樞</a></li>
+      <li><a href="#dns">Route 53 Resolver：混合 DNS 的唯一解</a></li>
+      <li><a href="#privatelink">Endpoint / PrivateLink / Peering / TGW 選型</a></li>
+      <li><a href="#ram">VPC 共享（RAM）與 IPv6 出口</a></li>
+      <li><a href="#lab">實作 Lab：TGW + 混合 DNS</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="map">
+    <h2>1. 混合雲的三條路：先看全景</h2>
+
+    <div class="analogy">把 AWS 想成你在別的城市新開的分公司：<br>
+    <b>Site-to-Site VPN</b> = 走高速公路，今天就能通車，但塞不塞車看國道；<br>
+    <b>Direct Connect</b> = 自己挖一條專用隧道，穩定又快，但要施工好幾個月；<br>
+    <b>Transit Gateway</b> = 蓋一個交流道樞紐，以後每多一個分公司只要接上樞紐，不用兩兩對接。</div>
+
+    <p>混合雲網路的題目，九成都在問三件事的其中之一：<b>「要多快通」「要多穩」「要連多少個 VPC」</b>。先把這張全景圖記起來，後面的細節才有掛勾的地方。</p>
+
+    <div class="arch"><span class="w">                  【 你的機房 / 分公司 】</span>
+                            │
+        ┌───────────────────┼───────────────────┐
+        │                   │                   │
+  <span class="y">Site-to-Site VPN</span>    <span class="o">Direct Connect</span>      <span class="c">SD-WAN / GRE</span>
+   走公網 · IPsec       實體專線 · 不加密      TGW Connect
+   幾分鐘可通            數週~數月施工
+   1.25 Gbps/tunnel     1 / 10 / 100 Gbps
+        │                   │                   │
+        └───────────────────┼───────────────────┘
+                            ▼
+              <span class="o">┌──────────────────────────┐</span>
+              <span class="o">│    Transit Gateway       │</span>  ← 區域級樞紐
+              <span class="o">│  （多路由表 = 網段隔離）  │</span>
+              <span class="o">└──────────────────────────┘</span>
+                 │        │        │
+            <span class="c">VPC-Prod</span>  <span class="c">VPC-Dev</span>  <span class="c">VPC-Shared</span>
+                                        ├─ Route 53 Resolver Endpoint
+                                        └─ Interface Endpoint（PrivateLink）</div>
+
+    <div class="note"><b>為什麼要有 Transit Gateway？</b>因為 VPC Peering <b>不可遞移</b>。5 個 VPC 要全互連需要 <span class="inline-code">5×4/2 = 10</span> 條 Peering；10 個 VPC 就要 45 條。再加上每條都要各自維護路由表，這在十幾個 VPC 之後就沒有人管得動了。TGW 把它變成 <b>N 條附件</b> 的線性問題。</div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>需求關鍵字</th><th>答案</th><th>為什麼</th></tr></thead>
+      <tbody>
+        <tr><td><b>盡快 / 立刻</b>建立混合連線</td><td>Site-to-Site VPN</td><td>DX 要拉實體線，前置期以週或月計</td></tr>
+        <tr><td>需要<b>穩定頻寬、可預測延遲</b></td><td>Direct Connect</td><td>不走公網，不受網際網路壅塞影響</td></tr>
+        <tr><td>DX 施工中的<b>過渡方案</b></td><td>先 VPN，DX 完成後轉為備援</td><td>經典的兩階段遷移題型</td></tr>
+        <tr><td>DX 的<b>低成本備援</b></td><td>DX 主 + VPN 備</td><td>比拉第二條 DX 便宜非常多</td></tr>
+        <tr><td><b>大量 VPC</b> 互連、集中管控</td><td>Transit Gateway</td><td>Peering 不可遞移且數量爆炸</td></tr>
+        <tr><td>只連<b>兩個</b> VPC、要最低延遲最低成本</td><td>VPC Peering</td><td>Peering 本身免費，只付跨 AZ／跨區流量</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="vpn">
+    <h2>2. Site-to-Site VPN：最快上線的那條</h2>
+
+    <h3>組成的四個名詞</h3>
+    <div class="svc-grid">
+      <div class="svc"><b>Customer Gateway (CGW)</b><span>AWS 這邊建的<b>設定物件</b>，描述你機房那台路由器的公有 IP 與 BGP ASN。它<b>不是</b>實體設備。</span></div>
+      <div class="svc"><b>Customer Gateway Device</b><span>你機房裡真正的那台路由器／防火牆。要自己設定 IPsec。</span></div>
+      <div class="svc"><b>Virtual Private Gateway (VGW)</b><span>掛在<b>單一 VPC</b> 上的 VPN 端點。一個 VPC 只能有一個 VGW。</span></div>
+      <div class="svc"><b>Transit Gateway</b><span>另一種 VPN 端點。要連<b>多個 VPC</b> 或要用 ECMP 聚合頻寬，就必須用它而不是 VGW。</span></div>
+    </div>
+
+    <div class="warn"><strong>每條 VPN 連線一定是「兩條 tunnel」。</strong>AWS 會在<b>兩個不同 AZ</b> 各給一個端點 IP，所以一條 VPN Connection = 2 個 tunnel。<b>單條 tunnel 上限 1.25 Gbps</b>，而且預設只有一條在轉發流量（除非用 TGW + ECMP）。<br><br>
+    <b>考試陷阱：</b>「AWS 端已經提供高可用了，客戶端呢？」——如果你機房只有一台路由器，那台掛掉照樣斷線。<b>真正的高可用需要客戶端也有兩台設備</b>，變成 2 條 VPN Connection、4 條 tunnel。</div>
+
+    <h3>靜態路由 vs BGP（動態）</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>靜態路由</th><th>BGP（動態）</th></tr></thead>
+      <tbody>
+        <tr><td>設定</td><td>手動列出對方網段</td><td>自動交換路由</td></tr>
+        <tr><td>網段變更</td><td>要人工改兩邊</td><td>自動傳播</td></tr>
+        <tr><td><b>自動容錯移轉</b></td><td>做不到（路由不會自己收斂）</td><td><b>可以</b>，tunnel 掛掉自動切另一條</td></tr>
+        <tr><td>DX 與 VPN 併用</td><td>不建議</td><td><b>必須用 BGP</b>，才能自動主備切換</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ok"><strong>只要題目出現「自動容錯移轉」「不希望人工介入切換」，答案就是 BGP。</strong>靜態路由在考試裡幾乎只出現在「最簡單的 PoC」情境。</div>
+
+    <h3>CLI 建立一條 VPN 連線</h3>
+    <pre><code><span class="comment"># ── ① 建立 Customer Gateway（描述你機房那台路由器）──</span>
+<span class="comment"># BgpAsn：你機房的 BGP ASN，私有範圍 64512-65534</span>
+$ <span class="cmd">aws ec2 create-customer-gateway \
+    --type ipsec.1 \
+    --public-ip 203.0.113.10 \
+    --bgp-asn 65000 \
+    --tag-specifications 'ResourceType=customer-gateway,Tags=[{Key=Name,Value=hq-router}]'</span>
+{
+    "CustomerGateway": {
+        "CustomerGatewayId": "cgw-0a1b2c3d4e5f",
+        "BgpAsn": "65000",
+        "IpAddress": "203.0.113.10",
+        "State": "available"
+    }
+}
+
+<span class="comment"># ── ② 建立 VPN 連線（這裡接到 Transit Gateway，不是 VGW）──</span>
+$ <span class="cmd">aws ec2 create-vpn-connection \
+    --type ipsec.1 \
+    --customer-gateway-id cgw-0a1b2c3d4e5f \
+    --transit-gateway-id tgw-0abc123def456</span>
+
+<span class="comment"># ── ③ 下載設定檔（交給機房的網管工程師）──</span>
+<span class="comment"># AWS 會依廠牌產生可直接套用的設定：Cisco / Juniper / Fortinet / pfSense…</span>
+$ <span class="cmd">aws ec2 describe-vpn-connections \
+    --vpn-connection-ids vpn-0123456789 \
+    --query 'VpnConnections[0].CustomerGatewayConfiguration' --output text &gt; hq-vpn.xml</span>
+
+<span class="comment"># ── ④ 確認兩條 tunnel 的狀態 ──</span>
+$ <span class="cmd">aws ec2 describe-vpn-connections --vpn-connection-ids vpn-0123456789 \
+    --query 'VpnConnections[0].VgwTelemetry[].[OutsideIpAddress,Status,StatusMessage]' \
+    --output table</span>
+-------------------------------------------------
+|  52.x.x.x   |  UP    |  1 BGP ROUTES          |
+|  54.x.x.x   |  DOWN  |  IPSEC IS DOWN         |
+-------------------------------------------------</code></pre>
+
+    <div class="note"><b>只有一條 UP 正常嗎？</b>技術上兩條都可以 UP，但流量預設只走一條。如果一條長期 DOWN，代表客戶端只設了一條 tunnel——<b>這是真實世界最常見的設定疏漏</b>，平時看不出來，AWS 做 tunnel 維護時就會整個斷線。</div>
+
+    <h3>兩個容易忽略的加值選項</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>ECMP（等價多路徑）</b><span>把多條 VPN 連線的頻寬<b>相加</b>。4 條 VPN ≈ 5 Gbps。<b>只有 Transit Gateway 支援，VGW 不支援</b>。</span></div>
+      <div class="cmp"><b>Accelerated VPN</b><span>流量先進最近的 AWS 邊緣站點，再走 AWS 骨幹。<b>同樣只支援 TGW</b>。適合跨洲、公網品質差的情境。</span></div>
+    </div>
+
+    <div class="trap"><b>陷阱：「如何提高 VPN 頻寬？」</b><br>
+    答案<u>不是</u>「換更大的 VGW」（VGW 沒有規格可選），也不是「調整 tunnel 參數」。<br>
+    正解是 <b>改用 Transit Gateway 並建立多條 VPN 連線啟用 ECMP</b>。看到「VPN 頻寬不夠」+「不想拉 DX」，就往 TGW + ECMP 想。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="dx">
+    <h2>3. Direct Connect：實體專線與三種 VIF</h2>
+
+    <div class="warn"><strong>DX 是一條實體光纖，預設「不加密」。</strong>很多人以為專線就等於安全——它只是<b>不經過網際網路</b>，資料在線上仍是明文。<br><br>
+    合規要求加密時有兩個做法：<br>
+    ① <b>VPN over Direct Connect</b>（在 DX 的 Public VIF 上再跑一層 IPsec）——最常見，任何速率都能用。<br>
+    ② <b>MACsec</b>（L2 加密）——只在<b>專用連線的 10 Gbps / 100 Gbps 連接埠</b>、且該地點有支援時才能用。</div>
+
+    <h3>三種 Virtual Interface（VIF）——本節重點</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>VIF 類型</th><th>連到哪</th><th>能存取什麼</th><th>典型題目</th></tr></thead>
+      <tbody>
+        <tr><td><b>Private VIF</b></td><td>單一 VPC 的 <b>VGW</b>，或 <b>DX Gateway</b></td><td>VPC 內的<b>私有 IP</b>（EC2、RDS、Interface Endpoint）</td><td>「地端要用私有 IP 連 EC2」</td></tr>
+        <tr><td><b>Public VIF</b></td><td>AWS 公有服務端點</td><td>S3、DynamoDB 等的<b>公有端點</b>，<b>可跨區域</b>，也可在上面跑 VPN over DX</td><td>「地端走專線備份到 S3，不走網際網路」</td></tr>
+        <tr><td><b>Transit VIF</b></td><td><b>DX Gateway → Transit Gateway</b></td><td>TGW 後面掛的<b>所有 VPC</b>，可跨區域</td><td>「一條專線連到幾十個 VPC」</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ex-box">
+      <div class="ex-title">三個 VIF 的口訣</div>
+      <p><b>Private VIF</b> → 我要進 <b>一個</b> VPC 的內網。<br>
+      <b>Public VIF</b> → 我要走專線用 <b>S3 / DynamoDB</b> 這種公有端點。<br>
+      <b>Transit VIF</b> → 我要進 <b>一堆</b> VPC（因為後面接的是 TGW）。</p>
+      <p style="margin-bottom:0"><b>看到「一條 DX 要連多個 VPC」就是 Transit VIF + DX Gateway + TGW 這個三件組。</b>只用 Private VIF + VGW 的話，每個 VPC 都要一個 VIF，而每條 DX 連線的 VIF 數量有上限（專用連線預設 50 個），管理上也很痛苦。</p>
+    </div>
+
+    <h3>Direct Connect Gateway 的兩個關鍵限制</h3>
+    <div class="arch"><span class="w">        【 東京機房 】                【 倫敦機房 】</span>
+              │                            │
+         <span class="o">DX 連線</span>                      <span class="o">DX 連線</span>
+              │                            │
+              └──────────┬─────────────────┘
+                         ▼
+              <span class="y">┌───────────────────────┐</span>
+              <span class="y">│  Direct Connect GW    │</span>  ← <span class="w">全球資源，可跨區域</span>
+              <span class="y">└───────────────────────┘</span>
+                    │           │
+              <span class="c">VGW（東京）</span>   <span class="c">VGW（法蘭克福）</span>
+                    │           │
+              <span class="c">VPC-A</span>         <span class="c">VPC-B</span>
+          <span class="w">✗ VPC-A 與 VPC-B 不能透過 DX Gateway 互通 ✗</span></div>
+
+    <div class="warn"><strong>限制一：DX Gateway 不做 VPC 之間的轉送。</strong>它讓「機房 ↔ 多個區域的 VPC」通，但掛在同一個 DX Gateway 上的兩個 VPC <b>彼此不通</b>。要 VPC 互通得另外用 Peering 或 TGW。<br><br>
+    <strong>限制二：一個 DX Gateway 對每個區域只能關聯一個 Transit Gateway。</strong>多區域要各自設定關聯，並注意允許的前綴清單（Allowed Prefixes）。</div>
+
+    <h3>連線種類與速率</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>Dedicated Connection（專用）</th><th>Hosted Connection（託管）</th></tr></thead>
+      <tbody>
+        <tr><td>誰給你</td><td>AWS 直接配一個實體埠</td><td>透過 APN 合作夥伴切分</td></tr>
+        <tr><td>速率</td><td>1 / 10 / 100 Gbps</td><td><b>50 Mbps 起跳的小額彈性方案</b></td></tr>
+        <tr><td>VIF 數量</td><td>多個（預設 50）</td><td><b>只有 1 個</b></td></tr>
+        <tr><td>MACsec</td><td>10G / 100G 且地點支援時可用</td><td>不支援</td></tr>
+        <tr><td>前置時間</td><td>長（要做實體交叉連接）</td><td>較短</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note"><b>LAG（Link Aggregation Group）</b>把最多 <b>4 條</b>同速率、同一個 DX 地點的實體連線捆成一條邏輯連線，用 LACP 聚合頻寬。<br>
+    <b>它提升頻寬，但不是跨地點的高可用</b>——LAG 的所有連線都在同一個 DX 位置，那個機房出事一樣全斷。這是很常見的觀念混淆。</div>
+
+    <div class="biz"><b>實務提醒：</b>DX 的帳單有兩塊——<b>連接埠時數費</b>（不管有沒有流量都在跳表）與<b>資料傳出費</b>。DX 的傳出費率比走網際網路便宜不少，所以「大量資料長期傳出」是 DX 少數能靠省流量費回本的情境。但如果流量不大，<b>DX 幾乎一定比 VPN 貴</b>——選它是為了穩定性，不是為了省錢。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="dxha">
+    <h2>4. DX 的高可用與備援設計（必考）</h2>
+
+    <p>SAA 幾乎每次都會問「這個 DX 架構的弱點在哪」。AWS 官方把韌性分成幾個等級，把這張表背下來就能直接作答。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>等級</th><th>做法</th><th>擋得住什麼</th><th>SLA</th></tr></thead>
+      <tbody>
+        <tr><td><b>最高韌性</b><br>Maximum Resiliency</td><td><b>兩個 DX 位置</b>，每個位置<b>各兩條</b>連線（分屬不同裝置）</td><td>裝置故障 + 整個 DX 機房故障</td><td><b>99.99%</b></td></tr>
+        <tr><td><b>高韌性</b><br>High Resiliency</td><td><b>兩個 DX 位置</b>，各一條連線</td><td>整個 DX 機房故障</td><td><b>99.9%</b></td></tr>
+        <tr><td>開發／測試</td><td>單一 DX 位置，兩條連線（不同裝置）</td><td>只擋單一裝置故障</td><td>無承諾</td></tr>
+        <tr><td><b>成本取向備援</b></td><td>DX 一條 + <b>Site-to-Site VPN 備援</b></td><td>DX 全斷時降速續命</td><td>依 VPN SLA</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ok"><strong>解題捷徑：</strong>題目說「<b>要最高可用性、預算充足</b>」→ 兩個 DX 位置各兩條（99.99%）。<br>
+    題目說「<b>要備援但要控制成本</b>」→ <b>DX + VPN 備援</b>，這是出現頻率最高的答案。<br>
+    題目說「<b>DX 施工要三個月，但下週就要連線</b>」→ 先上 VPN，DX 完成後 VPN 轉備援。</div>
+
+    <h3>主備怎麼自動切？靠 BGP，不靠人</h3>
+    <div class="arch"><span class="w">正常時：                          DX 斷線後：</span>
+
+  機房 ──<span class="o">DX（優先）</span>──▶ AWS       機房 ──<span class="o">DX ✗</span>
+   └──<span class="y">VPN（待命）</span>───▶ AWS        └──<span class="y">VPN（自動接手）</span>──▶ AWS
+
+  <span class="c">同一個前綴同時從 DX 與 VPN 傳來時，AWS 端偏好 DX。</span>
+  <span class="c">DX 的 BGP 工作階段斷掉 → 路由撤銷 → 流量自動落到 VPN。</span></div>
+
+    <div class="note"><b>為什麼 DX 會贏？</b>在相同前綴長度下，AWS 端的路由偏好順序是 <b>Direct Connect 的 BGP 路由 &gt; VPN</b>。所以只要兩邊都跑 BGP 而且宣告相同網段，切換是自動的，不需要任何人工動作。<br><br>
+    <b>要自己控制方向</b>時的兩個工具：<br>
+    ① <b>AS_PATH prepending</b>——在備援線路上把自己的 ASN 重複宣告幾次，路徑看起來變長就成為備援。<br>
+    ② <b>更明確的前綴（longest prefix match）</b>——宣告 /25 一定贏過 /24，這比任何 BGP 屬性都優先。</div>
+
+    <div class="trap"><b>陷阱：DX 斷線時 VPN 沒接手</b><br>
+    十次有九次是因為 <b>VPN 用了靜態路由</b>。靜態路由不會因為對方掛掉而收斂，流量還是往黑洞送。<b>DX + VPN 備援架構必須兩邊都跑 BGP。</b></div>
+
+    <div class="trap"><b>陷阱：把 LAG 當成高可用</b><br>
+    LAG 的 4 條線都在<b>同一個 DX 位置</b>。它解決的是頻寬與單一裝置故障，不是機房級故障。題目問「如何防止單一 DX 位置故障」→ 答案是<b>第二個 DX 位置</b>，不是 LAG。</div>
+
+    <div class="biz"><b>實務提醒：</b>備援線路平常沒流量，很容易「以為它好好的」。<b>至少每季做一次切換演練</b>（手動關掉 DX 的 BGP 工作階段，確認流量落到 VPN 且應用程式仍可用）。另外要先算過：VPN 每條 tunnel 只有 1.25 Gbps，如果平常 DX 跑 5 Gbps，切過去會直接塞爆——這時要嘛接受降級、要嘛用 TGW + ECMP 疊多條 VPN。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="tgw">
+    <h2>5. Transit Gateway：區域級路由中樞</h2>
+
+    <h3>它能接什麼</h3>
+    <div class="svc-grid">
+      <div class="svc"><b>VPC 附件</b><span>每個 VPC 在<b>每個要通的 AZ 選一個子網路</b>放 TGW 的 ENI。<b>沒選到的 AZ 走不通</b>——這是最常見的連不上原因。</span></div>
+      <div class="svc"><b>VPN 附件</b><span>Site-to-Site VPN 接 TGW，可用 ECMP 聚合頻寬。</span></div>
+      <div class="svc"><b>DX Gateway 附件</b><span>透過 <b>Transit VIF</b> 進來，一條專線通到所有 VPC。</span></div>
+      <div class="svc"><b>TGW Peering</b><span>連到<b>另一個區域</b>的 TGW，走 AWS 骨幹並自動加密。</span></div>
+      <div class="svc"><b>Connect 附件</b><span>用 GRE + BGP 接 SD-WAN 設備（例如 EC2 上的第三方虛擬路由器）。</span></div>
+    </div>
+
+    <h3>多路由表 = 網段隔離（TGW 真正的價值）</h3>
+    <p>預設路由表會讓所有附件互通。企業真正要的通常是「Prod 與 Dev 不能互通，但兩者都能存取共享服務 VPC 與地端」。TGW 用<b>多張路由表 + 關聯（association）與傳播（propagation）</b>做這件事：</p>
+
+    <div class="arch"><span class="w">   附件「關聯」到哪張路由表 = 它出去時查哪張表</span>
+<span class="w">   附件「傳播」到哪張路由表 = 它的網段出現在哪張表</span>
+
+<span class="y">   RT-Prod</span>          <span class="y">RT-Dev</span>           <span class="y">RT-Shared</span>
+   ├ VPC-Prod ✓      ├ VPC-Dev ✓      ├ VPC-Shared ✓
+   ├ VPC-Shared ✓    ├ VPC-Shared ✓   ├ VPC-Prod ✓
+   └ VPN(地端) ✓     └ VPN(地端) ✓    └ VPC-Dev ✓
+   <span class="c">（沒有 VPC-Dev）    （沒有 VPC-Prod）</span>
+
+<span class="w">   結果：Prod ↔ Shared ✓　Dev ↔ Shared ✓　Prod ↔ Dev ✗</span></div>
+
+    <h3>CLI 建立 TGW 與隔離路由表</h3>
+    <pre><code><span class="comment"># ── ① 建立 TGW，關掉「自動關聯／自動傳播」才能自己控制隔離 ──</span>
+$ <span class="cmd">aws ec2 create-transit-gateway \
+    --description "corp-hub" \
+    --options 'DefaultRouteTableAssociation=disable,DefaultRouteTablePropagation=disable,AutoAcceptSharedAttachments=disable,DnsSupport=enable'</span>
+
+<span class="comment"># ── ② 把 VPC 接上來（每個 AZ 指定一個 /28 專用子網路）──</span>
+$ <span class="cmd">aws ec2 create-transit-gateway-vpc-attachment \
+    --transit-gateway-id tgw-0abc123def456 \
+    --vpc-id vpc-prod111 \
+    --subnet-ids subnet-tgw-a subnet-tgw-c</span>
+
+<span class="comment"># ── ③ 建立自訂路由表 ──</span>
+$ <span class="cmd">aws ec2 create-transit-gateway-route-table \
+    --transit-gateway-id tgw-0abc123def456 \
+    --tag-specifications 'ResourceType=transit-gateway-route-table,Tags=[{Key=Name,Value=rt-prod}]'</span>
+
+<span class="comment"># ── ④ 關聯：Prod 附件出去時查 rt-prod ──</span>
+$ <span class="cmd">aws ec2 associate-transit-gateway-route-table \
+    --transit-gateway-route-table-id tgw-rtb-prod \
+    --transit-gateway-attachment-id tgw-attach-prod</span>
+
+<span class="comment"># ── ⑤ 傳播：讓 Shared 的網段出現在 rt-prod 裡 ──</span>
+$ <span class="cmd">aws ec2 enable-transit-gateway-route-table-propagation \
+    --transit-gateway-route-table-id tgw-rtb-prod \
+    --transit-gateway-attachment-id tgw-attach-shared</span>
+
+<span class="comment"># ── ⑥ 別忘了 VPC 自己的子網路路由表也要指向 TGW ──</span>
+$ <span class="cmd">aws ec2 create-route --route-table-id rtb-prod-private \
+    --destination-cidr-block 10.0.0.0/8 \
+    --transit-gateway-id tgw-0abc123def456</span></code></pre>
+
+    <div class="warn"><strong>兩層路由，兩邊都要設。</strong>最常見的錯誤是「TGW 路由表設好了但還是不通」——因為 <b>VPC 子網路的路由表沒有指向 TGW</b>。<br>
+    記住這個鏈：<b>來源子網路路由表 → TGW 附件 → TGW 路由表 → 對方 TGW 附件 → 對方子網路路由表</b>，任何一段漏掉就不通。回程路由也一樣要檢查。</div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>限制／特性</th><th>內容</th><th>考點</th></tr></thead>
+      <tbody>
+        <tr><td>每個 VPC 對同一 TGW 的附件</td><td>1 個</td><td>不能為了隔離而重複掛同一個 VPC</td></tr>
+        <tr><td>跨區域 <b>TGW Peering</b></td><td>需要<b>靜態路由</b>，不支援路由傳播</td><td>常考：跨區為何學不到路由</td></tr>
+        <tr><td>多播</td><td>TGW 支援（VPC Peering 不支援）</td><td>金融行情推播等情境</td></tr>
+        <tr><td>網段重疊</td><td><b>不能重疊</b></td><td>與 Peering 相同的限制</td></tr>
+        <tr><td>計費</td><td><b>每個附件每小時 + 每 GB 處理費</b></td><td>Peering 沒有附件費，這是成本題的分水嶺</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>陷阱：TGW vs VPC Peering 的成本題</b><br>
+    只有兩個 VPC、流量很大、要最低成本與最低延遲 → <b>VPC Peering</b>（沒有附件費也沒有處理費，只付跨 AZ／跨區流量）。<br>
+    很多 VPC、要集中管控與隔離 → <b>TGW</b>。<br>
+    出題時通常用「<b>兩個</b>」或「<b>數十個</b>」這種數量詞暗示答案。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="dns">
+    <h2>6. Route 53 Resolver：混合 DNS 的唯一解</h2>
+
+    <div class="warn"><strong>網路通了不等於名稱解得出來。</strong>混合雲最常見的「明明 ping 得到 IP 卻連不上」，十次有八次是 DNS：地端解不出 <span class="inline-code">db.aws.internal</span>，或 VPC 內解不出 <span class="inline-code">ad.corp.local</span>。這一節就是解決這件事。</div>
+
+    <h3>先認識 VPC 內建的 .2 Resolver</h3>
+    <div class="formula"><code>VPC CIDR 的<b>基底 + 2</b> = Route 53 Resolver 的位址<br><br>
+    VPC 10.0.0.0/16 → Resolver 在 <b>10.0.0.2</b><br>
+    VPC 172.31.0.0/16 → Resolver 在 <b>172.31.0.2</b><br>
+    也可以用固定位址 <b>169.254.169.253</b></code></div>
+
+    <p>這個 Resolver 只能<b>從 VPC 內部</b>查詢。地端機器直接指向 10.0.0.2 是查不到的——它不是一個可從外部路由到的端點。要打通就要用兩種 Endpoint。</p>
+
+    <h3>兩種 Resolver Endpoint：方向相反，常常兩個都要建</h3>
+    <div class="arch"><span class="y">   Inbound Endpoint（地端 → AWS）</span>
+
+   地端 DNS ──查 db.aws.internal──▶ <span class="y">Inbound EP</span> ──▶ Private Hosted Zone
+   <span class="c">（在地端 DNS 上設條件轉送：aws.internal → Inbound EP 的兩個 IP）</span>
+
+
+<span class="o">   Outbound Endpoint（AWS → 地端）</span>
+
+   VPC 內 EC2 ──查 ad.corp.local──▶ .2 Resolver
+                                      │ 命中 Resolver Rule
+                                      ▼
+                                <span class="o">Outbound EP</span> ──▶ 地端 DNS 伺服器</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Inbound Endpoint</b><span>地端要解 AWS 的私有名稱時用。地端 DNS 設<b>條件轉送</b>指向它。</span></div>
+      <div class="cmp"><b>Outbound Endpoint</b><span>VPC 內要解地端名稱時用。搭配 <b>Resolver Rule</b> 指定「哪個網域轉給哪台地端 DNS」。</span></div>
+      <div class="cmp"><b>Resolver Rule</b><span>轉送規則本身。<b>可以用 RAM 分享給整個組織</b>，不必每個帳號重複建。</span></div>
+      <div class="cmp"><b>DNS Firewall</b><span>依網域清單封鎖查詢，擋惡意中繼站與 DNS 資料外洩。屬於資安題的答案。</span></div>
+    </div>
+
+    <div class="note"><b>每個 Endpoint 至少要指定兩個 IP，且必須在不同 AZ</b>——這是高可用的硬性要求，考題會用「工程師只設了一個 IP」當錯誤選項。</div>
+
+    <h3>CLI 建立雙向解析</h3>
+    <pre><code><span class="comment"># ── ① Outbound Endpoint：讓 VPC 查得到地端 ──</span>
+$ <span class="cmd">aws route53resolver create-resolver-endpoint \
+    --name to-onprem \
+    --direction OUTBOUND \
+    --security-group-ids sg-resolver \
+    --ip-addresses SubnetId=subnet-a SubnetId=subnet-c \
+    --creator-request-id $(date +%s)</span>
+
+<span class="comment"># ── ② 轉送規則：corp.local 這個網域丟給地端 DNS ──</span>
+$ <span class="cmd">aws route53resolver create-resolver-rule \
+    --name fwd-corp-local \
+    --rule-type FORWARD \
+    --domain-name corp.local \
+    --resolver-endpoint-id rslvr-out-0abc123 \
+    --target-ips Ip=192.168.10.53,Port=53 Ip=192.168.20.53,Port=53 \
+    --creator-request-id $(date +%s)</span>
+
+<span class="comment"># ── ③ 規則要「關聯到 VPC」才會生效（最常漏掉的一步）──</span>
+$ <span class="cmd">aws route53resolver associate-resolver-rule \
+    --resolver-rule-id rslvr-rr-0abc123 --vpc-id vpc-prod111</span>
+
+<span class="comment"># ── ④ Inbound Endpoint：讓地端查得到 AWS ──</span>
+$ <span class="cmd">aws route53resolver create-resolver-endpoint \
+    --name from-onprem \
+    --direction INBOUND \
+    --security-group-ids sg-resolver \
+    --ip-addresses SubnetId=subnet-a SubnetId=subnet-c \
+    --creator-request-id $(date +%s)</span>
+
+<span class="comment"># ── ⑤ 取得 Inbound EP 的兩個 IP，交給地端 DNS 設條件轉送 ──</span>
+$ <span class="cmd">aws route53resolver list-resolver-endpoint-ip-addresses \
+    --resolver-endpoint-id rslvr-in-0def456 \
+    --query 'IpAddresses[].Ip' --output text</span>
+10.0.1.87    10.0.2.145</code></pre>
+
+    <div class="ok"><strong>Security Group 要開 TCP 與 UDP 的 53 埠，兩種都要。</strong>DNS 回應超過 512 bytes（例如記錄很多或啟用 DNSSEC）會退回 TCP，只開 UDP 會出現「有些查詢成功、有些逾時」這種非常難查的症狀。</div>
+
+    <div class="trap"><b>陷阱 1：只建一個方向</b><br>
+    題目說「地端與 AWS 要<b>互相</b>解析對方的主機名稱」→ 答案必須<b>同時包含 Inbound 與 Outbound Endpoint</b>。只選一個的選項是錯的。</div>
+
+    <div class="trap"><b>陷阱 2：以為 Private Hosted Zone 自動給地端用</b><br>
+    Private Hosted Zone 只服務「已關聯的 VPC」。地端要查它，<b>一定</b>要經過 Inbound Endpoint。</div>
+
+    <div class="trap"><b>陷阱 3：把自架 DNS 當標準答案</b><br>
+    在 EC2 上架 BIND 做轉送技術上可行，但考試偏好<b>受管服務</b>。看到「最少維運負擔」就選 Route 53 Resolver Endpoint。</div>
+
+    <div class="biz"><b>企業實務：</b>大型組織會在「共享服務 VPC」建一組 Inbound/Outbound Endpoint，再用 <b>RAM 把 Resolver Rule 分享給整個 Organization</b>，各帳號只要把規則關聯到自己的 VPC 就好。Endpoint 是按<b>每個 ENI 每小時</b>計費的，集中建一組而不是每個帳號各建一組，能省下相當可觀的固定成本。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="privatelink">
+    <h2>7. Endpoint / PrivateLink / Peering / TGW 選型</h2>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>Gateway Endpoint</th><th>Interface Endpoint<br>（PrivateLink）</th><th>VPC Peering</th><th>Transit Gateway</th></tr></thead>
+      <tbody>
+        <tr><td>支援對象</td><td><b>只有 S3、DynamoDB</b></td><td>幾乎所有 AWS 服務 + 第三方 SaaS</td><td>VPC ↔ VPC</td><td>VPC / VPN / DX / TGW</td></tr>
+        <tr><td>實作方式</td><td>路由表項目（prefix list）</td><td><b>子網路內的 ENI + 私有 IP</b></td><td>VPC 間直連</td><td>中樞附件</td></tr>
+        <tr><td>費用</td><td><b>免費</b></td><td>每 ENI 每小時 + 每 GB</td><td>無附加費</td><td>每附件每小時 + 每 GB</td></tr>
+        <tr><td><b>地端（DX/VPN）可用？</b></td><td><b>✗ 不行</b></td><td><b>✓ 可以</b></td><td>✗ 不可遞移</td><td>✓</td></tr>
+        <tr><td>可遞移</td><td>—</td><td>—</td><td><b>✗ 不可遞移</b></td><td><b>✓</b></td></tr>
+        <tr><td>網段重疊</td><td>—</td><td>可以（走 ENI，不是路由）</td><td><b>✗ 不能重疊</b></td><td>✗ 不能重疊</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="ok"><strong>這張表最會考的一格：</strong>「地端機房要<b>不經網際網路</b>存取 S3」——<br>
+    <b>Gateway Endpoint 做不到</b>（它只改 VPC 路由表，地端流量到不了）。<br>
+    正解是 <b>S3 的 Interface Endpoint（PrivateLink）</b>，或走 <b>DX Public VIF</b>。</div>
+
+    <h3>PrivateLink 的另一面：把自己的服務曝露出去</h3>
+    <div class="arch"><span class="w">   【 服務提供者帳號 】                【 消費者帳號 】</span>
+    應用程式 ──▶ <span class="o">NLB</span> ──▶ <span class="y">Endpoint Service</span>
+                                         │
+                                         ▼
+                                <span class="c">Interface Endpoint（ENI）</span> ──▶ 消費者的 EC2
+
+<span class="w">   流量單向：消費者連得到提供者，提供者連不到消費者。</span>
+<span class="w">   兩邊網段可以完全重疊——因為根本沒有路由層的連通。</span></div>
+
+    <div class="note"><b>PrivateLink vs Peering 的判斷點：</b><br>
+    要「整個網路互通」→ Peering / TGW。<br>
+    只要「曝露<b>一個服務</b>，而且不想讓對方看到我整個 VPC」→ <b>PrivateLink</b>。<br>
+    <b>網段重疊</b>或<b>跨組織／SaaS 供應商</b>的情境幾乎一定是 PrivateLink。</div>
+
+    <div class="biz"><b>成本提醒：</b>Interface Endpoint 是<b>每個 AZ 一個 ENI、每個 ENI 都在跳表</b>。一個帳號如果為了「安全」把二十個服務都建 Interface Endpoint、每個都跨三個 AZ，那就是 60 個 ENI 的固定月費，往往比原本的 NAT Gateway 還貴。<b>先確認真的有私有存取需求再建</b>；S3 與 DynamoDB 優先用免費的 Gateway Endpoint。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="ram">
+    <h2>8. VPC 共享（RAM）與 IPv6 出口</h2>
+
+    <h3>AWS Resource Access Manager：把子網路借給別的帳號</h3>
+    <p>多帳號架構有個現實問題：每個帳號各自建 VPC，網段規劃很快就亂掉，而且跨帳號流量都要繞 TGW（附件費 + 處理費）。<b>VPC Sharing</b> 換一個思路——網路只有一份，帳號分開。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>擁有者帳號（Owner）</th><th>參與者帳號（Participant）</th></tr></thead>
+      <tbody>
+        <tr><td>建立 / 修改 VPC、子網路、路由表</td><td><b>✓</b></td><td>✗</td></tr>
+        <tr><td>在共享子網路建 EC2、RDS、ALB</td><td>✓</td><td><b>✓</b></td></tr>
+        <tr><td>看得到對方建的資源</td><td>看得到（但不能修改）</td><td><b>看不到其他參與者的資源</b></td></tr>
+        <tr><td>Security Group</td><td>自己的</td><td>可引用擁有者建立的 SG</td></tr>
+      </tbody>
+    </table></div>
+
+    <pre><code><span class="comment"># 分享子網路給 Organizations 內的帳號（先在 Organizations 啟用 RAM 共享）</span>
+$ <span class="cmd">aws ram create-resource-share \
+    --name shared-app-subnets \
+    --resource-arns arn:aws:ec2:ap-northeast-1:111122223333:subnet/subnet-aaa \
+                    arn:aws:ec2:ap-northeast-1:111122223333:subnet/subnet-bbb \
+    --principals 444455556666 \
+    --allow-external-principals false</span></code></pre>
+
+    <div class="ok"><strong>VPC Sharing 的三個好處：</strong>① 網段集中規劃不會亂；② 帳號之間的流量是<b>同一個 VPC 內</b>的流量，<b>沒有 TGW 附件費也沒有處理費</b>；③ 網路團隊集中管控，應用團隊不用碰路由表。<br>
+    <b>限制：</b>不能分享 default VPC，而且只能分享<b>子網路</b>，不是整個 VPC。</div>
+
+    <div class="trap"><b>陷阱：RAM 與 TGW 的成本比較題</b><br>
+    「多個帳號的工作負載需要互相通訊，要<b>最低成本</b>」——如果它們可以待在同一個 VPC，答案是 <b>RAM 共享子網路</b>（同 VPC 內沒有處理費），不是 TGW。<br>
+    但如果題目強調「各團隊要<b>獨立的 VPC 與網路自主權</b>」，那就回到 TGW。</div>
+
+    <h3>IPv6 與 Egress-Only Internet Gateway</h3>
+    <div class="warn"><strong>IPv6 位址全部都是公有的，沒有「私有 IPv6」也沒有 NAT。</strong>所以只要給子網路配了 IPv6 並掛上 IGW，那台機器就是<b>雙向可達</b>的——這跟 IPv4 私有子網路的直覺完全相反，是很容易踩到的資安坑。</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>NAT Gateway</b><span>只處理 <b>IPv4</b>。私有子網路出網際網路用它。</span></div>
+      <div class="cmp"><b>Egress-Only IGW</b><span><b>IPv6 專用</b>。只允許出站、拒絕主動入站，等同 IPv6 版的 NAT Gateway。<b>本身免費</b>。</span></div>
+      <div class="cmp"><b>NAT64 + DNS64</b><span>讓 <b>IPv6-only</b> 子網路的機器連得到只有 IPv4 的服務。</span></div>
+    </div>
+
+    <div class="note"><b>考點一句話：</b>「IPv6 執行個體需要出網際網路更新套件，但<b>不能被外面主動連入</b>」→ <b>Egress-Only Internet Gateway</b>。選 NAT Gateway 是錯的（它不處理 IPv6）。</div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>實作 Lab：用 TGW 串起兩個 VPC 並打通混合 DNS</h3>
+    <p>約 60 分鐘。沒有實體機房也能做——用第二個 VPC 模擬「地端」。</p>
+
+    <div class="cost">這個 Lab <b>會產生費用</b>，請務必做完就刪。主要花費是 <b>Transit Gateway 的附件時數費</b>（兩個附件）與 <b>Route 53 Resolver Endpoint 的 ENI 時數費</b>（一個 Endpoint 兩個 IP）。粗估全部開著兩小時大約在 US$1 以內。<b>Resolver Endpoint 是這裡最貴的東西，測完立刻刪。</b>實際費率請以自己區域的定價頁為準。</div>
+
+    <h4>階段一：建立 TGW 與兩個附件</h4>
+    <ol>
+      <li>建立兩個 VPC：<strong>vpc-app（10.10.0.0/16）</strong> 與 <strong>vpc-sim-onprem（10.20.0.0/16）</strong>，各開一個私有子網路與一個 <span class="inline-code">/28</span> 的 TGW 專用子網路</li>
+      <li>建立 <strong>Transit Gateway</strong>，把預設關聯與預設傳播都<strong>停用</strong></li>
+      <li>為兩個 VPC 各建一個 <strong>VPC 附件</strong>（子網路選 TGW 專用子網路）</li>
+      <li>建立一張路由表，把兩個附件都<strong>關聯</strong>並<strong>傳播</strong>上去</li>
+      <li>兩個 VPC 的子網路路由表各加一條：<span class="inline-code">10.0.0.0/8 → tgw-xxx</span></li>
+      <li>各開一台 EC2（用 SSM Session Manager 連線，不要開 22 埠），互相 <span class="inline-code">ping</span> 私有 IP</li>
+    </ol>
+
+    <div class="warn"><strong>ping 不通的檢查順序（照這個順序查，不要亂猜）：</strong><br>
+    ① Security Group 放行 ICMP 了嗎？② 子網路路由表指向 TGW 了嗎？③ TGW 路由表裡看得到對方網段嗎（<span class="inline-code">search-transit-gateway-routes</span>）？④ <b>對方 VPC 的附件有沒有涵蓋到那台 EC2 所在的 AZ</b>？⑤ 回程路由設了嗎？</div>
+
+    <h4>階段二：混合 DNS</h4>
+    <ol>
+      <li>在 vpc-sim-onprem 開一台 EC2 裝 <span class="inline-code">dnsmasq</span> 模擬地端 DNS，設一筆 <span class="inline-code">app.corp.local → 10.20.1.50</span></li>
+      <li>在 vpc-app 建 <strong>Outbound Resolver Endpoint</strong>（兩個 AZ）</li>
+      <li>建 <strong>Resolver Rule</strong>：<span class="inline-code">corp.local</span> 轉送到那台 dnsmasq 的 IP，並<strong>關聯到 vpc-app</strong></li>
+      <li>在 vpc-app 的 EC2 執行 <span class="inline-code">dig app.corp.local</span>，應該解得出 10.20.1.50</li>
+      <li>反向驗證：在 vpc-app 建一個 <strong>Private Hosted Zone</strong>（<span class="inline-code">aws.internal</span>）與一筆 A 記錄，建 <strong>Inbound Endpoint</strong>，把 dnsmasq 的上游改指向 Inbound Endpoint 的 IP，再從「地端」那台 <span class="inline-code">dig db.aws.internal</span></li>
+    </ol>
+
+    <pre><code><span class="comment"># 驗證用的三個指令</span>
+$ <span class="cmd">dig +short app.corp.local</span>              <span class="comment"># 走 Outbound Rule 到地端</span>
+$ <span class="cmd">dig +short db.aws.internal @10.0.1.87</span>   <span class="comment"># 直接打 Inbound EP 的 IP</span>
+$ <span class="cmd">aws ec2 search-transit-gateway-routes \
+    --transit-gateway-route-table-id tgw-rtb-xxx \
+    --filters "Name=state,Values=active" \
+    --query 'Routes[].[DestinationCidrBlock,State]' --output table</span></code></pre>
+
+    <h4>階段三：清理（重要）</h4>
+    <ol>
+      <li><strong>先刪 Resolver Endpoint</strong>（最貴）與 Resolver Rule</li>
+      <li>終止 EC2</li>
+      <li>刪 TGW 附件 → 等狀態變 deleted → 刪路由表 → 刪 TGW</li>
+      <li>刪 VPC</li>
+    </ol>
+    <div class="note"><b>順序不能顛倒</b>：附件還在就刪不掉 TGW，TGW 附件還在就刪不掉 VPC。看到 <span class="inline-code">DependencyViolation</span> 就是這個原因。</div>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1：以為 Direct Connect 是加密的</b><br>不是。它是實體專線，<b>預設明文</b>。要加密就 <b>VPN over DX</b>（Public VIF）或 <b>MACsec</b>（僅 10G/100G 專用連線且地點支援）。</div>
+
+    <div class="trap"><b>陷阱 2：以為 DX 可以「很快」建好</b><br>不行，前置期以<b>週或月</b>計。題目只要出現「盡快」「立即」「下週上線」，答案就是 <b>Site-to-Site VPN</b>。</div>
+
+    <div class="trap"><b>陷阱 3：Gateway Endpoint 給地端用</b><br>做不到。Gateway Endpoint 只作用在 <b>VPC 的路由表</b>上，DX/VPN 進來的流量用不到它。地端要私有連 S3 → <b>Interface Endpoint</b> 或 <b>DX Public VIF</b>。</div>
+
+    <div class="trap"><b>陷阱 4：以為 VPC Peering 可以遞移</b><br>不能。A↔B、B↔C 不會讓 A↔C 通。多 VPC 互連的答案是 <b>Transit Gateway</b>。而且 Peering 兩邊<b>網段不能重疊</b>。</div>
+
+    <div class="trap"><b>陷阱 5：以為 VGW 支援 ECMP</b><br>不支援。<b>只有 Transit Gateway 支援 ECMP 與 Accelerated VPN</b>。看到「用多條 VPN 提高頻寬」就要換成 TGW。</div>
+
+    <div class="trap"><b>陷阱 6：LAG = 高可用</b><br>LAG 的 4 條線在<b>同一個 DX 位置</b>，只擋裝置故障。要擋機房級故障必須是<b>第二個 DX 位置</b>。</div>
+
+    <div class="trap"><b>陷阱 7：DX + VPN 備援用靜態路由</b><br>切不過去。自動容錯移轉<b>必須用 BGP</b>。</div>
+
+    <div class="trap"><b>陷阱 8：以為 DX Gateway 能讓兩個 VPC 互通</b><br>不能。DX Gateway 連的是「機房 ↔ 各區域 VPC」，掛在上面的 VPC 之間<b>互不相通</b>。要互通得用 TGW 或 Peering。</div>
+
+    <div class="trap"><b>陷阱 9：混合 DNS 只建一個 Endpoint</b><br>「<b>互相</b>解析」= <b>Inbound + Outbound 兩個都要</b>。方向搞反也是常見錯誤選項：地端查 AWS 用 <b>Inbound</b>，AWS 查地端用 <b>Outbound</b>。</div>
+
+    <div class="trap"><b>陷阱 10：TGW 附件沒涵蓋所有 AZ</b><br>VPC 附件是「每個 AZ 選一個子網路」。<b>沒被選到的 AZ 裡的 EC2 走不出去</b>。這是實務上最難查的 TGW 故障，也是題目愛用的錯誤設定。</div>
+
+    <div class="trap"><b>陷阱 11：以為 Egress-Only IGW 處理 IPv4</b><br>不是。它<b>只管 IPv6</b>。IPv4 私有子網路出網際網路仍然是 <b>NAT Gateway</b>。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>
+    要<b>快</b>用 VPN，要<b>穩</b>用 DX，要<b>多</b>用 TGW，只有<b>兩個</b>用 Peering；<br>
+    專線要<b>加密</b>再疊一層 VPN，備援要<b>自動</b>就跑 BGP；<br>
+    地端連 S3 用 <b>Interface</b> 不用 Gateway，<b>互相</b>解析 DNS 兩個 Endpoint 都要建。</span></div>
+  </div>
+
+  <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
+    <a href="18-security-services.html" style="display:inline-block;padding:10px 20px;background:var(--dark);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">← 18 · 資安服務家族</a>
+    <a href="20-file-backup.html" style="display:inline-block;padding:10px 20px;background:var(--orange);color:#fff;border-radius:8px;text-decoration:none;font-size:.88rem;">20 · 檔案儲存與集中備份 →</a>
+  </div>
+
+</div>
+</body>
+</html>
