@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>身分驗證與聯合登入 | CompTIA Security+ 指南</title>
+<style>
+  :root{--main:#e11d48;--accent:#fda4af;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#fff1f2;min-height:100vh;}
+  .topbar{background:#e11d48;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.88);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#4c0519,#9f1239);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(139,92,246,.2);color:#c4b5fd;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(139,92,246,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#fff1f2;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#9f1239;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .zones{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .zone{padding:12px 16px;border-radius:8px;font-size:.85rem;color:#fff;}
+  .quiz{background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;}
+  .quiz p{font-size:.9rem;color:#374151;margin-bottom:10px;}
+  .quiz p:last-child{margin-bottom:0;}
+  details{margin-top:12px;}
+  summary{cursor:pointer;color:var(--main);font-weight:600;font-size:.9rem;}
+  .ans{background:#fff1f2;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#9f1239;line-height:1.9;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#be123c;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🛡️ Security+ 指南</a><span class="sep">/</span>
+  <span>模組二:核心領域</span><span class="sep">/</span><span>身分驗證與聯合登入</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟣 中級 04 · 領域 4 · IAM 核心</div>
+  <h1><span>身分驗證</span>與聯合登入</h1>
+  <p>Kerberos、RADIUS、TACACS+、SAML、OAuth、OIDC——這些縮寫在考試裡幾乎每次都出現，而且常常互相當干擾選項。這一課把它們排進一張圖。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎯 先分清楚三個常被混用的詞</h2>
+    <p>這三個詞在中文裡都常被講成「驗證」，但考試會嚴格區分：</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>英文</th><th>中文</th><th>回答什麼問題</th><th>例子</th></tr>
+        <tr><td><strong>Authentication</strong><br>(AuthN)</td><td>身分<strong>驗證</strong></td><td><strong>你是誰？</strong></td><td>輸入帳號密碼、刷指紋</td></tr>
+        <tr><td><strong>Authorization</strong><br>(AuthZ)</td><td><strong>授權</strong></td><td><strong>你能做什麼？</strong></td><td>你是一般員工，看不到薪資系統</td></tr>
+        <tr><td><strong>Accounting</strong></td><td><strong>紀錄</strong></td><td><strong>你做了什麼？</strong></td><td>稽核日誌記下你何時登入、改了什麼</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 這三個合稱 <strong>AAA</strong>。考試看到 AAA 就是在講這三件事。<br>
+      記憶順序：<strong>先證明你是誰 → 再決定你能做什麼 → 最後記錄你做了什麼。</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔑 驗證的三大要素（多因素的基礎）</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>要素</th><th>英文</th><th>例子</th><th>弱點</th></tr>
+        <tr><td><strong>你知道的</strong></td><td>Something you know</td><td>密碼、PIN、安全問題</td><td>會被猜、被偷、被釣魚</td></tr>
+        <tr><td><strong>你擁有的</strong></td><td>Something you have</td><td>手機、硬體金鑰、智慧卡</td><td>會遺失、被偷</td></tr>
+        <tr><td><strong>你本身的</strong></td><td>Something you are</td><td>指紋、臉部、虹膜</td><td>無法更換（外洩就永久失效）</td></tr>
+        <tr><td>你在哪裡</td><td>Somewhere you are</td><td>GPS、IP 位置</td><td>可用 VPN 偽造</td></tr>
+        <tr><td>你怎麼做</td><td>Something you do</td><td>打字節奏、手寫簽名</td><td>準確度較低</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>考試最愛的陷阱：什麼才算「多因素」？</strong><br>
+      <strong>密碼 + 安全問題 = 不是 MFA</strong>（兩個都是「你知道的」，屬於同一要素）<br>
+      <strong>密碼 + 簡訊驗證碼 = 是 MFA</strong>（知道的 + 擁有的）<br>
+      <strong>指紋 + 臉部 = 不是 MFA</strong>（兩個都是「你本身的」）<br><br>
+      <strong>必須來自不同的要素類別，才叫多因素。</strong>
+    </div>
+    <div class="highlight">
+      💡 <strong>各種 MFA 的強度排序（由弱到強）：</strong><br>
+      簡訊 OTP（可被 SIM 交換攻擊攔截）→ 電子郵件 OTP → 驗證器 App 的 TOTP → 推播確認 → <strong>FIDO2 / 硬體金鑰</strong><br><br>
+      <strong>FIDO2 / WebAuthn 之所以最強，是因為它會綁定網域</strong>——即使使用者被騙到釣魚網站，金鑰也不會對錯誤的網域回應。這是唯一能真正抵抗釣魚的方式。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🏢 企業內部的驗證協定</h2>
+    <p>這一組是「公司內網」在用的，考試常拿它們互相當干擾選項。</p>
+
+    <h3>Kerberos</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>說明</th></tr>
+        <tr><td>用在哪</td><td><strong>Windows 網域（Active Directory）的預設驗證協定</strong></td></tr>
+        <tr><td>核心概念</td><td><strong>票證（Ticket）</strong>——驗證一次拿到票，之後用票去存取各種服務</td></tr>
+        <tr><td>關鍵角色</td><td>KDC（金鑰發放中心）、TGT（票證授權票證）、TGS</td></tr>
+        <tr><td>好處</td><td><strong>密碼不會在網路上傳輸</strong>；實現單一登入（SSO）</td></tr>
+        <tr><td>弱點</td><td><strong>極度依賴時間同步</strong>——時鐘差超過 5 分鐘就驗證失敗</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>考試關鍵字：看到「時間同步」「時鐘偏移」「票證」就是 Kerberos。</strong><br>
+      這也是實務上 AD 環境最常見的故障——某台機器時間跑掉，就登不進網域。<br><br>
+      相關攻擊也常考：<strong>Pass-the-Ticket</strong>（偷票證來用）、<strong>Golden Ticket</strong>（偽造 TGT，等於整個網域淪陷）。
+    </div>
+
+    <h3>LDAP</h3>
+    <p>LDAP 是<strong>目錄服務的查詢協定</strong>，不是驗證協定本身——它是「公司的電話簿」，記錄有哪些使用者、群組、電腦。</p>
+    <div class="highlight">
+      💡 <strong>LDAP vs LDAPS：</strong>LDAP 走 389 埠<strong>明文傳輸</strong>；LDAPS 走 636 埠，用 TLS 加密。<br>
+      <strong>考試常問「如何保護目錄查詢的機密性」→ 改用 LDAPS 或 STARTTLS。</strong><br><br>
+      Active Directory 就是微軟基於 LDAP + Kerberos 實作的目錄服務。
+    </div>
+
+    <h3>RADIUS vs TACACS+</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>比較</th><th>RADIUS</th><th>TACACS+</th></tr>
+        <tr><td>標準</td><td>開放標準（IETF）</td><td>Cisco 專有</td></tr>
+        <tr><td>傳輸協定</td><td><strong>UDP</strong>（1812/1813）</td><td><strong>TCP</strong>（49）</td></tr>
+        <tr><td>加密範圍</td><td><strong>只加密密碼</strong>，其餘明文</td><td><strong>加密整個封包</strong></td></tr>
+        <tr><td>AAA 拆分</td><td>驗證與授權<strong>綁在一起</strong></td><td>驗證、授權、紀錄<strong>各自獨立</strong></td></tr>
+        <tr><td>典型用途</td><td><strong>使用者上網</strong>：Wi-Fi、VPN、802.1X</td><td><strong>管理設備</strong>：誰能登入路由器下哪些指令</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>這組是必考題，記法：</strong><br>
+      <strong>RADIUS = 給「使用者」用的</strong>（連 Wi-Fi、撥 VPN），UDP、只加密密碼。<br>
+      <strong>TACACS+ = 給「管理員」用的</strong>（登入網路設備），TCP、全加密、可細到指令層級授權。<br><br>
+      題目說「要控制哪個工程師能在路由器上下哪些指令」→ <strong>TACACS+</strong>（因為它的授權是獨立且細緻的）。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌐 跨組織的聯合身分（Federation）</h2>
+    <p>前面那組是公司內部。當你要「<strong>用 Google 帳號登入某個網站</strong>」或「<strong>員工用公司帳號登入 Salesforce</strong>」，就需要聯合身分協定。</p>
+
+    <div class="highlight">
+      💡 <strong>先建立最重要的一組區別，這題幾乎每次考：</strong><br><br>
+      <strong>SAML = 驗證（AuthN）</strong>，回答「這個人是誰」<br>
+      <strong>OAuth 2.0 = 授權（AuthZ）</strong>，回答「這個 App 可以動我的哪些資料」<br>
+      <strong>OIDC = 蓋在 OAuth 之上的驗證層</strong>，補上 OAuth 缺的「你是誰」<br><br>
+      <strong>常見誤解：OAuth 不是用來登入的。</strong>它原本的設計是「授權第三方存取資源」，很多人拿它當登入用，才有了 OIDC 來把這件事做對。
+    </div>
+
+    <h3>SAML 2.0</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>說明</th></tr>
+        <tr><td>資料格式</td><td><strong>XML</strong></td></tr>
+        <tr><td>三個角色</td><td>使用者、<strong>IdP</strong>（身分提供者，如公司 AD FS）、<strong>SP</strong>（服務提供者，如 Salesforce）</td></tr>
+        <tr><td>傳遞什麼</td><td><strong>SAML Assertion</strong>——一份簽章過的 XML，聲明「這個人是誰、有哪些屬性」</td></tr>
+        <tr><td>典型場景</td><td><strong>企業 SSO</strong>：員工用公司帳號登入各種 SaaS</td></tr>
+      </table>
+    </div>
+
+    <h3>OAuth 2.0 與 OIDC</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>OAuth 2.0</th><th>OIDC</th></tr>
+        <tr><td>目的</td><td>授權（給 App 存取權）</td><td>驗證（確認使用者身分）</td></tr>
+        <tr><td>資料格式</td><td>JSON</td><td>JSON</td></tr>
+        <tr><td>核心產物</td><td><strong>Access Token</strong></td><td>額外多一個 <strong>ID Token</strong>（JWT 格式）</td></tr>
+        <tr><td>典型場景</td><td>「允許這個 App 讀取你的 Google 雲端硬碟」</td><td>「用 Google 帳號登入」</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>三者的選擇題怎麼判斷：</strong><br>
+      • 題目出現 <strong>XML</strong>、<strong>Assertion</strong>、<strong>企業內部 SSO</strong> → <strong>SAML</strong><br>
+      • 題目出現 <strong>「授權第三方 App 存取資料」</strong>、<strong>API 存取</strong> → <strong>OAuth 2.0</strong><br>
+      • 題目出現 <strong>「用某某帳號登入」</strong>、<strong>ID Token</strong>、<strong>行動 App 登入</strong> → <strong>OIDC</strong><br><br>
+      另外：<strong>SAML 較多用於傳統企業與網頁 SSO；OIDC 較多用於行動 App 與現代 API。</strong>新專案通常選 OIDC。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚪 存取控制模型</h2>
+    <p>驗證完之後，要決定「你能碰什麼」。這幾個模型考試會直接問定義：</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>模型</th><th>誰決定權限</th><th>特徵</th><th>典型場景</th></tr>
+        <tr><td><strong>DAC</strong><br>自主存取控制</td><td><strong>資源擁有者</strong></td><td>你建的檔案你決定分享給誰</td><td>Windows 檔案權限、Google Drive</td></tr>
+        <tr><td><strong>MAC</strong><br>強制存取控制</td><td><strong>系統依標籤強制</strong></td><td>擁有者也不能自行放寬</td><td>軍方、政府機密分級</td></tr>
+        <tr><td><strong>RBAC</strong><br>角色型</td><td><strong>依職務角色</strong></td><td>權限給「角色」，人再綁角色</td><td><strong>企業最常用</strong></td></tr>
+        <tr><td><strong>ABAC</strong><br>屬性型</td><td><strong>依多重屬性動態判斷</strong></td><td>可考慮時間、地點、裝置狀態</td><td>零信任架構</td></tr>
+        <tr><td><strong>Rule-based</strong></td><td>依預設規則</td><td>「上班時間才能存取」</td><td>防火牆規則、時間限制</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>DAC vs MAC 最好記的差別：</strong>DAC 的 D 是 <strong>Discretionary（自主）</strong>——擁有者有裁量權；MAC 的 M 是 <strong>Mandatory（強制）</strong>——系統說了算，誰都不能改。<br><br>
+      <strong>RBAC vs ABAC：</strong>RBAC 看「你是什麼角色」；ABAC 看「你是什麼角色 <u>而且</u> 現在幾點、在哪裡、用什麼裝置」。ABAC 更彈性但也更複雜。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔐 特權帳號管理（PAM）</h2>
+    <p>一般使用者的帳號被盜，損失有限；<strong>管理員帳號被盜，整個組織淪陷</strong>。所以特權帳號要另外管。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>機制</th><th>解決什麼</th></tr>
+        <tr><td><strong>最小權限原則</strong></td><td>只給完成工作所需的最低權限</td></tr>
+        <tr><td><strong>職責分離（SoD）</strong></td><td>同一個人不能既申請又核准</td></tr>
+        <tr><td><strong>Just-in-Time 權限</strong></td><td>需要時才提權，用完自動收回</td></tr>
+        <tr><td><strong>密碼保管庫</strong></td><td>管理員不知道實際密碼，由系統代登入</td></tr>
+        <tr><td><strong>工作階段錄影</strong></td><td>特權操作全程錄下來供稽核</td></tr>
+        <tr><td><strong>定期權限審查</strong></td><td>檢查有沒有人權限累積過多（權限蔓延）</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>權限蔓延（Privilege Creep）是實務上最常見的問題：</strong>員工轉調部門時，新權限加上去了，<u>舊權限卻沒有收回</u>。做久了一個人身上累積十幾個部門的權限。<br><br>
+      <strong>解法是定期的存取審查（Access Review），以及把「離職/轉調流程」與身分系統自動串接。</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習</h2>
+    <div class="quiz">
+      <p><strong>Q1.</strong> 公司要求員工登入時輸入密碼，再回答「你的第一隻寵物叫什麼」。這算多因素驗證嗎？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>不算。</strong>密碼和安全問題<u>都屬於「你知道的」</u>，是同一個要素類別。<br><br>
+      這叫「多步驟驗證」而不是「多因素驗證」。要成為 MFA，必須加入不同類別——例如手機驗證器（你擁有的）或指紋（你本身的）。<br><br>
+      <strong>而且安全問題的安全性很低</strong>：寵物名字、母親的娘家姓這類資訊常常能從社群媒體查到，或用社交工程問出來。
+      </div></details>
+
+      <p><strong>Q2.</strong> 網路工程師需要限制「張三只能在路由器上執行 show 指令，不能執行 configure」。應該用 RADIUS 還是 TACACS+？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>TACACS+。</strong>兩個理由：<br><br>
+      ① <strong>TACACS+ 把授權（Authorization）獨立出來</strong>，可以做到<u>指令層級</u>的授權控制。RADIUS 把驗證與授權綁在一起，粒度較粗。<br>
+      ② TACACS+ 的典型用途就是<strong>網路設備管理</strong>；RADIUS 的典型用途是<strong>使用者網路存取</strong>（Wi-Fi、VPN）。<br><br>
+      額外加分：TACACS+ 用 TCP 且<u>加密整個封包</u>，管理流量的機密性也比較好。
+      </div></details>
+
+      <p><strong>Q3.</strong> 使用者抱怨「早上都好好的，下午突然登不進網域了」。查了發現該台電腦的時間比伺服器快了 8 分鐘。原因是什麼？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>Kerberos 的時間偏移限制。</strong>Kerberos 的票證帶有時間戳記，用來防止重放攻擊（攻擊者錄下驗證封包再重送）。<br><br>
+      預設容忍的時鐘偏移是 <strong>5 分鐘</strong>，超過就判定票證無效。<br><br>
+      <strong>解法：</strong>把該台電腦的時間與網域控制站同步（通常設定 NTP 指向 DC）。<br>
+      <strong>預防：</strong>全網統一 NTP 來源，並監控時間偏移。<u>這是 AD 環境最經典的故障之一。</u>
+      </div></details>
+
+      <p><strong>Q4.</strong> 某個手機 App 想讓使用者「用 Google 帳號登入」，並且之後要讀取使用者的 Google 行事曆。應該用哪些協定？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>兩個都要，而且它們負責不同的事：</strong><br><br>
+      • <strong>OIDC</strong> 負責<u>登入</u>——確認「這個人是誰」，拿到 ID Token（JWT），裡面有使用者識別碼與 email。<br>
+      • <strong>OAuth 2.0</strong> 負責<u>授權</u>——取得 Access Token，用來呼叫 Google Calendar API 讀行事曆。<br><br>
+      因為 OIDC 本來就是建構在 OAuth 2.0 之上，實務上這是<strong>同一次授權流程</strong>就能一起完成：請求時同時要 <code>openid</code>（給 OIDC）和 <code>calendar.readonly</code>（給 OAuth）這兩個 scope。<br><br>
+      <strong>為什麼不用 SAML？</strong>SAML 是 XML 格式、為瀏覽器場景設計，在行動 App 上笨重且不易處理。<u>行動與 API 場景一律優先 OIDC。</u>
+      </div></details>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="operations.html" class="btn btn-prev">← 上一篇</a>
+    <a href="tooling.html" class="btn btn-next">下一篇:資安工具與威脅框架 →</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資安工具與威脅框架 | CompTIA Security+ 指南</title>
+<style>
+  :root{--main:#e11d48;--accent:#fda4af;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#fff1f2;min-height:100vh;}
+  .topbar{background:#e11d48;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.88);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#4c0519,#9f1239);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(139,92,246,.2);color:#c4b5fd;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(139,92,246,.35);}
+  .hero h1{font-size:1.85rem;margin-bottom:10px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{opacity:.85;max-width:580px;margin:0 auto;line-height:1.8;}
+  .container{max-width:860px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:var(--main);margin-bottom:14px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .highlight{background:#fff1f2;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#9f1239;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:var(--main);color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .zones{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .zone{padding:12px 16px;border-radius:8px;font-size:.85rem;color:#fff;}
+  .quiz{background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;}
+  .quiz p{font-size:.9rem;color:#374151;margin-bottom:10px;}
+  .quiz p:last-child{margin-bottom:0;}
+  details{margin-top:12px;}
+  summary{cursor:pointer;color:var(--main);font-weight:600;font-size:.9rem;}
+  .ans{background:#fff1f2;border-radius:10px;padding:14px;margin-top:8px;font-size:.87rem;color:#9f1239;line-height:1.9;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#be123c;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🛡️ Security+ 指南</a><span class="sep">/</span>
+  <span>模組二:核心領域</span><span class="sep">/</span><span>資安工具與威脅框架</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟣 中級 05 · 領域 4 · 維運工具</div>
+  <h1><span>資安工具</span>家族與威脅框架</h1>
+  <p>SIEM、SOAR、EDR、XDR、UEBA、DLP、CASB、SASE——這些縮寫在考試裡成群出現，而且互為干擾選項。這一課把每個工具「看什麼、不看什麼」講清楚。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🗺️ 先建立地圖：工具各站在哪一層</h2>
+    <div class="highlight">
+      💡 這些工具容易混淆，是因為功能有重疊。<strong>但每一個都有一個「別人做不到」的核心能力</strong>，抓住那個就分得開。
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>工具</th><th>看什麼</th><th>別人做不到的核心能力</th></tr>
+        <tr><td><strong>SIEM</strong></td><td>各系統的<strong>日誌</strong></td><td>集中關聯分析、長期留存、合規報表</td></tr>
+        <tr><td><strong>SOAR</strong></td><td>SIEM 的告警</td><td><strong>自動執行處置流程</strong></td></tr>
+        <tr><td><strong>EDR</strong></td><td><strong>端點</strong>的行為</td><td>端點上的即時偵測與隔離</td></tr>
+        <tr><td><strong>XDR</strong></td><td>端點 + 網路 + 雲 + 郵件</td><td><strong>跨層關聯</strong>成單一事件</td></tr>
+        <tr><td><strong>UEBA</strong></td><td><strong>使用者行為</strong>基準</td><td>偵測「帳號合法但行為異常」</td></tr>
+        <tr><td><strong>DLP</strong></td><td><strong>資料流向</strong></td><td>阻止敏感資料外流</td></tr>
+        <tr><td><strong>CASB</strong></td><td>員工對<strong>雲端 SaaS</strong> 的使用</td><td>管到公司買的與沒買的雲服務</td></tr>
+        <tr><td><strong>SASE</strong></td><td>網路 + 資安整合</td><td>把安全能力搬到雲端邊緣</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 SIEM 與 SOAR</h2>
+    <h3>SIEM（安全資訊與事件管理）</h3>
+    <p>SIEM 做三件事：<strong>收集</strong>各系統日誌 → <strong>正規化</strong>成統一格式 → <strong>關聯分析</strong>找出可疑模式。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>能力</th><th>說明</th></tr>
+        <tr><td>集中收集</td><td>防火牆、伺服器、AD、應用程式的日誌全部送進來</td></tr>
+        <tr><td><strong>關聯分析</strong></td><td>「同一帳號 5 分鐘內從台北和紐約登入」——單看一條日誌看不出來，關聯才看得出</td></tr>
+        <tr><td>長期留存</td><td>法規常要求保存 6 個月到數年</td></tr>
+        <tr><td>合規報表</td><td>稽核時直接產出</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>SIEM 最大的實務問題是「告警疲勞」。</strong>調得太敏感，一天幾千條告警，分析師看不完就開始忽略——<u>真正的攻擊淹沒在雜訊裡</u>。<br><br>
+      這也是 SOAR 存在的理由：把重複、機械式的處置自動化，讓人只處理真正需要判斷的事。
+    </div>
+
+    <h3>SOAR（安全編排、自動化與回應）</h3>
+    <div class="highlight">
+      💡 <strong>SIEM 負責「發現」，SOAR 負責「處理」。</strong><br><br>
+      典型的 SOAR Playbook：<br>
+      收到「偵測到惡意程式」告警 → 自動查威脅情報確認 → 自動隔離該端點 → 自動建立工單 → 通知資安人員 → 等待人工確認後才執行清除<br><br>
+      <strong>關鍵字：Playbook（劇本）、Orchestration（編排）、自動化回應。</strong>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>考試陷阱：SIEM vs SOAR</strong><br>
+      題目說「<strong>集中收集日誌並關聯分析</strong>」→ SIEM<br>
+      題目說「<strong>自動執行回應流程</strong>」「<strong>減少人工重複處理</strong>」→ SOAR<br><br>
+      兩者通常搭配使用，不是二選一。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💻 EDR 與 XDR</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>傳統防毒</th><th>EDR</th><th>XDR</th></tr>
+        <tr><td>偵測方式</td><td><strong>特徵碼比對</strong></td><td><strong>行為分析</strong></td><td>行為分析 + 跨層關聯</td></tr>
+        <tr><td>能否擋未知威脅</td><td>❌ 沒有特徵碼就擋不到</td><td>✅ 看行為</td><td>✅</td></tr>
+        <tr><td>涵蓋範圍</td><td>端點</td><td><strong>端點</strong></td><td><strong>端點 + 網路 + 雲 + 郵件 + 身分</strong></td></tr>
+        <tr><td>能否回溯調查</td><td>❌</td><td>✅ 記錄完整行為鏈</td><td>✅ 跨系統的完整攻擊鏈</td></tr>
+        <tr><td>能否遠端處置</td><td>只能清除</td><td>✅ 隔離主機、終止程序</td><td>✅ 跨層處置</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>為什麼傳統防毒不夠用？</strong>因為攻擊者只要把惡意程式改一個位元組，特徵碼就對不上了。<br>
+      而且現在很多攻擊是<strong>無檔案（fileless）</strong>的——直接濫用 PowerShell、WMI 這些系統內建工具，根本沒有檔案可以掃。<br><br>
+      <strong>EDR 看的是「行為」：一個 Word 文件為什麼會啟動 PowerShell 去下載東西？</strong>這個行為鏈就是異常，不管用的是什麼程式。
+    </div>
+    <div class="warn">
+      ⚠️ <strong>考試關鍵字：</strong><br>
+      「<strong>無檔案攻擊</strong>」「<strong>行為分析</strong>」「<strong>端點的完整活動記錄</strong>」「<strong>遠端隔離主機</strong>」→ <strong>EDR</strong><br>
+      「<strong>把端點、網路、郵件的告警關聯成一個事件</strong>」→ <strong>XDR</strong><br>
+      「<strong>特徵碼</strong>」「<strong>已知病毒</strong>」→ 傳統防毒
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👤 UEBA：抓「合法帳號的異常行為」</h2>
+    <p>前面的工具都在找「壞東西」。但如果攻擊者<strong>用的是偷來的合法帳號</strong>，做的也都是「被允許」的操作，那些工具都不會響。</p>
+    <div class="highlight">
+      💡 <strong>UEBA 的做法：先學會「正常長什麼樣」，再抓偏離。</strong><br><br>
+      建立基準：張三通常在上班時間、從台北辦公室、用他的筆電、存取業務系統，每天下載約 20 個檔案。<br><br>
+      異常訊號：<br>
+      • 凌晨 3 點登入<br>
+      • 從沒看過的國家<br>
+      • 一次下載 5,000 個檔案<br>
+      • 突然開始存取從沒碰過的財務系統<br><br>
+      <strong>每一件單獨看都「合法」，但組合起來就是帳號被盜或內部人員竊資。</strong>
+    </div>
+    <div class="warn">
+      ⚠️ <strong>考試關鍵字：「內部威脅」「帳號盜用但憑證有效」「偏離正常行為基準」→ UEBA。</strong><br>
+      這也是偵測<strong>內部人員（Insider Threat）</strong>最有效的工具——因為內部人員本來就有合法權限，傳統防護完全擋不住。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📤 DLP、CASB 與 SASE</h2>
+    <h3>DLP（資料外洩防護）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>部署位置</th><th>管什麼</th></tr>
+        <tr><td><strong>端點 DLP</strong></td><td>USB 複製、剪貼、列印、螢幕截圖</td></tr>
+        <tr><td><strong>網路 DLP</strong></td><td>email 附件、上傳到網站的檔案</td></tr>
+        <tr><td><strong>儲存 DLP</strong></td><td>掃描檔案伺服器與雲端硬碟裡放了什麼敏感資料</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 DLP 靠<strong>內容識別</strong>運作：正規表示式（身分證號、信用卡號格式）、關鍵字、文件指紋、資料分類標籤。<br><br>
+      <strong>考試關鍵字：「防止員工把客戶名單寄到私人信箱」「阻止敏感資料複製到 USB」→ DLP。</strong>
+    </div>
+
+    <h3>CASB（雲端存取安全代理）</h3>
+    <div class="highlight">
+      💡 <strong>CASB 解決的是「影子 IT」問題。</strong><br><br>
+      公司買了 Microsoft 365，但員工還自己用 Dropbox、ChatGPT、各種免費線上工具——<u>資安部門根本不知道公司資料流到哪些雲服務去了</u>。<br><br>
+      CASB 的四大能力：<br>
+      • <strong>可見性</strong>——盤點員工到底在用哪些雲服務<br>
+      • <strong>合規</strong>——檢查雲端設定是否符合規範<br>
+      • <strong>資料安全</strong>——對雲端資料套用 DLP 政策<br>
+      • <strong>威脅防護</strong>——偵測雲帳號的異常使用
+    </div>
+
+    <h3>SASE（安全存取服務邊緣）</h3>
+    <div class="highlight">
+      💡 <strong>SASE 是一個架構概念，不是單一產品。</strong>它把「網路」與「資安」合併，統一搬到雲端邊緣。<br><br>
+      <strong>為什麼需要它：</strong>傳統架構假設「員工在辦公室、資料在機房」，所以把防護集中在總部出口。但現在<u>員工在家、資料在雲上</u>——流量還要繞回總部檢查再出去（叫做「髮夾彎」），既慢又浪費頻寬。<br><br>
+      SASE = <strong>SD-WAN + 資安服務（SWG + CASB + ZTNA + FWaaS）</strong>，在離使用者最近的雲端節點就完成檢查。
+    </div>
+    <div class="warn">
+      ⚠️ <strong>ZTNA vs 傳統 VPN（常考）：</strong><br>
+      • <strong>VPN</strong>：驗證一次，進來之後<u>整個內網都通</u>——爆炸半徑大<br>
+      • <strong>ZTNA（零信任網路存取）</strong>：<u>每一次存取每一個應用都要驗證</u>，而且只開放那一個應用，看不到其他資源<br><br>
+      題目說「員工在外部需要存取內部應用，但不希望他們能存取整個內網」→ <strong>ZTNA</strong>。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 威脅情報與分析框架</h2>
+    <p>這三個框架考試會問「用來做什麼」，實務上是威脅分析的共同語言。</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>框架</th><th>是什麼</th><th>用來做什麼</th></tr>
+        <tr><td><strong>Cyber Kill Chain</strong></td><td>Lockheed Martin 提出的<strong>七階段攻擊流程</strong></td><td>理解攻擊的時序，思考「在哪一階段可以切斷」</td></tr>
+        <tr><td><strong>MITRE ATT&amp;CK</strong></td><td>真實世界攻擊<strong>戰術與技術的知識庫</strong></td><td>對照「我們防得住哪些技術」，做防禦缺口分析</td></tr>
+        <tr><td><strong>Diamond Model</strong></td><td>用<strong>四個頂點</strong>描述單一入侵事件</td><td>分析「對手、能力、基礎設施、受害者」之間的關聯</td></tr>
+      </table>
+    </div>
+
+    <h3>Cyber Kill Chain 的七階段</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>階段</th><th>攻擊者在做什麼</th><th>防禦切入點</th></tr>
+        <tr><td>1. 偵察 Reconnaissance</td><td>蒐集目標資訊</td><td>減少對外資訊揭露</td></tr>
+        <tr><td>2. 武器化 Weaponization</td><td>製作惡意程式</td><td>（在攻擊者端，難以防禦）</td></tr>
+        <tr><td>3. 遞送 Delivery</td><td>寄釣魚信、放水坑</td><td><strong>郵件過濾、使用者教育</strong></td></tr>
+        <tr><td>4. 利用 Exploitation</td><td>觸發漏洞</td><td><strong>修補管理、EDR</strong></td></tr>
+        <tr><td>5. 安裝 Installation</td><td>植入後門</td><td>應用程式白名單、EDR</td></tr>
+        <tr><td>6. C2 命令與控制</td><td>與外部中繼站通訊</td><td><strong>出向流量監控、DNS 過濾</strong></td></tr>
+        <tr><td>7. 行動 Actions</td><td>竊取資料、加密勒索</td><td>DLP、備份、網路分區</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>Kill Chain 的核心價值：防禦者只要在任何一個環節切斷，攻擊就失敗。</strong><br>
+      而且<u>越早切斷成本越低</u>——在「遞送」階段擋下釣魚信，遠比在「行動」階段處理資料外洩便宜。
+    </div>
+
+    <div class="highlight">
+      💡 <strong>MITRE ATT&amp;CK 與 Kill Chain 的差別（考試會問）：</strong><br><br>
+      • <strong>Kill Chain</strong> 是<u>線性的階段流程</u>，強調時序<br>
+      • <strong>ATT&amp;CK</strong> 是<u>矩陣式的技術清單</u>，不強調順序，而是列出「每個戰術目標底下，攻擊者實際會用哪些手法」<br><br>
+      實務上 ATT&amp;CK 更常用，因為它可以直接對照：「T1566 釣魚——我們有沒有防護？」逐項盤點防禦缺口。
+    </div>
+
+    <h3>STIX 與 TAXII</h3>
+    <div class="warn">
+      ⚠️ 這兩個常一起出現，容易搞混：<br>
+      • <strong>STIX</strong> = <u>資料格式</u>。用結構化方式描述威脅情報（這是什麼惡意程式、用了哪些 IP）。<br>
+      • <strong>TAXII</strong> = <u>傳輸協定</u>。負責把 STIX 資料在組織之間交換。<br><br>
+      <strong>記法：STIX 是「內容」，TAXII 是「快遞」。</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚨 IoC 與 IoA</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>IoC（入侵指標）</th><th>IoA（攻擊指標）</th></tr>
+        <tr><td>看什麼</td><td><strong>已知的壞東西</strong></td><td><strong>可疑的行為</strong></td></tr>
+        <tr><td>例子</td><td>惡意 IP、檔案雜湊值、惡意網域</td><td>「Word 啟動 PowerShell 並連外」</td></tr>
+        <tr><td>時機</td><td>多半是<strong>事後</strong>（已經發生過才有指標）</td><td>可在<strong>攻擊進行中</strong>偵測</td></tr>
+        <tr><td>對未知威脅</td><td>❌ 沒看過就沒有指標</td><td>✅ 手法相似就抓得到</td></tr>
+      </table>
+    </div>
+    <div class="highlight">
+      💡 <strong>兩者互補：</strong>IoC 便宜、準確、誤判少，適合大量快速比對；IoA 能抓新型攻擊，但需要更多運算與調校。<br>
+      <strong>成熟的資安團隊兩個都用。</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📝 隨堂練習</h2>
+    <div class="quiz">
+      <p><strong>Q1.</strong> 一名員工的帳號在正常上班時間、從公司 IP 登入，然後在 20 分鐘內下載了 3,000 份客戶資料。所有操作他都有權限。哪個工具最可能偵測到？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>UEBA。</strong>因為每一個動作都「合法」：帳號正確、時間正常、地點正常、權限也有。<br><br>
+      • <strong>SIEM</strong> 可能收到日誌但不會告警（沒有規則被觸發）<br>
+      • <strong>EDR</strong> 看端點行為，沒有惡意程式所以不會響<br>
+      • <strong>DLP</strong> 有機會攔到（如果他接著要外傳），但下載本身不一定觸發<br><br>
+      <strong>UEBA 抓的是「偏離基準」</strong>——這個人平常一天下載 20 份，今天 20 分鐘 3,000 份，行為基準明顯異常。<br><br>
+      <u>這題的情境是典型的內部威脅或帳號盜用，也是 UEBA 最主要的價值所在。</u>
+      </div></details>
+
+      <p><strong>Q2.</strong> 資安團隊每天收到 2,000 條告警，人力只能處理 200 條。應該導入什麼？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>SOAR。</strong>它的核心價值就是把重複、規則明確的處置自動化。<br><br>
+      典型做法：<br>
+      ① 低風險且判斷明確的告警（例如已知惡意 IP 的連線嘗試）→ <strong>自動封鎖 + 自動結案</strong><br>
+      ② 需要查證的 → <strong>自動去威脅情報平台查詢並附上結果</strong>，人只要看整理好的資訊<br>
+      ③ 高風險的 → 保留給人判斷，但自動準備好處置按鈕<br><br>
+      <strong>但要先做一件事：檢討告警規則。</strong>2,000 條裡面可能有一半是調校不良產生的誤報——<u>先把雜訊源頭修掉，再自動化剩下的</u>。否則只是把垃圾自動化處理得更快。
+      </div></details>
+
+      <p><strong>Q3.</strong> 公司想讓在家工作的員工存取內部 ERP，但不希望他們連上之後能掃描整個內網。VPN 還是 ZTNA？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>ZTNA。</strong>差別在<u>授權的粒度</u>：<br><br>
+      • <strong>VPN</strong>：驗證通過後把你「放進內網」，你的裝置取得內網 IP，理論上內網有什麼你都連得到（除非另外做網路分區）。一台被入侵的家用電腦就成了進入內網的跳板。<br>
+      • <strong>ZTNA</strong>：驗證的是「這個人 + 這個裝置 + 要存取這個應用」，只把<u>那一個應用</u>代理給你，其他資源你連看都看不到。<br><br>
+      <strong>ZTNA 還會持續驗證</strong>——不是登入一次就一直信任，而是每次存取都重新評估（裝置有沒有安裝更新、有沒有偵測到異常）。這就是「零信任」的精神：<u>從不信任，一律驗證</u>。
+      </div></details>
+
+      <p><strong>Q4.</strong> 事件調查報告寫「攻擊者在 C2 階段被我們的 DNS 過濾攔截」。這是用哪個框架描述的？該階段的意義是什麼？</p>
+      <details><summary>看答案</summary><div class="ans">
+      <strong>Cyber Kill Chain</strong>（七階段的第 6 階段：Command &amp; Control）。<br><br>
+      <strong>C2 階段的意義：</strong>惡意程式已經安裝在受害主機上了，正嘗試連回攻擊者的中繼伺服器，接收下一步指令。<br><br>
+      <strong>在這裡攔截代表什麼：</strong><br>
+      ✗ 壞消息——攻擊者已經走到第 6 階段，前面五關（釣魚、漏洞利用、安裝）都沒擋下來，<u>主機已經被植入後門</u>。<br>
+      ✓ 好消息——在攻擊者<b>拿到控制權之前</b>切斷了，所以第 7 階段（竊資、加密勒索）沒有發生。<br><br>
+      <strong>後續必須做的：</strong>找出那台主機並隔離、追查是怎麼被感染的（往前推 3-5 階段）、確認有沒有其他主機也中了。<br><br>
+      <u>這題示範了 Kill Chain 的實際用途：它讓你知道「攻擊走到哪」以及「該往前追查什麼」。</u>
+      </div></details>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="identity.html" class="btn btn-prev">← 上一篇</a>
+    <a href="../03-exam/governance.html" class="btn btn-next">下一篇:治理、風險與合規 →</a>
+  </div>
+</div>
+</body>
+</html>
