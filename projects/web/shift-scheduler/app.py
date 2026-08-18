@@ -6,6 +6,7 @@
 """
 
 import logging
+import os
 
 from flask import Flask
 
@@ -57,7 +58,9 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 app = create_app()
 
 if __name__ == "__main__":
-    print(f"\n  {Config.APP_NAME}  →  http://127.0.0.1:5000")
+    # Hub 啟動時會傳 PORT 環境變數;單獨執行時沿用預設 5000
+    port = int(os.environ.get("PORT") or os.environ.get("FLASK_RUN_PORT") or 5000)
+    print(f"\n  {Config.APP_NAME}  →  http://127.0.0.1:{port}")
     print(f"  後台密碼:{Config.ADMIN_PASSWORD}")
-    print(f"  員工自助頁:http://127.0.0.1:5000/liff?emp=1\n")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    print(f"  員工自助頁:http://127.0.0.1:{port}/liff?emp=1\n")
+    app.run(host="0.0.0.0", port=port, debug=True)
