@@ -375,7 +375,7 @@ R1# <span class="cmd">traceroute vrf CORP 10.2.2.1</span></code></pre>
         <tr><td>隔離層級</td><td>硬體</td><td><b>完整作業系統</b></td><td><b>共用核心</b>，只隔離程序</td></tr>
         <tr><td>啟動時間</td><td>分鐘</td><td>數十秒</td><td><b>秒或更短</b></td></tr>
         <tr><td>資源開銷</td><td>—</td><td>每台一套 OS，較重</td><td><b>非常輕</b></td></tr>
-        <tr><td>典型技術</td><td>—</td><td>VMware ESXi、Hyper-V、KVM</td><td>Docker、containerd + Kubernetes</td></tr>
+        <tr><td>典型技術</td><td>—</td><td><b>Hypervisor</b>：VMware ESXi、Hyper-V、KVM</td><td>Docker、containerd + Kubernetes</td></tr>
       </tbody>
     </table></div>
 
@@ -398,6 +398,11 @@ R1# <span class="cmd">traceroute vrf CORP 10.2.2.1</span></code></pre>
     ① <b>MAC 位址暴增</b>——一台實體伺服器上可能有 50 台 VM，交換器上會看到 50 個 MAC。<b>Port Security 設 <span class="inline-code">maximum 1</span> 會直接把整台伺服器擋掉</b>，這是很常見的事故。<br>
     ② <b>VM 遷移（vMotion）後 MAC 換位置</b>——同一個 MAC 突然從 A 埠跑到 B 埠，交換器會記錄 MAC flapping。這是正常現象，不是迴圈。<br>
     ③ <b>虛擬交換器不跑 STP</b>——vSwitch 不會產生 BPDU，也不參與生成樹。所以實體交換器面向伺服器的埠應該開 <b>PortFast + BPDU Guard</b>。</div>
+
+    <div class="note"><b>Hypervisor 的兩種型別（大綱有考）：</b><br>
+    <b>Type 1（裸機型）</b>——直接跑在硬體上，如 <b>VMware ESXi、Hyper-V、KVM</b>。效能好、資源開銷小，是<b>資料中心的標準做法</b>。<br>
+    <b>Type 2（託管型）</b>——跑在既有作業系統之上，如 VMware Workstation、VirtualBox。方便但多一層開銷，用於<b>個人電腦與實驗環境</b>（你在筆電上跑 GNS3 就是這種）。<br>
+    考題判斷點：<b>「直接安裝在硬體上」→ Type 1；「安裝在 Windows/macOS 上」→ Type 2</b>。</div>
 
     <div class="note"><b>容器的網路更抽象一層：</b>Kubernetes 的 Pod 各有自己的 IP，靠 CNI 外掛（Calico、Cilium 等）實作，可能疊在 VXLAN overlay 上。<br>
     <b>對網路工程師的實務影響：</b>你在實體交換器上<b>看不到</b>容器的 IP，排錯時要跟平台團隊一起看。這也是為什麼容器平台的網路問題常常變成「兩邊互推」——先搞清楚封包在哪一層被丟掉是關鍵。</div>
