@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>稽核實務進階與情境演練 | ISO 27001 指南</title>
+<style>
+  :root{--blue:#1e40af;--sky:#0ea5e9;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4ff;min-height:100vh;}
+  .topbar{background:#1e40af;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(251,191,36,.2);color:#fbbf24;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(251,191,36,.3);}
+  .hero h1{font-size:1.9rem;margin-bottom:10px;}
+  .hero h1 span{color:#60a5fa;}
+  .hero p{opacity:.85;max-width:620px;margin:0 auto;line-height:1.8;}
+  .container{max-width:880px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:#1e40af;margin-bottom:14px;}
+  .card h3{font-size:1rem;color:#1e293b;margin:20px 0 8px;padding-left:10px;border-left:4px solid #60a5fa;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .card ul,.card ol{margin:10px 0 12px 20px;color:#374151;line-height:1.9;font-size:.92rem;}
+  .card li{margin-bottom:5px;}
+  .highlight{background:#eff6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#1e40af;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .ok{background:#f0fdf4;border-left:4px solid #22c55e;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#15803d;line-height:1.8;}
+  .nc{background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#b91c1c;line-height:1.8;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:#1e40af;color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0;}
+  .g{border-radius:12px;padding:15px 17px;border:1px solid #e2e8f0;border-top:3px solid #1e40af;background:#fff;}
+  .g b{display:block;font-size:.88rem;color:#1e40af;margin-bottom:4px;}
+  .g span{font-size:.8rem;color:#64748b;line-height:1.7;}
+  .case{background:#fff;border-radius:16px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;overflow:hidden;}
+  .case-hd{background:linear-gradient(135deg,#1e40af,#0ea5e9);color:#fff;padding:16px 24px;}
+  .case-hd .no{display:inline-block;background:rgba(255,255,255,.2);padding:3px 12px;border-radius:12px;font-size:.75rem;font-weight:700;margin-bottom:6px;}
+  .case-hd h3{color:#fff;font-size:1.05rem;margin:0;padding:0;border:none;}
+  .case-bd{padding:22px 26px;}
+  .case-bd p{color:#374151;line-height:1.9;font-size:.93rem;margin-bottom:10px;}
+  .obs{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;margin:12px 0;font-size:.9rem;color:#334155;line-height:1.85;}
+  .obs b{color:#1e40af;}
+  code{background:#f1f5f9;padding:2px 7px;border-radius:5px;font-family:Consolas,monospace;font-size:.85em;color:#be123c;}
+  details{margin:12px 0;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;}
+  summary{cursor:pointer;color:#1e40af;font-weight:600;font-size:.9rem;}
+  .ans{margin-top:10px;font-size:.88rem;color:#1e3a8a;line-height:1.95;}
+  .verdict{display:inline-block;padding:3px 12px;border-radius:10px;font-size:.78rem;font-weight:700;margin-right:6px;}
+  .v-major{background:#fee2e2;color:#b91c1c;}
+  .v-minor{background:#fef3c7;color:#b45309;}
+  .v-obs{background:#dbeafe;color:#1d4ed8;}
+  .v-ok{background:#dcfce7;color:#15803d;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:12px;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:#1e40af;color:#fff;}
+  .btn-next:hover{background:#1d4ed8;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔐 ISO 27001 指南</a><span class="sep">/</span>
+  <span>模組五：稽核員養成</span><span class="sep">/</span><span>稽核實務進階與情境演練</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟣 稽核員 04</div>
+  <h1><span>稽核實務進階</span>與情境演練</h1>
+  <p>前三課講了體系、方法與五個案例。這一課補上實務上真正會遇到的細節——多場所怎麼抽樣、遠端稽核能不能算數、證書什麼情況會被停掉——再用八個情境練習判斷。</p>
+</div>
+
+<div class="container">
+
+  <!-- 1 -->
+  <div class="card">
+    <h2>🏢 多場所抽樣：分公司很多的時候怎麼查</h2>
+
+    <p>一家有 12 個據點的集團，驗證機構不可能每年跑遍 12 個地方。當條件符合時，可以採<strong>多場所抽樣</strong>——總部必查，其餘據點抽樣並在三年週期內輪替。</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>成立條件</th><th>說明</th></tr>
+        <tr><td><strong>有中央管理職能</strong></td><td>總部能對各據點下達政策、蒐集績效、執行內稽並要求改善。<strong>各據點各自為政就不符合資格</strong>，要逐一認證。</td></tr>
+        <tr><td><strong>活動相似</strong></td><td>各據點做的事情要屬於同類型。工廠、研發中心、資料中心差異太大時通常要分開處理。</td></tr>
+        <tr><td><strong>同一套 ISMS</strong></td><td>共用政策、共用風險方法、共用文件體系。</td></tr>
+        <tr><td><strong>總部每次必查</strong></td><td>含監督稽核在內，中央職能都會被查。</td></tr>
+        <tr><td><strong>抽樣要輪替</strong></td><td>三年週期內不能只抽同幾個；<strong>上次有不符合的據點會被優先再抽</strong>。</td></tr>
+      </table>
+    </div>
+
+    <div class="warn">
+      <strong>最常見的誤解：以為內部稽核也可以抽樣。</strong><br>
+      <strong>外部稽核可以抽樣，內部稽核不行。</strong>條款 9.2 要求內稽方案要涵蓋 ISMS 的全部範圍——所有據點都必須被涵蓋，只是頻率可以依風險調整（關鍵據點每半年、一般據點每年）。<br>
+      如果內稽從沒查過海外據點，驗證機構會質疑<strong>中央管理職能是否真的存在</strong>——一旦這個前提被推翻，抽樣資格就沒了，得改成每個據點逐一認證，成本會暴增。
+    </div>
+
+    <div class="ok">
+      <strong>多場所架構下的 Major 判定邏輯有個特點：</strong>在 A 據點發現的問題，如果<strong>在 B 據點也出現</strong>，通常會從 Minor 升級為 Major——因為它證明的不是個案疏漏，而是<strong>中央職能未能有效落實</strong>，這正是抽樣制度最在意的事。<br>
+      所以總部要有「<strong>回收機制</strong>」：不只發政策，還要能定期收到各據點的合規證據（自動化組態掃描報表最理想，其次是定期自評加抽查）。
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <h2>💻 遠端稽核：什麼可以遠端、什麼不行</h2>
+
+    <p>疫情之後遠端稽核成為常態。驗證機構可以用視訊、螢幕分享、遠端文件審查來執行部分稽核活動，但有明確界線。</p>
+
+    <div class="grid3">
+      <div class="g"><b>適合遠端</b><span>文件審查、政策與程序訪談、系統設定的螢幕分享驗證、日誌與紀錄抽查、管理審查會議紀錄查核。</span></div>
+      <div class="g"><b>不適合遠端</b><span><strong>實體控制</strong>（機房門禁、佈線、清桌、監視器涵蓋範圍）、廠區與 OT 環境、需要現場觀察人員實際行為的項目。</span></div>
+      <div class="g"><b>混合模式</b><span>最常見：文件與訪談遠端進行，<strong>實體項目安排一天現場</strong>。Stage 1 全遠端很常見，Stage 2 通常需要現場。</span></div>
+    </div>
+
+    <div class="warn">
+      <strong>遠端稽核的三個實務風險：</strong><br>
+      <strong>① 螢幕分享的證據力。</strong>稽核員會要求<strong>當場操作</strong>而不是看截圖——因為截圖可以事先準備。典型指令是：「請現在登入系統，隨機點開三筆上個月的紀錄。」<br>
+      <strong>② 取樣的隨機性。</strong>遠端時受稽核方容易「只給準備好的樣本」，因此稽核員會<strong>自己指定抽樣對象</strong>（例如：請開啟編號 0042 那筆）。<br>
+      <strong>③ 現場觀察的缺失。</strong>看不到辦公室實際狀況——桌上有沒有攤著機密文件、螢幕有沒有朝著走道、門禁有沒有被墊住。這些只能靠現場。
+    </div>
+
+    <div class="highlight">
+      <strong>遠端比例是有上限的。</strong>驗證機構須依 IAF 的相關規範評估遠端技術的適用性，並在稽核計畫中說明哪些活動採遠端、理由是什麼。<br>
+      <strong>組織端可以做的事：</strong>事先確認稽核計畫的遠端／現場配置是否合理；準備好穩定的視訊環境與能即時操作系統的人員；把需要現場的項目集中安排在同一天以節省成本。
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <h2>🔗 整合稽核：多標準一起查</h2>
+
+    <p>已有 ISO 9001、14001 的公司再導入 27001 時，可以要求<strong>整合稽核</strong>——同一批稽核員（或同一個團隊）在同一次來訪中查完多個標準。</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>分開稽核</th><th>整合稽核</th></tr>
+        <tr><td>次數</td><td>各標準各來一次</td><td><strong>一次查完</strong></td></tr>
+        <tr><td>人天</td><td>各自完整計算</td><td>共通部分可折減（條款 4–10 只查一次）</td></tr>
+        <tr><td>組織負擔</td><td>高（每次都要動員）</td><td><strong>明顯較低</strong></td></tr>
+        <tr><td>前提</td><td>無</td><td>必須是<strong>整合的管理系統</strong>——共用政策架構、共用內稽、共用管理審查</td></tr>
+      </table>
+    </div>
+
+    <div class="ok">
+      <strong>整合稽核能省人天的原因，正是 HLS 高階結構。</strong>條款 4–10（全景、領導、規劃、支援、運作、績效評估、改善）在所有 ISO 管理系統標準中架構一致，整合的組織只需要一套文件管制、一套內稽程序、一場管理審查。<br>
+      <strong>但如果你只是「同時有三張證書」而三套系統各跑各的</strong>，就享受不到折減——稽核員會發現有三份政策、三個內稽方案、三場管理審查，那本質上就是分開的系統。
+    </div>
+
+    <div class="highlight">
+      <strong>稽核人天大致怎麼算：</strong>驗證機構依 ISO/IEC 17021 相關附則，以<strong>有效人數</strong>（納入範圍的人員數）為基準，再依複雜度調整——ISMS 範圍的技術複雜度、場所數量、法規要求、委外程度、既有認證等。<br>
+      <strong>組織可以合理詢問人天的計算依據</strong>；報價明顯過低的驗證機構要留意，可能代表人天不足，而人天不足的證書在客戶端的可信度也會打折。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <h2>⛔ 證書的暫停與撤銷</h2>
+
+    <p>證書不是拿到就永久有效。驗證機構依 ISO/IEC 17021-1 有義務在特定情況下暫停或撤銷。</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>動作</th><th>觸發情況</th><th>後果</th></tr>
+        <tr><td><strong>暫停</strong><br>Suspension</td><td>Major NC 未在期限內改善完成；<strong>拒絕或無故延遲監督稽核</strong>；濫用證書或標誌；組織主動申請暫停</td><td>期間<strong>不得對外宣稱通過認證</strong>——官網、標案文件、名片、簡報都要撤下。通常給 6 個月改善期</td></tr>
+        <tr><td><strong>縮小範圍</strong><br>Reduction</td><td>部分範圍持續不符合要求</td><td>把不合格的部分從證書範圍中移除</td></tr>
+        <tr><td><strong>撤銷</strong><br>Withdrawal</td><td>暫停期滿仍未改善；組織停業或喪失能力；<strong>嚴重的誠信問題</strong>（提供偽造證據）</td><td>證書失效，<strong>要重新從 Stage 1 開始</strong></td></tr>
+      </table>
+    </div>
+
+    <div class="warn">
+      <strong>最容易踩到、也最冤枉的一種：「無故延遲監督稽核」。</strong><br>
+      監督稽核有時間窗（通常須在發證日的週年前後一定期間內完成）。公司常見的想法是「這陣子很忙，跟驗證機構說延後一季」——<strong>但延過期就會觸發暫停程序</strong>，而且暫停會被記錄在驗證機構的公開查詢系統上。<br>
+      <strong>把監督稽核當成不可移動的行程，跟報稅一樣。</strong>
+    </div>
+
+    <div class="ok">
+      <strong>誠信問題是唯一沒有轉圜餘地的。</strong>技術上做不到、控制項未落實，這些都可以靠矯正措施補救；但<strong>提供偽造的紀錄、事後補簽並謊稱當時就有、隱瞞已知的資安事故</strong>——這些會直接觸發撤銷，而且驗證機構之間會通報，換一家做也不會比較容易。<br>
+      <strong>稽核員遇到做不到的事，聽到「我們目前還沒做到，計畫在 Q3 完成」的反應，遠比看到可疑的完美紀錄要好。</strong>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <h2>👤 內部稽核員的資格與見證稽核</h2>
+
+    <h3>內部稽核員需要什麼</h3>
+    <div class="highlight">
+      <strong>ISO 27001 沒有規定內部稽核員必須持有特定證照。</strong>條款 7.2（能力）要求的是「基於適當的教育、訓練或經驗」並<strong>保存證據</strong>。實務上驗證機構會看：<br>
+      ① 受過 ISO 27001 標準與稽核技巧的訓練（內部訓練也可以，要有簽到與教材）；<br>
+      ② 理解被稽核的業務領域；<br>
+      ③ <strong>獨立性</strong>——不得稽核自己負責的工作或所屬部門。
+    </div>
+    <div class="ok">
+      <strong>小公司的三種解法：</strong>① <strong>部門互稽</strong>（IT 稽核人資、人資稽核 IT）；② 委由外部顧問執行內稽（<strong>這仍屬第一方稽核</strong>，因為是代表組織執行）；③ 與同業或關係企業<strong>交換稽核員</strong>。<br>
+      要注意的是：<strong>幫你寫 ISMS 文件的顧問，去稽核他自己寫的東西，獨立性有疑慮</strong>——驗證機構通常會質疑。最好換一位顧問，或至少由公司人員主導、顧問從旁協助。
+    </div>
+
+    <h3>見證稽核（Witness Audit）</h3>
+    <div class="highlight">
+      這是體系裡「<strong>誰來管驗證機構</strong>」的機制。<strong>認證機構（AB，如台灣的 TAF）</strong>會派人跟著<strong>驗證機構（CB）</strong>的稽核員一起到客戶現場，<strong>不是查客戶，而是查稽核員本身</strong>——看他的提問是否切題、取證是否充分、不符合判定是否合理、時間分配是否恰當。<br>
+      <strong>被選中當見證對象的公司要知道：</strong>現場會多一個人，但那個人不會問你問題，他全程在觀察稽核員。這時稽核員通常會比平常更嚴謹，過程也會更冗長。
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <h2>📅 版本演進：2013 → 2022 → Amendment 1:2024</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>版本</th><th>主要變動</th><th>對組織的影響</th></tr>
+        <tr><td><strong>ISO 27001:2013</strong></td><td>Annex A 有 114 個控制項、14 個領域</td><td>已被取代，過渡期已結束</td></tr>
+        <tr><td><strong>ISO 27001:2022</strong></td><td>Annex A 重組為 <strong>93 個控制項、4 大類</strong>，新增 11 個控制項；條款 10.1 與 10.2 順序對調；新增條款 6.3 變更之規劃</td><td>需重做 SOA 對應、更新風險處理計畫、補做新控制項</td></tr>
+        <tr><td><strong>Amendment 1:2024</strong></td><td>條款 <strong>4.1 加入「應判定氣候變遷是否為相關議題」</strong>；4.2 加入相關註記</td><td>議題分析表要補上這一列，<strong>2024 年 2 月後的稽核會查</strong></td></tr>
+      </table>
+    </div>
+
+    <div class="highlight">
+      <strong>轉版時的重點不是「重寫全部文件」，而是三件事：</strong><br>
+      ① <strong>SOA 重新對應</strong>——把舊的 114 項對到新的 93 項，確認每一項的適用性與理由仍然成立；<br>
+      ② <strong>補做 11 個新控制項</strong>——這是轉版時真正的工作量，尤其是威脅情資、雲端服務使用、組態管理、監視活動、安全編碼；<br>
+      ③ <strong>風險處理計畫更新</strong>——新控制項要能對應到既有風險，或補上新識別的風險。<br>
+      政策、程序、內稽、管理審查這些條款層面的東西<strong>幾乎不用動</strong>，因為條款要求變動很小。
+    </div>
+  </div>
+
+  <!-- 情境演練 -->
+  <div class="card">
+    <h2>🎯 情境演練：八個判斷題</h2>
+    <p>接續第三課的案例 D–H。每題先自己判斷「這是 Major、Minor、觀察事項，還是根本沒問題」，再看解析。判斷的三個依據：<strong>是否為控制項完全缺失、是否為系統性失效、是否對 ISMS 達成預期結果造成重大風險</strong>。</p>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 I</span><h3>多場所：政策發了，海外沒落實</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>集團密碼政策要求 12 碼以上。抽查越南廠 AD 設定為 8 碼，已運作兩年；再抽泰國廠，同樣是 8 碼。總部表示「政策兩年前就發布並公告在內部網站」。</div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-major">Major NC</span><br>
+      <strong>準則：</strong>A.5.36（遵循資訊安全政策與標準）、條款 5.1（領導與承諾）。<br>
+      <strong>判 Major 的理由：</strong>① <strong>不是個案</strong>——兩個據點都有，屬系統性失效；② 持續兩年無人發現，代表<strong>中央管理職能沒有查核機制</strong>；③ 在多場所抽樣架構下，這直接動搖抽樣資格的前提。<br>
+      <strong>「我們有發政策」不構成有效的控制。</strong>發布是宣告，落實需要查核與回收機制。<br>
+      <strong>合理的矯正措施：</strong>不是「再發一次公告」，而是建立集團級的組態合規檢查（定期自動掃描各據點設定並回報總部），把結果納入管理審查，並把「政策落實查核」寫進內稽方案。
+      </div></details>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 J</span><h3>AI：全面禁止，但沒有偵測</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>公司的可接受使用政策明訂「禁止使用生成式 AI 工具處理公司資料」。詢問「如何確保」，資安主管回答：「我們有宣導，同仁都知道。」再問「有沒有偵測或阻擋機制、過去半年有幾次違規」，回答：「沒有偵測，但我相信同仁會遵守。」</div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-minor">Minor NC</span>（若後續查出實際大量使用，會升為 Major）<br>
+      <strong>準則：</strong>A.5.10（可接受使用）、A.8.16（監視活動）、條款 9.1（監視、量測、分析及評估）。<br>
+      <strong>理由：</strong>政策存在，所以不是完全缺失；但<strong>「禁止但無法驗證」在稽核上等同於未管理</strong>——沒有任何機制能證明政策有被遵守，也無法量測其有效性。<br>
+      <strong>務實的改善方向</strong>（稽核員通常會這樣引導）：① 用網頁過濾（A.8.23）阻擋未核准的 AI 服務網域；② 用 DLP（A.8.12）監控往這些端點的大段內容傳送並告警；③ 更好的做法是<strong>提供核准的企業版工具</strong>——全面封鎖只會把行為推到個人手機上，反而失去可見度。<br>
+      <strong>稽核員偏好「有偵測、有政策、有改善閉環」的答案，勝過「我們禁止」。</strong>
+      </div></details>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 K</span><h3>影子 IT：清冊 18 個，帳單 63 個</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>資產清冊列有 18 個 SaaS 服務。稽核員要求調閱公司信用卡的年度訂閱扣款明細，比對後發現有 63 個不同服務的定期扣款，其中 11 個經確認存有客戶個資，5 個從未簽署任何合約或保密協議。</div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-major">Major NC</span><br>
+      <strong>準則：</strong>A.5.9（資訊與其他相關資產之清冊）為核心，連帶 A.5.19–5.23（供應商）、A.5.18（存取權）、A.5.12（資訊分類）。<br>
+      <strong>判 Major 的理由：</strong>清冊漏了約七成，這不是疏漏而是<strong>整條控制鏈斷裂</strong>——沒在清冊上的系統，風險評估評不到、存取控制管不到、離職時不會收回帳號、出事時不知道要通報。而且其中有含個資且無合約的服務，風險實質存在。<br>
+      <strong>資產清冊是 ISMS 的地基</strong>，地基不準，上面所有的控制都站不住。<br>
+      <strong>撈影子 IT 的四招：</strong>① <strong>財務請款與信用卡紀錄</strong>（最有效，而且是鐵證）；② 網路閘道／CASB 分析對外 SaaS 連線；③ 查用公司信箱註冊但不在 SSO 下的服務；④ 設<strong>無責通報期</strong>，公告一個月內主動申報一律不追究。<br>
+      <strong>處理原則是納管或有序汰除，不是一律禁止</strong>——直接封殺會逼它躲得更深。
+      </div></details>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 L</span><h3>全遠距公司排除整個 A.7</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>一家 80 人的顧問公司完全遠距營運，無自有或租用辦公場所。SOA 中將 A.7（實體與環境安全，14 項）<strong>全部</strong>標記為不適用，理由統一寫「本公司無實體辦公場所」。</div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-minor">Minor NC</span><br>
+      <strong>準則：</strong>條款 6.1.3 d)（SOA 應載明排除的理由）。<br>
+      <strong>理由：</strong>與辦公「場所」直接相關的控制項（A.7.1 實體周界、A.7.2 實體進入、A.7.3 辦公室安全、A.7.11 支援公用事業）排除是合理的，<strong>但至少兩項仍然適用</strong>：<br>
+      • <strong>A.7.7 清桌與清螢幕</strong>——員工在家或咖啡廳工作，同住者、鄰座都可能看到螢幕與紙本。<br>
+      • <strong>A.7.9 場所外資產之安全</strong>——這一條<u>正是為了公司場所以外的資產而存在</u>。全遠距代表公司資產<strong>全部</strong>都在場所外，重要性不減反增。<br>
+      視情況 A.7.10（儲存媒體）、A.7.14（設備之安全處置，員工自行報廢設備）也可能適用。<br>
+      <strong>通則：排除必須逐條檢視並各自寫理由，不能整組排除、統一一句話帶過。</strong>
+      </div></details>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 M</span><h3>內部稽核由顧問執行</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>公司只有 45 人，沒有專職資安人員。內部稽核委由外部顧問王先生執行，稽核報告完整、發現具體。進一步詢問後得知：<strong>王先生同時也是協助公司撰寫全部 ISMS 文件的顧問。</strong></div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-minor">Minor NC</span><br>
+      <strong>準則：</strong>條款 9.2（內部稽核應確保稽核過程的客觀性與公正性）。<br>
+      <strong>釐清兩件事：</strong><br>
+      ① <strong>委由外部顧問執行內稽本身完全合法</strong>——它仍屬第一方稽核（代表組織執行），是小公司常見且被接受的做法。<br>
+      ② 問題出在<strong>同一人既寫文件又稽核自己寫的文件</strong>，等同於「稽核自己的工作」，違反獨立性原則。他很難對自己設計的制度提出質疑。<br>
+      <strong>改善方式（任選）：</strong>換一位顧問執行內稽；由公司人員主導、顧問僅提供方法指導；或與同業／關係企業交換稽核員。<br>
+      <strong>順帶一提：</strong>如果公司規模允許，<strong>部門互稽</strong>（IT 稽核人資、人資稽核 IT）是成本最低也最能培養內部能力的做法。
+      </div></details>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 N</span><h3>監督稽核想延後一季</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>公司證書於前年 6 月發出。今年 5 月，公司因為系統大改版與人員異動，去函驗證機構要求把第一次監督稽核從 6 月延到 10 月。承辦人認為「反正只是晚幾個月，證書效期是三年」。</div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-major">會觸發暫停程序，比 NC 更嚴重</span><br>
+      <strong>依據：</strong>ISO/IEC 17021-1 對驗證機構的要求。<br>
+      <strong>為什麼：</strong>監督稽核有時間窗（通常須在發證日的週年前後一定期間內完成），這不是驗證機構可以隨意通融的行政事項——<strong>驗證機構本身也要接受認證機構的稽核</strong>，放水會影響它自己的認可資格。<br>
+      <strong>後果：</strong>逾期未完成監督稽核會觸發<strong>證書暫停</strong>。暫停期間公司<strong>不得對外宣稱已通過認證</strong>（官網、標案文件、名片、提案簡報都要撤下），而且暫停狀態會出現在驗證機構的公開查詢系統上——<strong>客戶查得到</strong>。<br>
+      <strong>正確做法：</strong>提早與驗證機構溝通，在時間窗內找一個可行的日期（例如提前到 4 月或壓在窗期最後），而不是延到窗外。<strong>把監督稽核當成跟報稅一樣不可移動的行程。</strong>
+      </div></details>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 O</span><h3>稽核前兩週補齊的簽名</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>抽查全年 12 份月度權限複核紀錄，格式一致、簽名齊全。但稽核員注意到：<strong>12 份的簽名筆跡與墨色完全一致，且紙張沒有任何自然的存放痕跡</strong>。詢問承辦人後，對方坦承是稽核前兩週一次補簽的，「因為平常真的有在做，只是忘了簽」。</div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-major">Major NC</span>（若涉及刻意誤導，可能升級為誠信問題）<br>
+      <strong>準則：</strong>條款 8.1（保存文件化資訊以確信過程已依規劃執行）、條款 7.5.3（文件化資訊之管制）。<br>
+      <strong>為什麼是 Major：</strong>紀錄的價值在於<strong>證明當時確實執行了</strong>。事後一次補簽的紀錄無法證明這件事，等同於<strong>全年 12 次複核都沒有有效證據</strong>——這是控制項的實質缺失，不是格式問題。<br>
+      <strong>加重的關鍵在承辦人的處理方式：</strong>如果一開始否認、堅稱是當時簽的，那就從「紀錄不足」升級為<strong>誠信問題</strong>，而誠信問題可能直接觸發撤證，沒有轉圜餘地。<br>
+      <strong>坦承反而是對的選擇。</strong>稽核員面對「我們目前做不到，計畫在 Q3 完成」的反應，遠比看到可疑的完美紀錄要好。<br>
+      <strong>根本解法：讓證據由系統自然產生。</strong>權限複核如果是在 IAM 系統或工單系統裡按「核准」，時間戳就是天然的、無法補的證據。<strong>紙本表單是最容易造假、也最容易被識破的一種。</strong>
+      </div></details>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-hd"><span class="no">案例 P</span><h3>一年零資安事故</h3></div>
+    <div class="case-bd">
+      <div class="obs"><b>觀察到的事實：</b>稽核員要求提供過去一年的資安事故紀錄。資安主管自豪地回答：「我們這一年<strong>完全沒有任何資安事故</strong>，紀錄是空的。」公司有部署 SIEM，也有事故回應程序書。</div>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <span class="verdict v-obs">觀察事項 → 追查後多半變成 Minor 或 Major</span><br>
+      <strong>零事故不是好消息，它通常代表兩件事之一：</strong>① <strong>沒有偵測能力</strong>，所以看不到；② 有事但<strong>沒有依流程記錄</strong>。<br>
+      <strong>稽核員接下來會查：</strong>A.8.16（監視活動）——「請給我看上個月的告警清單」。如果 SIEM 一年產生了幾千則告警卻沒有任何一則被判定為事件或事故，那就是 <strong>A.5.25（資安事件的評估與決定）沒有在運作</strong>——缺少把事件升級為事故的判定準則與執行紀錄。<br>
+      <strong>成熟的組織應該有一疊低等級事故紀錄</strong>：釣魚郵件通報、誤發郵件、帳號異常登入、設備遺失。<strong>這才證明流程是活的。</strong><br>
+      <strong>順帶提醒兩個名詞的分野：</strong>資安<strong>事件（event）</strong>＝任何被觀察到的狀態變化（多數是雜訊）；資安<strong>事故（incident）</strong>＝已經或可能危害資訊安全的事件。A.5.25 要求的正是「你有沒有一套準則決定哪些事件要升級」。<br>
+      <strong>如果真的沒有事故：</strong>用<strong>桌上推演紀錄</strong>當替代證據。兩小時的推演通常會暴露三到五個流程斷點，同時滿足 A.5.24、A.5.27 與 A.5.30。
+      </div></details>
+    </div>
+  </div>
+
+  <!-- 心法 -->
+  <div class="card">
+    <h2>🧭 八個情境的共同心法</h2>
+    <ol>
+      <li><strong>「有政策」不等於「有控制」。</strong>案例 I 與 J 都是這個問題——發布是宣告，落實需要查核與回收機制。稽核員永遠會追問「怎麼確保」。</li>
+      <li><strong>同一個問題出現在兩個地方，就從 Minor 變 Major。</strong>案例 I 的關鍵不是密碼設錯，是它證明了系統性失效。</li>
+      <li><strong>清冊不準，上面所有的控制都站不住。</strong>案例 K 提醒的是：資產清冊是地基，不是行政作業。</li>
+      <li><strong>排除要逐條寫理由，不能整組排除。</strong>案例 L 的錯誤在於一句話帶過 14 個控制項。</li>
+      <li><strong>獨立性看的是「有沒有稽核自己的工作」，不是「內部還是外部人員」。</strong>案例 M 中，外部顧問做內稽沒問題，寫文件的人稽核自己寫的東西才有問題。</li>
+      <li><strong>行政期限也是要求。</strong>案例 N 沒有任何技術問題，卻可能導致證書暫停。</li>
+      <li><strong>誠信是唯一沒有轉圜的紅線。</strong>案例 O 中，坦承「做不到」的後果遠小於被抓到造假。</li>
+      <li><strong>證據要由系統自然產生。</strong>案例 O 與 P 都指向同一個解法——工單、日誌、系統時間戳無法事後補，紙本表單可以，所以紙本表單的證據力最弱。</li>
+    </ol>
+    <div class="ok">
+      <strong>如果只能記一句話：</strong>稽核員判斷的從來不是「你的文件寫得好不好」，而是「<strong>這套制度是不是活的</strong>」。<br>
+      活的制度會留下變動的痕跡——風險登記表有版本演進、事故紀錄有低等級案件、演練後有改善事項、管理審查有真的做決策。<strong>一份三年沒改過的風險登記表，比任何不符合都更能說明問題。</strong>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="case-studies.html" class="btn btn-prev">← 稽核案例演練（D–H）</a>
+    <a href="../quiz.html" class="btn btn-next">互動模擬試題 →</a>
+  </div>
+
+</div>
+</body>
+</html>

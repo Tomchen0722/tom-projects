@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>現代資安議題：AI、遠距與影子 IT | ISO 27001 指南</title>
+<style>
+  :root{--blue:#1e40af;--sky:#0ea5e9;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#f0f4ff;min-height:100vh;}
+  .topbar{background:#1e40af;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.8);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:44px 24px 36px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(251,191,36,.2);color:#fbbf24;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(251,191,36,.3);}
+  .hero h1{font-size:1.9rem;margin-bottom:10px;}
+  .hero h1 span{color:#60a5fa;}
+  .hero p{opacity:.85;max-width:620px;margin:0 auto;line-height:1.8;}
+  .container{max-width:880px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:20px;}
+  .card h2{font-size:1.2rem;color:#1e40af;margin-bottom:14px;}
+  .card h3{font-size:1rem;color:#1e293b;margin:20px 0 8px;padding-left:10px;border-left:4px solid #60a5fa;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  .card ul,.card ol{margin:10px 0 12px 20px;color:#374151;line-height:1.9;font-size:.92rem;}
+  .card li{margin-bottom:5px;}
+  .highlight{background:#eff6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#1e40af;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#c2410c;line-height:1.8;}
+  .ok{background:#f0fdf4;border-left:4px solid #22c55e;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#15803d;line-height:1.8;}
+  .nc{background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#b91c1c;line-height:1.8;}
+  .biz{background:#f3e8ff;border-left:4px solid #7e22ce;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#4c1d95;line-height:1.8;}
+  .biz b{color:#6b21a8;}
+  .table-wrap{overflow-x:auto;margin:14px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.85rem;}
+  th{background:#1e40af;color:#fff;padding:10px 12px;text-align:left;}
+  td{padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0;}
+  .g{border-radius:12px;padding:15px 17px;border:1px solid #e2e8f0;border-top:3px solid #1e40af;background:#fff;}
+  .g b{display:block;font-size:.88rem;color:#1e40af;margin-bottom:4px;}
+  .g span{font-size:.8rem;color:#64748b;line-height:1.7;}
+  .step-box{display:flex;gap:14px;margin-bottom:12px;padding:14px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;}
+  .step-num{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:#1e40af;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;}
+  .step-content h3{font-size:.9rem;color:#1e293b;margin:0 0 3px;padding:0;border:none;}
+  .step-content p{font-size:.82rem;color:#64748b;margin:0;line-height:1.7;}
+  code{background:#f1f5f9;padding:2px 7px;border-radius:5px;font-family:Consolas,monospace;font-size:.85em;color:#be123c;}
+  details{margin:12px 0;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 16px;}
+  summary{cursor:pointer;color:#1e40af;font-weight:600;font-size:.9rem;}
+  .ans{margin-top:10px;font-size:.88rem;color:#1e3a8a;line-height:1.95;}
+  .quiz{background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;margin:14px 0;}
+  .quiz p{font-size:.92rem;color:#374151;margin-bottom:8px;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:12px;flex-wrap:wrap;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:#1e40af;color:#fff;}
+  .btn-next:hover{background:#1d4ed8;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">🔐 ISO 27001 指南</a><span class="sep">/</span>
+  <span>模組四：企業應用</span><span class="sep">/</span><span>現代資安議題</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🟠 進階 05</div>
+  <h1><span>現代資安議題</span>：AI、遠距與影子 IT</h1>
+  <p>2022 版寫成的時候，公司裡還沒有人把客戶名單貼進 ChatGPT。這一課處理標準沒有直接寫、但稽核員一定會問、而且每家公司都真的在發生的三件事，最後補上 ISO 27000 系列與相關標準的定位。</p>
+</div>
+
+<div class="container">
+
+  <!-- 1 -->
+  <div class="card">
+    <h2>🤖 生成式 AI：現在最常被問、也最常沒答案的一題</h2>
+
+    <div class="warn">
+      <strong>ISO 27001 沒有一條控制項叫「AI」。</strong>但這不代表稽核員不會問——他們會用<strong>既有的控制項</strong>來問，而且問得很直接：<br>
+      「貴公司員工會使用生成式 AI 工具嗎？」→「有政策嗎？」→「怎麼確保客戶資料不會被貼進去？」<br>
+      三個問題答不出來，就會落到 <strong>A.5.10（資訊與資產之可接受使用）</strong> 或 <strong>A.5.23（雲端服務使用之資訊安全）</strong> 的不符合。
+    </div>
+
+    <h3>它其實踩到五個既有控制項</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>控制項</th><th>AI 情境下的問題</th></tr>
+        <tr><td><strong>A.5.10</strong> 可接受使用</td><td>員工可不可以用？可以用來做什麼？哪些資料絕對不能貼？</td></tr>
+        <tr><td><strong>A.5.23</strong> 雲端服務使用</td><td>AI 服務就是雲端服務：<strong>採用前評估、責任分界、退場（資料能不能刪）</strong>一樣要做</td></tr>
+        <tr><td><strong>A.5.34</strong> 隱私與個資保護</td><td>把含個資的內容貼進去，等於<strong>把個資傳輸給第三方</strong>，需有法律基礎</td></tr>
+        <tr><td><strong>A.5.12/5.13</strong> 資訊分類與標示</td><td>沒有資料分級，就無從判斷「哪些不能貼」</td></tr>
+        <tr><td><strong>A.8.12</strong> 資料外洩防護</td><td>能不能偵測到有人把大段機密文字送到外部服務？</td></tr>
+      </table>
+    </div>
+
+    <h3>務實的四層做法</h3>
+    <div class="step-box">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>先分級，再談禁止</h3>
+        <p>沒有資料分級的公司，寫「禁止上傳機密資料」是空話——因為沒有人知道什麼叫機密。<strong>先把資料分成公開／內部／機密／限閱四級並標示</strong>，政策才有可以指向的對象。這一步做完，後面三步都會變簡單。</p>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>提供「可以用」的工具，而不是全面封鎖</h3>
+        <p>全面封鎖的結果是員工改用手機、改用個人帳號——問題沒消失，只是<strong>你看不到了</strong>。務實做法是採購企業版（合約明訂不用於訓練、資料不落地、可稽核），並公告「這個可以用，其他不行」。這同時滿足 A.5.23 的評估與合約要求。</p>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>寫進可接受使用政策，並訓練</h3>
+        <p>政策要具體到可執行：<strong>「可以貼公開級與內部級的一般文字；不得貼客戶個資、原始碼、未公開財報、合約內容」</strong>。再加幾個真實例子（可以：幫我潤飾這段公告；不可以：幫我分析這份客戶名單）。訓練時用實例最有效。</p>
+      </div>
+    </div>
+    <div class="step-box">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h3>加上偵測，別只靠自律</h3>
+        <p>用 DLP 或網路閘道規則監控往 AI 服務端點傳送的大段內容並告警（A.8.12、A.8.16、A.8.23 網頁過濾）。<strong>重點不是抓人，是知道實際使用狀況</strong>——多數公司開了偵測才發現用量遠超想像。</p>
+      </div>
+    </div>
+
+    <div class="biz">
+      <b>企業實例｜某 120 人行銷公司</b><br>
+      稽核前三個月開啟 DLP 監控，發現每月有 <b>1,400 多次</b>往生成式 AI 服務的貼上行為，其中 <b>27 次包含客戶名單片段</b>。<br>
+      公司沒有處分任何人，而是：① 採購企業版並開放給全員；② 把「客戶資料不得外送」寫進可接受使用政策並全員簽署；③ 在 DLP 加上即時提示（偵測到就跳視窗提醒，不阻擋）。<br>
+      三個月後含客戶資料的貼上降到 <b>每月 1–2 次</b>，且都是誤操作後自行取消。<br>
+      <b>稽核員對這個案例的評價很高</b>——因為它證明了「有偵測、有政策、有改善的閉環」，比宣稱「我們禁止使用」有說服力得多。
+    </div>
+
+    <div class="highlight">
+      <strong>ISO 42001 是什麼？</strong>2023 年發布的<strong>人工智慧管理系統（AIMS）</strong>標準，架構與 ISO 27001 相同（HLS，條款 4–10），可整合導入。<br>
+      <strong>但注意分工：</strong>ISO 27001 管的是「AI 使用過程中的<strong>資訊安全</strong>」（資料會不會外洩）；ISO 42001 管的是「AI 系統本身的<strong>負責任治理</strong>」（偏誤、可解釋性、影響評估）。<br>
+      <strong>多數公司現階段只需要在 ISO 27001 裡把 AI 使用納管，不必急著做 42001。</strong>除非你是 AI 系統的<strong>開發者</strong>而非使用者。
+    </div>
+
+    <div class="warn">
+      <strong>常見的錯誤回答：「我們公司禁止使用 AI，所以沒有這個風險。」</strong><br>
+      稽核員會追問：<strong>「怎麼確保？有偵測嗎？上個月有幾次違規？」</strong>——如果沒有偵測機制，這句話就只是猜測，不是控制。<br>
+      <strong>「禁止但無法驗證」在稽核上等同於「未管理」。</strong>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <h2>👻 影子 IT：你不知道存在的系統，就是你管不到的風險</h2>
+
+    <p>影子 IT 指的是<strong>未經 IT 或資安部門核准就在使用的服務與設備</strong>：業務自己辦的 CRM 試用帳號、行銷部訂的分析工具、工程師自己開的雲端測試環境、部門主管用個人信箱轉寄公司文件。</p>
+
+    <div class="warn">
+      <strong>它直接打中 ISO 27001 最根本的一條：A.5.9 資訊與其他相關資產之清冊。</strong><br>
+      如果資產清冊上沒有這些系統，那麼——風險評估沒評到它、存取控制沒管到它、離職時不會收回它的帳號、出事時不知道要通報。<strong>整條控制鏈都是斷的。</strong>
+    </div>
+
+    <h3>怎麼把它撈出來</h3>
+    <div class="grid3">
+      <div class="g"><b>① 從財務下手（最有效）</b><span>調閱<strong>公司信用卡與請款紀錄</strong>，找出所有訂閱型支出。這一招通常會撈出最多東西，而且是鐵證。</span></div>
+      <div class="g"><b>② 從網路流量下手</b><span>網路閘道或 CASB 分析對外連線的 SaaS 網域，比對核准清單。</span></div>
+      <div class="g"><b>③ 從身分下手</b><span>查有多少服務是用<strong>公司信箱註冊</strong>但不在 SSO 之下——這些是離職時最容易漏掉的。</span></div>
+      <div class="g"><b>④ 從人下手</b><span>用<strong>無責通報期</strong>：公告一個月內主動申報既有工具一律不追究，之後才開始管制。這比稽查有效得多。</span></div>
+    </div>
+
+    <div class="ok">
+      <strong>治理的關鍵不是消滅影子 IT，是把它「就地合法」或「有序汰除」。</strong><br>
+      撈出來之後分三類處理：<br>
+      <strong>保留並納管</strong>——確實有業務需求 → 走供應商評估（A.5.19–5.23）、接上 SSO、納入資產清冊與離職流程。<br>
+      <strong>整併</strong>——功能重複的多個工具 → 收斂成一個，順便省錢。<br>
+      <strong>停用</strong>——沒有必要或風險過高 → 訂期限、協助資料搬遷後關閉。<br>
+      <strong>直接一律禁止會逼它躲得更深。</strong>
+    </div>
+
+    <div class="biz">
+      <b>企業實例｜某 200 人軟體公司</b><br>
+      IT 認知的 SaaS 清單有 18 個。用信用卡帳單反查之後，實際在用的是 <b>63 個</b>——其中 11 個含有客戶個資，5 個從未簽過任何合約或保密協議。<br>
+      處理結果：保留並納管 21 個、整併掉 19 個（每年省下訂閱費約六位數）、停用 23 個。<br>
+      <b>意外收穫：</b>整併省下的錢超過導入 ISO 27001 的顧問費。這也成了說服財務部門支持資安專案最有力的論據。
+    </div>
+
+    <div class="highlight">
+      <strong>稽核提問方式：</strong>稽核員不會問「你們有沒有影子 IT」（沒有人會承認）。他們會問——<br>
+      「請給我看<strong>資產清冊</strong>」→「這上面有 18 個 SaaS，請問<strong>公司信用卡的訂閱扣款</strong>有幾筆？」→ 兩個數字對不上就開始追。<br>
+      或者更狠的一招：<strong>「請隨機找一位業務同仁，我們一起看他電腦上安裝了什麼、瀏覽器登入了哪些服務。」</strong>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <h2>🏠 遠距辦公與 BYOD</h2>
+
+    <p>2022 版把遠距工作獨立成一個控制項——<strong>A.6.7 遠距工作</strong>，這在 2013 版只是行動裝置政策的一小段。相關的還有 <strong>A.8.1 使用者端點設備</strong>。</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>風險</th><th>控制項</th><th>實務做法</th></tr>
+        <tr><td>家中網路不安全、公用 Wi-Fi</td><td>A.6.7、A.8.20</td><td>強制 VPN 或零信任存取；禁止在公用網路處理機密資料</td></tr>
+        <tr><td>家人或同住者看到螢幕、聽到通話</td><td>A.6.7、A.7.7</td><td>政策明訂：討論機密事項需獨立空間；螢幕自動鎖定；<strong>視訊會議背景模糊</strong></td></tr>
+        <tr><td>個人裝置沒有防護</td><td><strong>A.8.1</strong></td><td>BYOD 需安裝 MDM／EDR、開啟磁碟加密、設定螢幕鎖，並<strong>同意遠端抹除公司資料</strong></td></tr>
+        <tr><td>設備遺失或被竊</td><td>A.5.9、A.8.1、A.7.9</td><td>全磁碟加密（遺失時可主張資料未外洩）、遠端鎖定與抹除、設備列冊</td></tr>
+        <tr><td>紙本文件帶回家</td><td>A.7.7、A.7.10</td><td>限制列印；帶出需申請；提供碎紙或帶回銷毀</td></tr>
+        <tr><td>離職時設備收不回來</td><td>A.5.11、A.6.5</td><td>設備歸還納入離職檢核表；BYOD 則執行<strong>選擇性抹除</strong>（只抹公司資料）</td></tr>
+      </table>
+    </div>
+
+    <div class="warn">
+      <strong>BYOD 最容易被忽略的兩件事：</strong><br>
+      <strong>① 法律面：</strong>遠端抹除個人裝置涉及員工的財產與隱私，<strong>必須事先取得書面同意</strong>（納入 BYOD 同意書），且技術上應採「選擇性抹除」只清除公司容器內的資料。沒有同意書就抹除，公司會有法律責任。<br>
+      <strong>② 離職面：</strong>公司配發的筆電會記得收回，<strong>但員工個人手機上的公司郵件與通訊軟體常常沒人處理</strong>。這是離職帳號之外的第二個常見缺口。
+    </div>
+
+    <div class="biz">
+      <b>企業實例｜某 80 人顧問公司</b><br>
+      全遠距營運，沒有實體辦公室。導入時最大的爭議是：<b>沒有辦公室，A.7 實體控制怎麼辦？</b><br>
+      做法：① 把 A.7 中與辦公場所相關的控制項標記不適用，理由寫明「無自有或租用辦公場所」；② <b>但保留 A.7.7 清桌與清螢幕、A.7.9 場所外資產之安全</b>——因為員工在家與咖啡廳工作時，這兩條完全適用；③ 新增「居家工作環境自我檢核表」，每半年由員工自評（獨立空間、螢幕朝向、文件存放、網路設定）並由主管抽查。<br>
+      <b>稽核員接受這個設計</b>，並特別稱許「把 A.7.9 留下來」——很多全遠距公司會把整個 A.7 排除，那是錯的，因為資產跟著人跑到辦公室以外，風險反而更高。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <h2>🔍 主動驗證：威脅建模、滲透測試與紅隊</h2>
+
+    <p>ISO 27001 沒有強制要求做滲透測試，但 <strong>A.8.8（技術脆弱性管理）</strong> 與 <strong>A.8.29（開發與驗收之安全測試）</strong> 會讓你不得不做某種形式的驗證。三種做法的深度不同：</p>
+
+    <div class="grid3">
+      <div class="g"><b>威脅建模</b><span>設計階段就問「這個系統會怎麼被打」。成本最低、效益最高，<strong>因為修改設計比修改程式便宜</strong>。對應 A.5.8 專案管理中的資安。</span></div>
+      <div class="g"><b>弱點掃描</b><span>自動化工具定期掃已知漏洞（CVE）。頻率高、涵蓋廣，但只找得到<strong>已知</strong>的問題。對應 A.8.8。</span></div>
+      <div class="g"><b>滲透測試</b><span>人工模擬攻擊特定標的，找出組合性弱點。通常年度一次或重大改版後。對應 A.8.8、A.8.29。</span></div>
+      <div class="g"><b>紅隊演練</b><span>模擬<strong>真實攻擊者</strong>的完整行動（含社交工程、實體滲透），且<strong>藍隊事先不知情</strong>——測的不只是漏洞，是<strong>偵測與應變能力</strong>。</span></div>
+    </div>
+
+    <div class="highlight">
+      <strong>滲透測試與紅隊演練的差別，是考題也是實務常見誤用：</strong><br>
+      <strong>滲透測試</strong>問的是「<strong>這個系統有沒有漏洞</strong>」——範圍明確、防守方通常知情、目標是找出並修補技術弱點。<br>
+      <strong>紅隊演練</strong>問的是「<strong>我們被攻擊時發現得了嗎</strong>」——範圍是整個組織、防守方不知情、目標是驗證 A.8.16 監視活動與 A.5.24–5.28 事故回應是否真的有效。<br>
+      <strong>成熟度不夠的組織做紅隊演練是浪費錢</strong>——連基本的日誌與告警都還沒建好，紅隊一定全身而退，得到的結論只有「我們什麼都沒發現」。<strong>先把偵測建起來，再做紅隊。</strong>
+    </div>
+
+    <div class="ok">
+      <strong>桌上推演（tabletop）是投報率最高的替代方案。</strong>不用工具、不用外包，把相關人員找進會議室，給一個情境（例如：早上九點發現財務主機被加密，桌面出現勒索訊息），走一遍：誰先知道？通報給誰？多久內要決定是否斷網？要不要付贖金、誰有權決定？對客戶怎麼說？<br>
+      兩小時的推演通常會暴露出三到五個流程斷點，而且<strong>同時滿足 A.5.24、A.5.27 與 A.5.30 的證據要求</strong>。<br>
+      <strong>沒有真實事故時，演練紀錄就是最好的替代證據。</strong>
+    </div>
+
+    <div class="biz">
+      <b>企業實例｜某 150 人電子商務公司的桌上推演</b><br>
+      情境設定為「客服系統被入侵，40 萬筆會員個資可能外洩」。兩小時推演暴露出四個斷點：<br>
+      ① <b>沒有人知道誰有權決定對外公告</b>（法務、行銷、CEO 互推）；② 客服團隊的應對話術完全沒有準備；③ 個資外洩的<b>主管機關通報時限</b>沒有人記得；④ 備援客服管道不存在——主系統關掉就完全無法服務客戶。<br>
+      四項全部列為改善事項並在兩個月內完成。<b>Stage 2 稽核時，這份推演紀錄與改善追蹤表是整份文件裡最受肯定的一份</b>——因為它證明了制度會自我發現問題。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <h2>🛡️ 隱私衝擊評估（PIA / DPIA）與 ISO 27701</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th></th><th>風險評估（ISO 27001）</th><th>隱私衝擊評估（PIA / DPIA）</th></tr>
+        <tr><td><strong>保護的對象</strong></td><td><strong>組織</strong>的資訊資產</td><td><strong>當事人</strong>（資料主體）的權益</td></tr>
+        <tr><td><strong>問的問題</strong></td><td>這件事出錯，公司損失多少</td><td>這件事出錯，<strong>個人</strong>會受到什麼傷害</td></tr>
+        <tr><td><strong>觸發時機</strong></td><td>定期 + 重大變更</td><td>新增<strong>高風險的個資處理活動</strong>時（大規模、敏感類別、自動化決策、監控）</td></tr>
+        <tr><td><strong>標準依據</strong></td><td>ISO 27001 條款 6.1.2</td><td>ISO 27701、GDPR 第 35 條</td></tr>
+      </table>
+    </div>
+
+    <div class="warn">
+      <strong>最常見的誤解：以為做了資安風險評估就等於做了隱私評估。</strong><br>
+      兩者的<strong>視角相反</strong>。舉例：公司決定在辦公室裝設 AI 人臉辨識門禁。<br>
+      <strong>資安風險評估</strong>會說：這降低了未授權進入的風險 → <strong>是好事</strong>。<br>
+      <strong>隱私衝擊評估</strong>會問：蒐集生物特徵的<strong>必要性</strong>是什麼？有沒有侵害較小的替代方案（刷卡就夠了嗎）？員工能不能拒絕？資料存多久？<br>
+      <strong>同一個決策，兩份評估可能得到完全相反的建議。</strong>這正是為什麼隱私評估不能被資安評估取代。
+    </div>
+
+    <div class="highlight">
+      <strong>ISO 27701 的定位：它是 ISO 27001 的「擴充」而不是獨立標準。</strong><br>
+      你<strong>必須先有 ISO 27001（或同時導入）</strong>才能取得 27701 認證——它共用同一套 ISMS，額外加上隱私特有的要求：區分<strong>個資控管者</strong>與<strong>個資處理者</strong>的角色、當事人權利回應流程（查詢、更正、刪除、可攜）、隱私衝擊評估、個資處理清冊。<br>
+      <strong>什麼時候該做：</strong>客戶要求、受 GDPR 管轄、或本身就是幫別人處理個資的服務業（雲端服務商、客服外包、HR SaaS）。
+    </div>
+
+    <div class="biz">
+      <b>企業實例｜某 HR SaaS 公司</b><br>
+      客戶（企業）把員工個資交給它處理，因此它是<b>個資處理者</b>。歐洲客戶要求提供 GDPR 合規證明。<br>
+      做法：在既有 ISO 27001 之上擴充 ISO 27701——① 建立<b>個資處理清冊</b>（哪些資料、什麼目的、存多久、傳給誰、跨境到哪）；② 建立當事人權利回應流程並承諾 <b>30 天內回覆</b>；③ 對「離職員工資料保留期限」做了一次 DPIA，發現原本設定的 10 年沒有法律依據，縮短為 5 年並自動刪除；④ 與所有次處理者（雲端、郵件服務）簽署資料處理附約。<br>
+      <b>成效：</b>歐洲客戶的合約審查從平均 6 週縮短到 2 週，且第三份 DPIA 意外找出一個從未被發現的資料流——測試環境的匿名化腳本有漏網欄位。
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <h2>📚 相關標準家族定位（一張表看完）</h2>
+
+    <p>常有人問「這麼多編號到底誰管什麼」。這張表只列會在 ISO 27001 情境中出現的：</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>標準</th><th>管什麼</th><th>與 ISO 27001 的關係</th></tr>
+        <tr><td><strong>ISO 27001</strong></td><td>ISMS 的<strong>要求</strong></td><td>本體，<strong>可認證</strong></td></tr>
+        <tr><td><strong>ISO 27002</strong></td><td>控制項的<strong>實作指引</strong>與屬性</td><td>Annex A 的說明書，<strong>不可認證</strong></td></tr>
+        <tr><td><strong>ISO 27005</strong></td><td>資安<strong>風險管理</strong>方法論</td><td>條款 6.1.2 的方法參考，非強制</td></tr>
+        <tr><td><strong>ISO 31000</strong></td><td><strong>通用</strong>風險管理原則（不限資安）</td><td>27005 的上位框架；企業已有 ERM 時可對接</td></tr>
+        <tr><td><strong>ISO 27017</strong></td><td><strong>雲端服務</strong>的資安控制</td><td>A.5.23 的延伸，雲端服務商常加做</td></tr>
+        <tr><td><strong>ISO 27018</strong></td><td>雲端上的<strong>個資保護</strong></td><td>同上，偏隱私</td></tr>
+        <tr><td><strong>ISO 27701</strong></td><td><strong>隱私</strong>資訊管理（PIMS）</td><td><strong>27001 的擴充</strong>，需先有 27001</td></tr>
+        <tr><td><strong>ISO 27035</strong></td><td>資安<strong>事故管理</strong>詳細方法</td><td>A.5.24–5.28 的方法論</td></tr>
+        <tr><td><strong>ISO 27036</strong></td><td><strong>供應商關係</strong>資安</td><td>A.5.19–5.23 的方法論</td></tr>
+        <tr><td><strong>ISO 22301</strong></td><td><strong>營運持續</strong>管理（BCMS）</td><td>A.5.29/5.30 的方法論；獨立可認證</td></tr>
+        <tr><td><strong>ISO 42001</strong></td><td><strong>AI 管理系統</strong>（AIMS）</td><td>獨立可認證；HLS 架構與 27001 相同可整合</td></tr>
+        <tr><td><strong>ISO 19011</strong></td><td>管理系統<strong>稽核指引</strong></td><td>做內部稽核程序時的參考</td></tr>
+        <tr><td><strong>ISO/IEC 17021-1</strong></td><td>對<strong>驗證機構</strong>本身的要求</td><td>認證機構評鑑 CB 的依據</td></tr>
+      </table>
+    </div>
+
+    <div class="ok">
+      <strong>記憶捷徑：</strong><br>
+      <strong>可認證的</strong>只有 27001、27701（擴充）、22301、42001 這幾個；<br>
+      <strong>27002 / 27005 / 27035 / 27036</strong> 都是「怎麼做」的指引，<strong>拿不到證書</strong>；<br>
+      <strong>19011 / 17021</strong> 是稽核那一側的規則書，前者給稽核員、後者給驗證機構。
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card">
+    <h2>📝 隨堂練習</h2>
+
+    <div class="quiz">
+      <p><strong>Q1.</strong> 稽核員問「員工會使用生成式 AI 嗎」，資安主管回答：「公司政策全面禁止，所以沒有這個風險。」稽核員接下來最可能問什麼？這個回答的弱點在哪？</p>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <strong>追問會是：「怎麼確保？有偵測機制嗎？上個月有幾次違規紀錄？」</strong><br>
+      弱點在於<strong>「禁止但無法驗證」在稽核上等同於「未管理」</strong>。政策是宣告，控制需要有偵測與回饋。而且全面封鎖的實際效果通常是把行為推到看不見的地方（個人手機、個人帳號），風險並未消失，只是失去可見度。<br>
+      <strong>比較好的答案：</strong>「我們核准使用企業版 X（已完成 A.5.23 的雲端服務評估與合約審查），其他 AI 服務由網頁過濾阻擋；可接受使用政策明訂不得輸入客戶個資與原始碼；DLP 監控往 AI 端點的大段內容傳送，上個月有 3 筆告警，均已追蹤結案。」
+      </div></details>
+    </div>
+
+    <div class="quiz">
+      <p><strong>Q2.</strong> 公司的資產清冊列了 18 個 SaaS，稽核員要求調閱公司信用卡的訂閱扣款明細，發現有 63 筆不同服務的定期扣款。這會被判定為什麼？影響哪些控制項？</p>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <strong>核心不符合是 A.5.9（資訊與其他相關資產之清冊），且很可能判 Major</strong>——因為清冊嚴重失真（漏了七成），這代表整條控制鏈斷裂而非個案疏漏。<br>
+      連帶影響的控制項：<strong>A.5.19–5.23</strong>（這些供應商從未評估、可能沒簽保密協議）、<strong>A.5.18</strong>（離職時不會收回這些帳號）、<strong>A.5.12</strong>（不知道哪些系統存有機密資料）、<strong>A.5.24</strong>（出事時不知道要通報誰）。<br>
+      <strong>撈影子 IT 最有效的四招：</strong>財務請款紀錄（最有效）、網路流量／CASB、查用公司信箱註冊但不在 SSO 下的服務、設無責通報期讓員工主動申報。
+      </div></details>
+    </div>
+
+    <div class="quiz">
+      <p><strong>Q3.</strong> 一家全遠距、沒有實體辦公室的顧問公司，在 SOA 中把整個 A.7（實體控制，14 項）全部標記為不適用。這個做法有沒有問題？</p>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <strong>有問題。</strong>與辦公「場所」直接相關的控制項（實體周界、進入管制、辦公室安全、公用事業）標記不適用是合理的，但至少兩項仍然適用：<br>
+      <strong>A.7.7 清桌與清螢幕</strong>——員工在家或咖啡廳工作，同住者或鄰座看得到螢幕與紙本。<br>
+      <strong>A.7.9 場所外資產之安全</strong>——這一條<strong>正是為了公司場所以外的資產而存在的</strong>。全遠距代表公司資產<u>全部</u>都在場所外，這條的重要性不減反增。<br>
+      視情況 <strong>A.7.10 儲存媒體</strong>、<strong>A.7.14 設備之安全處置</strong>（員工自行報廢設備）也可能適用。<br>
+      <strong>通則：排除的理由必須逐條檢視，不能整組排除。</strong>
+      </div></details>
+    </div>
+
+    <div class="quiz">
+      <p><strong>Q4.</strong> 某公司剛完成 ISO 27001 首次認證，資安主管想立刻安排一次紅隊演練來證明防護有效。這個決定合不合適？</p>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <strong>時機不對，通常是浪費預算。</strong>紅隊演練測的是<strong>偵測與應變能力</strong>（A.8.16 監視活動、A.5.24–5.28 事故回應），而不是有沒有漏洞。一個剛通過首次認證的組織，這些能力多半還在建立期——紅隊一定全身而退，得到的結論只有「我們什麼都沒發現」，除了打擊士氣沒有其他產出。<br>
+      <strong>合理的順序：</strong>① 弱點掃描（定期、自動化，先把已知漏洞修掉）→ ② 威脅建模（設計階段介入，成本最低）→ ③ <strong>桌上推演</strong>（兩小時就能暴露三到五個流程斷點，投報率最高）→ ④ 滲透測試（針對關鍵系統）→ ⑤ 成熟後才做紅隊演練。<br>
+      <strong>先把偵測建起來，再花錢請人來測偵測。</strong>
+      </div></details>
+    </div>
+
+    <div class="quiz">
+      <p><strong>Q5.</strong> 公司要在辦公室導入 AI 人臉辨識門禁。資安部門做了風險評估，結論是「顯著降低未授權進入的風險，建議導入」。這個評估足夠了嗎？</p>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <strong>不足夠，缺少隱私衝擊評估（PIA / DPIA）。</strong>兩者的<strong>視角相反</strong>：資安風險評估保護的是<strong>組織</strong>的資產，會認為多一道生物辨識是好事；隱私衝擊評估保護的是<strong>當事人（員工）</strong>的權益，會問完全不同的問題——<br>
+      蒐集<strong>生物特徵</strong>（屬於敏感個資）的必要性是什麼？有沒有侵害較小的替代方案（既有的門禁卡不夠嗎）？員工能不能拒絕、拒絕後有沒有替代方式？特徵資料存放多久、存在哪裡、誰能存取？供應商會不會拿去訓練模型？<br>
+      對應控制項是 <strong>A.5.34（隱私與個資保護）</strong>，方法論在 <strong>ISO 27701</strong>。<br>
+      <strong>同一個決策，兩份評估可能得出相反的建議——這正是隱私評估不能被資安評估取代的原因。</strong>
+      </div></details>
+    </div>
+
+    <div class="quiz">
+      <p><strong>Q6.</strong> 公司想同時取得 ISO 27001 與 ISO 27701 認證。下列規劃何者正確？（一）先做 27701 再補 27001（二）兩者完全獨立、各建一套管理系統（三）以 27001 為基礎擴充 27701，共用同一套 ISMS</p>
+      <details><summary>看解析</summary>
+      <div class="ans">
+      <strong>正確答案是（三）。</strong>ISO 27701 的定位是 ISO 27001／27002 的<strong>擴充（extension）</strong>，設計上就是要共用同一套 ISMS——<strong>不能單獨取得 27701 認證</strong>，必須先有或同時取得 27001。<br>
+      （一）順序錯誤，技術上做不到。（二）會造成兩套政策互相矛盾、文件維護成本加倍，稽核時是災難。<br>
+      <strong>擴充的內容是：</strong>區分個資控管者與處理者的角色與責任、個資處理清冊、當事人權利回應流程（查詢／更正／刪除／可攜）、隱私衝擊評估、與次處理者的資料處理附約。<br>
+      同理，<strong>ISO 42001（AI 管理系統）</strong>雖然可獨立認證，但因為採用相同的 HLS 架構，與 27001 整合導入時條款 4–10 可以共用。
+      </div></details>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="case-examples.html" class="btn btn-prev">← 企業應用範例</a>
+    <a href="../05-auditor/verification-system.html" class="btn btn-next">驗證體系與國際監管框架 →</a>
+  </div>
+
+</div>
+</body>
+</html>
