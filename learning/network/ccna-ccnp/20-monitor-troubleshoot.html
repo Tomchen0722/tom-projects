@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>監控與排錯方法論 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+.case{background:#FFF;border:1px solid #E3E5E8;border-left:4px solid #1BA0D7;border-radius:0 12px 12px 0;padding:16px 20px;margin:14px 0;}
+.case h4{font-size:.95rem;color:#1BA0D7;margin:0 0 8px;}
+.case p{font-size:.88rem;line-height:1.85;color:#374151;margin:0 0 8px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補強篇</a><span class="sep">/</span>
+  <span class="cur">CH 6-4 · 監控與排錯</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 6-4 · 維運</div>
+  <h1>監控與排錯方法論</h1>
+  <p>前面十九章教的是「怎麼設定」。這一章教的是「壞掉時怎麼辦」——一套可重複的排錯流程，加上 NetFlow、SPAN 這些看得見流量的工具，以及八個真實故障案例。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#method">排錯方法論：先有流程再動手</a></li>
+      <li><a href="#layer">分層排錯：由下而上的檢查清單</a></li>
+      <li><a href="#cmds">最常用的十個排錯指令</a></li>
+      <li><a href="#netflow">NetFlow：誰在用頻寬</a></li>
+      <li><a href="#span">SPAN / RSPAN：把封包複製一份出來</a></li>
+      <li><a href="#sla">IP SLA 與 EEM：讓設備自己反應</a></li>
+      <li><a href="#baseline">基準線：沒有基準就沒有異常</a></li>
+      <li><a href="#cases">八個真實故障案例</a></li>
+      <li><a href="#lab">實作 Lab：建立排錯工具鏈</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="method">
+    <h2>1. 排錯方法論：先有流程再動手</h2>
+
+    <div class="analogy">沒有方法的排錯像<b>亂槍打鳥</b>——這裡改一下、那裡重開一次，運氣好會通，但你不知道為什麼通，下次還會再發生。<br>
+    有方法的排錯像<b>醫生看診</b>：問症狀 → 排除可能 → 驗證假設 → 確認治好了 → 記錄病歷。</div>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>定義問題（Define）</b>「網路很慢」不是問題定義。要問到：<b>誰</b>受影響（一個人還是全部）？<b>什麼時候</b>開始？<b>做什麼</b>會發生？<b>之前正常嗎</b>？<span class="inline-code">最重要的一句話：「這件事什麼時候是好的？那時到現在改了什麼？」</span></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>蒐集資訊（Gather）</b>看拓撲圖、看設定、看日誌、看介面計數器。<b>不要憑印象</b>——實際的設定跟你記得的常常不一樣。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>分析並縮小範圍（Analyze）</b>用<b>對分法</b>：從中間切一刀，判斷問題在左邊還是右邊。八個節點的路徑，三次就能定位。</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-body"><b>提出假設（Hypothesize）</b>「我認為是 X 造成的，因為 Y」。<b>一次只提一個假設</b>。</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-body"><b>驗證（Test）</b><b>一次只改一件事</b>，改完就測。同時改三個地方然後通了，你永遠不知道是哪一個有效。</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-body"><b>記錄與回饋（Document）</b>把根因、解法、預防措施寫下來。<b>沒寫下來的排錯經驗，半年後等於沒發生過。</b></div></div>
+    </div>
+
+    <div class="trap"><b>新手最常犯的三個錯：</b><br>
+    ① <b>先動手改再想</b>——改了一堆之後，原本的問題還在，又多了三個新問題。<br>
+    ② <b>一次改多個地方</b>——通了也不知道原因，下次還是不會處理。<br>
+    ③ <b>不留退路</b>——改設定前<b>沒有備份</b>。正式環境動手前先 <span class="inline-code">show run</span> 存一份，遠端操作時先設 <span class="inline-code">reload in 10</span>（十分鐘後自動重開），改壞了設備會自己回到原設定救你。</div>
+
+    <div class="ok"><strong>遠端操作的保命符：<span class="inline-code">reload in 10</span></strong><br>
+    在改動可能斷線的設定（ACL、路由、介面）之前先下這個指令。如果改完你還連得上，就下 <span class="inline-code">reload cancel</span> 取消；<b>如果改壞了斷線，設備會在十分鐘後自動重開並載入未存檔的原設定</b>。<br>
+    這一招在遠端管理海外機房時救過無數人，<b>比任何技術都值得先學會</b>。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="layer">
+    <h2>2. 分層排錯：由下而上的檢查清單</h2>
+
+    <p>OSI 七層不只是考試用的，它是<b>最有效的排錯順序</b>。由下而上檢查，因為下層壞了上層一定不會好。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>層</th><th>檢查什麼</th><th>指令</th></tr></thead>
+      <tbody>
+        <tr><td><b>L1 實體</b></td><td>線插好了嗎？介面 up 嗎？光衰？<b>介面錯誤計數器</b>有在跳嗎？</td><td><span class="inline-code">show interface</span><br><span class="inline-code">show interface status</span></td></tr>
+        <tr><td><b>L2 資料連結</b></td><td>VLAN 對嗎？Trunk 通嗎？STP 有沒有把埠擋掉？MAC 學到了嗎？</td><td><span class="inline-code">show vlan brief</span><br><span class="inline-code">show interface trunk</span><br><span class="inline-code">show spanning-tree</span><br><span class="inline-code">show mac address-table</span></td></tr>
+        <tr><td><b>L3 網路</b></td><td>IP 設對嗎？路由表有嗎？ARP 學到了嗎？ACL 擋掉了嗎？</td><td><span class="inline-code">show ip interface brief</span><br><span class="inline-code">show ip route</span><br><span class="inline-code">show ip arp</span><br><span class="inline-code">show access-lists</span></td></tr>
+        <tr><td><b>L4 傳輸</b></td><td>埠號通嗎？NAT 轉對嗎？防火牆放行嗎？</td><td><span class="inline-code">show ip nat translations</span><br><span class="inline-code">telnet x.x.x.x 443</span></td></tr>
+        <tr><td><b>L7 應用</b></td><td>DNS 解得出來嗎？服務起來了嗎？憑證過期了嗎？</td><td><span class="inline-code">nslookup</span><br><span class="inline-code">curl -v</span></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="diag"><span class="w">介面計數器怎麼看（這張表能解決一半的實體層問題）</span>
+
+  <span class="y">CRC errors</span>        線材品質差、接頭鬆、電磁干擾、光衰
+  <span class="y">Input errors</span>      泛指所有輸入錯誤,先看細項
+  <span class="y">Collisions</span>        <span class="r">全雙工不該有碰撞 → 雙工不匹配</span>
+  <span class="y">Late collisions</span>   <span class="r">線太長,或雙工不匹配（經典症狀）</span>
+  <span class="y">Runts / Giants</span>    封包太小 / 太大,常見於 MTU 或 VLAN 標籤問題
+  <span class="y">Output drops</span>      介面壅塞,佇列滿了 → 頻寬不足或需要 QoS
+  <span class="y">Input queue drops</span> CPU 處理不過來
+
+<span class="g">排錯口訣：先 clear counters,等幾分鐘再看,才知道是「現在還在發生」</span>
+<span class="g">還是「一年前留下的舊帳」。</span></div>
+
+    <div class="trap"><b>雙工不匹配是最經典的「時好時壞」故障。</b><br>
+    一端固定 full duplex、另一端 auto 協商成 half duplex，結果是：<b>ping 通、小流量正常，但只要流量一大就掉封包、速度慢得離譜</b>。<br>
+    <b>判斷方式：</b>全雙工的介面上出現 <b>collisions 或 late collisions 就一定是雙工不匹配</b>（全雙工在物理上不可能有碰撞）。<br>
+    <b>解法：</b>兩端都設 auto，或兩端都手動固定成一樣的設定。<b>最忌諱一端 auto、一端手動</b>。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="cmds">
+    <h2>3. 最常用的十個排錯指令</h2>
+
+    <pre><code><span class="comment">! ── 1. 一眼看完所有介面狀態（最常用）──</span>
+<span class="cmd">show ip interface brief</span>
+<span class="cmd">show interface status</span>              <span class="comment">! 交換器上更好用,有 VLAN 與速度雙工</span>
+
+<span class="comment">! ── 2. 看單一介面的完整健康狀況 ──</span>
+<span class="cmd">show interface gigabitEthernet 0/1</span>
+      <span class="comment">! 重點看：line protocol、duplex/speed、input/output errors、drops</span>
+
+<span class="comment">! ── 3. 路由查得到嗎（用最長匹配的方式問）──</span>
+<span class="cmd">show ip route 10.2.2.10</span>            <span class="comment">! 直接問「去這個 IP 會走哪」,比看整張表快</span>
+
+<span class="comment">! ── 4. 二層通不通 ──</span>
+<span class="cmd">show mac address-table | include 001a</span>
+<span class="cmd">show interface trunk</span>                <span class="comment">! 確認 allowed vlan 與 native vlan</span>
+
+<span class="comment">! ── 5. 鄰居是誰（沒有拓撲圖時的救星）──</span>
+<span class="cmd">show cdp neighbors detail</span>
+<span class="cmd">show lldp neighbors detail</span>          <span class="comment">! 非 Cisco 設備用這個</span>
+
+<span class="comment">! ── 6. 路由協定鄰居 ──</span>
+<span class="cmd">show ip ospf neighbor</span>
+<span class="cmd">show ip eigrp neighbors</span>
+<span class="cmd">show ip bgp summary</span>
+
+<span class="comment">! ── 7. ACL 有沒有在擋（看命中次數）──</span>
+<span class="cmd">show access-lists</span>                   <span class="comment">! 每條規則後面的 (N matches) 是關鍵</span>
+
+<span class="comment">! ── 8. 日誌（八成的線索都在這）──</span>
+<span class="cmd">show logging | include %LINK|%LINEPROTO</span>
+<span class="cmd">show logging | last 50</span>
+
+<span class="comment">! ── 9. 誰在吃 CPU / 記憶體 ──</span>
+<span class="cmd">show processes cpu sorted | exclude 0.00</span>
+<span class="cmd">show processes memory sorted</span>
+
+<span class="comment">! ── 10. 設定到底是什麼（不要憑印象）──</span>
+<span class="cmd">show running-config interface gigabitEthernet 0/1</span>
+<span class="cmd">show archive config differences</span>     <span class="comment">! 比對改了什麼（要先設定 archive）</span></code></pre>
+
+    <div class="ok"><strong>兩個省時間的小技巧：</strong><br>
+    <b>① 管線過濾</b>：<span class="inline-code">| include</span>（包含）、<span class="inline-code">| exclude</span>（排除）、<span class="inline-code">| begin</span>（從這裡開始顯示）、<span class="inline-code">| section</span>（顯示整個區段）。<br>
+    <span class="inline-code">show run | section router ospf</span> 只印 OSPF 那一段，比翻兩百行設定快得多。<br>
+    <b>② <span class="inline-code">clear counters</span> 再觀察</b>：介面計數器是<b>累積值</b>，可能是三年前留下的。清掉之後等五分鐘再看，跳的才是現在的問題。</div>
+
+    <div class="trap"><b><span class="inline-code">debug</span> 在正式環境是危險指令。</b><br>
+    debug 是<b>程序層級處理</b>，流量大時可能把 CPU 吃到 100% 而讓設備失去回應。<br>
+    <b>安全用法：</b>① 先 <span class="inline-code">show processes cpu</span> 確認 CPU 有餘裕；② 用 ACL 限制範圍（<span class="inline-code">debug ip packet 101</span>）；③ 設好 <span class="inline-code">terminal monitor</span> 才看得到輸出；④ <b>看完立刻 <span class="inline-code">undebug all</span></b>。<br>
+    <b>能用 <span class="inline-code">show</span> 解決就不要用 <span class="inline-code">debug</span>。</b></div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="netflow">
+    <h2>4. NetFlow：誰在用頻寬</h2>
+
+    <p>介面計數器告訴你「這條線有多滿」，<b>NetFlow 告訴你「是誰把它塞滿的」</b>。</p>
+
+    <div class="diag"><span class="w">一個 Flow 的定義（傳統五元組）</span>
+
+   來源 IP  +  目的 IP  +  來源埠  +  目的埠  +  協定
+   （新版的 Flexible NetFlow 可以自訂,還能加入 TOS、介面等）
+
+<span class="w">路由器記錄每個 Flow 的：</span>
+   • 封包數、位元組數
+   • 開始與結束時間
+   • 進出介面
+   • TCP 旗標
+
+<span class="w">然後把這些紀錄「匯出」給收集器（Collector）分析</span>
+
+   <span class="y">路由器</span> ──UDP 匯出──▶ <span class="o">Collector</span> ──▶ <span class="g">報表：Top Talkers、應用分布</span></div>
+
+    <pre><code><span class="comment">! ── Flexible NetFlow 三步驟設定 ──</span>
+
+<span class="comment">! 1. 定義要記錄什麼（Flow Record）</span>
+R1(config)# <span class="cmd">flow record RECORD-1</span>
+R1(config-flow-record)# <span class="cmd">match ipv4 source address</span>
+R1(config-flow-record)# <span class="cmd">match ipv4 destination address</span>
+R1(config-flow-record)# <span class="cmd">match transport source-port</span>
+R1(config-flow-record)# <span class="cmd">match transport destination-port</span>
+R1(config-flow-record)# <span class="cmd">match ipv4 protocol</span>
+R1(config-flow-record)# <span class="cmd">collect counter bytes</span>
+R1(config-flow-record)# <span class="cmd">collect counter packets</span>
+
+<span class="comment">! 2. 定義送去哪（Exporter）</span>
+R1(config)# <span class="cmd">flow exporter EXPORTER-1</span>
+R1(config-flow-exporter)# <span class="cmd">destination 10.1.1.100</span>
+R1(config-flow-exporter)# <span class="cmd">transport udp 2055</span>
+
+<span class="comment">! 3. 綁在一起並套到介面</span>
+R1(config)# <span class="cmd">flow monitor MONITOR-1</span>
+R1(config-flow-monitor)# <span class="cmd">record RECORD-1</span>
+R1(config-flow-monitor)# <span class="cmd">exporter EXPORTER-1</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">ip flow monitor MONITOR-1 input</span>
+
+<span class="comment">! ── 直接在設備上看（沒有 Collector 也能用）──</span>
+R1# <span class="cmd">show flow monitor MONITOR-1 cache</span>
+R1# <span class="cmd">show flow monitor MONITOR-1 cache sort counter bytes top 10</span>
+                                        <span class="comment">! ← 這行就是「誰在吃頻寬」的答案</span></code></pre>
+
+    <div class="note"><b>NetFlow vs SNMP vs SPAN，三個常被混淆：</b><br>
+    <b>SNMP</b>＝<b>統計數字</b>（這條線用了多少頻寬、CPU 多少）。輪詢式、資料量小、看趨勢。<br>
+    <b>NetFlow</b>＝<b>誰跟誰在通訊</b>（流量的組成）。<b>不含封包內容</b>，資料量中等。<br>
+    <b>SPAN</b>＝<b>完整封包複本</b>（每一個位元組）。資料量最大，用於深入分析。<br>
+    <b>對應到問題：</b>「線滿了嗎」→ SNMP；「<b>誰</b>把線塞滿的」→ NetFlow；「這個封包<b>裡面</b>是什麼」→ SPAN。</div>
+
+    <div class="biz">
+      <b>企業實例｜某企業的頻寬失竊案</b><br>
+      對外 200M 線路每天下午三點準時滿載，客訴不斷。SNMP 只能看到「滿了」，看不出原因。IT 一度以為是有人在看影音，準備買頻寬。<br>
+      <b>開了 NetFlow 之後</b>，Top Talkers 第一名是一台<b>沒人認得的伺服器 IP</b>，持續往境外某個位址上傳，每天下午固定啟動。<br>
+      追查後發現是一台<b>被遺忘的測試主機</b>，三年前架設後沒人管，已經被入侵當成跳板。<br>
+      <b>結果：</b>不用買頻寬，關掉那台機器就解決了，同時揭露一個潛伏三年的資安事件。<br>
+      <b>這個案例的意義：</b>沒有 NetFlow 之前，這個問題的「解法」會是花錢升級頻寬——<b>而且升級完問題還在</b>。
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="span">
+    <h2>5. SPAN / RSPAN：把封包複製一份出來</h2>
+
+    <p>要用 Wireshark 分析封包，前提是<b>封包要送得到你的電腦</b>。但交換器只會把封包送給目的地，不會送給旁邊的你——SPAN 就是解決這件事的。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>類型</th><th>來源與目的</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><b>SPAN</b><br>（本地）</td><td>來源與目的<b>在同一台</b>交換器</td><td>最常見。分析主機接在同一台交換器上時</td></tr>
+        <tr><td><b>RSPAN</b><br>（遠端）</td><td>來源與目的<b>在不同交換器</b>，中間用一個專用 VLAN 承載</td><td>分析主機在機房、來源埠在辦公室</td></tr>
+        <tr><td><b>ERSPAN</b><br>（封裝遠端）</td><td>用 <b>GRE 封裝</b>跨三層網路傳送</td><td>跨機房、跨網段的抓包</td></tr>
+      </tbody>
+    </table></div>
+
+    <pre><code><span class="comment">! ── 本地 SPAN：把 g0/1 的雙向流量複製到 g0/24 ──</span>
+SW1(config)# <span class="cmd">monitor session 1 source interface gigabitEthernet 0/1 both</span>
+SW1(config)# <span class="cmd">monitor session 1 destination interface gigabitEthernet 0/24</span>
+
+<span class="comment">! ── 也可以監控整個 VLAN ──</span>
+SW1(config)# <span class="cmd">monitor session 2 source vlan 10 rx</span>
+SW1(config)# <span class="cmd">monitor session 2 destination interface gigabitEthernet 0/23</span>
+
+<span class="comment">! ── 驗證 ──</span>
+SW1# <span class="cmd">show monitor session 1</span>
+SW1# <span class="cmd">show monitor</span></code></pre>
+
+    <div class="trap"><b>SPAN 的四個必知限制：</b><br>
+    ① <b>目的埠會失去正常功能</b>——它變成純輸出，接在上面的電腦<b>無法用那個埠上網</b>（要另外接一張網卡）。<br>
+    ② <b>會話數量有限</b>——多數交換器只支援 2 個 SPAN 會話，用完就要先關掉舊的。<br>
+    ③ <b>超訂會丟封包</b>——把兩個滿載的 1G 埠複製到一個 1G 目的埠，一定會丟。抓包時看到「怪怪的遺漏」要先想到這點。<br>
+    ④ <b>會增加交換器負擔</b>——正式環境長期開著不是好主意，<b>用完就關</b>。</div>
+
+    <div class="ok"><strong>什麼時候真的需要 SPAN？</strong>當你需要看到<b>封包內容</b>而不只是統計時：<br>
+    • 應用程式說「網路把我的連線切斷了」，你要證明是誰送的 RST<br>
+    • TLS 交握失敗，要看是哪一步<br>
+    • 判斷延遲是網路造成還是伺服器回應慢（看 TCP 的時間戳）<br>
+    • 抓廣播風暴的來源<br>
+    <b>反過來說，如果問題用 <span class="inline-code">show</span> 指令與 NetFlow 就能定位，就不要動用 SPAN。</b></div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="sla">
+    <h2>6. IP SLA 與 EEM：讓設備自己反應</h2>
+
+    <h3>IP SLA：主動探測</h3>
+    <p>不要等使用者抱怨才知道線路壞了。IP SLA 讓路由器<b>自己定期去 ping 或測延遲</b>，並把結果交給其他機制使用。</p>
+
+    <pre><code><span class="comment">! ── 定義一個每 5 秒 ping 一次的探測 ──</span>
+R1(config)# <span class="cmd">ip sla 1</span>
+R1(config-ip-sla)# <span class="cmd">icmp-echo 8.8.8.8 source-interface gigabitEthernet 0/0</span>
+R1(config-ip-sla-echo)# <span class="cmd">frequency 5</span>
+R1(config-ip-sla-echo)# <span class="cmd">threshold 200</span>            <span class="comment">! 延遲門檻(ms)</span>
+R1(config)# <span class="cmd">ip sla schedule 1 life forever start-time now</span>
+
+<span class="comment">! ── 用 track 物件把探測結果變成「可以被引用的狀態」──</span>
+R1(config)# <span class="cmd">track 1 ip sla 1 reachability</span>
+
+<span class="comment">! ── 應用一：浮動靜態路由自動切換 ──</span>
+R1(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 203.0.113.1 track 1</span>   <span class="comment">! 主線,探測失敗就撤掉</span>
+R1(config)# <span class="cmd">ip route 0.0.0.0 0.0.0.0 198.51.100.1 200</span>       <span class="comment">! 備線,AD 較差</span>
+
+<span class="comment">! ── 應用二：HSRP 介面追蹤 ──</span>
+R1(config-if)# <span class="cmd">standby 1 track 1 decrement 30</span>
+
+<span class="comment">! ── 驗證 ──</span>
+R1# <span class="cmd">show ip sla statistics</span>
+R1# <span class="cmd">show track</span></code></pre>
+
+    <div class="trap"><b>沒有 track 的浮動靜態路由是假備援。</b><br>
+    只寫 <span class="inline-code">ip route 0.0.0.0 0.0.0.0 203.0.113.1</span>（不加 track）時，只有<b>介面斷掉</b>才會撤掉這條路由。<br>
+    <b>但真實世界最常見的故障是「介面還亮著，但對面的網路壞了」</b>——中華電信的機房出問題、上游路由器掛掉、光纖在某處斷掉但你這端的光還在。這時介面 up、路由還在、封包全部進黑洞。<br>
+    <b>加上 IP SLA + track，探測失敗就撤路由，備線才會真的接手。</b></div>
+
+    <h3>EEM：設備的自動化腳本</h3>
+    <div class="note"><b>Embedded Event Manager</b> 讓設備在特定事件發生時自動執行動作。<br>
+    <b>典型用途：</b>介面 down 時自動收集診斷資訊並寄信、CPU 超過 90% 時自動記錄 <span class="inline-code">show processes cpu</span>、有人下 <span class="inline-code">write erase</span> 時發出警告。</div>
+
+    <pre><code><span class="comment">! ── 介面 down 時自動記錄現場並發 syslog ──</span>
+R1(config)# <span class="cmd">event manager applet IF-DOWN-CAPTURE</span>
+R1(config-applet)# <span class="cmd">event syslog pattern "Interface GigabitEthernet0/1, changed state to down"</span>
+R1(config-applet)# <span class="cmd">action 1.0 cli command "enable"</span>
+R1(config-applet)# <span class="cmd">action 2.0 cli command "show interface gigabitEthernet 0/1"</span>
+R1(config-applet)# <span class="cmd">action 3.0 cli command "show logging | last 20"</span>
+R1(config-applet)# <span class="cmd">action 4.0 syslog msg "EEM: g0/1 掉線,已擷取診斷資訊"</span></code></pre>
+
+    <div class="ok"><strong>EEM 解決的是「間歇性故障」這個排錯惡夢。</strong><br>
+    某條線每週斷一次、每次三十秒，等你收到通知登入設備時<b>現場已經恢復了</b>，什麼都查不到。<br>
+    EEM 讓設備<b>在事發當下自動拍照存證</b>，你隔天上班就有完整的現場資料。<b>這是抓間歇性問題最有效的手段。</b></div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="baseline">
+    <h2>7. 基準線：沒有基準就沒有異常</h2>
+
+    <div class="trap"><b>「這台設備 CPU 60%，正不正常？」——沒有基準線就無法回答。</b><br>
+    如果它平常就是 55–65%，那 60% 完全正常；如果它平常是 10%，那 60% 就是重大異常。<br>
+    <b>沒有基準線，所有監控數字都只是數字。</b></div>
+
+    <h3>該建立基準的五項</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>介面使用率</b><span>各時段的頻寬曲線。知道正常尖峰在哪，才知道什麼叫異常。</span></div>
+      <div class="cmp"><b>CPU / 記憶體</b><span>設備的正常負載範圍。</span></div>
+      <div class="cmp"><b>延遲與丟包</b><span>關鍵路徑的基準 RTT。用 IP SLA 長期記錄。</span></div>
+      <div class="cmp"><b>錯誤計數器</b><span>正常情況下應該<b>接近零且不增長</b>。</span></div>
+      <div class="cmp"><b>設定基準</b><span>標準設定樣板。用 <span class="inline-code">archive</span> 或 Git 保存，改了什麼一目了然。</span></div>
+    </div>
+
+    <pre><code><span class="comment">! ── 設定變更歸檔（強烈建議每台都開）──</span>
+R1(config)# <span class="cmd">archive</span>
+R1(config-archive)# <span class="cmd">path flash:/config-backup</span>
+R1(config-archive)# <span class="cmd">maximum 10</span>
+R1(config-archive)# <span class="cmd">write-memory</span>              <span class="comment">! 每次存檔就自動備份一份</span>
+R1(config-archive)# <span class="cmd">log config</span>
+R1(config-archive-log-cfg)# <span class="cmd">logging enable</span>
+R1(config-archive-log-cfg)# <span class="cmd">logging size 200</span>
+R1(config-archive-log-cfg)# <span class="cmd">notify syslog</span>       <span class="comment">! 誰改了什麼指令都送 syslog</span>
+
+<span class="comment">! ── 排錯神器：比對現在跟上次的差異 ──</span>
+R1# <span class="cmd">show archive config differences</span>
+R1# <span class="cmd">show archive log config all</span>          <span class="comment">! 誰、什麼時候、下了什麼指令</span></code></pre>
+
+    <div class="ok"><strong><span class="inline-code">show archive log config all</span> 可以直接回答排錯的第一個問題：「最近改了什麼？」</strong><br>
+    在多人管理的環境中，這個指令解決過無數「不是我改的」爭議——它會列出<b>誰、在什麼時間、從哪個 IP 登入、下了哪一行指令</b>。<br>
+    <b>這是新設備上線時就該設好的東西，不是出事後才想到。</b></div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="cases">
+    <h2>8. 八個真實故障案例</h2>
+    <p>每個案例先看症狀，自己判斷可能原因，再看解析。這些都是實務上高頻出現的樣態。</p>
+
+    <div class="case">
+      <h4>案例 1｜新裝的無線 AP 拿不到 IP</h4>
+      <p><b>症狀：</b>接上新 AP，指示燈正常，但 AP 一直拿不到 IP。同一台交換器上其他埠都正常。</p>
+      <p><b>檢查：</b><span class="inline-code">show interface status</span> 顯示該埠 <span class="inline-code">err-disabled</span>。</p>
+      <p><b>根因：</b><b>Port Security</b>。該埠原本接的是一台 PC（<span class="inline-code">maximum 1</span>），換成 AP 之後，AP 會轉送多個無線用戶端的 MAC，超過上限就被 shutdown。</p>
+      <p><b>解法：</b>調整 <span class="inline-code">switchport port-security maximum</span> 或改用 sticky 並放寬數量。<b>同類問題：</b>虛擬化主機、IP 電話後面接 PC、小型交換器接在辦公室——都會超過 maximum 1。</p>
+    </div>
+
+    <div class="case">
+      <h4>案例 2｜跨網段 ping 通但網頁開不了</h4>
+      <p><b>症狀：</b>從分公司 ping 總部伺服器完全正常，SSH 也能連，但網頁只載入一半就停住，大檔案下載會斷。</p>
+      <p><b>檢查：</b>用 <span class="inline-code">ping 10.2.2.10 size 1500 df-bit</span> 測試，失敗。</p>
+      <p><b>根因：</b><b>MTU</b>。這條路徑上有 GRE over IPsec 隧道，封包加上封裝後超過鏈路 MTU，而設了 DF 位元的大封包被直接丟棄。</p>
+      <p><b>解法：</b>隧道介面設 <span class="inline-code">ip mtu 1400</span> 與 <span class="inline-code">ip tcp adjust-mss 1360</span>。<b>記住這個判斷法：小封包通、大封包不通 = MTU。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 3｜整個網段每天固定時間變慢</h4>
+      <p><b>症狀：</b>某個 VLAN 每天上午九點到九點半特別慢，其他時間正常。</p>
+      <p><b>檢查：</b><span class="inline-code">show interface</span> 看到上行埠的 <b>output drops</b> 在那個時段暴增；NetFlow 顯示大量流量來自同一批主機到同一個目的地。</p>
+      <p><b>根因：</b>防毒軟體的<b>集中更新</b>排在九點，整個網段同時下載更新檔，把上行頻寬打滿。</p>
+      <p><b>解法：</b>把更新時間錯開（分批），或在防毒伺服器端限速，或對更新流量套 QoS 降低優先級。<b>這類「每天固定時間」的問題，答案幾乎都是排程任務。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 4｜換了一台交換器之後全網不通</h4>
+      <p><b>症狀：</b>把一台舊交換器換成新的（設定已經複製過去），插上線之後<b>整個機房的網路都斷了</b>。</p>
+      <p><b>檢查：</b><span class="inline-code">show spanning-tree</span> 顯示 Root Bridge 換成了新交換器。</p>
+      <p><b>根因：</b>新交換器的 <b>Bridge Priority 是預設值 32768，但 MAC 位址比原本的 Root 小</b>，於是搶走了 Root 角色，整棵生成樹重新計算，流量路徑全部改變（可能走到低速線路上）。</p>
+      <p><b>解法：</b>上線前<b>先設定好 Bridge Priority</b>，並在核心交換器上設 <span class="inline-code">spanning-tree guard root</span>（Root Guard）防止接入層搶 Root。<b>這是「新設備上線前必做的檢查」第一名。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 5｜備援線路沒有接手</h4>
+      <p><b>症狀：</b>主線的 ISP 出問題，但公司完全連不上外網——備援線路沒有自動接手。</p>
+      <p><b>檢查：</b>主線的實體介面<b>仍然是 up</b>，浮動靜態路由因此沒有被撤掉。</p>
+      <p><b>根因：</b>ISP 的上游壞了，但「路由器到 ISP 的第一跳」還通，所以介面不會 down。<b>沒有 IP SLA 探測，路由器不知道再往上走不通。</b></p>
+      <p><b>解法：</b>加上 <span class="inline-code">ip sla</span> 探測一個<b>遠端</b>目標（例如 8.8.8.8，不要只探 ISP 的閘道），並用 <span class="inline-code">track</span> 綁定主線路由。<b>「介面 up 但路不通」是雙線架構最常見的失敗模式。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 6｜某台伺服器間歇性斷線</h4>
+      <p><b>症狀：</b>一台伺服器每隔幾天就短暫失聯幾十秒，然後自己恢復。查的時候永遠是正常的。</p>
+      <p><b>檢查：</b>設定 EEM 在介面 down 時自動擷取資訊。三天後抓到現場：<span class="inline-code">show logging</span> 有 <b>MAC flapping</b> 訊息，同一個 MAC 在兩個埠之間跳動。</p>
+      <p><b>根因：</b>伺服器做了<b>網卡 teaming</b>，但交換器端沒有設成對應的 EtherChannel 模式，導致 MAC 在兩個埠之間漂移。</p>
+      <p><b>解法：</b>依伺服器的 teaming 模式，在交換器上設定對應的 EtherChannel（LACP 或 static）。<b>間歇性故障一定要用 EEM 或持續記錄，靠「等它發生時剛好在線上」是不可能的。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 7｜新增網段之後部分主機不通</h4>
+      <p><b>症狀：</b>新增了 10.1.50.0/24 網段，同網段內互通正常，但去總部只有部分伺服器通得到。</p>
+      <p><b>檢查：</b>總部路由器 <span class="inline-code">show ip route 10.1.50.0</span> 查不到；但 10.1.0.0/16 這條在。</p>
+      <p><b>根因：</b>路由是靠<b>重分配</b>從 EIGRP 進 OSPF 的，而重分配時套用的 <b>prefix-list 只允許到 10.1.49.x</b>，新網段不在允許範圍。</p>
+      <p><b>解法：</b>更新 prefix-list。<b>這正是「用過濾清單防迴圈」的副作用</b>——每次新增網段都要記得改。所以第 19 章建議優先用 <b>tag 防迴圈</b>，因為 tag 不需要隨網段變動而修改。</p>
+    </div>
+
+    <div class="case">
+      <h4>案例 8｜VoIP 通話單向有聲音</h4>
+      <p><b>症狀：</b>內線互打，A 聽得到 B，但 B 聽不到 A。</p>
+      <p><b>檢查：</b>單向語音幾乎必定是<b>單向的封包路徑問題</b>。檢查 ACL、NAT 與路由的<b>回程</b>。</p>
+      <p><b>根因：</b>某段路徑上的 ACL 只放行了單一方向的 RTP 埠範圍；另一種常見原因是 <b>NAT 只轉換了一個方向</b>，或防火牆對 UDP 的 session 判定過期太快。</p>
+      <p><b>解法：</b>檢查雙向路徑。<b>排錯通則：任何「單向通」的問題，都要把去程與回程分開檢查</b>——ping 通不代表回程正常，因為 ICMP 與實際應用走的埠不同，ACL 可能只擋了其中一種。</p>
+    </div>
+
+    <div class="biz">
+      <b>八個案例的共同心法</b><br>
+      ① <b>「什麼時候是好的？那時到現在改了什麼？」</b>——案例 4、7 靠這句話就能定位。<br>
+      ② <b>症狀的形狀就是線索</b>——小封包通大封包不通是 MTU（案例 2）；每天固定時間是排程（案例 3）；單向通是回程問題（案例 8）。<br>
+      ③ <b>間歇性故障必須自動存證</b>——案例 6 沒有 EEM 就永遠查不到。<br>
+      ④ <b>「介面 up」不等於「路通」</b>——案例 5 是雙線架構最常見的失敗。<br>
+      ⑤ <b>新設備上線前先想它會不會搶角色</b>——案例 4 的 STP Root 是經典。<br>
+      ⑥ <b>安全機制也會造成故障</b>——案例 1 的 Port Security、案例 7 的過濾清單，都是「做對了資安卻擋到自己」。
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>實作 Lab：建立一套排錯工具鏈</h3>
+    <p>約 50 分鐘。這個 Lab 不練「怎麼設定」，練的是「<b>出事時你手上有什麼</b>」。</p>
+
+    <h4>階段一：把地基打好（每台設備都該有）</h4>
+    <ol>
+      <li>設定 <strong>NTP</strong>——沒有正確時間，多台設備的日誌無法對照，排錯等於瞎子摸象</li>
+      <li>設定 <strong>Syslog</strong> 送到集中伺服器，等級設 informational（6）</li>
+      <li>開啟 <strong>archive + log config</strong>，讓每次設定變更都被記錄</li>
+      <li>設定 <strong>CDP/LLDP</strong>，確保拓撲可以自動探索</li>
+      <li>驗證：<span class="inline-code">show clock</span>、<span class="inline-code">show logging</span>、<span class="inline-code">show archive log config all</span></li>
+    </ol>
+    <div class="warn"><strong>NTP 是所有排錯的前提。</strong>當你要比對「交換器說 10:23:15 埠斷了」與「伺服器說 10:19:02 連線失敗」時，如果兩邊時間差了四分鐘，你會得出完全錯誤的因果關係。<strong>新設備上線的第一件事就是對時。</strong></div>
+
+    <h4>階段二：主動探測</h4>
+    <ol>
+      <li>設定 <strong>IP SLA</strong> 探測一個遠端目標，頻率 5 秒</li>
+      <li>建立 <strong>track</strong> 物件</li>
+      <li>設定主備兩條靜態路由，主線<strong>綁 track</strong></li>
+      <li>把主線的下一跳「弄壞」（在中間設備上擋掉探測目標），觀察路由自動切換</li>
+      <li>用 <span class="inline-code">show track</span> 與 <span class="inline-code">show ip route</span> 驗證</li>
+    </ol>
+
+    <h4>階段三：看得見流量</h4>
+    <ol>
+      <li>設定 <strong>NetFlow</strong>（Flexible NetFlow 三步驟）</li>
+      <li>產生一些流量（大檔傳輸、多台主機同時上網）</li>
+      <li>用 <span class="inline-code">show flow monitor X cache sort counter bytes top 10</span> 找出 Top Talkers</li>
+      <li>設定一個 <strong>SPAN 會話</strong>，用 Wireshark 抓包驗證</li>
+      <li>觀察 SPAN 目的埠<strong>無法正常上網</strong>這件事</li>
+    </ol>
+
+    <h4>階段四：自動存證</h4>
+    <ol>
+      <li>設定一個 <strong>EEM applet</strong>：偵測到介面 down 時自動執行 <span class="inline-code">show interface</span> 與 <span class="inline-code">show logging</span></li>
+      <li>手動 shutdown 該介面觸發它</li>
+      <li>確認 syslog 中有 EEM 產生的訊息與擷取的資訊</li>
+    </ol>
+
+    <h4>階段五：模擬故障（找同學互相出題）</h4>
+    <ol>
+      <li>請對方在你不知情的情況下<strong>製造一個故障</strong>（改 VLAN、加 ACL、改 native VLAN、關掉某個 OSPF network 語句）</li>
+      <li>你用<strong>分層排錯</strong>的順序找出來，全程<strong>只用 show 指令</strong></li>
+      <li>找到後寫下：症狀、檢查步驟、根因、解法</li>
+      <li>交換角色再做一次</li>
+    </ol>
+    <div class="note"><strong>階段五是整個 Lab 最有價值的部分。</strong>設定會了不代表排錯會了——排錯是<strong>逆向工程</strong>，要從症狀推回原因。<strong>這個能力只能靠反覆練習養成，而且是面試時最能拉開差距的一項。</strong></div>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1：全雙工介面出現 collisions</b><br>全雙工在物理上<b>不可能有碰撞</b>。看到 collisions 或 late collisions 就是<b>雙工不匹配</b>。</div>
+
+    <div class="trap"><b>陷阱 2：介面計數器沒 clear 就下判斷</b><br>計數器是<b>累積值</b>，可能是三年前的舊帳。<span class="inline-code">clear counters</span> 後再觀察才有意義。</div>
+
+    <div class="trap"><b>陷阱 3：以為介面 up 就代表路通</b><br>上游故障時介面仍是 up，浮動靜態路由不會撤。<b>必須配 IP SLA + track</b>。</div>
+
+    <div class="trap"><b>陷阱 4：NetFlow 與 SPAN 搞混</b><br><b>NetFlow = 誰跟誰在通訊</b>（不含封包內容）；<b>SPAN = 完整封包複本</b>；<b>SNMP = 統計數字</b>。</div>
+
+    <div class="trap"><b>陷阱 5：SPAN 目的埠還想拿來上網</b><br>目的埠變成<b>純輸出</b>，接在上面的電腦無法正常通訊。而且 SPAN 會話數量有限、超訂會丟封包。</div>
+
+    <div class="trap"><b>陷阱 6：在正式環境隨便下 debug</b><br>debug 是程序層級處理，可能把 CPU 吃滿導致設備失去回應。<b>能用 show 就不要用 debug</b>，用了要立刻 <span class="inline-code">undebug all</span>。</div>
+
+    <div class="trap"><b>陷阱 7：忘記設 NTP</b><br>多台設備的日誌無法對照，排錯時會推出錯誤的因果關係。<b>NTP 是排錯的前提，不是可有可無的功能</b>。</div>
+
+    <div class="trap"><b>陷阱 8：新交換器上線搶走 STP Root</b><br>預設 priority 相同時比 MAC，新設備 MAC 較小就會搶 Root。上線前先設 priority，核心開 <b>Root Guard</b>。</div>
+
+    <div class="trap"><b>陷阱 9：遠端改設定不設 <span class="inline-code">reload in</span></b><br>改壞了就斷線，只能請人到現場。<b>遠端動高風險設定前一定要先設自動重開</b>。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>
+    排錯先問「<b>什麼時候是好的、改了什麼</b>」，然後<b>由下而上</b>分層查；<br>
+    <b>小封包通大封包不通</b>是 MTU、<b>全雙工有碰撞</b>是雙工不匹配、<b>每天固定時間</b>是排程；<br>
+    看趨勢用 <b>SNMP</b>、看是誰用 <b>NetFlow</b>、看內容用 <b>SPAN</b>；<br>
+    <b>介面 up 不等於路通</b>，備援一定要配 <b>IP SLA</b>。</span></div>
+  </div>
+
+  <div class="page-nav">
+    <a href="19-redistribution.html">← CH 6-3：路由重分配與路由政策</a>
+    <a href="index.html">回到學習中心 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 6-4</footer>
+</body>
+</html>

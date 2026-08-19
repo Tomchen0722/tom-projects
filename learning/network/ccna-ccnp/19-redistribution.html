@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>路由重分配與路由政策 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補強篇</a><span class="sep">/</span>
+  <span class="cur">CH 6-3 · 重分配與路由政策</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 6-3 · 路由政策</div>
+  <h1>路由重分配與路由政策</h1>
+  <p>公司併購、部門用不同路由協定、要把靜態路由丟進 OSPF——這些都會用到重分配。它是 CCNP 最容易做出災難的一項技術，而 Route Map 與 Prefix List 就是控制它的方向盤。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">什麼時候需要重分配</a></li>
+      <li><a href="#metric">種子度量：不設會出事</a></li>
+      <li><a href="#basic">實作一：基本重分配</a></li>
+      <li><a href="#loop">路由迴圈與次佳路徑（核心）</a></li>
+      <li><a href="#prefix">Prefix List：比 ACL 適合篩路由</a></li>
+      <li><a href="#routemap">Route Map：路由界的 if-then</a></li>
+      <li><a href="#control">實作二：用 Route Map 控制重分配</a></li>
+      <li><a href="#pbr">PBR：不照路由表走</a></li>
+      <li><a href="#lab">實作 Lab：雙點重分配防迴圈</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="why">
+    <h2>1. 什麼時候需要重分配</h2>
+
+    <div class="analogy">重分配就像<b>兩家公司合併後的通訊錄整合</b>——A 公司用 Excel、B 公司用 CRM，你要把兩邊的聯絡人互相同步。<br>
+    問題在於：<b>兩邊的欄位定義不一樣</b>（A 的「重要度」是 1–5 分，B 的是「高中低」），同步時一定要決定怎麼換算。<b>路由的 metric 就是那個換算不了的欄位。</b></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>企業併購</b><span>一邊用 OSPF、一邊用 EIGRP，短期內不可能全部改造。</span></div>
+      <div class="cmp"><b>與外部互連</b><span>內部 OSPF、對 ISP 跑 BGP，兩邊要交換路由。</span></div>
+      <div class="cmp"><b>靜態路由入動態</b><span>VPN 隧道、預設路由要讓全網知道。</span></div>
+      <div class="cmp"><b>協定遷移過渡</b><span>從 EIGRP 換到 OSPF 的過程中，兩者並存一段時間。</span></div>
+    </div>
+
+    <div class="note"><b>重分配的核心觀念：不同路由協定的 metric 完全無法互相換算。</b><br>
+    OSPF 的 cost 依頻寬算、EIGRP 的 metric 綜合頻寬與延遲、RIP 用跳數、BGP 用一堆屬性。<br>
+    所以重分配時<b>必須人為指定一個「種子度量（seed metric）」</b>——等於告訴新協定「這些外來的路由，你就當成 X 分」。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="metric">
+    <h2>2. 種子度量：不設會出事</h2>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>重分配「進入」的協定</th><th>預設種子度量</th><th>結果</th></tr></thead>
+      <tbody>
+        <tr><td><b>OSPF</b></td><td><b>20</b>（來自 BGP 是 1）</td><td>有預設值，能運作</td></tr>
+        <tr><td><b>EIGRP</b></td><td><b>無限大（infinity）</b></td><td><b>路由被視為不可達，完全不會出現在路由表</b></td></tr>
+        <tr><td><b>RIP</b></td><td><b>無限大</b></td><td>同上，路由消失</td></tr>
+        <tr><td><b>BGP</b></td><td>IGP 的 metric</td><td>能運作</td></tr>
+        <tr><td><b>IS-IS</b></td><td>0</td><td>能運作</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>這是初學者最常遇到的「設定看起來對，但路由就是不出現」。</b><br>
+    往 <b>EIGRP 或 RIP</b> 重分配時，<b>沒有指定 metric 就等於指定了無限大</b>，路由器認為那些路由不可達，直接丟掉。<br>
+    <b>OSPF 有預設值 20，所以往 OSPF 重分配「看起來會動」</b>——這反而讓人以為所有協定都一樣，換成 EIGRP 就踩坑。<br>
+    <b>養成習慣：不管往哪個協定重分配，都明確指定 metric。</b></div>
+
+    <pre><code><span class="comment">! ── 往 EIGRP 重分配一定要給 metric（五個參數）──</span>
+R1(config)# <span class="cmd">router eigrp 100</span>
+R1(config-router)# <span class="cmd">redistribute ospf 1 metric 100000 100 255 1 1500</span>
+                                          <span class="comment">! 頻寬  延遲 可靠度 負載 MTU</span>
+
+<span class="comment">! 或用 default-metric 一次設定所有重分配來源</span>
+R1(config-router)# <span class="cmd">default-metric 100000 100 255 1 1500</span>
+R1(config-router)# <span class="cmd">redistribute ospf 1</span>
+
+<span class="comment">! ── 往 OSPF 重分配（有預設值,但仍建議明確指定）──</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">redistribute eigrp 100 subnets metric 100 metric-type 1</span>
+                                        <span class="comment">! subnets 一定要加,見下方陷阱</span></code></pre>
+
+    <div class="trap"><b>OSPF 重分配忘記加 <span class="inline-code">subnets</span>：只有主類別網路會被帶進來。</b><br>
+    沒加這個關鍵字，<b>只有等長於預設類別遮罩的網路（如 10.0.0.0/8、192.168.1.0/24）會被重分配</b>，所有切過子網路的網段（10.1.1.0/24）全部被丟掉。<br>
+    <b>症狀非常典型：</b>「有些網段通、有些不通」，而不通的剛好都是切過子網路的。<br>
+    新版 IOS 已經預設加上，但考題與舊設備仍會考這一點。</div>
+
+    <h3>OSPF 外部路由的兩種型別</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>E1（metric-type 1）</th><th>E2（metric-type 2，<b>預設</b>）</th></tr></thead>
+      <tbody>
+        <tr><td>cost 怎麼算</td><td><b>種子度量 + 沿途累加的內部 cost</b></td><td><b>只有種子度量，不累加</b></td></tr>
+        <tr><td>選路影響</td><td>離入口越遠 cost 越高，<b>會選最近的入口</b></td><td>不管多遠 cost 都一樣，<b>可能選到繞遠路的入口</b></td></tr>
+        <tr><td>適用</td><td>有<b>多個重分配入口</b>時，想讓流量走最近的</td><td>只有單一入口，或不在意路徑</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note"><b>選路順序：E1 永遠優於 E2</b>（不管 cost 多少）。<br>
+    考題常見情境：「兩個 ASBR 都重分配同一條路由，為什麼所有流量都跑去遠的那台？」——因為用了預設的 <b>E2</b>，cost 都一樣，路由器就照其他規則挑。<b>改成 E1 就會依實際距離選最近的入口。</b></div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="basic">
+    <h2>3. 實作一：基本重分配</h2>
+
+    <div class="diag"><span class="w">情境：併購後,A 網域跑 OSPF、B 網域跑 EIGRP</span>
+
+  <span class="y">OSPF Area 0</span>          <span class="o">R1</span>          <span class="g">EIGRP AS 100</span>
+  10.1.0.0/16  ───── <span class="w">（邊界路由器）</span> ───── 10.2.0.0/16
+                    <span class="r">兩邊都要重分配</span></div>
+
+    <pre><code><span class="comment">! ═══ R1：雙向重分配 ═══</span>
+
+<span class="comment">! ── OSPF 的路由 → 進入 EIGRP ──</span>
+R1(config)# <span class="cmd">router eigrp 100</span>
+R1(config-router)# <span class="cmd">redistribute ospf 1 metric 1000000 10 255 1 1500</span>
+
+<span class="comment">! ── EIGRP 的路由 → 進入 OSPF ──</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">redistribute eigrp 100 subnets metric 100 metric-type 1</span>
+
+<span class="comment">! ── 驗證：在對側路由器上看 ──</span>
+R2# <span class="cmd">show ip route ospf</span>
+      <span class="comment">! O E1 10.2.1.0/24 [110/110] via ... ← E1 外部路由</span>
+R3# <span class="cmd">show ip route eigrp</span>
+      <span class="comment">! D EX 10.1.1.0/24 [170/...] via ...  ← EX 代表外部,AD 是 170 不是 90</span></code></pre>
+
+    <div class="note"><b>路由表代號要認得：</b><br>
+    <span class="inline-code">O</span> = OSPF 內部｜<span class="inline-code">O IA</span> = 跨區域｜<span class="inline-code">O E1 / O E2</span> = <b>外部（重分配進來的）</b><br>
+    <span class="inline-code">D</span> = EIGRP 內部（AD 90）｜<span class="inline-code">D EX</span> = <b>EIGRP 外部（AD 170）</b><br>
+    <b>看到 E 或 EX 就代表這條路由是從別的協定重分配進來的</b>——排錯時這是第一個線索。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="loop">
+    <h2>4. 路由迴圈與次佳路徑（核心）</h2>
+
+    <div class="trap"><b>單點重分配很安全，雙點重分配會出事。</b>這是這一章最重要的觀念，也是 CCNP 考試的核心考點。</div>
+
+    <div class="diag"><span class="w">雙點雙向重分配的災難</span>
+
+  <span class="y">OSPF 網域</span>                      <span class="g">EIGRP 網域</span>
+                ┌─── <span class="o">R1</span> ───┐
+   10.1.1.0/24  │            │
+       ●────────┤            ├────────  10.2.2.0/24
+                │            │
+                └─── <span class="o">R2</span> ───┘
+
+  <span class="w">10.1.1.0/24 原本是 OSPF 的路由（AD 110）</span>
+  1. R1 把它重分配進 EIGRP
+  2. R2 從 EIGRP 學到它,<span class="r">AD 170</span>... 但等等
+  3. <span class="r">R2 又把它重分配回 OSPF</span>
+  4. <span class="r">R1 從 OSPF 學到「外部的 10.1.1.0/24」</span>
+
+  <span class="r">結果：路由繞圈,或選到次佳路徑（明明就在隔壁卻繞了一大圈）</span></div>
+
+    <h3>為什麼 AD 值救不了你</h3>
+    <div class="note">直覺會想：「OSPF 的 AD 是 110，EIGRP 外部是 170，OSPF 比較優先，應該不會有問題吧？」<br>
+    <b>問題出在 EIGRP 內部路由的 AD 是 90，比 OSPF 的 110 更優先。</b>所以在 EIGRP 網域裡，一條「原本屬於 OSPF、被重分配進來、再被當成內部路由傳播」的路由，可能會壓過真正的 OSPF 路由。<br>
+    這種「<b>路由回頭</b>」造成的次佳路徑，在網路正常時可能看不出來，直到某條線路斷掉才爆發——<b>而且非常難查</b>。</div>
+
+    <h3>三種防護手段</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>① 路由標籤（Tag）</b><span><b>最推薦</b>。重分配出去時打上標籤，重分配回來時<b>拒絕帶有該標籤的路由</b>。一次設定，之後新增網段都自動生效。</span></div>
+      <div class="cmp"><b>② 過濾（Prefix List）</b><span>明確列出允許或拒絕哪些網段。精確但<b>每次新增網段都要改設定</b>，容易遺漏。</span></div>
+      <div class="cmp"><b>③ 調整 AD 值</b><span>用 <span class="inline-code">distance</span> 讓外部路由的 AD 變差。可行但<b>影響範圍大、副作用難預期</b>，是最後手段。</span></div>
+    </div>
+
+    <div class="ok"><strong>標準做法就是「打標籤 + 擋標籤」，四行設定解決：</strong>
+    <pre style="margin:8px 0 0"><code><span class="comment">! 在 R1 與 R2 上都做同樣的事</span>
+
+<span class="comment">! ① 定義：拒絕帶有標籤 100 的路由,其餘允許並打上標籤 100</span>
+route-map <span class="cmd">OSPF-TO-EIGRP</span> deny 10
+ match tag 100
+route-map <span class="cmd">OSPF-TO-EIGRP</span> permit 20
+ set tag 100
+
+<span class="comment">! ② 套用在重分配上</span>
+router eigrp 100
+ redistribute ospf 1 metric 1000000 10 255 1 1500 route-map OSPF-TO-EIGRP</code></pre>
+    <b>邏輯：</b>從 OSPF 進 EIGRP 的路由都蓋章「100」；當這條路由繞了一圈想從另一台再進來時，因為身上有章就被擋掉。<b>路由不可能回到自己出發的網域。</b></div>
+
+    <div class="biz">
+      <b>企業實例｜某集團併購後的三個月排錯</b><br>
+      A 公司（OSPF）併購 B 公司（EIGRP），兩地各有一台邊界路由器做雙向重分配（雙點）。上線後三個月一切正常。<br>
+      <b>某天南部機房的一條線斷了</b>，結果台北到台中的流量竟然繞道高雄，延遲從 5ms 暴增到 45ms。查了兩天才發現：台中的網段有一條路由是「從 OSPF 出去、繞進 EIGRP、又被另一台重分配回 OSPF」的迴圈路由，平常因為 cost 較差不會被選中，線路一斷就浮上來變成最佳路徑。<br>
+      <b>修正：</b>兩台邊界路由器都加上 tag 過濾（就是上面那四行），問題消失。<br>
+      <b>教訓：</b>雙點重分配的問題<b>在網路正常時不會出現</b>，它會等到你最不希望出事的時候才爆。<b>設計時就要防，不要等出事再查。</b>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="prefix">
+    <h2>5. Prefix List：比 ACL 適合篩路由</h2>
+
+    <p>ACL 也能過濾路由，但它<b>只能比對網路位址，不能比對前綴長度</b>。Prefix List 就是為了補這個缺口。</p>
+
+    <div class="diag"><span class="w">同樣要「只允許 10.1.0.0/16」</span>
+
+  <span class="r">用 ACL：</span> access-list 10 permit 10.1.0.0 0.0.255.255
+           <span class="r">→ 10.1.0.0/16、10.1.1.0/24、10.1.1.128/25 全部都會通過</span>
+           <span class="r">   因為 ACL 根本不看遮罩長度</span>
+
+  <span class="g">用 Prefix List：</span> ip prefix-list PL permit 10.1.0.0/16
+           <span class="g">→ 只有剛好 /16 的那一條會通過</span></div>
+
+    <h3>語法與 ge / le</h3>
+    <div class="formula"><code>ip prefix-list <b>名稱</b> [seq 序號] {permit|deny} <b>網路/長度</b> [ge <b>最小長度</b>] [le <b>最大長度</b>]</code></div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>寫法</th><th>符合什麼</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">permit 10.1.0.0/16</span></td><td><b>只有</b> 10.1.0.0/16 這一條</td></tr>
+        <tr><td><span class="inline-code">permit 10.1.0.0/16 le 24</span></td><td>10.1.0.0 開頭、前綴長度 <b>16 到 24</b> 之間</td></tr>
+        <tr><td><span class="inline-code">permit 10.1.0.0/16 ge 24</span></td><td>10.1.0.0 開頭、前綴長度 <b>24 到 32</b> 之間</td></tr>
+        <tr><td><span class="inline-code">permit 10.1.0.0/16 ge 20 le 24</span></td><td>長度在 <b>20 到 24</b> 之間</td></tr>
+        <tr><td><span class="inline-code">permit 0.0.0.0/0</span></td><td><b>只有預設路由</b>這一條</td></tr>
+        <tr><td><span class="inline-code">permit 0.0.0.0/0 le 32</span></td><td><b>全部路由</b>（等同 permit any）</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>三個必記的細節：</b><br>
+    ① <b>結尾有隱含的 deny any</b>——跟 ACL 一樣，沒被明確允許的就被拒絕。<br>
+    ② <b><span class="inline-code">ge</span> 與 <span class="inline-code">le</span> 的值必須大於前面的前綴長度</b>，且 <span class="inline-code">ge</span> ≤ <span class="inline-code">le</span>。<br>
+    ③ <b>「只有預設路由」與「全部路由」的寫法只差 <span class="inline-code">le 32</span></b>——這是考題最愛的一組，非常容易看錯。</div>
+
+    <pre><code><span class="comment">! ── 常見用途：只讓預設路由與特定彙總進來 ──</span>
+R1(config)# <span class="cmd">ip prefix-list ALLOW-IN seq 5 permit 0.0.0.0/0</span>
+R1(config)# <span class="cmd">ip prefix-list ALLOW-IN seq 10 permit 10.0.0.0/8 le 16</span>
+
+<span class="comment">! ── 套用在 BGP 鄰居上 ──</span>
+R1(config)# <span class="cmd">router bgp 65001</span>
+R1(config-router)# <span class="cmd">neighbor 203.0.113.2 prefix-list ALLOW-IN in</span>
+
+<span class="comment">! ── 驗證 ──</span>
+R1# <span class="cmd">show ip prefix-list</span>
+R1# <span class="cmd">show ip prefix-list ALLOW-IN</span></code></pre>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="routemap">
+    <h2>6. Route Map：路由界的 if-then</h2>
+
+    <div class="analogy">Route Map 就是<b>一連串的 if-then 規則</b>，由上往下逐條比對，<b>符合就執行動作然後停止</b>，不符合就往下一條。<br>
+    跟寫程式的 <span class="inline-code">if / elif / else</span> 完全一樣的邏輯。</div>
+
+    <div class="formula"><code>route-map <b>名稱</b> {permit|deny} <b>序號</b><br>
+    &nbsp;&nbsp;match &lt;<b>條件</b>&gt;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5F6B7A">← if（可以有多個，同一行內是 OR，不同行是 AND）</span><br>
+    &nbsp;&nbsp;set &lt;<b>動作</b>&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#5F6B7A">← then</span></code></div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>常用 match</th><th>常用 set</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">match ip address prefix-list X</span><br><span class="inline-code">match ip address 10</span>（ACL）<br><span class="inline-code">match tag 100</span><br><span class="inline-code">match metric 100</span><br><span class="inline-code">match interface g0/1</span><br><span class="inline-code">match route-type external</span><br><span class="inline-code">match as-path 1</span>（BGP）<br><span class="inline-code">match community 1</span>（BGP）</td><td><span class="inline-code">set metric 100</span><br><span class="inline-code">set metric-type type-1</span><br><span class="inline-code">set tag 100</span><br><span class="inline-code">set local-preference 200</span>（BGP）<br><span class="inline-code">set as-path prepend 65001 65001</span>（BGP）<br><span class="inline-code">set community 100:1</span>（BGP）<br><span class="inline-code">set ip next-hop 10.1.1.1</span>（PBR）</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>四個關鍵規則（考題重災區）：</b><br>
+    ① <b>由上往下比對，符合第一條就停止</b>——序號的順序決定一切。<br>
+    ② <b>結尾有隱含的 deny any</b>——如果你只寫了 permit 10，其他全部會被拒絕。要放行其餘一定要補一條空的 <span class="inline-code">route-map X permit 999</span>。<br>
+    ③ <b>只有 match 沒有 set</b> = 符合的就通過，不修改任何屬性。<br>
+    ④ <b>只有 set 沒有 match</b> = <b>所有路由都符合</b>，全部套用這個動作。這是「打標籤給全部」的寫法。<br>
+    <b>⑤ deny 的條目裡寫 set 沒有意義</b>——被 deny 的路由根本不會被處理。</div>
+
+    <div class="ex-box">
+      <div class="ex-title">讀懂這段 Route Map</div>
+      <pre style="margin-bottom:0"><code>route-map <span class="cmd">FILTER</span> <span class="kw">deny</span> 10
+ match tag 100
+
+route-map <span class="cmd">FILTER</span> <span class="kw">permit</span> 20
+ match ip address prefix-list SERVERS
+ set metric 50
+ set tag 200
+
+route-map <span class="cmd">FILTER</span> <span class="kw">permit</span> 30
+ set tag 200</code></pre>
+      <p style="margin-top:10px"><b>逐條翻譯：</b><br>
+      <b>序號 10：</b>如果路由帶著標籤 100 → <b>拒絕</b>（擋掉，不再往下比）<br>
+      <b>序號 20：</b>如果路由符合 SERVERS 這個 prefix-list → 允許，並把 metric 設成 50、標籤設成 200<br>
+      <b>序號 30：</b>其餘全部允許（<b>沒有 match 代表全部符合</b>），並打上標籤 200<br><br>
+      <b>如果沒有序號 30 會怎樣？</b>因為隱含的 deny any，除了 SERVERS 之外的路由<b>全部會被擋掉</b>——這是最常見的災難性設定錯誤。</p>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="control">
+    <h2>7. 實作二：用 Route Map 控制重分配</h2>
+
+    <div class="diag"><span class="w">需求</span>
+
+  1. 只把 10.1.0.0/16 底下的 /24 網段重分配進 EIGRP
+  2. 這些路由打上標籤 100（防止繞回來）
+  3. 拒絕任何已經帶著標籤 100 的路由（<span class="g">防迴圈</span>）
+  4. 伺服器網段 10.1.99.0/24 要有<span class="y">更好的 metric</span></div>
+
+    <pre><code><span class="comment">! ── 步驟 1：定義 Prefix List ──</span>
+R1(config)# <span class="cmd">ip prefix-list LAN-NETS seq 5 permit 10.1.0.0/16 ge 24 le 24</span>
+R1(config)# <span class="cmd">ip prefix-list SERVERS seq 5 permit 10.1.99.0/24</span>
+
+<span class="comment">! ── 步驟 2：定義 Route Map ──</span>
+R1(config)# <span class="cmd">route-map TO-EIGRP deny 10</span>
+R1(config-route-map)# <span class="cmd">match tag 100</span>          <span class="comment">! 防迴圈：擋掉繞回來的</span>
+
+R1(config)# <span class="cmd">route-map TO-EIGRP permit 20</span>
+R1(config-route-map)# <span class="cmd">match ip address prefix-list SERVERS</span>
+R1(config-route-map)# <span class="cmd">set metric 10000000 10 255 1 1500</span>   <span class="comment">! 伺服器給好一點的 metric</span>
+R1(config-route-map)# <span class="cmd">set tag 100</span>
+
+R1(config)# <span class="cmd">route-map TO-EIGRP permit 30</span>
+R1(config-route-map)# <span class="cmd">match ip address prefix-list LAN-NETS</span>
+R1(config-route-map)# <span class="cmd">set metric 1000000 100 255 1 1500</span>
+R1(config-route-map)# <span class="cmd">set tag 100</span>
+
+<span class="comment">! 注意：這裡「沒有」第四條 permit,代表其餘路由一律不重分配</span>
+<span class="comment">! 這是刻意的——我們只想放出 LAN 網段</span>
+
+<span class="comment">! ── 步驟 3：套用 ──</span>
+R1(config)# <span class="cmd">router eigrp 100</span>
+R1(config-router)# <span class="cmd">redistribute ospf 1 route-map TO-EIGRP</span>
+
+<span class="comment">! ── 驗證 ──</span>
+R1# <span class="cmd">show route-map TO-EIGRP</span>        <span class="comment">! 看每條規則命中幾次（很有用）</span>
+R2# <span class="cmd">show ip route eigrp</span>
+R2# <span class="cmd">show ip route 10.1.99.0</span>        <span class="comment">! 確認 tag 與 metric</span></code></pre>
+
+    <div class="ok"><strong><span class="inline-code">show route-map</span> 是排錯的利器。</strong>它會顯示每一條規則被命中的次數（<span class="inline-code">Policy routing matches</span> 或 <span class="inline-code">matches</span>）。<br>
+    <b>命中次數是 0</b> → 這條規則的 match 條件寫錯了，或前面的規則先攔截了。<br>
+    <b>路由沒出現但規則有命中</b> → 問題在 set 的 metric 或協定端。<br>
+    這一個指令可以省下大量猜測時間。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="pbr">
+    <h2>8. PBR：不照路由表走</h2>
+
+    <p><b>政策路由（Policy-Based Routing）</b>讓你依「來源 IP、協定、埠號」等條件決定封包走哪條路，<b>而不是只看目的地位址</b>。</p>
+
+    <div class="diag"><span class="w">典型情境：兩條對外線路,依用途分流</span>
+
+                    ┌──── <span class="g">專線（貴、穩）</span> ──── ISP-A
+   <span class="y">內網</span> ── <span class="o">R1</span> ──┤
+                    └──── <span class="w">寬頻（便宜、不穩）</span> ── ISP-B
+
+  <span class="w">正常路由表只會依「目的地」選一條路。</span>
+  <span class="g">PBR 可以做到：</span>
+     • 財務部（10.1.10.0/24）的流量  → 走專線
+     • 其他部門的一般上網              → 走寬頻
+     • VoIP 流量（依 DSCP 判斷）       → 一律走專線</div>
+
+    <pre><code><span class="comment">! ── 步驟 1：用 ACL 定義「感興趣的流量」──</span>
+R1(config)# <span class="cmd">access-list 110 permit ip 10.1.10.0 0.0.0.255 any</span>   <span class="comment">! 財務部</span>
+
+<span class="comment">! ── 步驟 2：Route Map 指定下一跳 ──</span>
+R1(config)# <span class="cmd">route-map PBR-FINANCE permit 10</span>
+R1(config-route-map)# <span class="cmd">match ip address 110</span>
+R1(config-route-map)# <span class="cmd">set ip next-hop 203.0.113.1</span>       <span class="comment">! 專線的下一跳</span>
+
+R1(config)# <span class="cmd">route-map PBR-FINANCE permit 20</span>      <span class="comment">! 其餘走正常路由表</span>
+
+<span class="comment">! ── 步驟 3：套在「流量進來的介面」上（不是出口！）──</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">ip policy route-map PBR-FINANCE</span>
+
+<span class="comment">! ── 驗證 ──</span>
+R1# <span class="cmd">show ip policy</span>
+R1# <span class="cmd">show route-map PBR-FINANCE</span>
+R1# <span class="cmd">debug ip policy</span>            <span class="comment">! 正式環境慎用</span></code></pre>
+
+    <div class="trap"><b>PBR 的三個經典錯誤：</b><br>
+    ① <b>套錯介面</b>——要套在流量<b>進來</b>的介面（inbound），不是出去的介面。這是最常見的錯誤。<br>
+    ② <b>忘了放行其餘流量</b>——route-map 有隱含 deny any，但 PBR 的行為是「不符合的就照正常路由表走」，所以通常沒事；不過若寫了明確的 deny 條目就要小心。<br>
+    ③ <b>路由器自己發出的封包不受 PBR 影響</b>——PBR 處理的是<b>經過</b>路由器的流量。要對本機流量套用要用 <span class="inline-code">ip local policy route-map</span>。</div>
+
+    <div class="biz">
+      <b>企業實例｜某設計公司的雙線分流</b><br>
+      公司有一條 100M 專線（月租高）與一條 500M 光纖寬頻（便宜）。原本全部走專線，尖峰時段設計師上傳大型檔案把頻寬吃光，導致視訊會議斷斷續續。<br>
+      <b>用 PBR 分流：</b>① 視訊會議與雲端 ERP 的流量（依目的地網段與 DSCP）→ 專線；② 一般上網與大檔上傳 → 寬頻；③ 專線斷線時，用 <b>IP SLA 追蹤</b>自動讓 PBR 失效並全部回落到寬頻。<br>
+      <b>成效：</b>視訊會議品質問題完全消失，而且沒有增加任何頻寬費用。<br>
+      <b>設計重點：</b>PBR 一定要搭配 <b>IP SLA + track</b>，否則指定的下一跳掛掉時，封包會被送進黑洞——<b>PBR 本身不會偵測下一跳是否可達</b>，這是它跟正常路由最大的差別，也是最危險的地方。
+    </div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>實作 Lab：雙點重分配與防迴圈</h3>
+    <p>約 60 分鐘。這個 Lab 的價值在於<b>親眼看到迴圈發生</b>，再親手修好。</p>
+
+    <div class="diag">  <span class="y">OSPF Area 0</span>                    <span class="g">EIGRP AS 100</span>
+                    ┌── <span class="o">R1</span> ──┐
+   <span class="w">R4</span> ── 10.1.1.0/24 ┤        ├ 10.2.2.0/24 ── <span class="w">R5</span>
+                    └── <span class="o">R2</span> ──┘</div>
+
+    <h4>階段一：先讓兩邊各自跑起來</h4>
+    <ol>
+      <li>R4、R1、R2 之間跑 OSPF；R5、R1、R2 之間跑 EIGRP</li>
+      <li>確認 <strong>OSPF 鄰居</strong>與 <strong>EIGRP 鄰居</strong>都建立起來</li>
+      <li>此時兩個網域<strong>還不通</strong>，這是正常的</li>
+    </ol>
+
+    <h4>階段二：做出問題（重要）</h4>
+    <ol>
+      <li>在 <strong>R1 與 R2 上都做雙向重分配</strong>，<strong>先不加任何過濾</strong></li>
+      <li>在 R4 上 <span class="inline-code">show ip route</span>，找出 10.2.2.0/24 的路徑</li>
+      <li>在 R5 上 <span class="inline-code">show ip route</span>，找出 10.1.1.0/24 的路徑</li>
+      <li><strong>觀察是否有網段學到了「繞遠路」的路徑</strong>，或路由在兩條之間跳動</li>
+      <li>把 R1 的其中一個介面 <span class="inline-code">shutdown</span>，<strong>觀察路由收斂後有沒有出現不合理的路徑</strong></li>
+    </ol>
+    <div class="warn"><strong>沒看到問題也很正常</strong>——迴圈與次佳路徑是否浮現，取決於拓撲與 metric 的組合。這正是雙點重分配可怕的地方：<strong>它可能潛伏很久</strong>。所以不管有沒有看到問題，下一階段的防護都要做。</div>
+
+    <h4>階段三：加上 tag 防護</h4>
+    <ol>
+      <li>在 R1 與 R2 上<strong>都</strong>建立兩個 route-map（OSPF→EIGRP 用 tag 100、EIGRP→OSPF 用 tag 200）</li>
+      <li>每個 route-map 的第一條都是 <span class="inline-code">deny</span> + <span class="inline-code">match tag</span>（擋掉對向的標籤）</li>
+      <li>第二條 <span class="inline-code">permit</span> + <span class="inline-code">set tag</span></li>
+      <li>套用到重分配指令上</li>
+      <li>用 <span class="inline-code">show ip route 10.1.1.0</span> 確認路由上有正確的 tag</li>
+      <li>再做一次階段二的斷線測試，確認路徑合理</li>
+    </ol>
+
+    <h4>階段四：Prefix List 與 Route Map 練習</h4>
+    <ol>
+      <li>寫一個 prefix-list 只允許 <span class="inline-code">10.1.0.0/16 ge 24 le 24</span>，套進重分配</li>
+      <li>在 R5 上驗證只有 /24 的網段進來了</li>
+      <li>用 <span class="inline-code">show route-map</span> 觀察各條規則的命中次數</li>
+      <li>故意把 route-map 的最後一條 permit 拿掉，觀察<strong>所有路由都消失</strong>——親身體會隱含 deny any 的威力</li>
+    </ol>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1：往 EIGRP / RIP 重分配沒給 metric</b><br>預設是<b>無限大</b>，路由直接消失。OSPF 有預設值 20，所以「往 OSPF 做會動、往 EIGRP 做不會動」讓很多人困惑。</div>
+
+    <div class="trap"><b>陷阱 2：OSPF 重分配忘記加 <span class="inline-code">subnets</span></b><br>只有主類別網路會進來，所有切過子網路的網段消失。症狀是「有些網段通、有些不通」。</div>
+
+    <div class="trap"><b>陷阱 3：E1 與 E2 搞混</b><br><b>E1 會累加沿途 cost</b>（多入口時會選最近的）；<b>E2 不累加</b>（預設，cost 都一樣）。<b>E1 永遠優於 E2</b>。</div>
+
+    <div class="trap"><b>陷阱 4：雙點重分配不做防護</b><br>會產生迴圈或次佳路徑，而且<b>平常看不出來，斷線時才爆</b>。標準做法是 <b>tag + 擋 tag</b>。</div>
+
+    <div class="trap"><b>陷阱 5：Route Map 忘記最後一條 permit</b><br>隱含 <b>deny any</b> 會把其餘路由全部擋掉。要放行其餘必須補一條空的 <span class="inline-code">permit 999</span>。</div>
+
+    <div class="trap"><b>陷阱 6：Prefix List 的 <span class="inline-code">0.0.0.0/0</span> 與 <span class="inline-code">0.0.0.0/0 le 32</span></b><br>前者<b>只有預設路由</b>，後者<b>全部路由</b>。只差三個字，意思完全相反。</div>
+
+    <div class="trap"><b>陷阱 7：以為 ACL 能篩前綴長度</b><br>ACL <b>不看遮罩長度</b>，10.1.0.0/16 的 ACL 會連 /24、/25 一起放行。要精確控制前綴長度只能用 <b>Prefix List</b>。</div>
+
+    <div class="trap"><b>陷阱 8：PBR 套在出口介面</b><br>要套在流量<b>進來</b>的介面。另外<b>路由器自己產生的封包不受 PBR 影響</b>，那要用 <span class="inline-code">ip local policy</span>。</div>
+
+    <div class="trap"><b>陷阱 9：PBR 沒搭配 IP SLA</b><br><b>PBR 不會偵測下一跳是否可達</b>。指定的下一跳掛掉時封包會進黑洞，必須搭配 <span class="inline-code">set ip next-hop verify-availability</span> 或 track。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>
+    重分配<b>一定要給 metric</b>，往 OSPF <b>一定要加 subnets</b>；<br>
+    <b>雙點</b>重分配<b>一定要打標籤</b>，Route Map <b>一定要補最後一條 permit</b>；<br>
+    要篩<b>前綴長度</b>只能用 Prefix List，PBR <b>一定要配 IP SLA</b>。</span></div>
+  </div>
+
+  <div class="page-nav">
+    <a href="18-vpn-vrf.html">← CH 6-2：VPN、VRF 與網路虛擬化</a>
+    <a href="20-monitor-troubleshoot.html">CH 6-4：監控與排錯方法論 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 6-3</footer>
+</body>
+</html>

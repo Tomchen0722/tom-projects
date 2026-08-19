@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPv6 深入：位址、SLAAC 與 NDP — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補強篇</a><span class="sep">/</span>
+  <span class="cur">CH 6-1 · IPv6 深入</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 6-1 · IPv6</div>
+  <h1>IPv6 深入：位址、SLAAC 與 NDP</h1>
+  <p>前面章節只在靜態路由與 ACL 順帶提過 IPv6。但官方大綱有整整一個區塊在考它，而且實務上行動網路與新建機房早就是雙堆疊。這一章把位址、自動組態與 NDP 一次講完。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">為什麼非學不可</a></li>
+      <li><a href="#addr">位址結構與縮寫規則</a></li>
+      <li><a href="#types">五種位址類型（必背）</a></li>
+      <li><a href="#eui">EUI-64：從 MAC 算出介面 ID</a></li>
+      <li><a href="#ndp">NDP：取代 ARP 的四種訊息</a></li>
+      <li><a href="#slaac">取得位址的三種方式</a></li>
+      <li><a href="#dual">雙堆疊與過渡技術</a></li>
+      <li><a href="#route">IPv6 路由與設定</a></li>
+      <li><a href="#lab">實作 Lab：雙堆疊網路</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="why">
+    <h2>1. 為什麼非學不可</h2>
+
+    <div class="analogy">IPv4 像是<b>七碼的市話號碼</b>——當年設計時覺得夠用一輩子，結果人口一多就號碼不夠，只好靠分機（NAT）硬撐。<br>IPv6 則是<b>直接把號碼加長到讓每顆沙子都能有一個</b>，從此不需要分機。</div>
+
+    <div class="diag"><span class="w">位址空間對比</span>
+
+   <span class="y">IPv4</span>  32 bits  ≈ 43 億個位址        全球人口的一半都不夠
+   <span class="g">IPv6</span> 128 bits  ≈ 3.4 × 10³⁸ 個位址   地球上每平方公尺都能分到天文數字
+
+<span class="w">實務上為什麼躲不掉：</span>
+   • 行動網路（4G/5G）核心早就是 IPv6-only,用 NAT64 回接 IPv4
+   • 雲端服務商的新區域預設雙堆疊
+   • 政府與大型標案常直接要求支援 IPv6
+   • IoT 裝置數量遠超 IPv4 能負擔的規模</div>
+
+    <div class="note"><b>CCNA 不會考你「背下 IPv6 的所有 RFC」</b>，考的是四件事：<b>位址縮寫、位址類型判別、SLAAC 與 DHCPv6 的差別、NDP 取代了誰</b>。這四項掌握了，這個區塊的分數就穩了。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="addr">
+    <h2>2. 位址結構與縮寫規則</h2>
+
+    <div class="formula"><code>128 bits = <b>8 組</b> × 每組 <b>4 個十六進位字元</b>（16 bits），用冒號分隔<br><br>
+    2001:0DB8:0000:0000:0000:FF00:0042:8329</code></div>
+
+    <h3>兩條縮寫規則</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>每組的前導零可以省略</b><span class="inline-code">0DB8</span> → <span class="inline-code">DB8</span>；<span class="inline-code">0000</span> → <span class="inline-code">0</span>。<b>注意是「前導」零，中間與結尾的零不能省</b>——<span class="inline-code">8329</span> 不能寫成 <span class="inline-code">839</span>。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>連續的全零組可用 <span class="inline-code">::</span> 取代，但整個位址<u>只能用一次</u></b>如果有兩段連續零，只能縮其中一段（慣例縮較長的那段）。用兩次會讓對方無法還原中間各有幾組零。</div></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">縮寫練習（先自己做再看答案）</div>
+      <div class="diag"><span class="w">原始位址</span>                                  <span class="g">縮寫結果</span>
+
+2001:0DB8:0000:0000:0000:FF00:0042:8329   <span class="g">2001:DB8::FF00:42:8329</span>
+FE80:0000:0000:0000:0204:61FF:FE9D:F156   <span class="g">FE80::204:61FF:FE9D:F156</span>
+0000:0000:0000:0000:0000:0000:0000:0001   <span class="g">::1</span>          <span class="w">（本機迴路）</span>
+0000:0000:0000:0000:0000:0000:0000:0000   <span class="g">::</span>           <span class="w">（未指定位址）</span>
+2001:0DB8:0000:0001:0000:0000:0000:0001   <span class="y">2001:DB8:0:1::1</span>  <span class="r">← 注意這個</span>
+
+<span class="r">最後一個為什麼不能寫成 2001:DB8::1::1 ？</span>
+<span class="w">因為 :: 只能出現一次。兩段零只能縮長的那段（後面三組），</span>
+<span class="w">前面那組單獨的 0000 只能縮成 0。</span></div>
+    </div>
+
+    <div class="trap"><b>考試陷阱：把中間或結尾的零也省掉</b><br>
+    <span class="inline-code">2001:0DB8:0000:0000:0000:FF00:0042:8329</span> 中的 <span class="inline-code">0042</span> 縮成 <span class="inline-code">42</span> 是對的（前導零），但 <span class="inline-code">8329</span> 不能動。<br>
+    另一個常見錯誤是把 <span class="inline-code">2001:DB8:0:0:0:0:0:1</span> 寫成 <span class="inline-code">2001:DB8::0::1</span>——<b>兩個 <span class="inline-code">::</span> 一定錯</b>。</div>
+
+    <h3>前綴表示法</h3>
+    <div class="note">IPv6 <b>沒有子網路遮罩</b>，一律用前綴長度：<span class="inline-code">2001:DB8:1::/64</span>。<br>
+    實務慣例：<b>網段一律切 /64</b>（因為 SLAAC 需要 64 bits 的介面 ID），路由器對接的點對點鏈路可用 /127，Loopback 用 /128。<br>
+    ISP 通常配給企業 <b>/48</b>（可切出 65,536 個 /64 網段），家用寬頻常見 /56 或 /60。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="types">
+    <h2>3. 五種位址類型（必背）</h2>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>類型</th><th>前綴</th><th>作用</th><th>相當於 IPv4 的</th></tr></thead>
+      <tbody>
+        <tr><td><b>Global Unicast</b><br>全球單播</td><td><b>2000::/3</b><br>（2000–3FFF 開頭）</td><td>網際網路上可路由的公有位址</td><td>公有 IP</td></tr>
+        <tr><td><b>Link-Local</b><br>連結本地</td><td><b>FE80::/10</b><br>（實務上 FE80::/64）</td><td>只在<b>同一個網段</b>內有效，<b>路由器絕不轉送</b>。每個啟用 IPv6 的介面<b>一定會自動產生一個</b></td><td>169.254.x.x<br>（但用途重要得多）</td></tr>
+        <tr><td><b>Unique Local</b><br>唯一本地</td><td><b>FC00::/7</b><br>（實務用 FD00::/8）</td><td>企業內部私有位址，不在網際網路上路由</td><td>10.x / 172.16.x / 192.168.x</td></tr>
+        <tr><td><b>Multicast</b><br>多播</td><td><b>FF00::/8</b></td><td>一對多。IPv6 <b>大量依賴多播</b></td><td>224.0.0.0/4</td></tr>
+        <tr><td><b>Anycast</b><br>任播</td><td>從單播空間中指定</td><td>多台裝置共用同一位址，封包送到<b>路由上最近的那台</b></td><td>無直接對應</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>最重要的一句：IPv6 <u>沒有廣播（Broadcast）</u>。</b><br>
+    所有原本靠廣播完成的事（ARP、DHCP 探索）都改用<b>多播</b>，只吵到真正需要的裝置。<br>
+    考題最愛問「下列何者<b>不是</b> IPv6 的位址類型」——答案就是 <b>Broadcast</b>。</div>
+
+    <h3>必背的多播位址</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>位址</th><th>對象</th></tr></thead>
+      <tbody>
+        <tr><td><b>FF02::1</b></td><td>網段上<b>所有節點</b>（等同 IPv4 廣播）</td></tr>
+        <tr><td><b>FF02::2</b></td><td>網段上<b>所有路由器</b></td></tr>
+        <tr><td><b>FF02::5 / FF02::6</b></td><td>OSPFv3 所有路由器 / DR 與 BDR</td></tr>
+        <tr><td><b>FF02::9</b></td><td>RIPng 路由器</td></tr>
+        <tr><td><b>FF02::A</b></td><td>EIGRP for IPv6 路由器</td></tr>
+        <tr><td><b>FF02::1:FFxx:xxxx</b></td><td><b>Solicited-node</b> 多播——NDP 用它取代 ARP 廣播，只吵到位址末 24 bits 相同的少數主機</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note"><b>Link-Local 為什麼這麼重要？</b>因為 IPv6 的<b>路由協定鄰居關係、NDP、預設閘道</b>全部使用 Link-Local 位址通訊，而不是 Global 位址。<br>
+    這代表：即使你還沒設定任何全球位址，只要介面啟用了 IPv6，<b>同網段的裝置就已經可以互通</b>。排錯時 <span class="inline-code">show ipv6 interface brief</span> 看到 FE80 開頭的位址就是它。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="eui">
+    <h2>4. EUI-64：從 MAC 算出介面 ID</h2>
+
+    <p>SLAAC 讓主機自己產生位址：<b>前 64 bits 的網段前綴由路由器公告，後 64 bits 的介面 ID 自己算</b>。EUI-64 就是最經典的算法。</p>
+
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>把 48-bit 的 MAC 從中間切開</b>前 24 bits（OUI 廠商碼）與後 24 bits（序號）。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>中間插入 <span class="inline-code">FFFE</span></b>湊成 64 bits。</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><b>翻轉第 7 個 bit（U/L bit）</b>0 變 1、1 變 0。實務上就是把<b>第一個位元組的十六進位值加減 2</b>。</div></div>
+    </div>
+
+    <div class="ex-box">
+      <div class="ex-title">手算範例</div>
+      <div class="diag"><span class="w">MAC 位址：</span>  <span class="y">00</span>1A.2B3C.4D5E
+
+<span class="w">步驟 1 切開：</span>   001A2B  |  3C4D5E
+<span class="w">步驟 2 插 FFFE：</span> 001A2B <span class="o">FFFE</span> 3C4D5E
+<span class="w">步驟 3 翻第 7 bit：</span>
+
+   第一個位元組 <span class="y">00</span> = 0000 00<span class="r">0</span>0
+                            ↑ 第 7 個 bit
+   翻轉後       <span class="g">02</span> = 0000 00<span class="g">1</span>0
+
+<span class="w">結果介面 ID：</span>  <span class="g">021A:2BFF:FE3C:4D5E</span>
+
+<span class="w">若網段前綴是 2001:DB8:1::/64,完整位址就是</span>
+   <span class="g">2001:DB8:1:0:021A:2BFF:FE3C:4D5E/64</span>
+   縮寫 → <span class="g">2001:DB8:1:0:21A:2BFF:FE3C:4D5E/64</span></div>
+    </div>
+
+    <div class="note"><b>翻轉第 7 bit 的速算法：</b>看第一個位元組的第二個十六進位數字——<br>
+    偶數（0/2/4/6/8/A/C/E）就 <b>+2</b>；奇數就 <b>−2</b>。<br>
+    <span class="inline-code">00</span>→<span class="inline-code">02</span>、<span class="inline-code">0C</span>→<span class="inline-code">0E</span>、<span class="inline-code">1A</span>→<span class="inline-code">18</span>、<span class="inline-code">B4</span>→<span class="inline-code">B6</span>。考試時這個技巧省很多時間。</div>
+
+    <div class="trap"><b>實務注意：現代作業系統預設不用 EUI-64。</b><br>
+    Windows、macOS、Linux 現在多半使用<b>隨機產生的介面 ID</b>（隱私延伸，RFC 4941），因為 EUI-64 會把 MAC 位址暴露在 IPv6 位址裡，可以被用來追蹤裝置。<br>
+    <b>但考試仍然會考 EUI-64 的手算</b>，而且 Cisco 設備下 <span class="inline-code">ipv6 address ... eui-64</span> 時就是用這個算法。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="ndp">
+    <h2>5. NDP：取代 ARP 的四種訊息</h2>
+
+    <p>IPv6 把 ARP 廢掉了，改用 <b>NDP（鄰居探索協定）</b>，而 NDP 是跑在 <b>ICMPv6</b> 之上的。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>訊息</th><th>ICMPv6 型別</th><th>做什麼</th><th>取代 IPv4 的</th></tr></thead>
+      <tbody>
+        <tr><td><b>RS</b> Router Solicitation</td><td>133</td><td>主機開機時喊：「這裡有路由器嗎？」<br>送到 <b>FF02::2</b></td><td>ICMP Router Discovery</td></tr>
+        <tr><td><b>RA</b> Router Advertisement</td><td>134</td><td>路由器回答：「我在，網段前綴是這個，我可以當你的閘道。」<br>送到 <b>FF02::1</b>，也會定期主動發送</td><td>DHCP 的閘道與前綴資訊</td></tr>
+        <tr><td><b>NS</b> Neighbor Solicitation</td><td>135</td><td>「這個 IPv6 位址的 MAC 是多少？」<br>送到 <b>Solicited-node 多播</b></td><td><b>ARP Request</b></td></tr>
+        <tr><td><b>NA</b> Neighbor Advertisement</td><td>136</td><td>「是我，我的 MAC 在這。」</td><td><b>ARP Reply</b></td></tr>
+        <tr><td><b>Redirect</b></td><td>137</td><td>「這個目的地走另一台路由器比較近。」</td><td>ICMP Redirect</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="diag"><span class="w">主機 A 要跟同網段的主機 B 通訊</span>
+
+  <span class="y">A</span> ──<span class="o">NS</span>──▶ FF02::1:FF00:0002   <span class="w">「2001:DB8:1::2 的 MAC 是誰？」</span>
+                                  <span class="g">（Solicited-node 多播，只吵到末 24 bits 相同的主機）</span>
+  <span class="y">A</span> ◀──<span class="o">NA</span>── <span class="y">B</span>                 <span class="w">「是我,MAC 是 00:1A:2B:3C:4D:5E」</span>
+
+<span class="w">對比 IPv4 的 ARP：</span>
+  A ──ARP Request──▶ <span class="r">FF:FF:FF:FF:FF:FF（廣播,全網段每台都被吵）</span>
+
+<span class="g">這就是 IPv6 廢掉廣播的實際好處——同樣一件事,吵到的機器少非常多。</span></div>
+
+    <h3>DAD：重複位址偵測</h3>
+    <div class="note">主機取得一個位址後、正式使用前，會先對<b>自己的位址</b>發一個 NS。<br>
+    <b>沒人回應</b> → 這個位址沒被佔用，可以用。<br>
+    <b>有人回 NA</b> → 位址衝突，這個位址標記為 duplicate 不能用。<br>
+    這是 IPv4 完全沒有的機制（IPv4 的 Gratuitous ARP 只是通知，不是驗證）。排錯時看到介面 IPv6 位址狀態是 <span class="inline-code">DUPLICATE</span>，就是 DAD 失敗。</div>
+
+    <div class="trap"><b>資安提醒：NDP 跟 ARP 一樣沒有驗證。</b><br>
+    攻擊者可以偽造 RA 把自己宣稱成路由器（<b>Rogue RA</b>），效果等同 IPv4 的 DHCP 欺騙加 ARP 毒化。<br>
+    防護機制是 <b>RA Guard</b>（在接入層交換器上只允許指定埠發出 RA），以及 <b>IPv6 Snooping / ND Inspection</b>——這是第 14 章二層防護的 IPv6 版本。<b>很多企業做了 DHCP Snooping 卻忘了做 RA Guard，等於留了一扇後門。</b></div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="slaac">
+    <h2>6. 取得位址的三種方式</h2>
+
+    <div class="cmprow">
+      <div class="cmp"><b>① 靜態設定</b><span>手動打上位址。用在路由器、伺服器、印表機這些位址不能變的裝置。</span></div>
+      <div class="cmp"><b>② SLAAC</b><span><b>無狀態自動組態</b>。從 RA 拿到前綴，介面 ID 自己算（EUI-64 或隨機）。<b>不需要任何伺服器</b>。</span></div>
+      <div class="cmp"><b>③ DHCPv6</b><span>跟 IPv4 的 DHCP 類似，由伺服器集中配發並記錄。</span></div>
+    </div>
+
+    <h3>RA 裡的兩個關鍵旗標：M 與 O</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>模式</th><th>M 旗標</th><th>O 旗標</th><th>位址從哪來</th><th>DNS 等資訊從哪來</th></tr></thead>
+      <tbody>
+        <tr><td><b>純 SLAAC</b></td><td>0</td><td>0</td><td>自己算</td><td>RA（若路由器有帶 RDNSS）</td></tr>
+        <tr><td><b>SLAAC + Stateless DHCPv6</b></td><td>0</td><td><b>1</b></td><td><b>自己算</b></td><td><b>DHCPv6 伺服器</b></td></tr>
+        <tr><td><b>Stateful DHCPv6</b></td><td><b>1</b></td><td>1</td><td><b>DHCPv6 伺服器</b></td><td>DHCPv6 伺服器</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note"><b>記法：M = Managed（位址被管理），O = Other（其他資訊）。</b><br>
+    <b>M=1</b> 就是「位址交給 DHCPv6 管」；<b>O=1</b> 就是「其他資訊（DNS、NTP）跟 DHCPv6 拿」。<br>
+    這張表是考題最愛的一組，判斷點永遠是「<b>位址</b>從哪來」與「<b>DNS</b> 從哪來」分開問。</div>
+
+    <div class="trap"><b>SLAAC 的最大限制：早期版本無法提供 DNS 伺服器位址。</b><br>
+    這就是為什麼會有「SLAAC + Stateless DHCPv6」這種混合模式——位址自己算（省掉伺服器負擔），但 DNS 還是要跟 DHCPv6 拿。<br>
+    現在的 RA 可以帶 <b>RDNSS 選項</b>直接公告 DNS，但<b>不是所有作業系統都支援</b>，所以混合模式在企業中仍很常見。</div>
+
+    <pre><code><span class="comment">! ── 路由器：啟用 IPv6 路由並設定介面 ──</span>
+R1(config)# <span class="cmd">ipv6 unicast-routing</span>          <span class="comment">! 沒下這行,路由器不會轉送 IPv6,也不會發 RA</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">ipv6 address 2001:DB8:1::1/64</span>
+R1(config-if)# <span class="cmd">no shutdown</span>
+
+<span class="comment">! ── 讓主機用 Stateful DHCPv6（M=1）──</span>
+R1(config-if)# <span class="cmd">ipv6 nd managed-config-flag</span>
+
+<span class="comment">! ── 讓主機用 SLAAC + Stateless DHCPv6（O=1）──</span>
+R1(config-if)# <span class="cmd">ipv6 nd other-config-flag</span>
+
+<span class="comment">! ── 介面用 EUI-64 自動算介面 ID ──</span>
+R1(config-if)# <span class="cmd">ipv6 address 2001:DB8:1::/64 eui-64</span>
+
+<span class="comment">! ── 只啟用 IPv6（只產生 Link-Local,不設全球位址）──</span>
+R1(config-if)# <span class="cmd">ipv6 enable</span></code></pre>
+
+    <div class="trap"><b>最常見的設定漏洞：忘記下 <span class="inline-code">ipv6 unicast-routing</span>。</b><br>
+    沒有這行，路由器<b>可以有 IPv6 位址、可以被 ping 到，但不會轉送 IPv6 封包，也不會發送 RA</b>——主機因此拿不到前綴，SLAAC 完全失效。<br>
+    排錯症狀是「主機只有 FE80 開頭的位址，沒有全球位址」。<b>看到這個症狀，先去路由器確認這一行。</b></div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="dual">
+    <h2>7. 雙堆疊與過渡技術</h2>
+
+    <div class="cmprow">
+      <div class="cmp"><b>雙堆疊 Dual Stack</b><span><b>首選做法</b>。裝置同時跑 IPv4 與 IPv6，各走各的。缺點是兩套都要管、兩套 ACL、兩套路由。</span></div>
+      <div class="cmp"><b>通道 Tunneling</b><span>把 IPv6 封包包在 IPv4 裡穿過只支援 IPv4 的網路（GRE、手動通道、6to4）。用於過渡期的孤島互連。</span></div>
+      <div class="cmp"><b>轉換 Translation</b><span><b>NAT64 + DNS64</b>：讓 IPv6-only 的主機能存取只有 IPv4 的服務。行動網路大量使用。</span></div>
+    </div>
+
+    <div class="diag"><span class="w">NAT64 + DNS64 的運作</span>
+
+  <span class="y">IPv6-only 手機</span> ──查 www.example.com──▶ <span class="o">DNS64</span>
+                                            │ 發現只有 A 記錄（IPv4）
+                                            │ <span class="g">合成一筆假的 AAAA 記錄</span>
+                                            ▼
+                              <span class="g">64:FF9B::203.0.113.10</span>
+                                            │
+  <span class="y">手機</span> ──送封包到那個 IPv6 位址──▶ <span class="o">NAT64 閘道</span>
+                                            │ 轉換成 IPv4 封包
+                                            ▼
+                                    <span class="w">只有 IPv4 的伺服器</span>
+
+<span class="g">手機全程以為自己在跟 IPv6 伺服器通訊。</span></div>
+
+    <div class="biz">
+      <b>企業實例｜某電信商的 IPv6-only 行動核心網</b><br>
+      該電信商的 4G/5G 核心早已是 <b>IPv6-only</b>——因為用戶數遠超過 IPv4 位址能負擔的規模，即使做 CGNAT（電信級 NAT）也會遇到埠號耗盡與追蹤困難。<br>
+      做法：手機只拿 IPv6 位址，要連 IPv4 網站時走 <b>NAT64/DNS64</b>。<br>
+      <b>踩到的坑：</b>少數 App 把 IPv4 位址<b>寫死在程式碼裡</b>（不走 DNS 查詢），DNS64 因此攔截不到，這些 App 在 IPv6-only 網路上會完全連不上。解法是額外部署 <b>464XLAT</b>（在手機端也做一層轉換）。<br>
+      <b>這也是為什麼工程師要懂 IPv6：</b>問題不會出現在你的網路，會出現在別人寫死 IPv4 的應用程式上，而你要有能力判斷那不是你的錯。
+    </div>
+
+    <div class="trap"><b>過渡策略的選擇原則：能雙堆疊就雙堆疊。</b><br>
+    通道與轉換都會增加延遲、增加故障點、讓排錯變複雜（封包被包起來，Wireshark 要多解一層）。<br>
+    考題若問「最佳的過渡方案」，答案通常是 <b>Dual Stack</b>；只有在「中間網路不支援 IPv6」或「必須讓 IPv6-only 存取 IPv4 服務」時，才輪到通道與 NAT64。</div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="route">
+    <h2>8. IPv6 路由與設定</h2>
+
+    <h3>與 IPv4 的對應關係</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>IPv4</th><th>IPv6</th><th>備註</th></tr></thead>
+      <tbody>
+        <tr><td>靜態路由 <span class="inline-code">ip route</span></td><td><span class="inline-code">ipv6 route</span></td><td>用法幾乎一樣</td></tr>
+        <tr><td>預設路由 <span class="inline-code">0.0.0.0/0</span></td><td><span class="inline-code">::/0</span></td><td></td></tr>
+        <tr><td>OSPFv2</td><td><b>OSPFv3</b></td><td>設定在<b>介面下</b>，不用 network 指令；鄰居用 <b>Link-Local</b> 建立；<b>Router ID 仍是 32-bit 的點分格式</b></td></tr>
+        <tr><td>EIGRP</td><td>EIGRP for IPv6</td><td>同樣設定在介面下，要 <span class="inline-code">no shutdown</span> 啟動程序</td></tr>
+        <tr><td>BGP</td><td>MP-BGP（IPv6 address-family）</td><td>同一個 BGP 程序帶多個位址家族</td></tr>
+      </tbody>
+    </table></div>
+
+    <pre><code><span class="comment">! ── 靜態路由三種寫法 ──</span>
+R1(config)# <span class="cmd">ipv6 route 2001:DB8:2::/64 2001:DB8:12::2</span>        <span class="comment">! 指定下一跳（遞迴）</span>
+R1(config)# <span class="cmd">ipv6 route 2001:DB8:2::/64 gigabitEthernet 0/1</span>    <span class="comment">! 指定出口介面</span>
+R1(config)# <span class="cmd">ipv6 route 2001:DB8:2::/64 gigabitEthernet 0/1 FE80::2</span>
+                                    <span class="comment">! 點對多點鏈路必須「介面 + Link-Local」兩個都給</span>
+
+<span class="comment">! ── 預設路由 ──</span>
+R1(config)# <span class="cmd">ipv6 route ::/0 2001:DB8:12::2</span>
+
+<span class="comment">! ── OSPFv3（設定在介面下,不用 network）──</span>
+R1(config)# <span class="cmd">ipv6 router ospf 1</span>
+R1(config-rtr)# <span class="cmd">router-id 1.1.1.1</span>       <span class="comment">! 一定要手動設,沒有 IPv4 位址時無法自動選</span>
+R1(config)# <span class="cmd">interface gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">ipv6 ospf 1 area 0</span>
+
+<span class="comment">! ── 驗證指令 ──</span>
+R1# <span class="cmd">show ipv6 interface brief</span>      <span class="comment">! 看每個介面的 IPv6 位址（含 Link-Local）</span>
+R1# <span class="cmd">show ipv6 neighbors</span>           <span class="comment">! 相當於 show ip arp</span>
+R1# <span class="cmd">show ipv6 route</span>               <span class="comment">! IPv6 路由表</span>
+R1# <span class="cmd">show ipv6 ospf neighbor</span>
+R1# <span class="cmd">ping 2001:DB8:2::1</span></code></pre>
+
+    <div class="trap"><b>OSPFv3 最常見的錯誤：忘記手動設 Router ID。</b><br>
+    Router ID 仍然是 <b>32-bit 的點分十進位格式</b>（不是 IPv6 位址）。在純 IPv6 環境中，路由器<b>沒有任何 IPv4 位址可以拿來自動選 Router ID</b>，程序會起不來並回報錯誤。<br>
+    <b>純 IPv6 網路一定要手動下 <span class="inline-code">router-id</span>。</b></div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>實作 Lab：雙堆疊網路與 SLAAC 驗證</h3>
+    <p>約 45 分鐘。用 Packet Tracer 或 GNS3 都可以，兩台路由器 + 兩台 PC。</p>
+
+    <h4>拓撲</h4>
+    <div class="diag">  <span class="y">PC1</span> ──── <span class="o">R1</span> ════ <span class="o">R2</span> ──── <span class="y">PC2</span>
+       g0/0        g0/1  g0/1       g0/0
+
+  <span class="w">網段規劃：</span>
+  PC1 網段  2001:DB8:1::/64    <span class="g">（用 SLAAC）</span>
+  R1-R2     2001:DB8:12::/64   <span class="g">（手動 /64,R1 是 ::1、R2 是 ::2）</span>
+  PC2 網段  2001:DB8:2::/64    <span class="g">（用 SLAAC）</span></div>
+
+    <h4>階段一：基本雙堆疊</h4>
+    <ol>
+      <li>兩台路由器都下 <strong><span class="inline-code">ipv6 unicast-routing</span></strong>（<strong>先做這一步</strong>，忘了後面全錯）</li>
+      <li>設定各介面的 IPv6 位址</li>
+      <li>在 PC 上開啟 IPv6 自動組態，觀察它<strong>自己算出</strong>的位址</li>
+      <li>用 <span class="inline-code">show ipv6 interface brief</span> 確認每個介面都有<strong>兩個位址</strong>：一個 FE80 開頭的 Link-Local、一個全球位址</li>
+    </ol>
+
+    <h4>階段二：驗證 SLAAC 與 NDP</h4>
+    <ol>
+      <li>在 PC1 上查看取得的位址，<strong>手算驗證</strong> EUI-64 是否與 MAC 對得起來（若作業系統用隨機介面 ID 就對不起來，這本身就是一個觀察點）</li>
+      <li>在 R1 上 <span class="inline-code">show ipv6 neighbors</span>，確認學到了 PC1 的位址與 MAC</li>
+      <li>用 <span class="inline-code">debug ipv6 nd</span> 觀察 RS/RA 的往返（<strong>看完記得 <span class="inline-code">undebug all</span></strong>）</li>
+      <li>把 R1 的 <span class="inline-code">ipv6 unicast-routing</span> 拿掉，觀察 PC1 過一段時間後<strong>失去全球位址、只剩 Link-Local</strong>——這就是最常見的故障症狀</li>
+    </ol>
+
+    <h4>階段三：路由與連通性</h4>
+    <ol>
+      <li>設定靜態路由或 OSPFv3 讓兩個網段互通（<strong>OSPFv3 記得手動設 router-id</strong>）</li>
+      <li>PC1 ping PC2 的 IPv6 位址</li>
+      <li>用 <span class="inline-code">traceroute</span> 觀察路徑</li>
+    </ol>
+
+    <div class="warn"><strong>ping 不通的檢查順序：</strong><br>
+    ① 兩台路由器都下了 <span class="inline-code">ipv6 unicast-routing</span> 嗎？② 介面 <span class="inline-code">no shutdown</span> 了嗎？③ <span class="inline-code">show ipv6 route</span> 看得到對方網段嗎？④ <span class="inline-code">show ipv6 neighbors</span> 學到鄰居了嗎？⑤ PC 的預設閘道是不是路由器的 <b>Link-Local 位址</b>（IPv6 的閘道用 Link-Local，不是全球位址）？</div>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1：<span class="inline-code">::</span> 用了兩次</b><br>一個 IPv6 位址中 <span class="inline-code">::</span> <b>只能出現一次</b>。看到兩個就是錯的選項。</div>
+
+    <div class="trap"><b>陷阱 2：把中間或結尾的零也省掉</b><br>只有<b>前導零</b>可省。<span class="inline-code">0042</span> → <span class="inline-code">42</span> 對；<span class="inline-code">8329</span> → <span class="inline-code">839</span> 錯。</div>
+
+    <div class="trap"><b>陷阱 3：以為 IPv6 有廣播</b><br><b>沒有 Broadcast</b>，全部改用多播。「下列何者不是 IPv6 位址類型」的答案就是它。</div>
+
+    <div class="trap"><b>陷阱 4：忘記 <span class="inline-code">ipv6 unicast-routing</span></b><br>沒有這行，路由器不轉送 IPv6、不發 RA。症狀是<b>主機只有 FE80 位址</b>。</div>
+
+    <div class="trap"><b>陷阱 5：M 與 O 旗標搞反</b><br><b>M = Managed = 位址</b>交給 DHCPv6；<b>O = Other = 其他資訊</b>（DNS）跟 DHCPv6 拿。</div>
+
+    <div class="trap"><b>陷阱 6：OSPFv3 沒設 Router ID</b><br>Router ID 仍是 <b>32-bit 點分格式</b>。純 IPv6 環境沒有 IPv4 位址可自動選，<b>必須手動設</b>。</div>
+
+    <div class="trap"><b>陷阱 7：以為預設閘道是全球位址</b><br>IPv6 主機的預設閘道是路由器的 <b>Link-Local 位址</b>（從 RA 學到的），不是全球位址。</div>
+
+    <div class="trap"><b>陷阱 8：EUI-64 忘記翻轉 U/L bit</b><br>插入 <span class="inline-code">FFFE</span> 之後<b>還要翻第 7 個 bit</b>。速算：第一個位元組的第二個十六進位數字，偶數 +2、奇數 −2。</div>
+
+    <div class="trap"><b>陷阱 9：做了 DHCP Snooping 卻沒做 RA Guard</b><br>IPv6 的 <b>Rogue RA</b> 攻擊效果等同 DHCP 欺騙 + ARP 毒化。雙堆疊環境兩邊都要防。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>
+    縮寫時 <b>::</b> 只能用一次，零只能省<b>前導</b>；<br>
+    <b>FE80</b> 是本地必有、<b>FF02::1</b> 全體、<b>FF02::2</b> 路由器；<br>
+    <b>NS/NA</b> 取代 ARP、<b>RS/RA</b> 給前綴，<b>M 管位址、O 管其他</b>；<br>
+    忘了 <b>unicast-routing</b> 就只剩 Link-Local。</span></div>
+  </div>
+
+  <div class="page-nav">
+    <a href="16-device-mgmt.html">← CH 5-4：設備管理與加固</a>
+    <a href="18-vpn-vrf.html">CH 6-2：VPN、VRF 與網路虛擬化 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 6-1</footer>
+</body>
+</html>

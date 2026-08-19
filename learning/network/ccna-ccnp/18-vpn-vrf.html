@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPN、VRF 與網路虛擬化 — CCNA／CCNP</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid var(--border,#e3e5e8);border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNA/CCNP 指南</a><span class="sep">/</span>
+  <a href="index.html">補強篇</a><span class="sep">/</span>
+  <span class="cur">CH 6-2 · VPN 與虛擬化</span>
+</div>
+
+<div class="hero c4">
+  <div class="badge">CH 6-2 · 廣域與虛擬化</div>
+  <h1>VPN、VRF 與網路虛擬化</h1>
+  <p>分公司怎麼跟總部連、同一台路由器怎麼跑出好幾張互不相通的路由表、伺服器上的虛擬機怎麼接進網路——這三件事在官方大綱各佔一塊，實務上更是天天遇到。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#wan">WAN 的三種連法</a></li>
+      <li><a href="#gre">GRE 通道：最單純的隧道</a></li>
+      <li><a href="#ipsec">IPsec：把隧道加上鎖</a></li>
+      <li><a href="#combo">GRE over IPsec：為什麼要疊在一起</a></li>
+      <li><a href="#dmvpn">DMVPN：分點一多就非它不可</a></li>
+      <li><a href="#remote">遠端存取 VPN</a></li>
+      <li><a href="#vrf">VRF：一台路由器切成好幾台</a></li>
+      <li><a href="#virt">伺服器虛擬化與容器怎麼接網路</a></li>
+      <li><a href="#lab">實作 Lab：GRE over IPsec 站對站</a></li>
+      <li><a href="#traps">考試陷阱整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="wan">
+    <h2>1. WAN 的三種連法</h2>
+
+    <div class="analogy">總公司跟分公司要通，就像兩棟大樓要互通：<br>
+    <b>專線</b>＝自己挖一條地下通道，最穩但最貴；<br>
+    <b>MPLS</b>＝租用電信商的專屬車道，比走大馬路穩，但要付月租；<br>
+    <b>VPN over Internet</b>＝走一般馬路但坐防彈車，最便宜，塞不塞車看運氣。</div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>專線 / Metro Ethernet</th><th>MPLS L3VPN</th><th>VPN over Internet</th></tr></thead>
+      <tbody>
+        <tr><td>誰管路由</td><td>你自己</td><td><b>電信商</b>（你跟 PE 跑路由協定）</td><td>你自己</td></tr>
+        <tr><td>頻寬保證</td><td>有</td><td><b>有（SLA）</b></td><td><b>沒有</b></td></tr>
+        <tr><td>加密</td><td>預設沒有</td><td><b>預設沒有</b>（只是私有，不是加密）</td><td><b>有（IPsec）</b></td></tr>
+        <tr><td>成本</td><td>最高</td><td>中高</td><td><b>最低</b></td></tr>
+        <tr><td>新增一個分點</td><td>要拉線，數週</td><td>要開單，數天到數週</td><td><b>有網路就能通，數小時</b></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>最常見的觀念錯誤：以為 MPLS 是加密的。</b><br>
+    MPLS L3VPN 提供的是<b>流量隔離</b>（你的封包跟別人的分開走、有獨立的路由表），<b>不是加密</b>。電信商的工程師理論上看得到你的封包內容。<br>
+    如果合規要求資料在傳輸中必須加密（金融、醫療常見），<b>就算走 MPLS 也要再疊一層 IPsec</b>。這跟第 19 章 AWS Direct Connect 預設不加密是同一個道理。</div>
+
+    <div class="biz">
+      <b>企業實例｜某連鎖零售 120 家門市的混合設計</b><br>
+      早期全部走 MPLS，每家門市月租不低，120 家累積起來是一筆可觀的固定支出。<br>
+      改成<b>混合架構</b>：門市走一般寬頻 + IPsec VPN 當<b>主線</b>，MPLS 只保留給<b>總部與三個區域倉庫</b>；門市再加一條 4G 當備援。<br>
+      <b>關鍵設計：</b>POS 交易流量走 QoS 優先佇列，並用 <b>IP SLA + 浮動靜態路由</b>做自動切換（主線延遲超過門檻就切 4G）。<br>
+      <b>結果：</b>WAN 月成本降低約六成，門市新開店的網路上線時間從三週縮短到一天。<b>代價是排錯變複雜</b>——出問題時要判斷是寬頻商的問題還是自己的隧道問題，因此同時導入了集中監控（見下一章）。
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="gre">
+    <h2>2. GRE 通道：最單純的隧道</h2>
+
+    <p><b>GRE（通用路由封裝）</b>做的事只有一件：<b>把一個封包包進另一個封包裡</b>，讓它可以穿過中間不認得它的網路。</p>
+
+    <div class="diag"><span class="w">GRE 封裝後的封包長相</span>
+
+  ┌──────────────┬──────────┬────────────────────────────┐
+  │ <span class="o">新 IP 標頭</span>   │ <span class="y">GRE 標頭</span> │ <span class="g">原始 IP 封包（完整保留）</span>   │
+  │ 來源:R1 公網  │          │ 來源:10.1.1.10             │
+  │ 目的:R2 公網  │          │ 目的:10.2.2.20             │
+  └──────────────┴──────────┴────────────────────────────┘
+     <span class="w">↑ 中間的網際網路只看得懂這一段</span>
+
+<span class="w">額外開銷：新 IP 標頭 20 bytes + GRE 標頭 4 bytes = <span class="r">24 bytes</span></span></div>
+
+    <h3>GRE 能做、IPsec 做不到的兩件事</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>支援多播與廣播</b><span>所以<b>路由協定（OSPF、EIGRP）可以跑在 GRE 上</b>。純 IPsec 隧道不行。</span></div>
+      <div class="cmp"><b>支援非 IP 協定</b><span>可以封裝 IPv6、IPX 等。這也是 IPv6 過渡期的通道做法之一。</span></div>
+    </div>
+
+    <div class="trap"><b>GRE 完全沒有加密。</b>它只是「包起來」，不是「鎖起來」——中間任何人都能拆開來看內容。<br>
+    所以實務上幾乎不會單獨用 GRE 走網際網路，一定要疊 IPsec（見第 4 節）。</div>
+
+    <pre><code><span class="comment">! ── R1 的 GRE 通道設定 ──</span>
+R1(config)# <span class="cmd">interface tunnel 0</span>
+R1(config-if)# <span class="cmd">ip address 172.16.0.1 255.255.255.252</span>   <span class="comment">! 通道自己的網段</span>
+R1(config-if)# <span class="cmd">tunnel source gigabitEthernet 0/0</span>        <span class="comment">! 或直接寫公網 IP</span>
+R1(config-if)# <span class="cmd">tunnel destination 203.0.113.2</span>           <span class="comment">! 對端的公網 IP</span>
+R1(config-if)# <span class="cmd">tunnel mode gre ip</span>                        <span class="comment">! 預設就是 GRE,可省略</span>
+
+<span class="comment">! ── 通道通了之後,路由協定就能跑在上面 ──</span>
+R1(config)# <span class="cmd">router ospf 1</span>
+R1(config-router)# <span class="cmd">network 172.16.0.0 0.0.0.3 area 0</span>
+R1(config-router)# <span class="cmd">network 10.1.1.0 0.0.0.255 area 0</span>
+
+<span class="comment">! ── 驗證 ──</span>
+R1# <span class="cmd">show interface tunnel 0</span>
+R1# <span class="cmd">show ip interface brief | include Tunnel</span></code></pre>
+
+    <div class="trap"><b>經典陷阱：遞迴路由（Recursive Routing）造成通道抖動。</b><br>
+    如果你把<b>通道的目的地位址</b>也透過<b>這條通道本身</b>學習到，就會形成邏輯迴圈——通道起來、路由學到、發現要走自己、通道掉、路由消失、通道又起來，無限循環。<br>
+    <b>症狀：</b><span class="inline-code">%TUN-5-RECURDOWN</span> 訊息不斷刷。<br>
+    <b>解法：</b>確保通道端點的位址是透過<b>底層（underlay）</b>路由學到的，通常用靜態路由或不把公網網段放進通道上跑的路由協定。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="ipsec">
+    <h2>3. IPsec：把隧道加上鎖</h2>
+
+    <p>IPsec 不是單一協定，是<b>一組協定的集合</b>。它提供四件事：</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>機密性</b><span>加密。演算法：AES（現行標準）、3DES（已淘汰）。</span></div>
+      <div class="cmp"><b>完整性</b><span>雜湊確認沒被竄改。演算法：SHA-256 以上（MD5 已淘汰）。</span></div>
+      <div class="cmp"><b>驗證</b><span>確認對方是誰。方式：預共用金鑰（PSK）或數位憑證。</span></div>
+      <div class="cmp"><b>防重放</b><span>序號機制，防止封包被錄下來重送。</span></div>
+    </div>
+
+    <h3>兩個階段（IKE）</h3>
+    <div class="steps-card">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><b>Phase 1：建立管理通道（IKE SA）</b>雙方協商加密參數、用 <b>Diffie-Hellman</b> 交換金鑰、互相驗證身分。產出的是一條<b>保護後續協商用的</b>安全通道。有 Main Mode（6 個封包，較安全）與 Aggressive Mode（3 個封包，較快但洩漏身分）。</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><b>Phase 2：建立資料通道（IPsec SA）</b>在 Phase 1 的保護下，協商<b>實際用來保護使用者資料</b>的參數，並決定哪些流量要走加密（Crypto ACL / 感興趣流量）。</div></div>
+    </div>
+
+    <h3>兩種封裝模式</h3>
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>Transport Mode</th><th>Tunnel Mode</th></tr></thead>
+      <tbody>
+        <tr><td>加密範圍</td><td>只加密<b>負載</b>，保留原始 IP 標頭</td><td><b>整個原始封包</b>都加密，外面再包新 IP 標頭</td></tr>
+        <tr><td>用途</td><td>兩台主機直接通訊，或<b>GRE over IPsec</b></td><td><b>站對站 VPN</b>（最常見）</td></tr>
+        <tr><td>開銷</td><td>較小</td><td>較大（多一個 IP 標頭）</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="trap"><b>AH vs ESP：考題必考的一組。</b><br>
+    <b>AH（協定 51）</b>：只提供<b>驗證與完整性</b>，<u>不加密</u>。而且因為它保護整個 IP 標頭，<b>無法穿過 NAT</b>。<br>
+    <b>ESP（協定 50）</b>：提供<b>加密 + 驗證 + 完整性</b>，可以搭配 NAT-T 穿過 NAT。<br>
+    <b>實務上幾乎只用 ESP</b>，AH 只出現在考題裡。看到「需要加密」就一定不是 AH。</div>
+
+    <div class="note"><b>NAT 穿越（NAT-T）</b>：IPsec 封包經過 NAT 時，因為標頭被改動會導致完整性檢查失敗。NAT-T 的做法是把 ESP 封包再包進 <b>UDP 4500</b> 埠。<br>
+    排錯時要記得防火牆要放行：<b>UDP 500（IKE）、UDP 4500（NAT-T）、IP 協定 50（ESP）</b>。少開任何一個都會出現「Phase 1 起來但 Phase 2 不通」或「完全建不起來」。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="combo">
+    <h2>4. GRE over IPsec：為什麼要疊在一起</h2>
+
+    <div class="diag"><span class="w">兩者各自的缺陷</span>
+
+  <span class="y">GRE 單獨用</span>  ✔ 支援多播 → 路由協定可以跑    <span class="r">✘ 完全沒加密</span>
+  <span class="o">IPsec 單獨用</span> ✔ 有加密                       <span class="r">✘ 不支援多播 → 路由協定跑不起來</span>
+
+<span class="g">GRE over IPsec = 先用 GRE 包（取得多播能力）,再用 IPsec 加密（取得安全性）</span>
+
+  ┌──────────┬──────────┬─────────┬──────────────────────┐
+  │ 新 IP    │ <span class="o">ESP</span>      │ <span class="y">GRE</span>     │ <span class="g">原始 IP 封包</span>         │
+  └──────────┴──────────┴─────────┴──────────────────────┘</div>
+
+    <div class="ok"><strong>一句話：要在站對站 VPN 上跑 OSPF 或 EIGRP，就必須用 GRE over IPsec。</strong><br>
+    因為純 IPsec 隧道無法承載多播，而 OSPF 的 Hello 是送到 <span class="inline-code">224.0.0.5</span> 這個多播位址的。<br>
+    這是考題最愛的因果關係：<b>「需要跨 VPN 跑動態路由協定」→ 答案一定包含 GRE</b>。</div>
+
+    <pre><code><span class="comment">! ═══ 完整的 GRE over IPsec 設定（R1 端）═══</span>
+
+<span class="comment">! ── Phase 1：IKE 政策 ──</span>
+R1(config)# <span class="cmd">crypto isakmp policy 10</span>
+R1(config-isakmp)# <span class="cmd">encryption aes 256</span>
+R1(config-isakmp)# <span class="cmd">hash sha256</span>
+R1(config-isakmp)# <span class="cmd">authentication pre-share</span>
+R1(config-isakmp)# <span class="cmd">group 14</span>                      <span class="comment">! DH group,越大越安全</span>
+R1(config-isakmp)# <span class="cmd">lifetime 86400</span>
+
+R1(config)# <span class="cmd">crypto isakmp key MySecretKey123 address 203.0.113.2</span>
+
+<span class="comment">! ── Phase 2：轉換集 ──</span>
+R1(config)# <span class="cmd">crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac</span>
+R1(cfg-crypto-trans)# <span class="cmd">mode transport</span>          <span class="comment">! GRE over IPsec 用 transport 較有效率</span>
+
+<span class="comment">! ── 保護通道的 profile ──</span>
+R1(config)# <span class="cmd">crypto ipsec profile IPSEC-PROF</span>
+R1(ipsec-profile)# <span class="cmd">set transform-set TSET</span>
+
+<span class="comment">! ── 把 profile 掛到 GRE 通道上 ──</span>
+R1(config)# <span class="cmd">interface tunnel 0</span>
+R1(config-if)# <span class="cmd">ip address 172.16.0.1 255.255.255.252</span>
+R1(config-if)# <span class="cmd">tunnel source gigabitEthernet 0/0</span>
+R1(config-if)# <span class="cmd">tunnel destination 203.0.113.2</span>
+R1(config-if)# <span class="cmd">tunnel protection ipsec profile IPSEC-PROF</span>
+R1(config-if)# <span class="cmd">ip mtu 1400</span>                     <span class="comment">! 重要,見下方說明</span>
+R1(config-if)# <span class="cmd">ip tcp adjust-mss 1360</span>
+
+<span class="comment">! ── 驗證 ──</span>
+R1# <span class="cmd">show crypto isakmp sa</span>      <span class="comment">! Phase 1 狀態,要看到 QM_IDLE</span>
+R1# <span class="cmd">show crypto ipsec sa</span>       <span class="comment">! Phase 2 狀態,看 pkts encaps/decaps 有沒有在跳</span>
+R1# <span class="cmd">show interface tunnel 0</span></code></pre>
+
+    <div class="trap"><b>MTU 是 VPN 排錯的頭號兇手。</b><br>
+    <b>症狀非常有代表性：</b>ping 通、SSH 可以連、但<b>網頁開不完整、大檔案傳輸卡住、資料庫查詢大結果集會斷</b>。<br>
+    <b>原因：</b>GRE 加 24 bytes、IPsec 再加 50–60 bytes，原本 1500 bytes 的封包包完就超過鏈路 MTU，需要分片；如果封包設了 DF 位元（不可分片）就會被直接丟棄。<br>
+    <b>解法：</b>通道介面下 <span class="inline-code">ip mtu 1400</span> 與 <span class="inline-code">ip tcp adjust-mss 1360</span>。後者讓 TCP 在三向交握時就協商出較小的分段大小，是最有效的一招。<br>
+    <b>「小封包通、大封包不通」= MTU 問題</b>，這個判斷法在實務上救過無數人。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="dmvpn">
+    <h2>5. DMVPN：分點一多就非它不可</h2>
+
+    <div class="diag"><span class="w">傳統點對點 VPN 的擴展問題</span>
+
+   5 個分點全互連 = 5×4/2 = <span class="y">10 條隧道</span>
+  20 個分點全互連 = 20×19/2 = <span class="r">190 條隧道</span>
+
+  <span class="w">每新增一個分點,所有既有設備都要改設定。</span>
+
+<span class="g">DMVPN 的做法：只設一次,分點自己動態建立</span>
+
+              <span class="o">Hub（總部）</span>
+             ╱     │     ╲
+       <span class="y">Spoke1</span>   <span class="y">Spoke2</span>   <span class="y">Spoke3</span>
+          ╲_ _ _ _ ╱          <span class="g">← 需要時 Spoke 之間自動建立直連隧道</span>
+           <span class="g">動態</span></div>
+
+    <h3>三個關鍵技術</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>mGRE</b><span><b>多點 GRE</b>：一個通道介面對應多個對端，不用為每個分點各建一個 tunnel 介面。</span></div>
+      <div class="cmp"><b>NHRP</b><span><b>下一跳解析協定</b>：Spoke 向 Hub 註冊自己的公網 IP，需要直連時再向 Hub 查詢對方的位址。等於隧道界的 ARP。</span></div>
+      <div class="cmp"><b>IPsec</b><span>用 profile 保護整個 mGRE 通道。</span></div>
+    </div>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th>階段</th><th>Spoke 之間的流量</th><th>特性</th></tr></thead>
+      <tbody>
+        <tr><td><b>Phase 1</b></td><td>一律繞經 Hub</td><td>設定最簡單，但 Hub 是瓶頸</td></tr>
+        <tr><td><b>Phase 2</b></td><td><b>可直連</b>（Spoke-to-Spoke）</td><td>Hub 不能做路由彙總，Spoke 要有完整路由</td></tr>
+        <tr><td><b>Phase 3</b></td><td><b>可直連 + Hub 可彙總</b></td><td><b>現行建議</b>。用 NHRP Redirect/Shortcut 導引</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="biz">
+      <b>企業實例｜某物流公司 45 個據點的 DMVPN 導入</b><br>
+      原本每個據點對總部一條點對點 IPsec，據點之間要通就得繞總部。問題有兩個：① 據點之間傳遞出貨影像檔要繞總部，總部頻寬被吃光；② 新增一個據點要在總部改設定並排維護時段。<br>
+      改用 <b>DMVPN Phase 3</b> 後：Hub 只需設定一次，新據點<b>把設定樣板套上去、接上網路就自動註冊</b>；據點之間傳檔自動走直連隧道，不再經過總部。<br>
+      <b>成效：</b>總部 WAN 頻寬使用率下降約四成，新據點上線從「排維護時段改設定」變成「當天就好」。<br>
+      <b>踩過的坑：</b>初期忘了調 MTU，導致據點之間傳大型影像檔會卡住但 ping 得通——就是上一節那個經典症狀，加上 <span class="inline-code">ip tcp adjust-mss</span> 後解決。
+    </div>
+
+    <div class="note"><b>CCNA 層級只需要知道 DMVPN 解決什麼問題</b>（分點多時的擴展性、動態建立隧道、設定一次即可），詳細設定屬於 CCNP ENCOR/ENARSI 範圍。但<b>「N 個分點全互連要幾條隧道」的計算</b>與「DMVPN 三個 Phase 的差別」是會考的。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="remote">
+    <h2>6. 遠端存取 VPN</h2>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>站對站 VPN</th><th>遠端存取 VPN</th></tr></thead>
+      <tbody>
+        <tr><td>連接對象</td><td>網路 ↔ 網路（路由器對路由器）</td><td><b>個人裝置 ↔ 網路</b></td></tr>
+        <tr><td>使用者感受</td><td>無感（永遠連著）</td><td>要開軟體、輸入帳密</td></tr>
+        <tr><td>典型技術</td><td>IPsec、GRE over IPsec、DMVPN</td><td><b>SSL/TLS VPN</b>（如 AnyConnect）、IKEv2</td></tr>
+        <tr><td>穿越防火牆</td><td>要開特定協定與埠</td><td><b>走 443，幾乎到哪都能通</b></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note"><b>Split Tunnel（分割隧道）是最常被問的設定：</b><br>
+    <b>開啟</b>——只有「去公司內網」的流量走 VPN，上網直接走本地出口。優點是不佔公司頻寬、使用者上網快；缺點是<b>使用者的上網流量不受公司資安政策保護</b>。<br>
+    <b>關閉（全隧道）</b>——所有流量都走 VPN 回公司再出去。優點是流量全受管、可套 Web 過濾；缺點是<b>公司出口頻寬壓力大</b>。<br>
+    <b>取捨依資安政策：</b>金融、醫療通常強制全隧道；一般企業多開 split tunnel。這也是遠距辦公普及後最常見的架構爭議。</div>
+
+    <div class="trap"><b>零信任正在取代傳統遠端存取 VPN。</b><br>
+    傳統 VPN 的問題是「<b>連上就進到內網</b>」——一旦帳號被盜或裝置中毒，攻擊者就在內網裡了。<br>
+    <b>ZTNA（零信任網路存取）</b>改成「每次存取每個應用程式都各自驗證」，使用者永遠不會「進入內網」，只會被連到特定應用。<br>
+    考題目前仍以傳統 VPN 為主，但實務上這個轉變正在發生，面試很常被問到。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="vrf">
+    <h2>7. VRF：一台路由器切成好幾台</h2>
+
+    <div class="analogy">VLAN 是把<b>一台交換器</b>切成好幾台（二層隔離）。<br>
+    VRF 就是把<b>一台路由器</b>切成好幾台（三層隔離）——<b>每個 VRF 有自己獨立的路由表</b>，彼此看不到對方，即使 IP 網段完全重疊也沒關係。</div>
+
+    <div class="diag"><span class="w">同一台實體路由器</span>
+  ┌─────────────────────────────────────────┐
+  │  <span class="y">VRF: GUEST</span>        <span class="o">VRF: CORP</span>       <span class="g">VRF: IOT</span>  │
+  │  路由表 A          路由表 B         路由表 C │
+  │  192.168.1.0/24    192.168.1.0/24   10.0.0.0/8│
+  │       ↑ <span class="r">網段重疊也不衝突,因為在不同 VRF</span>       │
+  └─────────────────────────────────────────┘
+       g0/1              g0/2            g0/3
+
+<span class="w">預設情況下三個 VRF 完全不通,要通必須明確設定路由洩漏。</span></div>
+
+    <h3>典型用途</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>訪客網路隔離</b><span>訪客 VRF 只能出網際網路，碰不到公司內網——比用 ACL 擋更徹底，因為<b>路由表裡根本沒有內網的路由</b>。</span></div>
+      <div class="cmp"><b>多租戶</b><span>大樓網管、雲端服務商用同一批設備服務多個客戶，各自獨立。</span></div>
+      <div class="cmp"><b>併購整合</b><span>兩家公司網段撞在一起時的過渡方案。</span></div>
+      <div class="cmp"><b>OT/IT 隔離</b><span>產線網路與辦公網路分開，是製造業的常見設計。</span></div>
+      <div class="cmp"><b>管理平面隔離</b><span>Cisco 設備常見的 <span class="inline-code">Mgmt-vrf</span>，讓管理流量與生產流量分開。</span></div>
+      <div class="cmp"><b>MPLS L3VPN 的基礎</b><span>電信商 PE 路由器上，每個客戶就是一個 VRF。</span></div>
+    </div>
+
+    <pre><code><span class="comment">! ── 建立 VRF 並綁定介面 ──</span>
+R1(config)# <span class="cmd">vrf definition GUEST</span>
+R1(config-vrf)# <span class="cmd">address-family ipv4</span>
+R1(config-vrf-af)# <span class="cmd">exit-address-family</span>
+
+R1(config)# <span class="cmd">interface gigabitEthernet 0/1</span>
+R1(config-if)# <span class="cmd">vrf forwarding GUEST</span>       <span class="comment">! 注意：綁 VRF 會清掉介面上原有的 IP,要重設</span>
+R1(config-if)# <span class="cmd">ip address 192.168.1.1 255.255.255.0</span>
+
+<span class="comment">! ── VRF 內的靜態路由 ──</span>
+R1(config)# <span class="cmd">ip route vrf GUEST 0.0.0.0 0.0.0.0 203.0.113.1</span>
+
+<span class="comment">! ── 驗證：每個 VRF 各有一張路由表 ──</span>
+R1# <span class="cmd">show ip route vrf GUEST</span>
+R1# <span class="cmd">show ip route vrf CORP</span>
+R1# <span class="cmd">show vrf</span>
+
+<span class="comment">! ── 連通性測試也要指定 VRF ──</span>
+R1# <span class="cmd">ping vrf GUEST 8.8.8.8</span>
+R1# <span class="cmd">traceroute vrf CORP 10.2.2.1</span></code></pre>
+
+    <div class="trap"><b>三個最常踩的坑：</b><br>
+    ① <b>綁 VRF 會清掉介面既有的 IP 位址</b>——先綁 VRF 再設 IP，順序反了就要重設一次。<br>
+    ② <b>所有指令都要加 <span class="inline-code">vrf</span> 關鍵字</b>。忘了加就是在查全域路由表，會看到「明明有設定卻查不到」。ping 也一樣。<br>
+    ③ <b>VRF 之間預設完全不通</b>。要互通必須做<b>路由洩漏</b>（route leaking，用 route-target import/export 或靜態路由跨 VRF），這是刻意設計的安全特性，不是故障。</div>
+
+    <div class="biz">
+      <b>企業實例｜某醫院的三 VRF 設計</b><br>
+      同一套核心交換器要服務三種完全不能互通的網路：<b>醫療資訊系統（HIS）</b>、<b>醫療儀器（含老舊設備）</b>、<b>訪客與病患 Wi-Fi</b>。<br>
+      早期用 VLAN + ACL 隔離，問題是 ACL 規則累積到七百多條，沒有人敢動，而且只要有人設錯一條就破功。<br>
+      改用 <b>三個 VRF</b> 後：訪客 VRF 的路由表裡<b>根本不存在</b>醫療網段的路由——不是「被擋下來」，而是「不知道怎麼去」。<b>設錯 ACL 也不會破功，因為路由層就斷了。</b><br>
+      需要互通的少數服務（例如儀器要傳影像到 HIS）走<b>明確的路由洩漏 + 防火牆</b>，總共只有 6 條規則，一目了然。<br>
+      <b>這個案例的價值：</b>用架構解決問題，比用一堆規則解決問題更可靠。稽核時也好解釋得多。
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="virt">
+    <h2>8. 伺服器虛擬化與容器怎麼接網路</h2>
+
+    <p>官方大綱有「虛擬化基礎」這一項。網路工程師要懂的不是怎麼裝 VMware，而是<b>虛擬機的封包怎麼出到實體網路</b>。</p>
+
+    <div class="tbl-wrap"><table class="t">
+      <thead><tr><th></th><th>實體伺服器</th><th>虛擬機（VM）</th><th>容器（Container）</th></tr></thead>
+      <tbody>
+        <tr><td>隔離層級</td><td>硬體</td><td><b>完整作業系統</b></td><td><b>共用核心</b>，只隔離程序</td></tr>
+        <tr><td>啟動時間</td><td>分鐘</td><td>數十秒</td><td><b>秒或更短</b></td></tr>
+        <tr><td>資源開銷</td><td>—</td><td>每台一套 OS，較重</td><td><b>非常輕</b></td></tr>
+        <tr><td>典型技術</td><td>—</td><td>VMware ESXi、Hyper-V、KVM</td><td>Docker、containerd + Kubernetes</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="diag"><span class="w">VM 的封包怎麼出到實體網路</span>
+
+  ┌─────────────────────────────────────┐
+  │  <span class="y">VM1</span>      <span class="y">VM2</span>      <span class="y">VM3</span>                 │  ← 每台有 vNIC（虛擬網卡）
+  │   │        │        │                │
+  │  ─┴────────┴────────┴─               │
+  │        <span class="o">vSwitch（虛擬交換器）</span>          │  ← 就是一台軟體做的交換器
+  │              │                       │     有 VLAN、有 Trunk、有 Port Group
+  └──────────────┼───────────────────────┘
+                 │ <span class="g">實體網卡（uplink）</span>
+                 ▼
+        <span class="w">實體交換器的 Trunk 埠</span>
+
+<span class="g">關鍵：實體交換器那個埠通常要設成 Trunk,因為上面會跑多個 VLAN 的流量。</span></div>
+
+    <div class="trap"><b>網路工程師最常被虛擬化打敗的三件事：</b><br>
+    ① <b>MAC 位址暴增</b>——一台實體伺服器上可能有 50 台 VM，交換器上會看到 50 個 MAC。<b>Port Security 設 <span class="inline-code">maximum 1</span> 會直接把整台伺服器擋掉</b>，這是很常見的事故。<br>
+    ② <b>VM 遷移（vMotion）後 MAC 換位置</b>——同一個 MAC 突然從 A 埠跑到 B 埠，交換器會記錄 MAC flapping。這是正常現象，不是迴圈。<br>
+    ③ <b>虛擬交換器不跑 STP</b>——vSwitch 不會產生 BPDU，也不參與生成樹。所以實體交換器面向伺服器的埠應該開 <b>PortFast + BPDU Guard</b>。</div>
+
+    <div class="note"><b>容器的網路更抽象一層：</b>Kubernetes 的 Pod 各有自己的 IP，靠 CNI 外掛（Calico、Cilium 等）實作，可能疊在 VXLAN overlay 上。<br>
+    <b>對網路工程師的實務影響：</b>你在實體交換器上<b>看不到</b>容器的 IP，排錯時要跟平台團隊一起看。這也是為什麼容器平台的網路問題常常變成「兩邊互推」——先搞清楚封包在哪一層被丟掉是關鍵。</div>
+  </div>
+
+  <!-- LAB -->
+  <div class="lab-box" id="lab">
+    <h3>實作 Lab：GRE over IPsec 站對站 VPN</h3>
+    <p>約 60 分鐘。Packet Tracer 或 GNS3，三台路由器（R1 分公司、ISP、R2 總部）。</p>
+
+    <h4>拓撲與規劃</h4>
+    <div class="diag">  <span class="y">分公司 LAN</span>          <span class="y">總部 LAN</span>
+   10.1.1.0/24          10.2.2.0/24
+       │                    │
+      <span class="o">R1</span> ──── <span class="w">ISP</span> ──── <span class="o">R2</span>
+   203.0.113.1        203.0.113.2
+       └──── <span class="g">Tunnel0: 172.16.0.0/30</span> ────┘</div>
+
+    <h4>階段一：底層先通</h4>
+    <ol>
+      <li>設定各介面 IP，R1 與 R2 對 ISP 各設一條<strong>預設路由</strong></li>
+      <li>驗證 <strong>R1 能 ping 到 R2 的公網 IP</strong>（203.0.113.2）——<strong>這一步不通就不要往下做</strong></li>
+    </ol>
+    <div class="warn"><strong>順序很重要：底層（underlay）不通，隧道一定起不來。</strong>初學者常常一次把所有設定打完才測試，結果分不清是隧道問題還是底層問題。<strong>每一層都要獨立驗證過再往上疊。</strong></div>
+
+    <h4>階段二：先做純 GRE</h4>
+    <ol>
+      <li>兩端建立 tunnel 0，設定 source / destination 與通道 IP</li>
+      <li><span class="inline-code">show ip interface brief</span> 確認 Tunnel0 是 <strong>up/up</strong></li>
+      <li>互 ping 通道位址（172.16.0.1 ↔ 172.16.0.2）</li>
+      <li>設定 OSPF 讓兩端 LAN 互通，<strong>確認 OSPF 鄰居建立起來</strong>——這證明多播能通過 GRE</li>
+      <li>PC 對 PC ping 測試</li>
+    </ol>
+
+    <h4>階段三：疊上 IPsec</h4>
+    <ol>
+      <li>兩端設定 ISAKMP policy（<strong>參數必須完全一致</strong>）與 pre-shared key</li>
+      <li>設定 transform-set 與 IPsec profile</li>
+      <li>在 tunnel 介面下 <span class="inline-code">tunnel protection ipsec profile ...</span></li>
+      <li><span class="inline-code">show crypto isakmp sa</span> 應看到狀態 <strong>QM_IDLE</strong></li>
+      <li><span class="inline-code">show crypto ipsec sa</span> 觀察 <strong>pkts encaps / decaps 有沒有在增加</strong>——這是判斷「有沒有真的在加密」的關鍵</li>
+    </ol>
+
+    <h4>階段四：MTU 實驗（最有價值的一段）</h4>
+    <ol>
+      <li>先<strong>不要</strong>設 <span class="inline-code">ip mtu</span>，用大封包測試：<span class="inline-code">ping 10.2.2.10 size 1500 df-bit</span></li>
+      <li>觀察會失敗（封包過大又不可分片）</li>
+      <li>在兩端 tunnel 介面加上 <span class="inline-code">ip mtu 1400</span> 與 <span class="inline-code">ip tcp adjust-mss 1360</span></li>
+      <li>再測一次，觀察差異</li>
+    </ol>
+    <div class="note"><strong>這個實驗一定要做過一次。</strong>真實環境中 MTU 問題的表現是「網頁載入到一半就卡住」「檔案傳到 90% 斷掉」，如果沒有親手重現過，遇到時很難聯想到是 MTU。<strong>記住那句判斷法：小封包通、大封包不通 = MTU。</strong></div>
+
+    <h4>階段五：故障排除練習</h4>
+    <ol>
+      <li>把一端的 pre-shared key 改錯 → 觀察 <span class="inline-code">debug crypto isakmp</span> 的訊息（Phase 1 失敗）</li>
+      <li>把一端的 transform-set 改成不同演算法 → 觀察 Phase 1 通但 Phase 2 失敗</li>
+      <li>把 tunnel destination 打錯 → 觀察 Tunnel 介面狀態</li>
+    </ol>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>10. 考試陷阱整理</h2>
+
+    <div class="trap"><b>陷阱 1：以為 MPLS 是加密的</b><br>MPLS 提供的是<b>流量隔離</b>，不是加密。合規要求加密時仍要疊 IPsec。</div>
+
+    <div class="trap"><b>陷阱 2：以為 GRE 有加密</b><br>GRE 只是<b>封裝</b>，完全沒有加密。走公網一定要疊 IPsec。</div>
+
+    <div class="trap"><b>陷阱 3：純 IPsec 上跑路由協定</b><br>IPsec <b>不支援多播</b>，OSPF 的 Hello 送不出去。要跑動態路由<b>必須用 GRE over IPsec</b>。</div>
+
+    <div class="trap"><b>陷阱 4：AH 與 ESP 搞混</b><br><b>AH（協定 51）不加密、不能穿 NAT</b>；<b>ESP（協定 50）有加密、可搭 NAT-T</b>。實務只用 ESP。</div>
+
+    <div class="trap"><b>陷阱 5：VPN 通了但大流量有問題</b><br><b>MTU</b>。GRE +24、IPsec +50~60 bytes。設 <span class="inline-code">ip mtu 1400</span> 與 <span class="inline-code">ip tcp adjust-mss 1360</span>。<b>小封包通、大封包不通就是它</b>。</div>
+
+    <div class="trap"><b>陷阱 6：忘記防火牆要放行的三個東西</b><br><b>UDP 500（IKE）、UDP 4500（NAT-T）、IP 協定 50（ESP）</b>。少開任一個都會出現奇怪的半通狀態。</div>
+
+    <div class="trap"><b>陷阱 7：遞迴路由造成通道抖動</b><br>通道目的地不能透過通道自己學到。症狀是 <span class="inline-code">%TUN-5-RECURDOWN</span> 一直刷。</div>
+
+    <div class="trap"><b>陷阱 8：VRF 指令忘記加 vrf 關鍵字</b><br><span class="inline-code">show ip route</span> 查的是全域表，要 <span class="inline-code">show ip route vrf XXX</span>。ping、traceroute 也一樣。</div>
+
+    <div class="trap"><b>陷阱 9：綁 VRF 後 IP 不見了</b><br>這是<b>正常行為</b>，綁 VRF 會清掉介面既有 IP。先綁 VRF、再設 IP。</div>
+
+    <div class="trap"><b>陷阱 10：伺服器埠設 Port Security maximum 1</b><br>虛擬化主機上有幾十台 VM，會有幾十個 MAC。<b>直接把整台伺服器擋掉</b>。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>
+    <b>GRE 能跑路由但不加密，IPsec 能加密但不能跑路由</b>，所以要疊在一起；<br>
+    分點<b>一多</b>就上 DMVPN，網段<b>要隔離</b>就切 VRF；<br>
+    VPN 通了但<b>大檔卡住</b>，先想 MTU。</span></div>
+  </div>
+
+  <div class="page-nav">
+    <a href="17-ipv6-deep.html">← CH 6-1：IPv6 深入</a>
+    <a href="19-redistribution.html">CH 6-3：路由重分配與路由政策 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNA／CCNP 學習指南 · CH 6-2</footer>
+</body>
+</html>
