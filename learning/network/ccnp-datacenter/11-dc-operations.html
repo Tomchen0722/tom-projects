@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料中心維運與故障處理 — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+.case{background:#FFF;border:1px solid #E3E5E8;border-left:4px solid #1BA0D7;border-radius:0 12px 12px 0;padding:16px 20px;margin:14px 0;}
+.case h4{font-size:.95rem;color:#1BA0D7;margin:0 0 8px;}
+.case p{font-size:.88rem;line-height:1.85;color:#374151;margin:0 0 8px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">11 · 資料中心維運與故障處理</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · 維運</div>
+  <h1>資料中心維運與故障處理</h1>
+  <p>前十章講的是怎麼把 fabric 建起來。這一章講建好之後的事——vPC 的進階最佳化、怎麼不停機升級、管理平台怎麼選，以及八個真實的資料中心故障案例。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#vpcadv">vPC 進階：四個一定要開的功能</a></li>
+      <li><a href="#consistency">一致性檢查與 Orphan Port</a></li>
+      <li><a href="#issu">不停機升級：ISSU 與滾動升級</a></li>
+      <li><a href="#breakout">Breakout 埠與線材選擇</a></li>
+      <li><a href="#mgmt">管理平台：NDFC 與 Nexus Dashboard</a></li>
+      <li><a href="#telemetry">Telemetry 取代 SNMP 輪詢</a></li>
+      <li><a href="#cases">八個真實故障案例</a></li>
+      <li><a href="#traps">本章重點整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="vpcadv">
+    <h2>1. vPC 進階：四個一定要開的功能</h2>
+
+    <p>第 01 章講了 vPC 的組成與三種故障情境。實務部署時還有四個功能<b>幾乎一定要開</b>，不開會踩到各種難查的問題。</p>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>功能</th><th>不開會怎樣</th><th>開了之後</th></tr>
+      <tr><td><b>peer-gateway</b></td><td>某些伺服器（NAS、負載平衡器）會把封包送到<b>對方 vPC peer 的 MAC</b>，導致封包必須繞 peer-link，甚至被丟棄</td><td>每台 Nexus 都<b>願意代替對方回應</b>，封包直接在本地處理</td></tr>
+      <tr><td><b>peer-switch</b></td><td>兩台 Nexus 在 STP 中是不同的 Bridge ID，切換時下游會經歷 STP 收斂</td><td>兩台<b>對外呈現同一個 Bridge ID</b>，STP 收斂時間大幅縮短</td></tr>
+      <tr><td><b>auto-recovery</b></td><td>兩台同時斷電後一起開機，<b>因為互相看不到對方而都不敢啟用 vPC 埠</b>，網路整個起不來</td><td>等待一段時間後，其中一台自行成為 Primary 並啟用埠</td></tr>
+      <tr><td><b>ip arp synchronize</b></td><td>切換後對端要重新學 ARP，造成短暫流量中斷</td><td>兩台<b>同步 ARP 表</b>，切換更平順</td></tr>
+    </table></div>
+
+    <pre><code><span class="comment">! ── vPC domain 的建議設定 ──</span>
+N9K(config)# <span class="cmd">vpc domain 10</span>
+N9K(config-vpc-domain)# <span class="cmd">peer-switch</span>
+N9K(config-vpc-domain)# <span class="cmd">peer-gateway</span>
+N9K(config-vpc-domain)# <span class="cmd">auto-recovery</span>
+N9K(config-vpc-domain)# <span class="cmd">ip arp synchronize</span>
+N9K(config-vpc-domain)# <span class="cmd">role priority 100</span>          <span class="comment">! 數字小的當 Primary</span>
+N9K(config-vpc-domain)# <span class="cmd">peer-keepalive destination 192.168.1.2 source 192.168.1.1 vrf management</span>
+N9K(config-vpc-domain)# <span class="cmd">delay restore 150</span>           <span class="comment">! 重開後等路由收斂再啟用 vPC 埠</span>
+
+<span class="comment">! ── 驗證 ──</span>
+N9K# <span class="cmd">show vpc</span>
+N9K# <span class="cmd">show vpc brief</span>
+N9K# <span class="cmd">show vpc consistency-parameters global</span>
+N9K# <span class="cmd">show vpc role</span></code></pre>
+
+    <div class="trap"><b><span class="inline-code">delay restore</span> 是很多人漏掉但很重要的一項。</b><br>
+    Nexus 重開機後，vPC 埠會很快 up，但<b>路由協定還沒收斂完</b>——結果流量進來了卻不知道往哪送，形成短暫黑洞。<br>
+    <span class="inline-code">delay restore</span> 讓 vPC 埠<b>等一段時間再啟用</b>，給路由協定時間收斂。<b>症狀是「重開機後有幾十秒的封包遺失」</b>，很多人以為是正常現象，其實是可以避免的。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="consistency">
+    <h2>2. 一致性檢查與 Orphan Port</h2>
+
+    <h3>Type-1 與 Type-2 的差別</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>Type-1 不一致</b><span><b>會停用 vPC</b>。屬於「不一致就會造成轉送錯誤」的參數：STP 模式、MTU、VLAN 的允許清單、Port Channel 模式。</span></div>
+      <div class="cmp"><b>Type-2 不一致</b><span><b>只警告</b>，vPC 繼續運作。屬於「不一致但不至於出錯」的參數：ACL、QoS 設定、部分介面參數。</span></div>
+    </div>
+
+    <div class="trap"><b>Type-1 不一致的症狀非常明確：vPC 突然掉了，而且是「兩邊都好好的但 vPC 就是起不來」。</b><br>
+    最常見的原因是<b>有人只在一台上改了設定</b>——加了一個 VLAN 到 trunk allowed list、改了 MTU、調了 STP 參數。<br>
+    <b>排錯第一招：</b><span class="inline-code">show vpc consistency-parameters global</span> 與 <span class="inline-code">show vpc consistency-parameters interface port-channel X</span>，它會直接列出兩邊哪個參數不一樣。<br>
+    <b>預防：</b>vPC 兩台的設定變更要成對進行，最好用自動化工具同時推送。</div>
+
+    <h3>Orphan Port：vPC 架構裡的孤兒</h3>
+    <div class="diag"><span class="w">什麼是 Orphan Port</span>
+
+     <span class="o">N9K-1</span> ══ peer-link ══ <span class="o">N9K-2</span>
+       │ │                  │
+       │ └────vPC──────────┘        <span class="g">← 雙歸屬伺服器（正常）</span>
+       │
+       └─── <span class="r">單歸屬伺服器</span>              <span class="r">← Orphan Port（只接一台）</span>
+
+<span class="w">問題：當 peer-link 斷掉時,Secondary 會關閉所有 vPC 成員埠,</span>
+<span class="w">但 Orphan Port 「不是」vPC 成員埠,所以它不會被關掉——</span>
+<span class="r">結果那台單歸屬伺服器仍然 up,卻已經與網路其他部分隔離,形成黑洞。</span></div>
+
+    <pre><code><span class="comment">! ── 解法：把 Orphan Port 也納入 peer-link 失效時的關閉範圍 ──</span>
+N9K(config)# <span class="cmd">interface ethernet 1/10</span>
+N9K(config-if)# <span class="cmd">vpc orphan-port suspend</span>
+
+<span class="comment">! ── 找出目前有哪些 Orphan Port ──</span>
+N9K# <span class="cmd">show vpc orphan-ports</span></code></pre>
+
+    <div class="ok">✅ <b>實務建議：資料中心的伺服器盡量都做雙歸屬。</b>但現實中總會有一些設備只有一張網卡（老舊設備、管理主機、測試機），這些就是 Orphan Port。<br>
+    <b>把 <span class="inline-code">vpc orphan-port suspend</span> 設上去</b>，讓它在 peer-link 失效時一起被關掉——<b>與其讓它半死不活地送封包進黑洞，不如明確地讓它斷線</b>，這樣監控系統才會告警、應用層的健康檢查才會切換。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="issu">
+    <h2>3. 不停機升級：ISSU 與滾動升級</h2>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>方式</th><th>怎麼做</th><th>適用</th></tr>
+      <tr><td><b>ISSU</b><br>（In-Service Software Upgrade）</td><td>單台設備<b>不中斷轉送</b>的情況下升級軟體</td><td>有雙管理引擎的機箱式設備；固定式機型的支援版本有限制</td></tr>
+      <tr><td><b>vPC 滾動升級</b></td><td>一次升一台，靠 vPC 的另一台維持服務</td><td><b>最常用</b>。兩台 Nexus 輪流升</td></tr>
+      <tr><td><b>ACI fabric 升級</b></td><td>APIC 先升，再依<b>維護群組</b>分批升 Spine 與 Leaf</td><td>ACI 環境。Leaf 要分成兩組交錯升級</td></tr>
+    </table></div>
+
+    <div class="diag"><span class="w">vPC 滾動升級的標準流程</span>
+
+  1. <span class="g">確認健康</span>       show vpc / show interface status / 確認沒有 Orphan Port 問題
+  2. <span class="g">備份設定</span>       copy running-config startup-config + 匯出到外部
+  3. <span class="g">確認相容性</span>     兩台在升級過程中會短暫跑不同版本 → 查相容矩陣
+  4. <span class="y">升級 Secondary</span>  重開,等它完全回來並確認 vPC 恢復
+  5. <span class="g">驗證</span>           show vpc / 確認流量分佈正常 / 觀察一段時間
+  6. <span class="y">升級 Primary</span>    重複步驟 4-5
+  7. <span class="g">最終驗證</span>       兩台版本一致、vPC 正常、所有 VLAN 通
+
+<span class="r">⚠ 步驟 4 與 6 之間務必留觀察時間,不要連續升兩台。</span></div>
+
+    <div class="trap"><b>升級最大的風險不是升級本身，是「兩台版本不同期間的相容性」。</b><br>
+    vPC 對兩端的軟體版本有相容性要求，跨大版本升級時<b>可能不允許長時間混版運作</b>。<br>
+    <b>務必先查該型號該版本的相容矩陣</b>，某些跨版本必須經過中間版本，不能一次跳。<br>
+    <b>另一個常被忽略的：</b>升級後某些預設值可能改變（例如新版預設啟用某個功能），<b>升級後要用 <span class="inline-code">show run diff</span> 或與備份比對，確認設定沒有被意外改動</b>。</div>
+
+    <div class="biz">
+      <b>企業實例｜一次沒有觀察期的升級事故</b><br>
+      某資料中心排定週末升級一對 Nexus。工程師為了縮短維護窗口，升完 Secondary 看到 <span class="inline-code">show vpc</span> 顯示正常，就<b>立刻</b>開始升 Primary。<br>
+      問題是：Secondary 雖然 vPC 起來了，但<b>底層的 BGP 還在收斂中</b>，此時把 Primary 也重開，等於兩台同時處於不完整狀態——<b>整個機櫃列失聯約六分鐘</b>。<br>
+      <b>事後檢討的結論：</b>升完一台之後的「觀察期」不是形式，要驗證的不只是 vPC 狀態，還包括<b>路由協定鄰居數量、路由表條目數、實際流量是否恢復到原本水準</b>。<br>
+      <b>後來的做法：</b>制定升級檢核表，每一台升完都要確認五項指標回到基準值才能繼續，最短觀察期 15 分鐘。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="breakout">
+    <h2>4. Breakout 埠與線材選擇</h2>
+
+    <p>資料中心的機櫃佈線是一門實務學問，也是新手最常搞錯的地方。</p>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Breakout（拆分）</b><span>把一個 <b>40G 埠拆成 4 個 10G</b>，或 <b>100G 拆成 4 個 25G</b>。用一條線接到扇出線材（breakout cable）接四台伺服器。</span></div>
+      <div class="cmp"><b>DAC 銅纜</b><span>短距離（機櫃內、相鄰機櫃）最便宜，<b>不需光模組</b>。缺點是粗、重、彎折半徑大。</span></div>
+      <div class="cmp"><b>AOC 主動光纜</b><span>兩端固定光模組的成品線。比 DAC 細長、可拉更遠，但長度固定不可改。</span></div>
+      <div class="cmp"><b>光模組 + 光纖</b><span>最有彈性，距離最遠。成本最高，但更換與擴充最方便。</span></div>
+    </div>
+
+    <pre><code><span class="comment">! ── 設定 Breakout（設定後需要重載該模組）──</span>
+N9K(config)# <span class="cmd">interface breakout module 1 port 49 map 10g-4x</span>
+
+<span class="comment">! 之後原本的 Ethernet1/49 會變成：</span>
+<span class="comment">!   Ethernet1/49/1、1/49/2、1/49/3、1/49/4</span>
+
+<span class="comment">! ── 查看目前的埠速率與模組 ──</span>
+N9K# <span class="cmd">show interface transceiver</span>       <span class="comment">! 看光模組型號與光衰</span>
+N9K# <span class="cmd">show interface transceiver details</span>
+N9K# <span class="cmd">show running-config | include breakout</span></code></pre>
+
+    <div class="trap"><b>三個實務上常踩的坑：</b><br>
+    ① <b>Breakout 設定會讓埠編號改變</b>，原本掛在 Ethernet1/49 上的所有設定<b>全部消失</b>。要先規劃好再做，不要在正式環境臨時改。<br>
+    ② <b>不是每個埠都支援 Breakout</b>——依機型不同，通常只有特定範圍的埠可以拆，查資料表。<br>
+    ③ <b>光模組要看 <span class="inline-code">show interface transceiver details</span> 的光衰值</b>。<b>介面 up 不代表光品質好</b>——接收功率接近臨界值時會出現間歇性 CRC 錯誤，這是資料中心最難查的實體層問題之一。</div>
+
+    <div class="ok">✅ <b>排錯技巧：懷疑實體層時，先看 <span class="inline-code">show interface transceiver details</span> 的 Rx Power。</b><br>
+    如果數值接近或低於 <b>Warning / Alarm 門檻</b>，就是光衰問題——可能是光纖髒了、彎折過度、接頭沒插好、或線太長。<br>
+    <b>清潔光纖接頭是最便宜也最常有效的第一步</b>，很多「換了模組還是不好」的案子最後是接頭有灰塵。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="mgmt">
+    <h2>5. 管理平台：NDFC 與 Nexus Dashboard</h2>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>平台</th><th>做什麼</th><th>什麼時候需要</th></tr>
+      <tr><td><b>Nexus Dashboard</b></td><td>承載各種服務的<b>平台底座</b></td><td>要跑下面那些服務時的前提</td></tr>
+      <tr><td><b>NDFC</b><br>（Fabric Controller，前身 DCNM）</td><td><b>NX-OS fabric 的自動化與管理</b>：VXLAN EVPN fabric 的建置、拓撲視覺化、設定合規檢查、SAN 管理</td><td>用 NX-OS 建 VXLAN fabric 時，<b>手工設定幾十台 Leaf 不實際</b></td></tr>
+      <tr><td><b>NDO</b><br>（Orchestrator）</td><td><b>跨站編排</b>——ACI Multi-Site 或多 fabric 的政策集中定義</td><td>ACI Multi-Site 的必要元件</td></tr>
+      <tr><td><b>NDI</b><br>（Insights）</td><td><b>主動分析</b>：異常偵測、設定合規、韌體建議、變更前的影響分析</td><td>大型 fabric 的維運可視性</td></tr>
+      <tr><td><b>Intersight</b></td><td><b>UCS 與 HyperFlex 的雲端管理</b>（見第 07 章）</td><td>運算層的管理</td></tr>
+    </table></div>
+
+    <div class="note"><b>NDFC 對 NX-OS fabric 的價值，等於 APIC 對 ACI 的價值。</b><br>
+    純用 CLI 建 VXLAN EVPN fabric，每台 Leaf 都要打幾十行設定，五十台就是幾千行，而且<b>一個打錯就是難查的故障</b>。<br>
+    NDFC 用<b>樣板驅動</b>：定義 fabric 的參數（AS 號、底層 IP 池、VNI 範圍），它自動產生並推送每台設備的設定，還會<b>持續檢查有沒有人手動改壞</b>（設定飄移偵測）。<br>
+    <b>這也回答了「NX-OS VXLAN 與 ACI 怎麼選」這個問題的一部分</b>——ACI 是買整套方案，NX-OS + NDFC 是保留 CLI 彈性但加上自動化。</div>
+
+    <div class="biz">
+      <b>企業實例｜五十台 Leaf 的設定飄移</b><br>
+      某公司用 NX-OS 手工建了 VXLAN EVPN fabric，五十台 Leaf。運作一年後開始出現零星的「某個 VLAN 在某些機櫃不通」。<br>
+      查了很久才發現：這一年間陸續有五位工程師上去改過設定，有人為了排錯臨時關掉某個 VNI 忘了開回來、有人新增 VLAN 時漏掉兩台 Leaf、有人改了 MTU。<b>五十台的設定已經沒有兩台完全一樣。</b><br>
+      <b>導入 NDFC 之後：</b>先做一次<b>設定合規掃描</b>，列出每台與樣板的差異（總共 137 處），逐一確認後統一收斂。之後所有變更都經由 NDFC 推送。<br>
+      <b>最大的收穫不是自動化，是「有一個唯一的真實來源」</b>——現在問「VLAN 100 應該在哪些 Leaf 上」有明確答案，而不是要去五十台上各查一次。
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="telemetry">
+    <h2>6. Telemetry 取代 SNMP 輪詢</h2>
+
+    <div class="diag"><span class="w">SNMP 輪詢 vs Streaming Telemetry</span>
+
+  <span class="r">SNMP（拉）</span>
+    監控系統 ──每 5 分鐘問一次──▶ 設備
+    <span class="r">✘ 兩次輪詢之間發生的事看不到</span>
+    <span class="r">✘ 設備要花 CPU 回應大量查詢</span>
+    <span class="r">✘ 幾百台設備 × 幾百個 OID = 輪詢風暴</span>
+
+  <span class="g">Telemetry（推）</span>
+    設備 ──主動推送(gRPC/gNMI)──▶ 收集器
+    <span class="g">✔ 秒級甚至次秒級的資料</span>
+    <span class="g">✔ 設備只做一次序列化,不必回應每個查詢</span>
+    <span class="g">✔ 可訂閱「有變化才送」(on-change)</span></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>訂閱模式</b><span><b>Periodic</b>（固定間隔送）與 <b>On-change</b>（狀態改變才送）。介面計數器用前者、鄰居狀態用後者。</span></div>
+      <div class="cmp"><b>編碼與傳輸</b><span>常見是 <b>gRPC + protobuf</b> 或 <b>gNMI</b>，資料模型用 <b>YANG</b>（見第 08 章）。</span></div>
+      <div class="cmp"><b>典型後端</b><span>收集器（Telegraf 等）→ 時序資料庫（InfluxDB/Prometheus）→ 視覺化（Grafana）。也可直接送 NDI。</span></div>
+    </div>
+
+    <div class="ok">✅ <b>Telemetry 解決的核心問題是「解析度」。</b><br>
+    SNMP 五分鐘一次的介面統計，看不出「某個 30 秒的微爆發（microburst）把緩衝區塞爆導致丟包」——而這正是資料中心最常見的效能問題之一。<br>
+    <b>秒級的 telemetry 才看得到微爆發。</b>這是為什麼高效能運算與金融交易環境一定要用 telemetry 而不是 SNMP。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="cases">
+    <h2>7. 八個真實故障案例</h2>
+    <p>每個案例先看症狀自己判斷，再看解析。這些都是資料中心環境的高頻樣態。</p>
+
+    <div class="case">
+      <h4>案例 1｜新增 VLAN 之後 vPC 掉了</h4>
+      <p><b>症狀：</b>工程師在其中一台 Nexus 上把 VLAN 200 加進 vPC trunk 的允許清單，幾秒後 <span class="inline-code">show vpc</span> 顯示大量 vPC 進入 suspended。</p>
+      <p><b>檢查：</b><span class="inline-code">show vpc consistency-parameters interface port-channel 10</span> 顯示兩邊的 allowed VLAN 不一致。</p>
+      <p><b>根因：</b><b>Type-1 一致性檢查失敗</b>。Trunk 的 allowed VLAN 清單屬於 Type-1 參數，兩邊不一致就會停用 vPC。</p>
+      <p><b>解法：</b>在另一台上做同樣的變更。<b>預防：</b>vPC 兩台的設定變更必須成對進行，最好用自動化工具同時推送，或至少建立「改一台就立刻改另一台」的作業紀律。</p>
+    </div>
+
+    <div class="case">
+      <h4>案例 2｜peer-link 斷掉後某台伺服器完全失聯</h4>
+      <p><b>症狀：</b>peer-link 光纖被誤拔，多數服務正常（Secondary 關閉 vPC 埠，流量集中到 Primary），<b>但有一台備份伺服器完全連不上</b>。</p>
+      <p><b>檢查：</b>該伺服器只有一張網卡，接在 Secondary 上。<span class="inline-code">show vpc orphan-ports</span> 顯示它是 Orphan Port。</p>
+      <p><b>根因：</b>Orphan Port <b>不是 vPC 成員埠</b>，peer-link 斷時不會被關閉，但它所在的 Secondary 已經被隔離，於是形成黑洞——<b>埠是 up 的，伺服器以為自己在線上，實際上封包送不出去</b>。</p>
+      <p><b>解法：</b>在該埠設 <span class="inline-code">vpc orphan-port suspend</span>。與其半死不活，不如明確斷線讓監控與應用層的健康檢查能反應。<b>更根本的解法是把它改成雙歸屬。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 3｜兩台 Nexus 同時斷電復電後網路起不來</h4>
+      <p><b>症狀：</b>機房跳電，兩台 Nexus 同時重開。電力恢復後，兩台都開機正常，但<b>所有 vPC 埠都沒有啟用</b>，整個機櫃列不通。</p>
+      <p><b>根因：</b>兩台同時開機時<b>互相看不到對方</b>（peer-link 與 keepalive 都還沒建立），基於防止 split-brain 的保護機制，<b>兩台都不敢啟用 vPC 埠</b>。</p>
+      <p><b>解法：</b>開啟 <span class="inline-code">auto-recovery</span>——等待一段時間後其中一台自行成為 Primary 並啟用埠。<b>這是資料中心「跳電之後才發現沒設定」的經典項目，應該在部署時就開好。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 4｜跨 Leaf 的同網段 VM 不通</h4>
+      <p><b>症狀：</b>VXLAN EVPN 環境中，同一個 VLAN 的兩台 VM，在同一台 Leaf 下互通正常，<b>跨到另一台 Leaf 就不通</b>。</p>
+      <p><b>檢查順序：</b>① VTEP loopback 互 ping — 通；② <span class="inline-code">show bgp l2vpn evpn summary</span> — 鄰居正常；③ <span class="inline-code">show nve peers</span> — <b>對端 VTEP 沒出現</b>；④ <span class="inline-code">show nve vni</span> — <b>該 VNI 在其中一台是 Down</b>。</p>
+      <p><b>根因：</b>其中一台 Leaf 的 VLAN 沒有對應到 VNI（漏了 <span class="inline-code">vn-segment</span>），或 NVE 介面沒有加入該 member vni。</p>
+      <p><b>解法：</b>補上設定。<b>這個案例的價值在排錯順序</b>——由下而上一層層確認，五個指令就定位了。<b>如果一開始就去看 MAC 表，會浪費很多時間。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 5｜升級後某些流量突然不通</h4>
+      <p><b>症狀：</b>NX-OS 升級完成，vPC 與路由都正常，但某些應用的連線失敗。</p>
+      <p><b>檢查：</b>與升級前的設定備份比對，發現<b>某個功能的預設值在新版改變了</b>——舊版預設關閉的一個安全檢查，新版預設開啟，擋掉了某類流量。</p>
+      <p><b>根因：</b>升級不只是換軟體，<b>預設值可能改變</b>。而 <span class="inline-code">show running-config</span> 不會顯示「維持預設值」的項目，所以看設定看不出差異。</p>
+      <p><b>解法：</b>升級後用 <span class="inline-code">show running-config all</span>（顯示含預設值的完整設定）與升級前的版本比對。<b>升級前先讀 Release Notes 的「Changed Behavior」章節</b>是最有效的預防。</p>
+    </div>
+
+    <div class="case">
+      <h4>案例 6｜FC 儲存間歇性 I/O 逾時</h4>
+      <p><b>症狀：</b>某台伺服器對 SAN 的存取偶爾逾時，重試後成功。同一個 VSAN 的其他伺服器正常。</p>
+      <p><b>檢查：</b><span class="inline-code">show interface transceiver details</span> 顯示該埠的 <b>Rx Power 接近 Alarm 門檻</b>；<span class="inline-code">show interface</span> 有零星的 CRC 錯誤。</p>
+      <p><b>根因：</b><b>光衰</b>。可能是光纖接頭有灰塵、彎折過度，或線材老化。</p>
+      <p><b>解法：</b>清潔光纖接頭與模組（最便宜的第一步），無效再換線材或模組。<b>儲存流量對丟包極度敏感</b>——一般資料流量丟一兩個封包靠 TCP 重傳就沒事，FC 環境的丟包會直接變成 I/O 錯誤。<b>「介面 up」在 SAN 環境完全不代表健康。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 7｜微爆發造成的間歇性丟包</h4>
+      <p><b>症狀：</b>應用團隊反映偶爾有延遲尖峰，但網路監控（SNMP，五分鐘一次）顯示介面使用率只有 40%，看起來很健康。</p>
+      <p><b>檢查：</b>改用 <b>秒級 telemetry</b> 之後，發現該介面每隔一段時間有<b>持續數百毫秒的 100% 滿載</b>，伴隨 output drops 增加。</p>
+      <p><b>根因：</b><b>微爆發（microburst）</b>。分散式運算或備份任務在極短時間內送出大量資料，把介面緩衝區塞爆。<b>五分鐘平均值把它完全平滑掉了。</b></p>
+      <p><b>解法：</b>調整緩衝區配置、對該類流量套用 QoS、或從應用端錯開時間。<b>這個案例說明了 telemetry 相對於 SNMP 的核心價值：解析度。</b></p>
+    </div>
+
+    <div class="case">
+      <h4>案例 8｜ACI 中兩個 EPG 明明有 Contract 卻不通</h4>
+      <p><b>症狀：</b>Web EPG 與 DB EPG 之間建了 Contract 允許 1433 埠，但連不上。</p>
+      <p><b>檢查：</b>① Contract 的 <b>provider 與 consumer 方向</b>設反了；② 或 Filter 只寫了單向（只允許目的埠 1433，沒有處理回程）；③ 或兩個 EPG 在<b>不同 VRF</b> 而沒設定 VRF 間的路由洩漏。</p>
+      <p><b>根因（最常見）：</b>方向設反。<b>提供服務的那一端是 provider</b>（DB 是 provider，Web 是 consumer），設反了就等於允許了相反方向的連線。</p>
+      <p><b>解法：</b>確認方向；ACI 的 Contract 對於 TCP 通常會自動處理回程（若 Filter 有設 <span class="inline-code">established</span> 相關選項），但仍要確認 Filter 定義。<b>排錯工具：</b>APIC 上的 <b>Contract 命中計數</b>與 <b>Endpoint Tracker</b>，可直接看到封包有沒有命中規則。</p>
+    </div>
+
+    <div class="biz">
+      <b>八個案例的共同心法</b><br>
+      ① <b>「介面 up」在資料中心特別不可信</b>——案例 2 的 Orphan Port、案例 6 的光衰，都是 up 但不健康。<br>
+      ② <b>成對的設備要成對變更</b>——案例 1 的 vPC 一致性，是最常見的自己造成的故障。<br>
+      ③ <b>由下而上排錯</b>——案例 4 用五個指令定位，是因為順序對。<br>
+      ④ <b>升級要比對「含預設值」的設定</b>——案例 5 的陷阱是 <span class="inline-code">show run</span> 看不到。<br>
+      ⑤ <b>監控的解析度決定你看得到什麼</b>——案例 7 的微爆發在五分鐘平均值裡完全隱形。<br>
+      ⑥ <b>保護機制也會造成「故障」</b>——案例 3 的兩台都不敢啟用埠，其實是設計如此，缺的是 auto-recovery。
+    </div>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>8. 本章重點整理</h2>
+
+    <div class="trap"><b>陷阱 1：vPC 只做基本設定</b><br><b>peer-switch、peer-gateway、auto-recovery、ip arp synchronize、delay restore</b> 這五項幾乎都該開，不開會遇到各種難查的問題。</div>
+
+    <div class="trap"><b>陷阱 2：只在一台上改設定</b><br>Trunk allowed VLAN、MTU、STP 模式都是 <b>Type-1</b> 參數，不一致會直接停用 vPC。用 <span class="inline-code">show vpc consistency-parameters</span> 查。</div>
+
+    <div class="trap"><b>陷阱 3：忽略 Orphan Port</b><br>peer-link 斷時它不會被關，形成黑洞。設 <span class="inline-code">vpc orphan-port suspend</span>，或改成雙歸屬。</div>
+
+    <div class="trap"><b>陷阱 4：升級不留觀察期</b><br>vPC 狀態正常不代表路由收斂完成。<b>每台升完要驗證五項指標回到基準值</b>才能繼續下一台。</div>
+
+    <div class="trap"><b>陷阱 5：升級後只比對 <span class="inline-code">show run</span></b><br>預設值改變不會顯示在 running-config 裡。要用 <span class="inline-code">show running-config all</span> 比對，並先讀 Release Notes 的行為變更章節。</div>
+
+    <div class="trap"><b>陷阱 6：Breakout 設定在正式環境臨時改</b><br>會讓埠編號改變、原有設定全部消失。而且不是每個埠都支援。</div>
+
+    <div class="trap"><b>陷阱 7：實體層只看介面 up/down</b><br>要看 <span class="inline-code">show interface transceiver details</span> 的 <b>Rx Power</b>。光衰造成的間歇性 CRC 是最難查的問題之一，<b>清潔接頭是最便宜有效的第一步</b>。</div>
+
+    <div class="trap"><b>陷阱 8：用 SNMP 五分鐘平均值判斷有沒有壅塞</b><br>看不到<b>微爆發</b>。需要秒級 <b>telemetry</b> 才能發現。</div>
+
+    <div class="ok">✅ <b>一句話：</b>vPC 的<b>五個進階功能</b>與<b>一致性</b>是穩定的地基；升級要有<b>觀察期</b>與<b>含預設值的比對</b>；實體層要看<b>光衰</b>不是只看 up/down；而監控的<b>解析度</b>決定你看不看得到真正的問題。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="10-aci-advanced.html">← 10 · ACI 進階</a>
+    <a href="index.html">回課程總覽 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 11</footer>
+</body>
+</html>

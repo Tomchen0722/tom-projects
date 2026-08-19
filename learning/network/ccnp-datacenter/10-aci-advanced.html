@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACI 進階：Multi-Pod、微分段與服務插入 — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">10 · ACI 進階</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCACI · 進階架構</div>
+  <h1>ACI 進階：Multi-Pod、微分段與服務插入</h1>
+  <p>第 05 章講了 ACI 的政策模型與 Contract。這一章處理實際落地時真正會被問的三件事——多機房怎麼擴展、同一個 EPG 裡的機器怎麼互相隔離、防火牆怎麼插進 fabric。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#scale">四種擴展架構怎麼選</a></li>
+      <li><a href="#multipod">Multi-Pod：一個 fabric、多個機房</a></li>
+      <li><a href="#multisite">Multi-Site：多個獨立 fabric</a></li>
+      <li><a href="#remoteleaf">Remote Leaf 與 vPod</a></li>
+      <li><a href="#micro">微分段：同 EPG 內也能隔離</a></li>
+      <li><a href="#pbr">服務插入與 PBR</a></li>
+      <li><a href="#l3out">L3Out 的常見設計</a></li>
+      <li><a href="#traps">本章重點整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="scale">
+    <h2>1. 四種擴展架構怎麼選</h2>
+
+    <div class="analogy">把 ACI fabric 想成<b>一家公司</b>：<br>
+    <b>Multi-Pod</b> = 同一家公司開了第二個辦公室，<b>還是同一套人事制度、同一個總經理</b>；<br>
+    <b>Multi-Site</b> = 開了子公司，<b>各有各的總經理</b>，只有集團層級的政策要對齊；<br>
+    <b>Remote Leaf</b> = 派了幾個人去客戶端駐點，<b>還是總部管</b>；<br>
+    <b>Multi-Tier</b> = 同一個辦公室多加一層樓。</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>Multi-Pod</th><th>Multi-Site</th><th>Remote Leaf</th></tr>
+      <tr><td><b>APIC 叢集</b></td><td><b>一個</b>（跨 Pod 分散）</td><td><b>各自獨立</b>，上面加 <b>Nexus Dashboard Orchestrator</b></td><td>屬於原本的 fabric</td></tr>
+      <tr><td><b>故障域</b></td><td><b>共用</b>（同一個控制平面）</td><td><b>完全隔離</b></td><td>共用</td></tr>
+      <tr><td><b>延遲要求</b></td><td>嚴格（IPN 之間需低延遲）</td><td>寬鬆</td><td>相對寬鬆</td></tr>
+      <tr><td><b>中間網路</b></td><td><b>IPN</b>（Inter-Pod Network），需支援 OSPF、多播、大 MTU</td><td><b>ISN</b>（Inter-Site Network），只需 IP 可達與大 MTU</td><td>IP 網路</td></tr>
+      <tr><td><b>典型用途</b></td><td>同園區或近距離的兩棟樓</td><td><b>跨城市、跨國</b>的資料中心</td><td>小型分點、邊緣站點<b>不值得放整套 fabric</b></td></tr>
+    </table></div>
+
+    <div class="ok">✅ <b>選型的判斷點只有一個：你要不要故障域隔離。</b><br>
+    要<b>一致的政策與單一管理介面</b>、機房距離近 → <b>Multi-Pod</b>。<br>
+    要<b>各機房獨立存活</b>、一邊出事另一邊不受影響 → <b>Multi-Site</b>。<br>
+    只是幾個機櫃的小站點、不想在那裡放 Spine 與 APIC → <b>Remote Leaf</b>。</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="multipod">
+    <h2>2. Multi-Pod：一個 fabric、多個機房</h2>
+
+    <div class="diag"><span class="w">Multi-Pod 架構</span>
+
+  <span class="y">Pod 1</span>                                   <span class="g">Pod 2</span>
+  Spine ── Leaf                            Leaf ── Spine
+    │                                              │
+    └────────── <span class="o">IPN</span>（Inter-Pod Network）──────────┘
+                 <span class="w">需求：OSPF、PIM Bidir 多播、DHCP relay、MTU ≥ 9150</span>
+
+  <span class="r">APIC 叢集橫跨兩個 Pod</span>（例如 3 台在 Pod1、2 台在 Pod2）
+  <span class="w">→ 只有一個管理介面、一套政策</span>
+  <span class="r">→ 但也是同一個控制平面故障域</span></div>
+
+    <h3>IPN 的四個硬性要求</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>OSPF</b><span>IPN 與 Spine 之間跑 OSPF 交換底層路由。</span></div>
+      <div class="cmp"><b>多播（PIM Bidir）</b><span>承載 BUM 流量。<b>這是 IPN 最容易卡關的一項</b>——很多既有的骨幹網路不支援。</span></div>
+      <div class="cmp"><b>DHCP Relay</b><span>讓遠端 Pod 的設備能向 APIC 取得位址完成自動佈建。</span></div>
+      <div class="cmp"><b>大 MTU（≥ 9150）</b><span>VXLAN 封裝後封包會變大，MTU 不夠就會分片或丟棄。</span></div>
+    </div>
+
+    <div class="trap"><b>Multi-Pod 部署失敗最常見的原因就是 IPN 沒配合。</b><br>
+    企業的既有骨幹通常不跑多播、MTU 是預設 1500，而網路團隊往往低估了「要請骨幹團隊改設定」這件事的難度。<br>
+    <b>症狀：</b>Pod 之間單播通、但跨 Pod 的廣播與 ARP 不通（多播沒開）；或大封包不通（MTU 不足）。<br>
+    <b>建議：</b>專案啟動時就把 IPN 需求文件交給骨幹團隊確認，<b>不要等到設備都到貨才發現骨幹不支援</b>。</div>
+
+    <div class="note"><b>APIC 叢集的分散有講究。</b>APIC 需要多數決（quorum）才能寫入設定。三台 APIC 分成 2+1 時，<b>如果放兩台的那個 Pod 整個掛掉，剩下一台無法形成多數，fabric 會進入唯讀狀態</b>（既有轉送仍正常，但無法變更設定）。<br>
+    <b>大型部署常用五台並搭配 standby APIC</b>，或直接改用 Multi-Site 讓兩邊各有完整叢集。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="multisite">
+    <h2>3. Multi-Site：多個獨立 fabric</h2>
+
+    <div class="diag"><span class="w">Multi-Site 架構</span>
+
+           <span class="o">Nexus Dashboard Orchestrator（NDO）</span>
+                <span class="w">↑ 集中定義跨站政策,再推送到各站</span>
+          ┌──────────────┴──────────────┐
+     <span class="y">Site-A</span>                          <span class="g">Site-B</span>
+     APIC 叢集 A                      APIC 叢集 B
+     Spine ── Leaf                    Leaf ── Spine
+        └────────── <span class="w">ISN</span> ──────────────┘
+              <span class="w">只需 IP 可達 + 大 MTU</span>
+              <span class="g">（不需要多播,BUM 用 Ingress Replication）</span></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>各站獨立 APIC</b><span>一邊的控制平面出問題，另一邊完全不受影響。這是與 Multi-Pod 最大的差別。</span></div>
+      <div class="cmp"><b>NDO 集中編排</b><span>跨站的 Tenant、VRF、EPG、Contract 在 NDO 上定義一次，推送到各站。各站仍可有自己的本地政策。</span></div>
+      <div class="cmp"><b>ISN 要求低</b><span>只要 IP 可達與大 MTU，<b>不需要多播</b>——這讓它比 Multi-Pod 好落地很多。</span></div>
+      <div class="cmp"><b>可選擇性延伸</b><span>哪些 EPG／橋接網域要跨站延伸是<b>逐一決定</b>的，不是全部一起。</span></div>
+    </div>
+
+    <div class="ok">✅ <b>Multi-Pod vs Multi-Site 的一句話判斷：</b><br>
+    問「<b>Site-A 的 APIC 全部掛掉時，Site-B 還能不能正常運作與變更設定</b>」——<br>
+    要「能」→ <b>Multi-Site</b>；可以接受「不能」而想換取單一管理介面 → <b>Multi-Pod</b>。</div>
+
+    <div class="biz">
+      <b>企業實例｜某集團的架構選型轉折</b><br>
+      集團原本規劃台北與桃園兩個機房走 <b>Multi-Pod</b>（距離近、延遲低，看起來很合適）。專案進行到一半，骨幹團隊回報：<b>兩機房之間的租用線路無法支援 PIM Bidir 多播</b>，電信商也不願意為此調整。<br>
+      評估後改為 <b>Multi-Site</b>：ISN 只需要 IP 可達與大 MTU，租用線路直接就能用。<br>
+      <b>額外的收穫是當初沒想到的：</b>改成 Multi-Site 之後，兩個機房的<b>維護窗口可以完全分開</b>——升級 Site-A 的 APIC 時 Site-B 完全不受影響。原本 Multi-Pod 的設計中，APIC 叢集升級是要整個 fabric 一起做的。<br>
+      <b>教訓：</b>架構選型不能只看技術規格表，<b>要先確認中間網路做不做得到</b>。
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="remoteleaf">
+    <h2>4. Remote Leaf 與 vPod</h2>
+
+    <div class="note"><b>Remote Leaf</b> 讓你在小型站點<b>只放一對 Leaf</b>，不需要 Spine 也不需要本地 APIC——控制平面仍由主資料中心的 APIC 管理，透過 IP 網路（IPN）連回來。<br>
+    <b>典型場景：</b>分公司機房只有幾個機櫃、零售門市的邊緣運算節點、共置機房（colo）的小規模部署。</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>好處</b><span>政策與主 fabric 完全一致、單一管理介面、不必為小站點買整套設備。</span></div>
+      <div class="cmp"><b>限制</b><span>依賴回主站的 IP 連線；<b>WAN 斷線時本地流量仍可轉送</b>（有本地存活能力），但無法變更設定。</span></div>
+      <div class="cmp"><b>延遲要求</b><span>比 Multi-Pod 寬鬆，適合跨城市。</span></div>
+    </div>
+
+    <div class="trap"><b>常見誤解：以為 Remote Leaf 斷線就會停擺。</b><br>
+    現代版本的 Remote Leaf 具備<b>本地存活（local switching）能力</b>——WAN 斷掉時，站點<b>內部</b>的流量仍能正常轉送，只是無法與主站通訊、也無法推送新政策。<br>
+    這跟「完全依賴總部」是不一樣的，設計時要講清楚，否則業務單位會誤以為風險太高而反對。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="micro">
+    <h2>5. 微分段：同 EPG 內也能隔離</h2>
+
+    <p>第 05 章講過：<b>同一個 EPG 內的端點預設可以自由通訊，不需要 Contract</b>。這在多數情況下很方便，但有時候正是問題所在。</p>
+
+    <div class="diag"><span class="w">問題情境</span>
+
+  <span class="y">EPG: Web-Servers</span>（十台網頁伺服器）
+     Web1  Web2  Web3 ... Web10
+      <span class="r">↕ 彼此可以完全自由通訊</span>
+
+  <span class="r">攻擊者攻下 Web3 之後,可以直接橫向移動到其他九台。</span>
+  <span class="r">但實際上這十台伺服器根本不需要互相通訊——</span>
+  <span class="r">它們只需要跟前面的 LB 和後面的 DB 講話。</span>
+
+<span class="g">微分段（uSeg EPG）：把 EPG 再切細</span>
+
+  依 <span class="g">VM 名稱、IP、MAC、VM 標籤、作業系統</span>等屬性
+  動態把端點分到不同的 uSeg EPG,彼此之間就需要 Contract 才能通</div>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>分類屬性</th><th>用途範例</th></tr>
+      <tr><td><b>IP 位址 / 網段</b></td><td>把特定網段的機器獨立出來</td></tr>
+      <tr><td><b>MAC 位址</b></td><td>實體伺服器的精確指定</td></tr>
+      <tr><td><b>VM 名稱</b></td><td>命名規則含 <span class="inline-code">-prod-</span> 的自動歸到正式環境 uSeg</td></tr>
+      <tr><td><b>VM 標籤 / 自訂屬性</b></td><td><b>最實用</b>：在 vCenter 上打標籤，ACI 自動套用政策</td></tr>
+      <tr><td><b>作業系統</b></td><td>把還沒修補的舊版 OS 自動隔離</td></tr>
+      <tr><td><b>VM 識別碼</b></td><td>精確指定單一 VM</td></tr>
+    </table></div>
+
+    <div class="ok">✅ <b>微分段最強大的地方是「動態」。</b>你定義的是<b>規則</b>而不是清單——「所有名稱含 <span class="inline-code">quarantine</span> 的 VM 歸到隔離 EPG」。<br>
+    當資安團隊發現一台機器可疑時，<b>只要在 vCenter 上改個標籤，網路政策就自動生效</b>，不需要網路團隊介入、不需要改 IP、不需要移動 VLAN。<br>
+    <b>這是 ACI 相對於傳統 VLAN + ACL 最有說服力的一個功能。</b></div>
+
+    <div class="biz">
+      <b>企業實例｜某電商的資安事件應變</b><br>
+      資安團隊在監控中發現一台應用伺服器有異常的對外連線。傳統做法是：通知網路團隊 → 找出那台機器接在哪個埠 → 改 VLAN 或加 ACL → 可能要重開機或改 IP，整個流程要 30 分鐘以上，而且改動有風險。<br>
+      <b>導入微分段後：</b>資安人員直接在 vCenter 上把該 VM 加上 <span class="inline-code">quarantine</span> 標籤。ACI 的 uSeg 規則立刻把它移到隔離 EPG，該 EPG 只有一條 Contract——只允許存取資安鑑識主機。<br>
+      <b>整個過程約 30 秒，而且不需要網路團隊介入，VM 也不用重開。</b><br>
+      <b>鑑識完成後把標籤拿掉，機器就自動回到原本的 EPG。</b>
+    </div>
+
+    <div class="trap"><b>微分段的實務限制要說清楚：</b><br>
+    ① 依 <b>VM 屬性</b>分類需要 <b>VMM 整合</b>（ACI 與 vCenter 或 Kubernetes 對接）；純實體伺服器只能用 IP/MAC 分類。<br>
+    ② uSeg EPG 與原 EPG <b>必須在同一個橋接網域</b>。<br>
+    ③ 規則數量會增加政策複雜度，<b>要有命名規範與文件</b>，否則半年後沒有人說得清楚為什麼某台機器歸在某個 uSeg。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="pbr">
+    <h2>6. 服務插入與 PBR</h2>
+
+    <p>Contract 決定「能不能通」，但很多時候需求是「<b>可以通，但要先經過防火牆</b>」。這就是<b>服務插入（Service Insertion）</b>。</p>
+
+    <div class="diag"><span class="w">傳統做法：靠網路設計逼流量繞過去</span>
+
+   Web EPG ──▶ <span class="r">改 VLAN、改預設閘道、改路由</span> ──▶ 防火牆 ──▶ DB EPG
+              <span class="r">↑ 防火牆變成網路拓撲的一部分,牽一髮動全身</span>
+
+<span class="g">ACI 的做法：Service Graph + PBR</span>
+
+   Web EPG ──── <span class="o">Contract（附帶 Service Graph）</span> ────▶ DB EPG
+                          │
+                          ▼
+                    <span class="g">防火牆（單臂,不改拓撲）</span>
+
+   <span class="w">流量依「政策」被導向防火牆,而不是依「路由」。</span>
+   <span class="g">防火牆可以單臂接在 fabric 上,不需要當閘道、不需要在路徑中間。</span></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>Service Graph</b><span>定義流量要依序經過哪些服務裝置（防火牆 → IPS → 負載平衡器）。</span></div>
+      <div class="cmp"><b>PBR（政策式重導向）</b><span>實際把流量導過去的機制。<b>不改變 IP、不改變路由</b>，純粹依 Contract 重導向。</span></div>
+      <div class="cmp"><b>Managed vs Unmanaged</b><span>Managed 模式由 APIC 直接設定防火牆（需裝置套件）；<b>Unmanaged 模式只做導流，防火牆自己管</b>——現在多數採用後者。</span></div>
+    </div>
+
+    <div class="ok">✅ <b>PBR 的最大價值是「防火牆不再是拓撲的一部分」。</b><br>
+    傳統設計中，要讓流量經過防火牆就得把它放在路徑中間，於是防火牆變成單點故障、擴充要停機、而且「哪些流量會經過它」取決於路由設計，很難說得清楚。<br>
+    ACI PBR 讓防火牆<b>單臂掛在 fabric 上</b>，要讓哪些流量經過它是<b>Contract 決定的</b>——一目了然，而且改動不影響拓撲。</div>
+
+    <div class="trap"><b>設計時要注意的三件事：</b><br>
+    ① <b>對稱性</b>——去程與回程必須經過<b>同一台</b>防火牆，否則具狀態防火牆會因為只看到單向流量而丟包。多台防火牆做負載分擔時要特別設計雜湊。<br>
+    ② <b>健康檢查</b>——PBR 可設定追蹤（tracking），防火牆掛掉時決定要「直接放行（bypass）」還是「全部丟棄」。<b>這是資安與可用性的取捨，要事先跟資安團隊講好</b>。<br>
+    ③ <b>不對稱路由的排錯</b>——服務插入的問題常表現為「TCP 連線建立不起來但 ping 得通」，因為 ICMP 無狀態而 TCP 有狀態。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="l3out">
+    <h2>7. L3Out 的常見設計</h2>
+
+    <p>第 05 章介紹了 L3Out 的概念。實務上有幾個設計決策幾乎每個案子都會遇到。</p>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>決策</th><th>選項與考量</th></tr>
+      <tr><td><b>路由協定</b></td><td><b>OSPF</b>（企業內常見）、<b>BGP</b>（對 ISP 或需要政策控制時）、<b>靜態</b>（最單純的小型部署）</td></tr>
+      <tr><td><b>External EPG 怎麼切</b></td><td>用 <b>0.0.0.0/0</b> 一網打盡最簡單，但等於「外面全部是同一類」——無法對不同外部來源套不同 Contract。<b>建議依實際需求切成幾個 External EPG</b></td></tr>
+      <tr><td><b>放在哪一層</b></td><td><b>Border Leaf</b> 專用（推薦，職責清楚）或與運算 Leaf 共用（省設備但故障影響面大）</td></tr>
+      <tr><td><b>Transit Routing</b></td><td>讓 ACI 成為兩個外部網路之間的轉送路徑。要小心不要變成非預期的中轉站</td></tr>
+    </table></div>
+
+    <div class="trap"><b>External EPG 用 0.0.0.0/0 是最常見的偷懶做法，也是最常見的資安缺口。</b><br>
+    這代表「所有外部來源都是同一類」，於是給內部 EPG 開的任何一條對外 Contract，都等於對<b>整個外部世界</b>開放。<br>
+    <b>比較好的做法：</b>把外部切成幾個 External EPG（例如「總部網段」「分公司網段」「網際網路」「合作夥伴」），各自套不同的 Contract。<br>
+    這跟第 04 章的 RBAC 是同一個精神——<b>不要每個工程師都給 admin，也不要每個外部來源都給同一組權限</b>。</div>
+
+    <div class="biz">
+      <b>企業實例｜一次因為 0.0.0.0/0 造成的意外</b><br>
+      某公司的 ACI 部署中，L3Out 的 External EPG 用了 <span class="inline-code">0.0.0.0/0</span>，並給資料庫 EPG 開了一條 Contract 允許從外部存取 1433 埠（原意是「讓總部的管理主機能連進來管理」）。<br>
+      半年後資安掃描發現：<b>這個資料庫從網際網路可以直接連到</b>——因為 0.0.0.0/0 涵蓋了所有來源，而 L3Out 同時也承載對外連線。<br>
+      <b>修正：</b>把 External EPG 拆成「管理網段」與「其他」，1433 的 Contract 只掛在管理網段那個 EPG 上。<br>
+      <b>教訓：</b>ACI 的政策模型很強大，但<b>強大的前提是你把分類做細</b>。全部歸成一類就退化成傳統的「有防火牆但規則寫成 any-any」。
+    </div>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>8. 本章重點整理</h2>
+
+    <div class="trap"><b>陷阱 1：Multi-Pod 與 Multi-Site 搞混</b><br><b>Multi-Pod = 一個 APIC 叢集</b>（共用故障域，IPN 需要多播）；<b>Multi-Site = 各站獨立 APIC</b>（故障域隔離，ISN 不需多播，用 NDO 編排）。</div>
+
+    <div class="trap"><b>陷阱 2：低估 IPN 的需求</b><br>Multi-Pod 的 IPN 要 <b>OSPF + PIM Bidir 多播 + DHCP Relay + MTU ≥ 9150</b>。既有骨幹常常做不到，<b>專案一開始就要確認</b>。</div>
+
+    <div class="trap"><b>陷阱 3：以為同 EPG 內就一定不能隔離</b><br>用 <b>uSeg EPG（微分段）</b>可以依 VM 屬性再細分。依 VM 標籤分類需要 <b>VMM 整合</b>。</div>
+
+    <div class="trap"><b>陷阱 4：服務插入沒考慮對稱性</b><br>去程與回程必須經過<b>同一台</b>具狀態防火牆。症狀是「ping 通但 TCP 建不起來」。</div>
+
+    <div class="trap"><b>陷阱 5：External EPG 全用 0.0.0.0/0</b><br>等於「外面全部是同一類」，任何一條對外 Contract 都變成對全世界開放。<b>要依來源切成多個 External EPG</b>。</div>
+
+    <div class="trap"><b>陷阱 6：以為 Remote Leaf 斷線就停擺</b><br>具備<b>本地存活能力</b>，WAN 斷時站內流量仍可轉送，只是無法變更政策。</div>
+
+    <div class="trap"><b>陷阱 7：APIC 叢集分散沒考慮多數決</b><br>三台分成 2+1 時，放兩台的 Pod 整個掛掉會讓 fabric 進入<b>唯讀狀態</b>（轉送正常但無法改設定）。</div>
+
+    <div class="ok">✅ <b>一句話：</b>要<b>單一管理</b>選 Multi-Pod、要<b>故障隔離</b>選 Multi-Site、<b>小站點</b>用 Remote Leaf；EPG 內要再隔離用<b>微分段</b>、要強制過防火牆用 <b>Service Graph + PBR</b>；而這一切的效果好不好，取決於你<b>把分類做得多細</b>。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="09-vxlan-evpn.html">← 09 · VXLAN BGP EVPN 深入</a>
+    <a href="11-dc-operations.html">11 · 資料中心維運與故障處理 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 10</footer>
+</body>
+</html>

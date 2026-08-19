@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VXLAN BGP EVPN 深入 — CCNP 資料中心</title>
+<link rel="stylesheet" href="assets/lesson.css">
+<style>
+.diag{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.8rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
+.diag .g{color:#50FA7B;}.diag .y{color:#FFD700;}.diag .o{color:#FF9900;}.diag .w{color:#F8F8F2;}.diag .r{color:#FF6E6E;}
+.cmprow{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0;}
+.cmp{border-radius:10px;padding:12px 14px;border:1px solid #e3e5e8;border-top:3px solid #1BA0D7;background:#fff;}
+.cmp b{display:block;font-size:.85rem;color:#1F2933;margin-bottom:3px;}
+.cmp span{font-size:.76rem;color:#5F6B7A;line-height:1.6;}
+.trap{background:#FFF3CD;border-left:4px solid #FFC107;border-radius:0 10px 10px 0;padding:13px 17px;margin:12px 0;font-size:.86rem;color:#664D03;}
+.trap b{color:#B45309;}
+.biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
+.biz b{color:#6B21A8;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html">CCNP 資料中心</a><span class="sep">/</span>
+  <span class="cur">09 · VXLAN BGP EVPN 深入</span>
+</div>
+
+<div class="hero c2">
+  <div class="badge">DCCOR · Overlay 進階</div>
+  <h1>VXLAN BGP EVPN 深入</h1>
+  <p>第 03 章講了 VXLAN 的封裝與 BUM 流量的兩種處理方式。這一章補上真正讓 VXLAN 在現代資料中心可用的那一半——EVPN 控制平面、分散式 Anycast 閘道，以及跨資料中心的擴展。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <h2>本章目錄</h2>
+    <ol>
+      <li><a href="#why">Flood-and-Learn 撐不住的地方</a></li>
+      <li><a href="#evpn">EVPN 是什麼：用 BGP 送 MAC</a></li>
+      <li><a href="#routetype">五種 Route Type（考試核心）</a></li>
+      <li><a href="#anycast">分散式 Anycast 閘道</a></li>
+      <li><a href="#bridge">L2VNI 與 L3VNI：橋接與路由</a></li>
+      <li><a href="#config">設定與驗證</a></li>
+      <li><a href="#multisite">跨資料中心：Multi-Site</a></li>
+      <li><a href="#traps">本章重點整理</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="why">
+    <h2>1. Flood-and-Learn 撐不住的地方</h2>
+
+    <div class="analogy">Flood-and-Learn 就像<b>在辦公室大喊「請問王小明坐哪？」</b>——每次找人都要吵到全部的人。<br>
+    EVPN 則是<b>先做一本通訊錄</b>，每個人報到時就登記自己的座位，要找人直接查表。</div>
+
+    <div class="diag"><span class="w">純 VXLAN（Flood-and-Learn）的三個問題</span>
+
+  <span class="r">① 靠洪泛學 MAC</span>
+     每個未知目的地都要向所有 VTEP 洪泛
+     規模一大,洪泛流量成為骨幹的沉重負擔
+
+  <span class="r">② 需要 Multicast 或 Ingress Replication</span>
+     用 Multicast → 底層網路要跑 PIM,設計與排錯都複雜
+     用 Ingress Replication → 每個 VTEP 各複製一份,N 個 VTEP 就 N 份
+
+  <span class="r">③ 沒有控制平面 = 沒有可視性</span>
+     哪個 MAC 在哪台 VTEP 後面?只能靠洪泛學到才知道
+     排錯時無從查起,也無法做主機移動的快速收斂
+
+<span class="g">EVPN 用 BGP 當控制平面,一次解決這三件事。</span></div>
+
+    <div class="note"><b>對照理解：</b>VXLAN 是<b>資料平面</b>（怎麼封裝、怎麼傳），EVPN 是<b>控制平面</b>（誰在哪裡）。<br>
+    這跟傳統網路的分工一樣：乙太網路是資料平面，STP 與路由協定是控制平面。<b>「VXLAN BGP EVPN」這個完整名稱就是把兩者都講出來。</b></div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="evpn">
+    <h2>2. EVPN 是什麼：用 BGP 送 MAC</h2>
+
+    <p>EVPN 是 <b>MP-BGP 的一個位址家族（address-family l2vpn evpn）</b>。它做的事很直接：<b>把 MAC 位址與 IP 位址當成路由來宣告</b>。</p>
+
+    <div class="diag"><span class="w">傳統交換器學 MAC</span>          <span class="g">EVPN 學 MAC</span>
+
+  伺服器送封包                     伺服器一上線
+        ↓                              ↓
+  交換器從來源欄位學到              <span class="y">Leaf 學到 MAC</span>
+        ↓                              ↓
+  <span class="r">只有這台交換器知道</span>              <span class="g">用 BGP 宣告給所有 Leaf</span>
+        ↓                              ↓
+  <span class="r">其他人要靠洪泛才知道</span>            <span class="g">全網立刻都知道它在哪</span>
+
+<span class="w">結果：</span>
+   • 未知單播洪泛<span class="g">大幅減少</span>（因為大家都已經知道 MAC 在哪）
+   • 主機移動時<span class="g">收斂很快</span>（BGP 撤銷舊的、宣告新的）
+   • 有<span class="g">完整的可視性</span>（show bgp l2vpn evpn 就看得到誰在哪）</div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>用 BGP 的好處</b><span>成熟穩定、支援 Route Reflector 減少全網狀、有豐富的政策工具（route-map、community）、可跨 AS 擴展。</span></div>
+      <div class="cmp"><b>Underlay 仍然需要</b><span>EVPN 是 overlay 的控制平面。<b>底層仍需 IGP（通常 OSPF 或 IS-IS）讓 VTEP 之間 IP 可達</b>。兩層是分開的。</span></div>
+      <div class="cmp"><b>Spine 的角色</b><span>在標準設計中 Spine <b>只做 Route Reflector 與 IP 轉送</b>，不參與 VXLAN 封裝（不是 VTEP）。</span></div>
+    </div>
+
+    <div class="trap"><b>最常見的觀念錯誤：以為 Spine 也是 VTEP。</b><br>
+    在標準的 Spine-Leaf EVPN 設計中，<b>VTEP 只存在於 Leaf</b>。Spine 的工作是：① 底層 IP 轉送（把封裝好的 VXLAN 封包從一個 Leaf 送到另一個 Leaf）；② 當 BGP Route Reflector 反射 EVPN 路由。<br>
+    <b>Spine 完全不知道 overlay 裡有哪些 VLAN 或 VNI</b>——這正是這個架構能擴展的原因，新增租戶只要動 Leaf。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="routetype">
+    <h2>3. 五種 Route Type（考試核心）</h2>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>Type</th><th>名稱</th><th>帶什麼資訊</th><th>解決什麼</th></tr>
+      <tr><td><b>Type 2</b></td><td>MAC/IP Advertisement</td><td><b>MAC 位址</b>、可選的 <b>IP 位址</b>、L2VNI、L3VNI</td><td><b>最重要的一種</b>。告訴大家「這個 MAC/IP 在我後面」，同時支撐 ARP 抑制</td></tr>
+      <tr><td><b>Type 3</b></td><td>Inclusive Multicast</td><td>VTEP 的 IP 與所屬 VNI</td><td><b>建立 BUM 流量的複製清單</b>。VTEP 一上線就宣告「我有這個 VNI」，其他人才知道要複製給誰</td></tr>
+      <tr><td><b>Type 5</b></td><td>IP Prefix Route</td><td><b>IP 前綴</b>（網段，不是單一主機）</td><td>宣告整個網段，用於<b>對外連線</b>與<b>跨 fabric 的路由彙總</b></td></tr>
+      <tr><td><b>Type 1</b></td><td>Ethernet Auto-Discovery</td><td>Ethernet Segment 資訊</td><td><b>多歸屬（Multi-Homing）</b>時的快速收斂與流量分擔</td></tr>
+      <tr><td><b>Type 4</b></td><td>Ethernet Segment</td><td>Ethernet Segment 識別碼</td><td>多歸屬時選出 <b>Designated Forwarder</b>，避免 BUM 流量重複送</td></tr>
+    </table></div>
+
+    <div class="ok">✅ <b>考試只要記牢三個：</b><br>
+    <b>Type 2 = MAC/IP</b>（誰在哪裡）→ 最常出現<br>
+    <b>Type 3 = 建立 BUM 複製清單</b>（VTEP 報到）<br>
+    <b>Type 5 = IP 網段</b>（對外與跨 fabric）<br>
+    Type 1 與 Type 4 都跟<b>多歸屬</b>有關，記住這個關鍵字就能對上。</div>
+
+    <div class="note"><b>ARP 抑制（ARP Suppression）是 Type 2 帶來的重要副產品。</b><br>
+    因為每個 Leaf 都透過 Type 2 知道了「哪個 IP 對應哪個 MAC」，當本地伺服器發 ARP 請求時，<b>Leaf 可以直接代答，不必把 ARP 洪泛到整個 fabric</b>。<br>
+    在幾千台虛擬機的環境中，ARP 流量本身就是可觀的負擔，這個功能的效益非常明顯。</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="anycast">
+    <h2>4. 分散式 Anycast 閘道</h2>
+
+    <div class="diag"><span class="w">傳統集中式閘道的問題</span>
+
+   <span class="y">VM-A</span>（Leaf1 下）要跟 <span class="y">VM-B</span>（Leaf2 下）跨網段通訊
+
+        Leaf1 ──▶ Spine ──▶ <span class="r">核心閘道</span> ──▶ Spine ──▶ Leaf2
+                              <span class="r">↑ 明明兩台伺服器在隔壁機櫃</span>
+                              <span class="r">   卻要繞到核心再回來（髮夾彎）</span>
+
+<span class="g">分散式 Anycast 閘道</span>
+
+   <span class="g">每一台 Leaf 都是所有網段的閘道,而且用「同一個 IP、同一個 MAC」</span>
+
+        Leaf1 <span class="g">（就是 VM-A 的閘道,直接路由）</span> ──▶ Spine ──▶ Leaf2
+                                                          <span class="g">最短路徑</span></div>
+
+    <div class="cmprow">
+      <div class="cmp"><b>同一個 IP</b><span>每個 VLAN 的閘道 IP 在<b>所有 Leaf 上都一樣</b>。VM 不管搬到哪台 Leaf 下，閘道都在本地。</span></div>
+      <div class="cmp"><b>同一個 MAC</b><span>全 fabric 共用一個 <b>Anycast Gateway MAC</b>。VM 遷移後<b>連 ARP 快取都不用更新</b>。</span></div>
+      <div class="cmp"><b>本地路由</b><span>跨網段流量在<b>入口 Leaf 就完成路由</b>，不必繞核心。這是 VM 大量橫向流量（east-west）的關鍵優化。</span></div>
+    </div>
+
+    <div class="ok">✅ <b>這是 VXLAN EVPN 相對於傳統架構最大的實務價值。</b>現代資料中心的流量有很高比例是<b>伺服器之間的橫向流量</b>（微服務互相呼叫、資料庫複寫、備份）。傳統集中式閘道會讓這些流量全部繞到核心，分散式閘道直接在機櫃層就解決。</div>
+
+    <pre><code><span class="comment">! ── 全 fabric 共用同一個 Anycast Gateway MAC ──</span>
+N9K(config)# <span class="cmd">fabric forwarding anycast-gateway-mac 0000.2222.3333</span>
+
+<span class="comment">! ── 每個 SVI 都設成 Anycast Gateway（每台 Leaf 都設一樣的）──</span>
+N9K(config)# <span class="cmd">interface vlan 10</span>
+N9K(config-if)# <span class="cmd">no shutdown</span>
+N9K(config-if)# <span class="cmd">vrf member TENANT-A</span>
+N9K(config-if)# <span class="cmd">ip address 10.1.10.1/24</span>       <span class="comment">! 每台 Leaf 都是這個 IP</span>
+N9K(config-if)# <span class="cmd">fabric forwarding mode anycast-gateway</span></code></pre>
+
+    <div class="trap"><b>設定時最容易漏的是「每台 Leaf 都要設一樣的 IP」這件事。</b><br>
+    傳統網路訓練出來的直覺會覺得「同一個網段兩台設備設同一個 IP 是衝突」——在 Anycast Gateway 的設計裡<b>這是刻意的</b>。<br>
+    如果只在部分 Leaf 上設定，VM 遷移到沒設定的 Leaf 之後就會失去閘道，症狀是<b>「同網段通、跨網段不通」而且只發生在特定機櫃</b>。</div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="bridge">
+    <h2>5. L2VNI 與 L3VNI：橋接與路由</h2>
+
+    <div class="tbl-wrap"><table>
+      <tr><th></th><th>L2VNI</th><th>L3VNI</th></tr>
+      <tr><td>對應到</td><td><b>一個 VLAN / 廣播網域</b></td><td><b>一個 VRF（租戶的路由表）</b></td></tr>
+      <tr><td>做什麼</td><td>跨 fabric 的<b>二層延伸</b>（同網段的 VM 在不同機櫃也能通）</td><td>跨 fabric 的<b>三層路由</b>（不同網段之間）</td></tr>
+      <tr><td>數量</td><td>有幾個 VLAN 就有幾個</td><td><b>一個租戶一個</b></td></tr>
+      <tr><td>對應 Route Type</td><td>Type 2（MAC）、Type 3（BUM）</td><td>Type 2（帶 IP）、Type 5（網段）</td></tr>
+    </table></div>
+
+    <div class="diag"><span class="w">兩種轉送模式</span>
+
+  <span class="y">Bridging（同網段）</span>
+     VM-A(10.1.10.5) → VM-B(10.1.10.6),都在 VLAN 10
+     走 <span class="y">L2VNI 10010</span>,純二層轉送
+
+  <span class="o">Routing（跨網段）</span>
+     VM-A(10.1.10.5) → VM-C(10.1.20.7),VLAN 10 → VLAN 20
+     入口 Leaf 的 Anycast Gateway 直接路由
+     跨 fabric 時封裝在 <span class="o">L3VNI 50001</span>（租戶的 VRF）
+
+<span class="g">口訣：L2VNI 對 VLAN、L3VNI 對 VRF。</span></div>
+
+    <div class="note"><b>為什麼需要 L3VNI？</b>因為多租戶環境中，不同租戶的 IP 網段可能重疊。<br>
+    L3VNI 就是把「這個封包屬於哪個租戶的路由表」這個資訊帶在 VXLAN 標頭裡，讓對端 Leaf 知道要查哪一張 VRF 路由表。<b>它是多租戶隔離的實作基礎。</b></div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="config">
+    <h2>6. 設定與驗證</h2>
+
+    <pre><code><span class="comment">! ═══ Leaf 上的 VXLAN EVPN 基本設定骨架 ═══</span>
+
+<span class="comment">! ── 1. 開功能 ──</span>
+N9K(config)# <span class="cmd">feature ospf</span>
+N9K(config)# <span class="cmd">feature bgp</span>
+N9K(config)# <span class="cmd">feature pim</span>
+N9K(config)# <span class="cmd">feature interface-vlan</span>
+N9K(config)# <span class="cmd">feature vn-segment-vlan-based</span>
+N9K(config)# <span class="cmd">feature nv overlay</span>
+N9K(config)# <span class="cmd">nv overlay evpn</span>
+
+<span class="comment">! ── 2. VLAN 對應到 L2VNI ──</span>
+N9K(config)# <span class="cmd">vlan 10</span>
+N9K(config-vlan)# <span class="cmd">vn-segment 10010</span>
+
+<span class="comment">! ── 3. 租戶 VRF 與 L3VNI ──</span>
+N9K(config)# <span class="cmd">vrf context TENANT-A</span>
+N9K(config-vrf)# <span class="cmd">vni 50001</span>
+N9K(config-vrf)# <span class="cmd">rd auto</span>
+N9K(config-vrf)# <span class="cmd">address-family ipv4 unicast</span>
+N9K(config-vrf-af-ipv4)# <span class="cmd">route-target both auto evpn</span>
+
+<span class="comment">! ── 4. NVE 介面（VTEP 本體）──</span>
+N9K(config)# <span class="cmd">interface nve1</span>
+N9K(config-if-nve)# <span class="cmd">source-interface loopback1</span>     <span class="comment">! VTEP 的 IP</span>
+N9K(config-if-nve)# <span class="cmd">host-reachability protocol bgp</span>  <span class="comment">! ← 這行就是「用 EVPN」</span>
+N9K(config-if-nve)# <span class="cmd">member vni 10010</span>
+N9K(config-if-nve-vni)# <span class="cmd">ingress-replication protocol bgp</span>
+N9K(config-if-nve)# <span class="cmd">member vni 50001 associate-vrf</span>
+
+<span class="comment">! ── 5. BGP EVPN 鄰居（指向 Spine，Spine 當 RR）──</span>
+N9K(config)# <span class="cmd">router bgp 65001</span>
+N9K(config-router)# <span class="cmd">neighbor 10.0.0.1 remote-as 65001</span>
+N9K(config-router-neighbor)# <span class="cmd">update-source loopback0</span>
+N9K(config-router-neighbor)# <span class="cmd">address-family l2vpn evpn</span>
+N9K(config-router-neighbor-af)# <span class="cmd">send-community both</span></code></pre>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>驗證指令</th><th>看什麼</th></tr>
+      <tr><td><span class="inline-code">show nve peers</span></td><td>學到哪些對端 VTEP，狀態是不是 <b>Up</b></td></tr>
+      <tr><td><span class="inline-code">show nve vni</span></td><td>本地有哪些 VNI、狀態、對應的 VLAN 或 VRF</td></tr>
+      <tr><td><span class="inline-code">show bgp l2vpn evpn summary</span></td><td>EVPN 鄰居關係是否建立</td></tr>
+      <tr><td><span class="inline-code">show bgp l2vpn evpn</span></td><td><b>所有 EVPN 路由</b>，可看到各種 Route Type</td></tr>
+      <tr><td><span class="inline-code">show l2route evpn mac all</span></td><td>從 EVPN 學到的 MAC 在哪台 VTEP 後面</td></tr>
+      <tr><td><span class="inline-code">show ip route vrf TENANT-A</span></td><td>租戶的路由表</td></tr>
+    </table></div>
+
+    <div class="trap"><b>排錯順序：由下而上，一層一層確認。</b><br>
+    ① <b>Underlay 通嗎</b>——VTEP 的 loopback 之間能不能互 ping？IGP 有沒有收斂？<br>
+    ② <b>BGP EVPN 鄰居起來了嗎</b>——<span class="inline-code">show bgp l2vpn evpn summary</span>。<br>
+    ③ <b>NVE peer 有沒有學到</b>——<span class="inline-code">show nve peers</span>。<br>
+    ④ <b>VNI 狀態對嗎</b>——<span class="inline-code">show nve vni</span> 看是不是 Up 且 VLAN 對應正確。<br>
+    ⑤ <b>MAC 學到了嗎</b>——<span class="inline-code">show l2route evpn mac all</span>。<br>
+    <b>跳過前面直接查 MAC 是浪費時間</b>——underlay 不通的話上面全部都不會動。</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="multisite">
+    <h2>7. 跨資料中心：Multi-Site</h2>
+
+    <p>單一 fabric 做好之後，下一個問題是：<b>兩個機房怎麼連？</b></p>
+
+    <div class="tbl-wrap"><table>
+      <tr><th>做法</th><th>怎麼做</th><th>優缺點</th></tr>
+      <tr><td><b>直接延伸 VXLAN</b></td><td>把兩個機房當成一個大 fabric</td><td>簡單，但<b>故障域也變成一個</b>——一邊出問題另一邊會被拖累</td></tr>
+      <tr><td><b>VXLAN EVPN Multi-Site</b></td><td>用 <b>Border Gateway（BGW）</b>當兩個 fabric 的交界，各自是獨立的故障域</td><td><b>現行建議做法</b>。可控制哪些 VNI 要延伸、BUM 流量在交界處被限制</td></tr>
+      <tr><td><b>只做三層互連</b></td><td>兩邊只交換 Type 5 路由，不延伸二層</td><td>最安全，但<b>不支援跨機房的 VM 遷移</b>（需要同網段）</td></tr>
+    </table></div>
+
+    <div class="diag"><span class="w">Multi-Site 架構</span>
+
+  <span class="y">Site-A Fabric</span>                        <span class="g">Site-B Fabric</span>
+  Spine ── Leaf                            Leaf ── Spine
+     │                                              │
+  <span class="o">BGW-A</span> ════════ <span class="w">DCI（跨機房線路）</span> ════════ <span class="o">BGW-B</span>
+     <span class="w">↑ 兩個 fabric 的交界,各自是獨立的故障域</span>
+
+<span class="w">BGW 做三件事：</span>
+   • 重新封裝 VXLAN（Site-A 的 VNI ↔ Site-B 的 VNI）
+   • <span class="g">限制 BUM 流量跨站洪泛</span>（可設速率限制）
+   • 只把<span class="g">需要延伸的 VNI</span> 傳過去,其餘不跨站</div>
+
+    <div class="ok">✅ <b>Multi-Site 最重要的價值是「故障域隔離」。</b>直接把兩個機房拉成一個大 fabric 看起來簡單，但一旦 Site-A 發生廣播風暴或控制平面問題，<b>Site-B 會一起陪葬</b>——這就失去了雙機房的意義。<br>
+    BGW 讓兩邊的控制平面分開，只交換必要的資訊。<b>考題問「跨資料中心延伸二層的建議做法」時，答案是 Multi-Site，不是直接延伸。</b></div>
+
+    <div class="biz">
+      <b>企業實例｜某金融機構的雙機房改造</b><br>
+      原本用 <b>OTV</b> 做兩機房的二層延伸（見第 03 章），運作多年但有兩個痛點：① OTV 是 Cisco 專屬技術，設備更新受限；② 頻寬利用率不佳，且新增 VLAN 要兩邊同步改設定。<br>
+      改造為 <b>VXLAN EVPN Multi-Site</b>：每個機房各自是獨立 fabric，用一對 BGW 互連。<br>
+      <b>設計決策：</b>只有需要跨機房叢集的三個 VLAN 做二層延伸，其餘一律只做三層互連——<b>刻意不把所有 VLAN 都延伸過去</b>，因為每延伸一個就多一分廣播風暴跨站的風險。<br>
+      <b>成效：</b>跨機房頻寬利用率提升（不再有 STP 阻斷埠），新增租戶只需在 Leaf 設定不必動兩邊，且一次 Site-A 的設定失誤造成的廣播問題<b>沒有波及 Site-B</b>——這正是當初改造的主要目的。
+    </div>
+  </div>
+
+  <!-- traps -->
+  <div class="card" id="traps">
+    <h2>8. 本章重點整理</h2>
+
+    <div class="trap"><b>陷阱 1：以為 Spine 也是 VTEP</b><br>標準設計中 <b>VTEP 只在 Leaf</b>。Spine 只做底層 IP 轉送與 BGP Route Reflector，不知道 overlay 有哪些 VNI。</div>
+
+    <div class="trap"><b>陷阱 2：搞混 VXLAN 與 EVPN 的分工</b><br><b>VXLAN = 資料平面</b>（怎麼封裝）；<b>EVPN = 控制平面</b>（誰在哪裡）。完整名稱「VXLAN BGP EVPN」把兩者都講出來了。</div>
+
+    <div class="trap"><b>陷阱 3：Route Type 記錯</b><br><b>Type 2 = MAC/IP</b>（最重要）、<b>Type 3 = BUM 複製清單</b>、<b>Type 5 = IP 網段</b>。Type 1 與 4 都跟<b>多歸屬</b>有關。</div>
+
+    <div class="trap"><b>陷阱 4：Anycast Gateway 只設在部分 Leaf</b><br><b>每台 Leaf 都要設同一個 IP 與同一個 MAC</b>，這是刻意的不是衝突。漏設會造成「特定機櫃跨網段不通」。</div>
+
+    <div class="trap"><b>陷阱 5：L2VNI 與 L3VNI 混淆</b><br><b>L2VNI 對 VLAN</b>（廣播網域）、<b>L3VNI 對 VRF</b>（租戶路由表）。一個租戶一個 L3VNI。</div>
+
+    <div class="trap"><b>陷阱 6：排錯直接從 overlay 開始查</b><br>要<b>由下而上</b>：underlay 可達 → BGP EVPN 鄰居 → NVE peer → VNI 狀態 → MAC 學習。underlay 不通時上面全部不會動。</div>
+
+    <div class="trap"><b>陷阱 7：跨資料中心直接延伸 VXLAN</b><br>會讓兩個機房變成<b>同一個故障域</b>。建議用 <b>Multi-Site + BGW</b>，並且<b>只延伸真正需要的 VNI</b>。</div>
+
+    <div class="ok">✅ <b>一句話：</b>VXLAN 負責把封包包起來送過去，<b>EVPN 負責讓大家一開始就知道要送去哪</b>；分散式 Anycast 閘道讓跨網段流量在機櫃層就完成路由，不必繞核心；跨機房用 Multi-Site 保住故障域隔離。</div>
+  </div>
+
+  <div class="page-nav">
+    <a href="08-automation.html">← 08 · 資料中心自動化</a>
+    <a href="10-aci-advanced.html">10 · ACI 進階：Multi-Pod 與微分段 →</a>
+  </div>
+</div>
+<footer>Tom Chen 作品集 · CCNP 資料中心（DCCOR / DCACI）· 09</footer>
+</body>
+</html>
