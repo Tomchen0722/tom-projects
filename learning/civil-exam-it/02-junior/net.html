@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資通網路與安全概要 完整講義 | 普通考試</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-junior">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">普通考試</a><span class="sep">/</span><span>資通網路與安全概要</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🌐 普考 · 專業科目二 · 申論 · 占總成績 20%</div>
+  <h1>資通網路與安全概要</h1>
+  <p>網路基礎與資安概念。<strong>子網路切割是必考計算題</strong>，資安部分則以「分層作答」拿分。<br>本科與計算機概要的網路、資安章節高度重疊——<strong>學一次賺兩科</strong>。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 目錄</div>
+    <ol>
+      <li><a href="#c1">網路基本概念與參考模型</a>（必考）</li>
+      <li><a href="#c2">實體層與資料連結層</a></li>
+      <li><a href="#c3">IP 位址與子網路切割</a>（<strong>必考計算</strong>）</li>
+      <li><a href="#c4">傳輸層與應用層</a></li>
+      <li><a href="#c5">無線網路與 VPN</a></li>
+      <li><a href="#c6">資安基本概念</a></li>
+      <li><a href="#c7">密碼學基礎</a>（高頻）</li>
+      <li><a href="#c8">攻擊手法與防護</a>（<strong>高頻</strong>）</li>
+      <li><a href="#c9">資安法規與事件應變</a>（<strong>公部門必考</strong>）</li>
+      <li><a href="#c10">考前速記表</a></li>
+    </ol>
+  </div>
+
+  <!-- 第一章 -->
+  <div class="card" id="c1">
+    <h2>第 1 章　網路基本概念與參考模型</h2>
+
+    <h3>1-1　為什麼要分層</h3>
+    <div class="easy">
+      <div class="t">🧒 分層就像寄信</div>
+      <ul>
+        <li><strong>你寫的信</strong>（應用層）— 只有你和朋友看得懂</li>
+        <li><strong>裝信封寫地址</strong>（傳輸／網路層）— 郵局看地址就好，不看內容</li>
+        <li><strong>郵局分揀上車</strong>（資料連結層）— 只負責送到下一站</li>
+        <li><strong>卡車在馬路跑</strong>（實體層）</li>
+      </ul>
+      <p><strong>價值</strong>：卡車換飛機，你不用改寫信方式；你改用英文寫，郵局也不用改流程。<br>
+      <strong>每一層只跟相鄰層打交道，可以各自獨立演進。</strong>這就是為什麼 Wi-Fi 取代網路線時，瀏覽器完全不用改寫。</p>
+    </div>
+
+    <h3>1-2　OSI 七層模型（必背）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>層</th><th>名稱</th><th>功能</th><th>資料單位</th><th>設備／協定</th></tr>
+        <tr><td>7</td><td><strong>應用層</strong></td><td>使用者服務介面</td><td>Data</td><td>HTTP、FTP、SMTP、DNS</td></tr>
+        <tr><td>6</td><td><strong>表達層</strong></td><td>格式轉換、<strong>加密／解密</strong>、壓縮</td><td>Data</td><td>JPEG、ASCII</td></tr>
+        <tr><td>5</td><td><strong>會議層</strong></td><td>建立與管理對話</td><td>Data</td><td>NetBIOS、RPC</td></tr>
+        <tr><td>4</td><td><strong>傳輸層</strong></td><td><strong>端對端</strong>可靠傳輸、<strong>埠號</strong></td><td><strong>Segment</strong></td><td>TCP、UDP</td></tr>
+        <tr><td>3</td><td><strong>網路層</strong></td><td><strong>邏輯定址（IP）</strong>與繞送</td><td><strong>Packet</strong></td><td>IP、ICMP／<strong>路由器</strong></td></tr>
+        <tr><td>2</td><td><strong>資料連結層</strong></td><td><strong>實體定址（MAC）</strong>、錯誤偵測</td><td><strong>Frame</strong></td><td>Ethernet／<strong>交換器</strong></td></tr>
+        <tr><td>1</td><td><strong>實體層</strong></td><td>位元的電氣／光學傳輸</td><td><strong>Bit</strong></td><td>雙絞線、光纖／集線器</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      口訣（由上而下）：<strong>應表會傳網資實</strong><br><br>
+      <strong>TCP/IP 四層對應</strong>：應用層（OSI 5-7）／傳輸層（4）／網際網路層（3）／網路存取層（1-2）<br>
+      <strong>OSI 是「參考模型」（理論），TCP/IP 是「實作」（實際在用）。</strong>
+    </div>
+
+    <h3>1-3　封裝與網路設備</h3>
+    <pre>傳送端（由上而下，每層加標頭）
+應用層    [        Data        ]
+傳輸層  [TCP標頭][    Data    ]         → Segment
+網路層 [IP標頭][TCP標頭][Data ]         → Packet
+連結層 [Frame標頭][IP][TCP][Data][FCS]  → Frame
+實體層 010111010010...                  → Bits</pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th>設備</th><th>層級</th><th>依據</th><th>特性</th></tr>
+        <tr><td>集線器 Hub</td><td>L1</td><td>無</td><td><strong>廣播給所有埠</strong>、共享頻寬（已淘汰）</td></tr>
+        <tr><td><strong>交換器 Switch</strong></td><td>L2</td><td><strong>MAC 位址表</strong></td><td>只送目標埠、<strong>每埠獨立頻寬</strong>、可切 VLAN</td></tr>
+        <tr><td><strong>路由器 Router</strong></td><td>L3</td><td><strong>IP 繞送表</strong></td><td><strong>分割廣播網域</strong>、連接不同網段</td></tr>
+        <tr><td>閘道器 Gateway</td><td>L4～L7</td><td>協定轉換</td><td>不同協定體系間轉換</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 兩個關鍵網域（常考計算）</span>
+      <strong>碰撞網域</strong>：共享媒介、會互相碰撞的範圍 → <strong>交換器的每個埠就是一個</strong><br>
+      <strong>廣播網域</strong>：廣播封包能到達的範圍 → <strong>路由器分割它；交換器不能</strong>（除非切 VLAN）<br><br>
+      <em>例</em>：一台 24 埠交換器接一台路由器，未切 VLAN →<br>
+      <strong>24 個碰撞網域、1 個廣播網域</strong>
+    </div>
+
+    <h3>1-4　VLAN</h3>
+    <p>在同一台實體交換器上<strong>邏輯切分多個廣播網域</strong>。</p>
+    <ul>
+      <li><strong>分割廣播網域</strong> → 減少廣播流量</li>
+      <li><strong>安全隔離</strong> → 訪客網路與內部網路分開，VLAN 間需經路由器並可套用 ACL</li>
+      <li><strong>彈性管理</strong> → 依部門而非實體位置分群，換座位不需重拉線</li>
+      <li><strong>Trunk Port</strong> 以 IEEE 802.1Q 標籤承載多個 VLAN 的流量</li>
+    </ul>
+    <div class="plain">
+      <span class="t">✅ 機關常見 VLAN 規劃（申論可用）</span>
+      <strong>行政內網、伺服器區、IP 電話、監視系統（IP Cam）、訪客 Wi-Fi、機房管理網</strong>各自獨立 VLAN。<br>
+      這是《資通安全管理法》要求的<strong>網段隔離</strong>之基本實作。
+    </div>
+  </div>
+
+  <!-- 第二章 -->
+  <div class="card" id="c2">
+    <h2>第 2 章　實體層與資料連結層</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>媒介</th><th>特性</th><th>距離</th></tr>
+        <tr><td>雙絞線 UTP</td><td>便宜、易佈線（Cat5e/6/6a）</td><td>100 公尺</td></tr>
+        <tr><td><strong>光纖</strong></td><td>頻寬最大、<strong>不受電磁干擾</strong>、難竊聽</td><td>數公里以上（<strong>單模比多模遠</strong>）</td></tr>
+        <tr><td>無線</td><td>方便機動，但易受干擾與竊聽</td><td>依標準與功率</td></tr>
+      </table>
+    </div>
+
+    <div class="frame">
+      <span class="t">📐 CSMA/CD 與 CSMA/CA</span>
+      <strong>CSMA/CD（碰撞偵測）</strong>— 有線乙太網路：「先聽再說，邊說邊聽」，偵測到碰撞就停止並隨機等待後重送。<br><br>
+      <strong>CSMA/CA（碰撞避免）</strong>— 無線網路。<br>
+      <strong>為何無線不能用 CD</strong>：① 無線網卡<strong>無法同時收發</strong>；② 存在<strong>隱藏節點問題</strong>（A、C 都連得到 B 但彼此聽不到）。<br>
+      → 改用「事前避免」：RTS/CTS 交握 + ACK 確認。
+    </div>
+
+    <h4>MAC 位址與交換器</h4>
+    <ul>
+      <li>MAC 位址 <strong>48 位元</strong>，前 24 位為廠商識別碼（OUI）；廣播位址為 <code>FF:FF:FF:FF:FF:FF</code>。</li>
+      <li><strong>MAC 可被軟體偽造</strong> → 「MAC 位址過濾」不是可靠的安全機制。</li>
+      <li>交換器<strong>自我學習</strong>：記錄「來源 MAC ↔ 進入埠」；查不到目的 MAC 時<strong>洪泛（Flooding）</strong>到所有其他埠。</li>
+      <li><strong>STP 生成樹協定</strong>：防止交換器迴圈造成<strong>廣播風暴</strong>，阻斷多餘路徑但保留備援。</li>
+    </ul>
+    <div class="hl">
+      為什麼 L2 特別需要 STP？因為 <strong>IP 封包有 TTL 可防迴圈，但 L2 訊框沒有 TTL</strong>——一旦成環就會無限循環放大。
+    </div>
+  </div>
+
+  <!-- 第三章 -->
+  <div class="card" id="c3">
+    <h2>第 3 章　IP 位址與子網路切割（必考計算）</h2>
+    <div class="warn">
+      <span class="t">⚠️ 本章必須手算到熟練</span>
+      考場<strong>不能用計算機</strong>。這是「會就一定拿分、不會就完全空白」的題型，且幾乎年年出現。
+    </div>
+
+    <h3>3-1　必背基礎</h3>
+    <div class="frame">
+      <span class="t">📐 兩排數字，考前默寫在草稿紙上</span>
+      <strong>8 位元權重</strong>：128　64　32　16　8　4　2　1<br>
+      <strong>常用遮罩值</strong>：0、128、192、224、240、248、252、254、255<br>
+      　（對應 1 的個數：0、1、2、3、4、5、6、7、8）
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>等級</th><th>第一組範圍</th><th>預設遮罩</th><th>可用主機數</th></tr>
+        <tr><td>A</td><td>1–126</td><td>255.0.0.0 (/8)</td><td>2²⁴−2</td></tr>
+        <tr><td>B</td><td>128–191</td><td>255.255.0.0 (/16)</td><td>2¹⁶−2 = 65,534</td></tr>
+        <tr><td>C</td><td>192–223</td><td>255.255.255.0 (/24)</td><td>254</td></tr>
+        <tr><td>D</td><td>224–239</td><td>多播 Multicast</td><td>—</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>特殊位址</th><th>範圍</th><th>用途</th></tr>
+        <tr><td><strong>私有位址</strong></td><td>10.0.0.0/8<br>172.16.0.0/<strong>12</strong><br>192.168.0.0/16</td><td>內網使用，需經 <strong>NAT</strong> 上網</td></tr>
+        <tr><td>迴路 Loopback</td><td>127.0.0.1</td><td>測試本機 TCP/IP</td></tr>
+        <tr><td><strong>APIPA</strong></td><td>169.254.0.0/16</td><td><strong>代表 DHCP 取得失敗</strong></td></tr>
+      </table>
+    </div>
+
+    <h3>3-2　子網路計算三步驟（核心技巧）</h3>
+    <div class="frame">
+      <span class="t">📐 三步驟</span>
+      <strong>① 區塊大小 = 256 − 遮罩該組的十進位值</strong><br>
+      <strong>② 以區塊大小跳格，找出該 IP 落在哪一段 → 段首＝網路位址</strong><br>
+      <strong>③ 廣播位址 = 下一段網路位址 − 1</strong>；可用主機數 = <strong>2^(主機位元) − 2</strong>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>CIDR</th><th>遮罩</th><th>主機位元</th><th>區塊大小</th><th>可用主機</th></tr>
+        <tr><td>/24</td><td>255.255.255.0</td><td>8</td><td>256</td><td>254</td></tr>
+        <tr><td>/25</td><td>255.255.255.128</td><td>7</td><td>128</td><td>126</td></tr>
+        <tr><td>/26</td><td>255.255.255.192</td><td>6</td><td>64</td><td>62</td></tr>
+        <tr><td>/27</td><td>255.255.255.224</td><td>5</td><td>32</td><td>30</td></tr>
+        <tr><td>/28</td><td>255.255.255.240</td><td>4</td><td>16</td><td>14</td></tr>
+        <tr><td>/29</td><td>255.255.255.248</td><td>3</td><td>8</td><td>6</td></tr>
+        <tr><td>/30</td><td>255.255.255.252</td><td>2</td><td>4</td><td><strong>2</strong>（點對點用）</td></tr>
+      </table>
+    </div>
+
+    <h4>範例一：求網路位址與可用範圍</h4>
+    <div class="frame">
+      <strong>題：192.168.10.100/26</strong><br><br>
+      ① /26 → 遮罩末組 = <strong>192</strong>（26−24 = 2 個網路位元 → 11000000）<br>
+      ② 區塊大小 = 256 − 192 = <strong>64</strong><br>
+      ③ 段界：.0、.64、.128、.192 → 100 落在 <strong>64～127</strong><br><br>
+      <strong>網路位址 = 192.168.10.64</strong><br>
+      <strong>廣播位址 = 192.168.10.127</strong><br>
+      <strong>可用範圍 = .65 ~ .126（62 台）</strong>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 為什麼「區塊大小」這招有效</div>
+      <p>/26 表示在第 4 組借了 2 個位元當網路位元，剩 6 個位元給主機。6 個位元能表示 2⁶ = <strong>64</strong> 個數字。</p>
+      <p>所以 0～255 被切成 <strong>256 ÷ 64 = 4 塊</strong>：0-63、64-127、128-191、192-255。</p>
+      <p>而「256 − 192 = 64」剛好就是每塊大小——<strong>不是巧合，因為遮罩值就是被切掉的部分</strong>。</p>
+      <p>用這招<strong>完全不需要在考場寫二進位</strong>，直接用十進位跳格子，速度差三倍以上。</p>
+    </div>
+
+    <h4>範例二：VLSM 切割（申論常考）</h4>
+    <div class="frame">
+      <strong>題：某機關取得 192.168.20.0/24，需分配：行政 50 台、資訊室 25 台、會計 10 台、路由器對接 2 個位址</strong><br><br>
+      <strong>步驟 1：需求由大到小排序</strong>（<u>沒排序就一定錯</u>）<br>
+      50 → 25 → 10 → 2<br><br>
+      <strong>步驟 2：各自找最小足夠的遮罩</strong>
+      <div class="table-wrap"><table>
+        <tr><th>單位</th><th>需求</th><th>計算</th><th>CIDR</th><th>區塊</th></tr>
+        <tr><td>行政</td><td>50</td><td>2⁶−2 = 62 ≥ 50</td><td>/26</td><td>64</td></tr>
+        <tr><td>資訊室</td><td>25</td><td>2⁵−2 = 30 ≥ 25</td><td>/27</td><td>32</td></tr>
+        <tr><td>會計</td><td>10</td><td>2⁴−2 = 14 ≥ 10</td><td>/28</td><td>16</td></tr>
+        <tr><td>路由器</td><td>2</td><td>2²−2 = 2</td><td>/30</td><td>4</td></tr>
+      </table></div>
+      <strong>步驟 3：由大到小依序配置</strong>
+      <div class="table-wrap"><table>
+        <tr><th>單位</th><th>網路位址</th><th>可用範圍</th><th>廣播</th><th>遮罩</th></tr>
+        <tr><td>行政</td><td>192.168.20.<strong>0</strong>/26</td><td>.1 – .62</td><td>.63</td><td>255.255.255.192</td></tr>
+        <tr><td>資訊室</td><td>192.168.20.<strong>64</strong>/27</td><td>.65 – .94</td><td>.95</td><td>255.255.255.224</td></tr>
+        <tr><td>會計</td><td>192.168.20.<strong>96</strong>/28</td><td>.97 – .110</td><td>.111</td><td>255.255.255.240</td></tr>
+        <tr><td>路由器</td><td>192.168.20.<strong>112</strong>/30</td><td>.113 – .114</td><td>.115</td><td>255.255.255.252</td></tr>
+      </table></div>
+      <strong>驗算</strong>：64+32+16+4 = 116 ≤ 256 ✔，剩餘 .116–.255 保留擴充
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ VLSM 的兩個致命錯誤</span>
+      1. <strong>沒有由大到小排序</strong>——先配小的會導致大的無法對齊<br>
+      2. <strong>網路位址未對齊區塊邊界</strong>——/27 的網路位址必須是 32 的倍數（0、32、64、96…），不能是 .70
+    </div>
+
+    <h3>3-3　NAT 與 IPv6</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>IPv4</th><th>IPv6</th></tr>
+        <tr><td>位址長度</td><td>32 位元</td><td><strong>128 位元</strong></td></tr>
+        <tr><td>表示法</td><td>點分十進位</td><td>冒號分隔 16 進位，<code>::</code> 縮寫連續 0（<strong>只能用一次</strong>）</td></tr>
+        <tr><td>標頭</td><td>可變長度</td><td>固定 40 bytes，<strong>移除檢查碼</strong>（路由更快）</td></tr>
+        <tr><td>廣播</td><td>有</td><td><strong>無</strong>，改用多播與任播</td></tr>
+        <tr><td>位址設定</td><td>需 DHCP</td><td>支援 <strong>SLAAC</strong> 自動設定</td></tr>
+        <tr><td>NAT</td><td>普遍必需</td><td>原則不需要</td></tr>
+      </table>
+    </div>
+    <p><strong>NAT</strong>：私有 IP 轉公有 IP；<strong>NAPT/PAT</strong> 以埠號區分多台內部主機（多對一）。</p>
+    <div class="warn">
+      <span class="t">⚠️ 常考觀念：NAT 不是防火牆</span>
+      NAT 讓外部無法直接連入內部主機，但那是「<strong>副作用</strong>」而非設計目的；它<strong>完全不檢查封包內容</strong>。<br>
+      正確說法：「NAT 提供有限的<strong>隱蔽性</strong>，但不等於安全性，仍需搭配防火牆。」
+    </div>
+  </div>
+
+  <!-- 第四章 -->
+  <div class="card" id="c4">
+    <h2>第 4 章　傳輸層與應用層</h2>
+
+    <h3>4-1　TCP vs UDP（必考比較）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>TCP</th><th>UDP</th></tr>
+        <tr><td>連線</td><td><strong>連線導向</strong>（三向交握）</td><td>非連線導向</td></tr>
+        <tr><td>可靠性</td><td><strong>可靠</strong>（確認、重送、排序）</td><td>不可靠</td></tr>
+        <tr><td>流量／擁塞控制</td><td>有</td><td>無</td></tr>
+        <tr><td>標頭</td><td>20 bytes 以上</td><td><strong>8 bytes</strong></td></tr>
+        <tr><td>適用</td><td>網頁、郵件、檔案（<strong>不能錯</strong>）</td><td>影音串流、DNS、VoIP（<strong>不能慢</strong>）</td></tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 掛號信 vs 明信片</div>
+      <p><strong>TCP 像掛號信</strong>：先確認對方在（交握）、要簽收（ACK）、沒收到就重寄、保證按順序。可靠但慢。</p>
+      <p><strong>UDP 像明信片</strong>：直接丟郵筒，不管收不收得到。快但可能掉。</p>
+      <p><strong>為何視訊用 UDP？</strong>若第 100 個影格掉了，TCP 會停下來重送——等它送到畫面早就過去了，反而卡頓。<strong>對即時影音，「掉一格」遠優於「卡一下」。</strong></p>
+    </div>
+
+    <h3>4-2　三向交握與四向斷線</h3>
+    <pre>用戶端                              伺服器
+   │──── ① SYN (seq=x) ─────────────→│  請求連線
+   │←─── ② SYN+ACK (seq=y,ack=x+1) ──│  同意並回應
+   │──── ③ ACK (ack=y+1) ───────────→│  確認
+   │◄═══ 連線建立，開始傳資料 ════════►│
+
+斷線需四次：FIN → ACK → FIN → ACK</pre>
+    <div class="hl">
+      <strong>為何建立要三次</strong>：連線是<strong>雙向</strong>的，兩邊都要確認「對方收得到我」；第三次 ACK 才讓伺服器確知用戶端也收到回應，同時完成初始序號同步。<br><br>
+      <strong>為何斷線要四次</strong>：TCP 是<strong>全雙工</strong>，兩個方向要各自關閉。一方送 FIN 只表示「我沒資料要送了」，對方可能還有資料要傳完。
+    </div>
+
+    <h3>4-3　流量控制 vs 擁塞控制（易混淆）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>流量控制</th><th>擁塞控制</th></tr>
+        <tr><td>解決</td><td><strong>接收端</strong>處理不及</td><td><strong>網路</strong>壅塞</td></tr>
+        <tr><td>機制</td><td><strong>滑動視窗</strong>（rwnd）</td><td>慢啟動、擁塞避免、快速重送、快速回復（cwnd）</td></tr>
+        <tr><td>白話</td><td>「你講太快，我聽不完」</td><td>「馬路太塞，大家慢一點」</td></tr>
+      </table>
+    </div>
+    <p><strong>慢啟動</strong>其實是<strong>指數成長</strong>（1→2→4→8…），名稱只是指「從很小的量開始」。逾時代表嚴重壅塞 → <strong>cwnd 歸 1 重新慢啟動</strong>；收到 3 個重複 ACK 代表輕微 → ssthresh 減半進入快速回復。</p>
+
+    <h3>4-4　常見協定與埠號（必背）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>埠號</th><th>協定</th><th>備註</th></tr>
+        <tr><td>20/21</td><td>FTP</td><td>明文</td></tr>
+        <tr><td><strong>22</strong></td><td>SSH / SFTP</td><td>加密遠端登入</td></tr>
+        <tr><td>23</td><td>Telnet</td><td><strong>明文，應停用</strong></td></tr>
+        <tr><td><strong>25</strong></td><td>SMTP</td><td>寄信</td></tr>
+        <tr><td><strong>53</strong></td><td>DNS</td><td>主要走 <strong>UDP</strong></td></tr>
+        <tr><td>67/68</td><td>DHCP</td><td>自動取得 IP</td></tr>
+        <tr><td><strong>80</strong></td><td>HTTP</td><td>網頁</td></tr>
+        <tr><td>110 / 143</td><td>POP3 / IMAP</td><td>下載後刪 / 保留在伺服器</td></tr>
+        <tr><td><strong>443</strong></td><td>HTTPS</td><td>加密網頁（TLS）</td></tr>
+        <tr><td>445</td><td>SMB</td><td>Windows 檔案共享（<strong>勒索軟體常見入口</strong>）</td></tr>
+        <tr><td>3389</td><td>RDP</td><td>遠端桌面（<strong>高風險，不應對外開放</strong>）</td></tr>
+      </table>
+    </div>
+    <p><strong>DNS 記錄</strong>：A（→IPv4）、AAAA（→IPv6）、CNAME（別名）、MX（郵件）、PTR（反查）、TXT（SPF/DKIM）。</p>
+    <p><strong>HTTP 狀態碼</strong>：2xx 成功｜3xx 重導｜<strong>4xx 用戶端錯誤</strong>（401 未驗證、403 已驗證但無權限、404 找不到）｜<strong>5xx 伺服器錯誤</strong>。</p>
+
+    <h3>4-5　網路診斷</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>工具</th><th>原理／用途</th></tr>
+        <tr><td><code>ping</code></td><td>ICMP Echo，測連通性與延遲</td></tr>
+        <tr><td><code>tracert</code></td><td><strong>逐次遞增 TTL</strong>，利用 TTL 歸零回送的 ICMP 訊息找出經過的路由器</td></tr>
+        <tr><td><code>ipconfig</code></td><td>查看本機 IP 設定（看到 169.254 表示 DHCP 失敗）</td></tr>
+        <tr><td><code>nslookup</code></td><td>診斷 DNS 解析</td></tr>
+        <tr><td><code>netstat</code></td><td>查看連線與監聽埠</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 「網路不通」的標準排查順序（申論情境題可用）</span>
+      <strong>① 實體層</strong>（網路線、燈號）→ <strong>② IP 設定</strong>（是否拿到 169.254）→ <strong>③ ping 閘道</strong>（同網段通不通）→ <strong>④ ping 外部 IP</strong>（跨網段）→ <strong>⑤ ping 網域名稱</strong>（<u>IP 通但網址不通＝DNS 問題</u>）→ <strong>⑥ 應用層</strong>（埠號、防火牆、服務是否啟動）
+    </div>
+  </div>
+
+  <!-- 第五章 -->
+  <div class="card" id="c5">
+    <h2>第 5 章　無線網路與 VPN</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>標準</th><th>別名</th><th>頻段</th><th>速率</th></tr>
+        <tr><td>802.11n</td><td>Wi-Fi 4</td><td>2.4／5 GHz</td><td>600 Mbps</td></tr>
+        <tr><td>802.11ac</td><td>Wi-Fi 5</td><td>5 GHz</td><td>數 Gbps</td></tr>
+        <tr><td>802.11ax</td><td><strong>Wi-Fi 6/6E</strong></td><td>2.4／5／6 GHz</td><td>約 9.6 Gbps</td></tr>
+      </table>
+    </div>
+    <p><strong>2.4 GHz</strong>：傳得遠、穿牆好，但頻道少（僅 1、6、11 不重疊）、干擾多。<strong>5 GHz</strong>：頻寬大、干擾少，但穿牆差。</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>無線安全協定</th><th>加密</th><th>安全性</th></tr>
+        <tr><td>WEP</td><td>RC4 + 24 位元 IV</td><td><strong>已破解，絕不可用</strong></td></tr>
+        <tr><td>WPA</td><td>TKIP</td><td>過渡方案，已不足</td></tr>
+        <tr><td><strong>WPA2</strong></td><td><strong>AES-CCMP</strong></td><td>目前最低要求</td></tr>
+        <tr><td><strong>WPA3</strong></td><td>AES + <strong>SAE</strong></td><td><strong>最佳</strong>，可防離線字典攻擊</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>模式</th><th>驗證</th><th>適用</th></tr>
+        <tr><td>Personal（PSK）</td><td>共享密碼</td><td>家用；<u>人員異動須全面換密碼</u></td></tr>
+        <tr><td><strong>Enterprise（802.1X）</strong></td><td>每人獨立帳號，經 <strong>RADIUS</strong> 驗證</td><td><strong>機關應採用</strong>：離職只需停用該帳號</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 無效的「安全」措施（常考陷阱）</span>
+      <strong>隱藏 SSID</strong>（探測封包仍可發現）、<strong>MAC 位址過濾</strong>（可偽造）、<strong>降低發射功率</strong>（高增益天線仍可收）。<br>
+      這三項屬「<strong>以隱蔽代替安全</strong>」，只能輔助。<strong>真正有效的是強加密（WPA2/WPA3）＋ 802.1X ＋ 網段隔離。</strong>
+    </div>
+    <p><strong>無線攻擊</strong>：<strong>惡意 AP（Rogue AP）</strong>、<strong>邪惡雙胞胎（Evil Twin）</strong>假冒同名 SSID、<strong>解除驗證攻擊</strong>強制斷線誘導重連、WPS PIN 破解（應停用 WPS）。</p>
+
+    <h4>VPN</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型／技術</th><th>說明</th></tr>
+        <tr><td>Site-to-Site</td><td>兩據點網路互連（總部與分支機關）</td></tr>
+        <tr><td>Remote Access</td><td>個別使用者連回內網（居家辦公）</td></tr>
+        <tr><td><strong>IPsec</strong></td><td>L3；AH（僅驗證）／<strong>ESP（加密＋驗證）</strong>；隧道模式</td></tr>
+        <tr><td><strong>SSL/TLS VPN</strong></td><td>L4～L7；可用瀏覽器連線，部署簡便</td></tr>
+      </table>
+    </div>
+    <div class="plain">
+      <span class="t">✅ 機關遠端存取實務要點</span>
+      1. <strong>VPN 必須搭配 MFA</strong>——單靠帳密的 VPN 是勒索軟體最常見入口<br>
+      2. 採<strong>最小權限</strong>：連入後不應可存取整個內網<br>
+      3. VPN 設備<strong>優先納入修補管理</strong><br>
+      4. 保留連線日誌供稽核
+    </div>
+  </div>
+
+  <!-- 第六章 -->
+  <div class="card" id="c6">
+    <h2>第 6 章　資安基本概念</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>目標（CIA）</th><th>意義</th><th>威脅</th><th>防護</th></tr>
+        <tr><td><strong>機密性</strong></td><td>只有授權者能存取</td><td>竊聽、資料外洩</td><td>加密、存取控制</td></tr>
+        <tr><td><strong>完整性</strong></td><td>未被未授權竄改</td><td>篡改、中間人</td><td>雜湊、數位簽章</td></tr>
+        <tr><td><strong>可用性</strong></td><td>需要時能用</td><td>DDoS、勒索軟體</td><td>備份、備援、流量清洗</td></tr>
+      </table>
+    </div>
+    <p>擴充目標：<strong>鑑別性</strong>（確認身分）、<strong>不可否認性</strong>（靠數位簽章）、<strong>可歸責性</strong>（靠日誌）。</p>
+    <div class="easy">
+      <div class="t">🧒 CIA 三者常互相衝突</div>
+      <p>把權限收到最緊（機密性拉滿）→ 承辦人查資料要簽三層核准、等兩天（可用性崩壞）。<br>
+      為了方便而把檔案放開放共享資料夾（可用性拉滿）→ 機密性沒了。</p>
+      <p><strong>資安的本質是「風險管理」，不是「把安全做到最高」。</strong>申論若能寫出「須在安全性與可用性間依<u>資料敏感等級</u>取得平衡」，就比只堆技術名詞高一級。</p>
+    </div>
+
+    <div class="frame">
+      <span class="t">📐 風險管理核心</span>
+      <strong>風險 = 威脅 × 弱點 × 衝擊</strong><br><br>
+      <strong>風險處理四方式</strong>：<strong>降低</strong>（導入控制措施）、<strong>轉移</strong>（保險、委外）、<strong>避免</strong>（不做該活動）、<strong>接受</strong>（評估後承擔）<br><br>
+      <strong>控制措施分類</strong>：管理性（政策、稽核）／技術性（防火牆、加密）／實體性（門禁、機房）；<br>
+      　或依時機：預防性／偵測性／矯正性／嚇阻性
+    </div>
+    <p><strong>ISMS（ISO 27001）</strong>以 <strong>PDCA</strong> 循環持續改善：Plan（風險評鑑、選控制措施）→ Do（實施、訓練）→ Check（監控、<strong>內部稽核</strong>）→ Act（矯正、持續改善）。</p>
+    <div class="hl">
+      <span class="t">💡 申論萬用句</span>
+      「資安非單純技術問題，而是<strong>治理問題</strong>：需<strong>高階主管支持</strong>、明確<strong>權責分工</strong>、充足<strong>資源投入</strong>與<strong>持續稽核</strong>。單純採購設備而無管理制度配合，難以發揮實效。」
+    </div>
+  </div>
+
+  <!-- 第七章 -->
+  <div class="card" id="c7">
+    <h2>第 7 章　密碼學基礎（高頻）</h2>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>對稱式</th><th>非對稱式</th></tr>
+        <tr><td>金鑰</td><td>加解密<strong>同一把</strong></td><td><strong>公鑰／私鑰成對</strong></td></tr>
+        <tr><td>速度</td><td><strong>快</strong>（適合大量資料）</td><td>慢（約慢 100～1000 倍）</td></tr>
+        <tr><td>金鑰數（n 人）</td><td><strong>n(n−1)/2</strong></td><td><strong>2n</strong></td></tr>
+        <tr><td>金鑰配送</td><td><strong>困難</strong></td><td>容易（公鑰可公開）</td></tr>
+        <tr><td>可否簽章</td><td>不可</td><td><strong>可以</strong></td></tr>
+        <tr><td>演算法</td><td><strong>AES</strong>、DES、3DES</td><td><strong>RSA</strong>、ECC、Diffie-Hellman</td></tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 一把鎖 vs 一對鎖</div>
+      <p><strong>對稱式</strong>像家門鎖：一把鑰匙開關都用。問題是<strong>怎麼把鑰匙安全交給遠方的人</strong>？</p>
+      <p><strong>非對稱式</strong>像「只能投入不能拿出」的郵筒：<br>
+      ‧ <strong>公鑰</strong>＝投信口，人人可用（公開沒關係）<br>
+      ‧ <strong>私鑰</strong>＝開郵筒的鑰匙，只有你有</p>
+      <p><strong>為什麼還需要對稱式？</strong>因為非對稱太慢。所以 <strong>HTTPS 用混合加密</strong>：用非對稱式安全交換一把對稱金鑰，之後大量資料都用對稱式加密。</p>
+    </div>
+
+    <div class="frame">
+      <span class="t">📐 三個必背口訣</span>
+      <strong>① 要保密 → 用「對方的公鑰」加密</strong>（只有對方私鑰能解）→ 機密性<br>
+      <strong>② 要簽名 → 用「自己的私鑰」簽章</strong>（大家用你的公鑰驗證）→ 鑑別性、不可否認性<br>
+      <strong>③ HTTPS = 非對稱式交換金鑰 + 對稱式傳資料</strong>
+    </div>
+
+    <h3>雜湊與數位簽章</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>提供的保障</th><th>可否還原</th></tr>
+        <tr><td>加密</td><td>機密性</td><td>✅</td></tr>
+        <tr><td><strong>雜湊</strong>（SHA-256）</td><td>完整性</td><td>❌ <strong>單向</strong></td></tr>
+        <tr><td>HMAC（雜湊＋共享金鑰）</td><td>完整性＋來源鑑別</td><td>❌</td></tr>
+        <tr><td><strong>數位簽章</strong>（雜湊＋私鑰）</td><td>完整性＋鑑別性＋<strong>不可否認性</strong></td><td>❌</td></tr>
+      </table>
+    </div>
+    <pre>【數位簽章流程】
+
+簽署端 A：
+  原文 →① 雜湊 → 摘要 →② 用 A 的私鑰加密 → 數位簽章
+  →③ 傳送「原文 + 簽章」
+
+驗證端 B：
+  ④ 用 A 的公鑰解開簽章 → 摘要 A
+  ⑤ 對收到的原文重新雜湊 → 摘要 B
+  ⑥ 比對：相同 → 未遭竄改，且確為 A 所簽</pre>
+    <div class="warn">
+      <span class="t">⚠️ 三個必考細節</span>
+      1. <strong>數位簽章「不提供機密性」</strong>——原文是明文傳送的<br>
+      2. <strong>不可否認性只有數位簽章能達成</strong>（HMAC 雙方共用金鑰，無法歸責）<br>
+      3. <strong>為何先雜湊再簽</strong>：非對稱運算慢且原文可能很大，雜湊成固定短長度較有效率<br><br>
+      另：<strong>MD5 與 SHA-1 已不安全</strong>，現行標準是 <strong>SHA-256</strong>。
+    </div>
+    <div class="hl">
+      <span class="t">💡 密碼儲存的正確做法（常考）</span>
+      ❌ 明文｜❌ AES 加密（可還原，金鑰洩漏全毀）｜❌ MD5（太快、可查彩虹表）<br>
+      ✅ <strong>bcrypt／scrypt／Argon2／PBKDF2 ＋ 每帳號不同的隨機鹽（Salt）</strong><br>
+      關鍵觀念：<strong>密碼雜湊要「刻意設計得慢」</strong>，才能抵抗暴力破解。
+    </div>
+    <p><strong>PKI</strong>：<strong>CA</strong>（簽發憑證）、<strong>RA</strong>（核驗身分）、<strong>CRL</strong>（撤銷清單，定期發布）、<strong>OCSP</strong>（線上即時查詢）。憑證的作用是<strong>由可信第三方證明「這把公鑰確實屬於某人」</strong>，避免中間人攻擊。</p>
+  </div>
+
+  <!-- 第八章 -->
+  <div class="card" id="c8">
+    <h2>第 8 章　攻擊手法與防護（高頻）</h2>
+
+    <h3>8-1　社交工程（最有效的攻擊）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>手法</th><th>說明</th></tr>
+        <tr><td>釣魚 Phishing</td><td>大量假郵件騙帳密</td></tr>
+        <tr><td><strong>魚叉式釣魚</strong></td><td>針對特定人客製化（APT 常用）</td></tr>
+        <tr><td>捕鯨 Whaling</td><td>針對高階主管</td></tr>
+        <tr><td>Vishing／Smishing</td><td>電話／簡訊詐騙</td></tr>
+        <tr><td><strong>BEC 商業郵件詐騙</strong></td><td>冒充主管或供應商<strong>要求變更匯款帳號</strong></td></tr>
+        <tr><td>尾隨 Tailgating</td><td>跟在有門禁者後方進入</td></tr>
+        <tr><td>誘餌 Baiting</td><td>刻意遺留惡意 USB</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <strong>心理槓桿</strong>：權威（冒充首長）、急迫（限時）、恐懼（帳號將停用）、信任（冒充同事）、從眾。<br><br>
+      <strong>防護重點是「人」</strong>：定期<strong>社交工程演練</strong>、教育訓練、建立可疑郵件通報管道、關鍵作業（如變更匯款帳號）採<strong>雙人覆核與另管道回撥確認</strong>。
+    </div>
+
+    <h3>8-2　常見攻擊與防禦</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>攻擊</th><th>原理</th><th>防禦</th></tr>
+        <tr><td><strong>SQL Injection</strong></td><td>輸入被當成 SQL 指令執行（<u>資料與指令未分離</u>）</td><td><strong>參數化查詢</strong>、最小權限、白名單驗證、WAF</td></tr>
+        <tr><td><strong>XSS</strong></td><td>注入惡意腳本於<strong>他人瀏覽器</strong>執行</td><td><strong>輸出編碼</strong>、CSP、HttpOnly Cookie</td></tr>
+        <tr><td><strong>CSRF</strong></td><td>誘使瀏覽器<strong>帶著既有登入狀態</strong>送出請求</td><td><strong>CSRF Token</strong>、SameSite Cookie</td></tr>
+        <tr><td><strong>DoS / DDoS</strong></td><td>耗盡頻寬或連線資源（SYN Flood）</td><td>流量清洗、CDN、速率限制、<strong>SYN Cookie</strong></td></tr>
+        <tr><td><strong>中間人 MITM</strong></td><td>攔截並可竄改通訊</td><td><strong>TLS 加密</strong>＋憑證驗證、HSTS</td></tr>
+        <tr><td>ARP 欺騙</td><td>偽造 ARP 冒充閘道（ARP <u>無驗證機制</u>）</td><td>DHCP Snooping ＋ <strong>DAI</strong>、Port Security</td></tr>
+        <tr><td>密碼攻擊</td><td>暴力破解、字典、<strong>撞庫</strong>、彩虹表</td><td><strong>MFA</strong>、帳號鎖定、加鹽慢速雜湊</td></tr>
+        <tr><td>零時差 Zero-day</td><td>利用尚無修補的未知漏洞</td><td>縱深防禦、EDR 行為偵測、最小權限</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 XSS 與 CSRF 一句話區分</span>
+      <strong>XSS 是「偷你的身分」</strong>（讓惡意程式在你瀏覽器執行，竊取 Cookie）<br>
+      <strong>CSRF 是「借你的手」</strong>（不需執行程式碼，只是讓你的瀏覽器自動帶憑證送請求）<br><br>
+      注意：<strong>HttpOnly 可降低 XSS 危害，但對 CSRF 無效</strong>。
+    </div>
+
+    <h3>8-3　惡意程式</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>關鍵特徵</th></tr>
+        <tr><td>病毒 Virus</td><td><strong>需附著於檔案</strong>，靠使用者執行才傳播</td></tr>
+        <tr><td><strong>蠕蟲 Worm</strong></td><td><strong>自我複製、自動傳播</strong>，不需人操作</td></tr>
+        <tr><td>木馬 Trojan</td><td>偽裝成正常軟體誘使安裝</td></tr>
+        <tr><td><strong>勒索軟體</strong></td><td>加密檔案索取贖金；近年多加上<strong>竊資雙重勒索</strong></td></tr>
+        <tr><td>間諜／鍵盤側錄</td><td>竊取資料與帳密</td></tr>
+        <tr><td>Rootkit</td><td>藏於系統深層，極難偵測</td></tr>
+        <tr><td>殭屍網路 Botnet</td><td>受控主機群，用於 DDoS、挖礦</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 勒索軟體防護（申論高機率）</span>
+      <strong>常見入口</strong>：釣魚郵件附件、<strong>暴露在外的 RDP（3389）</strong>、未修補的 VPN 漏洞、弱密碼。<br><br>
+      <strong>分層防護</strong>：<br>
+      ‧ <strong>預防</strong>：修補管理、關閉不必要對外服務、VPN 加 MFA、郵件過濾、教育訓練<br>
+      ‧ <strong>偵測</strong>：EDR 行為偵測、異常大量檔案變更告警<br>
+      ‧ <strong>備份（最關鍵）</strong>：<strong>3-2-1 原則</strong>，且必須有<strong>離線或不可變備份</strong>——否則備份會被一起加密<br>
+      ‧ <strong>應變</strong>：隔離主機、<strong>依法通報</strong>、保存證據、由乾淨備份復原<br>
+      ‧ <strong>原則上不支付贖金</strong>（不保證能解、助長犯罪、機關支付涉預算與法律問題）
+    </div>
+
+    <h3>8-4　防護設備與架構</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>設備</th><th>功能</th></tr>
+        <tr><td><strong>防火牆</strong></td><td>依規則過濾；<strong>預設拒絕</strong>，僅開放必要服務；<strong>出向流量也要管</strong></td></tr>
+        <tr><td><strong>IDS</strong></td><td>入侵<strong>偵測</strong>——只告警不阻擋（旁接，不影響流量）</td></tr>
+        <tr><td><strong>IPS</strong></td><td>入侵<strong>防禦</strong>——主動阻擋（串接，<u>誤判會中斷業務</u>）</td></tr>
+        <tr><td>WAF</td><td>網頁應用防火牆，擋 SQLi、XSS</td></tr>
+        <tr><td><strong>DMZ</strong></td><td>對外服務的中間地帶；<strong>資料庫絕不可放 DMZ</strong></td></tr>
+        <tr><td>SIEM</td><td>集中收集日誌並做關聯分析</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 縱深防禦（Defense in Depth）</span>
+      <strong>周邊（防火牆）→ 網段（VLAN／ACL）→ 主機（強化、EDR）→ 應用（安全開發）→ 資料（加密、遮罩）→ 管理（政策、稽核、教育）</strong><br><br>
+      任一層失效仍有其他層可攔阻。<strong>不依賴單一防線</strong>是資安架構的核心原則。
+    </div>
+    <p><strong>身分驗證三因子</strong>：<strong>你知道的</strong>（密碼）、<strong>你擁有的</strong>（OTP、晶片卡）、<strong>你本身的</strong>（指紋、臉部）。<br>
+       <strong>MFA 必須是不同類別的組合</strong>——「密碼 + 安全提問」不算 MFA。</p>
+    <p><strong>存取控制</strong>：DAC（擁有者自行授權）／MAC（依安全等級強制）／<strong>RBAC（角色，機關最常用）</strong>／ABAC（屬性）。<br>
+       三大原則：<strong>最小權限、知需原則、職務分工</strong>。</p>
+  </div>
+
+  <!-- 第九章 -->
+  <div class="card" id="c9">
+    <h2>第 9 章　資安法規與事件應變（公部門必考）</h2>
+
+    <h3>9-1　資通安全管理法</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>重點</th><th>內容</th></tr>
+        <tr><td>適用對象</td><td><strong>公務機關</strong>與特定非公務機關（關鍵基礎設施提供者等）</td></tr>
+        <tr><td><strong>資安責任等級</strong></td><td>依業務重要性與資料敏感度分 <strong>A、B、C、D、E 五級</strong></td></tr>
+        <tr><td>應辦事項</td><td>訂定<strong>資通安全維護計畫</strong>、配置專責人力、資產盤點與風險評估、防護措施、<strong>教育訓練</strong>、<strong>資安演練</strong></td></tr>
+        <tr><td><strong>事件通報</strong></td><td>知悉後於<strong>規定時限內</strong>通報主管機關</td></tr>
+        <tr><td>事件等級</td><td>依影響程度分 <strong>1～4 級</strong>；3、4 級為<strong>重大事件</strong>，通報時限更短並須提改善報告</td></tr>
+        <tr><td>稽核</td><td>主管機關得辦理稽核；機關亦須辦理內部稽核</td></tr>
+        <tr><td>委外管理</td><td>委外時應要求受託者符合資安規定並納入契約監督</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 作答提醒</span>
+      <strong>不需要背條號與精確時限</strong>（時限依子法且可能修正）。<br>
+      寫「依《資通安全管理法》及其子法，應於<strong>規定時限內</strong>完成通報並提出調查、處理及改善報告」即可得分。<br>
+      <strong>硬背錯誤的時數反而扣分。</strong>
+    </div>
+
+    <h3>9-2　個人資料保護法</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>重點</th><th>內容</th></tr>
+        <tr><td>個資定義</td><td>得以<strong>直接或間接</strong>識別特定個人之資料</td></tr>
+        <tr><td><strong>特種個資</strong></td><td>病歷、醫療、基因、性生活、健康檢查、<strong>犯罪前科</strong> → 原則不得蒐集處理利用</td></tr>
+        <tr><td>核心原則</td><td>須有<strong>特定目的</strong>、於<strong>必要範圍</strong>內；目的外利用受嚴格限制</td></tr>
+        <tr><td>當事人權利</td><td>查詢、複製、補充更正、<strong>請求停止蒐集處理利用</strong>、<strong>請求刪除</strong></td></tr>
+        <tr><td><strong>安全維護義務</strong></td><td>應採行<strong>適當之技術與組織措施</strong></td></tr>
+        <tr><td><strong>外洩通知</strong></td><td>發生外洩應查明後<strong>通知當事人</strong></td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>個資保護技術</th><th>說明</th><th>可否還原</th></tr>
+        <tr><td>加密</td><td>以金鑰轉為密文</td><td>✅</td></tr>
+        <tr><td>雜湊加鹽</td><td>密碼儲存必用</td><td>❌</td></tr>
+        <tr><td>遮罩 Masking</td><td>A12345****</td><td>❌</td></tr>
+        <tr><td>代碼化 Tokenization</td><td>以無意義代碼取代，對照表另存</td><td>✅</td></tr>
+        <tr><td><strong>去識別化</strong></td><td>移除或轉換可識別資訊；資料開放前必做</td><td>視方法</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 資料開放的三個風險（申論加分）</span>
+      1. <strong>間接識別</strong>：「出生年月日＋性別＋郵遞區號」組合即可能識別特定個人 → 應<strong>泛化</strong>（年齡層、區級地址）<br>
+      2. <strong>交叉比對重新識別</strong>：與其他公開資料集比對可能還原身分 → 須做<strong>重新識別風險評估</strong><br>
+      3. <strong>小樣本揭露</strong>：某里僅 1～2 筆資料時仍可能被指認 → 應設<strong>最小揭露門檻</strong>
+    </div>
+
+    <h3>9-3　事件應變流程</h3>
+    <div class="frame">
+      <span class="t">📐 六階段</span>
+      <strong>① 準備</strong>：應變計畫、團隊、演練<br>
+      <strong>② 偵測與分析</strong>：確認真偽、判定影響範圍與等級<br>
+      <strong>③ 圍堵</strong>：隔離受害主機（<u>拔網路線而非直接關機</u>）、阻斷連線<br>
+      <strong>④ 根除</strong>：清除惡意程式、修補漏洞、<strong>重設所有可能外洩的憑證</strong><br>
+      <strong>⑤ 復原</strong>：由<u>確認乾淨</u>的備份還原，加強監控後恢復<br>
+      <strong>⑥ 事後檢討</strong>：根因分析、改善措施並追蹤
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 應變最常犯的三個錯</span>
+      1. <strong>急著重開機或重灌</strong> → 記憶體證據與攻擊軌跡全毀，無法查明原因也無法防止再犯。<strong>應先保存證據</strong>（記憶體映像、日誌、磁碟映像）。<br>
+      2. <strong>只清了看得到的惡意程式</strong> → 後門與已竊得的帳密仍在，數週後再次入侵。<br>
+      3. <strong>沒有依規定通報</strong> → 違反法定義務，也失去上級與技服中心的協助。
+    </div>
+
+    <h3>9-4　備份與營運持續</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>備份類型</th><th>備份內容</th><th>備份時間</th><th>復原</th></tr>
+        <tr><td>完整</td><td>全部資料</td><td>最長</td><td><strong>最快</strong></td></tr>
+        <tr><td>差異</td><td>自上次<strong>完整</strong>備份後的變更</td><td>中</td><td>完整＋<strong>最後一次</strong>差異</td></tr>
+        <tr><td>增量</td><td>自上次<strong>任何</strong>備份後的變更</td><td><strong>最短</strong></td><td>完整＋<strong>所有</strong>增量（最慢）</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <strong>RTO（復原時間目標）</strong>：可容忍<u>停機多久</u> → 決定<strong>備援架構</strong><br>
+      <strong>RPO（復原點目標）</strong>：可容忍<u>遺失多少資料</u> → 決定<strong>備份頻率</strong><br><br>
+      <strong>3-2-1 原則</strong>：3 份副本、2 種媒體、<strong>1 份異地</strong>；再加<strong>1 份離線／不可變</strong>以防勒索軟體。<br><br>
+      <strong>關鍵洞察：「備份成功」不等於「還原成功」——必須定期實際演練還原。</strong>
+    </div>
+  </div>
+
+  <!-- 第十章 -->
+  <div class="card" id="c10">
+    <h2>第 10 章　考前速記表</h2>
+
+    <h3>子網路三步驟</h3>
+    <div class="hl">
+      <strong>① 區塊大小 = 256 − 遮罩值　② 跳格找網路位址　③ 廣播 = 下一段起點 − 1</strong><br>
+      /26→62台｜/27→30台｜/28→14台｜/29→6台｜/30→2台
+    </div>
+
+    <h3>密碼學速查</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>需求</th><th>用什麼</th></tr>
+        <tr><td>機密性</td><td>加密（對稱式傳大量、非對稱式換金鑰）</td></tr>
+        <tr><td>完整性</td><td>雜湊（SHA-256）</td></tr>
+        <tr><td>完整性＋來源鑑別</td><td>HMAC</td></tr>
+        <tr><td>＋<strong>不可否認性</strong></td><td><strong>數位簽章</strong></td></tr>
+        <tr><td>密碼儲存</td><td><strong>bcrypt／Argon2 ＋ 隨機鹽</strong></td></tr>
+      </table>
+    </div>
+
+    <h3>最容易被考倒的 15 個觀念</h3>
+    <ol>
+      <li><strong>交換器分割碰撞網域，路由器分割廣播網域。</strong></li>
+      <li><strong>NAT 不是防火牆</strong>，只提供有限隱蔽性。</li>
+      <li><strong>DNS 主要走 UDP 53</strong>。</li>
+      <li><strong>建立連線三次交握、斷線四次</strong>（全雙工需各自關閉）。</li>
+      <li><strong>流量控制管接收端，擁塞控制管網路。</strong></li>
+      <li><strong>慢啟動是指數成長</strong>，不是慢。</li>
+      <li><strong>公鑰加密／私鑰解密；私鑰簽章／公鑰驗章。</strong></li>
+      <li><strong>不可否認性只有數位簽章能達成。</strong></li>
+      <li><strong>數位簽章不提供機密性</strong>（原文是明文）。</li>
+      <li><strong>隱藏 SSID 與 MAC 過濾都不是有效安全機制。</strong></li>
+      <li><strong>MFA 必須是不同類別的因子。</strong></li>
+      <li><strong>XSS 偷你的身分，CSRF 借你的手。</strong></li>
+      <li><strong>資料庫絕不可放 DMZ。</strong></li>
+      <li><strong>備份必須有離線副本</strong>，否則會被勒索軟體一起加密。</li>
+      <li><strong>資安事件應先保存證據再處理</strong>，不可急著重灌。</li>
+    </ol>
+
+    <h3>申論萬用結論句</h3>
+    <div class="frame">
+      「綜上，資通安全防護不能僅依賴單一技術措施，而須採<strong>縱深防禦</strong>之思維，於周邊、網段、主機、應用與資料各層分別設防；<br>
+      同時<strong>技術措施須搭配管理制度</strong>——資安政策、權責分工、教育訓練、定期演練與稽核——並符合《<strong>資通安全管理法</strong>》與《<strong>個人資料保護法</strong>》之法定義務。<br>
+      機關導入時並應考量<strong>成本效益</strong>與現有<strong>人力維運能量</strong>，宜採先導試辦方式逐步推廣。」
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="index.html">← 普考首頁</a>
+    <a class="btn btn-next" href="net-bank.html">下一步：資通網路與安全概要題庫 →</a>
+  </div>
+
+</div>
+
+<footer>普通考試 · 資通網路與安全概要講義</footer>
+
+</body>
+</html>
