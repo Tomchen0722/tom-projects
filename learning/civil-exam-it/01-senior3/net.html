@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資通網路與安全 完整講義（上） | 高考三級</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-senior3">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">高考三級</a><span class="sep">/</span><span>資通網路與安全 講義（上）</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🌐 高考三級 · 專業科目三 · 占總成績 19.5%</div>
+  <h1>資通網路與安全 完整講義（上）</h1>
+  <p>網路部分：參考模型、IP 與子網路切割、路由交換、TCP/UDP、應用層協定。<br><strong>子網路切割是必考計算題</strong>，本章有完整手算教學。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 目錄（上半部）</div>
+    <ol>
+      <li><a href="#c1">網路參考模型：OSI 與 TCP/IP</a>（必考）</li>
+      <li><a href="#c2">實體層與資料連結層</a></li>
+      <li><a href="#c3">網路層：IP 位址與子網路切割</a>（<strong>年年考計算題</strong>）</li>
+      <li><a href="#c4">網路層：路由與相關協定</a></li>
+      <li><a href="#c5">傳輸層：TCP 與 UDP</a>（高頻）</li>
+      <li><a href="#c6">應用層協定與埠號</a></li>
+      <li><a href="#c7">無線網路與新興網路技術</a></li>
+    </ol>
+    <p style="margin-top:10px;font-size:.85rem">
+      資安部分（密碼學、攻擊防禦、資安治理與法規）請看 <a href="net2.html">下半部</a> →
+    </p>
+  </div>
+
+  <!-- ============ 第一章 ============ -->
+  <div class="card" id="c1">
+    <h2>第 1 章　網路參考模型：OSI 與 TCP/IP</h2>
+
+    <h3>1-1　為什麼要分層</h3>
+    <div class="easy">
+      <div class="t">🧒 白話版：分層就像寄信</div>
+      <p>你要寄一封信給朋友，這件事其實有好幾「層」在運作：</p>
+      <ul>
+        <li><strong>你寫信的內容</strong>（應用層）— 只有你和朋友看得懂</li>
+        <li><strong>裝進信封、寫上地址</strong>（傳輸層／網路層）— 郵局看地址就好，不用看內容</li>
+        <li><strong>郵局分揀、上卡車</strong>（資料連結層）— 只負責「從這個郵局送到下一個郵局」</li>
+        <li><strong>卡車在馬路上跑</strong>（實體層）</li>
+      </ul>
+      <p><strong>分層的價值</strong>：卡車換成飛機，你完全不用改寫信的方式；你改用英文寫信，郵局也不用改流程。<strong>每一層只跟上下相鄰的層打交道，可以各自獨立演進。</strong></p>
+      <p>這就是為什麼 Wi-Fi 取代網路線時，你的網頁瀏覽器完全不用改寫——它們在不同層。</p>
+    </div>
+
+    <h3>1-2　OSI 七層模型（必背）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>層</th><th>名稱</th><th>功能</th><th>資料單位</th><th>代表協定／設備</th></tr>
+        <tr><td>7</td><td><strong>應用層</strong> Application</td><td>提供給使用者的服務介面</td><td>Data / Message</td><td>HTTP、FTP、SMTP、DNS、SSH</td></tr>
+        <tr><td>6</td><td><strong>表達層</strong> Presentation</td><td>資料格式轉換、<strong>加密／解密</strong>、壓縮</td><td>Data</td><td>JPEG、ASCII、SSL/TLS（跨層）</td></tr>
+        <tr><td>5</td><td><strong>會議層</strong> Session</td><td>建立、管理、終止連線對話</td><td>Data</td><td>NetBIOS、RPC、SIP</td></tr>
+        <tr><td>4</td><td><strong>傳輸層</strong> Transport</td><td><strong>端對端</strong>可靠傳輸、流量控制、埠號</td><td><strong>Segment</strong></td><td>TCP、UDP／防火牆（L4）</td></tr>
+        <tr><td>3</td><td><strong>網路層</strong> Network</td><td><strong>邏輯定址</strong>與繞送（Routing）</td><td><strong>Packet</strong></td><td>IP、ICMP、ARP、OSPF／<strong>路由器</strong></td></tr>
+        <tr><td>2</td><td><strong>資料連結層</strong> Data Link</td><td><strong>實體定址（MAC）</strong>、錯誤偵測、訊框化</td><td><strong>Frame</strong></td><td>Ethernet、PPP、ARP／<strong>交換器、橋接器</strong></td></tr>
+        <tr><td>1</td><td><strong>實體層</strong> Physical</td><td>位元的電氣／光學訊號傳輸</td><td><strong>Bit</strong></td><td>雙絞線、光纖、RS-232／<strong>集線器、中繼器</strong></td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 記憶口訣</span>
+      由上而下：<strong>應表會傳網資實</strong>（應用、表達、會議、傳輸、網路、資料連結、實體）<br>
+      英文由下而上：<strong>P</strong>lease <strong>D</strong>o <strong>N</strong>ot <strong>T</strong>hrow <strong>S</strong>ausage <strong>P</strong>izza <strong>A</strong>way
+    </div>
+
+    <h3>1-3　TCP/IP 四層模型與對應</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>TCP/IP 四層</th><th>對應 OSI</th><th>主要協定</th></tr>
+        <tr><td>應用層 Application</td><td>OSI 5、6、7</td><td>HTTP、FTP、SMTP、DNS、DHCP、SNMP</td></tr>
+        <tr><td>傳輸層 Transport</td><td>OSI 4</td><td>TCP、UDP</td></tr>
+        <tr><td>網際網路層 Internet</td><td>OSI 3</td><td>IP、ICMP、IGMP、ARP</td></tr>
+        <tr><td>網路存取層 Network Access</td><td>OSI 1、2</td><td>Ethernet、Wi-Fi、PPP</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 常考觀念題</span>
+      1. <strong>OSI 是「參考模型」（理論），TCP/IP 是「實作」（實際在用）。</strong><br>
+      2. <strong>ARP 屬於哪一層？</strong> 教科書說法不一：它把 IP 轉成 MAC，跨越第 2、3 層。<strong>常見答案是「資料連結層」或「網路層」，作答時應說明「介於第 2 與第 3 層之間，多數教材歸為資料連結層」</strong>，這樣兩種標準都不會錯。<br>
+      3. <strong>加密在哪一層？</strong> OSI 定義在<strong>表達層（第 6 層）</strong>，但實務上 TLS 運作於傳輸層與應用層之間。
+    </div>
+
+    <h3>1-4　封裝與解封裝（Encapsulation）</h3>
+    <pre>傳送端（由上而下，每層加上自己的標頭）
+應用層    [        Data        ]
+傳輸層  [TCP標頭][    Data    ]         → Segment
+網路層 [IP標頭][TCP標頭][Data ]         → Packet
+連結層 [Frame標頭][IP][TCP][Data][FCS]  → Frame
+實體層 0101110100101110...              → Bits
+
+接收端（由下而上，每層拆掉自己的標頭）</pre>
+    <div class="hl">
+      每一層的標頭就像「一層信封」。路由器只拆到<strong>網路層</strong>（看 IP 決定往哪送）；交換器只拆到<strong>資料連結層</strong>（看 MAC）。<br>
+      這解釋了為什麼<strong>交換器比路由器快</strong>——它要處理的層數更少。
+    </div>
+
+    <h3>1-5　網路設備對照（常考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>設備</th><th>工作層級</th><th>依據</th><th>特性</th></tr>
+        <tr><td>中繼器 Repeater</td><td>L1</td><td>訊號</td><td>單純放大訊號</td></tr>
+        <tr><td>集線器 Hub</td><td>L1</td><td>無</td><td><strong>廣播給所有埠</strong>、共享頻寬、易碰撞（已淘汰）</td></tr>
+        <tr><td>橋接器 Bridge</td><td>L2</td><td>MAC</td><td>分割碰撞網域</td></tr>
+        <tr><td><strong>交換器 Switch</strong></td><td>L2</td><td><strong>MAC 位址表</strong></td><td>只送給目標埠、<strong>每埠獨立頻寬</strong>、可切 VLAN</td></tr>
+        <tr><td><strong>路由器 Router</strong></td><td>L3</td><td><strong>IP 繞送表</strong></td><td><strong>分割廣播網域</strong>、連接不同網段</td></tr>
+        <tr><td>L3 交換器</td><td>L2＋L3</td><td>MAC＋IP</td><td>硬體加速的繞送，效能高</td></tr>
+        <tr><td>閘道器 Gateway</td><td>L4～L7</td><td>協定轉換</td><td>不同協定體系間轉換</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 兩個關鍵網域概念</span>
+      <strong>碰撞網域（Collision Domain）</strong>：共享傳輸媒介、會互相碰撞的範圍。<br>
+      　→ <strong>交換器的每一個埠就是一個碰撞網域</strong>（所以交換器「分割」碰撞網域）<br><br>
+      <strong>廣播網域（Broadcast Domain）</strong>：廣播封包能到達的範圍。<br>
+      　→ <strong>路由器分割廣播網域</strong>；交換器<u>不能</u>（除非切 VLAN）<br><br>
+      考題常問：「一台 24 埠交換器接一台路由器，有幾個碰撞網域、幾個廣播網域？」<br>
+      答：<strong>24 個碰撞網域、1 個廣播網域</strong>（假設未切 VLAN）。
+    </div>
+  </div>
+
+  <!-- ============ 第二章 ============ -->
+  <div class="card" id="c2">
+    <h2>第 2 章　實體層與資料連結層</h2>
+
+    <h3>2-1　傳輸媒介</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>媒介</th><th>特性</th><th>抗干擾</th><th>距離</th></tr>
+        <tr><td>雙絞線 UTP／STP</td><td>便宜、易佈線；Cat5e/6/6a/7</td><td>低（STP 有屏蔽較好）</td><td>100 公尺</td></tr>
+        <tr><td>同軸電纜</td><td>早期網路、有線電視</td><td>中</td><td>數百公尺</td></tr>
+        <tr><td><strong>光纖</strong></td><td>頻寬最大、<strong>不受電磁干擾</strong>、無法竊聽（需破壞才能接）</td><td><strong>極高</strong></td><td>數公里～數十公里</td></tr>
+        <tr><td>無線</td><td>方便、機動</td><td>低（易受干擾與竊聽）</td><td>依標準與功率</td></tr>
+      </table>
+    </div>
+    <p><strong>光纖</strong>又分：<strong>單模（Single-mode）</strong>——蕊徑細、距離遠、成本高；<strong>多模（Multi-mode）</strong>——蕊徑粗、距離短、成本低。</p>
+
+    <h3>2-2　乙太網路（Ethernet）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>標準</th><th>速度</th><th>常見介質</th></tr>
+        <tr><td>10BASE-T</td><td>10 Mbps</td><td>Cat3</td></tr>
+        <tr><td>100BASE-TX（Fast Ethernet）</td><td>100 Mbps</td><td>Cat5</td></tr>
+        <tr><td>1000BASE-T（Gigabit）</td><td>1 Gbps</td><td>Cat5e</td></tr>
+        <tr><td>10GBASE-T</td><td>10 Gbps</td><td>Cat6a</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 CSMA/CD 與 CSMA/CA</span>
+      <strong>CSMA/CD（Collision Detection）</strong>— 有線乙太網路<br>
+      　「先聽再說，邊說邊聽」：偵測到碰撞就停止傳送、送出干擾訊號，並依<strong>二進位指數後退（Binary Exponential Backoff）</strong>隨機等待後重送。<br>
+      　→ 全雙工交換式網路已無碰撞，故現代 Ethernet 實質不再需要 CD。<br><br>
+      <strong>CSMA/CA（Collision Avoidance）</strong>— 無線網路（Wi-Fi）<br>
+      　為什麼無線不能用 CD？因為<strong>無線網卡無法同時收發</strong>，也存在<strong>隱藏節點問題</strong>（A、C 都能連 B 但彼此聽不到對方）。<br>
+      　→ 改用「事前避免」：先送 <strong>RTS/CTS</strong> 取得傳送許可，並用 ACK 確認。
+    </div>
+
+    <h3>2-3　MAC 位址</h3>
+    <ul>
+      <li>48 位元（6 bytes），以 16 進位表示，如 <code>00:1A:2B:3C:4D:5E</code>。</li>
+      <li>前 24 位元為 <strong>OUI（廠商識別碼）</strong>，後 24 位元由廠商指派。</li>
+      <li><strong>廣播位址</strong>：<code>FF:FF:FF:FF:FF:FF</code>。</li>
+      <li>理論上全球唯一，但<strong>可被軟體偽造（MAC Spoofing）</strong>——這是為什麼「MAC 位址過濾」不是可靠的安全機制。</li>
+    </ul>
+
+    <h3>2-4　交換器運作原理</h3>
+    <div class="frame">
+      <span class="t">📐 交換器如何學習</span>
+      1. 收到訊框時，記錄「<strong>來源 MAC ↔ 進入的埠</strong>」到 MAC 位址表（自我學習）<br>
+      2. 查表找目的 MAC：<br>
+      　‧ <strong>找到</strong> → 只轉送到該埠（Forward）<br>
+      　‧ <strong>找不到</strong> → <strong>洪泛（Flooding）</strong>到所有其他埠<br>
+      　‧ 目的埠與來源埠<strong>相同</strong> → 丟棄（Filter）<br>
+      3. 表項有<strong>老化時間（Aging Time）</strong>，通常 300 秒
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>轉送模式</th><th>行為</th><th>延遲</th><th>錯誤檢查</th></tr>
+        <tr><td>Store-and-Forward</td><td>收完整個訊框才轉送</td><td>高</td><td><strong>會檢查 FCS</strong></td></tr>
+        <tr><td>Cut-Through</td><td>讀到目的 MAC 就開始轉送</td><td><strong>最低</strong></td><td>不檢查</td></tr>
+        <tr><td>Fragment-Free</td><td>讀完前 64 bytes 才轉送</td><td>中</td><td>可濾掉碰撞碎片</td></tr>
+      </table>
+    </div>
+
+    <h3>2-5　VLAN（虛擬區域網路）</h3>
+    <p>在同一台實體交換器上，<strong>邏輯切分成多個廣播網域</strong>。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>優點</th><th>說明</th></tr>
+        <tr><td><strong>分割廣播網域</strong></td><td>減少廣播流量，提升效能</td></tr>
+        <tr><td><strong>安全隔離</strong></td><td>不同 VLAN 間需經路由器（可套用 ACL 管控）；如把訪客網路與內部網路隔開</td></tr>
+        <tr><td>彈性管理</td><td>依部門而非實體位置分群，人員換座位不需重拉線</td></tr>
+        <tr><td>降低成本</td><td>不需為每個網段買獨立交換器</td></tr>
+      </table>
+    </div>
+    <ul>
+      <li><strong>Access Port</strong>：連接終端裝置，屬於單一 VLAN。</li>
+      <li><strong>Trunk Port</strong>：連接交換器之間，可承載多個 VLAN 的流量，以 <strong>IEEE 802.1Q</strong> 標籤（Tag）標示 VLAN ID（12 位元，1～4094）。</li>
+      <li><strong>Inter-VLAN Routing</strong>：不同 VLAN 通訊需經 L3 設備，常用「單臂路由（Router-on-a-stick）」或 L3 交換器的 SVI。</li>
+    </ul>
+    <div class="plain">
+      <span class="t">✅ 公部門實務應用</span>
+      機關常見的 VLAN 規劃：<strong>行政內網、公務機密網、IP 電話、監視系統（IP Cam）、訪客 Wi-Fi、機房管理網</strong>各自獨立 VLAN。<br>
+      這是《資通安全管理法》要求的<strong>網段隔離</strong>之基本實作，申論題談網路架構時務必提到。
+    </div>
+
+    <h3>2-6　STP 生成樹協定</h3>
+    <p>交換器之間若有<strong>迴圈</strong>，會造成廣播風暴（Broadcast Storm）、MAC 表震盪、訊框重複。STP（IEEE 802.1D）自動偵測並<strong>阻斷</strong>多餘路徑，形成無迴圈的樹狀拓樸。</p>
+    <ul>
+      <li>選出 <strong>Root Bridge</strong>（Bridge ID 最小者）。</li>
+      <li>其餘交換器計算到 Root 的最短路徑成本，選出 Root Port。</li>
+      <li>多餘路徑的埠設為 <strong>Blocking</strong> 狀態（不轉送資料，但仍收 BPDU）。</li>
+      <li>鏈路故障時重新計算，達成<strong>備援</strong>。</li>
+      <li><strong>RSTP（802.1w）</strong>收斂速度更快（秒級 vs 傳統 30～50 秒）。</li>
+    </ul>
+    <div class="hl">
+      這裡有一個重要的架構思維：<strong>備援路徑必須存在（實體上有兩條線），但邏輯上只能用一條</strong>。STP 就是負責「平時擋住備援線、故障時放行」的機制。<br>
+      這也對應到<a href="ds2.html">資料結構</a>的<strong>最小生成樹</strong>概念——同樣是「用最少的邊連通所有節點且無迴圈」。<strong>跨科連結，申論可加分。</strong>
+    </div>
+  </div>
+
+  <!-- ============ 第三章 ============ -->
+  <div class="card" id="c3">
+    <h2>第 3 章　網路層：IP 位址與子網路切割</h2>
+    <div class="warn">
+      <span class="t">⚠️ 本章是必考計算題</span>
+      子網路切割幾乎<strong>年年出現</strong>，而且是「會就一定拿分、不會就完全空白」的題型。<br>
+      考場<strong>不能用計算機</strong>，必須練到手算流暢。本章從二進位開始教，請務必親手算過每個範例。
+    </div>
+
+    <h3>3-1　IPv4 位址基礎</h3>
+    <p>32 位元，分成 4 組每組 8 位元（octet），以十進位點分表示，如 <code>192.168.10.5</code>。</p>
+    <div class="frame">
+      <span class="t">📐 必背：2 的次方與 8 位元權重</span>
+      <strong>權重</strong>：128　64　32　16　8　4　2　1<br><br>
+      2⁰=1、2¹=2、2²=4、2³=8、2⁴=16、2⁵=32、2⁶=64、2⁷=128<br>
+      2⁸=256、2⁹=512、2¹⁰=1024、2¹¹=2048、2¹²=4096<br><br>
+      <strong>常用子網路遮罩的十進位值</strong>（這 9 個數字背下來，考場能省一半時間）：<br>
+      <code>0、128、192、224、240、248、252、254、255</code><br>
+      對應 1 的個數：0、1、2、3、4、5、6、7、8
+    </div>
+    <div class="easy">
+      <div class="t">🧒 十進位 ↔ 二進位手算法</div>
+      <p><strong>十進位轉二進位</strong>（以 200 為例）：從權重最大的開始問「夠不夠減」。</p>
+      <pre style="background:#0c4a6e">200 ≥ 128 ? 是 → 寫 1，剩 200−128 = 72
+ 72 ≥  64 ? 是 → 寫 1，剩  72− 64 =  8
+  8 ≥  32 ? 否 → 寫 0
+  8 ≥  16 ? 否 → 寫 0
+  8 ≥   8 ? 是 → 寫 1，剩 0
+  0 ≥   4 ? 否 → 0
+  0 ≥   2 ? 否 → 0
+  0 ≥   1 ? 否 → 0
+→ 200 = <span class="s">11001000</span></pre>
+      <p><strong>二進位轉十進位</strong>：把 1 對應的權重加起來。<code>11001000</code> = 128+64+8 = 200 ✔</p>
+    </div>
+
+    <h3>3-2　位址分級（Classful）與私有位址</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>等級</th><th>第一組範圍</th><th>預設遮罩</th><th>網路／主機位元</th><th>可用主機數</th></tr>
+        <tr><td>A</td><td>1 – 126</td><td>255.0.0.0 (/8)</td><td>8 / 24</td><td>2²⁴−2 = 16,777,214</td></tr>
+        <tr><td>B</td><td>128 – 191</td><td>255.255.0.0 (/16)</td><td>16 / 16</td><td>2¹⁶−2 = 65,534</td></tr>
+        <tr><td>C</td><td>192 – 223</td><td>255.255.255.0 (/24)</td><td>24 / 8</td><td>2⁸−2 = 254</td></tr>
+        <tr><td>D</td><td>224 – 239</td><td>—</td><td>多播 Multicast</td><td>—</td></tr>
+        <tr><td>E</td><td>240 – 255</td><td>—</td><td>保留／實驗</td><td>—</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>特殊位址</th><th>範圍</th><th>用途</th></tr>
+        <tr><td><strong>私有位址</strong>（RFC 1918）</td><td>10.0.0.0/8<br>172.16.0.0/12<br>192.168.0.0/16</td><td>內部網路使用，<strong>不可繞送至網際網路</strong>，需經 NAT</td></tr>
+        <tr><td>迴路位址 Loopback</td><td>127.0.0.0/8（常用 127.0.0.1）</td><td>測試本機 TCP/IP 堆疊</td></tr>
+        <tr><td>連結本地 APIPA</td><td>169.254.0.0/16</td><td><strong>DHCP 取得失敗</strong>時自動指派（看到這個 IP 就知道 DHCP 有問題）</td></tr>
+        <tr><td>受限廣播</td><td>255.255.255.255</td><td>本網段廣播，不會被路由器轉送</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 為什麼要減 2</span>
+      每個子網路都有兩個位址不能給主機用：<br>
+      ‧ <strong>全 0 的主機位元 = 網路位址</strong>（代表「這個網段」）<br>
+      ‧ <strong>全 1 的主機位元 = 廣播位址</strong>（代表「這個網段的所有主機」）<br>
+      所以可用主機數 = <strong>2^(主機位元數) − 2</strong>。
+    </div>
+
+    <h3>3-3　CIDR 與子網路切割（核心）</h3>
+    <div class="frame">
+      <span class="t">📐 四個關鍵公式（背下來）</span>
+      設 <strong>n = 網路位元數（/n）</strong>、<strong>h = 主機位元數 = 32 − n</strong>：<br><br>
+      1. <strong>子網路數</strong> = 2^(借用的位元數)<br>
+      2. <strong>每個子網路的位址總數（區塊大小）</strong> = 2^h<br>
+      3. <strong>可用主機數</strong> = 2^h − 2<br>
+      4. <strong>區塊大小（Block Size）</strong> = 256 − 遮罩該組的十進位值　←<em>手算最好用的技巧</em>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>CIDR</th><th>子網路遮罩</th><th>主機位元</th><th>區塊大小</th><th>可用主機數</th></tr>
+        <tr><td>/24</td><td>255.255.255.0</td><td>8</td><td>256</td><td>254</td></tr>
+        <tr><td>/25</td><td>255.255.255.128</td><td>7</td><td>128</td><td>126</td></tr>
+        <tr><td>/26</td><td>255.255.255.192</td><td>6</td><td>64</td><td>62</td></tr>
+        <tr><td>/27</td><td>255.255.255.224</td><td>5</td><td>32</td><td>30</td></tr>
+        <tr><td>/28</td><td>255.255.255.240</td><td>4</td><td>16</td><td>14</td></tr>
+        <tr><td>/29</td><td>255.255.255.248</td><td>3</td><td>8</td><td>6</td></tr>
+        <tr><td>/30</td><td>255.255.255.252</td><td>2</td><td>4</td><td><strong>2</strong>（點對點連線用）</td></tr>
+        <tr><td>/31</td><td>255.255.255.254</td><td>1</td><td>2</td><td>0（RFC 3021 特例可用 2）</td></tr>
+        <tr><td>/32</td><td>255.255.255.255</td><td>0</td><td>1</td><td>單一主機路由</td></tr>
+      </table>
+    </div>
+
+    <h4>範例一：判斷網路位址、廣播位址與可用範圍</h4>
+    <div class="frame">
+      <strong>題目：192.168.10.100/26，求網路位址、廣播位址、可用主機範圍與主機數。</strong><br><br>
+      <strong>步驟 1</strong>：/26 → 遮罩 255.255.255.<strong>192</strong><br>
+      　（第 4 組：26 − 24 = 2 個網路位元 → 11000000 = 192）<br><br>
+      <strong>步驟 2</strong>：<strong>區塊大小 = 256 − 192 = 64</strong><br><br>
+      <strong>步驟 3</strong>：列出這個網段可能的網路位址（以 64 為間隔）<br>
+      　.0　.64　.128　.192<br><br>
+      <strong>步驟 4</strong>：100 落在 64 ~ 127 之間<br>
+      　→ <strong>網路位址 = 192.168.10.64</strong><br>
+      　→ <strong>廣播位址 = 192.168.10.127</strong>（下一個網路位址 128 減 1）<br>
+      　→ <strong>可用範圍 = 192.168.10.65 ~ 192.168.10.126</strong><br>
+      　→ <strong>可用主機數 = 2⁶ − 2 = 62</strong>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 為什麼「區塊大小」這個技巧有效</div>
+      <p>/26 表示在第 4 組借了 2 個位元當網路位元，剩 6 個位元給主機。6 個位元能表示 2⁶ = 64 個數字。</p>
+      <p>所以整個 0~255 的空間被切成 <strong>256 ÷ 64 = 4 塊</strong>：0-63、64-127、128-191、192-255。</p>
+      <p>而「256 − 192 = 64」剛好就是每塊的大小——<strong>這不是巧合，是因為遮罩值就是「被切掉的部分」</strong>。</p>
+      <p>用這個方法，你完全不需要在考場上寫二進位，直接用十進位跳格子就好。<strong>速度差三倍以上。</strong></p>
+    </div>
+
+    <h4>範例二：依需求切割子網路（申論常考）</h4>
+    <div class="frame">
+      <strong>題目：某機關取得 192.168.20.0/24，需切割給以下單位，請規劃 IP 配置。</strong><br>
+      ‧ 行政部門：50 台主機<br>
+      ‧ 資訊室：25 台主機<br>
+      ‧ 會計室：10 台主機<br>
+      ‧ 路由器對接：2 個位址<br><br>
+      <strong>步驟 1：由大到小排序</strong>（VLSM 的關鍵，一定要先排序）<br>
+      50 → 25 → 10 → 2<br><br>
+      <strong>步驟 2：各自找出最小足夠的遮罩</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>單位</th><th>需求</th><th>需主機位元</th><th>CIDR</th><th>可用數</th><th>區塊大小</th></tr>
+        <tr><td>行政部門</td><td>50</td><td>6（2⁶−2=62 ≥ 50）</td><td><strong>/26</strong></td><td>62</td><td>64</td></tr>
+        <tr><td>資訊室</td><td>25</td><td>5（2⁵−2=30 ≥ 25）</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
+        <tr><td>會計室</td><td>10</td><td>4（2⁴−2=14 ≥ 10）</td><td><strong>/28</strong></td><td>14</td><td>16</td></tr>
+        <tr><td>路由器對接</td><td>2</td><td>2（2²−2=2）</td><td><strong>/30</strong></td><td>2</td><td>4</td></tr>
+      </table></div>
+      <strong>步驟 3：由大到小依序配置</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>單位</th><th>網路位址</th><th>可用範圍</th><th>廣播位址</th><th>遮罩</th></tr>
+        <tr><td>行政部門</td><td>192.168.20.<strong>0</strong>/26</td><td>.1 – .62</td><td>.63</td><td>255.255.255.192</td></tr>
+        <tr><td>資訊室</td><td>192.168.20.<strong>64</strong>/27</td><td>.65 – .94</td><td>.95</td><td>255.255.255.224</td></tr>
+        <tr><td>會計室</td><td>192.168.20.<strong>96</strong>/28</td><td>.97 – .110</td><td>.111</td><td>255.255.255.240</td></tr>
+        <tr><td>路由器對接</td><td>192.168.20.<strong>112</strong>/30</td><td>.113 – .114</td><td>.115</td><td>255.255.255.252</td></tr>
+        <tr><td colspan="5">剩餘 192.168.20.116 – .255 保留供未來擴充</td></tr>
+      </table></div>
+      <strong>驗算</strong>：64 + 32 + 16 + 4 = 116 個位址，未超過 256 ✔
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ VLSM 的兩個致命錯誤</span>
+      1. <strong>沒有由大到小排序</strong>。若先配 /30 給路由器（佔用 .0-.3），之後 /26 就無法從 .0 開始，會造成位址浪費或無法對齊。<br>
+      2. <strong>網路位址沒有對齊區塊邊界</strong>。/27 的網路位址必須是 32 的倍數（0、32、64、96…），不能是 .70 這種數字。<strong>這是最常被扣分的地方。</strong>
+    </div>
+
+    <h4>範例三：路由聚合（Route Summarization / Supernetting）</h4>
+    <div class="frame">
+      <strong>題目：將 192.168.8.0/24、192.168.9.0/24、192.168.10.0/24、192.168.11.0/24 聚合成一條路由。</strong><br><br>
+      <strong>步驟 1</strong>：把變動的那一組（第 3 組）轉二進位，找出共同前綴<br>
+      <pre>  8 = 0000<span class="s">1000</span>
+  9 = 0000<span class="s">1001</span>
+ 10 = 0000<span class="s">1010</span>
+ 11 = 0000<span class="s">1011</span>
+      ↑↑↑↑↑↑ 前 6 位元相同（000010）</pre>
+      <strong>步驟 2</strong>：前兩組已相同（16 位元）＋ 第 3 組相同的 6 位元 = <strong>22 位元</strong><br><br>
+      <strong>步驟 3</strong>：聚合結果 = <strong>192.168.8.0/22</strong><br>
+      　驗證：/22 的第 3 組區塊大小 = 256 − 252 = 4 → 涵蓋 8、9、10、11 ✔<br><br>
+      <strong>好處</strong>：4 條路由變 1 條，縮小繞送表、加快查表、減少路由更新流量。
+    </div>
+
+    <h3>3-4　IPv4 標頭重點欄位</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>欄位</th><th>作用</th></tr>
+        <tr><td>Version</td><td>4 或 6</td></tr>
+        <tr><td>TTL（Time To Live）</td><td>每經過一台路由器減 1，<strong>歸零則丟棄</strong>並回送 ICMP 逾時 → 防止封包無限迴圈；<code>traceroute</code> 即利用此機制</td></tr>
+        <tr><td>Protocol</td><td>上層協定（TCP=6、UDP=17、ICMP=1）</td></tr>
+        <tr><td>Fragment Offset / Flags</td><td>分片重組資訊；DF（Don't Fragment）位元</td></tr>
+        <tr><td>Header Checksum</td><td><strong>只檢查標頭</strong>，不檢查資料；每經路由器需重算（因 TTL 改變）</td></tr>
+        <tr><td>Source / Destination IP</td><td>來源與目的位址</td></tr>
+      </table>
+    </div>
+
+    <h3>3-5　IPv6</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>IPv4</th><th>IPv6</th></tr>
+        <tr><td>位址長度</td><td>32 位元</td><td><strong>128 位元</strong></td></tr>
+        <tr><td>表示法</td><td>點分十進位</td><td>冒號分隔 16 進位，可用 <code>::</code> 縮寫連續 0（<strong>只能用一次</strong>）</td></tr>
+        <tr><td>標頭</td><td>可變長度（20–60 bytes）</td><td>固定 40 bytes ＋ 擴充標頭 → <strong>路由器處理更快</strong></td></tr>
+        <tr><td>標頭檢查碼</td><td>有</td><td><strong>移除</strong>（交由上層與連結層負責）</td></tr>
+        <tr><td>分片</td><td>路由器可分片</td><td><strong>僅來源端可分片</strong></td></tr>
+        <tr><td>廣播</td><td>有</td><td><strong>無廣播</strong>，改用多播（Multicast）與任播（Anycast）</td></tr>
+        <tr><td>位址自動設定</td><td>需 DHCP</td><td>支援 <strong>SLAAC</strong> 無狀態自動設定</td></tr>
+        <tr><td>ARP</td><td>ARP</td><td>改用 <strong>NDP</strong>（鄰居發現協定）</td></tr>
+        <tr><td>IPsec</td><td>選用</td><td>原生支援（設計上內建）</td></tr>
+        <tr><td>NAT</td><td>普遍必需</td><td>位址充足，原則上不需要</td></tr>
+      </table>
+    </div>
+    <p><strong>過渡技術</strong>：雙堆疊（Dual Stack，最常用）、隧道（Tunneling，如 6to4）、協定轉換（NAT64／DNS64）。</p>
+    <div class="plain">
+      <span class="t">✅ 公部門考點</span>
+      政府推動 <strong>IPv6 升級</strong>已列為政策目標，機關網站與服務須支援 IPv6。<br>
+      申論可寫：「機關導入 IPv6 宜採<strong>雙堆疊</strong>並行，逐步驗證應用系統相容性；同時須注意<strong>資安設備（防火牆、IDS）是否具備 IPv6 檢測能力</strong>，避免形成防護盲點。」<strong>最後這句是很有份量的加分點</strong>——很多機關開了 IPv6 卻沒同步升級資安設備。
+    </div>
+
+    <h3>3-6　NAT 網路位址轉換</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>說明</th></tr>
+        <tr><td>靜態 NAT</td><td>一對一固定對應（如對外服務的伺服器）</td></tr>
+        <tr><td>動態 NAT</td><td>從公有 IP 池中動態取用</td></tr>
+        <tr><td><strong>NAPT / PAT</strong></td><td><strong>多對一</strong>，以<strong>埠號</strong>區分不同內部主機（家用路由器與多數機關的做法）</td></tr>
+      </table>
+    </div>
+    <ul>
+      <li><strong>優點</strong>：節省公有 IP、隱藏內部網路結構（<u>附帶</u>的安全效果）。</li>
+      <li><strong>缺點</strong>：破壞端對端連線、影響部分協定（FTP 主動模式、SIP、IPsec）、增加疑難排解難度、不利點對點應用。</li>
+    </ul>
+    <div class="warn">
+      <span class="t">⚠️ 觀念釐清（常考陷阱）</span>
+      <strong>NAT 不是防火牆，也不能當作安全機制。</strong><br>
+      它確實讓外部無法直接連入內部主機，但那是「副作用」而非設計目的。內部主機主動連出去建立的連線，惡意流量仍可回來；且 NAT 完全不檢查封包內容。<br>
+      正確說法：「NAT 提供有限的<strong>隱蔽性（Obscurity）</strong>，但不等於安全性，仍需搭配防火牆與其他防護。」
+    </div>
+  </div>
+
+  <!-- ============ 第四章 ============ -->
+  <div class="card" id="c4">
+    <h2>第 4 章　網路層：路由與相關協定</h2>
+
+    <h3>4-1　繞送（Routing）基本原理</h3>
+    <p>路由器依<strong>繞送表</strong>決定封包往哪個介面送出，遵循<strong>最長前綴匹配（Longest Prefix Match）</strong>原則。</p>
+    <div class="frame">
+      <span class="t">📐 最長前綴匹配</span>
+      若繞送表中同時有：<br>
+      <code>10.0.0.0/8 → 介面 A</code><br>
+      <code>10.1.0.0/16 → 介面 B</code><br>
+      <code>10.1.1.0/24 → 介面 C</code><br><br>
+      封包目的為 <code>10.1.1.5</code> → 三條都符合，但選<strong>前綴最長（/24）</strong>的 → <strong>介面 C</strong><br><br>
+      <strong>白話</strong>：越精確的指示優先。就像「台北市大安區」比「台北市」更精確，當然聽前者。<br>
+      預設路由 <code>0.0.0.0/0</code> 前綴最短，所以是「都找不到時」的最後選擇。
+    </div>
+
+    <h3>4-2　路由協定分類</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>分類</th><th>協定</th><th>演算法</th><th>度量</th><th>特性</th></tr>
+        <tr><td rowspan="3">IGP<br>（自治系統內）</td>
+            <td><strong>RIP</strong></td><td>距離向量<br>(Bellman-Ford)</td><td>跳躍數（Hop）</td><td>簡單、上限 15 跳、收斂慢、易有迴圈</td></tr>
+        <tr><td><strong>OSPF</strong></td><td>連結狀態<br>(Dijkstra)</td><td>成本（頻寬）</td><td>收斂快、可分區（Area）、開放標準、大型網路適用</td></tr>
+        <tr><td>EIGRP</td><td>混合式</td><td>複合度量</td><td>Cisco 專屬（後開放）</td></tr>
+        <tr><td>EGP<br>（自治系統間）</td>
+            <td><strong>BGP</strong></td><td>路徑向量</td><td>路徑屬性／政策</td><td><strong>網際網路骨幹使用</strong>，可依政策選路</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>距離向量（RIP）</th><th>連結狀態（OSPF）</th></tr>
+        <tr><td>知道什麼</td><td>只知道「往哪走、幾跳」（<strong>傳聞式</strong>）</td><td>知道<strong>整張網路拓樸圖</strong></td></tr>
+        <tr><td>更新方式</td><td>定期廣播整張繞送表</td><td>拓樸變化時才觸發更新（LSA）</td></tr>
+        <tr><td>收斂速度</td><td>慢</td><td><strong>快</strong></td></tr>
+        <tr><td>CPU／記憶體</td><td>低</td><td>高</td></tr>
+        <tr><td>迴圈問題</td><td>易發生（需水平分割等機制）</td><td>不易發生</td></tr>
+      </table>
+    </div>
+    <p><strong>RIP 防迴圈機制</strong>：水平分割（Split Horizon）、路由毒化（Route Poisoning）、抑制計時器（Holddown Timer）、定義無限大（16 跳 = 不可達）。</p>
+
+    <h3>4-3　ICMP 與網路診斷工具</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>工具</th><th>原理</th><th>用途</th></tr>
+        <tr><td><code>ping</code></td><td>ICMP Echo Request／Reply</td><td>測試連通性與延遲</td></tr>
+        <tr><td><code>traceroute</code> / <code>tracert</code></td><td><strong>逐次遞增 TTL</strong>（1、2、3…），利用 TTL 歸零時回送的 ICMP 逾時訊息</td><td>找出封包經過的每一台路由器</td></tr>
+        <tr><td><code>nslookup</code> / <code>dig</code></td><td>DNS 查詢</td><td>診斷網域名稱解析</td></tr>
+        <tr><td><code>netstat</code></td><td>查看連線與監聽埠</td><td>找出可疑連線</td></tr>
+        <tr><td><code>arp -a</code></td><td>顯示 ARP 快取</td><td>診斷 L2 問題、偵測 ARP 欺騙</td></tr>
+        <tr><td><code>tcpdump</code> / Wireshark</td><td>封包擷取</td><td>深入分析協定內容</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 疑難排解的標準順序（申論情境題可用）</span>
+      「網路不通」時應由下層往上層逐層排除：<br>
+      <strong>① 實體層</strong>（網路線、燈號） → <strong>② IP 設定</strong>（<code>ipconfig</code>，是否拿到 169.254 表示 DHCP 失敗）→ <strong>③ 同網段連通</strong>（ping 閘道）→ <strong>④ 跨網段</strong>（ping 外部 IP）→ <strong>⑤ DNS</strong>（ping 網域名稱；若 IP 通但網址不通就是 DNS 問題）→ <strong>⑥ 應用層</strong>（埠號、防火牆、服務是否啟動）<br><br>
+      這套流程寫進申論，會顯得非常有實務感。
+    </div>
+
+    <h3>4-4　ARP 與相關風險</h3>
+    <p>ARP（Address Resolution Protocol）將 IP 位址解析為 MAC 位址：主機在區網內廣播「誰是 192.168.1.1？」，擁有者以單播回覆自己的 MAC。</p>
+    <div class="warn">
+      <span class="t">⚠️ ARP 的先天弱點</span>
+      ARP <strong>沒有任何驗證機制</strong>——誰回答都算。因此攻擊者可偽造回覆，把自己的 MAC 對應到閘道的 IP，讓所有流量都經過自己（<strong>ARP 欺騙／中間人攻擊</strong>）。<br><br>
+      <strong>防護</strong>：<br>
+      ‧ 靜態 ARP 綁定（管理成本高，僅用於關鍵主機）<br>
+      ‧ <strong>Dynamic ARP Inspection（DAI）</strong>＋ DHCP Snooping（交換器功能，實務主要手段）<br>
+      ‧ Port Security 限制每埠 MAC 數量<br>
+      ‧ 網段隔離（VLAN）縮小攻擊範圍<br>
+      ‧ 端點偵測異常 ARP 流量
+    </div>
+  </div>
+
+  <!-- ============ 第五章 ============ -->
+  <div class="card" id="c5">
+    <h2>第 5 章　傳輸層：TCP 與 UDP</h2>
+
+    <h3>5-1　TCP vs UDP（必考比較）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>TCP</th><th>UDP</th></tr>
+        <tr><td>連線</td><td><strong>連線導向</strong>（需三向交握）</td><td>非連線導向</td></tr>
+        <tr><td>可靠性</td><td><strong>可靠</strong>（確認、重送、排序）</td><td>不可靠（送出就算）</td></tr>
+        <tr><td>順序</td><td>保證順序</td><td>不保證</td></tr>
+        <tr><td>流量控制</td><td>有（滑動視窗）</td><td>無</td></tr>
+        <tr><td>擁塞控制</td><td>有</td><td>無</td></tr>
+        <tr><td>標頭大小</td><td>20 bytes 以上</td><td><strong>8 bytes</strong></td></tr>
+        <tr><td>速度／負擔</td><td>較慢、負擔大</td><td><strong>快、負擔小</strong></td></tr>
+        <tr><td>適用</td><td>網頁、檔案傳輸、郵件（<strong>不能錯</strong>）</td><td>影音串流、DNS、VoIP、線上遊戲（<strong>不能慢</strong>）</td></tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 白話版：掛號信 vs 明信片</div>
+      <p><strong>TCP 像掛號信</strong>：寄之前先確認對方在家（三向交握），寄出後對方要簽收（ACK），沒收到就再寄一次（重送），而且保證按順序拆封。可靠，但手續多、比較慢。</p>
+      <p><strong>UDP 像明信片</strong>：直接丟進郵筒，不管對方收不收到，也不管順序。快、便宜，但可能掉。</p>
+      <p><strong>為什麼視訊通話要用 UDP？</strong>因為如果第 100 個影格掉了，TCP 會停下來重送——等它送到，畫面早就過去了，反而造成卡頓。<strong>對即時影音來說，「掉一格」比「卡一下」好得多。</strong></p>
+    </div>
+
+    <h3>5-2　三向交握（Three-way Handshake）</h3>
+    <pre>用戶端                                    伺服器
+   │                                        │
+   │──────── ① SYN (seq=x) ───────────────→│   用戶端請求連線
+   │                                        │
+   │←─── ② SYN+ACK (seq=y, ack=x+1) ───────│   伺服器同意並回應
+   │                                        │
+   │──────── ③ ACK (ack=y+1) ─────────────→│   用戶端確認
+   │                                        │
+   │◄══════ 連線建立，開始傳資料 ═══════════►│</pre>
+    <div class="hl">
+      <span class="t">💡 為什麼要「三次」而不是兩次</span>
+      因為連線是<strong>雙向</strong>的，兩邊都必須確認「對方收得到我」與「我收得到對方」。<br>
+      兩次交握只能確認用戶端→伺服器這個方向；第三次的 ACK 才讓伺服器確知「用戶端也收到我的回應了」。<br>
+      此外，三次交握也讓雙方交換<strong>初始序號（ISN）</strong>並同步，避免舊的重複封包造成混亂。
+    </div>
+    <h4>四向斷線（Four-way Handshake）</h4>
+    <pre>① FIN  →     ② ACK ←     ③ FIN ←     ④ ACK →</pre>
+    <p>為什麼斷線需要四次？因為 TCP 是<strong>全雙工</strong>，兩個方向要<strong>各自關閉</strong>。一方送 FIN 只表示「我沒資料要送了」，對方可能還有資料要傳完才關。</p>
+
+    <h3>5-3　流量控制與擁塞控制（易混淆，必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>流量控制 Flow Control</th><th>擁塞控制 Congestion Control</th></tr>
+        <tr><td>解決的問題</td><td><strong>接收端</strong>處理不及（緩衝區滿）</td><td><strong>網路</strong>壅塞（路由器排隊丟包）</td></tr>
+        <tr><td>對象</td><td>端點對端點</td><td>整個網路</td></tr>
+        <tr><td>機制</td><td><strong>滑動視窗</strong>（接收端告知可接收量 rwnd）</td><td>慢啟動、擁塞避免、快速重送、快速回復（cwnd）</td></tr>
+        <tr><td>白話</td><td>「你講太快，我聽不完」</td><td>「馬路太塞，大家慢一點」</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 TCP 擁塞控制四階段</span>
+      <strong>① 慢啟動（Slow Start）</strong>：cwnd 從 1 開始，每收到 ACK <strong>加倍</strong>（指數成長），直到達到門檻 ssthresh<br>
+      <strong>② 擁塞避免（Congestion Avoidance）</strong>：超過門檻後改為<strong>每 RTT 加 1</strong>（線性成長）<br>
+      <strong>③ 快速重送（Fast Retransmit）</strong>：收到 <strong>3 個重複 ACK</strong> 即判定封包遺失，立刻重送，不等逾時<br>
+      <strong>④ 快速回復（Fast Recovery）</strong>：ssthresh 減半、cwnd 設為新門檻，回到擁塞避免（而非重新慢啟動）<br><br>
+      <strong>若發生逾時（Timeout）</strong>：視為嚴重壅塞，ssthresh 減半且 <strong>cwnd 歸 1，重新慢啟動</strong>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 「慢啟動」其實一點都不慢</div>
+      <p>名字容易誤導。它的意思是「<strong>從很小的量開始</strong>」，但成長速度是<strong>指數的</strong>：1 → 2 → 4 → 8 → 16…</p>
+      <p>設計邏輯：一開始不知道網路能承受多少，所以先小量試探；沒出問題就快速加倍，很快就能找到頻寬上限。一旦丟包（代表踩到上限），就退回去慢慢加。</p>
+      <p>這是很經典的「<strong>探測未知上限</strong>」演算法設計，和二分搜尋的精神類似。</p>
+    </div>
+
+    <h3>5-4　TCP 標頭重點欄位與旗標</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>旗標</th><th>意義</th></tr>
+        <tr><td><strong>SYN</strong></td><td>請求建立連線（同步序號）</td></tr>
+        <tr><td><strong>ACK</strong></td><td>確認欄位有效</td></tr>
+        <tr><td><strong>FIN</strong></td><td>正常結束連線</td></tr>
+        <tr><td><strong>RST</strong></td><td><strong>強制重置</strong>連線（如連到未開放的埠）</td></tr>
+        <tr><td>PSH</td><td>要求立即推送給應用層，不等緩衝區滿</td></tr>
+        <tr><td>URG</td><td>緊急資料指標有效</td></tr>
+      </table>
+    </div>
+    <div class="plain">
+      <span class="t">✅ 資安連結：旗標與掃描技術</span>
+      <strong>SYN Scan（半開放掃描）</strong>：只送 SYN，收到 SYN+ACK 表示埠開放，然後送 RST 中斷 → 不完成交握，較不易被記錄。<br>
+      <strong>SYN Flood 攻擊</strong>：大量送 SYN 但不回第三次 ACK，耗盡伺服器的半開連線表 → 阻斷服務。<br>
+      <strong>防護</strong>：<strong>SYN Cookie</strong>（不預先配置資源，把狀態編碼在序號裡）、縮短逾時、限制連線速率、部署 DDoS 清洗服務。<br><br>
+      這一段同時是網路題也是資安題，<strong>兩科通吃</strong>。
+    </div>
+  </div>
+
+  <!-- ============ 第六章 ============ -->
+  <div class="card" id="c6">
+    <h2>第 6 章　應用層協定與埠號</h2>
+
+    <h3>6-1　常見埠號（必背）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>埠號</th><th>協定</th><th>傳輸層</th><th>用途</th></tr>
+        <tr><td>20 / 21</td><td>FTP（資料／控制）</td><td>TCP</td><td>檔案傳輸（<strong>明文</strong>）</td></tr>
+        <tr><td><strong>22</strong></td><td>SSH / SFTP / SCP</td><td>TCP</td><td>加密遠端登入與傳輸</td></tr>
+        <tr><td>23</td><td>Telnet</td><td>TCP</td><td>遠端登入（<strong>明文，應停用</strong>）</td></tr>
+        <tr><td><strong>25</strong></td><td>SMTP</td><td>TCP</td><td>寄送郵件</td></tr>
+        <tr><td><strong>53</strong></td><td>DNS</td><td><strong>UDP 為主</strong>，區域傳送用 TCP</td><td>網域名稱解析</td></tr>
+        <tr><td>67 / 68</td><td>DHCP</td><td>UDP</td><td>動態取得 IP</td></tr>
+        <tr><td><strong>80</strong></td><td>HTTP</td><td>TCP</td><td>網頁（明文）</td></tr>
+        <tr><td>110</td><td>POP3</td><td>TCP</td><td>收信（下載後刪除）</td></tr>
+        <tr><td>143</td><td>IMAP</td><td>TCP</td><td>收信（保留在伺服器、可同步）</td></tr>
+        <tr><td>161 / 162</td><td>SNMP</td><td>UDP</td><td>網路設備管理與監控</td></tr>
+        <tr><td><strong>389</strong></td><td>LDAP</td><td>TCP</td><td>目錄服務（AD 帳號查詢）</td></tr>
+        <tr><td><strong>443</strong></td><td>HTTPS</td><td>TCP</td><td>加密網頁（TLS）</td></tr>
+        <tr><td>445</td><td>SMB</td><td>TCP</td><td>Windows 檔案共享（<strong>勒索軟體常見入口</strong>）</td></tr>
+        <tr><td>514</td><td>Syslog</td><td>UDP</td><td>日誌集中收集</td></tr>
+        <tr><td>636</td><td>LDAPS</td><td>TCP</td><td>加密目錄服務</td></tr>
+        <tr><td>1433 / 1521 / 3306 / 5432</td><td>SQL Server / Oracle / MySQL / PostgreSQL</td><td>TCP</td><td>資料庫（<strong>不應對外開放</strong>）</td></tr>
+        <tr><td>3389</td><td>RDP</td><td>TCP</td><td>Windows 遠端桌面（<strong>高風險，常被暴力破解</strong>）</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 埠號分類</span>
+      ‧ <strong>0–1023</strong>：知名埠（Well-known），需管理員權限才能綁定<br>
+      ‧ <strong>1024–49151</strong>：註冊埠（Registered）<br>
+      ‧ <strong>49152–65535</strong>：動態／私有埠（Dynamic），用戶端連線時的來源埠<br><br>
+      <strong>加密版本的記憶法</strong>：多數協定的加密版就是「原埠號 + 一個新號」——HTTP 80 → HTTPS 443、LDAP 389 → LDAPS 636、SMTP 25 → SMTPS 465/587、IMAP 143 → IMAPS 993、POP3 110 → POP3S 995。
+    </div>
+
+    <h3>6-2　DNS</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>記錄類型</th><th>用途</th></tr>
+        <tr><td><strong>A</strong></td><td>網域名稱 → IPv4 位址</td></tr>
+        <tr><td><strong>AAAA</strong></td><td>網域名稱 → IPv6 位址</td></tr>
+        <tr><td><strong>CNAME</strong></td><td>別名指向另一個名稱</td></tr>
+        <tr><td><strong>MX</strong></td><td>郵件伺服器</td></tr>
+        <tr><td>NS</td><td>指定該區域的權威名稱伺服器</td></tr>
+        <tr><td>PTR</td><td>IP → 名稱（反向查詢）</td></tr>
+        <tr><td>TXT</td><td>文字記錄（SPF、DKIM、網域驗證）</td></tr>
+        <tr><td>SOA</td><td>區域授權起始資訊</td></tr>
+      </table>
+    </div>
+    <p><strong>查詢流程</strong>：用戶端 → 本地 DNS（遞迴解析器）→ 根伺服器（.）→ 頂級域伺服器（.tw）→ 權威伺服器（gov.tw）→ 取得答案並快取（依 TTL）。</p>
+    <div class="warn">
+      <span class="t">⚠️ DNS 相關攻擊（高頻考點）</span>
+      ‧ <strong>DNS 快取毒化（Cache Poisoning）</strong>：偽造回應污染快取，把使用者導向惡意站台<br>
+      ‧ <strong>DNS 放大攻擊（Amplification）</strong>：偽造來源 IP 向開放解析器發小查詢，讓大回應湧向受害者（DDoS）<br>
+      ‧ <strong>DNS 隧道（Tunneling）</strong>：把資料藏在 DNS 查詢中<strong>竊出資料</strong>，因 DNS 常被防火牆放行而難察覺<br>
+      ‧ <strong>網域劫持</strong>：入侵註冊商帳號變更 NS 記錄<br><br>
+      <strong>防護</strong>：<strong>DNSSEC</strong>（以數位簽章驗證回應真偽）、限制遞迴查詢來源、DNS 查詢日誌監控與異常偵測、註冊商帳號啟用 MFA 與註冊鎖定。
+    </div>
+
+    <h3>6-3　HTTP 與 HTTPS</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>方法</th><th>用途</th><th>安全性註記</th></tr>
+        <tr><td>GET</td><td>取得資源</td><td>參數在 URL，<strong>會留在瀏覽紀錄與伺服器日誌</strong>，不可傳敏感資料</td></tr>
+        <tr><td>POST</td><td>提交資料</td><td>參數在本文</td></tr>
+        <tr><td>PUT / DELETE</td><td>更新／刪除</td><td>應嚴格權限控管，不需要時<strong>應停用</strong></td></tr>
+        <tr><td>HEAD</td><td>只取標頭</td><td>—</td></tr>
+        <tr><td>OPTIONS</td><td>查詢支援的方法</td><td>可能洩漏資訊</td></tr>
+        <tr><td>TRACE</td><td>回顯請求</td><td><strong>應停用</strong>（XST 攻擊）</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>狀態碼</th><th>意義</th></tr>
+        <tr><td>2xx</td><td>成功（200 OK、201 Created、204 No Content）</td></tr>
+        <tr><td>3xx</td><td>重新導向（301 永久、302 暫時、304 未修改）</td></tr>
+        <tr><td>4xx</td><td><strong>用戶端錯誤</strong>（400 錯誤請求、401 未驗證、403 禁止、404 找不到、429 請求過多）</td></tr>
+        <tr><td>5xx</td><td><strong>伺服器錯誤</strong>（500 內部錯誤、502 閘道錯誤、503 服務不可用）</td></tr>
+      </table>
+    </div>
+    <p><strong>HTTPS ＝ HTTP over TLS</strong>：提供<strong>機密性</strong>（加密）、<strong>完整性</strong>（MAC）、<strong>身分鑑別</strong>（伺服器憑證）。</p>
+    <div class="plain">
+      <span class="t">✅ 機關網站應設定的安全標頭</span>
+      <strong>HSTS</strong>（強制 HTTPS）、<strong>CSP</strong>（限制可載入的來源，防 XSS）、<strong>X-Frame-Options</strong>（防點擊劫持）、<strong>X-Content-Type-Options: nosniff</strong>、<strong>Cookie 加上 Secure / HttpOnly / SameSite</strong>。<br>
+      申論談網站安全時列出這幾項，會顯得非常專業。
+    </div>
+  </div>
+
+  <!-- ============ 第七章 ============ -->
+  <div class="card" id="c7">
+    <h2>第 7 章　無線網路與新興網路技術</h2>
+
+    <h3>7-1　Wi-Fi 標準</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>標準</th><th>別名</th><th>頻段</th><th>理論速率</th></tr>
+        <tr><td>802.11a/b/g</td><td>—</td><td>2.4／5 GHz</td><td>11～54 Mbps</td></tr>
+        <tr><td>802.11n</td><td>Wi-Fi 4</td><td>2.4／5 GHz</td><td>600 Mbps（MIMO）</td></tr>
+        <tr><td>802.11ac</td><td>Wi-Fi 5</td><td>5 GHz</td><td>數 Gbps</td></tr>
+        <tr><td>802.11ax</td><td><strong>Wi-Fi 6/6E</strong></td><td>2.4／5／6 GHz</td><td>約 9.6 Gbps；<strong>高密度環境效率大幅提升</strong>（OFDMA）</td></tr>
+      </table>
+    </div>
+    <p><strong>2.4 GHz</strong>：傳得遠、穿牆較好，但頻道少（僅 1、6、11 不重疊）、干擾多。<br>
+       <strong>5 GHz</strong>：頻寬大、干擾少，但穿牆能力較差。</p>
+
+    <h3>7-2　無線安全協定演進（必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>協定</th><th>加密</th><th>安全性</th><th>說明</th></tr>
+        <tr><td>WEP</td><td>RC4 + 24 位元 IV</td><td><strong>已破解</strong></td><td>IV 太短易重複，數分鐘即可破解，<strong>絕不可使用</strong></td></tr>
+        <tr><td>WPA</td><td>TKIP（RC4）</td><td>過渡方案</td><td>為兼容舊硬體的臨時措施</td></tr>
+        <tr><td><strong>WPA2</strong></td><td><strong>AES-CCMP</strong></td><td>目前最低要求</td><td>企業級搭配 802.1X；有 KRACK 弱點（已修補）</td></tr>
+        <tr><td><strong>WPA3</strong></td><td>AES + <strong>SAE</strong></td><td><strong>目前最佳</strong></td><td>SAE 取代 PSK，可防離線字典攻擊；並提供前向保密</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>模式</th><th>驗證方式</th><th>適用</th></tr>
+        <tr><td>Personal（PSK）</td><td>共享密碼</td><td>家用、小型辦公室</td></tr>
+        <tr><td><strong>Enterprise（802.1X）</strong></td><td>每人獨立帳號，經 <strong>RADIUS</strong> 驗證</td><td><strong>機關應採用</strong>：人員離職只需停用其帳號，不必更換全機關密碼</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 無效或不足的無線「安全」措施（常考陷阱）</span>
+      ‧ <strong>隱藏 SSID</strong>：探測封包仍可發現，只是防外行人<br>
+      ‧ <strong>MAC 位址過濾</strong>：MAC 可輕易偽造<br>
+      ‧ <strong>降低發射功率</strong>：高增益天線仍可接收<br><br>
+      這三項屬於「<strong>以隱蔽代替安全（Security through Obscurity）</strong>」，可作為輔助但不能當主要防護。<strong>真正有效的是強加密（WPA3／WPA2-AES）＋ 802.1X 驗證 ＋ 網段隔離。</strong>
+    </div>
+    <p><strong>其他無線攻擊</strong>：<strong>惡意 AP（Rogue AP）</strong>、<strong>邪惡雙胞胎（Evil Twin）</strong>假冒同名 SSID 誘連、<strong>解除驗證攻擊（Deauth）</strong>強制斷線以誘導重連、<strong>WPS PIN 暴力破解</strong>（應停用 WPS）。</p>
+
+    <h3>7-3　VPN</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>說明</th></tr>
+        <tr><td>Site-to-Site</td><td>兩個據點的網路直接互連（如總部與分支機關）</td></tr>
+        <tr><td>Remote Access</td><td>個別使用者連回內網（如居家辦公）</td></tr>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>運作層級</th><th>特性</th></tr>
+        <tr><td><strong>IPsec</strong></td><td>L3（網路層）</td><td>AH（僅驗證完整性）／<strong>ESP（加密＋驗證）</strong>；傳輸模式 vs <strong>隧道模式</strong>；需用戶端軟體</td></tr>
+        <tr><td><strong>SSL/TLS VPN</strong></td><td>L4～L7</td><td>可用瀏覽器連線、穿透防火牆容易、部署簡便</td></tr>
+        <tr><td>WireGuard</td><td>L3</td><td>新一代，程式碼精簡、效能好</td></tr>
+      </table>
+    </div>
+    <div class="plain">
+      <span class="t">✅ 機關遠端存取的實務要點</span>
+      1. VPN <strong>必須搭配多因子驗證（MFA）</strong>——單靠帳密的 VPN 是勒索軟體最常見的入口。<br>
+      2. 採<strong>最小權限</strong>：VPN 連入後不應可存取整個內網，須以網段與 ACL 限制。<br>
+      3. 端點檢查：確認連入設備已更新、有防毒。<br>
+      4. 保留<strong>連線日誌</strong>供稽核。<br>
+      5. 考慮以<strong>零信任網路存取（ZTNA）</strong>逐步取代傳統 VPN。
+    </div>
+
+    <h3>7-4　新興網路技術</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>核心概念</th><th>公部門應用</th></tr>
+        <tr><td><strong>SDN</strong>（軟體定義網路）</td><td><strong>控制平面與資料平面分離</strong>，由集中控制器以軟體下達繞送策略</td><td>資料中心彈性調度、快速套用網段隔離政策</td></tr>
+        <tr><td><strong>NFV</strong>（網路功能虛擬化）</td><td>以軟體取代專用硬體（防火牆、負載平衡器）</td><td>降低設備採購成本、快速擴充</td></tr>
+        <tr><td>SD-WAN</td><td>以軟體智慧選擇多條 WAN 線路</td><td>分支機關連線最佳化與備援</td></tr>
+        <tr><td><strong>5G</strong></td><td>高頻寬、低延遲、大連結；<strong>網路切片（Slicing）</strong></td><td>智慧城市、遠距醫療、應變通訊</td></tr>
+        <tr><td><strong>邊緣運算</strong></td><td>在靠近資料來源處運算，減少回傳延遲與頻寬</td><td>交通監控影像分析、IoT 感測</td></tr>
+        <tr><td><strong>IoT</strong></td><td>大量低功耗裝置聯網</td><td>環境監測、路燈與水電表管理</td></tr>
+        <tr><td>零信任網路</td><td>不預設信任內網，每次存取皆驗證</td><td>詳見<a href="net2.html">下半部資安章節</a></td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 新技術的資安風險（申論必寫的一段）</span>
+      <strong>SDN</strong>：控制器成為<strong>單點故障與高價值攻擊目標</strong>，一旦被入侵可操控全網 → 須高可用部署、控制通道加密、嚴格存取控管。<br>
+      <strong>IoT</strong>：裝置運算資源少難以加密、<strong>預設密碼未更改</strong>、韌體長期不更新、生命週期長 → 常被組成殭屍網路（如 Mirai）發動 DDoS。應納入資產清冊、獨立網段、強制變更預設憑證、建立韌體更新機制。<br>
+      <strong>5G／邊緣</strong>：攻擊面由中心擴散至邊緣節點，實體安全與遠端管理皆須納管。
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="index.html">← 高考三級首頁</a>
+    <a class="btn btn-next" href="net2.html">下一部分：密碼學、攻擊防禦、資安法規 →</a>
+  </div>
+
+</div>
+
+<footer>高考三級 · 資通網路與安全講義（第一部分：網路，第 1～7 章）</footer>
+
+</body>
+</html>
