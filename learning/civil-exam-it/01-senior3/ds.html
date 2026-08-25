@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料結構 完整講義 | 高考三級</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-senior3">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">高考三級</a><span class="sep">/</span><span>資料結構 講義</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🌳 高考三級 · 專業科目一 · 占總成績 19.5%</div>
+  <h1>資料結構 完整講義</h1>
+  <p>從「為什麼要有資料結構」開始，每個結構都用生活比喻講一遍，<br>再給考試要寫的正式定義、複雜度與推導。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 目錄</div>
+    <ol>
+      <li><a href="#c1">演算法與複雜度分析</a>（必考、每年出現）</li>
+      <li><a href="#c2">陣列與鏈結串列</a></li>
+      <li><a href="#c3">堆疊與佇列</a></li>
+      <li><a href="#c4">樹：基礎與二元樹</a></li>
+      <li><a href="#c5">樹：BST、AVL、B-Tree、Heap</a>（高頻）</li>
+      <li><a href="#c6">圖：表示法與走訪</a></li>
+      <li><a href="#c7">圖：MST 與最短路徑</a>（高頻）</li>
+      <li><a href="#c8">排序演算法</a>（高頻）</li>
+      <li><a href="#c9">搜尋與雜湊</a></li>
+      <li><a href="#c10">演算法設計策略</a></li>
+      <li><a href="#c11">計算複雜度理論（P、NP）</a></li>
+      <li><a href="#c12">考前速記表</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 第一章 ============ -->
+  <div class="card" id="c1">
+    <h2>第 1 章　演算法與複雜度分析</h2>
+
+    <h3>1-1　什麼是資料結構、什麼是演算法</h3>
+    <p><strong>資料結構（Data Structure）</strong>：資料在電腦中的組織與儲存方式。<br>
+       <strong>演算法（Algorithm）</strong>：解決問題的有限步驟集合。</p>
+    <div class="easy">
+      <div class="t">🧒 白話版</div>
+      <p>把「資料結構」想成<strong>收納方式</strong>，「演算法」想成<strong>做事的步驟</strong>。</p>
+      <p>同樣是找一本書：如果書隨便堆在地上（陣列、無序），你只能一本一本翻；如果書按書名字母順序排在書架上（有序陣列），你可以從中間開始猜（二分搜尋）；如果有一本索引目錄告訴你「這本書在第 3 排第 5 格」（雜湊表），你可以一步到位。</p>
+      <p><strong>收納方式決定了你能用什麼方法找，方法又決定了要花多少時間。</strong>這就是這門科目的全部核心。</p>
+    </div>
+
+    <h4>演算法的五個必要特性（考過名詞解釋）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>特性</th><th>英文</th><th>說明</th></tr>
+        <tr><td>輸入</td><td>Input</td><td>零個或多個輸入</td></tr>
+        <tr><td>輸出</td><td>Output</td><td><strong>至少一個</strong>輸出</td></tr>
+        <tr><td>明確性</td><td>Definiteness</td><td>每個步驟必須清楚無歧義</td></tr>
+        <tr><td>有限性</td><td>Finiteness</td><td>執行有限步驟後必須停止</td></tr>
+        <tr><td>有效性</td><td>Effectiveness</td><td>每個步驟都是可執行的基本操作</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      考點：<strong>作業系統不是演算法</strong>（因為它不會停止，違反有限性）。這是經典的觀念題。
+    </div>
+
+    <h3>1-2　漸進符號（Asymptotic Notation）</h3>
+    <p>我們不在意「跑幾秒」（那跟機器有關），只在意「<strong>輸入變大時，時間怎麼成長</strong>」。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>符號</th><th>意義</th><th>數學定義</th><th>白話</th></tr>
+        <tr>
+          <td><strong>O(g(n))</strong> 大 O</td><td>上界（最壞情況）</td>
+          <td>存在 c &gt; 0、n₀，使 n ≥ n₀ 時 f(n) ≤ c·g(n)</td>
+          <td>「最慢不會超過這個」</td>
+        </tr>
+        <tr>
+          <td><strong>Ω(g(n))</strong> 大 Omega</td><td>下界（最好情況）</td>
+          <td>f(n) ≥ c·g(n)</td>
+          <td>「最快也要這麼久」</td>
+        </tr>
+        <tr>
+          <td><strong>Θ(g(n))</strong> 大 Theta</td><td>上下界皆同（緊界）</td>
+          <td>c₁·g(n) ≤ f(n) ≤ c₂·g(n)</td>
+          <td>「就是這個等級」</td>
+        </tr>
+        <tr>
+          <td><strong>o(g(n))</strong> 小 o</td><td>嚴格上界</td>
+          <td>對所有 c &gt; 0 皆成立 f(n) &lt; c·g(n)</td>
+          <td>「絕對比它小一個等級」</td>
+        </tr>
+        <tr>
+          <td><strong>ω(g(n))</strong> 小 omega</td><td>嚴格下界</td>
+          <td>對所有 c &gt; 0 皆成立 f(n) &gt; c·g(n)</td>
+          <td>「絕對比它大一個等級」</td>
+        </tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 用高中數學理解「為什麼可以丟掉常數」</div>
+      <p>假設演算法 A 要 <code>3n² + 100n + 5000</code> 個步驟。當 n = 10 時，100n 和 5000 反而比較大；但 n = 10000 時：</p>
+      <ul>
+        <li>3n² = 300,000,000</li>
+        <li>100n = 1,000,000（只有 0.3%）</li>
+        <li>5000 ≈ 0%</li>
+      </ul>
+      <p>n 越大，<strong>最高次項越是壓倒性地主宰一切</strong>。所以我們直接說它是 O(n²)。這跟高中學極限時「分子分母同除最高次項」是同一個道理。</p>
+      <p>常數 3 也丟掉，是因為換一台快 3 倍的電腦就抵銷了——<strong>我們比較的是「演算法本身好不好」，不是「電腦快不快」。</strong></p>
+    </div>
+
+    <h4>成長速度排序（必背）</h4>
+    <div class="hl">
+      O(1) &lt; O(log n) &lt; O(√n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(n³) &lt; O(2ⁿ) &lt; O(n!) &lt; O(nⁿ)
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>複雜度</th><th>n=10</th><th>n=100</th><th>n=1000</th><th>典型演算法</th></tr>
+        <tr><td>O(1)</td><td>1</td><td>1</td><td>1</td><td>陣列索引存取、雜湊查詢（平均）</td></tr>
+        <tr><td>O(log n)</td><td>≈3</td><td>≈7</td><td>≈10</td><td>二分搜尋、平衡樹操作</td></tr>
+        <tr><td>O(n)</td><td>10</td><td>100</td><td>1,000</td><td>線性搜尋、走訪串列</td></tr>
+        <tr><td>O(n log n)</td><td>≈33</td><td>≈664</td><td>≈9,966</td><td>Merge / Heap / Quick Sort（平均）</td></tr>
+        <tr><td>O(n²)</td><td>100</td><td>10,000</td><td>1,000,000</td><td>Bubble / Selection / Insertion Sort</td></tr>
+        <tr><td>O(2ⁿ)</td><td>1,024</td><td>≈10³⁰</td><td>天文數字</td><td>子集合列舉、費氏數列遞迴</td></tr>
+        <tr><td>O(n!)</td><td>3,628,800</td><td colspan="2">已無法計算</td><td>旅行推銷員暴力解</td></tr>
+      </table>
+    </div>
+
+    <h3>1-3　遞迴式求解（Recurrence Relation）</h3>
+    <p>申論題常出：「請分析下列遞迴演算法之時間複雜度」。三種解法要會。</p>
+
+    <h4>方法一：展開法（Substitution / Iteration）</h4>
+    <p>以 <code>T(n) = 2T(n/2) + n，T(1) = 1</code> 為例（Merge Sort）：</p>
+    <pre>T(n) = 2T(n/2) + n
+     = 2[2T(n/4) + n/2] + n = 4T(n/4) + 2n
+     = 4[2T(n/8) + n/4] + 2n = 8T(n/8) + 3n
+     ...
+     = 2^k · T(n/2^k) + k·n
+
+<span class="c">令 n/2^k = 1 → k = log₂n</span>
+     = n·T(1) + n·log₂n
+     = n + n log n
+<span class="c">→ T(n) = Θ(n log n)</span></pre>
+
+    <h4>方法二：遞迴樹（Recursion Tree）</h4>
+    <p>把每一層的成本畫出來相加。以 <code>T(n)=2T(n/2)+n</code>：</p>
+    <pre>層 0:            n              = n
+層 1:      n/2       n/2        = n
+層 2:   n/4  n/4  n/4  n/4      = n
+...
+層 log n:  1 1 1 ... 1 (n 個)   = n
+<span class="c">共 (log n + 1) 層，每層成本 n → 總計 n log n</span></pre>
+
+    <h4>方法三：主定理（Master Theorem）— 最常用</h4>
+    <div class="frame">
+      <span class="t">📐 主定理</span>
+      對於 <code>T(n) = a·T(n/b) + f(n)</code>，其中 a ≥ 1、b &gt; 1，比較 <code>f(n)</code> 與 <code>n^(log_b a)</code>：<br><br>
+      <strong>Case 1</strong>：若 f(n) = O(n^(log_b a − ε))　→　T(n) = Θ(n^(log_b a))　<em>（遞迴部分較重）</em><br>
+      <strong>Case 2</strong>：若 f(n) = Θ(n^(log_b a))　→　T(n) = Θ(n^(log_b a) · log n)　<em>（兩者相當）</em><br>
+      <strong>Case 3</strong>：若 f(n) = Ω(n^(log_b a + ε)) 且滿足正規條件 a·f(n/b) ≤ c·f(n)　→　T(n) = Θ(f(n))　<em>（合併部分較重）</em>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>遞迴式</th><th>a, b</th><th>n^(log_b a)</th><th>f(n)</th><th>Case</th><th>結果</th></tr>
+        <tr><td>T(n)=2T(n/2)+n</td><td>2, 2</td><td>n¹ = n</td><td>n</td><td>2</td><td><strong>Θ(n log n)</strong></td></tr>
+        <tr><td>T(n)=2T(n/2)+1</td><td>2, 2</td><td>n</td><td>1</td><td>1</td><td><strong>Θ(n)</strong></td></tr>
+        <tr><td>T(n)=T(n/2)+1</td><td>1, 2</td><td>n⁰ = 1</td><td>1</td><td>2</td><td><strong>Θ(log n)</strong>（二分搜尋）</td></tr>
+        <tr><td>T(n)=4T(n/2)+n</td><td>4, 2</td><td>n²</td><td>n</td><td>1</td><td><strong>Θ(n²)</strong></td></tr>
+        <tr><td>T(n)=3T(n/4)+n log n</td><td>3, 4</td><td>n^0.79</td><td>n log n</td><td>3</td><td><strong>Θ(n log n)</strong></td></tr>
+        <tr><td>T(n)=7T(n/2)+n²</td><td>7, 2</td><td>n^2.81</td><td>n²</td><td>1</td><td><strong>Θ(n^2.81)</strong>（Strassen 矩陣乘法）</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 主定理不適用的情況</span>
+      1. <code>T(n) = T(n−1) + n</code>（不是除法遞減，是減法）→ 用展開法，答案 Θ(n²)。<br>
+      2. <code>T(n) = 2T(n/2) + n/log n</code>（f(n) 落在兩個 case 中間的「間隙」）→ 主定理無法判定。<br>
+      申論題如果遇到這種，寫「本式不符主定理適用條件，改以展開法求解」反而是加分點。
+    </div>
+
+    <h3>1-4　常見遞迴的複雜度（背下來）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>遞迴式</th><th>複雜度</th><th>出處</th></tr>
+        <tr><td>T(n) = T(n−1) + 1</td><td>Θ(n)</td><td>線性遞迴（如階乘）</td></tr>
+        <tr><td>T(n) = T(n−1) + n</td><td>Θ(n²)</td><td>Quick Sort 最壞情況</td></tr>
+        <tr><td>T(n) = 2T(n−1) + 1</td><td>Θ(2ⁿ)</td><td>河內塔</td></tr>
+        <tr><td>T(n) = T(n−1) + T(n−2)</td><td>Θ(φⁿ)≈Θ(1.618ⁿ)</td><td>費氏數列樸素遞迴</td></tr>
+        <tr><td>T(n) = T(n/2) + 1</td><td>Θ(log n)</td><td>二分搜尋</td></tr>
+        <tr><td>T(n) = 2T(n/2) + n</td><td>Θ(n log n)</td><td>Merge Sort</td></tr>
+      </table>
+    </div>
+
+    <h3>1-5　攤還分析（Amortized Analysis）</h3>
+    <p>某些操作偶爾很貴，但平均下來很便宜。<strong>不是平均情況分析</strong>（那是機率），而是「一連串操作的總成本除以次數」。</p>
+    <div class="easy">
+      <div class="t">🧒 白話版：動態陣列的例子</div>
+      <p>動態陣列（如 Java 的 ArrayList）滿了就要「<strong>擴充成兩倍並複製舊資料</strong>」，這次操作是 O(n)，看起來很貴。</p>
+      <p>但擴充不是每次都發生。假設容量從 1→2→4→8→…→n，總複製次數是 1+2+4+…+n/2 ≈ n 次。<strong>做 n 次插入，總成本約 2n，平均每次 O(1)。</strong></p>
+      <p>就像手機月租費：你偶爾要換一支新手機（很貴），但攤到每個月其實還好。<strong>攤還分析看的是「長期平均」，且是最壞情況下的長期平均，有保證。</strong></p>
+    </div>
+    <p>三種分析方法：<strong>聚合分析（Aggregate）、記帳法（Accounting）、位能法（Potential）</strong>。考試通常只要求會用聚合分析說明動態陣列或 Union-Find 即可。</p>
+  </div>
+
+  <!-- ============ 第二章 ============ -->
+  <div class="card" id="c2">
+    <h2>第 2 章　陣列與鏈結串列</h2>
+
+    <h3>2-1　陣列（Array）</h3>
+    <p>連續記憶體空間，用索引直接計算位址，故存取為 O(1)。</p>
+    <h4>位址計算公式（考過計算題）</h4>
+    <div class="frame">
+      <strong>一維</strong>：A[i] 的位址 = 基底位址 + (i − 下界) × 元素大小<br><br>
+      <strong>二維（列優先 Row-major，C/Java 採用）</strong>：<br>
+      A[i][j] 位址 = base + [(i − l₁) × (u₂ − l₂ + 1) + (j − l₂)] × size<br><br>
+      <strong>二維（行優先 Column-major，Fortran 採用）</strong>：<br>
+      A[i][j] 位址 = base + [(j − l₂) × (u₁ − l₁ + 1) + (i − l₁)] × size
+    </div>
+    <p><strong>例</strong>：A[1..5][1..8]，base = 1000，每個元素 4 bytes，列優先，求 A[3][4]？<br>
+    → 1000 + [(3−1) × 8 + (4−1)] × 4 = 1000 + (16+3)×4 = 1000 + 76 = <strong>1076</strong></p>
+
+    <h4>特殊矩陣的壓縮儲存（考點）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>矩陣類型</th><th>特性</th><th>所需空間</th></tr>
+        <tr><td>對稱矩陣</td><td>A[i][j] = A[j][i]</td><td>n(n+1)/2</td></tr>
+        <tr><td>上／下三角矩陣</td><td>一半為 0</td><td>n(n+1)/2</td></tr>
+        <tr><td>對角矩陣</td><td>只有對角線有值</td><td>n</td></tr>
+        <tr><td>三對角矩陣</td><td>對角線及其上下各一條</td><td>3n − 2</td></tr>
+        <tr><td>稀疏矩陣</td><td>大多數為 0</td><td>用三元組 (row, col, value) 儲存</td></tr>
+      </table>
+    </div>
+
+    <h3>2-2　鏈結串列（Linked List）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>結構</th><th>特點</th></tr>
+        <tr><td>單向串列</td><td>node = {data, next}</td><td>只能往前走，最後一個 next = NULL</td></tr>
+        <tr><td>雙向串列</td><td>node = {prev, data, next}</td><td>可雙向走訪，刪除節點不需前驅指標</td></tr>
+        <tr><td>環狀串列</td><td>尾端 next 指回開頭</td><td>可從任一點走完全部；用於輪轉排程</td></tr>
+        <tr><td>雙向環狀＋標頭節點</td><td>加一個 dummy head</td><td>插刪不需特判空串列，程式最簡潔</td></tr>
+      </table>
+    </div>
+
+    <h4>陣列 vs 鏈結串列（必考比較題）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>陣列</th><th>鏈結串列</th></tr>
+        <tr><td>記憶體配置</td><td>連續、靜態（宣告時決定）</td><td>不連續、動態</td></tr>
+        <tr><td>隨機存取第 i 個</td><td><strong>O(1)</strong></td><td>O(n)</td></tr>
+        <tr><td>已知位置插入／刪除</td><td>O(n)（要搬移元素）</td><td><strong>O(1)</strong>（改指標）</td></tr>
+        <tr><td>搜尋（未排序）</td><td>O(n)</td><td>O(n)</td></tr>
+        <tr><td>額外空間</td><td>無</td><td>每節點多一個（或兩個）指標</td></tr>
+        <tr><td>記憶體碎片</td><td>需連續大塊，易失敗</td><td>可利用零碎空間</td></tr>
+        <tr><td>快取效能</td><td><strong>佳</strong>（空間局部性好）</td><td>差（節點分散）</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 申論題怎麼寫這一段</span>
+      不要只寫表格就結束，最後要加一段「<strong>如何選擇</strong>」：<br>
+      「若應用以<strong>查詢為主、資料量穩定</strong>（如查表、影像像素），宜採陣列；若<strong>頻繁插入刪除、資料量變動大</strong>（如工作佇列、編輯器的復原紀錄），宜採鏈結串列。實務上多採<strong>動態陣列</strong>兼顧兩者，惟需注意擴充時的複製成本（攤還後仍為 O(1)）。」
+    </div>
+
+    <h4>常考的鏈結串列題型</h4>
+    <ul>
+      <li><strong>反轉串列</strong>：用三個指標 prev、curr、next 逐一翻轉，O(n) 時間、O(1) 空間。</li>
+      <li><strong>偵測環路（Floyd 龜兔演算法）</strong>：慢指標一次一步、快指標一次兩步，若相遇則有環。O(n) 時間、O(1) 空間。</li>
+      <li><strong>找中點</strong>：同樣用快慢指標，快指標到底時慢指標在中間。</li>
+      <li><strong>合併兩個已排序串列</strong>：類似 Merge Sort 的合併步驟。</li>
+      <li><strong>多項式相加</strong>：每個節點存 (係數, 指數)，依指數大小合併。<strong>經典申論題。</strong></li>
+    </ul>
+    <pre><span class="c">// 反轉單向串列</span>
+<span class="k">Node</span> reverse(<span class="k">Node</span> head) {
+    <span class="k">Node</span> prev = NULL, curr = head;
+    <span class="k">while</span> (curr != NULL) {
+        <span class="k">Node</span> next = curr.next;   <span class="c">// 先記住下一個</span>
+        curr.next = prev;          <span class="c">// 掉頭</span>
+        prev = curr;               <span class="c">// 兩個指標各前進一步</span>
+        curr = next;
+    }
+    <span class="k">return</span> prev;                   <span class="c">// prev 是新的頭</span>
+}</pre>
+  </div>
+
+  <!-- ============ 第三章 ============ -->
+  <div class="card" id="c3">
+    <h2>第 3 章　堆疊與佇列</h2>
+
+    <h3>3-1　堆疊（Stack）— 後進先出 LIFO</h3>
+    <p>操作：<code>push</code>、<code>pop</code>、<code>top/peek</code>、<code>isEmpty</code>，皆為 O(1)。</p>
+    <div class="easy">
+      <div class="t">🧒 白話版</div>
+      <p>像<strong>洗好疊起來的盤子</strong>：你只能拿最上面那個，也只能放在最上面。最後放上去的最先被拿走。</p>
+      <p>或者想成瀏覽器的「上一頁」：你逛了 A→B→C，按上一頁會回到 B（最近去過的先回來）。</p>
+    </div>
+
+    <h4>堆疊的五大應用（申論愛考）</h4>
+    <ol>
+      <li><strong>函式呼叫與遞迴</strong>：系統用呼叫堆疊（Call Stack）記住返回位址與區域變數。遞迴太深 → Stack Overflow。</li>
+      <li><strong>運算式轉換與求值</strong>：中序 ↔ 前序 ↔ 後序。</li>
+      <li><strong>括號配對檢查</strong>：遇左括號 push、遇右括號 pop 比對。</li>
+      <li><strong>復原機制（Undo）</strong>：每個動作 push 進去，Undo 就 pop。</li>
+      <li><strong>DFS 深度優先搜尋</strong>（非遞迴版）。</li>
+    </ol>
+
+    <h4>運算式轉換（每年可能出的計算題）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>表示法</th><th>又稱</th><th>範例（A+B*C）</th><th>特點</th></tr>
+        <tr><td>中序 Infix</td><td>—</td><td>A + B * C</td><td>人類習慣，但需括號與優先權</td></tr>
+        <tr><td>前序 Prefix</td><td>波蘭表示法</td><td>+ A * B C</td><td>運算子在前</td></tr>
+        <tr><td>後序 Postfix</td><td>逆波蘭 RPN</td><td>A B C * +</td><td><strong>電腦最好處理，不需括號</strong></td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 中序轉後序的手算口訣</span>
+      <strong>方法一（完全括號法，最不會錯）</strong>：<br>
+      1. 依運算優先順序，把每一組運算加上完整括號<br>
+      2. 把每個運算子移到它所屬括號的<strong>右括號</strong>位置<br>
+      3. 去掉所有括號<br><br>
+      <strong>例：A + B * C − D</strong><br>
+      → ((A + (B * C)) − D)<br>
+      → ((A (B C)*)+ D)−<br>
+      → <strong>A B C * + D −</strong><br><br>
+      <strong>轉前序</strong>：同樣加括號，但運算子移到<strong>左括號</strong>位置 → <strong>− + A * B C D</strong>
+    </div>
+    <div class="frame">
+      <span class="t">📐 後序求值（用堆疊）</span>
+      由左至右掃描：遇到<strong>運算元就 push</strong>；遇到<strong>運算子就 pop 兩個</strong>（先 pop 的是右運算元），運算後把結果 push 回去。<br><br>
+      <strong>例：6 2 / 3 − 4 2 * +　求值</strong><br>
+      6,2 → push；遇 / → pop 2、pop 6 → 6/2=3 → push 3<br>
+      3 → push；遇 − → pop 3、pop 3 → 3−3=0 → push 0<br>
+      4,2 → push；遇 * → 4*2=8 → push 8<br>
+      遇 + → 0+8 = <strong>8</strong>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 最容易錯的地方</span>
+      減法與除法<strong>順序不能顛倒</strong>。pop 出來的<strong>第一個是右運算元</strong>，第二個才是左運算元。<br>
+      <code>a b −</code> 是 a − b，不是 b − a。考試很愛在這裡設陷阱。
+    </div>
+
+    <h3>3-2　佇列（Queue）— 先進先出 FIFO</h3>
+    <p>操作：<code>enqueue</code>（從 rear 進）、<code>dequeue</code>（從 front 出），皆為 O(1)。</p>
+    <div class="easy">
+      <div class="t">🧒 白話版</div>
+      <p>就是<strong>排隊買飲料</strong>：先來的先買到，後來的排後面。</p>
+      <p>電腦裡的印表機工作、CPU 排程、網路封包緩衝，全都是這個模型。</p>
+    </div>
+
+    <h4>環狀佇列（Circular Queue）— 高頻考點</h4>
+    <p>普通陣列佇列有「<strong>假性溢滿</strong>」問題：front 一直往後移，前面空間浪費掉。環狀佇列讓 rear 走到底時繞回 0。</p>
+    <div class="frame">
+      <span class="t">📐 環狀佇列公式</span>
+      入列：<code>rear = (rear + 1) % MAX;　Q[rear] = x;</code><br>
+      出列：<code>front = (front + 1) % MAX;　return Q[front];</code><br><br>
+      <strong>判斷條件（犧牲一格的做法）</strong><br>
+      空：<code>front == rear</code><br>
+      滿：<code>(rear + 1) % MAX == front</code><br><br>
+      <strong>元素個數</strong>：<code>(rear − front + MAX) % MAX</code>
+    </div>
+    <div class="hl">
+      為什麼要犧牲一格？因為「空」和「滿」都會讓 front == rear，<strong>無法區分</strong>。解法有三：<br>
+      (1) 犧牲一格（最常考）　(2) 額外用一個 count 變數　(3) 額外用一個 flag 記錄上次操作是入列或出列。
+    </div>
+
+    <h4>其他佇列變形</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>說明</th><th>應用</th></tr>
+        <tr><td>雙向佇列 Deque</td><td>兩端都可進出</td><td>滑動視窗最大值、瀏覽器歷史</td></tr>
+        <tr><td>優先佇列 Priority Queue</td><td>依優先權出列，非 FIFO</td><td>作業排程、Dijkstra、Huffman</td></tr>
+        <tr><td>多層佇列</td><td>依優先權分成多條佇列</td><td>作業系統排程</td></tr>
+      </table>
+    </div>
+    <p><strong>優先佇列</strong>通常用 <strong>Heap 堆積</strong>實作，插入與刪除皆 O(log n)。如果用未排序陣列實作：插入 O(1)、取最大 O(n)；用排序陣列：插入 O(n)、取最大 O(1)。<strong>Heap 是兩者的折衷，也是最佳選擇。</strong></p>
+  </div>
+
+  <!-- ============ 第四章 ============ -->
+  <div class="card" id="c4">
+    <h2>第 4 章　樹：基礎與二元樹</h2>
+
+    <h3>4-1　名詞定義（申論會直接考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>名詞</th><th>定義</th></tr>
+        <tr><td>樹 Tree</td><td>由 n(≥1) 個節點組成的有限集合，有一個根節點，其餘節點分為互斥的子樹</td></tr>
+        <tr><td>分支度 Degree</td><td>節點的子節點個數；<strong>樹的分支度</strong>＝所有節點中最大的分支度</td></tr>
+        <tr><td>階層 Level</td><td>根為 Level 1（有些書從 0 開始，作答時<strong>務必寫明定義</strong>）</td></tr>
+        <tr><td>高度 Height</td><td>樹中最大的階層數</td></tr>
+        <tr><td>樹葉 Leaf</td><td>分支度為 0 的節點</td></tr>
+        <tr><td>森林 Forest</td><td>n(≥0) 棵互斥樹的集合；把樹的根拿掉就變成森林</td></tr>
+      </table>
+    </div>
+
+    <h3>4-2　二元樹（Binary Tree）</h3>
+    <p>每個節點<strong>最多兩個子節點</strong>，且區分左右。注意：<strong>二元樹可以是空的，一般樹不行</strong>（這是經典觀念題）。</p>
+
+    <h4>重要種類</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>種類</th><th>定義</th><th>節點數</th></tr>
+        <tr><td><strong>歪斜樹</strong> Skewed</td><td>所有節點只有左（或右）子樹</td><td>退化成鏈結串列，高度 n</td></tr>
+        <tr><td><strong>完滿二元樹</strong> Full</td><td>每個節點的分支度都是 0 或 2</td><td>—</td></tr>
+        <tr><td><strong>完美／滿枝二元樹</strong> Perfect</td><td>高度 h 且節點數達到最大</td><td>2^h − 1</td></tr>
+        <tr><td><strong>完整二元樹</strong> Complete</td><td>除最後一層外皆填滿，且最後一層<strong>靠左排列</strong></td><td>可用陣列緊密儲存</td></tr>
+      </table>
+    </div>
+
+    <h4>重要性質（必背，常出計算題）</h4>
+    <div class="frame">
+      設二元樹高度為 h、節點數為 n：<br>
+      1. 第 i 層最多有 <strong>2^(i−1)</strong> 個節點（根為第 1 層）<br>
+      2. 高度 h 的二元樹最多有 <strong>2^h − 1</strong> 個節點，最少 h 個<br>
+      3. n 個節點的二元樹，最小高度為 <strong>⌈log₂(n+1)⌉</strong><br>
+      4. <strong>n₀ = n₂ + 1</strong>（樹葉數 ＝ 分支度為 2 的節點數 + 1）<br>
+      5. n 個節點的二元樹有 <strong>n + 1</strong> 個空鏈結（可用於 Threaded Binary Tree）
+    </div>
+    <div class="easy">
+      <div class="t">🧒 性質 4（n₀ = n₂ + 1）怎麼來的</div>
+      <p>用兩種方式數「邊」的數量：</p>
+      <p><strong>方法一</strong>：除了根節點，每個節點都有一條邊連向它的父節點 → 邊數 = n − 1 = n₀ + n₁ + n₂ − 1</p>
+      <p><strong>方法二</strong>：從父節點往下數，分支度 0 的貢獻 0 條、分支度 1 的貢獻 1 條、分支度 2 的貢獻 2 條 → 邊數 = 0·n₀ + 1·n₁ + 2·n₂</p>
+      <p>兩式相等：n₀ + n₁ + n₂ − 1 = n₁ + 2n₂　→　<strong>n₀ = n₂ + 1</strong></p>
+      <p>這就是高中數學的「兩種方式算同一個東西」技巧。申論題如果要你「證明」，把上面兩行寫出來就是滿分。</p>
+    </div>
+
+    <h4>陣列表示法（Heap 用得到）</h4>
+    <div class="frame">
+      若根從索引 <strong>1</strong> 開始：<br>
+      節點 i 的左子 = <strong>2i</strong>，右子 = <strong>2i+1</strong>，父 = <strong>⌊i/2⌋</strong><br><br>
+      若根從索引 <strong>0</strong> 開始：<br>
+      左子 = <strong>2i+1</strong>，右子 = <strong>2i+2</strong>，父 = <strong>⌊(i−1)/2⌋</strong>
+    </div>
+    <p>陣列表示法對<strong>完整二元樹</strong>最省空間；對歪斜樹則極浪費（高度 n 需要 2ⁿ−1 格）。</p>
+
+    <h3>4-3　二元樹走訪（Traversal）— 每年必考</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>走訪</th><th>順序</th><th>用途</th></tr>
+        <tr><td><strong>前序 Preorder</strong></td><td>根 → 左 → 右（VLR）</td><td>複製樹、輸出前序運算式</td></tr>
+        <tr><td><strong>中序 Inorder</strong></td><td>左 → 根 → 右（LVR）</td><td><strong>BST 中序走訪 = 由小到大排序</strong></td></tr>
+        <tr><td><strong>後序 Postorder</strong></td><td>左 → 右 → 根（LRV）</td><td>刪除樹、計算運算式的值</td></tr>
+        <tr><td><strong>層序 Level-order</strong></td><td>由上而下、由左而右</td><td>用<strong>佇列</strong>實作，即 BFS</td></tr>
+      </table>
+    </div>
+    <pre><span class="c">// 前序走訪（遞迴）</span>
+<span class="k">void</span> preorder(<span class="k">Node</span> t) {
+    <span class="k">if</span> (t == NULL) <span class="k">return</span>;
+    visit(t);             <span class="c">// V</span>
+    preorder(t.left);     <span class="c">// L</span>
+    preorder(t.right);    <span class="c">// R</span>
+}
+<span class="c">// 中序、後序只是把 visit(t) 移到不同位置</span></pre>
+
+    <h4>由走訪結果還原樹（超高頻申論題）</h4>
+    <div class="frame">
+      <span class="t">📐 還原規則</span>
+      ✅ <strong>前序 + 中序</strong> → 可唯一還原<br>
+      ✅ <strong>後序 + 中序</strong> → 可唯一還原<br>
+      ❌ <strong>前序 + 後序</strong> → <strong>無法</strong>唯一還原（除非是完滿二元樹）<br><br>
+      <strong>關鍵</strong>：中序負責「切左右」，前序／後序負責「找根」。少了中序就不知道左右子樹的分界在哪。
+    </div>
+    <div class="frame">
+      <span class="t">📐 實作步驟（以前序＋中序為例）</span>
+      前序：<code>A B D E C F</code>　中序：<code>D B E A C F</code><br><br>
+      1. 前序第一個 <strong>A</strong> = 根<br>
+      2. 在中序中找到 A，左邊 <code>D B E</code> = 左子樹，右邊 <code>C F</code> = 右子樹<br>
+      3. 左子樹前序取 3 個：<code>B D E</code>，中序 <code>D B E</code> → 根是 B，左 D、右 E<br>
+      4. 右子樹前序 <code>C F</code>，中序 <code>C F</code> → 根是 C，右子是 F<br><br>
+      <strong>還原結果</strong>：<br>
+      <code>
+      　　A<br>
+      　／　＼<br>
+      　B　　C<br>
+      ／＼　　＼<br>
+      D　E　　 F
+      </code>
+    </div>
+
+    <h3>4-4　引線二元樹（Threaded Binary Tree）</h3>
+    <p>n 個節點有 n+1 個空指標，把它們拿來指向中序的前驅／後繼節點，就是引線二元樹。</p>
+    <ul>
+      <li><strong>優點</strong>：走訪不需遞迴或堆疊，空間 O(1)。</li>
+      <li><strong>缺點</strong>：插入刪除較複雜，需額外的標記位元（tag）區分「這是子樹指標還是引線」。</li>
+    </ul>
+
+    <h3>4-5　運算式樹（Expression Tree）</h3>
+    <p>葉節點是運算元、內部節點是運算子。</p>
+    <ul>
+      <li><strong>前序走訪</strong> → 前序運算式（Prefix）</li>
+      <li><strong>中序走訪</strong> → 中序運算式（需補括號）</li>
+      <li><strong>後序走訪</strong> → 後序運算式（Postfix）</li>
+    </ul>
+    <div class="hl">
+      申論題常給你一個中序運算式，要你「<strong>畫出運算式樹並寫出前序與後序</strong>」。<br>
+      作法：先按優先權加括號 → 最後才算的運算子當根 → 遞迴往下建。
+    </div>
+
+    <h3>4-6　霍夫曼編碼（Huffman Coding）</h3>
+    <p>依字元出現頻率建立<strong>最佳前綴碼</strong>，達成資料壓縮。是<strong>貪婪演算法</strong>的經典應用。</p>
+    <div class="frame">
+      <span class="t">📐 建構步驟</span>
+      1. 把每個字元依<strong>頻率</strong>放入最小優先佇列<br>
+      2. 取出<strong>頻率最小的兩個</strong>，合併成一個新節點（頻率 = 兩者相加）<br>
+      3. 新節點放回佇列<br>
+      4. 重複到只剩一個節點 → 即為 Huffman Tree<br>
+      5. 左邊標 0、右邊標 1，從根到葉的路徑就是該字元的編碼<br><br>
+      時間複雜度：<strong>O(n log n)</strong>
+    </div>
+    <p><strong>例</strong>：A:45、B:13、C:12、D:16、E:9、F:5（共 100）</p>
+    <pre>合併 F(5)+E(9)  = 14
+合併 C(12)+B(13) = 25
+合併 14 + D(16)  = 30
+合併 25 + 30     = 55
+合併 A(45) + 55  = 100  <span class="c">← 根</span>
+
+編碼結果（一種可能）：
+A = 0      (1 位元)
+B = 101    (3 位元)
+C = 100    (3 位元)
+D = 111    (3 位元)
+E = 1101   (4 位元)
+F = 1100   (4 位元)
+
+平均碼長 = (45×1 + 13×3 + 12×3 + 16×3 + 9×4 + 5×4) / 100
+        = (45 + 39 + 36 + 48 + 36 + 20) / 100 = <span class="s">2.24 位元/字元</span>
+<span class="c">若用固定長度編碼需 3 位元（2³=8≥6），壓縮率 = (3−2.24)/3 ≈ 25.3%</span></pre>
+    <div class="warn">
+      <span class="t">⚠️ 前綴碼（Prefix Code）的意義</span>
+      任何字元的編碼<strong>都不是另一個字元編碼的前綴</strong>。這保證解碼時不會有歧義，不需要分隔符號。<br>
+      Huffman 樹中所有字元都在<strong>葉節點</strong>，這就自動保證了前綴性質——這是常考的申論說明點。
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="index.html">← 高考三級首頁</a>
+    <a class="btn btn-next" href="ds2.html">下一部分：樹（進階）、圖、排序 →</a>
+  </div>
+
+</div>
+
+<footer>高考三級 · 資料結構講義（第一部分：第 1～4 章）</footer>
+
+</body>
+</html>
