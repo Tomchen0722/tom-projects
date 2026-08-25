@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料庫應用 完整講義 | 高考三級</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-senior3">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">高考三級</a><span class="sep">/</span><span>資料庫應用 講義</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🗄️ 高考三級 · 專業科目二 · 占總成績 19.5%</div>
+  <h1>資料庫應用 完整講義</h1>
+  <p>四科裡<strong>最容易拿高分</strong>的一科：範圍收斂、題型固定、練了就有分。<br>正規化與 SQL 是必得分區，一定要練到滾瓜爛熟。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 目錄</div>
+    <ol>
+      <li><a href="#c1">資料庫基本概念與架構</a></li>
+      <li><a href="#c2">關聯式模型與關聯代數</a></li>
+      <li><a href="#c3">ER 模型與轉換</a>（高頻）</li>
+      <li><a href="#c4">函數相依與正規化</a>（<strong>年年考</strong>）</li>
+      <li><a href="#c5">SQL 完整教學</a>（<strong>年年考</strong>）</li>
+      <li><a href="#c6">交易管理與並行控制</a>（高頻）</li>
+      <li><a href="#c7">索引與查詢最佳化</a></li>
+      <li><a href="#c8">資料倉儲、OLAP 與 NoSQL</a></li>
+      <li><a href="#c9">資料庫安全與個資保護</a></li>
+      <li><a href="#c10">考前速記表</a></li>
+    </ol>
+  </div>
+
+  <!-- ============ 第一章 ============ -->
+  <div class="card" id="c1">
+    <h2>第 1 章　資料庫基本概念與架構</h2>
+
+    <h3>1-1　為什麼需要資料庫</h3>
+    <p>在資料庫出現之前，資料都存在各自的檔案裡（<strong>檔案系統 File System</strong>），造成五個問題：</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>檔案系統的問題</th><th>說明</th><th>資料庫的解法</th></tr>
+        <tr><td><strong>資料重複</strong> Redundancy</td><td>人事室與會計室各存一份員工資料</td><td>集中儲存、正規化</td></tr>
+        <tr><td><strong>資料不一致</strong> Inconsistency</td><td>員工改地址只改了一邊</td><td>單一資料來源</td></tr>
+        <tr><td><strong>資料孤立</strong> Isolation</td><td>格式不同的檔案難以整合查詢</td><td>統一的資料模型與 SQL</td></tr>
+        <tr><td><strong>完整性難維護</strong></td><td>每支程式都要自己檢查</td><td>由 DBMS 統一以限制條件把關</td></tr>
+        <tr><td><strong>並行與安全問題</strong></td><td>多人同時改會出錯、權限難控管</td><td>交易管理、並行控制、權限機制</td></tr>
+      </table>
+    </div>
+
+    <h3>1-2　DBMS 的三層綱要架構（ANSI/SPARC）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>層級</th><th>又稱</th><th>內容</th><th>使用者</th></tr>
+        <tr><td><strong>外部層</strong> External</td><td>檢視層 View Level</td><td>各使用者看到的資料子集（View）</td><td>一般使用者、應用程式</td></tr>
+        <tr><td><strong>概念層</strong> Conceptual</td><td>邏輯層 Logical Level</td><td>整個資料庫的邏輯結構（有哪些表、欄位、關係）</td><td>資料庫管理師 DBA</td></tr>
+        <tr><td><strong>內部層</strong> Internal</td><td>實體層 Physical Level</td><td>資料實際如何儲存（檔案格式、索引結構）</td><td>DBMS 系統</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 兩種資料獨立性（必考名詞）</span>
+      <strong>邏輯資料獨立性（Logical Data Independence）</strong><br>
+      　＝ 改變<strong>概念層</strong>（例如新增一個欄位）時，<strong>外部層</strong>（既有的 View 與應用程式）不受影響。<br>
+      　→ <strong>較難達成</strong><br><br>
+      <strong>實體資料獨立性（Physical Data Independence）</strong><br>
+      　＝ 改變<strong>內部層</strong>（例如換儲存裝置、加索引）時，<strong>概念層</strong>不受影響。<br>
+      　→ <strong>較易達成</strong>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 白話版：資料獨立性在講什麼</div>
+      <p>想像一家餐廳。</p>
+      <ul>
+        <li><strong>內部層</strong>＝廚房怎麼運作（用瓦斯還是電磁爐、食材放哪個冰箱）</li>
+        <li><strong>概念層</strong>＝完整菜單（餐廳總共供應哪些菜）</li>
+        <li><strong>外部層</strong>＝你手上那份菜單（兒童菜單只印 5 道菜、素食菜單只印素菜）</li>
+      </ul>
+      <p><strong>實體獨立性</strong>：廚房換了新爐子，菜單完全不用改 → 容易做到。</p>
+      <p><strong>邏輯獨立性</strong>：菜單新增了 10 道菜，但拿兒童菜單的客人完全無感 → 也做得到，但如果是「把牛肉麵這道菜拆成兩道」，兒童菜單就得跟著改 → 所以比較難。</p>
+      <p>這個架構的價值是：<strong>把改變的影響範圍限制在一層裡面</strong>，不會牽一髮動全身。</p>
+    </div>
+
+    <h3>1-3　DBMS 的功能與人員角色</h3>
+    <ul>
+      <li><strong>DDL（Data Definition Language）</strong>：定義結構 — CREATE、ALTER、DROP、TRUNCATE</li>
+      <li><strong>DML（Data Manipulation Language）</strong>：操作資料 — SELECT、INSERT、UPDATE、DELETE</li>
+      <li><strong>DCL（Data Control Language）</strong>：權限控制 — GRANT、REVOKE</li>
+      <li><strong>TCL（Transaction Control Language）</strong>：交易控制 — COMMIT、ROLLBACK、SAVEPOINT</li>
+    </ul>
+    <div class="table-wrap">
+      <table>
+        <tr><th>角色</th><th>職責</th></tr>
+        <tr><td>DBA（資料庫管理師）</td><td>設計綱要、效能調校、備份復原、權限管理、容量規劃</td></tr>
+        <tr><td>資料庫設計師</td><td>需求分析、概念設計（ER 圖）、邏輯設計（正規化）</td></tr>
+        <tr><td>應用程式設計師</td><td>撰寫存取資料庫的程式</td></tr>
+        <tr><td>終端使用者</td><td>透過應用程式或查詢工具使用資料</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 資料字典（Data Dictionary / 系統目錄）</span>
+      儲存「<strong>關於資料的資料</strong>」（Metadata）：有哪些表、欄位型別、索引、限制、權限、統計資訊。<br>
+      查詢最佳化器就是靠這裡的統計資訊決定執行計畫。<strong>常考名詞解釋。</strong>
+    </div>
+  </div>
+
+  <!-- ============ 第二章 ============ -->
+  <div class="card" id="c2">
+    <h2>第 2 章　關聯式模型與關聯代數</h2>
+
+    <h3>2-1　基本術語對照（一定要背中英對照）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>正式術語</th><th>俗稱</th><th>說明</th></tr>
+        <tr><td>關聯 Relation</td><td>資料表 Table</td><td>二維表格</td></tr>
+        <tr><td>值組 Tuple</td><td>列 Row / Record</td><td>一筆資料</td></tr>
+        <tr><td>屬性 Attribute</td><td>欄 Column / Field</td><td>一個欄位</td></tr>
+        <tr><td>基數 Cardinality</td><td>—</td><td>列數（值組個數）</td></tr>
+        <tr><td>元數 Degree / Arity</td><td>—</td><td>欄位個數</td></tr>
+        <tr><td>值域 Domain</td><td>—</td><td>某屬性可取值的範圍</td></tr>
+      </table>
+    </div>
+
+    <h3>2-2　鍵值（Key）— 必考名詞</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>鍵值</th><th>定義</th><th>例子（學生表）</th></tr>
+        <tr><td><strong>超鍵 Super Key</strong></td><td>能唯一識別一筆資料的屬性集合（可含多餘屬性）</td><td>{學號}、{學號, 姓名}、{身分證字號, 姓名}</td></tr>
+        <tr><td><strong>候選鍵 Candidate Key</strong></td><td><strong>最小</strong>的超鍵（拿掉任一屬性就不唯一）</td><td>{學號}、{身分證字號}</td></tr>
+        <tr><td><strong>主鍵 Primary Key</strong></td><td>從候選鍵中<strong>選定一個</strong>；不可為 NULL、不可重複</td><td>{學號}</td></tr>
+        <tr><td><strong>替代鍵 Alternate Key</strong></td><td>沒被選為主鍵的候選鍵</td><td>{身分證字號}</td></tr>
+        <tr><td><strong>外鍵 Foreign Key</strong></td><td>指向另一表主鍵的屬性，用於建立關聯</td><td>選課表的「學號」</td></tr>
+        <tr><td><strong>複合鍵 Composite Key</strong></td><td>由兩個以上屬性組成的鍵</td><td>選課表的 {學號, 課號}</td></tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 超鍵 vs 候選鍵，一句話分清楚</div>
+      <p><strong>超鍵</strong>＝「夠用就行，可以帶多餘的東西」。<br>
+      {身分證字號, 姓名, 生日} 當然能唯一識別一個人，所以它是超鍵——但姓名和生日是多餘的。</p>
+      <p><strong>候選鍵</strong>＝「剛剛好，一個都不能少」。<br>
+      {身分證字號} 就夠了，再拿掉就沒東西了 → 這是候選鍵。</p>
+      <p>所以：<strong>候選鍵是「極小的超鍵」，每個候選鍵都是超鍵，但超鍵不一定是候選鍵。</strong></p>
+    </div>
+
+    <h3>2-3　完整性限制（Integrity Constraints）— 常考</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>完整性</th><th>規則</th><th>SQL 實作</th></tr>
+        <tr><td><strong>實體完整性</strong><br>Entity Integrity</td><td>主鍵<strong>不可為 NULL、不可重複</strong></td><td><code>PRIMARY KEY</code></td></tr>
+        <tr><td><strong>參考完整性</strong><br>Referential Integrity</td><td>外鍵的值必須存在於被參考表的主鍵中，或為 NULL</td><td><code>FOREIGN KEY ... REFERENCES</code></td></tr>
+        <tr><td><strong>值域完整性</strong><br>Domain Integrity</td><td>欄位值須符合定義的型別與範圍</td><td><code>CHECK</code>、<code>NOT NULL</code>、資料型別</td></tr>
+        <tr><td><strong>使用者定義完整性</strong></td><td>依業務規則自訂</td><td><code>CHECK</code>、<code>TRIGGER</code>、預存程序</td></tr>
+      </table>
+    </div>
+    <h4>參考完整性的處理動作（刪除／更新父表資料時）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>動作</th><th>行為</th><th>使用時機</th></tr>
+        <tr><td><code>CASCADE</code></td><td>連帶刪除／更新子表資料</td><td>子資料無獨立意義（如訂單明細隨訂單刪除）</td></tr>
+        <tr><td><code>SET NULL</code></td><td>子表外鍵設為 NULL</td><td>子資料仍有意義（如員工的部門被裁撤）</td></tr>
+        <tr><td><code>SET DEFAULT</code></td><td>設為預設值</td><td>有合理的預設歸屬</td></tr>
+        <tr><td><code>RESTRICT / NO ACTION</code></td><td><strong>拒絕</strong>該操作</td><td>預設行為，最安全</td></tr>
+      </table>
+    </div>
+
+    <h3>2-4　關聯代數（Relational Algebra）</h3>
+    <p>SQL 的理論基礎。分為<strong>一元運算</strong>與<strong>二元運算</strong>。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>運算</th><th>符號</th><th>意義</th><th>對應 SQL</th></tr>
+        <tr><td><strong>選擇 Selection</strong></td><td>σ（sigma）</td><td>依條件<strong>挑出符合的列</strong>（橫向切）</td><td><code>WHERE</code></td></tr>
+        <tr><td><strong>投影 Projection</strong></td><td>π（pi）</td><td>挑出指定的<strong>欄</strong>（縱向切），<strong>會自動去除重複</strong></td><td><code>SELECT DISTINCT</code></td></tr>
+        <tr><td><strong>更名 Rename</strong></td><td>ρ（rho）</td><td>改變關聯或屬性名稱</td><td><code>AS</code></td></tr>
+        <tr><td>聯集 Union</td><td>∪</td><td>兩表相加去重（需<strong>相容</strong>）</td><td><code>UNION</code></td></tr>
+        <tr><td>差集 Difference</td><td>−</td><td>在 A 不在 B</td><td><code>EXCEPT</code> / <code>MINUS</code></td></tr>
+        <tr><td>交集 Intersection</td><td>∩</td><td>同時在 A 與 B</td><td><code>INTERSECT</code></td></tr>
+        <tr><td>笛卡兒積 Cartesian Product</td><td>×</td><td>每一列都與另一表每一列配對</td><td><code>CROSS JOIN</code></td></tr>
+        <tr><td><strong>join</strong> Join</td><td>⋈</td><td>依條件結合兩表</td><td><code>JOIN ... ON</code></td></tr>
+        <tr><td>除法 Division</td><td>÷</td><td>「<strong>對所有的…</strong>」查詢</td><td>需用 NOT EXISTS 兩層改寫</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 五個基本運算（Primitive Operations）</span>
+      <strong>σ、π、∪、−、×</strong> 是基本運算，其餘（∩、⋈、÷）都可以由這五個推導出來。<br>
+      例：A ∩ B = A − (A − B)；A ⋈ B = σ<sub>條件</sub>(A × B)<br>
+      <strong>這是常見的名詞題與觀念題。</strong>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 除法（Division）— 最難也最常考</span>
+      「找出<strong>選修了所有課程</strong>的學生」這類「對所有…」的查詢，就是除法。<br><br>
+      <strong>SQL 改寫模板（雙重否定）</strong>：<br>
+      「選修了所有課的學生」＝「<strong>不存在</strong>一門課，該學生<strong>沒有</strong>選」<br>
+      <pre style="margin-top:8px">SELECT S.學號 FROM 學生 S
+WHERE <span class="k">NOT EXISTS</span> (
+    SELECT * FROM 課程 C
+    WHERE <span class="k">NOT EXISTS</span> (
+        SELECT * FROM 選課 E
+        WHERE E.學號 = S.學號 AND E.課號 = C.課號
+    )
+);</pre>
+      這個模板<strong>背下來</strong>，考到直接套。
+    </div>
+  </div>
+
+  <!-- ============ 第三章 ============ -->
+  <div class="card" id="c3">
+    <h2>第 3 章　ER 模型與轉換</h2>
+
+    <h3>3-1　ER 圖的組成元素</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>元素</th><th>符號</th><th>說明</th></tr>
+        <tr><td><strong>實體 Entity</strong></td><td>矩形</td><td>可獨立識別的事物（學生、課程）</td></tr>
+        <tr><td>弱實體 Weak Entity</td><td>雙線矩形</td><td>無法獨立存在，需依附強實體（如「眷屬」依附「員工」）</td></tr>
+        <tr><td><strong>屬性 Attribute</strong></td><td>橢圓</td><td>實體的特性</td></tr>
+        <tr><td>鍵屬性</td><td>底線</td><td>主鍵</td></tr>
+        <tr><td>複合屬性</td><td>橢圓下再接橢圓</td><td>地址 → 縣市 + 路名 + 號碼</td></tr>
+        <tr><td>多值屬性</td><td>雙線橢圓</td><td>一個人有多支電話</td></tr>
+        <tr><td>衍生屬性</td><td>虛線橢圓</td><td>年齡（由生日算出）</td></tr>
+        <tr><td><strong>關係 Relationship</strong></td><td>菱形</td><td>實體之間的關聯（學生「選修」課程）</td></tr>
+      </table>
+    </div>
+
+    <h3>3-2　基數（Cardinality）與參與限制</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>關係型態</th><th>例子</th><th>轉換為關聯表的做法</th></tr>
+        <tr><td><strong>1 : 1</strong></td><td>員工 ↔ 停車位</td><td>把任一方的主鍵放進另一方當外鍵（<strong>建議放在參與度高的那一方</strong>，減少 NULL）</td></tr>
+        <tr><td><strong>1 : N</strong></td><td>部門 ↔ 員工</td><td>把「1」那方的主鍵，放到「<strong>N</strong>」那方當外鍵</td></tr>
+        <tr><td><strong>M : N</strong></td><td>學生 ↔ 課程</td><td><strong>必須另建一張關聯表</strong>，主鍵為兩方主鍵組成的複合鍵</td></tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 為什麼 M:N 一定要多一張表</div>
+      <p>一個學生修很多課，一門課也有很多學生。如果硬要把課號塞進學生表：</p>
+      <p><code>學號 | 姓名 | 課號</code> → 一個學生修 5 門課，就要重複 5 列，姓名重複 5 次（資料重複）。</p>
+      <p>如果塞成 <code>學號 | 姓名 | 課號1 | 課號2 | 課號3</code> → 更糟：欄位數固定，修第 4 門課就爆了，而且違反第一正規化。</p>
+      <p><strong>唯一正確解法：拆出「選課」表</strong>，每一列代表「某學生修某課」這一件事：</p>
+      <pre style="margin-top:8px">學生(<span class="s">學號</span>, 姓名, 系所)
+課程(<span class="s">課號</span>, 課名, 學分)
+選課(<span class="s">學號, 課號</span>, 成績)   <span class="c">← 複合主鍵</span></pre>
+      <p>注意「<strong>成績</strong>」這個欄位——它既不屬於學生也不屬於課程，而是屬於「這段關係」。這種欄位叫<strong>關係屬性</strong>，是 M:N 必須拆表的另一個理由。</p>
+    </div>
+
+    <h4>參與限制（Participation Constraint）</h4>
+    <ul>
+      <li><strong>全部參與（Total）</strong>：雙線連接，該實體的<strong>每一筆</strong>都必須參與此關係（如：每個員工都必須屬於某個部門）。</li>
+      <li><strong>部分參與（Partial）</strong>：單線連接，可以不參與（如：不是每個員工都是主管）。</li>
+    </ul>
+
+    <h3>3-3　EER（延伸 ER）概念</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>概念</th><th>說明</th></tr>
+        <tr><td><strong>特化 Specialization</strong></td><td>由上而下：從「員工」細分出「教師」「行政人員」</td></tr>
+        <tr><td><strong>一般化 Generalization</strong></td><td>由下而上：把「汽車」「機車」歸納成「車輛」</td></tr>
+        <tr><td>互斥 Disjoint (d)</td><td>一個實體只能屬於一個子類</td></tr>
+        <tr><td>重疊 Overlapping (o)</td><td>可同時屬於多個子類</td></tr>
+        <tr><td><strong>聚合 Aggregation</strong></td><td>把一個「關係」當成實體，再與其他實體建立關係</td></tr>
+      </table>
+    </div>
+
+    <h3>3-4　ER 圖轉關聯表的完整步驟（申論常考）</h3>
+    <div class="frame">
+      <span class="t">📐 七個步驟</span>
+      1. <strong>每個強實體 → 一張表</strong>，選定主鍵<br>
+      2. <strong>每個弱實體 → 一張表</strong>，主鍵 = 強實體主鍵 + 部分鍵（Partial Key）<br>
+      3. <strong>1:1 關係</strong> → 把一方主鍵當外鍵放到另一方（選參與度高者）<br>
+      4. <strong>1:N 關係</strong> → 「1」方主鍵放到「N」方當外鍵<br>
+      5. <strong>M:N 關係</strong> → 建新表，主鍵 = 兩方主鍵之複合鍵，並加入關係屬性<br>
+      6. <strong>多值屬性</strong> → 另建一張表（原表主鍵 + 該屬性，兩者組成複合主鍵）<br>
+      7. <strong>三元以上關係</strong> → 建新表，主鍵 = 三方主鍵之複合鍵
+    </div>
+    <div class="hl">
+      申論題若給你一段業務描述要你「畫 ER 圖並轉換為關聯表」，<strong>務必兩者都畫／都寫</strong>，並在每張表底下標明主鍵（底線）與外鍵（標註 FK）。<br>
+      這種題目的分數大多給在「<strong>M:N 有沒有正確拆表</strong>」與「<strong>外鍵方向對不對</strong>」。
+    </div>
+  </div>
+
+  <!-- ============ 第四章 ============ -->
+  <div class="card" id="c4">
+    <h2>第 4 章　函數相依與正規化（年年考）</h2>
+
+    <h3>4-1　函數相依（Functional Dependency, FD）</h3>
+    <div class="frame">
+      <strong>定義</strong>：X → Y 表示「<strong>知道 X 就能唯一決定 Y</strong>」。<br>
+      X 稱為<strong>決定因素（Determinant）</strong>。<br><br>
+      例：學號 → 姓名（知道學號就知道姓名）<br>
+      　　姓名 <span style="text-decoration:line-through">→</span> 學號（同名同姓的人可能不只一個）
+    </div>
+
+    <h4>三種特殊的函數相依（正規化的判斷關鍵）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>定義</th><th>例子</th><th>違反哪個正規化</th></tr>
+        <tr>
+          <td><strong>部分相依</strong><br>Partial Dependency</td>
+          <td>非鍵屬性只相依於<strong>複合主鍵的一部分</strong></td>
+          <td>(學號, 課號) → 學生姓名，但其實 <strong>學號 → 學生姓名</strong> 就夠了</td>
+          <td>2NF</td>
+        </tr>
+        <tr>
+          <td><strong>遞移相依</strong><br>Transitive Dependency</td>
+          <td>X → Y、Y → Z，導致 X → Z（Y 非鍵）</td>
+          <td>學號 → 系所代碼 → 系所名稱</td>
+          <td>3NF</td>
+        </tr>
+        <tr>
+          <td><strong>非鍵決定因素</strong></td>
+          <td>決定因素不是超鍵</td>
+          <td>教師 → 課程（教師不是候選鍵）</td>
+          <td>BCNF</td>
+        </tr>
+      </table>
+    </div>
+
+    <h4>Armstrong 公理（推導 FD 的規則）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>公理</th><th>規則</th></tr>
+        <tr><td><strong>反身律</strong> Reflexivity</td><td>若 Y ⊆ X，則 X → Y</td></tr>
+        <tr><td><strong>擴充律</strong> Augmentation</td><td>若 X → Y，則 XZ → YZ</td></tr>
+        <tr><td><strong>遞移律</strong> Transitivity</td><td>若 X → Y 且 Y → Z，則 X → Z</td></tr>
+        <tr><td>聯合律 Union</td><td>若 X → Y 且 X → Z，則 X → YZ</td></tr>
+        <tr><td>分解律 Decomposition</td><td>若 X → YZ，則 X → Y 且 X → Z</td></tr>
+        <tr><td>假遞移律 Pseudotransitivity</td><td>若 X → Y 且 WY → Z，則 WX → Z</td></tr>
+      </table>
+    </div>
+    <p>前三個是<strong>基本公理</strong>，後三個可由前三個推導。</p>
+
+    <h4>屬性閉包（Attribute Closure）— 找候選鍵的工具</h4>
+    <div class="frame">
+      <span class="t">📐 求 X⁺ 的步驟</span>
+      1. 令 X⁺ = X<br>
+      2. 反覆檢查所有 FD：若某個 FD 的左邊 ⊆ X⁺，就把右邊加進 X⁺<br>
+      3. 直到 X⁺ 不再變化<br><br>
+      <strong>判斷候選鍵</strong>：若 X⁺ = 所有屬性，且 X 的任何真子集閉包都不等於所有屬性 → <strong>X 是候選鍵</strong>
+    </div>
+    <p><strong>範例</strong>：R(A, B, C, D)，FD = { A→B, B→C, C→D }</p>
+    <pre>求 A⁺：
+  A⁺ = {A}
+  A→B  → A⁺ = {A, B}
+  B→C  → A⁺ = {A, B, C}
+  C→D  → A⁺ = {A, B, C, D}  <span class="c">← 包含全部屬性</span>
+→ A 是候選鍵
+
+求 B⁺ = {B, C, D}  <span class="c">← 缺 A，不是候選鍵</span>
+求 C⁺ = {C, D}
+求 D⁺ = {D}
+<span class="s">結論：唯一候選鍵為 {A}</span></pre>
+    <div class="hl">
+      <span class="t">💡 快速找候選鍵的技巧</span>
+      1. <strong>只出現在 FD 左邊（從不出現在右邊）的屬性，一定要在候選鍵裡</strong><br>
+      2. <strong>兩邊都沒出現的屬性，也一定要在候選鍵裡</strong><br>
+      3. 先把這些必要屬性湊起來求閉包，若已涵蓋全部屬性 → 就是唯一候選鍵<br>
+      4. 若還不夠，再逐一加入其他屬性測試<br><br>
+      這個技巧能省下大量時間，考場上非常好用。
+    </div>
+
+    <h3>4-2　正規化各階段（核心考點）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>正規化</th><th>要求</th><th>消除的問題</th></tr>
+        <tr><td><strong>1NF</strong></td><td>所有屬性值皆為<strong>單元值（Atomic）</strong>，無重複群組</td><td>多值欄位、重複欄位</td></tr>
+        <tr><td><strong>2NF</strong></td><td>符合 1NF，且<strong>無部分相依</strong>（非鍵屬性須完全相依於主鍵）</td><td>部分相依</td></tr>
+        <tr><td><strong>3NF</strong></td><td>符合 2NF，且<strong>無遞移相依</strong></td><td>遞移相依</td></tr>
+        <tr><td><strong>BCNF</strong></td><td>每個 FD 的<strong>決定因素都必須是超鍵</strong></td><td>非鍵決定因素造成的異常</td></tr>
+        <tr><td>4NF</td><td>符合 BCNF，且<strong>無多值相依（MVD）</strong></td><td>多值相依</td></tr>
+        <tr><td>5NF（PJNF）</td><td>無「連接相依（Join Dependency）」</td><td>需三張以上表才能無損分解的情形</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 口訣</span>
+      <strong>1NF 去重複群、2NF 去部分依、3NF 去遞移依、BCNF 決定因素皆為超鍵。</strong><br>
+      考試時只要記住「2NF 只跟<u>複合主鍵</u>有關」——<strong>若主鍵是單一屬性，必定已符合 2NF</strong>（因為不可能部分相依）。這是超好用的判斷捷徑。
+    </div>
+
+    <h3>4-3　正規化實作範例（一定要會的題型）</h3>
+    <p>假設有一張未正規化的「選課成績表」：</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>學號</th><th>姓名</th><th>系代碼</th><th>系名稱</th><th>課號</th><th>課名</th><th>學分</th><th>成績</th></tr>
+        <tr><td>S01</td><td>王小明</td><td>D01</td><td>資訊管理系</td><td>C01</td><td>資料庫</td><td>3</td><td>85</td></tr>
+        <tr><td>S01</td><td>王小明</td><td>D01</td><td>資訊管理系</td><td>C02</td><td>演算法</td><td>3</td><td>78</td></tr>
+        <tr><td>S02</td><td>李小華</td><td>D01</td><td>資訊管理系</td><td>C01</td><td>資料庫</td><td>3</td><td>90</td></tr>
+      </table>
+    </div>
+
+    <h4>步驟 0：找出函數相依與主鍵</h4>
+    <pre>FD1: 學號 → 姓名, 系代碼
+FD2: 系代碼 → 系名稱
+FD3: 課號 → 課名, 學分
+FD4: (學號, 課號) → 成績
+
+主鍵 = (學號, 課號)</pre>
+
+    <h4>步驟 1：檢查 1NF</h4>
+    <p>所有欄位都是單元值，<strong>已符合 1NF</strong>。（若原表有「電話：0912-xxx / 0922-xxx」這種欄位就違反 1NF。）</p>
+
+    <h4>步驟 2：消除部分相依 → 2NF</h4>
+    <p>主鍵是複合鍵 (學號, 課號)，檢查每個非鍵屬性：</p>
+    <ul>
+      <li>姓名、系代碼、系名稱 → 只依賴<strong>學號</strong>（部分相依 ❌）</li>
+      <li>課名、學分 → 只依賴<strong>課號</strong>（部分相依 ❌）</li>
+      <li>成績 → 依賴完整的 (學號, 課號) ✅</li>
+    </ul>
+    <pre><span class="s">分解為三張表：</span>
+學生(<span class="s">學號</span>, 姓名, 系代碼, 系名稱)
+課程(<span class="s">課號</span>, 課名, 學分)
+選課(<span class="s">學號, 課號</span>, 成績)</pre>
+
+    <h4>步驟 3：消除遞移相依 → 3NF</h4>
+    <p>學生表中：學號 → 系代碼 → 系名稱，<strong>系名稱遞移相依於學號</strong> ❌</p>
+    <pre><span class="s">最終 3NF 結果（四張表）：</span>
+學生(<span class="s">學號</span>, 姓名, <u>系代碼</u>)      <span class="c">系代碼為 FK</span>
+系所(<span class="s">系代碼</span>, 系名稱)
+課程(<span class="s">課號</span>, 課名, 學分)
+選課(<span class="s">學號, 課號</span>, 成績)        <span class="c">學號、課號皆為 FK</span></pre>
+
+    <h4>步驟 4：檢查 BCNF</h4>
+    <p>逐一檢查每張表的所有 FD，決定因素是否都是超鍵：</p>
+    <ul>
+      <li>學生表：學號 → 姓名, 系代碼。學號是主鍵 ✅</li>
+      <li>系所表：系代碼 → 系名稱。系代碼是主鍵 ✅</li>
+      <li>課程表：課號 → 課名, 學分。課號是主鍵 ✅</li>
+      <li>選課表：(學號, 課號) → 成績。是主鍵 ✅</li>
+    </ul>
+    <p><strong>四張表皆符合 BCNF。</strong></p>
+
+    <h3>4-4　正規化解決的三種異常（申論必寫）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>異常</th><th>問題</th><th>原表的例子</th></tr>
+        <tr><td><strong>新增異常</strong><br>Insertion Anomaly</td><td>想新增某資料卻被迫要有其他不相關資料</td><td>新開一門「機器學習」課，但還沒人選 → <strong>無法新增</strong>（因為主鍵含學號，不能為 NULL）</td></tr>
+        <tr><td><strong>刪除異常</strong><br>Deletion Anomaly</td><td>刪除某筆資料會連帶失去其他資訊</td><td>李小華退選 C01，若他只修這一門 → 刪掉後<strong>連他是資管系的資訊都消失了</strong></td></tr>
+        <tr><td><strong>修改異常</strong><br>Update Anomaly</td><td>同一資訊存多份，改一處其他沒改到就不一致</td><td>系名稱從「資訊管理系」改為「資訊管理學系」→ 要改所有列，漏改就<strong>資料不一致</strong></td></tr>
+      </table>
+    </div>
+
+    <h3>4-5　BCNF 與 3NF 的差異（進階考點）</h3>
+    <div class="easy">
+      <div class="t">🧒 什麼情況 3NF 不等於 BCNF</div>
+      <p>假設「教室排課表」：<code>(課程, 時段, 教室)</code></p>
+      <ul>
+        <li>FD1：(課程, 時段) → 教室（一門課在某時段固定在一間教室）</li>
+        <li>FD2：<strong>教室 → 課程</strong>（假設每間教室是專科教室，只上一種課）</li>
+      </ul>
+      <p>候選鍵有兩個：{課程, 時段} 和 {教室, 時段}。</p>
+      <p><strong>符合 3NF 嗎？</strong>符合。因為所有屬性都是鍵屬性（都在某個候選鍵裡），沒有「非鍵屬性的遞移相依」。</p>
+      <p><strong>符合 BCNF 嗎？不符合。</strong>因為 FD2 的決定因素「教室」<u>不是超鍵</u>（單看教室無法決定時段）。</p>
+      <p><strong>所以：BCNF 比 3NF 嚴格。</strong>差別只出現在「有多個重疊的複合候選鍵」的情況——這也是為什麼實務上 3NF 通常就夠用，因為那種情況不常見。</p>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ BCNF 的代價：可能失去相依保存性</span>
+      分解關聯表時有兩個理想性質：<br>
+      <strong>(1) 無損分解（Lossless Join）</strong>：分解後再 JOIN 回去，資料不會多也不會少。<br>
+      　判斷法：分解成 R1、R2 時，若 <strong>(R1 ∩ R2) → R1</strong> 或 <strong>(R1 ∩ R2) → R2</strong> 成立，即為無損分解。<br>
+      <strong>(2) 相依保存（Dependency Preservation）</strong>：原本的所有 FD 在分解後的各表中仍能各自檢查。<br><br>
+      <strong>關鍵結論</strong>：<br>
+      ‧ <strong>3NF 一定能同時做到「無損分解」與「相依保存」</strong><br>
+      ‧ <strong>BCNF 一定能做到無損分解，但可能無法保存相依</strong><br><br>
+      這是申論題「請說明為何實務上常以 3NF 為目標而非 BCNF」的標準答案。
+    </div>
+
+    <h3>4-6　反正規化（Denormalization）</h3>
+    <p>正規化不是越高越好。分得太細會造成<strong>大量 JOIN，查詢變慢</strong>。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>手法</th><th>說明</th><th>代價</th></tr>
+        <tr><td>合併表格</td><td>把常一起查詢的兩張表合併</td><td>資料重複</td></tr>
+        <tr><td>加入衍生欄位</td><td>如訂單表直接存「總金額」而非每次算</td><td>需維護一致性</td></tr>
+        <tr><td>重複欄位</td><td>訂單明細直接存商品名稱（避免 JOIN 商品表）</td><td>商品改名時不一致</td></tr>
+        <tr><td>預先彙總表</td><td>建立月報表統計表</td><td>需定期更新</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 申論寫法</span>
+      「正規化以<strong>消除資料異常、確保一致性</strong>為目標，適用於<strong>交易處理（OLTP）</strong>系統；<br>
+      反正規化則以<strong>提升查詢效能</strong>為目標，常用於<strong>報表與分析（OLAP）</strong>系統。<br>
+      實務上多以 <strong>3NF 為基準</strong>，再依效能瓶頸<u>有選擇性地</u>反正規化，並須<strong>建立同步機制與定期稽核</strong>以維持資料一致性。」
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="index.html">← 高考三級首頁</a>
+    <a class="btn btn-next" href="db2.html">下一部分：SQL、交易、索引、NoSQL →</a>
+  </div>
+
+</div>
+
+<footer>高考三級 · 資料庫應用講義（第一部分：第 1～4 章）</footer>
+
+</body>
+</html>

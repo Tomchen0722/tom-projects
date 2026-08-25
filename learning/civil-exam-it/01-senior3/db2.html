@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資料庫應用 完整講義（下） | 高考三級</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-senior3">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">高考三級</a><span class="sep">/</span>
+  <a href="db.html">資料庫應用 講義</a><span class="sep">/</span><span>下半部</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🗄️ 資料庫應用 · 第 5～10 章</div>
+  <h1>資料庫應用 完整講義（下）</h1>
+  <p>SQL 撰寫、交易與並行控制、索引與最佳化、資料倉儲與 NoSQL、資料庫安全。<br>SQL 是必得分區，一定要動手寫過。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 本頁目錄</div>
+    <ol start="5">
+      <li><a href="#c5">SQL 完整教學</a>（<strong>年年考</strong>）</li>
+      <li><a href="#c6">交易管理與並行控制</a>（高頻）</li>
+      <li><a href="#c7">索引與查詢最佳化</a></li>
+      <li><a href="#c8">資料倉儲、OLAP 與 NoSQL</a></li>
+      <li><a href="#c9">資料庫安全與個資保護</a></li>
+      <li><a href="#c10">考前速記表</a></li>
+    </ol>
+    <p style="margin-top:10px;font-size:.85rem">
+      ← 第 1～4 章（架構、關聯模型、ER 圖、正規化）請看 <a href="db.html">上半部</a>
+    </p>
+  </div>
+
+  <!-- ============ 第五章 ============ -->
+  <div class="card" id="c5">
+    <h2>第 5 章　SQL 完整教學</h2>
+    <div class="hl">
+      這一章<strong>一定要動手寫</strong>。SQL 是「看得懂但寫不出來」的典型科目。<br>
+      建議裝一個 SQLite（單一檔案、免安裝）或用線上的 SQL Fiddle 練習。
+    </div>
+
+    <h3>5-1　DDL：定義結構</h3>
+    <pre><span class="c">-- 建立資料表</span>
+<span class="k">CREATE TABLE</span> 員工 (
+    員工編號  CHAR(6)      <span class="k">PRIMARY KEY</span>,
+    姓名      VARCHAR(50)  <span class="k">NOT NULL</span>,
+    性別      CHAR(1)      <span class="k">CHECK</span> (性別 <span class="k">IN</span> (<span class="s">'M'</span>, <span class="s">'F'</span>)),
+    到職日    DATE         <span class="k">DEFAULT</span> CURRENT_DATE,
+    薪資      DECIMAL(10,2) <span class="k">CHECK</span> (薪資 &gt;= 0),
+    部門代碼  CHAR(3),
+    主管編號  CHAR(6),
+    <span class="k">FOREIGN KEY</span> (部門代碼) <span class="k">REFERENCES</span> 部門(部門代碼)
+        <span class="k">ON DELETE SET NULL ON UPDATE CASCADE</span>,
+    <span class="k">FOREIGN KEY</span> (主管編號) <span class="k">REFERENCES</span> 員工(員工編號)   <span class="c">-- 自我參考</span>
+);
+
+<span class="c">-- 修改結構</span>
+<span class="k">ALTER TABLE</span> 員工 <span class="k">ADD</span> 電子郵件 VARCHAR(100);
+<span class="k">ALTER TABLE</span> 員工 <span class="k">MODIFY</span> 姓名 VARCHAR(80);        <span class="c">-- Oracle/MySQL</span>
+<span class="k">ALTER TABLE</span> 員工 <span class="k">ALTER COLUMN</span> 姓名 VARCHAR(80);  <span class="c">-- SQL Server</span>
+<span class="k">ALTER TABLE</span> 員工 <span class="k">DROP COLUMN</span> 電子郵件;
+<span class="k">ALTER TABLE</span> 員工 <span class="k">ADD CONSTRAINT</span> chk_sal <span class="k">CHECK</span> (薪資 &lt;= 500000);
+
+<span class="c">-- 刪除</span>
+<span class="k">DROP TABLE</span> 員工;         <span class="c">-- 整張表（含結構）消失</span>
+<span class="k">TRUNCATE TABLE</span> 員工;     <span class="c">-- 只清空資料，保留結構</span></pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th>指令</th><th>類別</th><th>刪除範圍</th><th>可否 ROLLBACK</th><th>速度</th></tr>
+        <tr><td><code>DELETE</code></td><td>DML</td><td>可用 WHERE 選擇性刪列</td><td><strong>可以</strong></td><td>慢（逐列記錄 log）</td></tr>
+        <tr><td><code>TRUNCATE</code></td><td>DDL</td><td>清空全表資料</td><td>通常<strong>不可</strong>（自動 commit）</td><td>快</td></tr>
+        <tr><td><code>DROP</code></td><td>DDL</td><td>連表結構一起刪</td><td>通常<strong>不可</strong></td><td>快</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 這張表是超高頻考點</span>
+      「DELETE、TRUNCATE、DROP 有何差異」幾乎年年出現在選擇題或申論子題。<br>
+      記憶重點：<strong>DELETE 是 DML 可回復、TRUNCATE 與 DROP 是 DDL 不可回復；DROP 連結構都沒了。</strong>
+    </div>
+
+    <h3>5-2　DML 基礎</h3>
+    <pre><span class="k">INSERT INTO</span> 員工 (員工編號, 姓名, 薪資, 部門代碼)
+<span class="k">VALUES</span> (<span class="s">'E00001'</span>, <span class="s">'王小明'</span>, 45000, <span class="s">'D01'</span>);
+
+<span class="c">-- 從查詢結果批次插入</span>
+<span class="k">INSERT INTO</span> 員工備份 <span class="k">SELECT</span> * <span class="k">FROM</span> 員工 <span class="k">WHERE</span> 到職日 &lt; <span class="s">'2020-01-01'</span>;
+
+<span class="k">UPDATE</span> 員工 <span class="k">SET</span> 薪資 = 薪資 * 1.03
+<span class="k">WHERE</span> 部門代碼 = <span class="s">'D01'</span> <span class="k">AND</span> 到職日 &lt; <span class="s">'2020-01-01'</span>;
+
+<span class="k">DELETE FROM</span> 員工 <span class="k">WHERE</span> 員工編號 = <span class="s">'E00001'</span>;</pre>
+    <div class="warn">
+      <span class="t">⚠️ 最恐怖的 SQL 錯誤</span>
+      <code>UPDATE 員工 SET 薪資 = 0;</code> — <strong>忘了寫 WHERE</strong>，全公司薪水歸零。<br>
+      實務習慣：先用 <code>SELECT</code> 把 WHERE 條件驗證過，再改成 UPDATE／DELETE。申論題談「資料庫維運」時，這點可作為<strong>作業程序控管</strong>的例子。
+    </div>
+
+    <h3>5-3　SELECT 的執行順序（理解這個就不會寫錯）</h3>
+    <div class="frame">
+      <span class="t">📐 撰寫順序 vs 執行順序</span>
+      <strong>撰寫順序</strong>：SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT<br><br>
+      <strong>實際執行順序</strong>：<br>
+      ① <code>FROM</code> / <code>JOIN</code>　（先決定資料從哪來）<br>
+      ② <code>WHERE</code>　（對<strong>個別列</strong>過濾）<br>
+      ③ <code>GROUP BY</code>　（分組）<br>
+      ④ <code>HAVING</code>　（對<strong>群組</strong>過濾）<br>
+      ⑤ <code>SELECT</code>　（挑欄位、算聚合函數）<br>
+      ⑥ <code>DISTINCT</code><br>
+      ⑦ <code>ORDER BY</code>　（排序）<br>
+      ⑧ <code>LIMIT</code> / <code>TOP</code>　（取前幾筆）
+    </div>
+    <div class="easy">
+      <div class="t">🧒 為什麼要知道執行順序</div>
+      <p>因為它解釋了三個最常見的錯誤：</p>
+      <p><strong>①「為什麼 WHERE 裡不能用 COUNT()？」</strong><br>
+      因為 WHERE 在 GROUP BY <u>之前</u>執行，那時還沒分組，COUNT 還不存在。要過濾聚合結果請用 <code>HAVING</code>。</p>
+      <p><strong>②「為什麼 WHERE 裡不能用 SELECT 定義的別名？」</strong><br>
+      因為 WHERE（②）比 SELECT（⑤）早執行，別名還沒誕生。但 <code>ORDER BY</code>（⑦）在 SELECT 之後，<strong>所以 ORDER BY 可以用別名</strong>。</p>
+      <p><strong>③「WHERE 和 HAVING 到底差在哪？」</strong><br>
+      WHERE 過濾「列」、HAVING 過濾「組」。而且因為 WHERE 先執行，<strong>把條件寫在 WHERE 效能較好</strong>（先篩掉再分組，資料量小）。</p>
+    </div>
+
+    <h3>5-4　JOIN 完整說明（必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>JOIN 類型</th><th>回傳內容</th><th>語法</th></tr>
+        <tr><td><strong>INNER JOIN</strong></td><td>只有<strong>兩邊都符合</strong>條件的列</td><td><code>A INNER JOIN B ON A.k = B.k</code></td></tr>
+        <tr><td><strong>LEFT (OUTER) JOIN</strong></td><td>左表<strong>全部</strong> + 右表符合者（無對應則右表欄位為 NULL）</td><td><code>A LEFT JOIN B ON ...</code></td></tr>
+        <tr><td><strong>RIGHT (OUTER) JOIN</strong></td><td>右表全部 + 左表符合者</td><td><code>A RIGHT JOIN B ON ...</code></td></tr>
+        <tr><td><strong>FULL (OUTER) JOIN</strong></td><td>兩邊全部，無對應處填 NULL</td><td><code>A FULL JOIN B ON ...</code></td></tr>
+        <tr><td><strong>CROSS JOIN</strong></td><td>笛卡兒積（m × n 列）</td><td><code>A CROSS JOIN B</code></td></tr>
+        <tr><td><strong>SELF JOIN</strong></td><td>同一張表自己接自己（需取別名）</td><td><code>員工 e1 JOIN 員工 e2 ON e1.主管編號 = e2.員工編號</code></td></tr>
+        <tr><td>NATURAL JOIN</td><td>自動用<strong>同名欄位</strong>做等值結合</td><td><code>A NATURAL JOIN B</code>（實務上不建議用，太隱晦）</td></tr>
+      </table>
+    </div>
+    <pre><span class="c">-- 查詢每位員工及其部門名稱（沒有部門的員工也要列出）</span>
+<span class="k">SELECT</span> e.姓名, e.薪資, <span class="k">COALESCE</span>(d.部門名稱, <span class="s">'（未分派）'</span>) <span class="k">AS</span> 部門
+<span class="k">FROM</span> 員工 e
+<span class="k">LEFT JOIN</span> 部門 d <span class="k">ON</span> e.部門代碼 = d.部門代碼;
+
+<span class="c">-- SELF JOIN：查詢每位員工及其主管姓名</span>
+<span class="k">SELECT</span> e.姓名 <span class="k">AS</span> 員工, m.姓名 <span class="k">AS</span> 主管
+<span class="k">FROM</span> 員工 e
+<span class="k">LEFT JOIN</span> 員工 m <span class="k">ON</span> e.主管編號 = m.員工編號;
+
+<span class="c">-- 找出「沒有任何員工」的部門（LEFT JOIN + IS NULL 技巧）</span>
+<span class="k">SELECT</span> d.部門名稱
+<span class="k">FROM</span> 部門 d
+<span class="k">LEFT JOIN</span> 員工 e <span class="k">ON</span> d.部門代碼 = e.部門代碼
+<span class="k">WHERE</span> e.員工編號 <span class="k">IS NULL</span>;</pre>
+    <div class="hl">
+      <span class="t">💡 「LEFT JOIN + IS NULL」是找差集的經典技巧</span>
+      「找出 A 有但 B 沒有的資料」有三種寫法：<br>
+      1. <code>LEFT JOIN ... WHERE B.key IS NULL</code>（效能通常最好）<br>
+      2. <code>WHERE key NOT IN (SELECT key FROM B)</code>（<strong>注意 NULL 陷阱</strong>）<br>
+      3. <code>WHERE NOT EXISTS (SELECT 1 FROM B WHERE ...)</code>（最安全）
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ NOT IN 的 NULL 陷阱（高階考點）</span>
+      若子查詢結果中<strong>含有 NULL</strong>，<code>NOT IN</code> 會回傳<strong>空結果</strong>！<br><br>
+      原因：<code>x NOT IN (1, 2, NULL)</code> 等價於 <code>x &lt;&gt; 1 AND x &lt;&gt; 2 AND x &lt;&gt; NULL</code>。<br>
+      而 <code>x &lt;&gt; NULL</code> 的結果是 <strong>UNKNOWN</strong>（不是 TRUE 也不是 FALSE），整個 AND 運算就永遠不會是 TRUE。<br><br>
+      <strong>對策</strong>：改用 <code>NOT EXISTS</code>，或在子查詢加 <code>WHERE key IS NOT NULL</code>。<br>
+      這是申論題「請說明 SQL 中 NULL 之三值邏輯」的最佳實例。
+    </div>
+
+    <h3>5-5　聚合函數與 GROUP BY</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>函數</th><th>說明</th><th>NULL 處理</th></tr>
+        <tr><td><code>COUNT(*)</code></td><td>計算列數</td><td><strong>包含</strong> NULL 的列</td></tr>
+        <tr><td><code>COUNT(欄位)</code></td><td>計算該欄非 NULL 的個數</td><td><strong>忽略</strong> NULL</td></tr>
+        <tr><td><code>COUNT(DISTINCT 欄位)</code></td><td>計算不重複值個數</td><td>忽略 NULL</td></tr>
+        <tr><td><code>SUM / AVG</code></td><td>總和／平均</td><td>忽略 NULL（<strong>AVG 的分母不含 NULL</strong>）</td></tr>
+        <tr><td><code>MAX / MIN</code></td><td>最大／最小</td><td>忽略 NULL</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ AVG 與 NULL 的經典陷阱</span>
+      5 筆資料的薪資為 100, 200, NULL, NULL, 300。<br>
+      <code>AVG(薪資)</code> = (100+200+300) / <strong>3</strong> = 200（<u>不是</u> 600/5 = 120）。<br><br>
+      若業務上 NULL 應視為 0，必須寫 <code>AVG(COALESCE(薪資, 0))</code>。<strong>這種細節就是申論題的得分點。</strong>
+    </div>
+    <pre><span class="c">-- 查詢各部門平均薪資，只列出人數 &gt;= 5 且平均薪資 &gt; 50000 的部門</span>
+<span class="k">SELECT</span> d.部門名稱,
+       <span class="k">COUNT</span>(*) <span class="k">AS</span> 人數,
+       <span class="k">ROUND</span>(<span class="k">AVG</span>(e.薪資), 0) <span class="k">AS</span> 平均薪資,
+       <span class="k">MAX</span>(e.薪資) <span class="k">AS</span> 最高薪
+<span class="k">FROM</span> 員工 e
+<span class="k">JOIN</span> 部門 d <span class="k">ON</span> e.部門代碼 = d.部門代碼
+<span class="k">WHERE</span> e.到職日 &lt;= <span class="s">'2024-12-31'</span>      <span class="c">-- ② 先過濾「列」</span>
+<span class="k">GROUP BY</span> d.部門代碼, d.部門名稱     <span class="c">-- ③ 分組</span>
+<span class="k">HAVING</span> <span class="k">COUNT</span>(*) &gt;= 5                 <span class="c">-- ④ 再過濾「組」</span>
+   <span class="k">AND</span> <span class="k">AVG</span>(e.薪資) &gt; 50000
+<span class="k">ORDER BY</span> 平均薪資 <span class="k">DESC</span>;             <span class="c">-- ⑦ 可用別名</span></pre>
+    <div class="hl">
+      <span class="t">💡 GROUP BY 的鐵則</span>
+      <code>SELECT</code> 裡出現的欄位，<strong>要嘛在 GROUP BY 裡、要嘛被聚合函數包住</strong>，不可以有第三種。<br>
+      違反這條規則在標準 SQL 與大多數 DBMS 會直接報錯（MySQL 舊版寬鬆，會回傳不確定的值——這是常見的 bug 來源）。
+    </div>
+
+    <h3>5-6　子查詢（Subquery）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>說明</th><th>範例</th></tr>
+        <tr><td><strong>純量子查詢</strong></td><td>回傳單一值，可放在任何值的位置</td><td><code>WHERE 薪資 &gt; (SELECT AVG(薪資) FROM 員工)</code></td></tr>
+        <tr><td><strong>單欄多列</strong></td><td>配合 IN、ANY、ALL</td><td><code>WHERE 部門代碼 IN (SELECT ... )</code></td></tr>
+        <tr><td><strong>相關子查詢</strong><br>Correlated</td><td>內層引用外層的欄位，<strong>每一列都要執行一次</strong>（效能較差）</td><td><code>WHERE EXISTS (SELECT 1 FROM B WHERE B.k = A.k)</code></td></tr>
+        <tr><td><strong>衍生表</strong><br>Derived Table</td><td>放在 FROM 裡當一張臨時表</td><td><code>FROM (SELECT ...) AS t</code></td></tr>
+        <tr><td><strong>CTE</strong><br>共用資料表運算式</td><td>用 WITH 定義，可讀性最好，<strong>可遞迴</strong></td><td><code>WITH t AS (SELECT ...) SELECT * FROM t</code></td></tr>
+      </table>
+    </div>
+    <pre><span class="c">-- ANY / ALL 的差異</span>
+<span class="k">WHERE</span> 薪資 &gt; <span class="k">ANY</span> (<span class="k">SELECT</span> 薪資 <span class="k">FROM</span> 員工 <span class="k">WHERE</span> 部門代碼=<span class="s">'D01'</span>)
+<span class="c">-- 只要比 D01 中「任一人」高就算 → 等於比「最低薪」高</span>
+
+<span class="k">WHERE</span> 薪資 &gt; <span class="k">ALL</span> (<span class="k">SELECT</span> 薪資 <span class="k">FROM</span> 員工 <span class="k">WHERE</span> 部門代碼=<span class="s">'D01'</span>)
+<span class="c">-- 要比 D01 中「所有人」都高 → 等於比「最高薪」高</span>
+
+<span class="c">-- CTE：查詢薪資高於本部門平均的員工</span>
+<span class="k">WITH</span> 部門平均 <span class="k">AS</span> (
+    <span class="k">SELECT</span> 部門代碼, <span class="k">AVG</span>(薪資) <span class="k">AS</span> 平均薪
+    <span class="k">FROM</span> 員工 <span class="k">GROUP BY</span> 部門代碼
+)
+<span class="k">SELECT</span> e.姓名, e.薪資, a.平均薪
+<span class="k">FROM</span> 員工 e
+<span class="k">JOIN</span> 部門平均 a <span class="k">ON</span> e.部門代碼 = a.部門代碼
+<span class="k">WHERE</span> e.薪資 &gt; a.平均薪;
+
+<span class="c">-- 遞迴 CTE：查詢某主管底下所有層級的部屬（組織圖展開）</span>
+<span class="k">WITH RECURSIVE</span> 部屬 <span class="k">AS</span> (
+    <span class="k">SELECT</span> 員工編號, 姓名, 主管編號, 1 <span class="k">AS</span> 層級
+    <span class="k">FROM</span> 員工 <span class="k">WHERE</span> 員工編號 = <span class="s">'E00001'</span>      <span class="c">-- 起始點</span>
+    <span class="k">UNION ALL</span>
+    <span class="k">SELECT</span> e.員工編號, e.姓名, e.主管編號, p.層級 + 1
+    <span class="k">FROM</span> 員工 e <span class="k">JOIN</span> 部屬 p <span class="k">ON</span> e.主管編號 = p.員工編號
+)
+<span class="k">SELECT</span> * <span class="k">FROM</span> 部屬;</pre>
+
+    <h3>5-7　窗函數（Window Function）— 近年新考點</h3>
+    <pre><span class="c">-- 各部門薪資排名（不影響列數，這是與 GROUP BY 最大的差別）</span>
+<span class="k">SELECT</span> 姓名, 部門代碼, 薪資,
+   <span class="k">RANK</span>()       <span class="k">OVER</span> (<span class="k">PARTITION BY</span> 部門代碼 <span class="k">ORDER BY</span> 薪資 <span class="k">DESC</span>) <span class="k">AS</span> 排名,
+   <span class="k">DENSE_RANK</span>() <span class="k">OVER</span> (<span class="k">PARTITION BY</span> 部門代碼 <span class="k">ORDER BY</span> 薪資 <span class="k">DESC</span>) <span class="k">AS</span> 密集排名,
+   <span class="k">ROW_NUMBER</span>() <span class="k">OVER</span> (<span class="k">PARTITION BY</span> 部門代碼 <span class="k">ORDER BY</span> 薪資 <span class="k">DESC</span>) <span class="k">AS</span> 序號,
+   <span class="k">AVG</span>(薪資)     <span class="k">OVER</span> (<span class="k">PARTITION BY</span> 部門代碼) <span class="k">AS</span> 部門平均
+<span class="k">FROM</span> 員工;</pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th>函數</th><th>並列時的行為（薪資 100, 100, 90）</th></tr>
+        <tr><td><code>RANK()</code></td><td>1, 1, <strong>3</strong>（跳號）</td></tr>
+        <tr><td><code>DENSE_RANK()</code></td><td>1, 1, <strong>2</strong>（不跳號）</td></tr>
+        <tr><td><code>ROW_NUMBER()</code></td><td>1, 2, 3（強制不重複）</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <strong>GROUP BY vs 窗函數</strong>：GROUP BY 會<strong>把多列壓成一列</strong>；窗函數<strong>保留每一列</strong>，只是額外算出一個群組統計值。<br>
+      「查出每位員工的薪資，以及他所屬部門的平均薪資」這種需求，用窗函數一行搞定，用 GROUP BY 則需 JOIN 子查詢。
+    </div>
+
+    <h3>5-8　檢視表、預存程序、觸發器</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>物件</th><th>定義</th><th>優點</th><th>限制／風險</th></tr>
+        <tr><td><strong>檢視表 View</strong></td><td>儲存的查詢，虛擬表</td><td>簡化複雜查詢、<strong>權限控管</strong>（只開放部分欄位）、邏輯獨立性</td><td>含聚合／DISTINCT／GROUP BY 的 View <strong>通常不可更新</strong></td></tr>
+        <tr><td>物化檢視表<br>Materialized View</td><td>把 View 結果<strong>實際存下來</strong></td><td>查詢極快</td><td>需定期刷新，資料非即時</td></tr>
+        <tr><td><strong>預存程序</strong><br>Stored Procedure</td><td>預先編譯的 SQL 程式，可帶參數</td><td>減少網路往返、<strong>防 SQL Injection</strong>、集中商業邏輯、可授權執行</td><td>邏輯散落資料庫、跨 DBMS 不可攜、版控困難</td></tr>
+        <tr><td><strong>觸發器</strong><br>Trigger</td><td>事件（INSERT/UPDATE/DELETE）發生時自動執行</td><td>強制完整性、<strong>自動寫稽核軌跡</strong></td><td><strong>難以除錯</strong>（隱藏的副作用）、可能連鎖觸發、影響效能</td></tr>
+      </table>
+    </div>
+    <pre><span class="c">-- View：只開放非敏感欄位給一般使用者</span>
+<span class="k">CREATE VIEW</span> 員工公開資料 <span class="k">AS</span>
+<span class="k">SELECT</span> 員工編號, 姓名, 部門代碼 <span class="k">FROM</span> 員工;   <span class="c">-- 刻意不含薪資</span>
+<span class="k">GRANT SELECT ON</span> 員工公開資料 <span class="k">TO</span> 一般使用者;
+
+<span class="c">-- Trigger：自動記錄薪資變更軌跡（稽核用）</span>
+<span class="k">CREATE TRIGGER</span> trg_薪資稽核
+<span class="k">AFTER UPDATE OF</span> 薪資 <span class="k">ON</span> 員工
+<span class="k">FOR EACH ROW</span>
+<span class="k">BEGIN</span>
+    <span class="k">INSERT INTO</span> 薪資異動紀錄(員工編號, 原薪資, 新薪資, 異動時間, 異動者)
+    <span class="k">VALUES</span> (:OLD.員工編號, :OLD.薪資, :NEW.薪資, CURRENT_TIMESTAMP, USER);
+<span class="k">END</span>;</pre>
+    <div class="plain">
+      <span class="t">✅ 公部門申論加分角度</span>
+      談 View 時可寫：「機關可藉<strong>檢視表</strong>實現<strong>最小權限原則</strong>，例如人事系統僅開放不含薪資與身分證字號之 View 給一般單位，符合《個人資料保護法》必要範圍之要求。」<br>
+      談 Trigger 時可寫：「可用於自動產生<strong>稽核軌跡（Audit Trail）</strong>，符合《資通安全管理法》對存取紀錄保存之要求。」
+    </div>
+  </div>
+
+  <!-- ============ 第六章 ============ -->
+  <div class="card" id="c6">
+    <h2>第 6 章　交易管理與並行控制</h2>
+
+    <h3>6-1　交易（Transaction）與 ACID</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>特性</th><th>英文</th><th>意義</th><th>由誰保障</th></tr>
+        <tr><td><strong>原子性</strong></td><td>Atomicity</td><td><strong>全部成功或全部失敗</strong>，不容許做一半</td><td>復原機制（Undo Log）</td></tr>
+        <tr><td><strong>一致性</strong></td><td>Consistency</td><td>交易前後資料庫都須滿足所有完整性限制</td><td>限制條件 + 應用程式邏輯</td></tr>
+        <tr><td><strong>隔離性</strong></td><td>Isolation</td><td>並行執行的交易互不干擾，結果如同循序執行</td><td>並行控制（鎖定、MVCC）</td></tr>
+        <tr><td><strong>持久性</strong></td><td>Durability</td><td>一旦 COMMIT，即使系統當機也不會遺失</td><td>Redo Log + 寫入非揮發性儲存</td></tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 用轉帳理解 ACID</div>
+      <p>A 帳戶轉 1000 元給 B。這件事包含兩個動作：A 減 1000、B 加 1000。</p>
+      <ul>
+        <li><strong>原子性</strong>：不可以只做「A 減 1000」就當機——錢會人間蒸發。要嘛兩個都做，要嘛都不做。</li>
+        <li><strong>一致性</strong>：轉完後「A + B 的總額」必須跟轉之前一樣。</li>
+        <li><strong>隔離性</strong>：如果同時有另一筆交易在查 A 的餘額，它<strong>不該看到「已扣款但還沒入帳」的中間狀態</strong>。</li>
+        <li><strong>持久性</strong>：銀行螢幕顯示「轉帳成功」之後拔插頭，重開機錢還是要在 B 那裡。</li>
+      </ul>
+    </div>
+
+    <h3>6-2　並行問題（四種，必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>問題</th><th>情境</th><th>白話</th></tr>
+        <tr>
+          <td><strong>遺失更新</strong><br>Lost Update</td>
+          <td>T1 讀 X=100，T2 讀 X=100，T1 寫 X=110，T2 寫 X=120</td>
+          <td>T1 的修改<strong>被覆蓋掉了</strong>，像沒發生過</td>
+        </tr>
+        <tr>
+          <td><strong>髒讀</strong><br>Dirty Read</td>
+          <td>T1 改 X 但未 COMMIT，T2 讀到新值，之後 T1 ROLLBACK</td>
+          <td>T2 讀到<strong>從未真正存在</strong>的資料</td>
+        </tr>
+        <tr>
+          <td><strong>不可重複讀</strong><br>Non-repeatable Read</td>
+          <td>T1 讀 X=100 → T2 改 X=200 並 COMMIT → T1 再讀 X=200</td>
+          <td>同一筆資料，<strong>讀兩次值不同</strong></td>
+        </tr>
+        <tr>
+          <td><strong>幻讀</strong><br>Phantom Read</td>
+          <td>T1 查「薪資&gt;5萬」得 10 筆 → T2 新增一筆符合條件並 COMMIT → T1 再查得 11 筆</td>
+          <td>同一查詢，<strong>列數變多（憑空出現）</strong></td>
+        </tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 不可重複讀 vs 幻讀，一句話分清</span>
+      <strong>不可重複讀是「同一列的值變了」（UPDATE 造成）</strong>；<br>
+      <strong>幻讀是「列的數量變了」（INSERT / DELETE 造成）</strong>。<br>
+      這兩者的區別是高頻考點，一定要能講清楚。
+    </div>
+
+    <h3>6-3　隔離等級（Isolation Level）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>隔離等級</th><th>髒讀</th><th>不可重複讀</th><th>幻讀</th><th>效能</th></tr>
+        <tr><td>Read Uncommitted</td><td>❌ 可能</td><td>❌ 可能</td><td>❌ 可能</td><td>最好</td></tr>
+        <tr><td>Read Committed</td><td>✅ 防止</td><td>❌ 可能</td><td>❌ 可能</td><td>好（多數 DBMS 預設）</td></tr>
+        <tr><td>Repeatable Read</td><td>✅</td><td>✅ 防止</td><td>❌ 可能</td><td>中（MySQL 預設）</td></tr>
+        <tr><td><strong>Serializable</strong></td><td>✅</td><td>✅</td><td>✅ 防止</td><td>最差</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 這是典型的取捨（Trade-off）題</span>
+      隔離等級越高 → 一致性越好，但<strong>並行度越低、效能越差</strong>。<br><br>
+      申論寫法：「機關系統應依<strong>業務性質</strong>選擇隔離等級。涉及金流、選課額度等<strong>不容錯誤</strong>之交易，宜採 Serializable 或搭配<strong>悲觀鎖定</strong>；一般查詢報表類作業採 Read Committed 即可，以兼顧效能。」
+    </div>
+
+    <h3>6-4　鎖定機制（Locking）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>鎖類型</th><th>又稱</th><th>可否共存</th></tr>
+        <tr><td><strong>共享鎖 S</strong>（Shared）</td><td>讀鎖</td><td>S 與 S <strong>可以</strong>共存（多人同時讀沒問題）</td></tr>
+        <tr><td><strong>互斥鎖 X</strong>（Exclusive）</td><td>寫鎖</td><td>X 與任何鎖<strong>都不能</strong>共存</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 兩階段鎖定協定（2PL, Two-Phase Locking）</span>
+      <strong>成長階段（Growing Phase）</strong>：只能<u>加鎖</u>，不可解鎖<br>
+      <strong>收縮階段（Shrinking Phase）</strong>：只能<u>解鎖</u>，不可加鎖<br><br>
+      → 可保證<strong>可序列化（Serializability）</strong>，但<strong>不保證不會死結</strong><br><br>
+      <strong>嚴格 2PL（Strict 2PL）</strong>：所有 X 鎖都保留到交易結束（COMMIT/ROLLBACK）才釋放 → 可避免<strong>連鎖回復（Cascading Rollback）</strong>，實務常用。
+    </div>
+    <h4>鎖定粒度（Granularity）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>粒度</th><th>並行度</th><th>管理成本</th></tr>
+        <tr><td>資料庫層級</td><td>最低</td><td>最低</td></tr>
+        <tr><td>資料表層級</td><td>低</td><td>低</td></tr>
+        <tr><td>頁層級（Page）</td><td>中</td><td>中</td></tr>
+        <tr><td><strong>列層級（Row）</strong></td><td><strong>最高</strong></td><td><strong>最高</strong></td></tr>
+      </table>
+    </div>
+    <p>粒度越細，並行度越高，但要管理的鎖數量暴增（記憶體與 CPU 成本）。實務上 DBMS 會用<strong>鎖升級（Lock Escalation）</strong>：當某表的列鎖數量過多時，自動升級為表鎖。</p>
+
+    <h3>6-5　死結（Deadlock）</h3>
+    <div class="frame">
+      <span class="t">📐 死結四條件（Coffman 條件，必須同時成立）</span>
+      1. <strong>互斥（Mutual Exclusion）</strong>：資源不可共享<br>
+      2. <strong>持有並等待（Hold and Wait）</strong>：持有資源的同時等待其他資源<br>
+      3. <strong>不可搶奪（No Preemption）</strong>：不能強行拿走別人的資源<br>
+      4. <strong>循環等待（Circular Wait）</strong>：形成等待環<br><br>
+      <strong>破壞任一條件即可避免死結。</strong>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>策略</th><th>做法</th><th>優缺點</th></tr>
+        <tr><td><strong>預防</strong> Prevention</td><td>破壞四條件之一，如<strong>規定所有交易依相同順序取得鎖</strong>（破壞循環等待）</td><td>有效但限制大</td></tr>
+        <tr><td><strong>避免</strong> Avoidance</td><td>時間戳記法（Wait-Die / Wound-Wait）、銀行家演算法</td><td>需事先知道資源需求</td></tr>
+        <tr><td><strong>偵測與復原</strong> Detection</td><td>建立<strong>等待圖（Wait-for Graph）</strong>，找到環就<strong>挑一個犧牲者（Victim）回復</strong></td><td><strong>實務最常用</strong>；犧牲者選擇需考量成本</td></tr>
+        <tr><td>忽略</td><td>設定<strong>逾時（Timeout）</strong>，等太久就放棄</td><td>最簡單，但可能誤殺正常交易</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 實務上如何降低死結</span>
+      1. <strong>統一存取順序</strong>（例如所有交易都先鎖「帳戶表」再鎖「交易紀錄表」）<br>
+      2. <strong>縮短交易長度</strong>（別在交易中間等使用者輸入、別在交易裡呼叫外部 API）<br>
+      3. <strong>降低隔離等級</strong>（在業務允許範圍內）<br>
+      4. <strong>使用適當索引</strong>（避免全表掃描造成大量鎖定）<br>
+      第 4 點最常被忽略，但實務上效果最大——<strong>沒有索引的 UPDATE 會鎖很多列</strong>。
+    </div>
+
+    <h3>6-6　MVCC（多版本並行控制）</h3>
+    <p>現代主流 DBMS（PostgreSQL、Oracle、MySQL InnoDB）採用的機制：<strong>寫入時建立新版本，讀取時看舊版本快照</strong>。</p>
+    <div class="plain">
+      <span class="t">✅ 核心優點：讀不阻塞寫，寫不阻塞讀</span>
+      傳統鎖定機制下，有人在寫就不能讀。MVCC 讓讀取者去看「交易開始那一刻的快照」，因此完全不需要等待。<br>
+      代價：需要<strong>額外空間存放多版本</strong>，並需定期清理舊版本（PostgreSQL 的 VACUUM）。
+    </div>
+
+    <h3>6-7　復原機制（Recovery）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>機制</th><th>用途</th></tr>
+        <tr><td><strong>Undo Log</strong></td><td>記錄「舊值」，用於<strong>回復未完成的交易</strong>（保障原子性）</td></tr>
+        <tr><td><strong>Redo Log</strong></td><td>記錄「新值」，用於<strong>重做已 COMMIT 但還沒寫入磁碟的交易</strong>（保障持久性）</td></tr>
+        <tr><td><strong>WAL</strong>（Write-Ahead Logging）</td><td><strong>先寫日誌再改資料</strong>。這是持久性的實作基礎</td></tr>
+        <tr><td><strong>檢查點</strong> Checkpoint</td><td>定期把記憶體中的變更寫入磁碟並記錄位置，<strong>縮短復原時間</strong></td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 當機後的復原流程</span>
+      1. 從最近的 <strong>Checkpoint</strong> 開始讀取日誌<br>
+      2. <strong>Redo</strong>：所有已 COMMIT 的交易 → 重做（確保持久性）<br>
+      3. <strong>Undo</strong>：所有未 COMMIT 的交易 → 回復（確保原子性）
+    </div>
+    <h4>備份策略（申論常結合 BCP 考）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>內容</th><th>備份時間</th><th>復原時間</th></tr>
+        <tr><td>完整備份 Full</td><td>全部資料</td><td>最長</td><td>最短</td></tr>
+        <tr><td>差異備份 Differential</td><td>自上次<strong>完整</strong>備份後的變更</td><td>中</td><td>中（完整 + 最後一次差異）</td></tr>
+        <tr><td>增量備份 Incremental</td><td>自上次<strong>任何</strong>備份後的變更</td><td>最短</td><td>最長（完整 + 所有增量）</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <strong>RTO（復原時間目標）</strong>：可容忍多久救回來 → 決定備援架構（熱備援／冷備援）<br>
+      <strong>RPO（復原點目標）</strong>：可容忍遺失多少資料 → 決定備份頻率與日誌傳送方式<br><br>
+      公部門常見要求：關鍵系統 RTO ≤ 4 小時、RPO ≤ 15 分鐘。<strong>申論題談備份一定要提這兩個指標。</strong>
+    </div>
+  </div>
+
+  <!-- ============ 第七章 ============ -->
+  <div class="card" id="c7">
+    <h2>第 7 章　索引與查詢最佳化</h2>
+
+    <h3>7-1　索引的原理與代價</h3>
+    <div class="easy">
+      <div class="t">🧒 索引就是書後面的索引頁</div>
+      <p>一本 500 頁的書，你想找「正規化」這個詞。</p>
+      <ul>
+        <li><strong>沒有索引</strong>：從第 1 頁翻到第 500 頁（<strong>全表掃描 Full Table Scan</strong>）</li>
+        <li><strong>有索引</strong>：翻到書末索引頁，看到「正規化 …… p.213」，直接跳過去</li>
+      </ul>
+      <p><strong>但索引有代價</strong>：索引頁本身占空間（儲存成本），而且如果書要改版新增內容，索引頁也得跟著重編（<strong>寫入成本</strong>）。</p>
+      <p>所以結論很清楚：<strong>查詢多的欄位建索引；寫入多、查詢少的表少建索引。</strong></p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>索引的效益</th><th>索引的代價</th></tr>
+        <tr>
+          <td>
+            ‧ 加速 <code>WHERE</code> 條件過濾<br>
+            ‧ 加速 <code>JOIN</code>（結合欄位）<br>
+            ‧ 加速 <code>ORDER BY</code> / <code>GROUP BY</code>（B+ 樹本身有序）<br>
+            ‧ 唯一索引可強制唯一性<br>
+            ‧ 覆蓋索引可完全避免回表
+          </td>
+          <td>
+            ‧ 額外<strong>儲存空間</strong><br>
+            ‧ <strong>INSERT／UPDATE／DELETE 變慢</strong>（每個索引都要維護）<br>
+            ‧ 索引過多會讓最佳化器<strong>選錯執行計畫</strong><br>
+            ‧ 需定期重建以消除碎片
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>7-2　索引種類</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>種類</th><th>說明</th></tr>
+        <tr><td><strong>叢集索引</strong><br>Clustered Index</td><td>索引順序<strong>即為資料的實體排列順序</strong>；<strong>一張表只能有一個</strong>。範圍查詢極快</td></tr>
+        <tr><td><strong>非叢集索引</strong><br>Non-clustered</td><td>索引與資料分開存放，索引葉節點指向資料位置；可建多個</td></tr>
+        <tr><td>唯一索引 Unique</td><td>強制欄位值不重複（主鍵自動建立）</td></tr>
+        <tr><td>複合索引 Composite</td><td>多欄位組成，<strong>欄位順序極重要</strong>（最左前綴原則）</td></tr>
+        <tr><td><strong>覆蓋索引</strong><br>Covering Index</td><td>查詢所需的<u>全部欄位</u>都在索引中 → <strong>不必回表讀資料</strong>，效能最佳</td></tr>
+        <tr><td>部分／過濾索引</td><td>只對符合條件的列建索引（如只對「未結案」的公文建）</td></tr>
+        <tr><td>雜湊索引 Hash</td><td>等值查詢 O(1)，<strong>不支援範圍查詢與排序</strong></td></tr>
+        <tr><td>點陣圖索引 Bitmap</td><td>適合<strong>低基數</strong>欄位（如性別、狀態），資料倉儲常用</td></tr>
+        <tr><td>全文索引 Full-text</td><td>支援文字內容搜尋（需分詞）</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 複合索引的最左前綴原則（Leftmost Prefix）</span>
+      建立索引 <code>INDEX(部門代碼, 職稱, 到職日)</code> 後：<br><br>
+      ✅ 可用到索引：<br>
+      　<code>WHERE 部門代碼 = 'D01'</code><br>
+      　<code>WHERE 部門代碼 = 'D01' AND 職稱 = '科員'</code><br>
+      　<code>WHERE 部門代碼 = 'D01' AND 職稱 = '科員' AND 到職日 &gt; '2020-01-01'</code><br><br>
+      ❌ 用不到（或只能部分用到）：<br>
+      　<code>WHERE 職稱 = '科員'</code>　（跳過了最左的部門代碼）<br>
+      　<code>WHERE 到職日 &gt; '2020-01-01'</code><br><br>
+      <strong>比喻</strong>：就像電話簿按「姓 → 名」排序。你知道姓就能快速找到；但只知道名字叫「小明」，還是得整本翻。
+    </div>
+
+    <h3>7-3　索引失效的常見情形（實務必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>寫法</th><th>問題</th><th>改善</th></tr>
+        <tr><td><code>WHERE YEAR(到職日) = 2024</code></td><td>欄位被<strong>函數包住</strong>，索引失效</td><td><code>WHERE 到職日 &gt;= '2024-01-01' AND 到職日 &lt; '2025-01-01'</code></td></tr>
+        <tr><td><code>WHERE 薪資 * 12 &gt; 600000</code></td><td>欄位參與運算</td><td><code>WHERE 薪資 &gt; 50000</code></td></tr>
+        <tr><td><code>WHERE 姓名 LIKE '%明'</code></td><td><strong>前置通用字元</strong>，無法用 B+ 樹</td><td>改為 <code>LIKE '明%'</code>，或建全文索引／反轉索引</td></tr>
+        <tr><td><code>WHERE 員工編號 = 123</code>（欄位是字串）</td><td><strong>隱含型別轉換</strong></td><td><code>WHERE 員工編號 = '123'</code></td></tr>
+        <tr><td><code>WHERE A = 1 OR B = 2</code></td><td>OR 兩側各有索引時可能不走索引</td><td>改用 <code>UNION</code>，或建複合索引</td></tr>
+        <tr><td><code>SELECT *</code></td><td>無法使用覆蓋索引，必須回表</td><td>只選需要的欄位</td></tr>
+        <tr><td>欄位<strong>選擇性太低</strong></td><td>如「性別」只有兩個值，走索引反而慢</td><td>不建索引，或改用點陣圖索引</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 一句話總結</span>
+      <strong>「索引欄位左邊不要動它」</strong>——不要包函數、不要做運算、不要讓型別被隱含轉換。這一句可以解釋上表七成的情形。
+    </div>
+
+    <h3>7-4　查詢最佳化</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>階段</th><th>工作</th></tr>
+        <tr><td>1. 語法解析（Parse）</td><td>檢查語法、語意、權限</td></tr>
+        <tr><td>2. 查詢改寫（Rewrite）</td><td>展開 View、簡化條件、子查詢轉 JOIN</td></tr>
+        <tr><td>3. <strong>產生執行計畫</strong></td><td>列舉可能的存取路徑與 JOIN 順序，估算成本</td></tr>
+        <tr><td>4. 執行</td><td>依選定計畫取得結果</td></tr>
+      </table>
+    </div>
+    <h4>兩種最佳化方式</h4>
+    <ul>
+      <li><strong>規則式最佳化（RBO）</strong>：依固定規則（如「有索引就用索引」）。已較少使用。</li>
+      <li><strong>成本式最佳化（CBO）</strong>：依<strong>資料字典中的統計資訊</strong>（列數、值分布、索引選擇性）估算各方案成本，選最低者。<strong>現代 DBMS 的主流。</strong></li>
+    </ul>
+    <div class="warn">
+      <span class="t">⚠️ 統計資訊過期是實務上最常見的效能問題</span>
+      CBO 依賴統計資訊。若一張表從 1 千筆長到 1 千萬筆但統計資訊沒更新，最佳化器會誤判資料量很小而選擇全表掃描 → <strong>效能突然崩掉</strong>。<br>
+      <strong>對策</strong>：定期執行統計資訊更新（<code>ANALYZE TABLE</code> / <code>UPDATE STATISTICS</code>）。這是 DBA 的例行工作，也是很好的申論實務細節。
+    </div>
+    <h4>三種 JOIN 演算法</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>演算法</th><th>作法</th><th>適用</th></tr>
+        <tr><td>Nested Loop Join</td><td>對外表每一列，掃內表一次</td><td>外表小、內表結合欄位有索引</td></tr>
+        <tr><td>Sort-Merge Join</td><td>兩表各自排序後合併</td><td>兩表都大、已有排序或索引</td></tr>
+        <tr><td>Hash Join</td><td>小表建雜湊表，大表逐列探測</td><td>兩表都大、等值結合、記憶體足夠</td></tr>
+      </table>
+    </div>
+    <h4>SQL 調校檢查清單</h4>
+    <ol>
+      <li>用 <code>EXPLAIN</code> / <code>EXPLAIN PLAN</code> 看執行計畫，找出全表掃描</li>
+      <li>避免 <code>SELECT *</code></li>
+      <li>把過濾條件<strong>盡早</strong>放（能寫 WHERE 就不要寫 HAVING）</li>
+      <li>用 <code>EXISTS</code> 取代 <code>IN</code>（子查詢資料量大時）</li>
+      <li>用 <code>UNION ALL</code> 取代 <code>UNION</code>（若確定無重複，可省去排序去重）</li>
+      <li>避免在索引欄位上使用函數</li>
+      <li>大量資料處理改用<strong>批次分段</strong>，避免長交易鎖住整表</li>
+      <li>定期更新統計資訊、重建碎片化索引</li>
+    </ol>
+  </div>
+
+  <!-- ============ 第八章 ============ -->
+  <div class="card" id="c8">
+    <h2>第 8 章　資料倉儲、OLAP 與 NoSQL</h2>
+
+    <h3>8-1　OLTP vs OLAP（必考比較）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>OLTP（線上交易處理）</th><th>OLAP（線上分析處理）</th></tr>
+        <tr><td>目的</td><td>處理日常交易</td><td>支援決策分析</td></tr>
+        <tr><td>典型操作</td><td>大量短小的 INSERT／UPDATE</td><td>少量但複雜的彙總查詢</td></tr>
+        <tr><td>資料範圍</td><td>當前資料</td><td><strong>歷史資料</strong>（數年）</td></tr>
+        <tr><td>資料量</td><td>GB 級</td><td>TB～PB 級</td></tr>
+        <tr><td>正規化程度</td><td><strong>高</strong>（3NF 以上）</td><td><strong>低</strong>（星狀綱要，刻意反正規化）</td></tr>
+        <tr><td>使用者</td><td>櫃檯人員、一般民眾</td><td>主管、分析人員</td></tr>
+        <tr><td>效能指標</td><td>回應時間（毫秒）、每秒交易數</td><td>查詢吞吐量</td></tr>
+        <tr><td>例子</td><td>戶政系統辦理登記</td><td>人口趨勢分析報表</td></tr>
+      </table>
+    </div>
+
+    <h3>8-2　資料倉儲（Data Warehouse）</h3>
+    <div class="frame">
+      <span class="t">📐 Inmon 的四大特性（必背名詞）</span>
+      1. <strong>主題導向（Subject-Oriented）</strong>：依分析主題組織（如「民眾服務」），而非依作業流程<br>
+      2. <strong>整合性（Integrated）</strong>：來自多來源，格式與編碼經統一<br>
+      3. <strong>時間變異（Time-Variant）</strong>：保留歷史快照，可做趨勢分析<br>
+      4. <strong>非揮發性（Non-Volatile）</strong>：<strong>只新增不修改</strong>，資料一旦載入即不再變動
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>概念</th><th>說明</th></tr>
+        <tr><td><strong>ETL</strong></td><td>Extract（萃取）→ Transform（轉換、清洗）→ Load（載入）</td></tr>
+        <tr><td><strong>ELT</strong></td><td>先載入再轉換，雲端大數據常用（運算力便宜）</td></tr>
+        <tr><td>資料超市 Data Mart</td><td>資料倉儲的部門子集</td></tr>
+        <tr><td>資料湖 Data Lake</td><td>以<strong>原始格式</strong>存放結構化與非結構化資料，Schema-on-Read</td></tr>
+        <tr><td>ODS</td><td>Operational Data Store，近即時的整合作業資料</td></tr>
+      </table>
+    </div>
+    <h4>維度模型：星狀 vs 雪花狀</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>星狀綱要 Star Schema</th><th>雪花狀綱要 Snowflake Schema</th></tr>
+        <tr><td>結構</td><td>一個<strong>事實表</strong>（Fact）＋ 多個<strong>未正規化</strong>的維度表</td><td>維度表<strong>進一步正規化</strong>成多層</td></tr>
+        <tr><td>JOIN 數量</td><td><strong>少</strong></td><td>多</td></tr>
+        <tr><td>查詢效能</td><td><strong>好</strong></td><td>較差</td></tr>
+        <tr><td>儲存空間</td><td>較多（資料重複）</td><td><strong>較省</strong></td></tr>
+        <tr><td>維護</td><td>維度變更較麻煩</td><td>較易維護</td></tr>
+      </table>
+    </div>
+    <p><strong>事實表</strong>存放<u>可加總的度量值</u>（如金額、件數）與各維度的外鍵；<strong>維度表</strong>存放<u>描述性屬性</u>（時間、地區、單位、類別）。</p>
+    <h4>OLAP 操作（名詞題）</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>操作</th><th>說明</th><th>例子</th></tr>
+        <tr><td><strong>上捲 Roll-up</strong></td><td>沿維度階層<strong>往上彙總</strong></td><td>鄉鎮 → 縣市 → 全國</td></tr>
+        <tr><td><strong>下探 Drill-down</strong></td><td>往下展開細節</td><td>年 → 季 → 月 → 日</td></tr>
+        <tr><td><strong>切片 Slice</strong></td><td>固定<strong>一個</strong>維度的值</td><td>只看「2025 年」的資料</td></tr>
+        <tr><td><strong>切塊 Dice</strong></td><td>固定<strong>多個</strong>維度的範圍</td><td>2025 年 + 北部 + 民政類</td></tr>
+        <tr><td><strong>樞紐 Pivot</strong></td><td>旋轉維度，改變觀察角度</td><td>把「地區為列、時間為欄」換成相反</td></tr>
+      </table>
+    </div>
+
+    <h3>8-3　NoSQL 與 CAP 定理</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>資料模型</th><th>代表產品</th><th>適用情境</th></tr>
+        <tr><td><strong>鍵值</strong> Key-Value</td><td>key → value</td><td>Redis、DynamoDB</td><td>快取、Session、計數器</td></tr>
+        <tr><td><strong>文件</strong> Document</td><td>JSON / BSON</td><td>MongoDB、CouchDB</td><td>結構多變的資料、內容管理</td></tr>
+        <tr><td><strong>欄族</strong> Column-Family</td><td>依欄族存放</td><td>Cassandra、HBase</td><td>大量寫入、時序資料、日誌</td></tr>
+        <tr><td><strong>圖形</strong> Graph</td><td>節點 + 邊</td><td>Neo4j</td><td>社群關係、關係鏈追查（如金流圖）</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 CAP 定理</span>
+      分散式系統無法同時滿足三者，最多只能滿足兩個：<br>
+      <strong>C（Consistency）一致性</strong>：所有節點看到相同資料<br>
+      <strong>A（Availability）可用性</strong>：每個請求都能得到回應<br>
+      <strong>P（Partition Tolerance）分區容錯</strong>：網路分割時系統仍能運作<br><br>
+      <strong>關鍵理解</strong>：在真實的分散式系統中，<strong>網路分割一定會發生</strong>，所以 <u>P 是必選的</u>。<br>
+      實際的取捨是 <strong>CP</strong>（一致性優先，如 HBase、傳統 RDBMS 叢集）<strong>還是 AP</strong>（可用性優先，如 Cassandra、DynamoDB）。
+    </div>
+    <div class="easy">
+      <div class="t">🧒 CAP 用生活例子講</div>
+      <p>你和朋友各有一本共用的記帳簿（兩個節點）。突然你們失聯了（網路分割）。這時朋友要記一筆帳：</p>
+      <ul>
+        <li><strong>選 CP（一致性優先）</strong>：「不行，我沒辦法跟你確認，先不要記。」→ 資料絕對不會不一致，但<strong>服務停擺</strong>。</li>
+        <li><strong>選 AP（可用性優先）</strong>：「先記著，等聯絡上再合帳。」→ 服務不中斷，但那段期間<strong>兩本帳不一致</strong>（最終一致性）。</li>
+      </ul>
+      <p>哪個對？<strong>看業務。</strong>銀行轉帳選 CP（寧可不能用，也不能算錯錢）；社群按讚數選 AP（少算幾個讚沒關係，網站不能掛）。</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>ACID（RDBMS）</th><th>BASE（NoSQL）</th></tr>
+        <tr><td>全稱</td><td>Atomicity, Consistency, Isolation, Durability</td><td><strong>B</strong>asically <strong>A</strong>vailable, <strong>S</strong>oft state, <strong>E</strong>ventually consistent</td></tr>
+        <tr><td>一致性</td><td>強一致性（立即）</td><td><strong>最終一致性</strong>（允許暫時不一致）</td></tr>
+        <tr><td>優先目標</td><td>正確性</td><td>可用性與擴充性</td></tr>
+      </table>
+    </div>
+    <h4>RDBMS vs NoSQL 的選擇</h4>
+    <div class="table-wrap">
+      <table>
+        <tr><th>需求</th><th>建議</th></tr>
+        <tr><td>需要複雜 JOIN 與交易一致性（財務、戶政、稅務）</td><td><strong>RDBMS</strong></td></tr>
+        <tr><td>資料結構固定且需嚴格驗證</td><td>RDBMS</td></tr>
+        <tr><td>需要水平擴充到極大規模</td><td>NoSQL</td></tr>
+        <tr><td>資料結構多變、半結構化（IoT、日誌、感測器）</td><td>NoSQL</td></tr>
+        <tr><td>高速讀寫、可容忍短暫不一致</td><td>NoSQL</td></tr>
+      </table>
+    </div>
+    <div class="plain">
+      <span class="t">✅ 申論標準結論</span>
+      「RDBMS 與 NoSQL <strong>並非取代關係，而是互補</strong>。實務上常採<strong>混合持久化（Polyglot Persistence）</strong>：核心交易資料以 RDBMS 保障 ACID，快取與日誌以 NoSQL 提升效能與擴充性。機關導入時應依<strong>資料特性與一致性要求</strong>分別選擇，並考量現有人力之維運能力。」
+    </div>
+  </div>
+
+  <!-- ============ 第九章 ============ -->
+  <div class="card" id="c9">
+    <h2>第 9 章　資料庫安全與個資保護</h2>
+
+    <h3>9-1　存取控制</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>模型</th><th>說明</th></tr>
+        <tr><td><strong>DAC</strong>（自主存取控制）</td><td>資料擁有者自行授權；SQL 的 GRANT／REVOKE 即屬此類</td></tr>
+        <tr><td><strong>MAC</strong>（強制存取控制）</td><td>由系統依<strong>安全等級</strong>（如機密／密／一般）強制決定，使用者不可自行授權</td></tr>
+        <tr><td><strong>RBAC</strong>（角色存取控制）</td><td>權限給<strong>角色</strong>，使用者被指派角色。<strong>實務最常用</strong>，便於人員異動管理</td></tr>
+        <tr><td>ABAC（屬性存取控制）</td><td>依使用者、資源、環境屬性動態判斷（如「只有本轄區人員在上班時間可查」）</td></tr>
+      </table>
+    </div>
+    <pre><span class="k">GRANT SELECT, INSERT ON</span> 員工 <span class="k">TO</span> 人事助理;
+<span class="k">GRANT SELECT ON</span> 員工公開資料 <span class="k">TO</span> <span class="k">PUBLIC</span>;
+<span class="k">REVOKE INSERT ON</span> 員工 <span class="k">FROM</span> 人事助理;
+
+<span class="c">-- 角色式管理（RBAC）</span>
+<span class="k">CREATE ROLE</span> 人事管理者;
+<span class="k">GRANT SELECT, INSERT, UPDATE ON</span> 員工 <span class="k">TO</span> 人事管理者;
+<span class="k">GRANT</span> 人事管理者 <span class="k">TO</span> 王小明;   <span class="c">-- 人員異動只需改角色指派</span></pre>
+
+    <h3>9-2　資料庫常見威脅與防護</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>威脅</th><th>說明</th><th>防護</th></tr>
+        <tr><td><strong>SQL Injection</strong></td><td>將惡意 SQL 混入輸入欄位</td><td><strong>參數化查詢（Prepared Statement）</strong>、ORM、輸入驗證、最小權限、錯誤訊息不外露、WAF</td></tr>
+        <tr><td>權限過大</td><td>應用程式使用 DBA 帳號連線</td><td><strong>最小權限原則</strong>，應用程式專用帳號僅授予必要權限</td></tr>
+        <tr><td>資料外洩</td><td>備份檔案、匯出檔未加密</td><td><strong>靜態加密（TDE）</strong>、備份加密、傳輸加密（TLS）</td></tr>
+        <tr><td>內部人員濫用</td><td>有權限者查詢無關資料</td><td><strong>稽核軌跡</strong>、異常查詢偵測、職務分工（SoD）</td></tr>
+        <tr><td>特權帳號濫用</td><td>DBA 可看所有資料</td><td>特權帳號管理（PAM）、雙人共管、操作錄影</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 SQL Injection 防範核心：資料與指令分離</span>
+      ❌ 錯誤（字串串接）：<br>
+      <code>sql = "SELECT * FROM 使用者 WHERE 帳號='" + input + "'"</code><br>
+      輸入 <code>' OR '1'='1</code> → 條件恆真，登入繞過<br><br>
+      ✅ 正確（參數化查詢）：<br>
+      <code>sql = "SELECT * FROM 使用者 WHERE 帳號 = ?"</code><br>
+      <code>stmt.setString(1, input)</code><br>
+      → 輸入值<strong>永遠被當成「資料」</strong>，不會被解讀為 SQL 語法
+    </div>
+
+    <h3>9-3　個資保護技術（公部門必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>說明</th><th>可否還原</th></tr>
+        <tr><td><strong>加密</strong> Encryption</td><td>以金鑰轉換為密文</td><td>✅ 有金鑰可還原</td></tr>
+        <tr><td><strong>雜湊</strong> Hashing</td><td>單向轉換（密碼儲存必用，<strong>需加鹽 Salt</strong>）</td><td>❌ 不可還原</td></tr>
+        <tr><td><strong>遮罩</strong> Masking</td><td>部分隱藏（A12345****）</td><td>❌</td></tr>
+        <tr><td><strong>代碼化</strong> Tokenization</td><td>以無意義代碼取代，對照表另行保管</td><td>✅ 有對照表可還原</td></tr>
+        <tr><td><strong>去識別化</strong></td><td>移除或轉換可識別特定個人之資訊</td><td>視方法而定</td></tr>
+        <tr><td>假名化 Pseudonymization</td><td>以假名取代，保留可連結性</td><td>✅ 有對應表</td></tr>
+        <tr><td>k-匿名 k-Anonymity</td><td>確保每筆資料至少與 k−1 筆無法區分</td><td>❌</td></tr>
+        <tr><td>差分隱私 Differential Privacy</td><td>加入統計雜訊，保護個體但保留整體統計特性</td><td>❌</td></tr>
+      </table>
+    </div>
+    <div class="plain">
+      <span class="t">✅ 法規連結（申論務必寫）</span>
+      <strong>《個人資料保護法》</strong>：蒐集、處理、利用須有特定目的且在必要範圍內；應採行<strong>適當之安全維護措施</strong>；外洩時應<strong>查明並通知當事人</strong>。<br>
+      <strong>《資通安全管理法》</strong>：公務機關應依資安責任等級辦理防護、<strong>資安事件通報應變</strong>（依等級於一定時限內通報）、定期<strong>資安稽核</strong>與<strong>演練</strong>。<br>
+      <strong>資料開放</strong>：釋出前應完成<strong>去識別化</strong>，並評估重新識別風險（多個資料集交叉比對可能重新識別）。
+    </div>
+    <div class="hl">
+      <span class="t">💡 密碼儲存的正確做法（常考）</span>
+      ❌ 明文儲存 → 最嚴重的錯誤<br>
+      ❌ 只用 MD5／SHA-1 → 已可被破解，且可用彩虹表查表<br>
+      ✅ 使用<strong>專為密碼設計的慢速雜湊</strong>：<strong>bcrypt、scrypt、Argon2、PBKDF2</strong><br>
+      ✅ 每個帳號使用<strong>不同的隨機鹽（Salt）</strong>，防止彩虹表與相同密碼被看出<br>
+      關鍵觀念：密碼雜湊要「<strong>刻意設計得慢</strong>」，才能抵抗暴力破解。
+    </div>
+  </div>
+
+  <!-- ============ 第十章 ============ -->
+  <div class="card" id="c10">
+    <h2>第 10 章　考前速記表</h2>
+
+    <h3>正規化速查</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>階段</th><th>一句話判斷</th><th>捷徑</th></tr>
+        <tr><td>1NF</td><td>有沒有多值或重複群組欄位？</td><td>看到「電話：A/B/C」就違反</td></tr>
+        <tr><td>2NF</td><td>非鍵屬性有沒有只依賴複合主鍵的一部分？</td><td><strong>主鍵是單一欄位 → 自動符合 2NF</strong></td></tr>
+        <tr><td>3NF</td><td>有沒有「非鍵 → 非鍵」的遞移相依？</td><td>找 X→Y→Z 的鏈</td></tr>
+        <tr><td>BCNF</td><td>每個 FD 的左邊都是超鍵嗎？</td><td>只有「多個重疊複合候選鍵」時才會與 3NF 不同</td></tr>
+      </table>
+    </div>
+
+    <h3>SQL 執行順序</h3>
+    <div class="hl">
+      FROM → <strong>WHERE</strong> → GROUP BY → <strong>HAVING</strong> → SELECT → DISTINCT → <strong>ORDER BY</strong> → LIMIT<br>
+      推論：WHERE 不能用聚合函數、不能用 SELECT 的別名；ORDER BY 兩者都可以用。
+    </div>
+
+    <h3>交易與並行速查</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>概念</th><th>重點</th></tr>
+        <tr><td>ACID</td><td>原子性靠 Undo、持久性靠 Redo + WAL、隔離性靠鎖／MVCC</td></tr>
+        <tr><td>四種並行問題</td><td>遺失更新、髒讀、不可重複讀（值變）、幻讀（列數變）</td></tr>
+        <tr><td>四種隔離等級</td><td>越高越安全越慢；Serializable 才防幻讀</td></tr>
+        <tr><td>2PL</td><td>先只加鎖、後只解鎖 → 保證可序列化，但<strong>不防死結</strong></td></tr>
+        <tr><td>死結四條件</td><td>互斥、持有並等待、不可搶奪、循環等待</td></tr>
+        <tr><td>實務死結處理</td><td><strong>偵測（等待圖）+ 選犧牲者回復</strong></td></tr>
+      </table>
+    </div>
+
+    <h3>最容易被考倒的 12 個觀念</h3>
+    <ol>
+      <li><strong>DELETE 可 ROLLBACK，TRUNCATE／DROP 不可</strong>（前者 DML、後者 DDL）。</li>
+      <li><strong>WHERE 不能用聚合函數</strong>，要用 HAVING（因為執行順序）。</li>
+      <li><strong>COUNT(*) 含 NULL，COUNT(欄位) 不含 NULL。</strong></li>
+      <li><strong>AVG 的分母不含 NULL。</strong></li>
+      <li><strong>NOT IN 遇到子查詢含 NULL 會回傳空集合</strong> → 改用 NOT EXISTS。</li>
+      <li><strong>主鍵是單一欄位就一定符合 2NF。</strong></li>
+      <li><strong>3NF 保證無損分解＋相依保存；BCNF 只保證無損分解。</strong></li>
+      <li><strong>B+ 樹只有葉節點存資料且葉節點相連</strong>，故範圍查詢快。</li>
+      <li><strong>叢集索引一張表只能有一個。</strong></li>
+      <li><strong>索引欄位被函數包住就失效。</strong></li>
+      <li><strong>CAP 中 P 是必選</strong>，實際取捨是 CP 或 AP。</li>
+      <li><strong>OLTP 要高度正規化，OLAP 刻意反正規化（星狀綱要）。</strong></li>
+    </ol>
+
+    <h3>申論萬用結論句</h3>
+    <div class="frame">
+      「資料庫設計須在<strong>資料一致性</strong>與<strong>查詢效能</strong>之間取得平衡；機關實務上宜以 <strong>3NF 為基準</strong>，並依實際查詢瓶頸選擇性反正規化。<br>
+      此外，涉及個人資料者應依《<strong>個人資料保護法</strong>》採行適當安全維護措施，並依《<strong>資通安全管理法</strong>》建立存取稽核與備份復原機制（訂定 RTO／RPO），使技術設計與法規遵循並行。」
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="db.html">← 資料庫應用講義（上）</a>
+    <a class="btn btn-next" href="db-bank.html">下一步：資料庫應用題庫 →</a>
+  </div>
+
+</div>
+
+<footer>高考三級 · 資料庫應用講義（第二部分：第 5～10 章）</footer>
+
+</body>
+</html>
