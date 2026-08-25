@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>計算機概要 完整講義（上） | 普通考試</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-junior">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">普通考試</a><span class="sep">/</span><span>計算機概要 講義（上）</span>
+</div>
+
+<div class="hero">
+  <div class="badge">💻 普考 · 專業科目一 · 全測驗 50 題 · 占總成績 20%</div>
+  <h1>計算機概要 完整講義（上）</h1>
+  <p>數字系統、資料表示法、數位邏輯、電腦組織、作業系統。<br><strong>進位轉換與邏輯閘是每年必考的送分題，一定要練到零失誤。</strong></p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 目錄（上半部）</div>
+    <ol>
+      <li><a href="#c1">數字系統與進位轉換</a>（<strong>必考送分題</strong>）</li>
+      <li><a href="#c2">資料表示法</a>（補數、浮點數、文字編碼）</li>
+      <li><a href="#c3">數位邏輯</a>（<strong>必考</strong>）</li>
+      <li><a href="#c4">電腦組織與架構</a></li>
+      <li><a href="#c5">作業系統</a>（高頻）</li>
+    </ol>
+    <p style="margin-top:10px;font-size:.85rem">
+      資料結構、資料庫、網路、資安、新興科技請看 <a href="computer2.html">下半部</a> →
+    </p>
+  </div>
+
+  <!-- ============ 第一章 ============ -->
+  <div class="card" id="c1">
+    <h2>第 1 章　數字系統與進位轉換（必考送分題）</h2>
+    <div class="warn">
+      <span class="t">⚠️ 為什麼這章最重要</span>
+      每年<strong>穩定出 5～8 題</strong>（10～16 分），而且<strong>有標準答案、練了就一定會</strong>。<br>
+      考場<strong>不能用計算機</strong>，全部要手算——所以必須練到熟練而非「知道怎麼算」。
+    </div>
+
+    <h3>1-1　四種進位系統</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>系統</th><th>基底</th><th>使用符號</th><th>用途</th></tr>
+        <tr><td>二進位 Binary</td><td>2</td><td>0, 1</td><td>電腦內部運作（有電／沒電）</td></tr>
+        <tr><td>八進位 Octal</td><td>8</td><td>0–7</td><td>Unix 檔案權限（如 chmod 755）</td></tr>
+        <tr><td>十進位 Decimal</td><td>10</td><td>0–9</td><td>人類日常使用</td></tr>
+        <tr><td><strong>十六進位 Hex</strong></td><td>16</td><td>0–9, <strong>A–F</strong></td><td>記憶體位址、色碼、MAC 位址</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 必背對照表（考前一定要能默寫）</span>
+      <div class="table-wrap"><table>
+        <tr><th>十進位</th><th>二進位</th><th>八進位</th><th>十六進位</th></tr>
+        <tr><td>0</td><td>0000</td><td>0</td><td>0</td></tr>
+        <tr><td>1</td><td>0001</td><td>1</td><td>1</td></tr>
+        <tr><td>2</td><td>0010</td><td>2</td><td>2</td></tr>
+        <tr><td>3</td><td>0011</td><td>3</td><td>3</td></tr>
+        <tr><td>4</td><td>0100</td><td>4</td><td>4</td></tr>
+        <tr><td>5</td><td>0101</td><td>5</td><td>5</td></tr>
+        <tr><td>6</td><td>0110</td><td>6</td><td>6</td></tr>
+        <tr><td>7</td><td>0111</td><td>7</td><td>7</td></tr>
+        <tr><td>8</td><td>1000</td><td>10</td><td>8</td></tr>
+        <tr><td>9</td><td>1001</td><td>11</td><td>9</td></tr>
+        <tr><td>10</td><td>1010</td><td>12</td><td><strong>A</strong></td></tr>
+        <tr><td>11</td><td>1011</td><td>13</td><td><strong>B</strong></td></tr>
+        <tr><td>12</td><td>1100</td><td>14</td><td><strong>C</strong></td></tr>
+        <tr><td>13</td><td>1101</td><td>15</td><td><strong>D</strong></td></tr>
+        <tr><td>14</td><td>1110</td><td>16</td><td><strong>E</strong></td></tr>
+        <tr><td>15</td><td>1111</td><td>17</td><td><strong>F</strong></td></tr>
+      </table></div>
+      <strong>2 的次方</strong>：1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096…
+    </div>
+
+    <h3>1-2　其他進位 → 十進位（位置權重法）</h3>
+    <div class="easy">
+      <div class="t">🧒 原理：跟十進位一模一樣</div>
+      <p>你早就會這個了。十進位的 <strong>352</strong> 是什麼意思？</p>
+      <p>3×10² + 5×10¹ + 2×10⁰ = 300 + 50 + 2 = 352</p>
+      <p><strong>其他進位完全一樣，只是把 10 換成該進位的基底。</strong></p>
+    </div>
+    <pre><span class="c">二進位 → 十進位：權重是 2 的次方</span>
+  1 0 1 1 0 1₍₂₎
+  │ │ │ │ │ └─ 1 × 2⁰ = 1
+  │ │ │ │ └─── 0 × 2¹ = 0
+  │ │ │ └───── 1 × 2² = 4
+  │ │ └─────── 1 × 2³ = 8
+  │ └───────── 0 × 2⁴ = 0
+  └─────────── 1 × 2⁵ = 32
+                        ───
+                        <span class="s">45</span>
+
+<span class="c">十六進位 → 十進位</span>
+  2 A F₍₁₆₎ = 2×16² + 10×16¹ + 15×16⁰
+           = 512 + 160 + 15 = <span class="s">687</span>
+
+<span class="c">八進位 → 十進位</span>
+  7 5 2₍₈₎ = 7×8² + 5×8¹ + 2×8⁰
+          = 448 + 40 + 2 = <span class="s">490</span></pre>
+
+    <h3>1-3　十進位 → 其他進位（除法取餘數）</h3>
+    <div class="frame">
+      <span class="t">📐 方法一：連續除法（通用，但較慢）</span>
+      不斷除以基底，<strong>餘數由下往上讀</strong>。
+    </div>
+    <pre><span class="c">十進位 156 → 二進位</span>
+2 ) 156 … 餘 0  ↑
+2 )  78 … 餘 0  │
+2 )  39 … 餘 1  │  由下往上讀
+2 )  19 … 餘 1  │
+2 )   9 … 餘 1  │
+2 )   4 … 餘 0  │
+2 )   2 … 餘 0  │
+2 )   1 … 餘 1  ┘
+     0
+
+→ <span class="s">10011100₍₂₎</span>
+
+驗算：128 + 16 + 8 + 4 = 156 ✔</pre>
+    <div class="frame">
+      <span class="t">📐 方法二：權重減法（<strong>考場推薦，快很多</strong>）</span>
+      從最大的 2 的次方開始問「夠不夠減」：夠就寫 1 並減掉，不夠就寫 0。
+    </div>
+    <pre><span class="c">十進位 156 → 二進位（權重法）</span>
+權重: 128  64  32  16   8   4   2   1
+
+156 ≥ 128 ? 是 → 1，剩 156−128 = 28
+ 28 ≥  64 ? 否 → 0
+ 28 ≥  32 ? 否 → 0
+ 28 ≥  16 ? 是 → 1，剩 28−16 = 12
+ 12 ≥   8 ? 是 → 1，剩 12−8 = 4
+  4 ≥   4 ? 是 → 1，剩 0
+  0 ≥   2 ? 否 → 0
+  0 ≥   1 ? 否 → 0
+
+→ <span class="s">1 0 0 1 1 1 0 0₍₂₎</span>  （與方法一相同 ✔）</pre>
+
+    <h3>1-4　二進位 ↔ 八／十六進位（最快的技巧）</h3>
+    <div class="frame">
+      <span class="t">📐 分組法：這是考場救命技巧</span>
+      因為 8 = 2³、16 = 2⁴，所以：<br>
+      <strong>二進位 → 八進位</strong>：從右邊起<strong>每 3 位一組</strong>，各組轉成一個八進位數字<br>
+      <strong>二進位 → 十六進位</strong>：從右邊起<strong>每 4 位一組</strong>，各組轉成一個十六進位數字<br>
+      （不足位數在左邊補 0）<br><br>
+      <strong>反向亦然</strong>：一個十六進位數字直接展開成 4 個二進位位元。
+    </div>
+    <pre><span class="c">二進位 → 十六進位（每 4 位一組）</span>
+  1011 0110 1110₍₂₎
+   ↓     ↓    ↓
+   B     6    E     → <span class="s">B6E₍₁₆₎</span>
+
+<span class="c">二進位 → 八進位（每 3 位一組）</span>
+  101 101 101 110₍₂₎
+   ↓   ↓   ↓   ↓
+   5   5   5   6     → <span class="s">5556₍₈₎</span>
+
+<span class="c">十六進位 → 二進位（每個數字展開成 4 位）</span>
+  3 F A₍₁₆₎
+  ↓  ↓  ↓
+0011 1111 1010  → <span class="s">001111111010₍₂₎</span></pre>
+    <div class="hl">
+      <span class="t">💡 考場策略</span>
+      <strong>十六進位 ↔ 八進位不要直接轉</strong>，一律「先轉成二進位當中繼站」。<br>
+      例：3F₍₁₆₎ → 0011 1111₍₂₎ → 重新每 3 位分組 → 00 111 111 → <strong>77₍₈₎</strong>
+    </div>
+
+    <h3>1-5　二進位四則運算</h3>
+    <pre><span class="c">加法規則：0+0=0、0+1=1、1+0=1、1+1=10（進位）</span>
+    1 0 1 1   (11)
+  + 1 1 0 1   (13)
+  ─────────
+  1 1 0 0 0   (24) ✔
+
+<span class="c">減法：不夠減時向左借 1（借過來變 2）</span>
+    1 0 0 0   (8)
+  −   0 1 1   (3)
+  ─────────
+    0 1 0 1   (5) ✔
+
+<span class="c">乘法：跟十進位直式一樣，但只有 ×0 和 ×1</span>
+      1 0 1   (5)
+    ×   1 1   (3)
+    ───────
+      1 0 1
+    1 0 1
+    ───────
+    1 1 1 1   (15) ✔</pre>
+    <div class="hl">
+      <span class="t">💡 位移運算（常考）</span>
+      <strong>左移 1 位 = ×2</strong>；<strong>右移 1 位 = ÷2</strong>（捨去小數）<br>
+      例：<code>1010₍₂₎</code>(10) 左移 1 位 → <code>10100₍₂₎</code>(20)；右移 1 位 → <code>101₍₂₎</code>(5)<br><br>
+      推廣：<strong>左移 n 位 = ×2ⁿ</strong>。所以 <code>x &lt;&lt; 3</code> 等於 x × 8——這是程式中常見的效能技巧。
+    </div>
+  </div>
+
+  <!-- ============ 第二章 ============ -->
+  <div class="card" id="c2">
+    <h2>第 2 章　資料表示法</h2>
+
+    <h3>2-1　負數表示法：補數（必考）</h3>
+    <div class="easy">
+      <div class="t">🧒 為什麼要用補數這麼麻煩的東西</div>
+      <p>電腦裡只有 0 和 1，沒有「負號」這個符號。那怎麼表示 −5？</p>
+      <p><strong>最直覺的方法（帶符號大小）</strong>：用最左邊那位當符號位，0 是正、1 是負。<br>
+      +5 = <code>00000101</code>、−5 = <code>10000101</code></p>
+      <p><strong>但這樣有兩個問題</strong>：<br>
+      ① 出現 <strong>+0（00000000）和 −0（10000000）兩個零</strong>，很怪<br>
+      ② <strong>加法會算錯</strong>：5 + (−5) = <code>00000101 + 10000101 = 10001010</code> = −10，不是 0</p>
+      <p><strong>2 的補數解決了這兩個問題</strong>：只有一個零，而且<strong>減法可以直接用加法做</strong>——電腦裡不用另外設計減法電路，這是巨大的優勢。</p>
+    </div>
+    <div class="frame">
+      <span class="t">📐 三種表示法（以 8 位元表示 −5 為例）</span>
+      <strong>① 帶符號大小（Signed Magnitude）</strong>：最左位為符號<br>
+      　+5 = <code>0000 0101</code>　−5 = <code>1000 0101</code><br><br>
+      <strong>② 1 的補數（1's Complement）</strong>：把正數<u>每一位取反</u><br>
+      　+5 = <code>0000 0101</code>　→ 全部反轉 → −5 = <code>1111 1010</code><br><br>
+      <strong>③ 2 的補數（2's Complement）＝ 1 的補數 + 1</strong>　←<u>現代電腦採用</u><br>
+      　+5 = <code>0000 0101</code>　→ 反轉 <code>1111 1010</code> → +1 → −5 = <code>1111 1011</code>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>表示法</th><th>零的個數</th><th>n 位元表示範圍</th></tr>
+        <tr><td>帶符號大小</td><td><strong>2 個</strong>（+0、−0）</td><td>−(2ⁿ⁻¹−1) ～ +(2ⁿ⁻¹−1)</td></tr>
+        <tr><td>1 的補數</td><td><strong>2 個</strong></td><td>−(2ⁿ⁻¹−1) ～ +(2ⁿ⁻¹−1)</td></tr>
+        <tr><td><strong>2 的補數</strong></td><td><strong>1 個</strong> ✔</td><td><strong>−2ⁿ⁻¹ ～ +(2ⁿ⁻¹−1)</strong></td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <strong>8 位元 2 的補數範圍 = −128 ～ +127</strong>（負數多一個，因為只有一個零）<br>
+      <strong>16 位元 = −32768 ～ +32767</strong>　<strong>32 位元 = −2,147,483,648 ～ +2,147,483,647</strong><br><br>
+      這幾個數字要背——「為什麼 int 的最大值是 2147483647」就是這樣來的。
+    </div>
+    <pre><span class="c">用 2 的補數做減法：8 − 5 = 8 + (−5)</span>
+   +8 =   0000 1000
+   −5 =   1111 1011
+   ─────────────────
+        1 0000 0011   ← 最左邊的進位「捨棄」
+          ↓
+          0000 0011 = 3 ✔
+
+<span class="c">這就是 2 的補數的威力：減法變成加法，電路大幅簡化。</span></pre>
+    <div class="warn">
+      <span class="t">⚠️ 快速求 2 的補數的技巧</span>
+      不用先反轉再加 1。<strong>從右邊開始找到第一個 1，這個 1 和它右邊的所有 0 不動，左邊的全部反轉。</strong><br><br>
+      例：<code>0101 1000</code> → 從右找到第一個 1 在第 4 位 → <code>1000</code> 不動，左邊 <code>0101</code> 反轉成 <code>1010</code><br>
+      → 答案 <code>1010 1000</code>　（驗算：反轉得 1010 0111，+1 得 1010 1000 ✔）
+    </div>
+
+    <h3>2-2　浮點數表示法（IEEE 754）</h3>
+    <div class="frame">
+      <span class="t">📐 結構</span>
+      浮點數 = <strong>符號位（S）＋ 指數（Exponent）＋ 尾數（Mantissa／Fraction）</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>格式</th><th>總位元</th><th>符號</th><th>指數</th><th>尾數</th><th>偏移量 Bias</th></tr>
+        <tr><td><strong>單精度 float</strong></td><td>32</td><td>1</td><td><strong>8</strong></td><td><strong>23</strong></td><td>127</td></tr>
+        <tr><td><strong>雙精度 double</strong></td><td>64</td><td>1</td><td><strong>11</strong></td><td><strong>52</strong></td><td>1023</td></tr>
+      </table></div>
+      數值 = (−1)^S × 1.尾數 × 2^(指數 − Bias)
+    </div>
+    <div class="easy">
+      <div class="t">🧒 為什麼浮點數會有誤差</div>
+      <p>試著用二進位表示 0.1：</p>
+      <p>0.1 = 0.0001100110011001100110011…₍₂₎ —— <strong>無限循環，永遠寫不完</strong>。</p>
+      <p>就像十進位無法精確表示 1/3（0.3333…）一樣，二進位無法精確表示 0.1。</p>
+      <p>因為位元數有限，電腦只能存個近似值 → 所以在很多程式語言裡：</p>
+      <pre style="background:#0c4a6e">0.1 + 0.2 == 0.3   →   <span class="s">false</span>！
+實際結果是 0.30000000000000004</pre>
+      <p><strong>實務教訓：<u>金額絕對不要用浮點數</u></strong>，要用整數（以「分」為單位）或十進位型別（DECIMAL）。<br>
+      這在機關的計費、稅額系統中是關鍵原則——差一分錢就會被民眾申訴。</p>
+    </div>
+
+    <h3>2-3　文字編碼</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>編碼</th><th>位元數</th><th>說明</th></tr>
+        <tr><td><strong>ASCII</strong></td><td>7 位元（128 字）</td><td>英數字與符號；擴充 ASCII 為 8 位元（256 字）</td></tr>
+        <tr><td>BIG-5</td><td>2 bytes</td><td>繁體中文（台灣舊標準）</td></tr>
+        <tr><td>GB2312 / GBK</td><td>2 bytes</td><td>簡體中文</td></tr>
+        <tr><td><strong>Unicode</strong></td><td>—</td><td>統一收錄全世界文字的<strong>字元集</strong>（不是編碼方式）</td></tr>
+        <tr><td><strong>UTF-8</strong></td><td><strong>1～4 bytes 可變</strong></td><td>Unicode 的編碼方式；<strong>與 ASCII 相容</strong>、網頁標準</td></tr>
+        <tr><td>UTF-16</td><td>2 或 4 bytes</td><td>Windows 內部常用</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 必背的 ASCII 值</span>
+      <strong>'0' = 48</strong>（所以 '5' = 53）<br>
+      <strong>'A' = 65</strong>（所以 'Z' = 90）<br>
+      <strong>'a' = 97</strong>（所以 'z' = 122）<br><br>
+      推論：<strong>大寫轉小寫 = +32</strong>（或把第 6 位元設為 1）；<strong>字元 '5' 轉數字 5 = '5' − '0'</strong>。<br>
+      這幾個關係在程式設計概要也會考。
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 中文亂碼的成因（實務常考）</span>
+      檔案<strong>用 BIG-5 存、用 UTF-8 開</strong>（或反之）就會亂碼。<br>
+      機關常見情境：舊系統匯出 BIG-5 的 CSV，用新版 Excel 開啟變亂碼。<br>
+      <strong>解法</strong>：匯出時統一採 <strong>UTF-8 with BOM</strong>，或匯入時明確指定編碼。
+    </div>
+
+    <h3>2-4　容量單位</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>單位</th><th>換算</th><th>約略大小</th></tr>
+        <tr><td>1 Byte</td><td>8 bits</td><td>一個英文字元</td></tr>
+        <tr><td>1 KB</td><td>2¹⁰ = 1,024 Bytes</td><td>半頁純文字</td></tr>
+        <tr><td>1 MB</td><td>2²⁰ ≈ 100 萬 Bytes</td><td>一張照片</td></tr>
+        <tr><td>1 GB</td><td>2³⁰ ≈ 10 億 Bytes</td><td>一部影片</td></tr>
+        <tr><td>1 TB</td><td>2⁴⁰</td><td>一顆硬碟</td></tr>
+        <tr><td>1 PB</td><td>2⁵⁰</td><td>大型資料中心等級</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      注意大小寫：<strong>b = bit（位元）、B = Byte（位元組）</strong>。<br>
+      網路速率用 <strong>Mbps（每秒百萬位元）</strong>，檔案大小用 <strong>MB</strong>。<br>
+      所以「100 Mbps 的網路，下載 100 MB 檔案要多久？」→ 100 MB = 800 Mb → <strong>約 8 秒</strong>（不是 1 秒）。這是經典考點。
+    </div>
+  </div>
+
+  <!-- ============ 第三章 ============ -->
+  <div class="card" id="c3">
+    <h2>第 3 章　數位邏輯（必考）</h2>
+
+    <h3>3-1　基本邏輯閘與真值表</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>閘</th><th>符號</th><th>口訣</th><th>真值表（A,B → 輸出）</th></tr>
+        <tr><td><strong>AND</strong></td><td>A · B</td><td><strong>都是 1 才是 1</strong></td><td>00→0、01→0、10→0、<strong>11→1</strong></td></tr>
+        <tr><td><strong>OR</strong></td><td>A + B</td><td><strong>有 1 就是 1</strong></td><td><strong>00→0</strong>、01→1、10→1、11→1</td></tr>
+        <tr><td><strong>NOT</strong></td><td>A'　或 Ā</td><td>反過來</td><td>0→1、1→0</td></tr>
+        <tr><td><strong>NAND</strong></td><td>(A·B)'</td><td>AND 的相反</td><td>00→1、01→1、10→1、<strong>11→0</strong></td></tr>
+        <tr><td><strong>NOR</strong></td><td>(A+B)'</td><td>OR 的相反</td><td><strong>00→1</strong>、01→0、10→0、11→0</td></tr>
+        <tr><td><strong>XOR</strong>（互斥或）</td><td>A ⊕ B</td><td><strong>不一樣才是 1</strong></td><td>00→0、<strong>01→1</strong>、<strong>10→1</strong>、11→0</td></tr>
+        <tr><td><strong>XNOR</strong></td><td>(A⊕B)'</td><td><strong>一樣才是 1</strong></td><td><strong>00→1</strong>、01→0、10→0、<strong>11→1</strong></td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 XOR 的三個重要性質（常考）</span>
+      1. <strong>A ⊕ 0 = A</strong>（跟 0 做 XOR 不變）<br>
+      2. <strong>A ⊕ A = 0</strong>（跟自己做 XOR 歸零）<br>
+      3. <strong>A ⊕ B ⊕ B = A</strong>（做兩次同樣的 XOR 會還原）<br><br>
+      <strong>應用</strong>：XOR 加密（同一把金鑰加密兩次就還原）、<strong>不用暫存變數交換兩數</strong>、同位元檢查、RAID 5 的同位計算。
+    </div>
+    <div class="easy">
+      <div class="t">🧒 用生活情境記住這些閘</div>
+      <ul>
+        <li><strong>AND</strong>：保險箱要<u>兩把鑰匙同時轉</u>才開 → 都是 1 才是 1</li>
+        <li><strong>OR</strong>：房間有<u>兩個開關</u>，按任一個燈就亮 → 有 1 就是 1</li>
+        <li><strong>XOR</strong>：樓梯間的<u>雙切開關</u>——樓下開、樓上關，狀態<u>不一樣</u>時燈亮 → 不一樣才是 1</li>
+      </ul>
+    </div>
+
+    <h3>3-2　布林代數定律</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>定律</th><th>AND 形式</th><th>OR 形式</th></tr>
+        <tr><td>同一律</td><td>A · 1 = A</td><td>A + 0 = A</td></tr>
+        <tr><td>零一律</td><td>A · 0 = 0</td><td>A + 1 = 1</td></tr>
+        <tr><td>等冪律</td><td>A · A = A</td><td>A + A = A</td></tr>
+        <tr><td>互補律</td><td>A · A' = 0</td><td>A + A' = 1</td></tr>
+        <tr><td>交換律</td><td>A·B = B·A</td><td>A+B = B+A</td></tr>
+        <tr><td>結合律</td><td>(A·B)·C = A·(B·C)</td><td>(A+B)+C = A+(B+C)</td></tr>
+        <tr><td>分配律</td><td>A·(B+C) = A·B + A·C</td><td><strong>A+(B·C) = (A+B)·(A+C)</strong></td></tr>
+        <tr><td><strong>吸收律</strong></td><td>A·(A+B) = A</td><td>A + A·B = A</td></tr>
+        <tr><td>雙重否定</td><td colspan="2">(A')' = A</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 笛摩根定律（De Morgan's Law）— 必考</span>
+      <strong>(A · B)' = A' + B'</strong>　（AND 的補 = 各自補的 OR）<br>
+      <strong>(A + B)' = A' · B'</strong>　（OR 的補 = 各自補的 AND）<br><br>
+      <strong>口訣：「<u>斷線、變號</u>」</strong>——把上面那條否定線斷開，中間的運算符號要改變（· ↔ +）。
+    </div>
+    <div class="easy">
+      <div class="t">🧒 笛摩根定律的白話版</div>
+      <p>「<strong>不是（下雨 而且 颳風）</strong>」＝「<strong>沒下雨 或 沒颳風</strong>」<br>
+      （只要有一個沒發生，「兩個都發生」這件事就不成立）</p>
+      <p>「<strong>不是（下雨 或 颳風）</strong>」＝「<strong>沒下雨 而且 沒颳風</strong>」<br>
+      （要說「兩個都沒發生」，才能否定「至少一個發生」）</p>
+      <p>你的日常語感其實早就會了，只是沒有用符號寫出來。</p>
+    </div>
+
+    <h3>3-3　化簡範例</h3>
+    <pre><span class="c">化簡 F = A·B + A·B' + A'·B</span>
+
+F = A·(B + B')  + A'·B     ← 提出 A（分配律）
+  = A·1 + A'·B             ← 互補律 B+B' = 1
+  = A + A'·B               ← 同一律
+  = (A + A')·(A + B)       ← 分配律
+  = 1 · (A + B)
+  = <span class="s">A + B</span>
+
+<span class="c">驗算真值表：</span>
+A B │ 原式 A·B + A·B' + A'·B │ A+B
+0 0 │  0  +  0   +  0  = 0   │  0  ✔
+0 1 │  0  +  0   +  1  = 1   │  1  ✔
+1 0 │  0  +  1   +  0  = 1   │  1  ✔
+1 1 │  1  +  0   +  0  = 1   │  1  ✔</pre>
+    <div class="hl">
+      <span class="t">💡 考場技巧</span>
+      化簡題如果推導卡住，<strong>直接畫真值表把四種（或八種）組合列出來</strong>，再對照選項哪個一致。<br>
+      2 個變數只有 4 種組合、3 個變數 8 種——手算很快，而且<strong>絕對不會錯</strong>。
+    </div>
+
+    <h3>3-4　組合邏輯電路</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>電路</th><th>功能</th><th>重點</th></tr>
+        <tr><td><strong>半加器</strong> Half Adder</td><td>兩個 1 位元相加</td><td>和 S = <strong>A ⊕ B</strong>；進位 C = <strong>A · B</strong></td></tr>
+        <tr><td><strong>全加器</strong> Full Adder</td><td>三個輸入（含前一位進位）</td><td>可串接成多位元加法器</td></tr>
+        <tr><td>多工器 MUX</td><td>多個輸入選一個輸出</td><td>n 條選擇線可選 2ⁿ 個輸入</td></tr>
+        <tr><td>解多工器 DEMUX</td><td>一個輸入分配到多個輸出</td><td>—</td></tr>
+        <tr><td>編碼器 Encoder</td><td>2ⁿ 條輸入 → n 條輸出</td><td>—</td></tr>
+        <tr><td>解碼器 Decoder</td><td>n 條輸入 → 2ⁿ 條輸出</td><td>用於記憶體位址解碼</td></tr>
+      </table>
+    </div>
+    <p><strong>循序邏輯</strong>（輸出與「過去狀態」有關）：正反器（Flip-Flop，如 SR、D、JK、T）、暫存器、計數器。<strong>組合邏輯無記憶性，循序邏輯有記憶性</strong>——這是兩者最根本的區別。</p>
+    <div class="hl">
+      <strong>NAND 與 NOR 稱為「萬用閘（Universal Gate）」</strong>——只用 NAND（或只用 NOR）就能組合出所有其他邏輯閘。這是常考的名詞題。
+    </div>
+  </div>
+
+  <!-- ============ 第四章 ============ -->
+  <div class="card" id="c4">
+    <h2>第 4 章　電腦組織與架構</h2>
+
+    <h3>4-1　馮紐曼架構</h3>
+    <div class="frame">
+      <span class="t">📐 五大單元</span>
+      <strong>輸入單元</strong>、<strong>輸出單元</strong>、<strong>記憶單元</strong>、<strong>算術邏輯單元（ALU）</strong>、<strong>控制單元（CU）</strong><br>
+      （ALU ＋ CU ＋ 暫存器 = <strong>CPU</strong>）<br><br>
+      <strong>核心概念：程式儲存（Stored Program）</strong>——<u>程式與資料存放在同一個記憶體</u>，因此電腦可以被「重新編程」而不需改硬體。<br><br>
+      <strong>瓶頸</strong>：CPU 與記憶體之間只有一條匯流排，資料與指令都要走它 → <strong>馮紐曼瓶頸（von Neumann Bottleneck）</strong>。<br>
+      對照：<strong>哈佛架構</strong>將指令與資料分開儲存與傳輸，可同時取用。
+    </div>
+
+    <h3>4-2　CPU 內部組成與指令週期</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>暫存器</th><th>全名</th><th>功能</th></tr>
+        <tr><td><strong>PC</strong></td><td>Program Counter</td><td>存放<strong>下一個</strong>要執行的指令位址</td></tr>
+        <tr><td><strong>IR</strong></td><td>Instruction Register</td><td>存放<strong>目前正在執行</strong>的指令</td></tr>
+        <tr><td><strong>MAR</strong></td><td>Memory Address Register</td><td>存放要存取的記憶體<strong>位址</strong></td></tr>
+        <tr><td><strong>MBR／MDR</strong></td><td>Memory Buffer/Data Register</td><td>存放與記憶體交換的<strong>資料</strong></td></tr>
+        <tr><td>ACC</td><td>Accumulator</td><td>累加器，存放運算結果</td></tr>
+        <tr><td>PSW／Flag</td><td>Program Status Word</td><td>存放狀態旗標（零、進位、溢位、負號）</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 指令週期（Instruction Cycle）</span>
+      <strong>① 擷取（Fetch）</strong>：依 PC 到記憶體取指令放入 IR，PC 加 1<br>
+      <strong>② 解碼（Decode）</strong>：控制單元解析指令要做什麼<br>
+      <strong>③ 執行（Execute）</strong>：ALU 進行運算<br>
+      <strong>④ 儲存（Store／Write Back）</strong>：把結果寫回暫存器或記憶體<br><br>
+      口訣：<strong>擷取 → 解碼 → 執行 → 儲存</strong>
+    </div>
+
+    <h3>4-3　效能相關概念</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>名詞</th><th>說明</th></tr>
+        <tr><td><strong>時脈頻率</strong>（Clock Rate）</td><td>每秒的時脈週期數，如 3 GHz = 每秒 30 億次</td></tr>
+        <tr><td><strong>CPI</strong></td><td>Cycles Per Instruction，執行一個指令平均需幾個週期</td></tr>
+        <tr><td><strong>MIPS</strong></td><td>每秒可執行百萬個指令</td></tr>
+        <tr><td><strong>管線化</strong> Pipeline</td><td>把指令週期拆成多階段<strong>重疊執行</strong>，提升<strong>吞吐量</strong>（不是縮短單一指令時間）</td></tr>
+        <tr><td>多核心</td><td>一顆晶片內含多個處理器核心</td></tr>
+        <tr><td>超執行緒</td><td>單一實體核心模擬為兩個邏輯核心</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 CPU 執行時間公式（常考計算）</span>
+      <strong>執行時間 = 指令數 × CPI × 時脈週期時間 = (指令數 × CPI) ÷ 時脈頻率</strong><br><br>
+      <em>例</em>：程式有 10⁹ 個指令、CPI = 2、頻率 2 GHz<br>
+      → 執行時間 = (10⁹ × 2) ÷ (2 × 10⁹) = <strong>1 秒</strong>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 管線化像洗衣店</div>
+      <p>洗一批衣服要：洗（30 分）→ 烘（30 分）→ 摺（30 分），共 90 分鐘。</p>
+      <p><strong>沒有管線化</strong>：第一批全部做完（90 分）才開始第二批 → 3 批要 270 分鐘。</p>
+      <p><strong>有管線化</strong>：第一批進烘衣機時，第二批就開始洗 → 3 批只要 <strong>150 分鐘</strong>。</p>
+      <p><strong>關鍵</strong>：<u>單一批衣服還是要 90 分鐘（沒變快）</u>，但<strong>整體吞吐量</strong>大幅提升。這就是管線化的本質。</p>
+      <p><strong>管線化的障礙（Hazard）</strong>：如果第二批要用第一批洗出來的東西（<strong>資料相依</strong>），就得等 → 這叫「管線停頓（Stall）」。分支指令造成的則是<strong>控制障礙</strong>，需靠<strong>分支預測</strong>解決。</p>
+    </div>
+
+    <h3>4-4　記憶體階層（必考）</h3>
+    <div class="frame">
+      <span class="t">📐 由快到慢、由貴到便宜、由小到大</span>
+      <pre>暫存器 Register    ← 最快、最貴、最小（CPU 內部）
+   ↓
+快取記憶體 Cache   ← L1 / L2 / L3
+   ↓
+主記憶體 RAM
+   ↓
+輔助儲存 SSD / HDD
+   ↓
+離線儲存 磁帶       ← 最慢、最便宜、最大</pre>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>記憶體</th><th>揮發性</th><th>特性</th></tr>
+        <tr><td><strong>SRAM</strong></td><td>揮發</td><td>快、貴、不需更新 → 用於 <strong>Cache</strong></td></tr>
+        <tr><td><strong>DRAM</strong></td><td>揮發</td><td>較慢、便宜、<strong>需定期更新（Refresh）</strong> → 用於<strong>主記憶體</strong></td></tr>
+        <tr><td><strong>ROM</strong></td><td><strong>非揮發</strong></td><td>唯讀；PROM／EPROM／<strong>EEPROM</strong>／Flash</td></tr>
+        <tr><td>Flash / SSD</td><td>非揮發</td><td>無機械結構、速度快、有寫入次數壽命</td></tr>
+        <tr><td>HDD</td><td>非揮發</td><td>機械式、便宜、容量大、怕震動</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 為什麼 Cache 有效：參考局部性（Locality of Reference）</span>
+      <strong>時間局部性（Temporal）</strong>：<u>剛用過的資料，很快可能再用</u>（如迴圈裡的變數）<br>
+      <strong>空間局部性（Spatial）</strong>：<u>用了某筆資料，附近的資料很快也會用</u>（如陣列逐一走訪）<br><br>
+      因此把「剛用過的」與「附近的」搬到 Cache，命中率就會很高。<br><br>
+      <strong>平均存取時間 = 命中率 × Cache 時間 + (1−命中率) × 主記憶體時間</strong><br>
+      <em>例</em>：命中率 90%、Cache 2ns、主記憶體 100ns → 0.9×2 + 0.1×100 = <strong>11.8 ns</strong>
+    </div>
+
+    <h3>4-5　RAID</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>等級</th><th>技術</th><th>最少磁碟</th><th>容錯</th><th>可用容量</th><th>特性</th></tr>
+        <tr><td><strong>RAID 0</strong></td><td>條帶化 Striping</td><td>2</td><td><strong>無</strong></td><td>100%</td><td>速度最快，但<strong>壞一顆全毀</strong></td></tr>
+        <tr><td><strong>RAID 1</strong></td><td>鏡射 Mirroring</td><td>2</td><td>可壞 1 顆</td><td><strong>50%</strong></td><td>安全，但成本高</td></tr>
+        <tr><td><strong>RAID 5</strong></td><td>條帶＋<strong>分散式同位</strong></td><td><strong>3</strong></td><td>可壞 <strong>1</strong> 顆</td><td>(n−1)/n</td><td><strong>最常用</strong>，效能與容錯兼顧</td></tr>
+        <tr><td><strong>RAID 6</strong></td><td>雙同位</td><td>4</td><td>可壞 <strong>2</strong> 顆</td><td>(n−2)/n</td><td>大容量磁碟重建期保護</td></tr>
+        <tr><td><strong>RAID 10</strong></td><td>先鏡射再條帶</td><td>4</td><td>每組可壞 1 顆</td><td>50%</td><td>效能與安全最佳，成本最高</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 最重要的觀念：RAID 不是備份</span>
+      RAID 防的是<strong>硬碟故障</strong>，防不了：<br>
+      ‧ <strong>誤刪檔案</strong>（會同步刪掉所有副本）<br>
+      ‧ <strong>勒索軟體加密</strong>（會同步加密）<br>
+      ‧ 火災、水災、機房整個沒了<br><br>
+      <strong>所以有 RAID 仍然必須做異地備份。</strong>這是申論與選擇題都愛考的觀念。
+    </div>
+  </div>
+
+  <!-- ============ 第五章 ============ -->
+  <div class="card" id="c5">
+    <h2>第 5 章　作業系統（高頻）</h2>
+
+    <h3>5-1　作業系統的功能</h3>
+    <ul>
+      <li><strong>行程管理</strong>：建立、排程、終止行程</li>
+      <li><strong>記憶體管理</strong>：配置與回收、虛擬記憶體</li>
+      <li><strong>檔案系統管理</strong>：目錄結構、存取權限</li>
+      <li><strong>裝置管理</strong>：驅動程式、I/O 排程</li>
+      <li><strong>安全與保護</strong>：使用者驗證、權限控制</li>
+      <li><strong>使用者介面</strong>：CLI 與 GUI</li>
+    </ul>
+
+    <h3>5-2　行程與執行緒（必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>行程 Process</th><th>執行緒 Thread</th></tr>
+        <tr><td>定義</td><td><strong>資源配置</strong>的基本單位</td><td><strong>CPU 排程</strong>的基本單位</td></tr>
+        <tr><td>記憶體空間</td><td>各自獨立</td><td><strong>同一行程內的執行緒共享</strong>程式碼段、資料段、開啟的檔案</td></tr>
+        <tr><td>私有部分</td><td>—</td><td>各自有<strong>堆疊、暫存器、PC</strong></td></tr>
+        <tr><td>建立成本</td><td>高</td><td><strong>低</strong></td></tr>
+        <tr><td>切換成本</td><td>高（需切換記憶體對映）</td><td><strong>低</strong></td></tr>
+        <tr><td>互相影響</td><td>一個崩潰不影響其他</td><td><strong>一個崩潰可能拖垮整個行程</strong></td></tr>
+        <tr><td>通訊</td><td>需 IPC（管線、訊息、共享記憶體）</td><td>直接讀寫共享變數（但需<strong>同步機制</strong>）</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 行程的五個狀態</span>
+      <strong>新建（New）→ 就緒（Ready）→ 執行（Running）→ 終止（Terminated）</strong><br>
+      執行中若需等待 I/O → <strong>等待／阻塞（Waiting／Blocked）</strong> → I/O 完成後回到<strong>就緒</strong><br><br>
+      <strong>注意</strong>：等待狀態<u>不會</u>直接回到執行狀態，一定要先回到<strong>就緒</strong>排隊。這是常考的細節。<br><br>
+      <strong>PCB（行程控制區塊）</strong>：記錄行程 ID、狀態、PC、暫存器內容、記憶體資訊、開啟檔案等，是行程切換時的儲存依據。
+    </div>
+
+    <h3>5-3　CPU 排程演算法（必考計算）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>演算法</th><th>規則</th><th>可否搶占</th><th>優缺點</th></tr>
+        <tr><td><strong>FCFS</strong></td><td>先到先服務</td><td>不可</td><td>簡單公平；<strong>護送效應</strong>（長工作卡住短工作）</td></tr>
+        <tr><td><strong>SJF</strong></td><td>最短工作優先</td><td>不可</td><td><strong>平均等待時間最短</strong>；但需預知執行時間，且長工作可能<strong>飢餓</strong></td></tr>
+        <tr><td><strong>SRTF</strong></td><td>最短剩餘時間優先</td><td><strong>可</strong></td><td>SJF 的搶占版</td></tr>
+        <tr><td><strong>RR</strong>（輪轉）</td><td>每個行程分配一個<strong>時間量子</strong></td><td><strong>可</strong></td><td>回應時間好，<strong>適合分時系統</strong>；量子太小則切換開銷大</td></tr>
+        <tr><td><strong>Priority</strong></td><td>依優先權</td><td>兩種皆有</td><td>低優先權可能<strong>飢餓</strong> → 用 <strong>老化（Aging）</strong>解決</td></tr>
+        <tr><td>多層佇列</td><td>依類型分不同佇列</td><td>—</td><td>可搭配回饋機制動態調整</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 計算題範例</span>
+      三個行程：P1（抵達 0，需 24）、P2（抵達 0，需 3）、P3（抵達 0，需 3）<br><br>
+      <strong>【FCFS】</strong>執行順序 P1 → P2 → P3<br>
+      <div class="table-wrap"><table>
+        <tr><th>行程</th><th>等待時間</th><th>完成時間</th><th>周轉時間</th></tr>
+        <tr><td>P1</td><td>0</td><td>24</td><td>24</td></tr>
+        <tr><td>P2</td><td>24</td><td>27</td><td>27</td></tr>
+        <tr><td>P3</td><td>27</td><td>30</td><td>30</td></tr>
+      </table></div>
+      平均等待時間 = (0 + 24 + 27) ÷ 3 = <strong>17</strong><br><br>
+      <strong>【SJF】</strong>執行順序 P2 → P3 → P1<br>
+      <div class="table-wrap"><table>
+        <tr><th>行程</th><th>等待時間</th></tr>
+        <tr><td>P2</td><td>0</td></tr>
+        <tr><td>P3</td><td>3</td></tr>
+        <tr><td>P1</td><td>6</td></tr>
+      </table></div>
+      平均等待時間 = (0 + 3 + 6) ÷ 3 = <strong>3</strong><br><br>
+      <strong>結論：SJF 的平均等待時間遠優於 FCFS</strong>——這正是「護送效應」的具體展現（P1 這隻大象擋住了後面兩隻兔子）。
+    </div>
+    <div class="hl">
+      <span class="t">💡 名詞定義（別搞混）</span>
+      <strong>等待時間</strong> = 在就緒佇列中等待的總時間<br>
+      <strong>周轉時間</strong> = 完成時間 − 抵達時間（＝等待時間 + 執行時間）<br>
+      <strong>回應時間</strong> = 從提交到<u>第一次</u>有回應的時間（分時系統重視這個）
+    </div>
+
+    <h3>5-4　死結（Deadlock）</h3>
+    <div class="frame">
+      <span class="t">📐 死結四條件（必須同時成立）</span>
+      1. <strong>互斥（Mutual Exclusion）</strong>：資源不可共享<br>
+      2. <strong>持有並等待（Hold and Wait）</strong>：持有資源同時等待其他資源<br>
+      3. <strong>不可搶奪（No Preemption）</strong>：不能強行奪取<br>
+      4. <strong>循環等待（Circular Wait）</strong>：形成等待環<br><br>
+      <strong>破壞任一條件即可避免死結。</strong>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>處理策略</th><th>做法</th></tr>
+        <tr><td><strong>預防</strong> Prevention</td><td>破壞四條件之一（如規定<strong>所有行程依相同順序取得資源</strong>→ 破壞循環等待）</td></tr>
+        <tr><td><strong>避免</strong> Avoidance</td><td><strong>銀行家演算法</strong>——配置前檢查是否仍處於「安全狀態」</td></tr>
+        <tr><td><strong>偵測與復原</strong></td><td>建立<strong>資源配置圖</strong>找環，找到就中止某個行程或搶回資源</td></tr>
+        <tr><td>忽略（鴕鳥法）</td><td>假裝沒事，重開機處理——<strong>一般個人電腦作業系統的實際做法</strong></td></tr>
+      </table>
+    </div>
+    <div class="easy">
+      <div class="t">🧒 死結的生活版</div>
+      <p>兩個人在窄橋上迎面相遇：</p>
+      <ul>
+        <li><strong>互斥</strong>：橋很窄，一次只能過一個人</li>
+        <li><strong>持有並等待</strong>：兩人都站在橋上（持有位置）等對方讓開</li>
+        <li><strong>不可搶奪</strong>：不能把對方推下去</li>
+        <li><strong>循環等待</strong>：A 等 B 讓、B 等 A 讓</li>
+      </ul>
+      <p>→ 永遠僵住。<strong>解法就是破壞其中一個條件</strong>：規定「往東的人優先」（破壞循環等待）、或規定「先退回橋頭再過」（破壞持有並等待）。</p>
+    </div>
+
+    <h3>5-5　記憶體管理與虛擬記憶體</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>說明</th><th>問題</th></tr>
+        <tr><td>連續配置</td><td>整個行程放在連續空間</td><td><strong>外部碎片</strong>（總空間夠但不連續）</td></tr>
+        <tr><td><strong>分頁</strong> Paging</td><td>把記憶體切成<strong>固定大小</strong>的頁框，行程切成頁</td><td><strong>內部碎片</strong>（最後一頁沒用滿）</td></tr>
+        <tr><td><strong>分段</strong> Segmentation</td><td>依<strong>邏輯意義</strong>切（程式碼段、資料段、堆疊段），大小不一</td><td>外部碎片</td></tr>
+        <tr><td>分頁式分段</td><td>兩者結合</td><td>—</td></tr>
+      </table>
+    </div>
+    <p><strong>虛擬記憶體</strong>：用磁碟空間擴充記憶體，讓行程可以使用超過實體記憶體大小的空間。需要的頁不在記憶體時發生<strong>缺頁中斷（Page Fault）</strong>，此時要從磁碟載入，若記憶體已滿則需<strong>置換</strong>掉某一頁。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>分頁置換演算法</th><th>規則</th></tr>
+        <tr><td><strong>FIFO</strong></td><td>換掉最早進來的；<strong>可能出現 Belady 異常</strong></td></tr>
+        <tr><td><strong>LRU</strong></td><td>換掉<strong>最久沒被使用</strong>的；效果好但實作成本高</td></tr>
+        <tr><td><strong>Optimal（OPT）</strong></td><td>換掉<strong>未來最久不會用到</strong>的；理論最佳但<u>無法實作</u>（需預知未來），僅作為評比基準</td></tr>
+        <tr><td>LFU</td><td>換掉使用次數最少的</td></tr>
+        <tr><td>Clock（第二次機會）</td><td>LRU 的近似實作，成本低</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 FIFO 計算範例（3 個頁框）</span>
+      存取序列：<code>1, 2, 3, 4, 1, 2, 5</code>
+      <pre>存取 1 → [1, _, _]        缺頁 ①
+存取 2 → [1, 2, _]        缺頁 ②
+存取 3 → [1, 2, 3]        缺頁 ③
+存取 4 → [<span class="s">4</span>, 2, 3]  換掉 1  缺頁 ④
+存取 1 → [4, <span class="s">1</span>, 3]  換掉 2  缺頁 ⑤
+存取 2 → [4, 1, <span class="s">2</span>]  換掉 3  缺頁 ⑥
+存取 5 → [<span class="s">5</span>, 1, 2]  換掉 4  缺頁 ⑦
+
+總缺頁次數 = <span class="s">7</span></pre>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 兩個必考名詞</span>
+      <strong>Belady 異常（Belady's Anomaly）</strong>：在 <u>FIFO</u> 演算法中，<strong>增加頁框數量反而使缺頁次數變多</strong>的反直覺現象。<u>LRU 與 OPT 不會發生</u>。<br><br>
+      <strong>輾轉現象（Thrashing）</strong>：行程忙於換頁而幾乎沒有做實際工作，CPU 使用率暴跌。<br>
+      <em>成因</em>：同時執行的行程太多，每個都分不到足夠頁框。<br>
+      <em>解法</em>：降低多工程度、增加實體記憶體、採用<strong>工作集（Working Set）模型</strong>配置頁框。
+    </div>
+
+    <h3>5-6　檔案系統與 I/O</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>概念</th><th>說明</th></tr>
+        <tr><td>檔案配置方式</td><td>連續配置、鏈結配置、<strong>索引配置</strong>（如 Unix 的 i-node）</td></tr>
+        <tr><td>目錄結構</td><td>單層、雙層、<strong>樹狀</strong>、無環圖</td></tr>
+        <tr><td>常見檔案系統</td><td>FAT32（單檔上限 4GB）、<strong>NTFS</strong>（Windows）、<strong>ext4</strong>（Linux）、APFS（macOS）</td></tr>
+        <tr><td><strong>Unix 權限</strong></td><td>rwx 分別給<strong>擁有者／群組／其他人</strong>；如 <code>chmod 755</code> = rwxr-xr-x</td></tr>
+        <tr><td>I/O 方式</td><td>輪詢（Polling）、<strong>中斷（Interrupt）</strong>、<strong>DMA</strong>（直接記憶體存取，不經 CPU）</td></tr>
+        <tr><td>緩衝與快取</td><td>緩衝解決速度不匹配；快取加速重複存取</td></tr>
+        <tr><td>Spooling</td><td>如列印排程，把工作先存到磁碟排隊</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <span class="t">💡 Unix 權限速算（常考）</span>
+      <strong>r = 4、w = 2、x = 1</strong>，相加即為該位數字。<br>
+      <code>chmod 755</code> → 7 = 4+2+1 = rwx（擁有者）｜5 = 4+1 = r-x（群組）｜5 = r-x（其他人）<br>
+      <code>chmod 644</code> → rw- r-- r--（一般檔案常用）<br>
+      <code>chmod 777</code> → 所有人皆可讀寫執行（<strong>資安大忌，不應使用</strong>）
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="index.html">← 普考首頁</a>
+    <a class="btn btn-next" href="computer2.html">下一部分：資料結構、資料庫、網路、資安 →</a>
+  </div>
+
+</div>
+
+<footer>普通考試 · 計算機概要講義（第一部分：第 1～5 章）</footer>
+
+</body>
+</html>
