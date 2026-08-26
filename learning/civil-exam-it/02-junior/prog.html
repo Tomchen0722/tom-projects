@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>程式設計概要 完整講義 | 普通考試</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-junior">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">普通考試</a><span class="sep">/</span><span>程式設計概要</span>
+</div>
+
+<div class="hero">
+  <div class="badge">⌨️ 普考 · 專業科目三 · 申論 · 占總成績 20%</div>
+  <h1>程式設計概要</h1>
+  <p><strong>從零開始教</strong>，完全沒寫過程式也能讀。<br>本科落差最大——會的人拿 70、放棄的人拿 30。而<u>很多人直接放棄</u>，所以這是最容易拉開差距的一科。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>📌 先講三件事</h2>
+    <div class="table-wrap">
+      <table>
+        <tr><th>問題</th><th>答案</th></tr>
+        <tr><td><strong>要用哪種語言作答？</strong></td><td>題目<strong>通常不限定</strong>。C、Python、Java 或<strong>虛擬碼</strong>皆可。<br><strong>建議挑一種練熟</strong>，並在答案卷開頭寫明「以下以 C 語言（或虛擬碼）作答」</td></tr>
+        <tr><td><strong>語法寫錯會扣分嗎？</strong></td><td>閱卷重點是<strong>邏輯正確、有註解、有說明</strong>。<br>寫得出正確邏輯的<strong>虛擬碼，分數不會比 C 語言低</strong>；語法小瑕疵通常不致命</td></tr>
+        <tr><td><strong>非本科系來得及嗎？</strong></td><td><strong>來得及。</strong>普考程式題難度不高，主要考<strong>迴圈、陣列、遞迴</strong>這些基本功。<br>從第一個月開始<strong>每天動手寫 30 分鐘</strong>，三個月就能拿 60 分以上</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 唯一無效的讀法：只看不寫</span>
+      程式是<strong>技能</strong>不是知識——就像游泳，看一百本書也不會游。<br>
+      本講義每個範例都<strong>請你自己在紙上追蹤一次變數變化</strong>，這是唯一有效的練法。<br>
+      建議裝一個線上編譯器（如 Python 官網的線上執行環境）隨時驗證。
+    </div>
+  </div>
+
+  <div class="toc">
+    <div class="t">📑 目錄</div>
+    <ol>
+      <li><a href="#c1">程式語言基本概念</a></li>
+      <li><a href="#c2">變數、資料型別與運算子</a></li>
+      <li><a href="#c3">流程控制：判斷</a></li>
+      <li><a href="#c4">流程控制：迴圈</a>（<strong>必考核心</strong>）</li>
+      <li><a href="#c5">陣列</a>（<strong>必考核心</strong>）</li>
+      <li><a href="#c6">函式與參數傳遞</a></li>
+      <li><a href="#c7">遞迴</a>（<strong>年年考</strong>）</li>
+      <li><a href="#c8">字串處理</a></li>
+      <li><a href="#c9">指標與結構</a></li>
+      <li><a href="#c10">常用演算法</a>（排序、搜尋）</li>
+      <li><a href="#c11">程式碼追蹤與除錯</a>（<strong>高頻題型</strong>）</li>
+      <li><a href="#c12">考前速記表</a></li>
+    </ol>
+  </div>
+
+  <!-- 第一章 -->
+  <div class="card" id="c1">
+    <h2>第 1 章　程式語言基本概念</h2>
+
+    <h3>1-1　編譯式 vs 直譯式</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>編譯式 Compiled</th><th>直譯式 Interpreted</th><th>混合式</th></tr>
+        <tr><td>作法</td><td>整份翻譯成執行檔</td><td>逐行翻譯執行</td><td>先編譯成中間碼，再由虛擬機執行</td></tr>
+        <tr><td>執行速度</td><td><strong>快</strong></td><td>慢</td><td>中</td></tr>
+        <tr><td>跨平台</td><td>差（需重新編譯）</td><td><strong>好</strong></td><td><strong>好</strong></td></tr>
+        <tr><td>除錯</td><td>編譯時就發現語法錯誤</td><td>執行到該行才發現</td><td>—</td></tr>
+        <tr><td>代表語言</td><td><strong>C、C++、Go</strong></td><td><strong>Python、JavaScript</strong></td><td><strong>Java</strong>（bytecode + JVM）、C#</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 編譯過程五階段（常考）</span>
+      <strong>詞彙分析 → 語法分析 → 語意分析 → 中間碼產生與最佳化 → 目的碼產生</strong><br><br>
+      之後由<strong>連結器（Linker）</strong>結合函式庫成執行檔，<strong>載入器（Loader）</strong>載入記憶體執行。
+    </div>
+
+    <h3>1-2　程式語言分類</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>世代</th><th>說明</th><th>例子</th></tr>
+        <tr><td>1GL 機器語言</td><td>0 與 1，機器直接執行</td><td>—</td></tr>
+        <tr><td>2GL 組合語言</td><td>助憶符號，需組譯器</td><td>MOV、ADD</td></tr>
+        <tr><td>3GL 高階語言</td><td>接近人類語言</td><td>C、Java、Python</td></tr>
+        <tr><td>4GL</td><td>非程序性、宣告式（<strong>說「要什麼」而非「怎麼做」</strong>）</td><td><strong>SQL</strong></td></tr>
+      </table>
+    </div>
+
+    <h3>1-3　一支程式的基本結構</h3>
+    <pre><span class="c">/* C 語言 */</span>
+#include &lt;stdio.h&gt;        <span class="c">// 引入標準輸入輸出函式庫</span>
+
+<span class="k">int</span> main() {              <span class="c">// 主函式：程式從這裡開始執行</span>
+    <span class="k">int</span> a = 10;           <span class="c">// 宣告變數並給初值</span>
+    printf(<span class="s">"%d\n"</span>, a);   <span class="c">// 輸出</span>
+    <span class="k">return</span> 0;             <span class="c">// 回傳 0 表示正常結束</span>
+}</pre>
+    <pre><span class="c"># Python（同樣功能，簡潔許多）</span>
+a = 10
+print(a)</pre>
+    <div class="hl">
+      <span class="t">💡 作答建議</span>
+      申論題若用 C 作答，<strong>可以省略 <code>#include</code> 與 <code>main()</code> 外框</strong>，直接寫核心邏輯並註明「主要邏輯如下」。<br>
+      閱卷老師看的是演算法邏輯，不會因為少寫 include 而扣分。<strong>但變數宣告與註解一定要寫。</strong>
+    </div>
+  </div>
+
+  <!-- 第二章 -->
+  <div class="card" id="c2">
+    <h2>第 2 章　變數、資料型別與運算子</h2>
+
+    <h3>2-1　變數是什麼</h3>
+    <div class="easy">
+      <div class="t">🧒 變數就是「有名字的盒子」</div>
+      <p><code>int a = 10;</code> 的意思是：</p>
+      <ul>
+        <li><strong>int</strong>：這個盒子只能裝整數</li>
+        <li><strong>a</strong>：盒子的名字</li>
+        <li><strong>= 10</strong>：把 10 放進去</li>
+      </ul>
+      <p><strong>最重要的觀念：<code>=</code> 不是數學的「等於」，而是「把右邊的值<u>放進</u>左邊的盒子」。</strong></p>
+      <p>所以 <code>a = a + 1;</code> 在數學上不成立，但在程式裡完全合理——意思是「把（a 現在的值 + 1）放回 a 這個盒子」。<br>
+      若 a 原本是 10，執行後 a 變成 11。</p>
+    </div>
+
+    <h3>2-2　常見資料型別</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>型別</th><th>C 語言</th><th>大小（典型）</th><th>範圍／說明</th></tr>
+        <tr><td>整數</td><td><code>int</code></td><td>4 bytes</td><td>−2,147,483,648 ~ 2,147,483,647</td></tr>
+        <tr><td>短整數</td><td><code>short</code></td><td>2 bytes</td><td>−32,768 ~ 32,767</td></tr>
+        <tr><td>長整數</td><td><code>long long</code></td><td>8 bytes</td><td>很大的整數</td></tr>
+        <tr><td>浮點數</td><td><code>float</code> / <code>double</code></td><td>4 / 8 bytes</td><td><strong>有精度誤差</strong>，金額勿用</td></tr>
+        <tr><td>字元</td><td><code>char</code></td><td>1 byte</td><td>存 ASCII 值（'A' = 65）</td></tr>
+        <tr><td>布林</td><td><code>bool</code>（C99）</td><td>1 byte</td><td>true / false；C 中 <strong>0 為假、非 0 為真</strong></td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 三個高頻陷阱</span>
+      <strong>① 整數除法會截斷</strong>：<code>5 / 2</code> 的結果是 <strong>2</strong> 不是 2.5。<br>
+      　要得到小數需寫 <code>5.0 / 2</code> 或 <code>(float)5 / 2</code>。<br><br>
+      <strong>② 溢位（Overflow）</strong>：int 最大 2147483647，再加 1 會變成<strong>負數</strong>（繞回最小值）。<br><br>
+      <strong>③ 浮點數精度</strong>：<code>0.1 + 0.2 != 0.3</code>。比較浮點數應判斷「差的絕對值 &lt; 極小值」而非用 <code>==</code>。
+    </div>
+
+    <h3>2-3　運算子</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類別</th><th>運算子</th><th>說明</th></tr>
+        <tr><td>算術</td><td><code>+ - * / %</code></td><td><strong><code>%</code> 是取餘數</strong>（7 % 3 = 1）</td></tr>
+        <tr><td>指定</td><td><code>= += -= *= /= %=</code></td><td><code>a += 3</code> 等同 <code>a = a + 3</code></td></tr>
+        <tr><td>遞增遞減</td><td><code>++ --</code></td><td><strong>前置 <code>++a</code>：先加再用；後置 <code>a++</code>：先用再加</strong></td></tr>
+        <tr><td>關係</td><td><code>== != &gt; &lt; &gt;= &lt;=</code></td><td><strong><code>==</code> 是比較，<code>=</code> 是指定</strong>（最常見的 bug）</td></tr>
+        <tr><td>邏輯</td><td><code>&amp;&amp;</code> and、<code>||</code> or、<code>!</code> not</td><td>有<strong>短路求值</strong>特性</td></tr>
+        <tr><td>位元</td><td><code>&amp; | ^ ~ &lt;&lt; &gt;&gt;</code></td><td><code>^</code> 是 XOR；<code>&lt;&lt; n</code> 等於 ×2ⁿ</td></tr>
+      </table>
+    </div>
+    <div class="frame">
+      <span class="t">📐 前置 vs 後置遞增（必考）</span>
+      <pre>int a = 5, b;
+
+b = a++;   // 後置：先把 a 的值(5)給 b，a 才變 6
+           // 結果：b = 5, a = 6
+
+int c = 5, d;
+d = ++c;   // 前置：c 先變 6，再把 6 給 d
+           // 結果：d = 6, c = 6</pre>
+      <strong>口訣：<code>++</code> 在<u>前面</u>就<u>先</u>加；<code>++</code> 在<u>後面</u>就<u>後</u>加。</strong>
+    </div>
+    <div class="hl">
+      <span class="t">💡 短路求值（Short-circuit）</span>
+      <code>A &amp;&amp; B</code>：若 A 為<strong>假</strong>，<strong>B 不會被執行</strong>（反正結果一定是假）<br>
+      <code>A || B</code>：若 A 為<strong>真</strong>，<strong>B 不會被執行</strong><br><br>
+      <strong>實務應用</strong>：<code>if (p != NULL &amp;&amp; p-&gt;value &gt; 0)</code> —— 先確認指標不是 NULL 才存取它，避免程式當掉。順序寫反就會出錯。
+    </div>
+
+    <h3>2-4　運算子優先順序（由高到低）</h3>
+    <div class="hl">
+      <strong><code>()</code> &gt; <code>! ++ --</code> &gt; <code>* / %</code> &gt; <code>+ -</code> &gt; <code>&lt; &gt; &lt;= &gt;=</code> &gt; <code>== !=</code> &gt; <code>&amp;&amp;</code> &gt; <code>||</code> &gt; <code>=</code></strong><br><br>
+      <strong>考場建議：不確定就加括號。</strong>加括號不會扣分，算錯才會。
+    </div>
+  </div>
+
+  <!-- 第三章 -->
+  <div class="card" id="c3">
+    <h2>第 3 章　流程控制：判斷</h2>
+
+    <h3>3-1　if / else if / else</h3>
+    <pre><span class="c">// C 語言</span>
+<span class="k">if</span> (score &gt;= 90) {
+    printf(<span class="s">"優等"</span>);
+} <span class="k">else if</span> (score &gt;= 80) {
+    printf(<span class="s">"甲等"</span>);
+} <span class="k">else if</span> (score &gt;= 70) {
+    printf(<span class="s">"乙等"</span>);
+} <span class="k">else</span> {
+    printf(<span class="s">"不及格"</span>);
+}</pre>
+    <div class="warn">
+      <span class="t">⚠️ 為什麼順序不能顛倒</span>
+      如果把 <code>score &gt;= 70</code> 寫在最前面，那 95 分也會先符合這個條件而印出「乙等」——<strong>因為 if-else if 只會執行「第一個成立」的分支</strong>。<br><br>
+      <strong>規則：範圍判斷要「由嚴格到寬鬆」排序。</strong>這是程式碼追蹤題最愛設的陷阱。
+    </div>
+
+    <h3>3-2　switch</h3>
+    <pre><span class="k">switch</span> (grade) {
+    <span class="k">case</span> <span class="s">'A'</span>:
+        printf(<span class="s">"優等"</span>);
+        <span class="k">break</span>;      <span class="c">// ← 沒有 break 會「貫穿」到下一個 case！</span>
+    <span class="k">case</span> <span class="s">'B'</span>:
+        printf(<span class="s">"甲等"</span>);
+        <span class="k">break</span>;
+    <span class="k">default</span>:        <span class="c">// 都不符合時執行</span>
+        printf(<span class="s">"其他"</span>);
+}</pre>
+    <div class="hl">
+      <span class="t">💡 break 貫穿（Fall-through）是超高頻考點</span>
+      若 <code>case 'A'</code> 少寫 <code>break</code>，當 grade = 'A' 時會<strong>印出「優等甲等」</strong>——繼續往下執行到遇見 break 為止。<br><br>
+      <strong>有時是刻意的</strong>：<br>
+      <pre>case 1:
+case 2:
+case 3:
+    printf("上半年");  // 1、2、3 月都執行這行
+    break;</pre>
+    </div>
+
+    <h3>3-3　三元運算子</h3>
+    <pre>max = (a &gt; b) ? a : b;
+<span class="c">// 讀法：如果 (a &gt; b) 成立就取 a，否則取 b</span>
+
+<span class="c">// 等同於：</span>
+<span class="k">if</span> (a &gt; b) max = a; <span class="k">else</span> max = b;</pre>
+
+    <h3>3-4　範例：判斷閏年（經典考題）</h3>
+    <div class="frame">
+      <span class="t">📐 閏年規則</span>
+      <strong>能被 4 整除，但不能被 100 整除；或能被 400 整除。</strong>
+    </div>
+    <pre><span class="k">if</span> ((year % 4 == 0 &amp;&amp; year % 100 != 0) || (year % 400 == 0)) {
+    printf(<span class="s">"%d 是閏年\n"</span>, year);
+} <span class="k">else</span> {
+    printf(<span class="s">"%d 不是閏年\n"</span>, year);
+}</pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th>年份</th><th>%4</th><th>%100</th><th>%400</th><th>結果</th></tr>
+        <tr><td>2024</td><td>0 ✔</td><td>≠0 ✔</td><td>—</td><td><strong>閏年</strong></td></tr>
+        <tr><td>1900</td><td>0 ✔</td><td><strong>0 ✘</strong></td><td>≠0</td><td>平年</td></tr>
+        <tr><td>2000</td><td>0 ✔</td><td>0 ✘</td><td><strong>0 ✔</strong></td><td><strong>閏年</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 第四章 -->
+  <div class="card" id="c4">
+    <h2>第 4 章　流程控制：迴圈（必考核心）</h2>
+
+    <h3>4-1　三種迴圈</h3>
+    <pre><span class="c">// for：知道要跑幾次時使用（最常用）</span>
+<span class="k">for</span> (i = 1; i &lt;= 10; i++) {
+    printf(<span class="s">"%d "</span>, i);
+}
+<span class="c">// 三個部分：①初始化 ②繼續條件 ③每次結束後執行</span>
+
+<span class="c">// while：不確定次數，先判斷再執行（可能一次都不執行）</span>
+i = 1;
+<span class="k">while</span> (i &lt;= 10) {
+    printf(<span class="s">"%d "</span>, i);
+    i++;              <span class="c">// ← 忘了寫這行就會無窮迴圈！</span>
+}
+
+<span class="c">// do-while：先執行再判斷（至少執行一次）</span>
+i = 1;
+<span class="k">do</span> {
+    printf(<span class="s">"%d "</span>, i);
+    i++;
+} <span class="k">while</span> (i &lt;= 10);</pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th>迴圈</th><th>判斷時機</th><th>最少執行次數</th><th>適用</th></tr>
+        <tr><td><code>for</code></td><td>先判斷</td><td>0 次</td><td><strong>已知次數</strong></td></tr>
+        <tr><td><code>while</code></td><td>先判斷</td><td>0 次</td><td>未知次數</td></tr>
+        <tr><td><code>do-while</code></td><td><strong>後判斷</strong></td><td><strong>1 次</strong></td><td>至少要做一次（如選單）</td></tr>
+      </table>
+    </div>
+
+    <h3>4-2　迴圈追蹤練習（考試最愛的題型）</h3>
+    <div class="frame">
+      <span class="t">📐 範例：求 1 加到 100</span>
+      <pre>int sum = 0;
+for (i = 1; i &lt;= 100; i++) {
+    sum = sum + i;    // 或寫 sum += i;
+}
+printf("%d", sum);    // 輸出 5050</pre>
+      <strong>逐步追蹤前幾輪</strong>：
+      <div class="table-wrap"><table>
+        <tr><th>第幾輪</th><th>i</th><th>sum 加之前</th><th>sum 加之後</th></tr>
+        <tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>2</td><td>2</td><td>1</td><td>3</td></tr>
+        <tr><td>3</td><td>3</td><td>3</td><td>6</td></tr>
+        <tr><td>4</td><td>4</td><td>6</td><td>10</td></tr>
+        <tr><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+        <tr><td>100</td><td>100</td><td>4950</td><td><strong>5050</strong></td></tr>
+      </table></div>
+    </div>
+    <div class="hl">
+      <span class="t">💡 追蹤題的必勝方法：畫變數追蹤表</span>
+      考試常給你一段程式問「輸出是什麼」。<strong>不要用看的，一定要畫表格逐輪追蹤。</strong><br>
+      欄位：<strong>輪次 ｜ 每個變數的值 ｜ 條件是否成立 ｜ 輸出</strong><br><br>
+      看起來慢，但<strong>正確率接近 100%</strong>；用看的很快，但錯誤率也很高。
+    </div>
+
+    <h3>4-3　巢狀迴圈（九九乘法表）</h3>
+    <pre><span class="k">for</span> (i = 1; i &lt;= 9; i++) {        <span class="c">// 外層：控制「第幾列」</span>
+    <span class="k">for</span> (j = 1; j &lt;= 9; j++) {    <span class="c">// 內層：控制「第幾行」</span>
+        printf(<span class="s">"%d*%d=%2d  "</span>, i, j, i*j);
+    }
+    printf(<span class="s">"\n"</span>);              <span class="c">// 每跑完一列就換行</span>
+}</pre>
+    <div class="easy">
+      <div class="t">🧒 巢狀迴圈的運作方式</div>
+      <p>想像時鐘：<strong>外層是「時針」、內層是「分針」</strong>。</p>
+      <p>分針要跑完 60 分鐘（內層跑完 9 次），時針才動 1 格（外層 i 才加 1）。</p>
+      <p>所以總執行次數是 <strong>9 × 9 = 81 次</strong>，這也是為什麼雙層迴圈的複雜度通常是 O(n²)。</p>
+    </div>
+    <pre><span class="c">// 印直角三角形</span>
+<span class="k">for</span> (i = 1; i &lt;= 5; i++) {
+    <span class="k">for</span> (j = 1; j &lt;= i; j++) {   <span class="c">// ← 注意內層條件是 j &lt;= i</span>
+        printf(<span class="s">"*"</span>);
+    }
+    printf(<span class="s">"\n"</span>);
+}
+<span class="c">// 輸出：
+*
+**
+***
+****
+*****  </span></pre>
+
+    <h3>4-4　break 與 continue</h3>
+    <pre><span class="k">for</span> (i = 1; i &lt;= 10; i++) {
+    <span class="k">if</span> (i == 5) <span class="k">break</span>;       <span class="c">// 直接「跳出整個迴圈」</span>
+    printf(<span class="s">"%d "</span>, i);
+}
+<span class="c">// 輸出：1 2 3 4</span>
+
+<span class="k">for</span> (i = 1; i &lt;= 10; i++) {
+    <span class="k">if</span> (i % 2 == 0) <span class="k">continue</span>; <span class="c">// 「跳過這一輪」，繼續下一輪</span>
+    printf(<span class="s">"%d "</span>, i);
+}
+<span class="c">// 輸出：1 3 5 7 9（跳過偶數）</span></pre>
+    <div class="hl">
+      <strong>break = 整個離開；continue = 只跳過這一輪。</strong><br>
+      在巢狀迴圈中，<strong>break 只跳出「最內層」那一圈</strong>——這是常考的細節。
+    </div>
+
+    <h3>4-5　經典迴圈題型</h3>
+    <pre><span class="c">// ① 判斷質數（只被 1 和自己整除，且 &gt; 1）</span>
+<span class="k">int</span> isPrime = 1;              <span class="c">// 先假設是質數</span>
+<span class="k">if</span> (n &lt;= 1) isPrime = 0;
+<span class="k">for</span> (i = 2; i * i &lt;= n; i++) { <span class="c">// 只需檢查到 √n</span>
+    <span class="k">if</span> (n % i == 0) {
+        isPrime = 0;
+        <span class="k">break</span>;
+    }
+}
+
+<span class="c">// ② 求最大公因數（輾轉相除法）</span>
+<span class="k">while</span> (b != 0) {
+    <span class="k">int</span> temp = a % b;
+    a = b;
+    b = temp;
+}
+<span class="c">// 迴圈結束時 a 就是最大公因數</span>
+
+<span class="c">// ③ 反轉數字（1234 → 4321）</span>
+<span class="k">int</span> rev = 0;
+<span class="k">while</span> (n &gt; 0) {
+    rev = rev * 10 + n % 10;   <span class="c">// 取出個位數接到 rev 後面</span>
+    n = n / 10;                <span class="c">// 去掉個位數</span>
+}
+
+<span class="c">// ④ 計算位數 / 各位數字和</span>
+<span class="k">int</span> sum = 0;
+<span class="k">while</span> (n &gt; 0) {
+    sum += n % 10;
+    n /= 10;
+}</pre>
+    <div class="frame">
+      <span class="t">📐 「n % 10 取個位、n / 10 去個位」是最重要的數字處理技巧</span>
+      <pre>n = 1234
+n % 10 = 4    ← 取出個位數
+n / 10 = 123  ← 去掉個位數（整數除法自動截斷）
+
+再一輪：123 % 10 = 3、123 / 10 = 12
+再一輪：12 % 10 = 2、12 / 10 = 1
+再一輪：1 % 10 = 1、1 / 10 = 0  ← 迴圈結束</pre>
+      幾乎所有「處理數字每一位」的題目都用這招。
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 為什麼質數只要檢查到 √n</span>
+      若 n = a × b 且 a ≤ b，則 <strong>a ≤ √n</strong>。<br>
+      所以若在 2～√n 之間找不到因數，√n 之後也一定找不到（因為那些因數的「另一半」早就被檢查過了）。<br>
+      這個優化可以把 O(n) 降到 O(√n)，<strong>是常考的效率改善點</strong>。
+    </div>
+  </div>
+
+  <!-- 第五章 -->
+  <div class="card" id="c5">
+    <h2>第 5 章　陣列（必考核心）</h2>
+
+    <h3>5-1　一維陣列</h3>
+    <pre><span class="k">int</span> a[5] = {10, 20, 30, 40, 50};
+<span class="c">//   索引:  0   1   2   3   4   ← 索引從 0 開始！</span>
+
+printf(<span class="s">"%d"</span>, a[0]);   <span class="c">// 輸出 10（第一個）</span>
+printf(<span class="s">"%d"</span>, a[4]);   <span class="c">// 輸出 50（最後一個）</span>
+<span class="c">// a[5] 會越界！C 不會報錯但會讀到垃圾值或當掉</span></pre>
+    <div class="warn">
+      <span class="t">⚠️ 兩個最常見的錯誤</span>
+      <strong>① 索引從 0 開始</strong>：宣告 <code>a[5]</code> 表示有 5 個元素，索引是 <strong>0~4</strong>，<u>沒有 a[5]</u>。<br><br>
+      <strong>② 差一錯誤（Off-by-one）</strong>：<br>
+      <code>for (i = 0; i &lt;= 5; i++)</code> ← <strong>錯</strong>（跑到 i=5 越界）<br>
+      <code>for (i = 0; i &lt; 5; i++)</code> ← <strong>對</strong>（跑 0~4 共 5 次）<br><br>
+      <strong>口訣：陣列迴圈用 <code>&lt;</code> 不用 <code>&lt;=</code>。</strong>這是程式題最高頻的扣分點。
+    </div>
+
+    <h3>5-2　陣列常用操作</h3>
+    <pre><span class="c">// ① 求總和與平均</span>
+<span class="k">int</span> sum = 0;
+<span class="k">for</span> (i = 0; i &lt; n; i++) sum += a[i];
+<span class="k">float</span> avg = (<span class="k">float</span>)sum / n;   <span class="c">// ← 要轉型，否則整數除法會截斷</span>
+
+<span class="c">// ② 求最大值（經典）</span>
+<span class="k">int</span> max = a[0];               <span class="c">// 先假設第一個最大</span>
+<span class="k">for</span> (i = 1; i &lt; n; i++) {     <span class="c">// 從第二個開始比</span>
+    <span class="k">if</span> (a[i] &gt; max) max = a[i];
+}
+
+<span class="c">// ③ 反轉陣列（首尾交換）</span>
+<span class="k">for</span> (i = 0; i &lt; n/2; i++) {   <span class="c">// ← 只跑一半！跑完全部會轉回來</span>
+    <span class="k">int</span> temp = a[i];
+    a[i] = a[n-1-i];
+    a[n-1-i] = temp;
+}
+
+<span class="c">// ④ 線性搜尋</span>
+<span class="k">int</span> found = -1;
+<span class="k">for</span> (i = 0; i &lt; n; i++) {
+    <span class="k">if</span> (a[i] == key) { found = i; <span class="k">break</span>; }
+}</pre>
+    <div class="hl">
+      <span class="t">💡 交換兩個變數的標準寫法</span>
+      <pre>int temp = a;
+a = b;
+b = temp;</pre>
+      <strong>一定要用第三個變數暫存</strong>。若直接寫 <code>a = b; b = a;</code>，a 的原值在第一行就被覆蓋掉了，結果兩個都變成 b。<br><br>
+      （進階：也可用 XOR 交換 <code>a^=b; b^=a; a^=b;</code>，但考試寫 temp 版本更清楚。）
+    </div>
+
+    <h3>5-3　二維陣列</h3>
+    <pre><span class="k">int</span> m[3][4] = {          <span class="c">// 3 列 4 行</span>
+    {1,  2,  3,  4},      <span class="c">// m[0][0] ~ m[0][3]</span>
+    {5,  6,  7,  8},      <span class="c">// m[1][0] ~ m[1][3]</span>
+    {9, 10, 11, 12}       <span class="c">// m[2][0] ~ m[2][3]</span>
+};
+
+<span class="c">// 走訪整個二維陣列</span>
+<span class="k">for</span> (i = 0; i &lt; 3; i++) {        <span class="c">// 列</span>
+    <span class="k">for</span> (j = 0; j &lt; 4; j++) {    <span class="c">// 行</span>
+        printf(<span class="s">"%d "</span>, m[i][j]);
+    }
+    printf(<span class="s">"\n"</span>);
+}</pre>
+    <pre><span class="c">// 常考：求每列總和</span>
+<span class="k">for</span> (i = 0; i &lt; 3; i++) {
+    <span class="k">int</span> rowSum = 0;
+    <span class="k">for</span> (j = 0; j &lt; 4; j++) rowSum += m[i][j];
+    printf(<span class="s">"第 %d 列總和 = %d\n"</span>, i, rowSum);
+}
+
+<span class="c">// 常考：矩陣轉置（列變行、行變列）</span>
+<span class="k">for</span> (i = 0; i &lt; n; i++)
+    <span class="k">for</span> (j = 0; j &lt; n; j++)
+        t[j][i] = m[i][j];      <span class="c">// 注意索引對調</span>
+
+<span class="c">// 常考：對角線總和（方陣）</span>
+<span class="k">int</span> diag = 0;
+<span class="k">for</span> (i = 0; i &lt; n; i++) diag += m[i][i];   <span class="c">// 主對角線</span></pre>
+    <div class="frame">
+      <span class="t">📐 二維陣列位址計算（常考）</span>
+      <strong>列優先（Row-major，C/Java 採用）</strong>：<br>
+      <code>A[i][j] 位址 = 基底 + [(i − 下界₁) × 每列元素數 + (j − 下界₂)] × 元素大小</code><br><br>
+      <em>例</em>：A[1..6][1..10]，base = 2000，每元素 4 bytes，求 A[4][7]<br>
+      = 2000 + [(4−1) × 10 + (7−1)] × 4 = 2000 + 36×4 = <strong>2144</strong>
+    </div>
+  </div>
+
+  <!-- 第六章 -->
+  <div class="card" id="c6">
+    <h2>第 6 章　函式與參數傳遞</h2>
+
+    <h3>6-1　函式的組成</h3>
+    <pre><span class="k">int</span> add(<span class="k">int</span> x, <span class="k">int</span> y) {   <span class="c">// 回傳型別 函式名(參數列)</span>
+    <span class="k">int</span> result = x + y;
+    <span class="k">return</span> result;           <span class="c">// 回傳值</span>
+}
+
+<span class="c">// 呼叫</span>
+<span class="k">int</span> ans = add(3, 5);         <span class="c">// ans = 8</span></pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th>好處</th><th>說明</th></tr>
+        <tr><td><strong>重用</strong></td><td>寫一次，到處呼叫</td></tr>
+        <tr><td><strong>模組化</strong></td><td>把複雜問題拆成小任務，符合<strong>高內聚、低耦合</strong></td></tr>
+        <tr><td><strong>易維護</strong></td><td>改一處即可，不必到處找</td></tr>
+        <tr><td>易測試</td><td>可單獨測試每個函式（單元測試）</td></tr>
+      </table>
+    </div>
+
+    <h3>6-2　傳值 vs 傳址（必考）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>方式</th><th>傳什麼</th><th>能否改變原變數</th></tr>
+        <tr><td><strong>傳值 Call by Value</strong></td><td>複製一份<strong>值</strong>過去</td><td><strong>不能</strong></td></tr>
+        <tr><td><strong>傳址 Call by Reference</strong></td><td>傳<strong>記憶體位址</strong></td><td><strong>可以</strong></td></tr>
+      </table>
+    </div>
+    <pre><span class="c">// 傳值：改不到原變數</span>
+<span class="k">void</span> changeValue(<span class="k">int</span> x) {
+    x = 100;
+}
+<span class="k">int</span> a = 5;
+changeValue(a);
+printf(<span class="s">"%d"</span>, a);      <span class="c">// 輸出 5（沒變！）</span>
+
+<span class="c">// 傳址：可以改到原變數</span>
+<span class="k">void</span> changeRef(<span class="k">int</span> *x) {  <span class="c">// * 表示這是指標</span>
+    *x = 100;                <span class="c">// * 表示「去那個位址把值改掉」</span>
+}
+<span class="k">int</span> b = 5;
+changeRef(&amp;b);              <span class="c">// &amp; 表示「取 b 的位址」</span>
+printf(<span class="s">"%d"</span>, b);      <span class="c">// 輸出 100（改到了！）</span></pre>
+    <div class="easy">
+      <div class="t">🧒 用影印機理解</div>
+      <p><strong>傳值</strong>：你把文件<u>影印一份</u>給同事。他在影本上塗改，<strong>你的正本不受影響</strong>。</p>
+      <p><strong>傳址</strong>：你告訴同事「文件在三樓第二個抽屜」。他去那裡拿正本來改——<strong>你的正本就被改了</strong>。</p>
+      <p><strong>C 語言預設是傳值</strong>；要傳址必須明確用指標（<code>*</code> 和 <code>&amp;</code>）。<br>
+      <u>例外</u>：<strong>陣列傳入函式時自動傳址</strong>（傳的是陣列首位址），所以函式內可以改到原陣列——這是高頻考點。</p>
+    </div>
+
+    <h3>6-3　變數範圍（Scope）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>宣告位置</th><th>生存期</th><th>可見範圍</th></tr>
+        <tr><td><strong>區域變數</strong> Local</td><td>函式內</td><td>函式執行期間</td><td>只有該函式</td></tr>
+        <tr><td><strong>全域變數</strong> Global</td><td>函式外</td><td>整個程式執行期間</td><td>所有函式</td></tr>
+        <tr><td><strong>靜態變數</strong> static</td><td>函式內加 <code>static</code></td><td><strong>整個程式期間</strong></td><td>只有該函式</td></tr>
+      </table>
+    </div>
+    <pre><span class="k">void</span> counter() {
+    <span class="k">static int</span> count = 0;   <span class="c">// static：只初始化一次，值會保留</span>
+    count++;
+    printf(<span class="s">"%d "</span>, count);
+}
+counter(); counter(); counter();
+<span class="c">// 輸出：1 2 3  （若沒有 static，會一直輸出 1 1 1）</span></pre>
+    <div class="hl">
+      <strong>全域變數要少用</strong>——任何函式都能改它，出錯時很難追查是誰改的（<strong>高耦合</strong>）。<br>
+      良好習慣：<strong>用參數傳入、用回傳值傳出</strong>。這也是「低耦合」原則的實踐。
+    </div>
+  </div>
+
+  <!-- 第七章 -->
+  <div class="card" id="c7">
+    <h2>第 7 章　遞迴（年年考）</h2>
+
+    <h3>7-1　什麼是遞迴</h3>
+    <div class="easy">
+      <div class="t">🧒 遞迴＝函式自己呼叫自己</div>
+      <p>想像你在排隊，想知道自己排第幾個。你不知道，所以問前面的人：「你排第幾？」<br>
+      前面的人也不知道，又問他前面的人……直到問到<strong>第一個人</strong>，他說「我第 1 個」。</p>
+      <p>然後答案一層層傳回來：第 1 個 → 我是第 2 個 → 我是第 3 個 → …</p>
+      <p><strong>兩個必要元素</strong>：<br>
+      ① <strong>終止條件（Base Case）</strong>——第一個人知道自己是第 1 個，<u>不必再問</u><br>
+      ② <strong>遞迴關係</strong>——「我的號碼 = 前面那個人的號碼 + 1」</p>
+      <p><strong>沒有終止條件就會無限遞迴，最後 Stack Overflow（堆疊溢位）。</strong></p>
+    </div>
+
+    <h3>7-2　經典範例</h3>
+    <pre><span class="c">// ① 階乘 n! = n × (n-1) × ... × 1</span>
+<span class="k">int</span> factorial(<span class="k">int</span> n) {
+    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> 1;        <span class="c">// ← 終止條件</span>
+    <span class="k">return</span> n * factorial(n - 1);  <span class="c">// ← 遞迴關係</span>
+}</pre>
+    <div class="frame">
+      <span class="t">📐 factorial(4) 的展開過程（追蹤題必考）</span>
+      <pre>factorial(4)
+= 4 × factorial(3)
+= 4 × (3 × factorial(2))
+= 4 × (3 × (2 × factorial(1)))
+= 4 × (3 × (2 × 1))          ← 觸底，開始回傳
+= 4 × (3 × 2)
+= 4 × 6
+= 24</pre>
+      <strong>關鍵：先一路「往下呼叫」到終止條件，再一路「往上回傳」計算。</strong>
+    </div>
+    <pre><span class="c">// ② 費氏數列 F(n) = F(n-1) + F(n-2)，F(0)=0, F(1)=1</span>
+<span class="k">int</span> fib(<span class="k">int</span> n) {
+    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;                <span class="c">// 終止條件</span>
+    <span class="k">return</span> fib(n - 1) + fib(n - 2);
+}
+<span class="c">// 數列：0, 1, 1, 2, 3, 5, 8, 13, 21, 34, ...</span>
+
+<span class="c">// ③ 最大公因數（遞迴版輾轉相除）</span>
+<span class="k">int</span> gcd(<span class="k">int</span> a, <span class="k">int</span> b) {
+    <span class="k">if</span> (b == 0) <span class="k">return</span> a;
+    <span class="k">return</span> gcd(b, a % b);
+}
+
+<span class="c">// ④ 河內塔</span>
+<span class="k">void</span> hanoi(<span class="k">int</span> n, <span class="k">char</span> from, <span class="k">char</span> to, <span class="k">char</span> via) {
+    <span class="k">if</span> (n == 1) {
+        printf(<span class="s">"移動 1 號盤: %c -&gt; %c\n"</span>, from, to);
+        <span class="k">return</span>;
+    }
+    hanoi(n-1, from, via, to);    <span class="c">// 上面 n-1 個先搬到中繼柱</span>
+    printf(<span class="s">"移動 %d 號盤: %c -&gt; %c\n"</span>, n, from, to);
+    hanoi(n-1, via, to, from);    <span class="c">// 再從中繼柱搬到目標柱</span>
+}
+<span class="c">// 移動次數 = 2^n − 1</span></pre>
+
+    <h3>7-3　遞迴 vs 迴圈</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>遞迴</th><th>迴圈（迭代）</th></tr>
+        <tr><td>程式碼</td><td><strong>簡潔、貼近數學定義</strong></td><td>較冗長</td></tr>
+        <tr><td>記憶體</td><td>每層呼叫都占用<strong>呼叫堆疊</strong>，較耗記憶體</td><td><strong>省</strong></td></tr>
+        <tr><td>速度</td><td>較慢（函式呼叫開銷）</td><td><strong>快</strong></td></tr>
+        <tr><td>風險</td><td>太深會 <strong>Stack Overflow</strong></td><td>無此問題</td></tr>
+        <tr><td>適用</td><td>樹狀結構、分治法、問題本身就是遞迴定義</td><td>簡單重複運算</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 費氏數列遞迴的效率陷阱（超高頻考點）</span>
+      <pre>fib(5)
+├ fib(4)
+│ ├ fib(3)
+│ │ ├ fib(2) ← 算過
+│ │ └ fib(1)
+│ └ fib(2) ← 又算一次！
+└ fib(3) ← 又算一次！
+  ├ fib(2) ← 第三次！
+  └ fib(1)</pre>
+      <strong>大量重複計算</strong> → 複雜度高達 <strong>O(2ⁿ)</strong>，n = 50 就慢到不能用。<br><br>
+      <strong>改善方式</strong>：<br>
+      ① <strong>改用迴圈</strong>（O(n)）　② <strong>記憶化（Memoization）</strong>——算過就存起來，下次查表 → 這就是<strong>動態規劃</strong>的概念
+      <pre>// 迴圈版費氏數列：O(n)
+int a = 0, b = 1, c;
+for (i = 2; i &lt;= n; i++) {
+    c = a + b;
+    a = b;
+    b = c;
+}</pre>
+    </div>
+  </div>
+
+  <!-- 第八章 -->
+  <div class="card" id="c8">
+    <h2>第 8 章　字串處理</h2>
+
+    <h3>8-1　C 語言的字串</h3>
+    <pre><span class="k">char</span> s[] = <span class="s">"Hello"</span>;
+<span class="c">// 實際記憶體： 'H' 'e' 'l' 'l' 'o' '\0'
+//    索引：      0   1   2   3   4    5</span>
+<span class="c">// '\0' 是「字串結束字元」，佔 1 byte，非常重要！</span></pre>
+    <div class="warn">
+      <span class="t">⚠️ C 字串必須有 <code>'\0'</code> 結尾</span>
+      所有字串函式都靠 <code>'\0'</code> 判斷「到哪裡結束」。<br>
+      若宣告 <code>char s[5] = "Hello";</code>（剛好 5 個字元）→ <strong>沒有空間放 '\0'</strong> → 函式會一直往後讀垃圾資料 → <strong>緩衝區溢位（Buffer Overflow）</strong>，這也是經典的資安漏洞。<br><br>
+      <strong>正確：<code>char s[6] = "Hello";</code></strong>（要多留一格）
+    </div>
+
+    <h3>8-2　常用字串函式</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>函式</th><th>功能</th><th>安全性</th></tr>
+        <tr><td><code>strlen(s)</code></td><td>回傳長度（<strong>不含 '\0'</strong>）</td><td>—</td></tr>
+        <tr><td><code>strcpy(dst, src)</code></td><td>複製字串</td><td><strong>不安全</strong>，建議用 <code>strncpy</code></td></tr>
+        <tr><td><code>strcat(dst, src)</code></td><td>串接字串</td><td>不安全，建議 <code>strncat</code></td></tr>
+        <tr><td><code>strcmp(s1, s2)</code></td><td>比較；<strong>相等回傳 0</strong>，s1&lt;s2 回傳負數</td><td>—</td></tr>
+        <tr><td><code>strchr / strstr</code></td><td>尋找字元／子字串</td><td>—</td></tr>
+      </table>
+    </div>
+    <div class="hl">
+      <strong><code>strcmp</code> 相等時回傳 0</strong>——這很反直覺，所以判斷字串相等要寫 <code>if (strcmp(a,b) == 0)</code>，<u>不能寫 <code>if (strcmp(a,b))</code></u>。<strong>這是常考陷阱。</strong><br><br>
+      另外<strong>字串不能用 <code>==</code> 比較</strong>（那是在比位址，不是比內容）。
+    </div>
+
+    <h3>8-3　常考字串題型</h3>
+    <pre><span class="c">// ① 計算字串長度（不用函式）</span>
+<span class="k">int</span> len = 0;
+<span class="k">while</span> (s[len] != <span class="s">'\0'</span>) len++;
+
+<span class="c">// ② 反轉字串</span>
+<span class="k">for</span> (i = 0; i &lt; len/2; i++) {
+    <span class="k">char</span> t = s[i];
+    s[i] = s[len-1-i];
+    s[len-1-i] = t;
+}
+
+<span class="c">// ③ 判斷回文（Palindrome）如 "level"、"12321"</span>
+<span class="k">int</span> isPalin = 1;
+<span class="k">for</span> (i = 0; i &lt; len/2; i++) {
+    <span class="k">if</span> (s[i] != s[len-1-i]) { isPalin = 0; <span class="k">break</span>; }
+}
+
+<span class="c">// ④ 大寫轉小寫（利用 ASCII 差 32）</span>
+<span class="k">for</span> (i = 0; s[i] != <span class="s">'\0'</span>; i++) {
+    <span class="k">if</span> (s[i] &gt;= <span class="s">'A'</span> &amp;&amp; s[i] &lt;= <span class="s">'Z'</span>)
+        s[i] = s[i] + 32;
+}
+
+<span class="c">// ⑤ 統計母音個數</span>
+<span class="k">int</span> cnt = 0;
+<span class="k">for</span> (i = 0; s[i] != <span class="s">'\0'</span>; i++) {
+    <span class="k">char</span> c = s[i];
+    <span class="k">if</span> (c==<span class="s">'a'</span>||c==<span class="s">'e'</span>||c==<span class="s">'i'</span>||c==<span class="s">'o'</span>||c==<span class="s">'u'</span>) cnt++;
+}
+
+<span class="c">// ⑥ 字元轉數字</span>
+<span class="k">int</span> num = s[i] - <span class="s">'0'</span>;   <span class="c">// '7' - '0' = 55 - 48 = 7</span></pre>
+    <div class="frame">
+      <span class="t">📐 必背 ASCII 關係</span>
+      <strong>'0' = 48　'A' = 65　'a' = 97</strong><br><br>
+      推論：<br>
+      ‧ <strong>大寫 + 32 = 小寫</strong>（'A' + 32 = 'a'）<br>
+      ‧ <strong>字元 − '0' = 該數字</strong>（'7' − '0' = 7）<br>
+      ‧ <strong>數字 + '0' = 該字元</strong>（7 + '0' = '7'）
+    </div>
+  </div>
+
+  <!-- 第九章 -->
+  <div class="card" id="c9">
+    <h2>第 9 章　指標與結構</h2>
+
+    <h3>9-1　指標基礎</h3>
+    <div class="easy">
+      <div class="t">🧒 指標＝門牌號碼</div>
+      <p><strong>變數</strong>是「房子裡的東西」，<strong>指標</strong>是「這棟房子的門牌號碼」。</p>
+      <ul>
+        <li><code>&amp;a</code> = <strong>取得 a 的門牌號碼</strong>（位址）</li>
+        <li><code>*p</code> = <strong>到 p 這個門牌的房子裡，把東西拿出來</strong>（取值）</li>
+      </ul>
+      <p>兩個符號互為反操作：<code>*(&amp;a)</code> 就等於 <code>a</code>。</p>
+    </div>
+    <pre><span class="k">int</span> a = 10;
+<span class="k">int</span> *p = &amp;a;     <span class="c">// p 存放 a 的位址</span>
+
+printf(<span class="s">"%d"</span>, a);    <span class="c">// 10（直接取值）</span>
+printf(<span class="s">"%d"</span>, *p);   <span class="c">// 10（透過位址取值）</span>
+printf(<span class="s">"%p"</span>, &amp;a);   <span class="c">// 顯示 a 的記憶體位址</span>
+
+*p = 20;         <span class="c">// 透過指標修改 → a 也變成 20</span>
+printf(<span class="s">"%d"</span>, a);    <span class="c">// 20</span></pre>
+    <div class="table-wrap">
+      <table>
+        <tr><th>用途</th><th>說明</th></tr>
+        <tr><td><strong>傳址呼叫</strong></td><td>讓函式能修改呼叫端的變數</td></tr>
+        <tr><td><strong>動態記憶體配置</strong></td><td><code>malloc</code> / <code>free</code>，執行時才決定大小</td></tr>
+        <tr><td><strong>陣列操作</strong></td><td>陣列名稱本身就是首元素的位址；<code>a[i]</code> 等同 <code>*(a+i)</code></td></tr>
+        <tr><td><strong>鏈結串列與樹</strong></td><td>動態資料結構的基礎</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 指標的三大風險（常考名詞）</span>
+      <strong>① 空指標解參照</strong>：對 NULL 取值會使程式當掉 → 存取前先檢查 <code>if (p != NULL)</code><br>
+      <strong>② 迷途指標（Dangling Pointer）</strong>：指向已被釋放的記憶體 → <code>free</code> 後應設為 NULL<br>
+      <strong>③ 記憶體洩漏（Memory Leak）</strong>：<code>malloc</code> 後忘了 <code>free</code> → 長時間執行的系統會耗盡記憶體
+    </div>
+
+    <h3>9-2　結構（struct）</h3>
+    <pre><span class="k">struct</span> Student {
+    <span class="k">int</span>  id;
+    <span class="k">char</span> name[20];
+    <span class="k">float</span> score;
+};
+
+<span class="k">struct</span> Student s1 = {101, <span class="s">"王小明"</span>, 85.5};
+printf(<span class="s">"%s"</span>, s1.name);         <span class="c">// 用 . 存取成員</span>
+
+<span class="k">struct</span> Student *p = &amp;s1;
+printf(<span class="s">"%s"</span>, p-&gt;name);         <span class="c">// 指標用 -&gt; 存取成員</span>
+
+<span class="c">// 結構陣列（很常用）</span>
+<span class="k">struct</span> Student cls[50];
+cls[0].score = 90;</pre>
+    <div class="hl">
+      <strong><code>.</code> 用於結構變數；<code>-&gt;</code> 用於結構指標。</strong><br>
+      <code>p-&gt;name</code> 等同 <code>(*p).name</code>——後者要加括號，因為 <code>.</code> 的優先權比 <code>*</code> 高。
+    </div>
+
+    <h3>9-3　動態記憶體</h3>
+    <pre><span class="k">int</span> *arr = (<span class="k">int</span>*)malloc(n * <span class="k">sizeof</span>(<span class="k">int</span>));  <span class="c">// 配置 n 個 int 的空間</span>
+<span class="k">if</span> (arr == NULL) { <span class="c">/* 配置失敗處理 */</span> }
+
+<span class="k">for</span> (i = 0; i &lt; n; i++) arr[i] = i;      <span class="c">// 當一般陣列用</span>
+
+free(arr);      <span class="c">// 用完一定要釋放</span>
+arr = NULL;     <span class="c">// 避免成為迷途指標</span></pre>
+    <p><strong>靜態陣列 vs 動態配置</strong>：靜態陣列大小在<u>編譯時</u>就固定；動態配置可在<u>執行時</u>依實際需求決定大小，但需自行管理釋放。</p>
+  </div>
+
+  <!-- 第十章 -->
+  <div class="card" id="c10">
+    <h2>第 10 章　常用演算法</h2>
+
+    <h3>10-1　排序演算法</h3>
+    <pre><span class="c">// ① 氣泡排序 Bubble Sort — O(n²)</span>
+<span class="c">// 概念：相鄰兩個比大小，大的往後移，像泡泡浮上來</span>
+<span class="k">for</span> (i = 0; i &lt; n-1; i++) {              <span class="c">// 共跑 n-1 回合</span>
+    <span class="k">for</span> (j = 0; j &lt; n-1-i; j++) {        <span class="c">// -i：後面已排好不用再比</span>
+        <span class="k">if</span> (a[j] &gt; a[j+1]) {
+            <span class="k">int</span> t = a[j]; a[j] = a[j+1]; a[j+1] = t;
+        }
+    }
+}
+
+<span class="c">// 改良版：若某回合完全沒交換，代表已排好，提早結束 → 最佳 O(n)</span>
+<span class="k">for</span> (i = 0; i &lt; n-1; i++) {
+    <span class="k">int</span> swapped = 0;
+    <span class="k">for</span> (j = 0; j &lt; n-1-i; j++) {
+        <span class="k">if</span> (a[j] &gt; a[j+1]) {
+            <span class="k">int</span> t = a[j]; a[j] = a[j+1]; a[j+1] = t;
+            swapped = 1;
+        }
+    }
+    <span class="k">if</span> (!swapped) <span class="k">break</span>;
+}</pre>
+    <pre><span class="c">// ② 選擇排序 Selection Sort — O(n²)</span>
+<span class="c">// 概念：每回合找出最小的，跟第 i 個交換</span>
+<span class="k">for</span> (i = 0; i &lt; n-1; i++) {
+    <span class="k">int</span> min = i;
+    <span class="k">for</span> (j = i+1; j &lt; n; j++)
+        <span class="k">if</span> (a[j] &lt; a[min]) min = j;
+    <span class="k">if</span> (min != i) {
+        <span class="k">int</span> t = a[i]; a[i] = a[min]; a[min] = t;
+    }
+}
+
+<span class="c">// ③ 插入排序 Insertion Sort — O(n²)，已排序時 O(n)</span>
+<span class="c">// 概念：像整理撲克牌，把新牌插入已排好的部分</span>
+<span class="k">for</span> (i = 1; i &lt; n; i++) {
+    <span class="k">int</span> key = a[i];
+    j = i - 1;
+    <span class="k">while</span> (j &gt;= 0 &amp;&amp; a[j] &gt; key) {
+        a[j+1] = a[j];    <span class="c">// 比 key 大的往後挪</span>
+        j--;
+    }
+    a[j+1] = key;         <span class="c">// 插入正確位置</span>
+}</pre>
+    <div class="frame">
+      <span class="t">📐 氣泡排序追蹤範例：{5, 2, 8, 1}</span>
+      <div class="table-wrap"><table>
+        <tr><th>回合</th><th>比較過程</th><th>結果</th></tr>
+        <tr><td>第 1 回</td><td>5&gt;2 換 → 5&gt;8 不換 → 8&gt;1 換</td><td>2, 5, 1, <strong>8</strong></td></tr>
+        <tr><td>第 2 回</td><td>2&gt;5 不換 → 5&gt;1 換</td><td>2, 1, <strong>5, 8</strong></td></tr>
+        <tr><td>第 3 回</td><td>2&gt;1 換</td><td><strong>1, 2, 5, 8</strong> ✔</td></tr>
+      </table></div>
+      <strong>觀察</strong>：每回合結束，<u>最大的數字就會「浮」到最後面</u>並固定下來——這就是「氣泡」的由來，也是內層迴圈可以寫 <code>j &lt; n-1-i</code> 的原因。
+    </div>
+
+    <h3>10-2　搜尋演算法</h3>
+    <pre><span class="c">// ① 線性搜尋 — O(n)，資料不必排序</span>
+<span class="k">for</span> (i = 0; i &lt; n; i++)
+    <span class="k">if</span> (a[i] == key) <span class="k">return</span> i;
+<span class="k">return</span> -1;
+
+<span class="c">// ② 二分搜尋 — O(log n)，資料必須「已排序」</span>
+<span class="k">int</span> low = 0, high = n - 1;
+<span class="k">while</span> (low &lt;= high) {
+    <span class="k">int</span> mid = low + (high - low) / 2;   <span class="c">// 避免溢位的寫法</span>
+    <span class="k">if</span> (a[mid] == key) <span class="k">return</span> mid;
+    <span class="k">else if</span> (a[mid] &lt; key) low = mid + 1;   <span class="c">// 往右半找</span>
+    <span class="k">else</span> high = mid - 1;                    <span class="c">// 往左半找</span>
+}
+<span class="k">return</span> -1;</pre>
+    <div class="hl">
+      <span class="t">💡 二分搜尋的三個必考細節</span>
+      1. <strong>前提是資料已排序</strong>——這是最常被問的<br>
+      2. 迴圈條件是 <code>low &lt;= high</code>（<u>有等號</u>），少了等號會漏掉最後一個元素<br>
+      3. 每次比較把範圍砍半 → 1024 筆最壞需 <strong>11 次</strong>（log₂1024 = 10 是砍半次數，剩 1 筆還要再比一次）
+    </div>
+
+    <h3>10-3　時間複雜度速查</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>演算法</th><th>最佳</th><th>平均</th><th>最壞</th><th>穩定</th></tr>
+        <tr><td>氣泡排序</td><td>O(n)*</td><td>O(n²)</td><td>O(n²)</td><td>✅</td></tr>
+        <tr><td>選擇排序</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>❌</td></tr>
+        <tr><td>插入排序</td><td><strong>O(n)</strong></td><td>O(n²)</td><td>O(n²)</td><td>✅</td></tr>
+        <tr><td>快速排序</td><td>O(n log n)</td><td><strong>O(n log n)</strong></td><td><strong>O(n²)</strong></td><td>❌</td></tr>
+        <tr><td>合併排序</td><td>O(n log n)</td><td>O(n log n)</td><td><strong>O(n log n)</strong></td><td>✅</td></tr>
+        <tr><td>線性搜尋</td><td>O(1)</td><td>O(n)</td><td>O(n)</td><td>—</td></tr>
+        <tr><td>二分搜尋</td><td>O(1)</td><td>O(log n)</td><td>O(log n)</td><td>—</td></tr>
+      </table>
+    </div>
+    <p style="font-size:.85rem;color:#64748b">* 需加入「無交換即提早結束」的改良。</p>
+    <div class="hl">
+      <strong>判讀迴圈複雜度</strong>：看<u>迴圈變數怎麼變</u>，不是看有幾層。<br>
+      <code>i++</code> → O(n)｜<code>i *= 2</code> → <strong>O(log n)</strong>｜雙層各跑 n 次 → O(n²)
+    </div>
+  </div>
+
+  <!-- 第十一章 -->
+  <div class="card" id="c11">
+    <h2>第 11 章　程式碼追蹤與除錯（高頻題型）</h2>
+
+    <h3>11-1　追蹤題的標準做法</h3>
+    <div class="frame">
+      <span class="t">📐 畫「變數追蹤表」</span>
+      欄位：<strong>輪次 ｜ 每個變數的值 ｜ 判斷條件是否成立 ｜ 輸出</strong><br><br>
+      <strong>規則：一行一行執行，不要跳步，不要心算。</strong><br>
+      看起來慢，但正確率接近 100%；用看的很快，但錯誤率也很高。
+    </div>
+    <div class="frame">
+      <span class="t">📐 範例題</span>
+      <pre>int i, sum = 0;
+for (i = 1; i &lt;= 10; i++) {
+    if (i % 3 == 0) continue;
+    if (i &gt; 8) break;
+    sum += i;
+}
+printf("%d", sum);</pre>
+      <div class="table-wrap"><table>
+        <tr><th>i</th><th>i%3==0?</th><th>i&gt;8?</th><th>動作</th><th>sum</th></tr>
+        <tr><td>1</td><td>否</td><td>否</td><td>sum += 1</td><td>1</td></tr>
+        <tr><td>2</td><td>否</td><td>否</td><td>sum += 2</td><td>3</td></tr>
+        <tr><td>3</td><td><strong>是</strong></td><td>—</td><td><strong>continue</strong></td><td>3</td></tr>
+        <tr><td>4</td><td>否</td><td>否</td><td>sum += 4</td><td>7</td></tr>
+        <tr><td>5</td><td>否</td><td>否</td><td>sum += 5</td><td>12</td></tr>
+        <tr><td>6</td><td><strong>是</strong></td><td>—</td><td><strong>continue</strong></td><td>12</td></tr>
+        <tr><td>7</td><td>否</td><td>否</td><td>sum += 7</td><td>19</td></tr>
+        <tr><td>8</td><td>否</td><td>否</td><td>sum += 8</td><td>27</td></tr>
+        <tr><td>9</td><td><strong>是</strong></td><td>—</td><td><strong>continue</strong></td><td>27</td></tr>
+        <tr><td>10</td><td>否</td><td><strong>是</strong></td><td><strong>break</strong></td><td>27</td></tr>
+      </table></div>
+      <strong>答案：27</strong><br>
+      注意 i=9 時先遇到 continue（<u>沒有機會執行 break 判斷</u>）——<strong>判斷順序決定結果</strong>。
+    </div>
+
+    <h3>11-2　常見錯誤類型</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>類型</th><th>說明</th><th>何時發現</th></tr>
+        <tr><td><strong>語法錯誤</strong> Syntax</td><td>少分號、括號不對稱、拼字錯</td><td>編譯時</td></tr>
+        <tr><td><strong>執行時期錯誤</strong> Runtime</td><td>除以零、陣列越界、空指標</td><td>執行時當掉</td></tr>
+        <tr><td><strong>邏輯錯誤</strong> Logic</td><td>程式能跑但<strong>答案錯</strong></td><td><strong>最難發現</strong></td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 十大高頻 bug（申論「請找出錯誤」題必看）</span>
+      1. <strong><code>=</code> 寫成 <code>==</code></strong>：<code>if (a = 5)</code> 是把 5 指定給 a 且恆為真<br>
+      2. <strong>差一錯誤</strong>：<code>i &lt;= n</code> 造成陣列越界（應為 <code>i &lt; n</code>）<br>
+      3. <strong>迴圈變數忘了遞增</strong> → 無窮迴圈<br>
+      4. <strong>switch 忘記 break</strong> → 貫穿到下一個 case<br>
+      5. <strong>整數除法截斷</strong>：<code>sum/n</code> 應寫 <code>(float)sum/n</code><br>
+      6. <strong>變數未初始化</strong>：<code>int sum;</code> 沒給 0 就累加<br>
+      7. <strong>交換兩數忘了用 temp</strong><br>
+      8. <strong>字串少留 '\0' 的空間</strong> → 緩衝區溢位<br>
+      9. <strong>字串用 <code>==</code> 比較</strong>（應用 <code>strcmp</code>，且相等回傳 0）<br>
+      10. <strong>遞迴沒有終止條件</strong> → Stack Overflow
+    </div>
+
+    <h3>11-3　良好的程式風格（申論會加分）</h3>
+    <ul>
+      <li><strong>有意義的變數名稱</strong>：<code>studentCount</code> 優於 <code>x</code></li>
+      <li><strong>適當的註解</strong>：說明「<u>為什麼</u>這樣做」，而非重複程式碼在做什麼</li>
+      <li><strong>一致的縮排</strong>：讓層次一目了然</li>
+      <li><strong>函式單一職責</strong>：一個函式只做一件事（<strong>高內聚</strong>）</li>
+      <li><strong>避免魔術數字</strong>：用 <code>#define MAX 100</code> 取代直接寫 100</li>
+      <li><strong>邊界條件檢查</strong>：除法前檢查除數不為 0、存取前檢查索引範圍與指標非 NULL</li>
+      <li><strong>輸入驗證</strong>：不信任任何外部輸入（這也是資安的基本要求）</li>
+    </ul>
+    <div class="hl">
+      <span class="t">💡 申論作答時的加分習慣</span>
+      1. 開頭寫明「以下以 C 語言（或虛擬碼）作答」<br>
+      2. <strong>每個關鍵步驟加註解</strong>——即使邏輯有小瑕疵，註解能讓閱卷老師看懂你的想法而給分<br>
+      3. 寫完<strong>用一組小範例驗算</strong>並把驗算過程寫出來<br>
+      4. 補一句<strong>時間複雜度分析</strong>（如「本演算法時間複雜度為 O(n)」）——成本 10 秒，加分明顯
+    </div>
+  </div>
+
+  <!-- 第十二章 -->
+  <div class="card" id="c12">
+    <h2>第 12 章　考前速記表</h2>
+
+    <h3>必背程式片段（默寫到不用想）</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>題型</th><th>核心寫法</th></tr>
+        <tr><td>陣列走訪</td><td><code>for (i = 0; i &lt; n; i++)</code>　←用 <strong>&lt;</strong> 不用 &lt;=</td></tr>
+        <tr><td>求最大值</td><td>先設 <code>max = a[0]</code>，再從 i=1 開始比</td></tr>
+        <tr><td>交換兩數</td><td><code>t = a; a = b; b = t;</code></td></tr>
+        <tr><td>反轉</td><td>迴圈只跑 <strong>n/2</strong>，交換 <code>a[i]</code> 與 <code>a[n-1-i]</code></td></tr>
+        <tr><td>取個位數</td><td><code>n % 10</code>；去個位數 <code>n / 10</code></td></tr>
+        <tr><td>判斷質數</td><td>從 2 檢查到 <strong>√n</strong>（<code>i*i &lt;= n</code>）</td></tr>
+        <tr><td>最大公因數</td><td><code>while (b != 0) { t = a%b; a = b; b = t; }</code></td></tr>
+        <tr><td>遞迴</td><td>必須有<strong>終止條件</strong>＋<strong>遞迴關係</strong></td></tr>
+        <tr><td>二分搜尋</td><td>前提<strong>已排序</strong>；<code>while (low &lt;= high)</code></td></tr>
+        <tr><td>字元轉數字</td><td><code>s[i] - '0'</code></td></tr>
+      </table>
+    </div>
+
+    <h3>最容易被考倒的 15 個觀念</h3>
+    <ol>
+      <li><strong>陣列索引從 0 開始</strong>；<code>a[5]</code> 的合法索引是 0~4。</li>
+      <li><strong>整數除法會截斷</strong>：<code>5/2 = 2</code>。</li>
+      <li><strong><code>=</code> 是指定、<code>==</code> 是比較。</strong></li>
+      <li><strong>後置 <code>a++</code> 先用再加；前置 <code>++a</code> 先加再用。</strong></li>
+      <li><strong>switch 少寫 break 會貫穿。</strong></li>
+      <li><strong>do-while 至少執行一次。</strong></li>
+      <li><strong>break 跳出整個迴圈、continue 只跳過這一輪</strong>；巢狀時 break 只跳最內層。</li>
+      <li><strong>C 預設傳值；陣列傳入函式時是傳址。</strong></li>
+      <li><strong>static 區域變數的值會保留。</strong></li>
+      <li><strong>遞迴沒有終止條件會 Stack Overflow。</strong></li>
+      <li><strong>費氏數列樸素遞迴是 O(2ⁿ)</strong>，因大量重複計算。</li>
+      <li><strong>二分搜尋前提是已排序。</strong></li>
+      <li><strong>C 字串要多留一格給 '\0'。</strong></li>
+      <li><strong><code>strcmp</code> 相等回傳 0</strong>；字串不能用 <code>==</code> 比較。</li>
+      <li><strong>浮點數有誤差</strong>，金額不可用浮點數。</li>
+    </ol>
+
+    <h3>申論作答檢核表（每題寫完檢查）</h3>
+    <div class="frame">
+      □ 開頭寫明使用的語言（或註明「以虛擬碼表示」）<br>
+      □ <strong>變數有宣告</strong>且名稱有意義<br>
+      □ <strong>關鍵步驟有註解</strong><br>
+      □ 迴圈邊界正確（<code>&lt;</code> vs <code>&lt;=</code>）<br>
+      □ 有處理<strong>邊界條件</strong>（n=0、空陣列、除數為 0）<br>
+      □ <strong>用小範例驗算</strong>並把過程寫出來<br>
+      □ 補一句<strong>時間複雜度</strong>分析<br>
+      □ 若題目要求「說明」，<strong>文字說明不可省略</strong>——只寫程式碼會失分
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="index.html">← 普考首頁</a>
+    <a class="btn btn-next" href="prog-bank.html">下一步：程式設計概要題庫 →</a>
+  </div>
+
+</div>
+
+<footer>普通考試 · 程式設計概要講義</footer>
+
+</body>
+</html>
