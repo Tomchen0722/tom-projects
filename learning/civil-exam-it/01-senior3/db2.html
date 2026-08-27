@@ -244,6 +244,12 @@
 <span class="k">SELECT</span> * <span class="k">FROM</span> 部屬;</pre>
 
     <h3>5-7　窗函數（Window Function）— 近年新考點</h3>
+    <div class="easy">
+      <div class="t">🧒 高中生秒懂：窗函數 vs GROUP BY</div>
+      <p><strong>GROUP BY</strong> 像是「<strong>班級平均成績單</strong>」：把全班成績揉成一筆，每班只剩一行。</p>
+      <p><strong>窗函數</strong> 像是「<strong>個人成績單加上班級排名</strong>」：每個學生（每一列）都保留，只是旁邊多發了一個小框框（視窗），裡面寫著「你在你們班排第幾」或「你們班平均多少」。</p>
+      <p><strong>一句話拿高分：窗函數保留原本明細列數，不影響原本查詢的粒度，僅額外附加分區（PARTITION）的統計值或排序值。</strong></p>
+    </div>
     <pre><span class="c">-- 各部門薪資排名（不影響列數，這是與 GROUP BY 最大的差別）</span>
 <span class="k">SELECT</span> 姓名, 部門代碼, 薪資,
    <span class="k">RANK</span>()       <span class="k">OVER</span> (<span class="k">PARTITION BY</span> 部門代碼 <span class="k">ORDER BY</span> 薪資 <span class="k">DESC</span>) <span class="k">AS</span> 排名,
@@ -254,14 +260,10 @@
     <div class="table-wrap">
       <table>
         <tr><th>函數</th><th>並列時的行為（薪資 100, 100, 90）</th></tr>
-        <tr><td><code>RANK()</code></td><td>1, 1, <strong>3</strong>（跳號）</td></tr>
-        <tr><td><code>DENSE_RANK()</code></td><td>1, 1, <strong>2</strong>（不跳號）</td></tr>
-        <tr><td><code>ROW_NUMBER()</code></td><td>1, 2, 3（強制不重複）</td></tr>
+        <tr><td><code>RANK()</code></td><td>1, 1, <strong>3</strong>（跳號，奧運排名法）</td></tr>
+        <tr><td><code>DENSE_RANK()</code></td><td>1, 1, <strong>2</strong>（不跳號，無空缺）</td></tr>
+        <tr><td><code>ROW_NUMBER()</code></td><td>1, 2, 3（強制不重複，排流水號）</td></tr>
       </table>
-    </div>
-    <div class="hl">
-      <strong>GROUP BY vs 窗函數</strong>：GROUP BY 會<strong>把多列壓成一列</strong>；窗函數<strong>保留每一列</strong>，只是額外算出一個群組統計值。<br>
-      「查出每位員工的薪資，以及他所屬部門的平均薪資」這種需求，用窗函數一行搞定，用 GROUP BY 則需 JOIN 子查詢。
     </div>
 
     <h3>5-8　檢視表、預存程序、觸發器</h3>
@@ -320,36 +322,23 @@
     </div>
 
     <h3>6-2　並行問題（四種，必考）</h3>
+    <div class="easy">
+      <div class="t">🧒 高中生秒懂：交易衝突的四種悲劇</div>
+      <ul>
+        <li><strong>遺失更新 (Lost Update)</strong>：兩人共編同一份報告。你改完存檔，同學接著存檔把你的覆蓋了。你的心血<strong>像沒發生過</strong>。（兩個寫入衝突）</li>
+        <li><strong>髒讀 (Dirty Read)</strong>：段考偷看同學考卷，結果他後來擦掉改答案。你抄到<strong>最後被放棄的錯誤答案</strong>。（讀到未 COMMIT 的資料）</li>
+        <li><strong>不可重複讀 (Non-repeatable Read)</strong>：你看黑板寫著 A，低頭抄筆記，再抬頭看變成了 B。同一筆資料，<strong>讀兩次長不一樣</strong>。（被別人 UPDATE）</li>
+        <li><strong>幻讀 (Phantom Read)</strong>：風紀股長點名 30 人，低頭登記完再抬頭，門口突然走進 1 個人變成 31 人。同一條件下，<strong>資料筆數變多</strong>。（被別人 INSERT）</li>
+      </ul>
+    </div>
     <div class="table-wrap">
       <table>
-        <tr><th>問題</th><th>情境</th><th>白話</th></tr>
-        <tr>
-          <td><strong>遺失更新</strong><br>Lost Update</td>
-          <td>T1 讀 X=100，T2 讀 X=100，T1 寫 X=110，T2 寫 X=120</td>
-          <td>T1 的修改<strong>被覆蓋掉了</strong>，像沒發生過</td>
-        </tr>
-        <tr>
-          <td><strong>髒讀</strong><br>Dirty Read</td>
-          <td>T1 改 X 但未 COMMIT，T2 讀到新值，之後 T1 ROLLBACK</td>
-          <td>T2 讀到<strong>從未真正存在</strong>的資料</td>
-        </tr>
-        <tr>
-          <td><strong>不可重複讀</strong><br>Non-repeatable Read</td>
-          <td>T1 讀 X=100 → T2 改 X=200 並 COMMIT → T1 再讀 X=200</td>
-          <td>同一筆資料，<strong>讀兩次值不同</strong></td>
-        </tr>
-        <tr>
-          <td><strong>幻讀</strong><br>Phantom Read</td>
-          <td>T1 查「薪資&gt;5萬」得 10 筆 → T2 新增一筆符合條件並 COMMIT → T1 再查得 11 筆</td>
-          <td>同一查詢，<strong>列數變多（憑空出現）</strong></td>
-        </tr>
+        <tr><th>問題</th><th>嚴謹定義（高分關鍵字）</th><th>肇因指令</th></tr>
+        <tr><td><strong>遺失更新</strong></td><td>兩個 Transaction 同時修改同一資料，後者覆蓋前者。</td><td>UPDATE 衝突</td></tr>
+        <tr><td><strong>髒讀</strong></td><td>T1 讀取 T2 已修改但尚未 COMMIT 之資料。若 T2 隨後 ROLLBACK，T1 讀到無效值。</td><td>未 COMMIT 的 UPDATE</td></tr>
+        <tr><td><strong>不可重複讀</strong></td><td>T1 於交易內兩次讀取同一資料，期間 T2 將其修改並 COMMIT，導致 T1 兩次讀取值不同。</td><td>已 COMMIT 的 UPDATE</td></tr>
+        <tr><td><strong>幻讀</strong></td><td>T1 依某條件查詢得多筆紀錄，期間 T2 新增或刪除符合該條件之紀錄並 COMMIT，致 T1 再查時列數改變。</td><td>已 COMMIT 的 INSERT/DELETE</td></tr>
       </table>
-    </div>
-    <div class="hl">
-      <span class="t">💡 不可重複讀 vs 幻讀，一句話分清</span>
-      <strong>不可重複讀是「同一列的值變了」（UPDATE 造成）</strong>；<br>
-      <strong>幻讀是「列的數量變了」（INSERT / DELETE 造成）</strong>。<br>
-      這兩者的區別是高頻考點，一定要能講清楚。
     </div>
 
     <h3>6-3　隔離等級（Isolation Level）</h3>

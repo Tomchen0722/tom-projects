@@ -445,14 +445,40 @@
         <tr><td><strong>層序 Level-order</strong></td><td>由上而下、由左而右</td><td>用<strong>佇列</strong>實作，即 BFS</td></tr>
       </table>
     </div>
-    <pre><span class="c">// 前序走訪（遞迴）</span>
-<span class="k">void</span> preorder(<span class="k">Node</span> t) {
-    <span class="k">if</span> (t == NULL) <span class="k">return</span>;
-    visit(t);             <span class="c">// V</span>
-    preorder(t.left);     <span class="c">// L</span>
-    preorder(t.right);    <span class="c">// R</span>
+    <div class="code-tabs">
+      <p><strong>C++ 實作（指標寫法，國考標準答案格式）</strong></p>
+      <pre><code class="language-cpp">struct Node {
+    int data;
+    Node* left;
+    Node* right;
+};
+
+// 前序走訪 (VLR)
+void preorder(Node* t) {
+    if (t == NULL) return;
+    cout &lt;&lt; t-&gt;data &lt;&lt; " "; // V: Visit 處理根節點
+    preorder(t-&gt;left);       // L: 走訪左子樹
+    preorder(t-&gt;right);      // R: 走訪右子樹
 }
-<span class="c">// 中序、後序只是把 visit(t) 移到不同位置</span></pre>
+
+// 中序 (LVR): preorder() 內的順序改為 left -> data -> right
+// 後序 (LRV): preorder() 內的順序改為 left -> right -> data
+</code></pre>
+      <p><strong>Python 實作（物件導向寫法，適合觀念釐清）</strong></p>
+      <pre><code class="language-python">class Node:
+    def __init__(self, data):
+        self.data = data
+        self.left = None
+        self.right = None
+
+# 前序走訪 (VLR)
+def preorder(t: Node):
+    if t is None: return
+    print(t.data, end=" ") # V
+    preorder(t.left)       # L
+    preorder(t.right)      # R
+</code></pre>
+    </div>
 
     <h4>由走訪結果還原樹（超高頻申論題）</h4>
     <div class="frame">

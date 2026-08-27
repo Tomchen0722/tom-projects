@@ -401,19 +401,20 @@
     </div>
 
     <h3>3-5　IPv6</h3>
+    <div class="easy">
+      <div class="t">🧒 高中生秒懂：IPv4 與 IPv6 的本質差異</div>
+      <p><strong>IPv4 就像舊城區的門牌號碼</strong>：不夠發了，所以搞出「集合住宅 (NAT)」，一戶門牌裡面擠了十幾個人。結果郵差送信超麻煩，而且有些特殊包裹送不進去。</p>
+      <p><strong>IPv6 就像超級新市鎮</strong>：號碼多到連沙子都能發一個。因為大家都有獨立門牌，可以直接一對一通訊（不需 NAT），而且建商還規定每戶都要裝保全系統（原生 IPsec）。</p>
+    </div>
     <div class="table-wrap">
       <table>
-        <tr><th>項目</th><th>IPv4</th><th>IPv6</th></tr>
-        <tr><td>位址長度</td><td>32 位元</td><td><strong>128 位元</strong></td></tr>
-        <tr><td>表示法</td><td>點分十進位</td><td>冒號分隔 16 進位，可用 <code>::</code> 縮寫連續 0（<strong>只能用一次</strong>）</td></tr>
-        <tr><td>標頭</td><td>可變長度（20–60 bytes）</td><td>固定 40 bytes ＋ 擴充標頭 → <strong>路由器處理更快</strong></td></tr>
-        <tr><td>標頭檢查碼</td><td>有</td><td><strong>移除</strong>（交由上層與連結層負責）</td></tr>
-        <tr><td>分片</td><td>路由器可分片</td><td><strong>僅來源端可分片</strong></td></tr>
-        <tr><td>廣播</td><td>有</td><td><strong>無廣播</strong>，改用多播（Multicast）與任播（Anycast）</td></tr>
-        <tr><td>位址自動設定</td><td>需 DHCP</td><td>支援 <strong>SLAAC</strong> 無狀態自動設定</td></tr>
-        <tr><td>ARP</td><td>ARP</td><td>改用 <strong>NDP</strong>（鄰居發現協定）</td></tr>
-        <tr><td>IPsec</td><td>選用</td><td>原生支援（設計上內建）</td></tr>
-        <tr><td>NAT</td><td>普遍必需</td><td>位址充足，原則上不需要</td></tr>
+        <tr><th>比較項目</th><th>IPv4</th><th>IPv6 (高分關鍵字)</th></tr>
+        <tr><td><strong>位址長度</strong></td><td>32 位元</td><td><strong>128 位元</strong> (解決位址耗盡)</td></tr>
+        <tr><td><strong>標頭設計</strong></td><td>可變長度，含 Checksum</td><td><strong>固定長度 (40 bytes) 且移除 Checksum</strong>，交由上下層負責，大幅提升路由器轉送效率</td></tr>
+        <tr><td><strong>廣播支援</strong></td><td>支援 Broadcast</td><td><strong>拔除廣播</strong>，全面改用多播 (Multicast) 與任播 (Anycast)</td></tr>
+        <tr><td><strong>分片重組</strong></td><td>路由器可介入分片</td><td><strong>僅來源端可分片</strong>，降低路由器負擔</td></tr>
+        <tr><td><strong>位址配置</strong></td><td>高度依賴 DHCP</td><td>支援 <strong>SLAAC (無狀態自動配置)</strong>，隨插即用</td></tr>
+        <tr><td><strong>安全性</strong></td><td>外掛式 (IPsec 為選配)</td><td><strong>原生支援 IPsec</strong>，設計初期即納入資安考量</td></tr>
       </table>
     </div>
     <p><strong>過渡技術</strong>：雙堆疊（Dual Stack，最常用）、隧道（Tunneling，如 6to4）、協定轉換（NAT64／DNS64）。</p>
@@ -564,28 +565,26 @@
     <p>為什麼斷線需要四次？因為 TCP 是<strong>全雙工</strong>，兩個方向要<strong>各自關閉</strong>。一方送 FIN 只表示「我沒資料要送了」，對方可能還有資料要傳完才關。</p>
 
     <h3>5-3　流量控制與擁塞控制（易混淆，必考）</h3>
+    <div class="easy">
+      <div class="t">🧒 高中生秒懂：誰在控制誰？</div>
+      <p><strong>流量控制 (Flow Control)</strong> = <strong>「我吃不下了，你餵慢一點」</strong><br>
+      接收端覺得太快，透過「滑動視窗」限制對方傳送量。解決的是「端對端」的問題。</p>
+      <p><strong>擁塞控制 (Congestion Control)</strong> = <strong>「前面塞車了，大家開慢一點」</strong><br>
+      發送端發現網路掉包，主動降速。解決的是「整個網路壅塞」的問題。</p>
+    </div>
     <div class="table-wrap">
       <table>
-        <tr><th>項目</th><th>流量控制 Flow Control</th><th>擁塞控制 Congestion Control</th></tr>
-        <tr><td>解決的問題</td><td><strong>接收端</strong>處理不及（緩衝區滿）</td><td><strong>網路</strong>壅塞（路由器排隊丟包）</td></tr>
-        <tr><td>對象</td><td>端點對端點</td><td>整個網路</td></tr>
-        <tr><td>機制</td><td><strong>滑動視窗</strong>（接收端告知可接收量 rwnd）</td><td>慢啟動、擁塞避免、快速重送、快速回復（cwnd）</td></tr>
-        <tr><td>白話</td><td>「你講太快，我聽不完」</td><td>「馬路太塞，大家慢一點」</td></tr>
+        <tr><th>四階段</th><th>原理描述 (高分寫法)</th><th>高中生車道比喻</th></tr>
+        <tr><td><strong>① 慢啟動</strong><br>(Slow Start)</td><td>擁塞視窗 (cwnd) 初始為 1，每收到一個 ACK 則 cwnd 加倍 (<strong>指數成長</strong>)，探測可用頻寬，直到達門檻 (ssthresh)。</td><td>剛上高速公路，不知道有沒有塞車，雖然叫「慢」，但其實是「倍數踩油門」加速。</td></tr>
+        <tr><td><strong>② 擁塞避免</strong><br>(Congestion Avoidance)</td><td>達門檻後，cwnd <strong>改採線性成長</strong> (每 RTT 加 1)，避免瞬間流量灌爆網路。</td><td>速度達標了，接下來慢慢加速就好，以免撞車。</td></tr>
+        <tr><td><strong>③ 快速重送</strong><br>(Fast Retransmit)</td><td>若連續收到 <strong>3 個重複 ACK</strong>，即判定封包遺失，不等逾時 (Timeout) 立即重送。</td><td>後面三台車瘋狂按喇叭，就知道前面掉東西了，馬上補送。</td></tr>
+        <tr><td><strong>④ 快速回復</strong><br>(Fast Recovery)</td><td>發生快速重送後，將 ssthresh 減半，cwnd 設為新門檻並進入擁塞避免，<strong>不回歸慢啟動</strong>。</td><td>輕踩煞車減速一半，然後繼續慢慢開，不需要完全停下來。</td></tr>
       </table>
     </div>
-    <div class="frame">
-      <span class="t">📐 TCP 擁塞控制四階段</span>
-      <strong>① 慢啟動（Slow Start）</strong>：cwnd 從 1 開始，每收到 ACK <strong>加倍</strong>（指數成長），直到達到門檻 ssthresh<br>
-      <strong>② 擁塞避免（Congestion Avoidance）</strong>：超過門檻後改為<strong>每 RTT 加 1</strong>（線性成長）<br>
-      <strong>③ 快速重送（Fast Retransmit）</strong>：收到 <strong>3 個重複 ACK</strong> 即判定封包遺失，立刻重送，不等逾時<br>
-      <strong>④ 快速回復（Fast Recovery）</strong>：ssthresh 減半、cwnd 設為新門檻，回到擁塞避免（而非重新慢啟動）<br><br>
-      <strong>若發生逾時（Timeout）</strong>：視為嚴重壅塞，ssthresh 減半且 <strong>cwnd 歸 1，重新慢啟動</strong>
-    </div>
-    <div class="easy">
-      <div class="t">🧒 「慢啟動」其實一點都不慢</div>
-      <p>名字容易誤導。它的意思是「<strong>從很小的量開始</strong>」，但成長速度是<strong>指數的</strong>：1 → 2 → 4 → 8 → 16…</p>
-      <p>設計邏輯：一開始不知道網路能承受多少，所以先小量試探；沒出問題就快速加倍，很快就能找到頻寬上限。一旦丟包（代表踩到上限），就退回去慢慢加。</p>
-      <p>這是很經典的「<strong>探測未知上限</strong>」演算法設計，和二分搜尋的精神類似。</p>
+    <div class="warn">
+      <span class="t">⚠️ 致命壅塞的處理</span>
+      如果連「重複 ACK」都收不到，直接發生了 <strong>逾時 (Timeout)</strong>，代表網路完全癱瘓。<br>
+      此時懲罰最重：ssthresh 減半，<strong>cwnd 直接歸零 (回到 1)，重新執行慢啟動</strong>。
     </div>
 
     <h3>5-4　TCP 標頭重點欄位與旗標</h3>

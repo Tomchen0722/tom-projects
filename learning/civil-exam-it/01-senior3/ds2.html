@@ -352,13 +352,57 @@ DFS(u):
       <p>兩種都保證得到最省的總造價（這是 MST 的美妙之處），只是過程長相不同。</p>
     </div>
     <div class="frame">
-      <span class="t">📐 Kruskal 手算範例</span>
+      <span class="t">📐 Kruskal 手算範例與實作</span>
       邊：AB=1、CD=2、BC=3、AD=4、BD=5、AC=6　（V=4，需 3 條邊）<br><br>
       排序後：AB(1)、CD(2)、BC(3)、AD(4)、BD(5)、AC(6)<br>
       ① AB(1) → 不成環，<strong>加入</strong>　{A,B} {C} {D}<br>
       ② CD(2) → 不成環，<strong>加入</strong>　{A,B} {C,D}<br>
       ③ BC(3) → 不成環，<strong>加入</strong>　{A,B,C,D} ← 已 3 條邊，結束<br><br>
       MST 權重 = 1 + 2 + 3 = <strong>6</strong>
+    </div>
+    <div class="code-tabs">
+      <p><strong>C++ 實作 (Union-Find 概念)</strong></p>
+      <pre><code class="language-cpp">struct Edge { int u, v, weight; };
+bool compare(Edge a, Edge b) { return a.weight &lt; b.weight; }
+
+int parent[100];
+int find(int i) {
+    if (parent[i] == i) return i;
+    return parent[i] = find(parent[i]); // Path compression
+}
+void unite(int i, int j) { parent[find(i)] = find(j); }
+
+void kruskal(vector&lt;Edge&gt;&amp; edges, int V) {
+    sort(edges.begin(), edges.end(), compare);
+    for(int i = 0; i &lt; V; i++) parent[i] = i;
+    int mst_weight = 0;
+    for(Edge e : edges) {
+        if(find(e.u) != find(e.v)) {
+            unite(e.u, e.v);
+            mst_weight += e.weight;
+        }
+    }
+}
+</code></pre>
+      <p><strong>Python 實作</strong></p>
+      <pre><code class="language-python">def kruskal(edges, V):
+    edges.sort(key=lambda x: x[2]) # (u, v, weight)
+    parent = [i for i in range(V)]
+    
+    def find(i):
+        if parent[i] != i:
+            parent[i] = find(parent[i])
+        return parent[i]
+        
+    mst_weight = 0
+    for u, v, weight in edges:
+        root_u = find(u)
+        root_v = find(v)
+        if root_u != root_v:
+            parent[root_u] = root_v
+            mst_weight += weight
+    return mst_weight
+</code></pre>
     </div>
     <div class="hl">
       <span class="t">💡 並查集（Union-Find）</span>
@@ -376,6 +420,53 @@ DFS(u):
       3. <strong>鬆弛（Relaxation）</strong>：對 u 的每個鄰居 v，若 dist[u] + w(u,v) &lt; dist[v]，則更新 dist[v]<br>
       4. 重複到 S 空<br><br>
       複雜度：陣列 O(V²)；<strong>二元堆積 O((V+E) log V)</strong>；Fibonacci Heap O(E + V log V)
+    </div>
+    <div class="code-tabs">
+      <p><strong>C++ 實作 (Priority Queue)</strong></p>
+      <pre><code class="language-cpp">void dijkstra(int start, int V, vector&lt;pair&lt;int,int&gt;&gt; adj[]) {
+    priority_queue&lt;pair&lt;int,int&gt;, vector&lt;pair&lt;int,int&gt;&gt;, greater&lt;pair&lt;int,int&gt;&gt;&gt; pq;
+    vector&lt;int&gt; dist(V, INF);
+    pq.push({0, start});
+    dist[start] = 0;
+    
+    while(!pq.empty()) {
+        int u = pq.top().second;
+        int d = pq.top().first;
+        pq.pop();
+        
+        if (d &gt; dist[u]) continue; // Lazy deletion
+        
+        for(auto edge : adj[u]) {
+            int v = edge.first;
+            int weight = edge.second;
+            if(dist[u] + weight &lt; dist[v]) {
+                dist[v] = dist[u] + weight;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+}
+</code></pre>
+      <p><strong>Python 實作 (heapq)</strong></p>
+      <pre><code class="language-python">import heapq
+
+def dijkstra(start, V, adj):
+    dist = [float('inf')] * V
+    dist[start] = 0
+    pq = [(0, start)]
+    
+    while pq:
+        d, u = heapq.heappop(pq)
+        
+        if d &gt; dist[u]:
+            continue
+            
+        for v, weight in adj[u]:
+            if dist[u] + weight &lt; dist[v]:
+                dist[v] = dist[u] + weight
+                heapq.heappush(pq, (dist[v], v))
+    return dist
+</code></pre>
     </div>
     <div class="warn">
       <span class="t">⚠️ Dijkstra 不能處理負權邊</span>
