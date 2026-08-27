@@ -448,7 +448,7 @@
                 strong.style.color = '#0284c7';
                 strong.style.textDecoration = 'underline';
                 strong.title = '點擊發音';
-                strong.setAttribute('onclick', `speakEn('${word}')`);
+                strong.setAttribute('onclick', `speakEn('${word.replace(/'/g, "\\'")}')`);
                 strong.innerHTML = word + ' <span style="font-size:0.8em; text-decoration:none;">🔊</span>';
               }
             });
@@ -467,6 +467,52 @@
               '<span style="cursor:pointer; color:#0284c7; text-decoration:underline;" title="點擊發音" onclick="speakEn(\'$1\')">$1 <span style="font-size:0.8em; text-decoration:none;">🔊</span></span> (');
           }
         });
+      }
+
+      // 3. 處理「文法」表格的典型題例句
+      const th4 = table.querySelector('th:nth-child(4)');
+      if (th4 && th4.innerText.includes('典型題')) {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach(row => {
+          const td = row.querySelector('td:nth-child(4)');
+          if (td) {
+            const text = td.innerText.trim();
+            if (text && /^[a-zA-Z]/.test(text)) {
+              // 使整個句子可點擊
+              const rawHTML = td.innerHTML;
+              td.innerHTML = `<span style="cursor:pointer; color:#0284c7;" title="點擊發音" onclick="speakEn('${text.replace(/'/g, "\\'")}')">${rawHTML} <span style="font-size:0.8em;">🔊</span></span>`;
+            }
+          }
+        });
+      }
+    });
+
+    // 4. 處理考題示範區的例句 (.stem)
+    const stems = document.querySelectorAll('.stem');
+    stems.forEach(stem => {
+      // 取得題幹文字，去除選項部份
+      let htmlNodes = Array.from(stem.childNodes);
+      let sentenceText = "";
+      for (let node of htmlNodes) {
+        if (node.nodeName.toLowerCase() === 'br') break;
+        sentenceText += node.textContent || '';
+      }
+      
+      let speakText = sentenceText.replace(/____/g, 'blank').trim();
+      if (speakText) {
+        const btn = document.createElement('span');
+        btn.innerHTML = ' 🔊';
+        btn.style.cursor = 'pointer';
+        btn.style.fontSize = '0.9em';
+        btn.title = '點擊發音';
+        btn.setAttribute('onclick', `speakEn('${speakText.replace(/'/g, "\\'")}')`);
+        
+        const br = stem.querySelector('br');
+        if (br) {
+          stem.insertBefore(btn, br);
+        } else {
+          stem.appendChild(btn);
+        }
       }
     });
   });
