@@ -106,6 +106,21 @@ print(a)</pre>
       申論題若用 C 作答，<strong>可以省略 <code>#include</code> 與 <code>main()</code> 外框</strong>，直接寫核心邏輯並註明「主要邏輯如下」。<br>
       閱卷老師看的是演算法邏輯，不會因為少寫 include 而扣分。<strong>但變數宣告與註解一定要寫。</strong>
     </div>
+
+    <h3>1-4　C++ vs Python 考場選擇與對照</h3>
+    <div class="easy">
+      <div class="t">🧒 高中生秒懂：手排車與自排車</div>
+      <p><strong>C++ 就像手排車</strong>：你要自己管離合器（記憶體、變數型別），語法囉嗦，但是<strong>結構嚴謹，不容易被扣邏輯分</strong>。</p>
+      <p><strong>Python 就像自排車</strong>：語法極簡，不用宣告變數型別，寫起來超快。但缺點是<strong>如果你手寫縮排沒畫清楚，閱卷老師看不懂你的範圍，直接整題零分</strong>。</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>項目</th><th>C++ 寫法</th><th>Python 寫法</th><th>高分提醒</th></tr>
+        <tr><td>迴圈</td><td><code>for(int i=0; i&lt;10; i++)</code></td><td><code>for i in range(10):</code></td><td>Python 範圍是 0~9，千萬別搞錯。</td></tr>
+        <tr><td>陣列長度</td><td>需手動計算或額外傳入</td><td><code>len(a)</code></td><td>C++ 傳遞陣列到函式必須多傳一個長度參數，Python 不用。</td></tr>
+        <tr><td>縮排與範圍</td><td>大括號 <code>{}</code></td><td><strong>嚴格縮排</strong></td><td>手寫 Python <strong>一定要在考卷上畫對齊虛線</strong>，否則穩死。</td></tr>
+      </table>
+    </div>
   </div>
 
   <!-- 第二章 -->
@@ -919,7 +934,7 @@ arr = NULL;     <span class="c">// 避免成為迷途指標</span></pre>
   <div class="card" id="c11">
     <h2>第 11 章　程式碼追蹤與除錯（高頻題型）</h2>
 
-    <h3>11-1　追蹤題的標準做法</h3>
+    <h3>11-1　變數追蹤題標準作法</h3>
     <div class="frame">
       <span class="t">📐 畫「變數追蹤表」</span>
       欄位：<strong>輪次 ｜ 每個變數的值 ｜ 判斷條件是否成立 ｜ 輸出</strong><br><br>
@@ -952,7 +967,44 @@ printf("%d", sum);</pre>
       注意 i=9 時先遇到 continue（<u>沒有機會執行 break 判斷</u>）——<strong>判斷順序決定結果</strong>。
     </div>
 
-    <h3>11-2　常見錯誤類型</h3>
+    <h3>11-2　指標追蹤題解析 (高頻必殺題)</h3>
+    <div class="easy">
+      <div class="t">🧒 指標追蹤的核心：跟著箭頭走</div>
+      <p>遇到 <code>*p = &amp;a;</code> 就在考卷上畫一個 <code>p</code> 的盒子，裡面畫個箭頭指向 <code>a</code> 的盒子。</p>
+      <p><strong>看到 <code>*p = 20</code>，就是順著箭頭走到 <code>a</code> 裡，把 <code>a</code> 擦掉改成 20。</strong></p>
+    </div>
+    <pre>
+int a = 10, b = 20;
+int *p = &amp;a;
+int *q = &amp;b;
+*p = *q;     // p 指向的盒子(a)，內容變成 q 指向的盒子內容(b) → a 變成 20
+p = q;       // p 的箭頭改指到 q 的箭頭指的地方(b) → p 也指向 b
+*p = 30;     // p 指向的盒子(b)，內容改成 30 → b 變成 30
+printf("%d %d", a, b);  // 輸出 20 30</pre>
+    <p><strong>大絕招：只要是 <code>p = q</code> 就是改箭頭方向；只要是 <code>*p = ...</code> 就是改盒子裡裝的東西。</strong></p>
+
+    <h3>11-3　遞迴追蹤題解析</h3>
+    <div class="frame">
+      <span class="t">📐 遞迴追蹤：畫出「呼叫樹 (Call Tree)」</span>
+      <p>絕對不要用腦袋心算遞迴，考場一緊張穩錯。<strong>乖乖在考卷空白處畫樹狀圖。</strong></p>
+      <pre>
+int f(int n) {
+    if(n &lt;= 1) return 1;
+    return f(n-1) + f(n-2);
+}</pre>
+      <p>考 <code>f(4)</code>：</p>
+      <pre>
+       f(4)
+      /    \
+   f(3)    f(2)
+   /  \    /  \
+ f(2) f(1) f(1) f(0)
+ /  \
+f(1) f(0)</pre>
+      <p>由下往上加回去：f(2)=2, f(3)=3, f(4)=5。<strong>這就是閱卷老師要看的運算過程</strong>，寫出來必拿分。</p>
+    </div>
+
+    <h3>11-4　常見錯誤類型</h3>
     <div class="table-wrap">
       <table>
         <tr><th>類型</th><th>說明</th><th>何時發現</th></tr>

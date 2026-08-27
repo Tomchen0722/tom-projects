@@ -642,34 +642,42 @@ F = A·(B + B')  + A'·B     ← 提出 A（分配律）
       <strong>回應時間</strong> = 從提交到<u>第一次</u>有回應的時間（分時系統重視這個）
     </div>
 
-    <h3>5-4　死結（Deadlock）</h3>
+    <h3>5-4　死結（Deadlock）與銀行家演算法 (Banker's Algorithm)</h3>
     <div class="frame">
       <span class="t">📐 死結四條件（必須同時成立）</span>
       1. <strong>互斥（Mutual Exclusion）</strong>：資源不可共享<br>
       2. <strong>持有並等待（Hold and Wait）</strong>：持有資源同時等待其他資源<br>
       3. <strong>不可搶奪（No Preemption）</strong>：不能強行奪取<br>
       4. <strong>循環等待（Circular Wait）</strong>：形成等待環<br><br>
-      <strong>破壞任一條件即可避免死結。</strong>
+      <strong>破壞任一條件即可預防死結。</strong>
     </div>
     <div class="table-wrap">
       <table>
         <tr><th>處理策略</th><th>做法</th></tr>
-        <tr><td><strong>預防</strong> Prevention</td><td>破壞四條件之一（如規定<strong>所有行程依相同順序取得資源</strong>→ 破壞循環等待）</td></tr>
-        <tr><td><strong>避免</strong> Avoidance</td><td><strong>銀行家演算法</strong>——配置前檢查是否仍處於「安全狀態」</td></tr>
-        <tr><td><strong>偵測與復原</strong></td><td>建立<strong>資源配置圖</strong>找環，找到就中止某個行程或搶回資源</td></tr>
-        <tr><td>忽略（鴕鳥法）</td><td>假裝沒事，重開機處理——<strong>一般個人電腦作業系統的實際做法</strong></td></tr>
+        <tr><td><strong>預防</strong> Prevention</td><td>事先破壞四條件之一（如規定<strong>所有行程依相同順序取得資源</strong>→ 破壞循環等待）。缺點是資源利用率極低。</td></tr>
+        <tr><td><strong>避免</strong> Avoidance</td><td><strong>銀行家演算法</strong>——每次分配資源前，先模擬分配後是否會進入「不安全狀態」，會的話就拒絕分配。</td></tr>
+        <tr><td><strong>偵測與復原</strong></td><td>建立<strong>資源配置圖</strong>找環，找到死結就強制中止某個行程或搶回資源。</td></tr>
+        <tr><td>忽略（鴕鳥法）</td><td>假裝沒事，遇到死結就靠重開機處理——<strong>這是 Windows/Linux 等一般作業系統的實際做法</strong>（因為死結少見，預防與避免的成本太高）。</td></tr>
       </table>
     </div>
     <div class="easy">
-      <div class="t">🧒 死結的生活版</div>
-      <p>兩個人在窄橋上迎面相遇：</p>
-      <ul>
-        <li><strong>互斥</strong>：橋很窄，一次只能過一個人</li>
-        <li><strong>持有並等待</strong>：兩人都站在橋上（持有位置）等對方讓開</li>
-        <li><strong>不可搶奪</strong>：不能把對方推下去</li>
-        <li><strong>循環等待</strong>：A 等 B 讓、B 等 A 讓</li>
-      </ul>
-      <p>→ 永遠僵住。<strong>解法就是破壞其中一個條件</strong>：規定「往東的人優先」（破壞循環等待）、或規定「先退回橋頭再過」（破壞持有並等待）。</p>
+      <div class="t">🧒 高中生秒懂：銀行家演算法</div>
+      <p>想像你是一個銀行家，手上有 <strong>100 萬</strong> 現金 (系統總資源)。</p>
+      <p>有 3 個客戶來借錢，他們說自己「最多」會需要借多少錢 (<strong>Max</strong>)，目前已經借了多少 (<strong>Allocation</strong>)，所以還「剩下」多少可能會借 (<strong>Need = Max - Allocation</strong>)。</p>
+      <p>銀行家演算法的唯一原則：<strong>放款後，我手上剩下的現金 (Available)，必須至少還夠滿足「其中一個客戶」的 Need。</strong></p>
+      <p>為什麼？因為只要夠滿足一個客戶，這個客戶就能順利做完生意，把錢「全部還回來」。銀行家拿回錢後，現金變多，就能再去滿足下一個客戶。這就是<strong>「安全狀態」(Safe State)</strong>。</p>
+      <p>如果放款後，手上的錢連任何一個客戶的 Need 都無法滿足，大家都會卡住還不出錢，這就是「不安全狀態」→ <strong>演算法會直接拒絕這次放款。</strong></p>
+    </div>
+    <div class="frame">
+      <span class="t">📐 必考計算題：安全序列 (Safe Sequence) 判斷</span>
+      <p>考試常給一張表，問系統目前是否安全？安全序列為何？</p>
+      <p><strong>解題步驟：</strong></p>
+      <ol>
+        <li>算出每個行程的 <strong>Need = Max − Allocation</strong>。</li>
+        <li>拿手上的 <strong>Available</strong> 去找 Need ≤ Available 的行程。</li>
+        <li>找到後，假裝讓他執行完畢，把他的 Allocation 加回 Available 裡 (<code>Available += Allocation</code>)。</li>
+        <li>重複尋找，直到所有行程都執行完。找出來的順序就是<strong>安全序列</strong>。若中途卡住找不到，代表不安全。</li>
+      </ol>
     </div>
 
     <h3>5-5　記憶體管理與虛擬記憶體</h3>
