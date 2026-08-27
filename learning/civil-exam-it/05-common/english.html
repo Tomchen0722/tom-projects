@@ -420,5 +420,57 @@
 
 <footer>共同科目 · 英文</footer>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 建立發音函式並掛載到全域
+    window.speakEn = (text) => {
+      window.speechSynthesis.cancel(); // 停止目前播放
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.9; // 稍微放慢速度讓發音更清楚
+      window.speechSynthesis.speak(utterance);
+    };
+
+    const tables = document.querySelectorAll('.table-wrap table');
+    tables.forEach(table => {
+      // 1. 處理「公務與時事高頻字彙」表格
+      const th2 = table.querySelector('th:nth-child(2)');
+      if (th2 && th2.innerText.includes('高頻字')) {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach(row => {
+          const td = row.querySelector('td:nth-child(2)');
+          if (td) {
+            const strongs = td.querySelectorAll('strong');
+            strongs.forEach(strong => {
+              const word = strong.innerText.trim();
+              if (/^[a-zA-Z\s\-]+$/.test(word)) {
+                strong.style.cursor = 'pointer';
+                strong.style.color = '#0284c7';
+                strong.style.textDecoration = 'underline';
+                strong.title = '點擊發音';
+                strong.setAttribute('onclick', `speakEn('${word}')`);
+                strong.innerHTML = word + ' <span style="font-size:0.8em; text-decoration:none;">🔊</span>';
+              }
+            });
+          }
+        });
+      }
+
+      // 2. 處理「字根字首」與「字尾」表格
+      const th3 = table.querySelector('th:nth-child(3)');
+      if (th3 && th3.innerText.includes('例 (含翻譯)')) {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach(row => {
+          const td = row.querySelector('td:nth-child(3)');
+          if (td) {
+            td.innerHTML = td.innerHTML.replace(/([a-zA-Z\-]+)\s*\(/g, 
+              '<span style="cursor:pointer; color:#0284c7; text-decoration:underline;" title="點擊發音" onclick="speakEn(\'$1\')">$1 <span style="font-size:0.8em; text-decoration:none;">🔊</span></span> (');
+          }
+        });
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
