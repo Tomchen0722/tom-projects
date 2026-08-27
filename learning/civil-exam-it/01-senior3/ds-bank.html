@@ -14,7 +14,7 @@
 </div>
 
 <div class="hero">
-  <div class="badge">🌳 資料結構 · 選擇 45 題 ＋ 申論 14 題</div>
+  <div class="badge">🌳 資料結構 · 選擇 70 題 ＋ 申論 14 題</div>
   <h1>資料結構 題庫</h1>
   <p>選擇題用來檢查觀念、申論題用來練結構。<br>全部附詳解，選擇題會解釋「為什麼別的選項錯」。</p>
 </div>
@@ -2070,6 +2070,613 @@ levelOrder(root):
         5. 實務策略<strong>必須包含「硬性／軟性限制分級」與「時間上限內取最佳解」</strong>——這是本題最大鑑別點<br>
         6. 只寫「用基因演算法」拿不到高分；要有<strong>法規遵循、公平性量化、先導試辦、人工複核</strong><br>
         7. 結論句：面對 NP-Hard 問題，工程上的正解不是追求絕對最佳，而是<strong>在可接受時間內取得足夠好且滿足所有硬性限制之解</strong>，並以人工複核與制度公開性補足演算法之不足。
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card"><h3>F. 進階綜合（第 46～70 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">本區以<strong>「會計算、會比較、會反例」</strong>為目標，題型偏向高考三級申論前的觀念驗收。</p>
+  </div>
+
+  <div class="q">
+    <span class="no">46</span><span class="tag">攤還分析</span>
+    <div class="stem">動態陣列（dynamic array）採「容量不足時倍增」策略，連續 n 次 push_back 的<strong>攤還</strong>時間複雜度為何？</div>
+    <ul class="opts">
+      <li>(A) O(1)　(B) O(log n)　(C) O(n)　(D) O(n log n)</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A) O(1)</strong>（<u>指的是每次操作的攤還成本</u>）<br><br>
+        <strong>算法</strong>：搬移總次數 = 1 + 2 + 4 + … + n/2 + n &lt; 2n<br>
+        所以 n 次操作總成本 O(n)，<strong>平均每次 O(n)/n = O(1)</strong>。<br><br>
+        <div class="table-wrap"><table>
+          <tr><th>三種「平均」不要混</th><th>意義</th></tr>
+          <tr><td><strong>攤還（amortized）</strong></td><td><u>一連串操作的總成本除以次數</u>，<strong>保證</strong>成立</td></tr>
+          <tr><td><strong>平均情況（average-case）</strong></td><td>對輸入分布取期望值，<u>需假設分布</u></td></tr>
+          <tr><td><strong>期望（expected）</strong></td><td>演算法自身有隨機性（如快速排序隨機取樞紐）</td></tr>
+        </table></div>
+        <strong>易錯</strong>：<u>若改為「容量不足時 +1」，搬移總次數 = O(n²)，攤還成本會變 O(n)</u>——<strong>倍增策略是關鍵。</strong>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">47</span><span class="tag">堆積</span>
+    <div class="stem">以「自底向上（bottom-up）heapify」建立含 n 個元素的最大堆積，其時間複雜度為何？</div>
+    <ul class="opts"><li>(A) O(n)　(B) O(n log n)　(C) O(log n)　(D) O(n²)</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A) O(n)</strong><br><br>
+        <div class="warn">
+        <strong>⚠️ 這是最經典的陷阱題</strong><br>
+        <strong>逐一 insert 建堆 → O(n log n)</strong>｜<strong>bottom-up heapify 建堆 → O(n)</strong>
+        </div>
+        <strong>為什麼是 O(n)</strong>：<u>高度 h 的節點最多 n/2^(h+1) 個，每個下沉成本 O(h)</u><br>
+        總成本 = Σ h·n/2^(h+1) = n·Σ h/2^(h+1) ≤ <strong>2n</strong> → O(n)<br><br>
+        <strong>直覺</strong>：<u>一半的節點是葉子，成本 0；只有極少數靠近根的節點才要沉很深。</u><br><br>
+        <strong>但堆積排序整體仍是 O(n log n)</strong>：<u>建堆 O(n) ＋ n 次取出各 O(log n)。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">48</span><span class="tag">堆積</span>
+    <div class="stem">將陣列 [3, 9, 5, 1, 8, 2] 以 bottom-up 方式建成<strong>最大堆積</strong>，結果為何？</div>
+    <ul class="opts">
+      <li>(A) [9, 8, 5, 1, 3, 2]　(B) [9, 8, 5, 3, 1, 2]　(C) [9, 5, 8, 1, 3, 2]　(D) [8, 9, 5, 1, 3, 2]</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A) [9, 8, 5, 1, 3, 2]</strong><br><br>
+        <strong>逐步過程</strong>（索引從 0 開始，最後一個非葉節點 index = n/2 − 1 = 2）：
+        <div class="table-wrap"><table>
+          <tr><th>步驟</th><th>動作</th><th>陣列</th></tr>
+          <tr><td>初始</td><td>—</td><td>[3, 9, 5, 1, 8, 2]</td></tr>
+          <tr><td>i=2（值 5）</td><td>子節點只有 index5=2，5&gt;2 <strong>不動</strong></td><td>[3, 9, 5, 1, 8, 2]</td></tr>
+          <tr><td>i=1（值 9）</td><td>子節點 1、8，<u>9 最大，不動</u></td><td>[3, 9, 5, 1, 8, 2]</td></tr>
+          <tr><td>i=0（值 3）</td><td>子節點 9、5 → <strong>與 9 交換</strong></td><td>[9, 3, 5, 1, 8, 2]</td></tr>
+          <tr><td>續沉 index1（值 3）</td><td>子節點 1、8 → <strong>與 8 交換</strong></td><td><strong>[9, 8, 5, 1, 3, 2]</strong></td></tr>
+        </table></div>
+        <strong>驗算</strong>：<u>9≥8、9≥5；8≥1、8≥3；5≥2 ✓ 每個父節點都不小於子節點。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">49</span><span class="tag">雜湊</span>
+    <div class="stem">雜湊表採<strong>線性探測</strong>（linear probing），載入因子 α = 0.9 時最主要的問題為何？</div>
+    <ul class="opts">
+      <li>(A) 空間浪費　(B) <strong>主群聚（primary clustering）</strong>使探測次數急增　(C) 無法刪除　(D) 雜湊函數失效</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B)</strong><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>開放定址法</th><th>探測序列</th><th>群聚問題</th></tr>
+          <tr><td><strong>線性探測</strong></td><td>h(k)+i</td><td><strong>主群聚</strong>（連續區塊越長越容易變更長）</td></tr>
+          <tr><td><strong>二次探測</strong></td><td>h(k)+i²</td><td><strong>次群聚</strong>（同一起點者路徑相同）</td></tr>
+          <tr><td><strong>雙重雜湊</strong></td><td>h₁(k)+i·h₂(k)</td><td><u>兩種群聚都可避免</u>——<strong>最佳</strong></td></tr>
+        </table></div>
+        <strong>成功搜尋的期望探測次數（線性探測）</strong>≈ ½(1 + 1/(1−α))<br>
+        <u>α = 0.9 → ½(1 + 10) = <strong>5.5 次</strong></u>；<u>α = 0.5 → 僅 1.5 次</u>。<br><br>
+        <strong>實務結論</strong>：<u>開放定址的 α 應控制在 <strong>0.7 以下</strong>，超過就要 rehash 擴表。</u><br>
+        <strong>(C) 為何不對</strong>：<u>可以刪除，但必須用「墓碑標記（tombstone）」，不能直接清空，否則探測鏈會斷。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">50</span><span class="tag">雜湊</span>
+    <div class="stem">關於<strong>分離鏈結</strong>（separate chaining）與開放定址，下列敘述何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 分離鏈結的載入因子可以大於 1　(B) 開放定址的快取區域性通常較好</li>
+      <li>(C) 分離鏈結刪除較簡單　(D) 開放定址不需要額外指標空間，故載入因子可大於 1</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(D)</strong><br>
+        <u>開放定址所有元素都存在表內，<strong>α ≤ 1 是必然限制</strong></u>（α = 1 表示表滿）。<br><br>
+        <div class="table-wrap"><table>
+          <tr><th></th><th><strong>分離鏈結</strong></th><th><strong>開放定址</strong></th></tr>
+          <tr><td>α 上限</td><td><strong>可 &gt; 1</strong></td><td><strong>≤ 1</strong></td></tr>
+          <tr><td>額外空間</td><td>需指標</td><td>不需</td></tr>
+          <tr><td>快取區域性</td><td>差（跳指標）</td><td><strong>好（連續記憶體）</strong></td></tr>
+          <tr><td>刪除</td><td><strong>簡單</strong></td><td>需墓碑標記</td></tr>
+          <tr><td>最壞搜尋</td><td>O(n)（全撞同一桶）</td><td>O(n)</td></tr>
+        </table></div>
+        <strong>改良</strong>：<u>Java 8 之後 HashMap 的桶內鏈結超過門檻會轉為<strong>紅黑樹</strong>，最壞情形降為 O(log n)。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">51</span><span class="tag">平衡樹</span>
+    <div class="stem">含 n 個節點的 AVL 樹，其高度上界最接近下列哪一個？</div>
+    <ul class="opts"><li>(A) log₂n　(B) 1.44 log₂n　(C) 2 log₂n　(D) n/2</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) 約 1.44 log₂n</strong><br><br>
+        <strong>推導</strong>：高度 h 的 AVL 樹最少節點數 N(h) = N(h−1) + N(h−2) + 1（<u>費氏數列形式</u>）<br>
+        → 反解得 <strong>h ≤ 1.44 log₂(n+2) − 0.328</strong><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>樹種</th><th>高度上界</th><th>平衡條件</th></tr>
+          <tr><td><strong>AVL</strong></td><td><strong>≈1.44 log n</strong>（較嚴格）</td><td>左右子樹高度差 ≤ 1</td></tr>
+          <tr><td><strong>紅黑樹</strong></td><td><strong>≤ 2 log₂(n+1)</strong>（較鬆）</td><td>黑高相同、無連續紅節點</td></tr>
+        </table></div>
+        <div class="hl">
+        <strong>💡 實務取捨（申論常考）</strong><br>
+        <strong>AVL 較矮 → 查詢快｜紅黑樹旋轉較少 → 插入刪除快</strong><br>
+        <u>所以：讀多寫少用 AVL；讀寫均衡用紅黑樹（多數標準函式庫的選擇）。</u>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">52</span><span class="tag">平衡樹</span>
+    <div class="stem">依序將 10、20、30 插入空的 AVL 樹，需執行何種旋轉？</div>
+    <ul class="opts"><li>(A) LL　(B) RR（單旋轉）　(C) LR　(D) RL</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) RR，須做一次左旋</strong><br><br>
+        <strong>過程</strong>：
+        <div class="table-wrap"><table>
+          <tr><td>插入 10</td><td>根 = 10，平衡</td></tr>
+          <tr><td>插入 20</td><td>10 的右子 = 20，平衡因子 −1，仍平衡</td></tr>
+          <tr><td>插入 30</td><td><u>10 的平衡因子變 −2</u>，且失衡發生在<strong>右子樹的右邊</strong>→ <strong>RR 型</strong></td></tr>
+          <tr><td>左旋後</td><td><strong>20 為根，左 10、右 30</strong></td></tr>
+        </table></div>
+        <div class="table-wrap"><table>
+          <tr><th>型別</th><th>失衡位置</th><th>處理</th></tr>
+          <tr><td><strong>LL</strong></td><td>左子樹的左邊</td><td>右旋 1 次</td></tr>
+          <tr><td><strong>RR</strong></td><td>右子樹的右邊</td><td><strong>左旋 1 次</strong></td></tr>
+          <tr><td><strong>LR</strong></td><td>左子樹的右邊</td><td><strong>先左旋再右旋</strong></td></tr>
+          <tr><td><strong>RL</strong></td><td>右子樹的左邊</td><td><strong>先右旋再左旋</strong></td></tr>
+        </table></div>
+        <strong>記法</strong>：<u>名稱的兩個字母＝從失衡節點往下走兩步的方向；<strong>同向單旋、異向雙旋</strong>。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">53</span><span class="tag">B 樹</span>
+    <div class="stem">資料庫索引多採 B+ 樹而非 AVL 樹，主要原因為何？</div>
+    <ul class="opts">
+      <li>(A) B+ 樹程式較簡單　(B) B+ 樹節點大（配合磁碟頁），樹高極低，可大幅減少 I/O 次數</li>
+      <li>(C) B+ 樹不需平衡　(D) AVL 樹無法儲存重複鍵</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B)</strong><br><br>
+        <strong>關鍵在於「成本模型不同」</strong>：
+        <div class="table-wrap"><table>
+          <tr><th></th><th>記憶體內結構（AVL）</th><th>磁碟結構（B+ 樹）</th></tr>
+          <tr><td>成本單位</td><td><strong>比較次數</strong></td><td><strong>磁碟 I/O 次數</strong>（貴上萬倍）</td></tr>
+          <tr><td>分支數</td><td>2</td><td><strong>數百（一個節點＝一個頁）</strong></td></tr>
+          <tr><td>1 億筆的樹高</td><td>約 27～39 層</td><td><strong>僅 3～4 層</strong></td></tr>
+        </table></div>
+        <strong>B+ 樹的兩個額外優勢</strong>：
+        <div class="table-wrap"><table>
+          <tr><td>① <strong>資料只放葉節點</strong></td><td>內部節點只放鍵 → 分支數更多、樹更矮</td></tr>
+          <tr><td>② <strong>葉節點以鏈結串起</strong></td><td><u>範圍查詢（BETWEEN、ORDER BY）只需循序掃葉層</u>——<strong>這是 B 樹做不到的</strong></td></tr>
+        </table></div>
+        <strong>延伸（<a href="db-bank.html">資料庫題庫</a>）</strong>：<u>因此 B+ 樹索引對 <code>WHERE age BETWEEN 20 AND 30</code> 非常有效，對雜湊索引則無效。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">54</span><span class="tag">圖論</span>
+    <div class="stem">在含<strong>負權邊但無負權環</strong>的圖上求單源最短路徑，應選用何種演算法？</div>
+    <ul class="opts"><li>(A) Dijkstra　(B) Bellman-Ford　(C) Prim　(D) Kruskal</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) Bellman-Ford</strong><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>演算法</th><th>用途</th><th>複雜度</th><th>負權</th></tr>
+          <tr><td><strong>Dijkstra</strong></td><td>單源最短路</td><td>O((V+E)log V)（堆積）</td><td><strong>不可</strong></td></tr>
+          <tr><td><strong>Bellman-Ford</strong></td><td>單源最短路</td><td><strong>O(VE)</strong></td><td><strong>可，並能偵測負環</strong></td></tr>
+          <tr><td><strong>Floyd-Warshall</strong></td><td>全點對最短路</td><td><strong>O(V³)</strong></td><td>可（無負環）</td></tr>
+          <tr><td><strong>Prim / Kruskal</strong></td><td><u>最小生成樹（不是最短路！）</u></td><td>O(E log V)</td><td>可</td></tr>
+        </table></div>
+        <strong>為何 Dijkstra 遇負權會錯</strong>：<u>它的貪婪前提是「已確定的節點距離不會再變小」；負權邊會打破這個前提。</u><br><br>
+        <strong>負環偵測</strong>：<u>Bellman-Ford 執行 V−1 輪後<strong>再跑第 V 輪</strong>，若仍有邊可被鬆弛 → 存在負權環。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">55</span><span class="tag">圖論</span>
+    <div class="stem">下列關於<strong>拓樸排序</strong>（topological sort）的敘述，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 僅適用於有向無環圖（DAG）　(B) 結果可能不唯一</li>
+      <li>(C) 可用 Kahn 演算法（入度為 0 佇列）實作　(D) 無向圖亦可拓樸排序</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(D)</strong>——<u>拓樸排序<strong>只對有向無環圖</strong>定義</u>。<br><br>
+        <strong>兩種實作法</strong>：
+        <div class="table-wrap"><table>
+          <tr><td><strong>Kahn（BFS 型）</strong></td><td>反覆取出<u>入度為 0</u>的節點；<strong>若取完仍有剩節點 → 有環</strong></td></tr>
+          <tr><td><strong>DFS 型</strong></td><td>後序完成時<strong>推入堆疊</strong>，最後反轉輸出</td></tr>
+        </table></div>
+        <strong>實務應用（申論可寫）</strong>：<u>編譯相依、套件安裝順序、資料庫遷移腳本順序、<strong>專案作業的先後關係（AOV 網路）</strong>。</u><br><br>
+        <div class="hl"><strong>💡 與專案管理的連結</strong>：<u>拓樸排序是<a href="mis-bank.html">CPM 關鍵路徑法</a>的前提——<strong>必須先能排出順序，才能算最早／最晚開始時間。</strong></u></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">56</span><span class="tag">圖論</span>
+    <div class="stem">某無向連通圖有 8 個頂點、7 條邊，下列敘述何者<strong>正確</strong>？</div>
+    <ul class="opts">
+      <li>(A) 一定有環　(B) 它是一棵樹　(C) 一定是完全圖　(D) 一定不連通</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) 它是一棵樹</strong><br><br>
+        <strong>樹的等價定義（任一條成立即為樹）</strong>：
+        <div class="table-wrap"><table>
+          <tr><td>①</td><td><strong>連通且無環</strong></td></tr>
+          <tr><td>②</td><td><strong>連通且 E = V − 1</strong>（<u>本題 7 = 8 − 1 ✓</u>）</td></tr>
+          <tr><td>③</td><td>無環且 E = V − 1</td></tr>
+          <tr><td>④</td><td>任兩點間<strong>恰有一條</strong>路徑</td></tr>
+        </table></div>
+        <strong>常考數字</strong>：
+        <div class="table-wrap"><table>
+          <tr><td>樹</td><td>E = V − 1</td></tr>
+          <tr><td>連通圖</td><td>E ≥ V − 1</td></tr>
+          <tr><td>完全圖 K_V</td><td><strong>E = V(V−1)/2</strong>（<u>V=8 時為 28 條</u>）</td></tr>
+          <tr><td>有環的最少條件</td><td>E ≥ V</td></tr>
+        </table></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">57</span><span class="tag">排序</span>
+    <div class="stem">下列排序演算法中，何者<strong>不是</strong>穩定（stable）排序？</div>
+    <ul class="opts"><li>(A) 合併排序　(B) 插入排序　(C) 氣泡排序　(D) 快速排序</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(D) 快速排序</strong><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>演算法</th><th>平均</th><th>最壞</th><th>空間</th><th>穩定</th></tr>
+          <tr><td><strong>快速排序</strong></td><td>O(n log n)</td><td><strong>O(n²)</strong></td><td>O(log n)</td><td><strong>否</strong></td></tr>
+          <tr><td><strong>合併排序</strong></td><td>O(n log n)</td><td><strong>O(n log n)</strong></td><td><strong>O(n)</strong></td><td><strong>是</strong></td></tr>
+          <tr><td><strong>堆積排序</strong></td><td>O(n log n)</td><td>O(n log n)</td><td><strong>O(1)</strong></td><td><strong>否</strong></td></tr>
+          <tr><td>插入排序</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>是</td></tr>
+          <tr><td>選擇排序</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td><strong>否</strong></td></tr>
+          <tr><td>氣泡排序</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>是</td></tr>
+        </table></div>
+        <strong>「穩定」的實務意義</strong>：<u>先按「姓名」排序，再按「部門」排序——若第二次排序穩定，同部門內仍維持姓名順序。</u><br><br>
+        <strong>不穩定的三個</strong>：<u><strong>快速、堆積、選擇</strong>（記法：「快堆選」不穩）。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">58</span><span class="tag">排序</span>
+    <div class="stem">對 <strong>10 萬筆</strong>資料排序，若要求「最壞情況也不得超過 O(n log n)」且<strong>可用額外記憶體</strong>，最適合何者？</div>
+    <ul class="opts"><li>(A) 快速排序　(B) 合併排序　(C) 插入排序　(D) 氣泡排序</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) 合併排序</strong><br><br>
+        <strong>解題順序（申論也照這個寫）</strong>：
+        <div class="table-wrap"><table>
+          <tr><td>① 看<strong>最壞情況要求</strong></td><td>快速排序最壞 O(n²) → <strong>先排除</strong></td></tr>
+          <tr><td>② 看<strong>空間限制</strong></td><td>題目說「可用額外記憶體」→ <u>合併排序 O(n) 空間可接受</u></td></tr>
+          <tr><td>③ 若空間受限</td><td>應改選 <strong>堆積排序</strong>（O(n log n) 最壞、O(1) 空間）</td></tr>
+        </table></div>
+        <div class="hl">
+        <strong>💡 實務上的混合做法（值得寫進申論）</strong><br>
+        <strong>introsort</strong>：<u>先用快速排序；遞迴過深時<strong>切換為堆積排序</strong>避免 O(n²)；小區間改用插入排序。</u><br>
+        <strong>Timsort</strong>：<u>合併排序 + 插入排序，<strong>利用資料中已排序的區段（run）</strong>，實務資料上極快，且穩定。</u>
+        </div>
+        <strong>外部排序</strong>：<u>資料量超過記憶體時，用<strong>多路合併（external merge sort）</strong>——這也是資料庫 ORDER BY 大表的做法。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">59</span><span class="tag">複雜度</span>
+    <div class="stem">依主定理（Master Theorem），T(n) = 2T(n/2) + O(n) 的解為何？</div>
+    <ul class="opts"><li>(A) O(n)　(B) O(n log n)　(C) O(n²)　(D) O(log n)</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) O(n log n)</strong><br><br>
+        <strong>主定理形式</strong>：T(n) = aT(n/b) + f(n)，比較 f(n) 與 n^(log_b a)<br>
+        <u>本題 a=2、b=2 → n^(log₂2) = n；f(n) = n → <strong>兩者同階 → 乘上 log n</strong></u><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>遞迴式</th><th>解</th><th>對應演算法</th></tr>
+          <tr><td>T(n)=2T(n/2)+O(n)</td><td><strong>O(n log n)</strong></td><td><strong>合併排序</strong></td></tr>
+          <tr><td>T(n)=2T(n/2)+O(1)</td><td><strong>O(n)</strong></td><td>樹的走訪、bottom-up heapify</td></tr>
+          <tr><td>T(n)=T(n/2)+O(1)</td><td><strong>O(log n)</strong></td><td><strong>二分搜尋</strong></td></tr>
+          <tr><td>T(n)=T(n−1)+O(1)</td><td>O(n)</td><td>線性遞迴</td></tr>
+          <tr><td>T(n)=T(n−1)+O(n)</td><td><strong>O(n²)</strong></td><td>快速排序最壞情形</td></tr>
+          <tr><td>T(n)=2T(n−1)+O(1)</td><td><strong>O(2^n)</strong></td><td>河內塔、費氏數列（未記憶化）</td></tr>
+        </table></div>
+        <strong>這張表背下來，遞迴複雜度題就是送分題。</strong>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">60</span><span class="tag">複雜度</span>
+    <div class="stem">下列成長速度由慢到快，何者排序<strong>正確</strong>？</div>
+    <ul class="opts">
+      <li>(A) log n &lt; n &lt; n log n &lt; n² &lt; 2^n &lt; n!<br>(B) log n &lt; n log n &lt; n &lt; n² &lt; n! &lt; 2^n</li>
+      <li>(C) n &lt; log n &lt; n log n &lt; 2^n &lt; n² &lt; n!<br>(D) log n &lt; n &lt; n² &lt; n log n &lt; 2^n &lt; n!</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A)</strong><br><br>
+        <strong>完整階層（考前務必背熟）</strong>：<br>
+        <u>O(1) &lt; O(log log n) &lt; O(log n) &lt; O(√n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(n³) &lt; O(2^n) &lt; O(n!) &lt; O(n^n)</u><br><br>
+        <strong>感受一下差距（n = 50）</strong>：
+        <div class="table-wrap"><table>
+          <tr><td>n log n</td><td>約 282</td></tr>
+          <tr><td>n²</td><td>2,500</td></tr>
+          <tr><td>2^n</td><td><strong>約 1.1 × 10¹⁵</strong></td></tr>
+          <tr><td>n!</td><td><strong>約 3 × 10⁶⁴</strong></td></tr>
+        </table></div>
+        <div class="hl"><strong>💡 申論可用的一句話</strong>：<u>「指數與階乘級的演算法，在輸入規模稍大時<strong>不是慢，而是不可行</strong>——這正是需要近似演算法或啟發式方法的理由。」</u></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">61</span><span class="tag">堆疊佇列</span>
+    <div class="stem">以兩個堆疊實作一個佇列，enqueue 與 dequeue 的<strong>攤還</strong>複雜度分別為何？</div>
+    <ul class="opts"><li>(A) O(1)、O(1)　(B) O(1)、O(n)　(C) O(n)、O(n)　(D) O(log n)、O(log n)</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A) 攤還皆 O(1)</strong><br><br>
+        <strong>做法</strong>：
+        <div class="table-wrap"><table>
+          <tr><td><strong>enqueue</strong></td><td>直接 push 到 <u>stack_in</u> → O(1)</td></tr>
+          <tr><td><strong>dequeue</strong></td><td>若 stack_out 為空，<u>把 stack_in 全部倒進 stack_out</u>；然後 pop stack_out</td></tr>
+        </table></div>
+        <strong>攤還分析</strong>：<u>每個元素<strong>最多被搬移一次</strong>（進 in、倒到 out、出 out）→ 總成本 O(n)，攤還 O(1)。</u><br><br>
+        <div class="warn"><strong>⚠️ 注意「單次最壞」與「攤還」不同</strong><br><u>單次 dequeue 的最壞情形是 O(n)（剛好要倒整批）；但攤還是 O(1)。</u><br><strong>題目問哪一個，答案就不同——這是常見的出題陷阱。</strong></div>
+        <strong>反向題</strong>：<u>以兩個佇列實作堆疊，其中一個操作必為 O(n)，無法兩者都攤還 O(1)。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">62</span><span class="tag">運算式</span>
+    <div class="stem">中序式 <code>A + B * C - D / E</code> 轉為後序式，結果為何？</div>
+    <ul class="opts">
+      <li>(A) ABC*+DE/−　(B) AB+C*DE/−　(C) ABC*DE/+−　(D) A+BC*−DE/</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A) ABC*+DE/−</strong><br><br>
+        <strong>方法一：加括號法（最不易錯）</strong><br>
+        <u>依優先權完整加括號 → ((A + (B*C)) − (D/E))</u><br>
+        <u>運算子往後移 → ((A (BC*) +) (DE/) −) → <strong>ABC*+DE/−</strong></u><br><br>
+        <strong>方法二：堆疊法</strong>
+        <div class="table-wrap"><table>
+          <tr><th>讀入</th><th>輸出</th><th>堆疊</th></tr>
+          <tr><td>A</td><td>A</td><td></td></tr>
+          <tr><td>+</td><td>A</td><td>+</td></tr>
+          <tr><td>B</td><td>AB</td><td>+</td></tr>
+          <tr><td>*</td><td>AB</td><td>+ *（* 優先權高，不彈出）</td></tr>
+          <tr><td>C</td><td>ABC</td><td>+ *</td></tr>
+          <tr><td>−</td><td><strong>ABC*+</strong></td><td>−（彈出 * 與 +）</td></tr>
+          <tr><td>D</td><td>ABC*+D</td><td>−</td></tr>
+          <tr><td>/</td><td>ABC*+D</td><td>− /</td></tr>
+          <tr><td>E</td><td>ABC*+DE</td><td>− /</td></tr>
+          <tr><td>結束</td><td><strong>ABC*+DE/−</strong></td><td></td></tr>
+        </table></div>
+        <strong>驗算</strong>：<u>令 A=1,B=2,C=3,D=8,E=4 → 中序 = 1+6−2 = <strong>5</strong>；後序依堆疊求值亦為 <strong>5</strong> ✓</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">63</span><span class="tag">樹走訪</span>
+    <div class="stem">已知某二元樹的<strong>前序</strong>為 A B D E C F、<strong>中序</strong>為 D B E A C F，其<strong>後序</strong>為何？</div>
+    <ul class="opts"><li>(A) D E B F C A　(B) D B E F C A　(C) D E B C F A　(D) A B D E C F</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A) D E B F C A</strong><br><br>
+        <strong>還原步驟</strong>：
+        <div class="table-wrap"><table>
+          <tr><td>① 前序第一個是根</td><td><strong>A</strong></td></tr>
+          <tr><td>② 中序中 A 的左邊是左子樹</td><td>D B E</td></tr>
+          <tr><td>③ A 的右邊是右子樹</td><td>C F</td></tr>
+          <tr><td>④ 左子樹前序 B D E → 根 B</td><td>中序 D B E → 左 D、右 E</td></tr>
+          <tr><td>⑤ 右子樹前序 C F → 根 C</td><td>中序 C F → <strong>F 在 C 右邊 → C 的右子為 F</strong></td></tr>
+        </table></div>
+        <strong>樹形</strong>：<u>A 的左為 B（左 D、右 E）；A 的右為 C（右子 F）</u><br>
+        <strong>後序（左→右→根）</strong>：<u>D、E、B、F、C、A</u> ✓<br><br>
+        <div class="warn"><strong>⚠️ 重要觀念</strong>：<u><strong>前序＋中序</strong>或<strong>後序＋中序</strong>可唯一還原二元樹；<strong>但前序＋後序不行</strong></u>（<u>無法判斷單一子節點是左還是右</u>）。</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">64</span><span class="tag">串列</span>
+    <div class="stem">關於<strong>雙向鏈結串列</strong>與單向鏈結串列，下列敘述何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 雙向串列刪除已知節點為 O(1)　(B) 單向串列刪除已知節點需先找前一個，為 O(n)</li>
+      <li>(C) 雙向串列每節點多一個指標　(D) 雙向串列的搜尋複雜度可降為 O(log n)</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(D)</strong>——<u>鏈結串列無法隨機存取，搜尋<strong>仍為 O(n)</strong></u>，雙向也一樣。<br><br>
+        <div class="table-wrap"><table>
+          <tr><th>操作</th><th>陣列</th><th>單向串列</th><th>雙向串列</th></tr>
+          <tr><td>依索引存取</td><td><strong>O(1)</strong></td><td>O(n)</td><td>O(n)</td></tr>
+          <tr><td>搜尋</td><td>O(n)（未排序）</td><td>O(n)</td><td>O(n)</td></tr>
+          <tr><td>頭部插入</td><td>O(n)</td><td><strong>O(1)</strong></td><td><strong>O(1)</strong></td></tr>
+          <tr><td>已知節點刪除</td><td>O(n)</td><td><strong>O(n)</strong>（需找前驅）</td><td><strong>O(1)</strong></td></tr>
+        </table></div>
+        <strong>小技巧</strong>：<u>單向串列若允許「把後一個節點的值複製過來再刪後一個」，也能做到 O(1)——<strong>但尾節點例外。</strong></u><br><br>
+        <strong>要達到 O(log n) 搜尋</strong>：<u>需改用<strong>跳躍串列（skip list）</strong>——以多層索引達成期望 O(log n)，Redis 的 sorted set 即採此結構。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">65</span><span class="tag">貪婪與 DP</span>
+    <div class="stem">下列問題中，何者<strong>無法</strong>用貪婪法保證最佳解？</div>
+    <ul class="opts">
+      <li>(A) 最小生成樹（Kruskal）　(B) 0/1 背包問題　(C) 霍夫曼編碼　(D) 活動選擇問題</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) 0/1 背包問題</strong><br><br>
+        <strong>反例（記下來，申論可直接用）</strong>：<u>背包容量 10；物品 A（重 6、值 30，單位值 5）、B（重 5、值 25）、C（重 5、值 25）</u><br>
+        <u>貪婪按單位價值先選 A → 剩 4 → 裝不下 → 總值 <strong>30</strong></u><br>
+        <u>最佳解選 B+C → 總值 <strong>50</strong></u> ✗ 貪婪失敗<br><br>
+        <div class="table-wrap"><table>
+          <tr><th>問題</th><th>方法</th><th>複雜度</th></tr>
+          <tr><td><strong>分數背包</strong>（可切割）</td><td><strong>貪婪可行</strong></td><td>O(n log n)</td></tr>
+          <tr><td><strong>0/1 背包</strong></td><td><strong>動態規劃</strong></td><td>O(nW)（<u>偽多項式</u>）</td></tr>
+          <tr><td>最小生成樹</td><td>貪婪（Kruskal / Prim）</td><td>O(E log V)</td></tr>
+          <tr><td>霍夫曼編碼</td><td>貪婪（每次併最小兩個）</td><td>O(n log n)</td></tr>
+          <tr><td>活動選擇</td><td>貪婪（<u>按結束時間排序</u>）</td><td>O(n log n)</td></tr>
+        </table></div>
+        <strong>注意</strong>：<u>0/1 背包的 DP 是 O(nW)，W 是數值不是位元數，所以屬<strong>偽多項式</strong>時間——問題本身仍是 NP-hard。</u>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">66</span><span class="tag">DP</span>
+    <div class="stem">字串 "AGCAT" 與 "GAC" 的<strong>最長共同子序列（LCS）</strong>長度為何？</div>
+    <ul class="opts"><li>(A) 1　(B) 2　(C) 3　(D) 4</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) 2</strong>（如 "GA" 或 "AC"）<br><br>
+        <strong>DP 表（列＝AGCAT，欄＝GAC）</strong>
+        <div class="table-wrap"><table>
+          <tr><th></th><th>∅</th><th>G</th><th>A</th><th>C</th></tr>
+          <tr><th>∅</th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><th>A</th><td>0</td><td>0</td><td><strong>1</strong></td><td>1</td></tr>
+          <tr><th>G</th><td>0</td><td><strong>1</strong></td><td>1</td><td>1</td></tr>
+          <tr><th>C</th><td>0</td><td>1</td><td>1</td><td><strong>2</strong></td></tr>
+          <tr><th>A</th><td>0</td><td>1</td><td><strong>2</strong></td><td>2</td></tr>
+          <tr><th>T</th><td>0</td><td>1</td><td>2</td><td><strong>2</strong></td></tr>
+        </table></div>
+        <strong>遞迴式</strong>：<u>若 s1[i]==s2[j] → dp[i][j] = dp[i−1][j−1] + 1；否則 = max(dp[i−1][j], dp[i][j−1])</u><br><br>
+        <strong>複雜度</strong>：<u>時間 O(mn)、空間 O(mn)；<strong>若只需長度，空間可壓縮為 O(min(m,n))</strong></u>（滾動陣列）。<br><br>
+        <div class="warn"><strong>⚠️ 子序列 vs 子字串</strong><br><strong>子序列（subsequence）可以不連續</strong>｜<strong>子字串（substring）必須連續</strong><br><u>"AGCAT" 與 "GAC" 的最長共同<strong>子字串</strong>長度只有 1。</u></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">67</span><span class="tag">DP</span>
+    <div class="stem">爬樓梯問題：每次可走 1 或 2 階，走完 5 階共有幾種方法？</div>
+    <ul class="opts"><li>(A) 5　(B) 8　(C) 13　(D) 16</li></ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) 8</strong><br><br>
+        <strong>遞迴式</strong>：<u>f(n) = f(n−1) + f(n−2)，f(1)=1、f(2)=2</u>（<strong>就是費氏數列</strong>）
+        <div class="table-wrap"><table>
+          <tr><th>n</th><td>1</td><td>2</td><td>3</td><td>4</td><td><strong>5</strong></td><td>6</td></tr>
+          <tr><th>f(n)</th><td>1</td><td>2</td><td>3</td><td>5</td><td><strong>8</strong></td><td>13</td></tr>
+        </table></div>
+        <div class="hl">
+        <strong>💡 三種寫法的複雜度差異（申論很愛考）</strong>
+        <div class="table-wrap"><table>
+          <tr><td><strong>純遞迴</strong></td><td>時間 <strong>O(2^n)</strong>、空間 O(n)</td><td>大量重複計算</td></tr>
+          <tr><td><strong>記憶化遞迴</strong></td><td>時間 O(n)、空間 O(n)</td><td>top-down</td></tr>
+          <tr><td><strong>迭代（滾動變數）</strong></td><td>時間 O(n)、<strong>空間 O(1)</strong></td><td><strong>最佳</strong>；bottom-up</td></tr>
+        </table></div>
+        <u>這一題若出成程式撰寫申論題，<strong>寫迭代版並附複雜度比較，才拿滿分。</strong></u>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">68</span><span class="tag">綜合應用</span>
+    <div class="stem">機關要對 500 萬筆民眾申請案「依身分證字號快速查詢單筆」，最適合的索引結構為何？</div>
+    <ul class="opts">
+      <li>(A) 雜湊索引（若僅需等值查詢）　(B) 未排序陣列　(C) 單向鏈結串列　(D) 堆疊</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(A)</strong><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>查詢型態</th><th>最適結構</th><th>理由</th></tr>
+          <tr><td><strong>等值查詢</strong>（= 某個身分證字號）</td><td><strong>雜湊索引</strong></td><td>平均 O(1)</td></tr>
+          <tr><td><strong>範圍查詢</strong>（申請日 BETWEEN）</td><td><strong>B+ 樹索引</strong></td><td>葉節點串連可循序掃</td></tr>
+          <tr><td><strong>前綴查詢</strong>（LIKE 'A12%'）</td><td><strong>B+ 樹</strong>（雜湊無效）</td><td>雜湊打散了順序</td></tr>
+          <tr><td>全文檢索</td><td>倒排索引（inverted index）</td><td>—</td></tr>
+        </table></div>
+        <div class="warn">
+        <strong>⚠️ 但實務上要先問一個法律問題</strong><br>
+        <strong>「這個系統真的需要用身分證字號當主鍵嗎？」</strong><br>
+        <u>個資法第 5 條：蒐集不得逾越特定目的之必要範圍</u>（<a href="../05-common/law-bank.html">法學第 246 題</a>）。<br>
+        <strong>較好的設計：內部使用系統流水號當主鍵，身分證字號經雜湊或加密後另存並限制存取。</strong>
+        </div>
+        <strong>這種「技術選型＋法律檢核」的雙層回答，是高考申論的加分寫法。</strong>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">69</span><span class="tag">綜合應用</span>
+    <div class="stem">系統需支援「隨時查詢目前案件量的中位數」，資料持續新增。最適合的結構為何？</div>
+    <ul class="opts">
+      <li>(A) 單一排序陣列，每次插入後重排　(B) <strong>兩個堆積</strong>（最大堆積存較小半、最小堆積存較大半）</li>
+      <li>(C) 佇列　(D) 雜湊表</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(B) 對頂堆積（two heaps）</strong><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>結構</th><th>做法</th><th>複雜度</th></tr>
+          <tr><td><strong>最大堆積 loHeap</strong></td><td>存<u>較小的一半</u>，堆頂 = 較小半的最大值</td><td rowspan="2"><strong>插入 O(log n)<br>查中位數 O(1)</strong></td></tr>
+          <tr><td><strong>最小堆積 hiHeap</strong></td><td>存<u>較大的一半</u>，堆頂 = 較大半的最小值</td></tr>
+        </table></div>
+        <strong>維持不變量</strong>：<u>|loHeap| − |hiHeap| ∈ {0, 1}，且 loHeap 堆頂 ≤ hiHeap 堆頂</u><br>
+        <strong>取中位數</strong>：<u>奇數個 → loHeap 堆頂；偶數個 → 兩堆頂平均</u><br><br>
+        <strong>(A) 為何不好</strong>：<u>每次插入後重排為 O(n log n)，即使用二分找位置再插入仍需 O(n) 搬移。</u><br><br>
+        <div class="hl"><strong>💡 這題是「串流統計」的入門題</strong>：<u>同一類問題還有<strong>滑動窗口最大值</strong>（單調佇列）、<strong>Top-K</strong>（大小為 K 的最小堆積）、<strong>近似分位數</strong>（t-digest）。</u></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <span class="no">70</span><span class="tag">綜合 · 總結</span>
+    <div class="stem">下列「問題 → 最適結構」的配對，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 括號配對檢查 → 堆疊　(B) 作業排程依優先權取出 → 優先佇列</li>
+      <li>(C) 判斷兩節點是否屬同一群組 → 併查集　(D) 依索引隨機存取 → 鏈結串列</li>
+    </ul>
+    <details><summary>看詳解</summary>
+      <div class="ans">
+        <strong>答案：(D)</strong>——<u>隨機存取應用<strong>陣列</strong>（O(1)）；鏈結串列是 O(n)</u>。<br><br>
+        <strong>📋 資料結構選用總表（考前速記頁）</strong>
+        <div class="table-wrap"><table>
+          <tr><th>需求</th><th>結構</th><th>關鍵操作複雜度</th></tr>
+          <tr><td>依索引隨機存取</td><td><strong>陣列</strong></td><td>O(1)</td></tr>
+          <tr><td>頻繁頭尾插刪</td><td><strong>雙向串列 / deque</strong></td><td>O(1)</td></tr>
+          <tr><td>後進先出、括號配對、函式呼叫</td><td><strong>堆疊</strong></td><td>O(1)</td></tr>
+          <tr><td>先進先出、BFS、排隊</td><td><strong>佇列</strong></td><td>O(1)</td></tr>
+          <tr><td>取最大／最小、排程</td><td><strong>優先佇列（堆積）</strong></td><td>取 O(1)、插刪 O(log n)</td></tr>
+          <tr><td>等值查詢</td><td><strong>雜湊表</strong></td><td>平均 O(1)</td></tr>
+          <tr><td>範圍查詢、排序輸出</td><td><strong>平衡樹 / B+ 樹</strong></td><td>O(log n)</td></tr>
+          <tr><td>群組合併與查詢</td><td><strong>併查集（Union-Find）</strong></td><td>近乎 O(1)（路徑壓縮＋按秩合併）</td></tr>
+          <tr><td>字串前綴查詢、自動完成</td><td><strong>Trie</strong></td><td>O(字串長度)</td></tr>
+          <tr><td>區間和／區間更新</td><td><strong>線段樹 / BIT</strong></td><td>O(log n)</td></tr>
+          <tr><td>集合成員近似判斷（省空間）</td><td><strong>布隆過濾器</strong></td><td>O(k)，<u>有偽陽性無偽陰性</u></td></tr>
+        </table></div>
+        <div class="frame">
+          <span class="t">🎯 資料結構申論的萬用四段</span>
+          <strong>① 釐清需求</strong>：<u>查詢型態（等值／範圍／前綴）、讀寫比例、資料量、是否需排序輸出</u><br>
+          <strong>② 候選比較</strong>：<u>畫表比 時間、空間、最壞情形、是否穩定</u><br>
+          <strong>③ 決策與理由</strong>：<u>明確說出「因為需求是 X，所以選 Y」</u><br>
+          <strong>④ 風險與配套</strong>：<u>最壞情形的因應（如雜湊退化 → 改紅黑樹桶；快排退化 → introsort）</u><br><br>
+          <u>照這四段寫，就算結構選得不是閱卷者心中的第一名，<strong>推理過程一樣拿分。</strong></u>
         </div>
       </div>
     </details>
