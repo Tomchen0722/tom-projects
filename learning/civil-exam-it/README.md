@@ -69,7 +69,8 @@ civil-exam-it/
     ├── official-doc.html     公文寫作：六種類別、期望語對照、26 篇完整範例
     ├── law-const.html        中華民國憲法
     ├── law-intro.html        法學緒論
-    ├── law-bank.html         法學知識題庫：憲法 70 ＋ 法緒 70 ＋ 綜合實戰 60（共 200 題）
+    ├── law-bank.html         法學知識題庫 400 題：憲法 140 ＋ 法緒／行政法 160 ＋ 民刑法與特別法 40
+    │                          ＋ 混合實戰 60，附 10 張考前速記總表
     ├── english.html          英文：題型解法、高頻單字 120、十大文法點
     └── english-bank.html     英文題庫 220 題；克漏字 4 篇＋閱讀 16 篇，全附完整中譯
 ```
