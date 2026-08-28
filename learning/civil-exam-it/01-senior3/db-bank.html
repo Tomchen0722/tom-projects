@@ -14,7 +14,7 @@
 </div>
 
 <div class="hero">
-  <div class="badge">🗄️ 資料庫應用 · 選擇 70 題 ＋ 申論 14 題</div>
+  <div class="badge">🗄️ 資料庫應用 · 選擇 150 題 ＋ 申論 14 題</div>
   <h1>資料庫應用 題庫</h1>
   <p>正規化與 SQL 是必得分區，這裡的題目請務必<strong>動筆寫過</strong>。<br>SQL 題「看得懂」跟「寫得出來」是兩件事。</p>
 </div>
@@ -3004,6 +3004,1921 @@ stmt.setString(1, input);</pre>
         </div>
       </div>
     </details>
+  </div>
+
+  <div class="card"><h3>F. 關聯模型與正規化深化（第 71～100 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">本區從<strong>設計的正確性</strong>切入。正規化不是為了考試，而是為了<strong>避免更新異常導致資料自相矛盾</strong>——在公務系統裡，自相矛盾的資料就是違法處分的溫床。</p>
+  </div>
+
+  <div class="q"><span class="no">71</span><span class="tag">關聯模型</span>
+    <div class="stem">關聯（relation）的「主鍵」不得為空值，此規則稱為？</div>
+    <ul class="opts"><li>(A) 參照完整性　(B) <strong>實體完整性</strong>　(C) 領域完整性　(D) 使用者定義完整性</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 實體完整性（entity integrity）</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>完整性</th><th>規則</th><th>白話</th></tr>
+        <tr><td><strong>實體完整性</strong></td><td><strong>主鍵不得為 NULL 且唯一</strong></td><td><u>每一筆都要能被指認</u></td></tr>
+        <tr><td><strong>參照完整性</strong></td><td><strong>外鍵須對應到既存的主鍵或為 NULL</strong></td><td>不能指向不存在的東西</td></tr>
+        <tr><td><strong>領域完整性</strong></td><td>欄位值須符合定義的型別與範圍</td><td>年齡不能是 −5</td></tr>
+        <tr><td><strong>使用者定義完整性</strong></td><td><u>業務規則（如「核准日不得早於申請日」）</u></td><td><strong>法規要求</strong></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 公務系統最該加強的是第四種</strong>：<u>前三種資料庫會自動幫你把關，<strong>但「核准日不得早於申請日」「補助金額不得超過上限」這類法規要求，必須自己寫成約束或檢查</strong>。</u><br><strong>寫在資料庫的約束，比寫在程式裡更可靠——因為沒有任何路徑能繞過它。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">72</span><span class="tag">關聯模型</span>
+    <div class="stem">下列關於「候選鍵」與「超鍵」的敘述，何者正確？</div>
+    <ul class="opts">
+      <li>(A) 兩者相同　(B) <strong>候選鍵是最小的超鍵（移除任一屬性即失去唯一性）</strong></li>
+      <li>(C) 超鍵是最小的候選鍵　(D) 候選鍵必為單一屬性</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>名詞</th><th>定義</th></tr>
+        <tr><td><strong>超鍵</strong></td><td><u>能唯一識別一列的<strong>任何</strong>屬性組合</u></td></tr>
+        <tr><td><strong>候選鍵</strong></td><td><strong>最小的超鍵</strong>（<u>不可再刪任何屬性</u>）</td></tr>
+        <tr><td><strong>主鍵</strong></td><td><strong>從候選鍵中選定的那一個</strong></td></tr>
+        <tr><td><strong>替代鍵</strong></td><td>其他未被選為主鍵的候選鍵</td></tr>
+      </table></div>
+      <strong>例</strong>：<u>員工表中，{員工編號}、{身分證號} 都是候選鍵；{員工編號, 姓名} 是超鍵<strong>但不是候選鍵</strong>（姓名是多餘的）。</u><br><br>
+      <div class="hl"><strong>💡 主鍵該選哪一個？</strong><br><u>身分證號雖然是候選鍵，<strong>但不宜當主鍵</strong>：<strong>①屬個資 ②可能變更（換證、更正）③外籍人士沒有</strong>。</u><br><strong>應另設無意義的流水號或 UUID 為主鍵——這叫「代理鍵」（surrogate key）。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">73</span><span class="tag">正規化</span>
+    <div class="stem">某表 R(案號, 承辦人代碼, 承辦人姓名, 承辦人分機)，主鍵為案號。此表違反何種正規化？</div>
+    <ul class="opts"><li>(A) 1NF　(B) 2NF　(C) <strong>3NF</strong>　(D) 未違反</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 違反 3NF（存在遞移相依）</strong><br><br>
+      <u>案號 → 承辦人代碼 → 承辦人姓名、分機</u><br>
+      <u>姓名與分機<strong>並非直接相依於主鍵，而是透過承辦人代碼</strong>——這就是<strong>遞移相依（transitive dependency）</strong>。</u><br><br>
+      <strong>異常</strong>：
+      <div class="table-wrap"><table>
+        <tr><th>異常</th><th>情形</th></tr>
+        <tr><td><strong>更新異常</strong></td><td><u>承辦人換分機 → <strong>要改他經手的每一筆案件</strong>；漏改就不一致</u></td></tr>
+        <tr><td><strong>插入異常</strong></td><td><strong>新進承辦人還沒案件，就無法登錄他的資料</strong></td></tr>
+        <tr><td><strong>刪除異常</strong></td><td><u>刪掉最後一件案子，<strong>承辦人的資料也跟著消失</strong></u></td></tr>
+      </table></div>
+      <strong>正解</strong>：<u>拆為 案件(案號, 承辦人代碼) ＋ 承辦人(承辦人代碼, 姓名, 分機)。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">74</span><span class="tag">正規化</span>
+    <div class="stem">某表 R(案號, 文件類別, 承辦人, 文件說明)，主鍵為 (案號, 文件類別)，且「承辦人」只相依於「案號」。此違反？</div>
+    <ul class="opts"><li>(A) 1NF　(B) <strong>2NF</strong>　(C) 3NF　(D) BCNF</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 違反 2NF（部分相依）</strong><br><br>
+      <u>主鍵是複合鍵 (案號, 文件類別)，但「承辦人」<strong>只相依於主鍵的一部分（案號）</strong>——這叫<strong>部分相依（partial dependency）</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>正規化</th><th>要求</th><th>解決的問題</th></tr>
+        <tr><td><strong>1NF</strong></td><td><u>每個欄位都是<strong>單一值</strong>（不可有重複群組）</u></td><td>結構混亂</td></tr>
+        <tr><td><strong>2NF</strong></td><td>1NF ＋ <strong>消除部分相依</strong></td><td>複合鍵造成的重複</td></tr>
+        <tr><td><strong>3NF</strong></td><td>2NF ＋ <strong>消除遞移相依</strong></td><td>間接相依造成的重複</td></tr>
+        <tr><td><strong>BCNF</strong></td><td><u>每個決定因素都必須是<strong>候選鍵</strong></u></td><td>3NF 未涵蓋的特殊情形</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 2NF 的問題只在「複合主鍵」時才會發生</strong>：<u>如果主鍵是單一欄位，<strong>不可能有部分相依</strong>——所以自動符合 2NF。</u><br><strong>這也是採用代理鍵的附帶好處之一。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">75</span><span class="tag">正規化</span>
+    <div class="stem">下列關於「BCNF 與 3NF」的敘述，何者正確？</div>
+    <ul class="opts">
+      <li>(A) BCNF 較寬鬆　(B) <strong>BCNF 較嚴格；分解為 BCNF 有可能無法保持函數相依</strong></li>
+      <li>(C) 兩者等價　(D) BCNF 必然保持相依</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>3NF</th><th>BCNF</th></tr>
+        <tr><td>嚴格度</td><td>較寬</td><td><strong>較嚴</strong></td></tr>
+        <tr><td><strong>無損分解</strong></td><td>可保證</td><td><strong>可保證</strong></td></tr>
+        <tr><td><strong>保持相依</strong></td><td><strong>可保證</strong></td><td><u><strong>不一定！</strong></u></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 這是資料庫理論的一個經典取捨</strong><br>
+      <u>如果分解為 BCNF 會導致<strong>某些函數相依無法在單一表上檢查</strong>（要 JOIN 起來才能驗證），<strong>實務上通常會選擇停在 3NF</strong>。</u><br><br>
+      <strong>因為：無法在單表檢查的約束，等於幾乎無法有效執行。</strong>
+      </div>
+      <strong>實務原則</strong>：<u><strong>絕大多數系統做到 3NF 就足夠</strong>；BCNF 以上（4NF、5NF）多是理論探討。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">76</span><span class="tag">正規化</span>
+    <div class="stem">下列關於「反正規化」的敘述，何者<strong>最為妥適</strong>？</div>
+    <ul class="opts">
+      <li>(A) 應完全避免　(B) <strong>可在確認效能瓶頸後刻意採用，但須有機制確保重複資料的一致性，並記錄此決策</strong></li>
+      <li>(C) 越多越好　(D) 只適用於 NoSQL</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>反正規化手法</th><th>代價</th></tr>
+        <tr><td><strong>冗餘欄位</strong>（把常用的關聯欄位複製過來）</td><td><u>來源改變時<strong>要同步</strong></u></td></tr>
+        <tr><td><strong>預先彙總</strong>（存好計數與總計）</td><td>明細變動時要更新</td></tr>
+        <tr><td><strong>合併表</strong></td><td><strong>更新異常的風險回來了</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 反正規化的鐵則</strong><br>
+      <u>①<strong>先量測，確認真的是瓶頸</strong>——不要憑猜測<br>②<strong>必須有同步機制</strong>（觸發程序、應用層、排程對帳）<br>③<strong>要記錄「為什麼這樣做」</strong>——否則後人會以為是設計失誤而「修正」回去<br>④<strong>定期對帳</strong>：驗證冗餘資料與來源是否一致</u>
+      </div>
+      <div class="hl"><strong>💡 一個例外：「歷史快照」不是反正規化</strong><br><u>訂單上存「當時的單價」，<strong>不是冗餘，而是業務上正確的做法</strong>——因為商品單價會改，<strong>但已成立的訂單金額不能跟著改</strong>。</u><br><strong>同理：核准函上的「當時適用的補助標準」必須存下來，不能只存參照。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">77</span><span class="tag">SQL</span>
+    <div class="stem">下列 SQL 的結果為何？<code>SELECT COUNT(*) FROM T</code> 與 <code>SELECT COUNT(欄位A) FROM T</code></div>
+    <ul class="opts">
+      <li>(A) 必定相同　(B) <strong>若欄位A 有 NULL，則 COUNT(欄位A) 較小</strong>　(C) 前者較小　(D) 語法錯誤</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>寫法</th><th>計算</th></tr>
+        <tr><td><code>COUNT(*)</code></td><td><strong>所有列</strong>（含全為 NULL 的列）</td></tr>
+        <tr><td><code>COUNT(欄位A)</code></td><td><u><strong>欄位A 不為 NULL 的列數</strong></u></td></tr>
+        <tr><td><code>COUNT(DISTINCT 欄位A)</code></td><td><strong>不重複且非 NULL 的值的個數</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ NULL 在 SQL 的三個陷阱</strong><br>
+      <u>① <strong><code>NULL = NULL</code> 的結果是 UNKNOWN，不是 TRUE</strong>——要用 <code>IS NULL</code><br>
+      ② <strong>聚合函數（SUM、AVG）會忽略 NULL</strong>——<u>AVG 的分母是非 NULL 的筆數</u><br>
+      ③ <strong><code>NOT IN</code> 遇到含 NULL 的子查詢，結果會是空集合</strong></u>
+      </div>
+      <strong>公務啟示</strong>：<u>統計報表若沒注意 NULL，<strong>「平均補助金額」可能算錯</strong>——因為分母只算了有填金額的那些筆。</u><br>
+      <strong>所以資料字典必須寫清楚「NULL 代表什麼」（第 236 題）。</strong>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">78</span><span class="tag">SQL</span>
+    <div class="stem"><code>WHERE 金額 NOT IN (SELECT 金額 FROM T2)</code>，若 T2 的金額欄含 NULL，結果為何？</div>
+    <ul class="opts"><li>(A) 正常運作　(B) <strong>永遠回傳空集合</strong>　(C) 語法錯誤　(D) 忽略 NULL</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 永遠回傳空集合</strong><br><br>
+      <strong>原因</strong>：<u><code>x NOT IN (a, b, NULL)</code> 等價於 <code>x&lt;&gt;a AND x&lt;&gt;b AND x&lt;&gt;NULL</code>；<strong>最後一項恆為 UNKNOWN</strong>，導致整個條件<strong>永遠不會為 TRUE</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>修正方式</th><th>寫法</th></tr>
+        <tr><td><strong>過濾 NULL</strong></td><td><code>NOT IN (SELECT 金額 FROM T2 WHERE 金額 IS NOT NULL)</code></td></tr>
+        <tr><td><strong>改用 NOT EXISTS</strong></td><td><u><strong>推薦</strong>——語意更清楚且不受 NULL 影響</u></td></tr>
+        <tr><td>改用 LEFT JOIN</td><td><code>LEFT JOIN ... WHERE T2.金額 IS NULL</code></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 這是最陰險的一種 bug</strong><br>
+      <u><strong>不會報錯、不會當機——只是「什麼都查不到」</strong>。</u><br>
+      <strong>而承辦人可能會以為「真的沒有符合的案件」，於是漏辦。</strong>
+      </div>
+      <strong>養成習慣</strong>：<u>寫 <code>NOT IN</code> 之前先問「這個欄位可能有 NULL 嗎？」——<strong>不確定就直接用 <code>NOT EXISTS</code></strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">79</span><span class="tag">SQL</span>
+    <div class="stem"><code>LEFT JOIN</code> 後在 <code>WHERE</code> 中加上右表的條件，會發生什麼？</div>
+    <ul class="opts">
+      <li>(A) 沒有影響　(B) <strong>會把 LEFT JOIN 退化為 INNER JOIN；條件應改寫在 ON 子句</strong></li>
+      <li>(C) 語法錯誤　(D) 效能變差</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <strong>原因</strong>：<u>LEFT JOIN 對沒有配對的列，右表欄位為 NULL；<strong>而 WHERE 中的 <code>右表.欄位 = 值</code> 對 NULL 為 UNKNOWN，於是那些列被過濾掉了</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>寫法</th><th>結果</th></tr>
+        <tr><td><code>LEFT JOIN B ON A.id=B.id WHERE B.狀態='已核'</code></td><td><u><strong>退化為 INNER JOIN</strong></u></td></tr>
+        <tr><td><code>LEFT JOIN B ON A.id=B.id AND B.狀態='已核'</code></td><td><strong>保留 A 的全部列</strong></td></tr>
+        <tr><td><code>LEFT JOIN B ON A.id=B.id WHERE B.id IS NULL</code></td><td><strong>找出「A 有但 B 沒有」的列</strong>（<u>反連接</u>）</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 記法：ON 決定「怎麼配對」，WHERE 決定「配對完之後留下誰」</strong><br><u>對外連接而言，<strong>放在 ON 是「配不到就給 NULL」，放在 WHERE 是「配不到就刪掉」</strong>。</u></div>
+      <strong>公務應用</strong>：<u>「找出<strong>尚未提交補件</strong>的案件」——就是第三種寫法（反連接）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">80</span><span class="tag">SQL</span>
+    <div class="stem">要在 <code>GROUP BY</code> 之後篩選群組，應使用？</div>
+    <ul class="opts"><li>(A) WHERE　(B) <strong>HAVING</strong>　(C) ORDER BY　(D) LIMIT</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) HAVING</strong><br><br>
+      <strong>SQL 的邏輯執行順序</strong>：
+      <div class="table-wrap"><table>
+        <tr><th>順序</th><th>子句</th><th>作用</th></tr>
+        <tr><td>①</td><td><strong>FROM / JOIN</strong></td><td>取得資料來源</td></tr>
+        <tr><td>②</td><td><strong>WHERE</strong></td><td><u><strong>過濾「列」</strong>（分組前）</u></td></tr>
+        <tr><td>③</td><td><strong>GROUP BY</strong></td><td>分組</td></tr>
+        <tr><td>④</td><td><strong>HAVING</strong></td><td><u><strong>過濾「群組」</strong>（分組後）</u></td></tr>
+        <tr><td>⑤</td><td>SELECT</td><td>取出欄位</td></tr>
+        <tr><td>⑥</td><td>ORDER BY</td><td>排序</td></tr>
+        <tr><td>⑦</td><td>LIMIT</td><td>取前幾筆</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 效能提示：能寫在 WHERE 的就不要寫在 HAVING</strong><br><u>因為 WHERE <strong>在分組前就先過濾掉</strong>，需要分組的資料量較少——<strong>HAVING 是把全部分完組才篩</strong>。</u></div>
+      <strong>這也解釋了為何 SELECT 的別名不能用在 WHERE</strong>：<u>因為 <strong>WHERE 比 SELECT 早執行</strong>，那時別名還不存在。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">81</span><span class="tag">SQL</span>
+    <div class="stem">要查「每個承辦人負荷最高的 3 件案子」，最適當的 SQL 技術為何？</div>
+    <ul class="opts">
+      <li>(A) 多次子查詢　(B) <strong>視窗函數 ROW_NUMBER() OVER (PARTITION BY 承辦人 ORDER BY ...)</strong></li>
+      <li>(C) GROUP BY　(D) 無法以 SQL 完成</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 視窗函數</strong><br><br>
+      <pre><span class="k">SELECT</span> * <span class="k">FROM</span> (
+  <span class="k">SELECT</span> 案號, 承辦人, 天數,
+    <span class="k">ROW_NUMBER</span>() <span class="k">OVER</span> (<span class="k">PARTITION BY</span> 承辦人 <span class="k">ORDER BY</span> 天數 <span class="k">DESC</span>) <span class="k">AS</span> rn
+  <span class="k">FROM</span> 案件
+) t <span class="k">WHERE</span> rn &lt;= 3;</pre>
+      <div class="table-wrap"><table>
+        <tr><th>函數</th><th>平手時的行為</th></tr>
+        <tr><td><strong>ROW_NUMBER()</strong></td><td><u>1,2,3,4 — <strong>強制不重複</strong></u></td></tr>
+        <tr><td><strong>RANK()</strong></td><td><strong>1,2,2,4 — 平手同名次，之後跳號</strong></td></tr>
+        <tr><td><strong>DENSE_RANK()</strong></td><td><strong>1,2,2,3 — 平手同名次，不跳號</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 公務應用要選對函數</strong><br>
+      <u>「錄取前 10 名」若第 10、11 名<strong>同分</strong>——用 ROW_NUMBER 會<strong>隨機刷掉一個</strong>，<strong>這在考試放榜上是不能接受的</strong>。</u><br><br>
+      <strong>正確做法：用 RANK()，並依簡章規定的<u>同分比序</u>再排；若仍同分，則依規定增額錄取。</strong>
+      </div>
+      <strong>其他常用視窗函數</strong>：<u><code>LAG/LEAD</code>（取前後列，用於<strong>比較與上期差異</strong>）、<code>SUM() OVER</code>（<strong>累計金額</strong>）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">82</span><span class="tag">SQL</span>
+    <div class="stem">下列何者<strong>最能</strong>防止 SQL 注入？</div>
+    <ul class="opts">
+      <li>(A) 過濾單引號　(B) <strong>參數化查詢（prepared statement）</strong>　(C) 使用預存程序即可　(D) 限制輸入長度</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 參數化查詢</strong><br><br>
+      <div class="hl">
+      <strong>💡 為何參數化是根本解</strong><br>
+      <u>因為它讓<strong>「SQL 指令」與「資料」在傳輸上就是分開的</strong>——<strong>資料庫先收到指令範本並編譯，之後傳入的參數永遠只被當成值，不可能被解讀為指令</strong>。</u><br><br>
+      <strong>過濾（黑名單）永遠有漏網之魚；參數化是結構上的隔離。</strong>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>方法</th><th>評價</th></tr>
+        <tr><td>(A) 過濾單引號</td><td><u><strong>不可靠</strong>——編碼繞過、數值型注入不需引號</u></td></tr>
+        <tr><td>(C) 預存程序</td><td><u><strong>若程序內用字串串接，一樣會被注入</strong></u></td></tr>
+        <tr><td>(D) 限制長度</td><td>增加難度，<strong>不是防護</strong></td></tr>
+        <tr><td><strong>(B) 參數化</strong></td><td><strong>根本解</strong></td></tr>
+      </table></div>
+      <strong>參數化擋不到的地方</strong>：<u><strong>表名、欄位名、ORDER BY 的欄位</strong>不能參數化——<strong>這些必須用白名單比對</strong>。</u><br><br>
+      <strong>縱深防禦</strong>：<u>參數化 ＋ <strong>最小權限帳號</strong>（應用程式帳號不該有 DROP TABLE 權限）＋ 錯誤訊息不外洩 ＋ WAF。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">83</span><span class="tag">SQL</span>
+    <div class="stem">要找出「重複的資料列」（除主鍵外其餘欄位相同），最適當的寫法為何？</div>
+    <ul class="opts">
+      <li>(A) SELECT DISTINCT　(B) <strong>GROUP BY 相關欄位 HAVING COUNT(*) &gt; 1</strong>　(C) ORDER BY　(D) UNION</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <pre><span class="k">SELECT</span> 身分證號, 年度, <span class="k">COUNT</span>(*) <span class="k">AS</span> 筆數
+<span class="k">FROM</span> 申請
+<span class="k">GROUP BY</span> 身分證號, 年度
+<span class="k">HAVING</span> <span class="k">COUNT</span>(*) &gt; 1;</pre>
+      <div class="warn">
+      <strong>⚠️ 但發現重複之後，不能直接刪</strong><br>
+      <u>公務資料的「重複」可能是：<strong>①真的重複申請 ②系統錯誤產生 ③兩件不同的案子只是看起來像</strong>。</u><br><br>
+      <strong>正確處理：<u>①列出清單交由業務單位判斷 ②保留完整紀錄與判斷依據 ③循法定程序處理（撤銷、註銷或併案）</u></strong><br>
+      <strong>絕不可由資訊人員自行決定刪除哪一筆。</strong>
+      </div>
+      <div class="hl"><strong>💡 更好的做法是「一開始就不讓它重複」</strong>：<u>建立唯一約束（第 202 題）——<strong>預防遠比事後清理容易</strong>。</u></div>
+      <strong>刪除重複的標準寫法</strong>：<u>用視窗函數編號後刪除 <code>rn &gt; 1</code> 的列——<strong>但務必先 SELECT 確認影響筆數</strong>（第 259 題）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">84</span><span class="tag">索引</span>
+    <div class="stem">複合索引 (A, B, C)，下列哪個查詢<strong>無法</strong>有效利用此索引？</div>
+    <ul class="opts">
+      <li>(A) WHERE A=1　(B) WHERE A=1 AND B=2　(C) WHERE A=1 AND B=2 AND C=3　(D) <strong>WHERE B=2 AND C=3</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <div class="hl">
+      <strong>💡 最左前綴原則（leftmost prefix）</strong><br>
+      <u>複合索引 (A,B,C) 就像<strong>電話簿依「姓 → 名 → 地址」排序</strong>：</u><br>
+      <strong>知道姓 → 能查<br>知道姓和名 → 能查<br><u>只知道名，不知道姓 → 只能整本翻過去</u></strong>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>查詢</th><th>能用到</th></tr>
+        <tr><td>A=1</td><td>✔ 用到 A</td></tr>
+        <tr><td>A=1 AND B=2</td><td>✔ 用到 A,B</td></tr>
+        <tr><td>A=1 AND C=3</td><td><u>△ <strong>只用到 A</strong>（B 斷了，C 接不上）</u></td></tr>
+        <tr><td><strong>B=2 AND C=3</strong></td><td><strong>✘ 完全用不到</strong></td></tr>
+        <tr><td><strong>A&gt;1 AND B=2</strong></td><td><u>△ <strong>範圍條件之後的欄位用不到</strong></u></td></tr>
+      </table></div>
+      <strong>設計原則</strong>：<u>①<strong>等值條件的欄位放前面，範圍條件放後面</strong> ②<strong>選擇性高的放前面</strong> ③若已有 (A,B,C)，就<strong>不必再建 (A) 或 (A,B)</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">85</span><span class="tag">索引</span>
+    <div class="stem">「涵蓋索引（covering index）」的效益為何？</div>
+    <ul class="opts">
+      <li>(A) 節省空間　(B) <strong>查詢所需欄位全在索引中，不必回表讀取資料列</strong>　(C) 加快寫入　(D) 保證唯一</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <strong>原理</strong>：<u>一般索引查到後，還要<strong>依主鍵回到資料頁取出其他欄位</strong>（回表）；<strong>若查詢要的欄位索引裡都有，就省掉這一步</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>情形</th><th>I/O</th></tr>
+        <tr><td>一般索引 ＋ 回表</td><td><u>索引 I/O ＋ <strong>每一筆各一次資料頁 I/O</strong></u></td></tr>
+        <tr><td><strong>涵蓋索引</strong></td><td><strong>只有索引 I/O</strong></td></tr>
+      </table></div>
+      <strong>例</strong>：<u>常查 <code>SELECT 案號, 狀態 FROM 案件 WHERE 承辦人=?</code> → 建索引 <strong>(承辦人, 案號, 狀態)</strong>。</u><br><br>
+      <div class="warn">
+      <strong>⚠️ 代價</strong><br>
+      <u>①<strong>索引變大</strong>（欄位越多越大）<br>②<strong>寫入成本增加</strong>（索引中的欄位一改，索引就要更新）</u><br><br>
+      <strong>所以只對「高頻且效能關鍵」的查詢做涵蓋索引，不是每個查詢都做。</strong>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">86</span><span class="tag">索引</span>
+    <div class="stem">下列何種情形<strong>不宜</strong>建立索引？</div>
+    <ul class="opts">
+      <li>(A) 常用於 WHERE 的欄位　(B) 常用於 JOIN 的欄位　(C) 常用於 ORDER BY 的欄位</li>
+      <li>(D) <strong>選擇性極低（如「性別」）且資料表寫入頻繁的欄位</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <strong>選擇性</strong> = <u>不重複值的數量 ÷ 總列數</u>
+      <div class="table-wrap"><table>
+        <tr><th>欄位</th><th>選擇性</th><th>索引價值</th></tr>
+        <tr><td>身分證號</td><td><strong>接近 1</strong></td><td><strong>極高</strong></td></tr>
+        <tr><td>案件狀態（10 種）</td><td>中</td><td>中（<u>若某狀態很少見則有用</u>）</td></tr>
+        <tr><td><strong>性別（2 種）</strong></td><td><strong>極低</strong></td><td><u><strong>幾乎無用</strong>——查一半的資料，<strong>還不如直接全表掃描</strong></u></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 為何低選擇性的索引反而更慢</strong><br><u>用索引查出 50 萬筆，然後<strong>逐筆回表</strong>——<strong>隨機 I/O 50 萬次</strong>；<br>全表掃描則是<strong>循序 I/O</strong>，硬碟最擅長的方式。</u><br><strong>優化器通常會自己判斷不用該索引——但它仍然佔空間、拖慢寫入。</strong></div>
+      <strong>例外</strong>：<u>若某個值<strong>極為罕見</strong>（如「異常」狀態只佔 0.01%），<strong>建部分索引（partial index）</strong>只索引那些列，效果極佳。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">87</span><span class="tag">交易</span>
+    <div class="stem">ACID 中的「D（Durability）」指的是？</div>
+    <ul class="opts">
+      <li>(A) 交易不可分割　(B) 資料須符合約束　(C) 交易互不干擾　(D) <strong>一旦提交，即使系統故障也不會遺失</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>特性</th><th>意義</th><th>公務對應</th></tr>
+        <tr><td><strong>A 原子性</strong></td><td><u>全做或全不做</u></td><td><strong>不能只扣款不核銷</strong></td></tr>
+        <tr><td><strong>C 一致性</strong></td><td>交易前後都符合約束</td><td><strong>金額不得為負、狀態流轉合法</strong></td></tr>
+        <tr><td><strong>I 隔離性</strong></td><td>併發交易互不干擾</td><td><u>兩人同時核定不會互相覆蓋</u></td></tr>
+        <tr><td><strong>D 持久性</strong></td><td><strong>提交後永久保存</strong></td><td><u><strong>已核定就不會因當機而消失</strong></u></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 D 的實作靠「預寫式日誌（WAL）」</strong><br><u>資料庫<strong>先把變更寫入日誌並確保落盤，才回報交易成功</strong>；即使下一秒斷電，重啟時可依日誌重做（redo）。</u><br><strong>這就是為何「fsync 設定」對資料庫的安全性至關重要——關掉它會快很多，但斷電就可能遺失已提交的交易。</strong></div>
+      <strong>公務啟示</strong>：<u>D 只保證<strong>單機</strong>的持久性——<strong>硬碟壞了、機房淹了仍會遺失</strong>。所以還需要備份與異地備援。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">88</span><span class="tag">交易</span>
+    <div class="stem">「不可重複讀（non-repeatable read）」是指？</div>
+    <ul class="opts">
+      <li>(A) 讀到未提交的資料　(B) <strong>同一交易中兩次讀同一列，得到不同的值</strong></li>
+      <li>(C) 兩次查詢的列數不同　(D) 無法讀取</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>異常</th><th>現象</th><th>被哪個隔離級別擋住</th></tr>
+        <tr><td><strong>髒讀</strong></td><td>讀到<u>未提交</u>的資料</td><td><strong>Read Committed 以上</strong></td></tr>
+        <tr><td><strong>不可重複讀</strong></td><td><u>兩次讀<strong>同一列</strong>，值變了</u></td><td><strong>Repeatable Read 以上</strong></td></tr>
+        <tr><td><strong>幻讀</strong></td><td><u>兩次查詢，<strong>列數變了</strong>（多出新列）</u></td><td><strong>Serializable</strong></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 記法：由弱到強，擋掉的異常越來越多，但併發度越來越低</strong><br>
+      <strong>Read Uncommitted → Read Committed → Repeatable Read → Serializable</strong><br><br>
+      <u>多數資料庫的預設是 <strong>Read Committed</strong>（Oracle、PostgreSQL、SQL Server）或 <strong>Repeatable Read</strong>（MySQL InnoDB）。</u>
+      </div>
+      <strong>公務情境</strong>：<u>產製報表時若在同一交易中多次查詢，<strong>應使用 Repeatable Read 以上</strong>——否則報表內部的數字可能<strong>互相對不起來</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">89</span><span class="tag">交易</span>
+    <div class="stem">兩個交易互相等待對方持有的鎖，稱為？</div>
+    <ul class="opts"><li>(A) 飢餓　(B) <strong>死結（deadlock）</strong>　(C) 活結　(D) 競爭條件</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 死結</strong><br><br>
+      <strong>四個必要條件</strong>（<u>缺一不可</u>）：
+      <div class="table-wrap"><table>
+        <tr><td><strong>① 互斥</strong></td><td>資源不可共享</td></tr>
+        <tr><td><strong>② 佔有並等待</strong></td><td>持有資源的同時又等待其他資源</td></tr>
+        <tr><td><strong>③ 不可搶奪</strong></td><td>不能強制取回</td></tr>
+        <tr><td><strong>④ 循環等待</strong></td><td><u>形成等待環</u></td></tr>
+      </table></div>
+      <div class="table-wrap"><table>
+        <tr><th>對策</th><th>做法</th></tr>
+        <tr><td><strong>統一存取順序</strong></td><td><u><strong>最實用</strong>——所有交易都依相同順序取鎖，<strong>破壞循環等待</strong></u></td></tr>
+        <tr><td><strong>縮短交易</strong></td><td><strong>持鎖時間越短，碰撞機率越低</strong></td></tr>
+        <tr><td><strong>設定逾時</strong></td><td>等太久就放棄重試</td></tr>
+        <tr><td>資料庫自動偵測</td><td><u>多數資料庫會偵測並<strong>回滾其中一個</strong></u></td></tr>
+      </table></div>
+      <div class="warn"><strong>⚠️ 應用程式必須能處理「死結導致的回滾」</strong>：<u>被選為犧牲者的交易會收到錯誤——<strong>程式應該重試，而不是直接把錯誤丟給使用者</strong>。</u><br><strong>但重試必須有次數上限，且該操作要具備冪等性。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">90</span><span class="tag">交易</span>
+    <div class="stem">交易中包含「呼叫外部 API」，設計上應注意何者？</div>
+    <ul class="opts">
+      <li>(A) 一併放在交易中　(B) <strong>應將外部呼叫移出交易之外，避免長時間持鎖；並設計補償機制處理失敗</strong></li>
+      <li>(C) 不必處理　(D) 延長交易逾時</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ 把外部呼叫放在交易裡的三個問題</strong><br>
+      <u>①<strong>外部服務慢 → 交易一直持鎖 → 其他交易被卡住 → 連線池耗盡 → 全系統癱瘓</strong><br>
+      ②<strong>外部呼叫已經送出，本地交易卻回滾了</strong>——兩邊不一致<br>
+      ③外部服務逾時，<strong>不知道對方到底做了沒有</strong></u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>正確做法</th><th>說明</th></tr>
+        <tr><td><strong>交易只做本地寫入</strong></td><td>把「待送出」記錄寫進表裡</td></tr>
+        <tr><td><strong>交易外送出</strong></td><td>由<strong>另一個程序讀取待送清單並發送</strong></td></tr>
+        <tr><td><strong>冪等性金鑰</strong></td><td><u>重送時對方能辨識為同一筆，<strong>不會重複處理</strong></u></td></tr>
+        <tr><td><strong>補償機制</strong></td><td>失敗時<strong>記錄並告警，由人工或自動補救</strong></td></tr>
+        <tr><td><strong>對帳</strong></td><td><u><strong>定期比對雙方紀錄</strong>——這是最終防線</u></td></tr>
+      </table></div>
+      <strong>這叫「交易發件匣模式（transactional outbox）」</strong>——<u>跨系統一致性的標準解法。</u><br>
+      <strong>公務應用</strong>：<u>核定後<strong>通知財政單位撥款</strong>、<strong>介接健保或稅務資料</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">91</span><span class="tag">備份</span>
+    <div class="stem">下列關於 RPO 與 RTO 的敘述，何者正確？</div>
+    <ul class="opts">
+      <li>(A) RPO 是復原所需時間　(B) <strong>RPO 是可容忍的資料遺失量（時間），RTO 是可容忍的中斷時間</strong></li>
+      <li>(C) 兩者相同　(D) 與備份無關</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>RPO（復原點目標）</th><th>RTO（復原時間目標）</th></tr>
+        <tr><td>問題</td><td><u><strong>可以遺失多久的資料？</strong></u></td><td><u><strong>可以停多久？</strong></u></td></tr>
+        <tr><td>決定</td><td><strong>備份頻率</strong></td><td><strong>復原程序與備援架構</strong></td></tr>
+        <tr><td>RPO=1 小時</td><td>至少每小時備份一次</td><td>—</td></tr>
+        <tr><td>RTO=4 小時</td><td>—</td><td><u>必須能在 4 小時內復原<strong>並實際演練過</strong></u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 最常見的錯誤：「有備份」≠「能復原」</strong><br>
+      <u>①<strong>備份檔損毀但沒人知道</strong><br>②<strong>從來沒有真正還原過</strong>——不知道要花多久<br>③<strong>還原程序的文件過期</strong><br>④<strong>備份與正式系統放在同一台機器或同一機房</strong></u><br><br>
+      <strong>對策：定期執行「還原演練」——而且要計時，驗證是否符合 RTO。</strong>
+      </div>
+      <div class="hl"><strong>💡 3-2-1 原則</strong>：<u><strong>3 份副本、2 種媒體、1 份異地</strong>；近年再加上 <strong>1 份離線或不可竄改（防勒索軟體）</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">92</span><span class="tag">備份</span>
+    <div class="stem">遭勒索軟體加密，若備份也在同一網段且以相同帳號可寫入，最可能的結果為何？</div>
+    <ul class="opts">
+      <li>(A) 備份安全　(B) <strong>備份很可能一併被加密，導致無法復原</strong>　(C) 可自動復原　(D) 不受影響</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ 現代勒索軟體會「先找備份下手」</strong><br>
+      <u>它們會刻意搜尋並<strong>刪除或加密備份、快照與磁碟區陰影複製</strong>——<strong>因為沒有備份，受害者才會付錢</strong>。</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>防護</th><th>說明</th></tr>
+        <tr><td><strong>離線備份</strong></td><td><u>磁帶或<strong>實體隔離</strong>——最可靠</u></td></tr>
+        <tr><td><strong>不可變儲存</strong></td><td><strong>寫入後在保留期內任何人都無法修改或刪除</strong></td></tr>
+        <tr><td><strong>獨立憑證</strong></td><td><u>備份系統<strong>不使用網域帳號</strong>——避免一組被盜就全滅</u></td></tr>
+        <tr><td><strong>網段隔離</strong></td><td>備份主機不在一般網段</td></tr>
+        <tr><td><strong>定期驗證</strong></td><td><strong>還原演練 ＋ 完整性檢核</strong></td></tr>
+      </table></div>
+      <strong>事件應變順序</strong>：<u>①<strong>隔離</strong>（斷網，防擴散）②保全證據 ③<strong>通報資安主管機關與個資主管機關</strong> ④評估是否須通知當事人 ⑤<strong>從乾淨的備份復原</strong> ⑥根因分析。</u><br><br>
+      <div class="hl"><strong>💡 不建議付贖金</strong>：<u>①付了不一定拿得到金鑰 ②<strong>助長犯罪且可能涉及資助犯罪組織</strong> ③公務機關<strong>支付贖金涉及預算法與刑法的問題</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">93</span><span class="tag">安全</span>
+    <div class="stem">資料庫中的「個人資料」欄位，最妥適的保護方式為何？</div>
+    <ul class="opts">
+      <li>(A) 不需特別處理　(B) <strong>依敏感度分級，採加密或代碼化儲存、存取控管、遮罩顯示，並留下軌跡</strong></li>
+      <li>(C) 全部加密即可　(D) 只做備份</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>手法</th><th>適用</th><th>限制</th></tr>
+        <tr><td><strong>欄位加密</strong></td><td>身分證號、金融帳號</td><td><u><strong>加密後無法直接查詢與排序</strong></u></td></tr>
+        <tr><td><strong>雜湊 ＋ 鹽</strong></td><td>密碼</td><td><strong>不可逆，只能比對</strong></td></tr>
+        <tr><td><strong>代碼化（tokenization）</strong></td><td>需要比對但不需還原</td><td>要維護對照表</td></tr>
+        <tr><td><strong>遮罩顯示</strong></td><td><u>A12****789——<strong>畫面上不完整呈現</strong></u></td><td>仍須控管完整值的存取</td></tr>
+        <tr><td><strong>透明資料加密（TDE）</strong></td><td><strong>防止資料檔或備份被直接讀取</strong></td><td><u>對已登入的使用者<strong>沒有保護作用</strong></u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ TDE 的常見誤解</strong><br>
+      <u>「我們有做資料庫加密」——<strong>但 TDE 只防「有人偷走硬碟或備份檔」</strong>。</u><br>
+      <strong>對於「有帳號的人越權查詢」，TDE 完全沒有保護作用——那要靠權限控管與軌跡。</strong>
+      </div>
+      <strong>金鑰管理才是重點</strong>：<u>金鑰若與資料存在同一處，等於沒加密；<strong>應使用專用的金鑰管理系統並定期輪替</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">94</span><span class="tag">安全</span>
+    <div class="stem">應用程式連接資料庫的帳號，最妥適的權限設定為何？</div>
+    <ul class="opts">
+      <li>(A) 使用最高權限帳號較方便　(B) <strong>只給該應用實際需要的最小權限，且不同用途使用不同帳號</strong></li>
+      <li>(C) 全機關共用一組　(D) 不設密碼</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 最小權限原則</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>用途</th><th>權限</th></tr>
+        <tr><td>一般交易</td><td><strong>SELECT / INSERT / UPDATE 特定表</strong></td></tr>
+        <tr><td><strong>報表查詢</strong></td><td><u><strong>唯讀，且指向讀取副本</strong></u></td></tr>
+        <tr><td>批次作業</td><td>該批次需要的表</td></tr>
+        <tr><td><strong>結構變更</strong></td><td><u><strong>單獨的帳號，僅於部署時使用</strong></u></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 為何「不同用途不同帳號」很重要</strong><br>
+      <u>①<strong>出事時能從資料庫的連線紀錄判斷是哪個系統造成的</strong><br>
+      ②<strong>可以個別限制連線數</strong>——避免報表作業耗盡連線<br>
+      ③<strong>洩漏一組不會全部淪陷</strong></u>
+      </div>
+      <div class="warn">
+      <strong>⚠️ 密碼絕不可寫死在程式碼裡</strong><br>
+      <u>因為<strong>會進入版本控制、被複製到測試環境、在交接時難以更換</strong>。</u><br>
+      <strong>應使用：環境變數、金鑰管理服務，或雲端的受管身分。</strong>
+      </div>
+      <strong>SQL 注入的縱深防禦</strong>：<u>即使被注入成功，<strong>最小權限帳號也做不到 DROP TABLE</strong>（第 82 題）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">95</span><span class="tag">設計</span>
+    <div class="stem">要在資料庫中表示「一個案件可有多個承辦人、一個承辦人可辦多個案件」，應如何設計？</div>
+    <ul class="opts">
+      <li>(A) 在案件表加多個承辦人欄位　(B) <strong>建立關聯表（案號, 承辦人代碼, 角色, 起訖日）</strong></li>
+      <li>(C) 用逗號分隔存在一個欄位　(D) 建多張表</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 多對多須以關聯表（junction table）表示</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ (C) 「逗號分隔存一個欄位」的六個問題</strong><br>
+      <u>①<strong>違反 1NF</strong> ②<strong>無法建立外鍵</strong> ③查詢要用 LIKE，<strong>用不到索引</strong> ④<strong>「A01」會誤配到「A012」</strong> ⑤無法統計每人的案件數 ⑥新增或移除一個人要重寫整個字串</u>
+      </div>
+      <strong>關聯表應包含的欄位</strong>：
+      <div class="table-wrap"><table>
+        <tr><td><strong>案號 ＋ 承辦人代碼</strong></td><td>複合主鍵（<u>或加代理鍵</u>）</td></tr>
+        <tr><td><strong>角色</strong></td><td>主辦／協辦／覆核——<strong>公務上非常重要</strong></td></tr>
+        <tr><td><strong>起訖日</strong></td><td><u><strong>職務調動時，要知道「當時是誰辦的」</strong></u></td></tr>
+        <tr><td><strong>指派依據</strong></td><td>分案規則或主管指定</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 加上「起訖日」是公務系統的關鍵差異</strong>：<u>一般系統只關心「現在誰負責」；<strong>公務系統必須能回答「三年前那件案子是誰辦的、誰核的」</strong>——因為那涉及課責與行政責任。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">96</span><span class="tag">設計</span>
+    <div class="stem">要儲存「彈性的申請表單欄位」（各類補助的欄位不同），最妥適的做法為何？</div>
+    <ul class="opts">
+      <li>(A) 一張大表放所有可能欄位　(B) <strong>核心欄位用固定表，變動欄位用 JSON 或屬性表，並維護欄位定義與驗證規則</strong></li>
+      <li>(C) 每種補助各建一張表　(D) 全部用文字欄位</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 混合設計</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方案</th><th>優點</th><th>缺點</th></tr>
+        <tr><td>(A) 大寬表</td><td>查詢簡單</td><td><u><strong>大量 NULL；每加一種補助就要改結構</strong></u></td></tr>
+        <tr><td>(C) 一類一表</td><td>結構清楚</td><td><strong>跨類統計極困難；表數量爆炸</strong></td></tr>
+        <tr><td><strong>(B) 混合</strong></td><td><strong>核心可查詢、變動部分有彈性</strong></td><td><u>JSON 內的欄位<strong>驗證要自己做</strong></u></td></tr>
+      </table></div>
+      <strong>核心固定欄位</strong>：<u>案號、申請人、申請日、補助類別、狀態、金額——<strong>這些是所有類別都有、且要跨類統計的</strong>。</u><br>
+      <strong>變動欄位</strong>：<u>各類別特有的資料，存成 JSON（<strong>現代資料庫可對 JSON 建索引</strong>）。</u><br><br>
+      <div class="warn">
+      <strong>⚠️ 但「彈性」的代價要看清楚</strong><br>
+      <u>①<strong>資料庫無法幫你檢查 JSON 內的資料型別與必填</strong>——要在應用層做<br>
+      ②<strong>欄位定義必須另外維護</strong>（欄位代碼、名稱、型別、驗證規則、生效日）<br>
+      ③<strong>沒有這份定義，日後沒有人知道 JSON 裡那些代碼是什麼意思</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">97</span><span class="tag">設計</span>
+    <div class="stem">要記錄「每一次金額異動」以便對帳，最妥適的模型為何？</div>
+    <ul class="opts">
+      <li>(A) 只存目前餘額　(B) <strong>採借貸式流水帳（每筆異動一列，餘額由累加得出或另存並可核對）</strong></li>
+      <li>(C) 每次覆蓋　(D) 存在日誌檔</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>欄位</th><th>說明</th></tr>
+        <tr><td><strong>異動序號</strong></td><td>單調遞增，<u>不可重複使用</u></td></tr>
+        <tr><td><strong>異動日期時間</strong></td><td>—</td></tr>
+        <tr><td><strong>異動金額</strong></td><td><strong>正負表示增減</strong></td></tr>
+        <tr><td><strong>異動後餘額</strong></td><td><u><strong>存起來，用於快速查詢與核對</strong></u></td></tr>
+        <tr><td><strong>異動原因與依據</strong></td><td><strong>公文字號、法規條次</strong></td></tr>
+        <tr><td><strong>經辦人與覆核人</strong></td><td>課責</td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 為何要「只增不改」（append-only）</strong><br>
+      <u>①<strong>任何時點的餘額都可重算</strong>——可驗證<br>
+      ②<strong>錯誤不用「改掉」，而是「沖銷再重開」</strong>——這是會計原則<br>
+      ③<strong>誰在什麼時候做了什麼，一清二楚</strong></u><br><br>
+      <strong>會計上絕不塗改，只做沖正分錄——資訊系統應遵循同樣的原則。</strong>
+      </div>
+      <strong>對帳機制</strong>：<u>定期驗證「<strong>異動金額累加 = 目前餘額</strong>」；<strong>不符即告警</strong>——這能及早發現程式錯誤或人為異動。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">98</span><span class="tag">設計</span>
+    <div class="stem">要設計「案件狀態機」，最妥適的做法為何？</div>
+    <ul class="opts">
+      <li>(A) 讓程式自由設定狀態　(B) <strong>明確定義合法的狀態與轉換規則，於資料庫或應用層強制檢查，並記錄每次轉換</strong></li>
+      <li>(C) 用文字欄位自由填寫　(D) 不限制</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <strong>狀態轉換表</strong>：
+      <div class="table-wrap"><table>
+        <tr><th>目前狀態</th><th>可轉換至</th><th>條件</th></tr>
+        <tr><td>收件</td><td>審查中、<strong>不受理</strong></td><td>形式要件</td></tr>
+        <tr><td>審查中</td><td><strong>補正中</strong>、核准、駁回</td><td>—</td></tr>
+        <tr><td>補正中</td><td>審查中、<strong>逾期未補正</strong></td><td><u>期限判斷</u></td></tr>
+        <tr><td>核准</td><td><strong>撤銷、廢止</strong></td><td><u><strong>須依行程法 117 / 123</strong></u></td></tr>
+        <tr><td>駁回</td><td><strong>訴願撤銷後重為處分</strong></td><td>—</td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 明確定義狀態機的三個好處</strong><br>
+      <u>①<strong>防止不合法的流程</strong>（如「駁回」直接跳到「核准」而沒有法定依據）<br>
+      ②<strong>每一個轉換都對應到一個法律行為</strong>——文件與通知的義務都能自動觸發<br>
+      ③<strong>統計各階段的停留時間</strong>，找出流程瓶頸</u>
+      </div>
+      <div class="warn"><strong>⚠️ 「核准 → 撤銷」不是一般的狀態變更</strong>：<u>它是<strong>一個新的行政處分</strong>，須有法定原因、記明理由、送達，並審酌信賴保護——<strong>系統不能設計成「主管按一下就改狀態」</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">99</span><span class="tag">綜合</span>
+    <div class="stem">下列關於「資料庫綱要變更（migration）」的敘述，何者<strong>最為妥適</strong>？</div>
+    <ul class="opts">
+      <li>(A) 直接在正式環境修改　(B) <strong>以版本化的變更腳本管理、可前滾、於測試環境驗證、變更前備份，並考慮大表變更的鎖定影響</strong></li>
+      <li>(C) 由廠商口頭說明即可　(D) 不需紀錄</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>要點</th><th>說明</th></tr>
+        <tr><td><strong>版本化腳本</strong></td><td><u>納入版控，<strong>每個環境都跑同一套</strong></u></td></tr>
+        <tr><td><strong>可前滾優於可回滾</strong></td><td><u>資料已寫入後常無法真正回滾——<strong>準備「修正的下一版」更實際</strong></u></td></tr>
+        <tr><td><strong>測試環境驗證</strong></td><td><strong>用接近正式的資料量測試執行時間</strong></td></tr>
+        <tr><td><strong>大表變更的鎖定</strong></td><td><u>加欄位可能<strong>鎖住整張表數分鐘</strong>——要評估影響</u></td></tr>
+        <tr><td><strong>向後相容</strong></td><td><strong>先加欄位 → 部署新程式 → 再移除舊欄位</strong>（分階段）</td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 「擴充—收縮」模式（expand-contract）</strong><br>
+      <u>① <strong>擴充</strong>：新增欄位，新舊程式都能運作<br>
+      ② <strong>遷移</strong>：把資料補到新欄位<br>
+      ③ <strong>切換</strong>：部署只用新欄位的程式<br>
+      ④ <strong>收縮</strong>：確認無誤後才移除舊欄位</u><br><br>
+      <strong>這讓「資料庫變更」與「程式部署」可以分開，不必同時上線——大幅降低風險。</strong>
+      </div>
+      <strong>公務系統特別提醒</strong>：<u><strong>移除欄位前務必確認沒有報表或介接程式在用</strong>——它們常常不在同一個版控裡。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">100</span><span class="tag">綜合 · 小結</span>
+    <div class="stem">下列關於「資料庫設計」的敘述，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 業務規則應盡量以資料庫約束強制　(B) 反正規化須有一致性維護機制</li>
+      <li>(C) 主鍵宜採用無業務意義的代理鍵　(D) <strong>為求彈性，狀態欄位宜設為自由文字，由程式自行約定</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ 自由文字的狀態欄位一定會出事</strong><br>
+      <u>「核准」「核准 」「已核准」「核 准」「approved」——<strong>統計時全部算成不同的狀態</strong>。</u><br>
+      <strong>應使用代碼表 ＋ 外鍵約束，或至少用 CHECK 約束限制值域。</strong>
+      </div>
+      <strong>📋 資料庫設計十誡</strong>
+      <div class="table-wrap"><table>
+        <tr><td><strong>① 先做到 3NF，再談反正規化</strong></td></tr>
+        <tr><td><strong>② 主鍵用代理鍵，不用個資</strong></td></tr>
+        <tr><td><strong>③ 業務規則寫成資料庫約束</strong>（<u>程式可以繞過，資料庫不行</u>）</td></tr>
+        <tr><td><strong>④ 金額用定點數，日期用日期型別</strong></td></tr>
+        <tr><td><strong>⑤ 狀態用代碼，不用自由文字</strong></td></tr>
+        <tr><td><strong>⑥ 多對多用關聯表，且加上起訖日</strong></td></tr>
+        <tr><td><strong>⑦ 保留歷史：時態欄位或事件表</strong></td></tr>
+        <tr><td><strong>⑧ 一律參數化查詢</strong></td></tr>
+        <tr><td><strong>⑨ 最小權限帳號，用途分開</strong></td></tr>
+        <tr><td><strong>⑩ 有備份不算數，能還原才算</strong></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="card"><h3>G. SQL 實戰與查詢優化（第 101～150 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">這一區練的是<strong>「看到需求，能寫出正確且不會拖垮系統的 SQL」</strong>。高考三級的申論常要求<strong>寫出查詢並說明索引策略</strong>——這一區就是為此準備。</p>
+  </div>
+
+  <div class="q"><span class="no">101</span><span class="tag">SQL</span>
+    <div class="stem"><code>UNION</code> 與 <code>UNION ALL</code> 的差異為何？</div>
+    <ul class="opts">
+      <li>(A) 無差異　(B) <strong>UNION 會去除重複列（須排序或雜湊），UNION ALL 直接串接、較快</strong></li>
+      <li>(C) UNION ALL 會去重　(D) UNION 較快</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>UNION</th><th>UNION ALL</th></tr>
+        <tr><td>去重</td><td><strong>會</strong></td><td><strong>不會</strong></td></tr>
+        <tr><td>成本</td><td><u>要排序或雜湊 → <strong>較慢</strong></u></td><td><strong>直接串接 → 快</strong></td></tr>
+        <tr><td>使用時機</td><td>確實可能重複且不想要重複</td><td><u><strong>確定不會重複時應優先使用</strong></u></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 常見浪費：明知不會重複卻寫 UNION</strong><br><u>例如「今年的案件 UNION 去年的案件」——<strong>年度不同就不可能重複</strong>，卻付出了去重的排序成本。</u><br><strong>資料量大時，這個差異可能是好幾倍。</strong></div>
+      <strong>注意</strong>：<u>UNION 的去重是<strong>比較「整列」</strong>——只要有一個欄位不同就算不同列。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">102</span><span class="tag">SQL</span>
+    <div class="stem">要計算「每月案件量」並補上沒有案件的月份（顯示 0），最適當的做法為何？</div>
+    <ul class="opts">
+      <li>(A) GROUP BY 即可　(B) <strong>先產生完整的月份清單（日曆表或遞迴 CTE），再 LEFT JOIN 案件統計</strong></li>
+      <li>(C) 在程式中補　(D) 無法做到</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ 為何 GROUP BY 不夠</strong><br>
+      <u><code>GROUP BY 月份</code> <strong>只會產生「有資料的月份」</strong>——<strong>沒有案件的月份會直接消失</strong>。</u><br>
+      <strong>報表上就會看到「1 月、2 月、4 月」——讀報表的人可能以為是列印錯誤，也可能誤以為 3 月不必統計。</strong>
+      </div>
+      <strong>正確做法</strong>：
+      <pre><span class="k">WITH</span> 月份 <span class="k">AS</span> (<span class="c">-- 遞迴 CTE 或事先建好的日曆表</span>
+  <span class="k">SELECT</span> ...
+)
+<span class="k">SELECT</span> 月份.年月, <span class="k">COALESCE</span>(<span class="k">COUNT</span>(案件.案號), 0) <span class="k">AS</span> 件數
+<span class="k">FROM</span> 月份 <span class="k">LEFT JOIN</span> 案件 <span class="k">ON</span> ...
+<span class="k">GROUP BY</span> 月份.年月 <span class="k">ORDER BY</span> 月份.年月;</pre>
+      <div class="hl"><strong>💡 建議建一張「日曆表」</strong>：<u>欄位含日期、年、月、季、<strong>是否為工作日、是否為國定假日</strong>。</u><br><strong>這張表同時解決了「期限計算的假日順延」（第 212 題）與「報表補零」兩個問題——一舉兩得。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">103</span><span class="tag">SQL</span>
+    <div class="stem"><code>EXISTS</code> 與 <code>IN</code> 在效能上的一般差異為何？</div>
+    <ul class="opts">
+      <li>(A) EXISTS 恆較快　(B) <strong>現代優化器多能自行轉換，兩者常相近；但 EXISTS 在子查詢結果大時通常較穩，且不受 NULL 影響</strong></li>
+      <li>(C) IN 恆較快　(D) 兩者不可互換</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>IN</th><th>EXISTS</th></tr>
+        <tr><td>語意</td><td>值在集合中</td><td><u><strong>存在符合條件的列</strong></u></td></tr>
+        <tr><td><strong>NULL 影響</strong></td><td><u><strong>NOT IN 會被 NULL 破壞</strong></u></td><td><strong>不受影響</strong></td></tr>
+        <tr><td>短路</td><td>—</td><td><u><strong>找到第一筆就停</strong></u></td></tr>
+        <tr><td>子查詢結果小</td><td>常較有利</td><td>相近</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 實務建議：預設用 EXISTS</strong><br><u>因為它<strong>語意最清楚</strong>（「有沒有符合的」）、<strong>不受 NULL 陷阱影響</strong>，而且效能通常不差。</u><br><strong>真正的判準永遠是看執行計畫，不是背口訣。</strong></div>
+      <strong>常見誤用</strong>：<u><code>EXISTS (SELECT COUNT(*) ...) &gt; 0</code>——<strong>這會強迫算完全部；直接用 EXISTS 即可</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">104</span><span class="tag">SQL</span>
+    <div class="stem">CTE（<code>WITH</code> 子句）的主要價值為何？</div>
+    <ul class="opts">
+      <li>(A) 一定比子查詢快　(B) <strong>提升可讀性、可重複引用、並支援遞迴查詢</strong>　(C) 自動建立索引　(D) 節省空間</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>價值</th><th>說明</th></tr>
+        <tr><td><strong>可讀性</strong></td><td><u>把複雜查詢<strong>拆成有名字的步驟</strong>，由上而下閱讀</u></td></tr>
+        <tr><td><strong>可重複引用</strong></td><td>同一個 CTE 可在後面用多次</td></tr>
+        <tr><td><strong>遞迴查詢</strong></td><td><strong>處理階層資料</strong>（組織架構、上下級單位）</td></tr>
+      </table></div>
+      <strong>遞迴 CTE 範例（查某單位的所有下級）</strong>：
+      <pre><span class="k">WITH RECURSIVE</span> 下級 <span class="k">AS</span> (
+  <span class="k">SELECT</span> 代碼, 名稱, 上級代碼 <span class="k">FROM</span> 單位 <span class="k">WHERE</span> 代碼 = ?
+  <span class="k">UNION ALL</span>
+  <span class="k">SELECT</span> u.代碼, u.名稱, u.上級代碼
+  <span class="k">FROM</span> 單位 u <span class="k">JOIN</span> 下級 d <span class="k">ON</span> u.上級代碼 = d.代碼
+)
+<span class="k">SELECT</span> * <span class="k">FROM</span> 下級;</pre>
+      <div class="warn"><strong>⚠️ 遞迴 CTE 必須防無窮迴圈</strong>：<u>若組織資料有<strong>環</strong>（A 的上級是 B，B 的上級是 A——<strong>資料錯誤時真的會發生</strong>），遞迴會跑不完。</u><br><strong>應設定遞迴層數上限，並定期檢查階層資料是否有環（第 138 題）。</strong></div>
+      <strong>效能提醒</strong>：<u>部分資料庫會將 CTE <strong>物化</strong>（先算出結果存暫存），此時<strong>可能比直接寫子查詢慢</strong>——仍以執行計畫為準。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">105</span><span class="tag">SQL</span>
+    <div class="stem">要把「多列合併成一個字串」（如把某案的所有承辦人合成一欄），應使用？</div>
+    <ul class="opts">
+      <li>(A) CONCAT　(B) <strong>字串聚合函數（STRING_AGG / GROUP_CONCAT / LISTAGG）</strong>　(C) UNION　(D) JOIN</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>資料庫</th><th>函數</th></tr>
+        <tr><td>PostgreSQL / SQL Server</td><td><strong>STRING_AGG</strong></td></tr>
+        <tr><td>MySQL</td><td><strong>GROUP_CONCAT</strong></td></tr>
+        <tr><td>Oracle</td><td><strong>LISTAGG</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 三個注意事項</strong><br>
+      <u>①<strong>長度上限</strong>——MySQL 的 GROUP_CONCAT 預設只到 1024 字元，<strong>超過會靜默截斷</strong><br>
+      ②<strong>要指定排序</strong>——否則順序不確定，報表每次跑出來可能不一樣<br>
+      ③<strong>結果只適合「呈現」，不適合「儲存」</strong>——存回資料庫就變成第 95 題的逗號分隔反模式</u>
+      </div>
+      <strong>公務應用</strong>：<u>核定函上要列出「本案協辦單位：財政局、社會局、教育局」——<strong>用字串聚合產生，但底層仍是正規化的關聯表</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">106</span><span class="tag">SQL</span>
+    <div class="stem">要判斷「某案件是否在指定期間內」，日期條件應如何寫最為妥當？</div>
+    <ul class="opts">
+      <li>(A) <code>WHERE DATE(建立時間) BETWEEN '2026-01-01' AND '2026-01-31'</code></li>
+      <li>(B) <strong><code>WHERE 建立時間 &gt;= '2026-01-01' AND 建立時間 &lt; '2026-02-01'</code></strong></li>
+      <li>(C) <code>WHERE YEAR(建立時間)=2026 AND MONTH(建立時間)=1</code>　(D) 三者相同</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>寫法</th><th>問題</th></tr>
+        <tr><td>(A) DATE() 包住欄位</td><td><u><strong>用不到索引</strong>；且 BETWEEN 對 datetime 會<strong>漏掉 1/31 當天有時間的資料</strong></u></td></tr>
+        <tr><td>(C) YEAR()/MONTH()</td><td><strong>用不到索引</strong></td></tr>
+        <tr><td><strong>(B) 半開區間</strong></td><td><strong>可用索引；且邊界正確</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 為何 BETWEEN 對「日期時間」欄位危險</strong><br>
+      <u><code>BETWEEN '2026-01-01' AND '2026-01-31'</code> 實際上是 <code>&lt;= '2026-01-31 00:00:00'</code>——<strong>1 月 31 日整天的資料只有午夜那一瞬間被算進去</strong>。</u><br><br>
+      <strong>結果：整月統計少算了一天。而且這種錯誤不會報錯，只會讓數字悄悄變小。</strong>
+      </div>
+      <div class="hl"><strong>💡 養成用「半開區間」的習慣</strong>：<u><strong><code>&gt;= 起 AND &lt; 迄的次日</code></strong>——這個寫法對日期與日期時間<strong>都正確</strong>，而且能用索引。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">107</span><span class="tag">SQL</span>
+    <div class="stem">要「新增資料；若已存在則更新」，SQL 標準的做法為何？</div>
+    <ul class="opts">
+      <li>(A) 先 SELECT 再決定　(B) <strong>MERGE 或各資料庫的 UPSERT 語法（ON CONFLICT / ON DUPLICATE KEY）</strong></li>
+      <li>(C) 只能用 INSERT　(D) 只能用 UPDATE</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>資料庫</th><th>語法</th></tr>
+        <tr><td>標準 SQL / Oracle / SQL Server</td><td><strong>MERGE</strong></td></tr>
+        <tr><td>PostgreSQL / SQLite</td><td><strong>INSERT ... ON CONFLICT DO UPDATE</strong></td></tr>
+        <tr><td>MySQL</td><td><strong>INSERT ... ON DUPLICATE KEY UPDATE</strong></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 為何不用「先 SELECT 再決定」</strong>：<u>兩個併發請求可能<strong>都查到「不存在」，於是都 INSERT</strong>——競爭條件（第 202 題）。</u><br><strong>UPSERT 由資料庫原子性地完成，不可能有這個空隙。</strong></div>
+      <div class="warn">
+      <strong>⚠️ 但公務系統要先問：「更新」是對的行為嗎？</strong><br>
+      <u>資料介接時<strong>直接覆蓋舊值，等於抹掉了歷史</strong>。</u><br><br>
+      <strong>更妥適的做法：<u>①比對有無差異 ②有差異則「舊資料標記為失效 + 新增一筆」 ③保留兩者與異動時間</u>——這樣才能回答「三年前這筆資料是什麼」。</strong>
+      </div>
+      <strong>前提</strong>：<u>UPSERT 需要<strong>唯一約束或主鍵</strong>才能判斷「已存在」。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">108</span><span class="tag">SQL</span>
+    <div class="stem">要刪除 500 萬筆舊資料，直接 <code>DELETE</code> 可能造成什麼問題？</div>
+    <ul class="opts">
+      <li>(A) 沒有問題　(B) <strong>交易日誌暴增、長時間鎖定、複製延遲；宜分批刪除或改用分區交換</strong></li>
+      <li>(C) 資料無法刪除　(D) 需重建資料庫</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>做法</th><th>說明</th></tr>
+        <tr><td><strong>分批刪除</strong></td><td><u>每次刪 1 萬筆並 commit，<strong>中間稍作停頓</strong></u></td></tr>
+        <tr><td><strong>分區交換</strong></td><td><u>若依日期分區，<strong>直接卸除整個分區——幾乎瞬間完成</strong></u></td></tr>
+        <tr><td><strong>建新表再換名</strong></td><td>若保留的比刪除的少，<strong>複製要保留的到新表更快</strong></td></tr>
+        <tr><td>TRUNCATE</td><td><u><strong>只能整表清空</strong>，且通常無法回滾</u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 但公務系統刪資料前，必須先確認三件事</strong><br>
+      <u>①<strong>檔案法的保存年限到了嗎？</strong>（<strong>未達保存年限而銷毀，可能涉及刑責</strong>）<br>
+      ②<strong>有無正在進行的訴願或訴訟？</strong>（<strong>爭訟中的案件資料絕不可銷毀</strong>）<br>
+      ③<strong>銷毀是否需經核准並作成紀錄？</strong>（檔案法規定的銷毀程序）</u><br><br>
+      <strong>資訊單位不得自行決定刪除業務資料——必須有業務單位的簽核與法定依據。</strong>
+      </div>
+      <strong>對應</strong>：<u><a href="../05-common/law-bank.html">法學第 568 題</a>（個資刪除請求 vs 檔案保存義務）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">109</span><span class="tag">SQL</span>
+    <div class="stem">「分區（partitioning）」對大表的主要效益為何？</div>
+    <ul class="opts">
+      <li>(A) 減少儲存空間　(B) <strong>查詢可略過不相關的分區、維護作業可針對單一分區、歷史資料可整批卸除</strong></li>
+      <li>(C) 提升寫入一致性　(D) 取代索引</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>效益</th><th>說明</th></tr>
+        <tr><td><strong>分區裁剪</strong></td><td><u>查 2026 年的資料 → <strong>完全不碰其他年度的分區</strong></u></td></tr>
+        <tr><td><strong>維護獨立</strong></td><td>可只重建或備份某一個分區</td></tr>
+        <tr><td><strong>快速清理</strong></td><td><strong>卸除整個分區，比 DELETE 快上千倍</strong></td></tr>
+        <tr><td><strong>分層儲存</strong></td><td><u>舊分區可移到<strong>較便宜的儲存</strong></u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 分區鍵選錯就沒有效果</strong><br>
+      <u>若依「年度」分區，但查詢條件是「承辦人」——<strong>還是要掃過所有分區</strong>。</u><br>
+      <strong>分區鍵必須是查詢中最常出現的過濾條件。</strong>
+      </div>
+      <strong>公務系統的典型設計</strong>：<u>案件表<strong>依「受理年度」分區</strong>——因為①查詢多帶年度 ②統計以年度為單位 ③<strong>保存年限也以年度計算，屆期整個分區卸除</strong>。</u><br>
+      <strong>常見誤解</strong>：<u>分區<strong>不是</strong>索引的替代品——兩者是互補的。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">110</span><span class="tag">SQL · 小結</span>
+    <div class="stem">下列 SQL 撰寫習慣，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 日期範圍用半開區間　(B) 一律使用參數化查詢</li>
+      <li>(C) 不確定欄位有無 NULL 時改用 NOT EXISTS　(D) <strong>為求方便，正式報表一律用 SELECT *</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ SELECT * 的五個問題</strong><br>
+      <u>①<strong>取回不需要的欄位 → I/O 浪費、無法使用涵蓋索引</strong><br>
+      ②<strong>資料表加欄位時，報表格式會突然改變</strong><br>
+      ③<strong>可能不小心把個資欄位帶出去</strong><br>
+      ④JOIN 時<strong>欄位名稱衝突</strong><br>
+      ⑤<strong>看不出這個查詢到底需要什麼</strong>——維護困難</u>
+      </div>
+      <strong>📋 SQL 撰寫檢查清單</strong>
+      <div class="table-wrap"><table>
+        <tr><td><strong>① 明確列出欄位，不用 SELECT *</strong></td></tr>
+        <tr><td><strong>② 參數化查詢，不用字串串接</strong></td></tr>
+        <tr><td><strong>③ 日期用半開區間，欄位不要被函數包住</strong></td></tr>
+        <tr><td><strong>④ NOT IN 改用 NOT EXISTS</strong></td></tr>
+        <tr><td><strong>⑤ 外連接的條件要放對位置（ON vs WHERE）</strong></td></tr>
+        <tr><td><strong>⑥ 能寫 WHERE 就不要寫 HAVING</strong></td></tr>
+        <tr><td><strong>⑦ 大量 DELETE / UPDATE 要分批</strong></td></tr>
+        <tr><td><strong>⑧ 執行前先跑 SELECT 確認影響筆數</strong></td></tr>
+        <tr><td><strong>⑨ 上線前看執行計畫</strong></td></tr>
+        <tr><td><strong>⑩ 統計報表要處理「沒有資料的分組」</strong></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">111</span><span class="tag">優化</span>
+    <div class="stem">執行計畫中的「Nested Loop Join」在何種情形下最有效率？</div>
+    <ul class="opts">
+      <li>(A) 兩表都很大　(B) <strong>外表結果集小，且內表在連接欄位上有索引</strong>　(C) 無索引時　(D) 需要排序時</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>連接方式</th><th>原理</th><th>最適用</th></tr>
+        <tr><td><strong>Nested Loop</strong></td><td><u>外表每一列，去內表查一次</u></td><td><strong>外表小 ＋ 內表有索引</strong></td></tr>
+        <tr><td><strong>Hash Join</strong></td><td><strong>把小表建成雜湊表，再掃大表比對</strong></td><td><u><strong>大表對大表、等值連接</strong></u></td></tr>
+        <tr><td><strong>Merge Join</strong></td><td><strong>兩邊都排序後同時走訪</strong></td><td>兩邊<u>已排序或有排序索引</u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 效能問題最常見的成因：優化器選錯連接方式</strong><br>
+      <u>當<strong>統計資訊過期</strong>時，優化器以為某表只有 100 列（實際上有 100 萬列），於是選了 Nested Loop——<strong>結果變成 100 萬次索引查詢</strong>。</u><br><br>
+      <strong>對策：定期更新統計資訊（ANALYZE / UPDATE STATISTICS）——這是最常被忽略卻最有效的調校動作。</strong>
+      </div>
+      <strong>診斷要點</strong>：<u>看執行計畫時，<strong>比對「預估列數」與「實際列數」</strong>——差距很大就是統計資訊有問題。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">112</span><span class="tag">優化</span>
+    <div class="stem">同一支 SQL 平常很快，偶爾極慢。最可能的原因為何？</div>
+    <ul class="opts">
+      <li>(A) 網路不穩　(B) <strong>參數不同導致執行計畫不適用（參數探測問題）、鎖等待，或快取未命中</strong></li>
+      <li>(C) SQL 寫錯　(D) 資料庫版本問題</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>原因</th><th>說明</th><th>對策</th></tr>
+        <tr><td><strong>參數探測</strong></td><td><u>用「台北市」編譯出的計畫，<strong>套到「連江縣」時就不合適</strong></u></td><td>依情況<strong>重新編譯</strong>或分開寫</td></tr>
+        <tr><td><strong>鎖等待</strong></td><td><strong>被其他長交易卡住</strong></td><td>縮短交易</td></tr>
+        <tr><td><strong>快取未命中</strong></td><td><u>資料不在記憶體 → <strong>要讀硬碟</strong></u></td><td>增加緩衝區</td></tr>
+        <tr><td><strong>統計資訊剛更新</strong></td><td>計畫被重新編譯</td><td>—</td></tr>
+        <tr><td><strong>同時有大型批次在跑</strong></td><td>資源競爭</td><td><strong>錯開時段</strong></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 「參數探測」的公務實例</strong><br>
+      <u>查詢「某縣市的案件」——<strong>台北市有 50 萬筆（該用全表掃描），連江縣只有 200 筆（該用索引）</strong>。</u><br>
+      <strong>資料庫只會為第一次執行的參數編譯一套計畫，之後重複使用——於是另一種情況就會很慢。</strong>
+      </div>
+      <strong>診斷方法</strong>：<u><strong>記錄慢查詢日誌，並記下當時的參數值</strong>——只看 SQL 文字看不出問題。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">113</span><span class="tag">優化</span>
+    <div class="stem">「索引重建」的主要目的為何？</div>
+    <ul class="opts">
+      <li>(A) 增加索引數量　(B) <strong>降低因大量增刪造成的碎片化，恢復索引的緊密度與效率</strong></li>
+      <li>(C) 修改索引欄位　(D) 沒有必要</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>作業</th><th>說明</th><th>影響</th></tr>
+        <tr><td><strong>重組（reorganize）</strong></td><td>整理葉節點順序</td><td><u>線上進行，<strong>影響較小</strong></u></td></tr>
+        <tr><td><strong>重建（rebuild）</strong></td><td><strong>整個重做</strong></td><td><u><strong>可能鎖表</strong>；部分資料庫支援線上重建</u></td></tr>
+        <tr><td><strong>更新統計資訊</strong></td><td>讓優化器有正確的資料分布</td><td><strong>成本低、效益高</strong></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 優先順序：先更新統計資訊，再考慮重建索引</strong><br><u>因為<strong>「統計資訊過期」造成的效能問題，遠比「索引碎片」常見</strong>，而且更新統計的成本低得多。</u></div>
+      <div class="warn"><strong>⚠️ 維護作業必須安排在離峰時段</strong>：<u>索引重建<strong>耗用大量 I/O 與 CPU</strong>，且可能鎖表——<strong>白天執行等於自製一次服務中斷</strong>。</u><br><strong>且應事先公告可能的影響，並確認備份完成。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">114</span><span class="tag">優化</span>
+    <div class="stem">要判斷「該加哪些索引」，最可靠的依據為何？</div>
+    <ul class="opts">
+      <li>(A) 憑經驗　(B) <strong>從慢查詢日誌與實際的查詢頻率統計出發，逐一檢視執行計畫</strong></li>
+      <li>(C) 每個欄位都加　(D) 依廠商建議</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>步驟</th><th>做法</th></tr>
+        <tr><td>① <strong>收集</strong></td><td><u>開啟慢查詢日誌；統計<strong>「總耗時 = 單次耗時 × 執行次數」</strong></u></td></tr>
+        <tr><td>② <strong>排序</strong></td><td><strong>依總耗時排序，先處理影響最大的</strong></td></tr>
+        <tr><td>③ <strong>分析</strong></td><td>看執行計畫，找出為何慢</td></tr>
+        <tr><td>④ <strong>改善</strong></td><td><strong>先改寫查詢，必要時才加索引</strong></td></tr>
+        <tr><td>⑤ <strong>驗證</strong></td><td>再看執行計畫與實際耗時</td></tr>
+        <tr><td>⑥ <strong>檢視未使用的索引</strong></td><td><u><strong>刪掉沒人用的索引</strong>——它們只是負擔</u></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 關鍵：優化「總耗時」而非「單次耗時」</strong><br>
+      <u>一支跑 10 秒但一天只跑 1 次的查詢 → 總計 10 秒<br>
+      一支跑 0.1 秒但一天跑 100 萬次的查詢 → <strong>總計 27 小時</strong></u><br><br>
+      <strong>後者才是真正的瓶頸——但它在慢查詢日誌裡可能根本不會出現。</strong>
+      </div>
+      <strong>對應</strong>：<u>與效能診斷的原則一致（<a href="../02-junior/computer-bank.html">計概第 107 題</a>）——<strong>先量測，再優化</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">115</span><span class="tag">優化</span>
+    <div class="stem">連線池（connection pool）設定過大，可能造成什麼問題？</div>
+    <ul class="opts">
+      <li>(A) 效能一定更好　(B) <strong>資料庫端資源競爭加劇、記憶體耗用增加，整體吞吐反而下降</strong></li>
+      <li>(C) 沒有影響　(D) 連線失敗</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="hl">
+      <strong>💡 連線數不是越多越好</strong><br>
+      <u>每個連線在資料庫端都要<strong>配置記憶體、參與鎖的協調、佔用一個處理程序或執行緒</strong>。</u><br>
+      <strong>當連線數遠超過 CPU 核心數，大家只是在互相排隊與競爭——總吞吐量反而下降。</strong>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>經驗法則</th><th>說明</th></tr>
+        <tr><td><strong>連線數 ≈ 核心數 × 2 ＋ 有效磁碟數</strong></td><td><u>常見的起始估算</u></td></tr>
+        <tr><td><strong>依實測調整</strong></td><td><strong>逐步增加並觀察吞吐量與 p99</strong></td></tr>
+        <tr><td><strong>分池</strong></td><td><u>交易用一池、報表用另一池——<strong>避免報表吃光連線</strong></u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 連線池滿了的真正原因通常不是「池太小」</strong><br>
+      <u>而是：<strong>①交易太長（含外部呼叫，第 90 題）②連線用完沒有歸還（洩漏）③有慢查詢卡住</strong>。</u><br><br>
+      <strong>盲目調大連線池，只是把問題往後延——而且讓資料庫更容易被打垮。</strong>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">116</span><span class="tag">優化</span>
+    <div class="stem">下列關於「預存程序（stored procedure）」的敘述，何者<strong>最為妥適</strong>？</div>
+    <ul class="opts">
+      <li>(A) 一律應使用　(B) <strong>可減少往返並集中資料邏輯，但業務邏輯過度集中於資料庫會增加測試與版控的難度</strong></li>
+      <li>(C) 一律不應使用　(D) 可完全防止 SQL 注入</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>優點</th><th>缺點</th></tr>
+        <tr><td><strong>減少網路往返</strong>（批次處理特別明顯）</td><td><u><strong>難以納入版本控制與自動化測試</strong></u></td></tr>
+        <tr><td>資料邏輯集中</td><td><strong>不同資料庫的語法不相容 → 遷移困難</strong></td></tr>
+        <tr><td>可精細授權</td><td><u><strong>除錯工具較弱</strong></u></td></tr>
+        <tr><td>可避免大量資料傳輸</td><td>邏輯分散在兩處（<u>程式與資料庫</u>）反而更難理解</td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 適合放進預存程序的：資料密集的批次處理</strong><br>
+      <u>「掃描 100 萬筆計算後更新」——<strong>放在資料庫裡做，比把資料撈出來算完再寫回去快得多</strong>。</u><br><br>
+      <strong>不適合的：複雜的業務規則判斷——那些應該在應用層，才能寫單元測試。</strong>
+      </div>
+      <div class="warn"><strong>⚠️ 預存程序不保證防注入</strong>：<u>若程序內用<strong>動態 SQL 字串串接</strong>，一樣會被注入（第 82 題）。</u></div>
+      <strong>版控建議</strong>：<u>把預存程序的原始碼<strong>納入版控與部署腳本</strong>——不要只存在資料庫裡。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">117</span><span class="tag">優化</span>
+    <div class="stem">要提升「大量寫入」的效能，下列何者<strong>最有效</strong>？</div>
+    <ul class="opts">
+      <li>(A) 逐筆 INSERT 並各自 commit　(B) <strong>批次 INSERT、適度加大交易範圍、匯入期間暫時停用非必要索引</strong></li>
+      <li>(C) 增加索引　(D) 提高隔離級別</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>手法</th><th>效果</th></tr>
+        <tr><td><strong>批次 INSERT</strong></td><td><u>一次送多列，<strong>大幅減少往返</strong></u></td></tr>
+        <tr><td><strong>適度加大交易</strong></td><td><strong>每筆各 commit 一次，每次都要等日誌落盤——極慢</strong></td></tr>
+        <tr><td><strong>暫停非必要索引</strong></td><td><u>匯入後再一次建立，<strong>比逐筆維護快</strong></u></td></tr>
+        <tr><td><strong>專用匯入工具</strong></td><td>如 <code>COPY</code>、<code>bcp</code>、<code>SQL*Loader</code></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 「適度」加大交易——不是越大越好</strong><br>
+      <u>單一交易包含 500 萬筆的問題：<strong>①日誌暴增 ②鎖住大量資料 ③失敗時要全部回滾（回滾可能比執行還久）</strong>。</u><br><br>
+      <strong>實務上：每 1000～10000 筆 commit 一次，是常見的折衷。</strong>
+      </div>
+      <strong>公務提醒</strong>：<u>資料匯入必須<strong>逐筆記錄成功與失敗</strong>，且<strong>失敗不影響其他筆</strong>（第 215 題）——這與「純追求速度」要取得平衡。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">118</span><span class="tag">優化</span>
+    <div class="stem">下列關於「資料庫的統計資訊」的敘述，何者正確？</div>
+    <ul class="opts">
+      <li>(A) 與效能無關　(B) <strong>優化器依其估算成本以選擇執行計畫；過期的統計資訊是效能問題的常見成因</strong></li>
+      <li>(C) 由使用者手動輸入　(D) 只在建立索引時使用</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <strong>統計資訊包含</strong>：<u>各欄位的<strong>不重複值數量、資料分布直方圖、NULL 比例、平均欄位長度、表的列數與頁數</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>統計過期的典型症狀</th></tr>
+        <tr><td><u>執行計畫中<strong>「預估列數」與「實際列數」差距數十倍以上</strong></u></td></tr>
+        <tr><td><strong>大量匯入或刪除之後，查詢突然變很慢</strong></td></tr>
+        <tr><td>優化器選了不合理的連接方式或索引</td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 何時應手動更新統計</strong><br>
+      <u>①<strong>大量資料匯入或刪除之後</strong>（自動更新的門檻可能還沒到）<br>
+      ②<strong>建立新索引之後</strong><br>
+      ③<strong>資料分布特性改變時</strong>（例如新的一年開始，年度欄位的分布變了）</u>
+      </div>
+      <strong>公務系統的常見情境</strong>：<u>年度切換或<strong>大批次核定完成後</strong>，資料分布劇烈改變——<strong>此時應主動更新統計，否則隔天上班就會接到「系統很慢」的電話</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">119</span><span class="tag">優化</span>
+    <div class="stem">要監控資料庫的健康狀況，下列何者<strong>最應優先</strong>納入監控？</div>
+    <ul class="opts">
+      <li>(A) 只監控 CPU　(B) <strong>連線數、鎖等待、慢查詢、複製延遲、儲存空間、備份成功與否</strong></li>
+      <li>(C) 只監控磁碟空間　(D) 不需監控</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>指標</th><th>為何重要</th></tr>
+        <tr><td><strong>連線數</strong></td><td><u>接近上限就是<strong>全系統癱瘓的前兆</strong></u></td></tr>
+        <tr><td><strong>鎖等待與死結次數</strong></td><td>反映交易設計的問題</td></tr>
+        <tr><td><strong>慢查詢數量與總耗時</strong></td><td><strong>持續惡化代表資料量成長超出設計</strong></td></tr>
+        <tr><td><strong>複製延遲</strong></td><td><u>超過門檻要<strong>切回主庫</strong>（第 225 題）</u></td></tr>
+        <tr><td><strong>儲存空間</strong></td><td><u><strong>寫滿 = 全面停擺</strong>；且需<strong>預測何時會滿</strong></u></td></tr>
+        <tr><td><strong>備份成功與否</strong></td><td><strong>「應發生而未發生」也要告警</strong>（第 263 題）</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 監控的目的是「在使用者發現之前先發現」</strong><br><u>所以要設<strong>「趨勢告警」而非只有「門檻告警」</strong>：<strong>「磁碟已滿」太晚了，「依目前成長速度 14 天後會滿」才有用</strong>。</u></div>
+      <strong>對應</strong>：<u><a href="../01-senior3/mis-bank.html">資訊管理第 50 題</a>、<a href="../01-senior3/net-bank.html">網路第 61 題</a>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">120</span><span class="tag">優化 · 小結</span>
+    <div class="stem">下列關於「資料庫效能調校」的敘述，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 應優先改善總耗時最高的查詢　(B) 統計資訊過期是常見成因</li>
+      <li>(C) 連線池並非越大越好　(D) <strong>只要多加索引，查詢效能必然改善</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <strong>📋 資料庫調校的正確順序</strong>
+      <div class="table-wrap"><table>
+        <tr><th>順序</th><th>動作</th><th>成本效益</th></tr>
+        <tr><td>①</td><td><strong>更新統計資訊</strong></td><td><u><strong>最高</strong>（幾乎免費）</u></td></tr>
+        <tr><td>②</td><td><strong>改寫有問題的查詢</strong></td><td><strong>很高</strong>（<u>函數包欄位、SELECT *、N+1</u>）</td></tr>
+        <tr><td>③</td><td><strong>補上缺少的索引</strong></td><td>高（<u>但有寫入成本</u>）</td></tr>
+        <tr><td>④</td><td><strong>刪除沒用到的索引</strong></td><td><u>常被忽略，<strong>但能明顯改善寫入</strong></u></td></tr>
+        <tr><td>⑤</td><td>調整參數（緩衝區、連線池）</td><td>中</td></tr>
+        <tr><td>⑥</td><td>架構調整（讀寫分離、分區、快取）</td><td><u>高，<strong>但複雜度也高</strong></u></td></tr>
+        <tr><td>⑦</td><td>增加硬體</td><td><strong>最低</strong>（<u>常只是把問題往後延</u>）</td></tr>
+      </table></div>
+      <div class="frame">
+        <span class="t">🎯 申論寫法</span>
+        <strong>被問到「系統變慢怎麼辦」，不要一開始就講技術手段。</strong><br>
+        <strong>先寫：「應先<u>量測與定位</u>，確認瓶頸所在，再對症下藥」——然後才按上表的順序展開。</strong><br><br>
+        <u><strong>「先診斷、再處方」——這個順序本身就是分數。</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">121</span><span class="tag">交易</span>
+    <div class="stem">「兩階段提交（2PC）」的主要缺點為何？</div>
+    <ul class="opts">
+      <li>(A) 無法保證一致性　(B) <strong>協調者故障時參與者可能長時間阻塞；且延遲高、可用性降低</strong></li>
+      <li>(C) 只能用於單一資料庫　(D) 不需要協調者</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <strong>流程</strong>：
+      <div class="table-wrap"><table>
+        <tr><th>階段</th><th>動作</th></tr>
+        <tr><td><strong>① 準備</strong></td><td><u>協調者問所有參與者「可以提交嗎」；<strong>參與者鎖定資源並回覆</strong></u></td></tr>
+        <tr><td><strong>② 提交</strong></td><td>全部說可以 → 通知提交；<u>有人說不行 → 通知全部回滾</u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 致命弱點：協調者在階段②之前掛掉</strong><br>
+      <u>參與者<strong>已經鎖定資源、已經回答「可以」，但不知道最終結果</strong>——<strong>只能一直等，資源一直鎖著</strong>。</u><br>
+      <strong>這叫「阻塞問題」，是 2PC 無法根治的缺陷。</strong>
+      </div>
+      <div class="hl"><strong>💡 實務上的替代方案：Saga 模式</strong><br><u>把長交易拆成<strong>一連串本地交易</strong>，<strong>每一步都有對應的補償動作</strong>；失敗時依序執行補償。</u><br><strong>代價是「中間狀態對外可見」——但換來了可用性。</strong></div>
+      <strong>公務應用</strong>：<u>跨機關的作業<strong>幾乎不可能用 2PC</strong>（不同機關的系統不會讓外部協調者鎖住自己的資料庫）——<strong>實務上都是「各自處理 ＋ 對帳 ＋ 人工補救」</strong>（第 90 題）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">122</span><span class="tag">交易</span>
+    <div class="stem">「多版本併發控制（MVCC）」的主要優點為何？</div>
+    <ul class="opts">
+      <li>(A) 節省空間　(B) <strong>讀取不阻塞寫入、寫入不阻塞讀取，大幅提升併發度</strong>　(C) 不需要鎖　(D) 保證序列化</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <strong>原理</strong>：<u>更新時<strong>不覆蓋舊值，而是產生新版本</strong>；讀取者依自己交易開始的時點，<strong>看到當時的快照</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>優點</th><th>代價</th></tr>
+        <tr><td><strong>讀不擋寫、寫不擋讀</strong></td><td><u><strong>舊版本要保存，佔用空間</strong></u></td></tr>
+        <tr><td>讀取一致的快照</td><td><strong>需要定期清理（vacuum / undo）</strong></td></tr>
+        <tr><td>大幅減少鎖競爭</td><td><u><strong>長交易會阻止舊版本被清理 → 空間膨脹</strong></u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ MVCC 系統最經典的運維問題：長交易</strong><br>
+      <u>某支報表程式開了交易卻忘記結束（或跑了 6 小時）——<strong>這段期間所有舊版本都不能清理</strong>。</u><br>
+      <strong>結果：資料表膨脹數倍、查詢變慢、磁碟告急。</strong><br><br>
+      <strong>對策：監控「最久的交易執行時間」，超過門檻就告警。</strong>
+      </div>
+      <strong>採用 MVCC 的資料庫</strong>：<u>PostgreSQL、Oracle、MySQL InnoDB、SQL Server（<strong>需啟用快照隔離</strong>）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">123</span><span class="tag">交易</span>
+    <div class="stem">要在高併發下正確扣減庫存或名額，下列何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 使用原子性遞減並檢查影響列數　(B) 使用 SELECT ... FOR UPDATE</li>
+      <li>(C) 使用樂觀鎖並在衝突時重試　(D) <strong>先 SELECT 檢查再 UPDATE，中間不加任何控制</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方案</th><th>適用</th></tr>
+        <tr><td><strong>原子性遞減</strong></td><td><u><strong>最簡單且正確</strong>：<code>UPDATE ... SET 剩餘=剩餘-1 WHERE id=? AND 剩餘&gt;0</code></u></td></tr>
+        <tr><td><strong>悲觀鎖（FOR UPDATE）</strong></td><td>需要在扣減前<strong>做複雜判斷</strong>時</td></tr>
+        <tr><td><strong>樂觀鎖</strong></td><td><u>衝突機率低時；<strong>高併發熱點下重試會很頻繁</strong></u></td></tr>
+        <tr><td>(D) 檢查後更新</td><td><strong>✘ 競爭條件，必定超賣</strong></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 熱點資料列的問題</strong><br>
+      <u>所有請求都在搶同一列 → <strong>即使方法正確，也會排隊排到天荒地老</strong>。</u><br><br>
+      <strong>進階解法：<u>①把名額拆成 N 個子桶，隨機挑一個扣 ②用佇列排隊逐一處理 ③用記憶體資料庫先扣，再非同步落庫</u></strong>
+      </div>
+      <strong>公務面的提醒</strong>：<u>最有效的往往不是技術——<strong>而是制度設計</strong>：<strong>改為「一段期間內申請皆有效、之後統一抽籤或審核」，就完全沒有搶的問題</strong>，而且更公平（第 205 題）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">124</span><span class="tag">交易</span>
+    <div class="stem">下列關於「交易長度」的敘述，何者<strong>最為妥適</strong>？</div>
+    <ul class="opts">
+      <li>(A) 越長越安全　(B) <strong>應盡可能短；只包含必須原子性完成的操作，避免包含使用者互動與外部呼叫</strong></li>
+      <li>(C) 與效能無關　(D) 應包含整個請求</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ 交易中絕不可包含的三件事</strong><br>
+      <u>① <strong>等待使用者輸入</strong>——使用者去吃午餐了，鎖就持有兩小時<br>
+      ② <strong>呼叫外部服務</strong>（第 90 題）<br>
+      ③ <strong>大量的計算或檔案處理</strong>——應該在交易外算好，交易只負責寫入</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>長交易的連鎖後果</th></tr>
+        <tr><td><strong>持鎖久 → 其他交易等待 → 連線池耗盡 → 全系統無回應</strong></td></tr>
+        <tr><td><u>MVCC 系統的<strong>舊版本無法清理 → 空間膨脹</strong></u></td></tr>
+        <tr><td><strong>死結機率上升</strong></td></tr>
+        <tr><td><u>失敗時<strong>回滾耗時極長</strong></u></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 標準模式：算好再寫</strong><br><u><strong>① 交易外</strong>：讀取、計算、呼叫外部、驗證<br><strong>② 開啟交易</strong><br><strong>③ 交易內</strong>：檢查前提是否仍成立（版本號）、寫入<br><strong>④ 立即提交</strong></u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">125</span><span class="tag">交易 · 小結</span>
+    <div class="stem">下列關於「交易與併發」的敘述，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 死結可透過統一存取順序降低　(B) MVCC 下長交易會阻礙舊版本清理</li>
+      <li>(C) 跨系統一致性宜採對帳與補償而非 2PC　(D) <strong>提高隔離級別不會影響併發效能</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong>——<u>隔離級別越高，<strong>需要持有的鎖越多、範圍越大</strong>，併發度必然下降。</u><br><br>
+      <strong>📋 交易設計五原則</strong>
+      <div class="table-wrap"><table>
+        <tr><td><strong>① 短</strong></td><td>只包必要的寫入</td></tr>
+        <tr><td><strong>② 統一順序</strong></td><td>所有交易依相同順序取鎖</td></tr>
+        <tr><td><strong>③ 外部呼叫移出</strong></td><td>用發件匣模式 ＋ 冪等性金鑰</td></tr>
+        <tr><td><strong>④ 隔離級別夠用就好</strong></td><td><u>報表用快照，交易用預設，<strong>只在必要時提高</strong></u></td></tr>
+        <tr><td><strong>⑤ 能重試</strong></td><td><strong>死結與樂觀鎖衝突時要能自動重試，且操作須冪等</strong></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 公務系統的一句話總結</strong>：<u><strong>「寧可讓民眾看到『請稍後再試』，也不能讓兩件案子的資料互相覆蓋。」</strong></u><br><strong>正確性優先於便利性——因為錯誤的資料會變成錯誤的處分。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">126</span><span class="tag">NoSQL</span>
+    <div class="stem">下列何種情境<strong>最適合</strong>使用文件型資料庫（如 MongoDB）？</div>
+    <ul class="opts">
+      <li>(A) 需要複雜多表 JOIN 與強交易　(B) <strong>結構彈性高、以整份文件為存取單位、關聯不複雜的資料</strong></li>
+      <li>(C) 財務會計系統　(D) 需要嚴格正規化</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>適用</th><th>公務例</th></tr>
+        <tr><td><strong>關聯式</strong></td><td><u><strong>交易、關聯複雜、需強一致</strong></u></td><td><strong>案件、核定、金額——絕大多數公務系統</strong></td></tr>
+        <tr><td><strong>文件型</strong></td><td>結構彈性、整份存取</td><td><u>各類申請表單的<strong>附加欄位</strong>、稽核日誌</u></td></tr>
+        <tr><td><strong>鍵值型</strong></td><td>極快的簡單存取</td><td><strong>快取、Session</strong></td></tr>
+        <tr><td><strong>圖形</strong></td><td>關係網路的走訪</td><td><u>組織關聯、<strong>金流關係分析</strong></u></td></tr>
+        <tr><td><strong>時序型</strong></td><td>時間序列指標</td><td>系統監控、感測器</td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 公務核心業務不宜貿然採用 NoSQL</strong><br>
+      <u>因為需要：<strong>①強交易保證（金額不能算錯）②複雜的關聯查詢（統計報表）③明確的綱要（資料字典與稽核）</strong>。</u><br><br>
+      <strong>而且：現代關聯式資料庫都支援 JSON 欄位——「要彈性」不必然要換資料庫（第 96 題）。</strong>
+      </div>
+      <strong>選型的正確問法</strong>：<u>不是「哪一種比較新」，而是<strong>「我的存取模式是什麼」</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">127</span><span class="tag">NoSQL</span>
+    <div class="stem">依 CAP 定理，分散式系統在發生「網路分區」時，必須在何者之間取捨？</div>
+    <ul class="opts"><li>(A) 效能與成本　(B) <strong>一致性與可用性</strong>　(C) 安全與速度　(D) 空間與時間</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 一致性（C）與可用性（A）</strong><br><br>
+      <div class="hl">
+      <strong>💡 CAP 常被誤解</strong><br>
+      <u>它<strong>不是</strong>說「三選二」——<strong>網路分區（P）是必然會發生的，不是可以放棄的選項</strong>。</u><br>
+      <strong>真正的意思是：「當分區發生時，你要選擇 C 還是 A」。</strong>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>選擇</th><th>行為</th><th>適用</th></tr>
+        <tr><td><strong>CP</strong></td><td><u>寧可<strong>拒絕服務</strong>，也不回傳可能過期的資料</u></td><td><strong>金額、核定、名額</strong></td></tr>
+        <tr><td><strong>AP</strong></td><td><strong>先回應，之後再同步（最終一致）</strong></td><td><u>公告瀏覽、統計查詢</u></td></tr>
+      </table></div>
+      <strong>公務系統的判準</strong>：
+      <div class="table-wrap"><table>
+        <tr><td><strong>「回答錯了會造成違法處分嗎？」</strong></td><td><u>會 → <strong>選 CP</strong></u></td></tr>
+        <tr><td><strong>「只是看不到最新資料，等一下就好？」</strong></td><td>是 → 選 AP</td></tr>
+      </table></div>
+      <strong>對照</strong>：<u>讀寫分離的複製延遲（第 225 題），就是<strong>選擇了 AP</strong>的具體後果。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">128</span><span class="tag">NoSQL</span>
+    <div class="stem">「最終一致性」在公務系統中的適用界線為何？</div>
+    <ul class="opts">
+      <li>(A) 全面適用　(B) <strong>可用於查詢與統計等容忍延遲之處；涉及核定、金額、名額等有法律效果者應要求強一致</strong></li>
+      <li>(C) 完全不可用　(D) 只看效能</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>可用最終一致</th><th>須強一致</th></tr>
+        <tr><td>公告與法規查詢</td><td><strong>名額扣減</strong></td></tr>
+        <tr><td>統計報表</td><td><strong>金額計算與撥款</strong></td></tr>
+        <tr><td><u>案件進度<strong>顯示</strong></u></td><td><strong>核定與撤銷的狀態轉換</strong></td></tr>
+        <tr><td>搜尋索引</td><td><u><strong>權限判斷</strong>（停權要立即生效）</u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 判準：這個資料被用來「作成決定」嗎？</strong><br>
+      <u>只是<strong>給人看</strong> → 延遲幾秒沒關係<br>
+      <strong>拿來判斷資格、扣減名額、計算金額</strong> → <strong>必須是最新且正確的</strong></u><br><br>
+      <strong>因為：依過期資料作成的處分，內容就是違法的——而且可能要撤銷、可能涉及信賴保護與國賠。</strong>
+      </div>
+      <div class="hl"><strong>💡 申論加分句</strong>：<u>「一致性模型的選擇，<strong>不僅是技術取捨，更是法律風險的分配</strong>；凡具行政處分效力之資料，應採強一致性。」</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">129</span><span class="tag">資料倉儲</span>
+    <div class="stem">OLTP 與 OLAP 的主要差異為何？</div>
+    <ul class="opts">
+      <li>(A) 沒有差異　(B) <strong>OLTP 重短交易與正規化；OLAP 重大量彙總分析，常採星狀綱要與反正規化</strong></li>
+      <li>(C) OLAP 用於即時交易　(D) OLTP 用於分析</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>OLTP</th><th>OLAP</th></tr>
+        <tr><td>用途</td><td><strong>日常交易</strong></td><td><strong>分析與決策</strong></td></tr>
+        <tr><td>操作</td><td><u>大量的小型讀寫</u></td><td><u><strong>少量的大型查詢</strong></u></td></tr>
+        <tr><td>設計</td><td><strong>正規化（3NF）</strong></td><td><strong>星狀／雪花綱要</strong></td></tr>
+        <tr><td>資料</td><td>目前狀態</td><td><strong>歷史累積</strong></td></tr>
+        <tr><td>指標</td><td><u>每秒交易數、回應時間</u></td><td><strong>查詢吞吐量</strong></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 為何要分開</strong><br>
+      <u>①<strong>一支跑 10 分鐘的統計查詢，會拖垮正在受理案件的系統</strong><br>
+      ②<strong>兩者的最佳設計互相衝突</strong>——正規化利於交易，反正規化利於分析<br>
+      ③<strong>分析需要歷史，交易只需要現況</strong></u>
+      </div>
+      <strong>星狀綱要</strong>：<u>中央一張<strong>事實表</strong>（案件量、金額）＋ 周邊多張<strong>維度表</strong>（時間、地區、類別、承辦單位）。</u><br>
+      <strong>公務應用</strong>：<u>施政統計、<strong>預算執行分析</strong>、跨年度趨勢比較。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">130</span><span class="tag">資料倉儲</span>
+    <div class="stem">資料倉儲中的「緩慢變動維度（SCD Type 2）」是指？</div>
+    <ul class="opts">
+      <li>(A) 直接覆蓋舊值　(B) <strong>新增一列並以生效起訖日區分版本，保留歷史</strong>　(C) 刪除舊資料　(D) 不處理變動</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>做法</th><th>後果</th></tr>
+        <tr><td><strong>Type 1</strong></td><td>覆蓋</td><td><u><strong>歷史消失</strong>——過去的報表會被改變</u></td></tr>
+        <tr><td><strong>Type 2</strong></td><td><strong>新增一列 ＋ 生效起訖日</strong></td><td><strong>完整保留歷史（最常用）</strong></td></tr>
+        <tr><td><strong>Type 3</strong></td><td>加一欄存「前一個值」</td><td>只能追溯一代</td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 公務系統為何必須用 Type 2</strong><br>
+      <u>假設某單位在 2025 年從「A 局」改隸為「B 局」：</u><br>
+      <strong>用 Type 1 → 2024 年的案件會被算到 B 局頭上 → 歷年統計全部錯亂，而且與當年度已公告的數字對不起來</strong><br>
+      <strong>用 Type 2 → <u>2024 年的案件仍歸 A 局，2025 年之後歸 B 局</u> → 正確</strong>
+      </div>
+      <div class="hl"><strong>💡 這與「代碼表要帶生效日」是同一個原則</strong>（第 237 題）：<u><strong>公務資料的歷史不能被改寫</strong>——因為已經公告的統計數字、已經作成的處分，都是既成事實。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">131</span><span class="tag">資料倉儲</span>
+    <div class="stem">ETL 流程中，最應注意的品質控制為何？</div>
+    <ul class="opts">
+      <li>(A) 只看執行是否成功　(B) <strong>筆數與金額對帳、異常值檢核、來源與目的的一致性驗證，並在失敗時可重跑</strong></li>
+      <li>(C) 只看執行時間　(D) 不需控制</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>檢核項目</th><th>說明</th></tr>
+        <tr><td><strong>筆數對帳</strong></td><td><u>來源 N 筆 → 目的地應有 N 筆（<strong>或說明差異原因</strong>）</u></td></tr>
+        <tr><td><strong>金額總計對帳</strong></td><td><strong>最能發現轉換錯誤</strong></td></tr>
+        <tr><td><strong>異常值檢核</strong></td><td><u>負金額、未來日期、<strong>不存在的代碼</strong></u></td></tr>
+        <tr><td><strong>可重跑（冪等）</strong></td><td><strong>重跑不應產生重複資料</strong></td></tr>
+        <tr><td><strong>執行紀錄</strong></td><td>來源批次、處理時間、成功失敗筆數</td></tr>
+        <tr><td><strong>資料血緣</strong></td><td><u><strong>這個數字是從哪些來源、經過什麼轉換得到的</strong></u></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 「資料血緣」是被問到時最能救命的東西</strong><br>
+      <u>首長問：「這個數字為什麼跟去年公告的不一樣？」</u><br>
+      <strong>有血緣紀錄 → 可以追出是哪一個來源改了、哪一條轉換規則變了<br>
+      沒有 → 只能從頭查起，而且可能查不出來</strong>
+      </div>
+      <strong>對應</strong>：<u><a href="../05-common/english-bank.html">英文閱讀 19</a>（未經調校就合併，會產出「內部一致、對外錯誤」的數字）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">132</span><span class="tag">資料倉儲</span>
+    <div class="stem">「資料湖（data lake）」與「資料倉儲」的主要差異為何？</div>
+    <ul class="opts">
+      <li>(A) 沒有差異　(B) <strong>資料湖存原始格式、讀取時定義綱要；倉儲寫入時即定義綱要並經清理</strong></li>
+      <li>(C) 資料湖較小　(D) 倉儲不需清理</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>資料倉儲</th><th>資料湖</th></tr>
+        <tr><td>綱要</td><td><strong>寫入時定義</strong>（schema-on-write）</td><td><strong>讀取時定義</strong>（schema-on-read）</td></tr>
+        <tr><td>資料</td><td><u>已清理、結構化</u></td><td><strong>原始、含非結構化</strong></td></tr>
+        <tr><td>成本</td><td>較高</td><td>較低</td></tr>
+        <tr><td>使用者</td><td><strong>業務分析人員</strong></td><td><u>資料科學家</u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 「資料沼澤（data swamp）」的風險</strong><br>
+      <u>把資料通通倒進去卻<strong>不做編目、不記來源、不定義意義</strong>——<strong>三年後沒有人知道那些檔案是什麼</strong>。</u><br><br>
+      <strong>資料湖必備的治理：<u>①資料目錄 ②來源與時間標記 ③欄位定義 ④存取權限 ⑤保存與刪除政策</u></strong>
+      </div>
+      <div class="hl"><strong>💡 公務機關導入資料湖，最先要處理的不是技術</strong>：<u>而是<strong>「這些資料能不能放在一起？」</strong>——<strong>個資法的目的拘束原則不會因為換了儲存技術就消失</strong>（<a href="../05-common/law-bank.html">法學第 585 題</a>）。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">133</span><span class="tag">設計</span>
+    <div class="stem">要儲存「時間」資料且系統可能跨時區使用，最妥適的做法為何？</div>
+    <ul class="opts">
+      <li>(A) 存本地時間字串　(B) <strong>統一以 UTC 或帶時區的型別儲存，顯示時再轉換為使用者所在時區</strong></li>
+      <li>(C) 存兩份　(D) 不處理時區</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="hl"><strong>💡 與「民國年」是同一個原則</strong>（第 214 題）：<u><strong>內部用一種標準表示，輸入輸出各自轉換。</strong></u></div>
+      <div class="table-wrap"><table>
+        <tr><th>時間類型</th><th>儲存方式</th></tr>
+        <tr><td><strong>時間點</strong>（何時發生）</td><td><u><strong>UTC 或 timestamptz</strong></u></td></tr>
+        <tr><td><strong>純日期</strong>（生日、法定期限）</td><td><strong>DATE，不涉及時區</strong></td></tr>
+        <tr><td><strong>未來的約定時間</strong></td><td><u>存<strong>本地時間 ＋ 時區名稱</strong>——因為時區規則可能改變</u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 公務系統的關鍵提醒</strong><br>
+      <u><strong>法定期限的計算，一律以我國時間為準</strong>——即使申請人在國外操作。</u><br>
+      <strong>若系統依使用者的瀏覽器時區判斷「今天」，可能把 1 月 1 日的申請算成 12 月 31 日——期限就錯了。</strong><br><br>
+      <strong>正確做法：受理時間依伺服器的我國時間戳記；顯示可依使用者時區，但期限判斷永遠用我國時間。</strong>
+      </div>
+      <strong>對應</strong>：<u>第 212 題（期限計算是最容易造成系統性違法的一類錯誤）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">134</span><span class="tag">設計</span>
+    <div class="stem">資料表要記錄「誰在何時建立與修改」，下列欄位設計何者<strong>最為完整</strong>？</div>
+    <ul class="opts">
+      <li>(A) 只有修改時間　(B) <strong>建立時間、建立者、最後修改時間、最後修改者，並另設異動歷程表</strong></li>
+      <li>(C) 只有建立者　(D) 不需要</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>層次</th><th>能回答的問題</th></tr>
+        <tr><td><strong>主表的四個稽核欄位</strong></td><td><u>「這筆<strong>最後</strong>是誰改的？」</u></td></tr>
+        <tr><td><strong>異動歷程表</strong></td><td><strong>「這筆從頭到尾被改過幾次、每次改了什麼？」</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 只有主表欄位是不夠的</strong><br>
+      <u>因為它<strong>只記得最後一次</strong>——中間改了什麼、誰改的，全都被覆蓋了。</u><br>
+      <strong>而公務爭議往往問的正是：「在核定之前，這個欄位被改過嗎？」</strong>
+      </div>
+      <strong>異動歷程表應記錄</strong>：<u>主鍵、<strong>欄位名稱、舊值、新值</strong>、異動時間、異動者、<strong>異動原因或依據</strong>、來源 IP。</u><br><br>
+      <div class="hl"><strong>💡 實作方式</strong>：<u>①<strong>資料庫觸發程序</strong>（最可靠，程式繞不過）②應用層攔截（<strong>較彈性，能記錄業務原因</strong>）③資料庫內建的時態表功能。</u><br><strong>公務系統建議①＋②併用：觸發程序保底，應用層補上「為什麼改」。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">135</span><span class="tag">設計</span>
+    <div class="stem">同一個承辦人可能任職於不同單位（歷經調動），系統要正確呈現「案件當時的承辦單位」，應如何設計？</div>
+    <ul class="opts">
+      <li>(A) 即時關聯到人員目前的單位　(B) <strong>在案件上記錄「當時的承辦單位」，或以人員的任職歷程表依日期查得</strong></li>
+      <li>(C) 不記錄單位　(D) 每次調動時更新所有舊案件</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ (A) 的問題：歷史被改寫</strong><br>
+      <u>承辦人從社會局調到教育局 → <strong>他三年前在社會局辦的案子，全部變成教育局的了</strong>。</u><br>
+      <strong>後果：①歷年統計錯亂 ②與已公告的數字不符 ③責任歸屬混亂</strong>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>做法</th><th>優缺點</th></tr>
+        <tr><td><strong>案件上存「當時單位」</strong></td><td><u><strong>簡單可靠，查詢快</strong>；屬刻意的歷史快照，不是冗餘</u></td></tr>
+        <tr><td><strong>人員任職歷程表</strong></td><td><strong>資料正規、可回溯任一時點</strong>；<u>查詢要多一次 JOIN</u></td></tr>
+        <tr><td><strong>兩者併用</strong></td><td><strong>實務常見</strong>：歷程表為準，案件上存快照供查詢</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 這一題其實在問一個更大的原則</strong>：<u><strong>「當下的事實」與「現在的狀態」是兩件事。</strong></u><br><strong>公務系統必須能重現「當時的樣子」——這就是第 76 題「歷史快照不是反正規化」的具體應用。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">136</span><span class="tag">設計</span>
+    <div class="stem">要設計「附件檔案」的儲存，最妥適的做法為何？</div>
+    <ul class="opts">
+      <li>(A) 全部存進資料庫的 BLOB　(B) <strong>檔案存於檔案系統或物件儲存，資料庫存中繼資料與雜湊值，並確保兩者一致</strong></li>
+      <li>(C) 只存檔名　(D) 存在使用者電腦</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方案</th><th>優</th><th>缺</th></tr>
+        <tr><td><strong>資料庫 BLOB</strong></td><td><u>交易一致、備份一起做</u></td><td><strong>資料庫肥大、備份與還原變慢</strong></td></tr>
+        <tr><td><strong>檔案系統／物件儲存</strong></td><td><strong>資料庫輕、成本低、易擴充</strong></td><td><u><strong>要自己處理一致性</strong>（孤兒檔案、失效參照）</u></td></tr>
+      </table></div>
+      <strong>資料庫應存的中繼資料</strong>：
+      <div class="table-wrap"><table>
+        <tr><td>檔案識別碼、原始檔名、<strong>儲存路徑或物件鍵</strong></td></tr>
+        <tr><td>檔案大小、MIME 類型</td></tr>
+        <tr><td><strong>雜湊值（SHA-256）</strong>——<u>驗證完整性、偵測竄改、也可去重</u></td></tr>
+        <tr><td>上傳者、上傳時間、關聯的案號</td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 一致性的兩種失效</strong><br>
+      <u>①<strong>孤兒檔案</strong>：資料庫刪了，檔案還在（<strong>個資可能未被真正刪除</strong>）<br>
+      ②<strong>失效參照</strong>：資料庫有紀錄，檔案不見了（<strong>民眾的申請文件消失</strong>）</u><br><br>
+      <strong>對策：定期對帳程式，比對兩邊並告警。</strong>
+      </div>
+      <strong>安全</strong>：<u>檔案<strong>不可放在網站根目錄下</strong>；下載須經權限檢查（第 216、219 題）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">137</span><span class="tag">設計</span>
+    <div class="stem">要設計「多租戶」（多個機關共用一套系統）的資料隔離，下列何者<strong>最為安全</strong>？</div>
+    <ul class="opts">
+      <li>(A) 共用資料表，全靠應用程式加 WHERE 條件　(B) <strong>資料表加租戶識別欄位並於資料庫層強制（如列級安全性），或各租戶獨立綱要／資料庫</strong></li>
+      <li>(C) 不做隔離　(D) 用不同的網址即可</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方案</th><th>隔離度</th><th>成本</th></tr>
+        <tr><td>共用表 ＋ 應用層條件</td><td><u><strong>最低</strong>——漏寫一個 WHERE 就外洩</u></td><td>最低</td></tr>
+        <tr><td><strong>共用表 ＋ 列級安全性</strong></td><td><strong>中高（資料庫強制，程式繞不過）</strong></td><td>低</td></tr>
+        <tr><td><strong>各租戶獨立綱要</strong></td><td>高</td><td>中</td></tr>
+        <tr><td><strong>各租戶獨立資料庫</strong></td><td><strong>最高</strong></td><td><u>最高（<strong>維護 N 套</strong>）</u></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ (A) 的風險為何不可接受</strong><br>
+      <u>系統可能有數百支查詢——<strong>只要有一支忘了加租戶條件，A 機關就會看到 B 機關的資料</strong>。</u><br>
+      <strong>而這種缺陷通常要等到出事才會被發現。</strong>
+      </div>
+      <div class="hl"><strong>💡 公務系統的特殊考量</strong>：<u><strong>各機關是獨立的個資保有機關</strong>——資料混存不只是技術問題，更涉及<strong>「誰是保有機關、誰負安全維護責任」</strong>的法律問題。</u><br><strong>共用系統的委外契約中，必須明定各機關資料的隔離與權責。</strong>（<a href="../05-common/law-bank.html">法學第 566 題</a>）</div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">138</span><span class="tag">設計</span>
+    <div class="stem">階層資料（如組織架構）在關聯式資料庫中，下列何種模型<strong>最利於查詢整個子樹</strong>？</div>
+    <ul class="opts">
+      <li>(A) 鄰接串列（存上級代碼）　(B) <strong>路徑列舉或閉包表</strong>　(C) 陣列　(D) 無法儲存</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>模型</th><th>查子樹</th><th>異動</th></tr>
+        <tr><td><strong>鄰接串列</strong>（存上級代碼）</td><td><u>要<strong>遞迴查詢</strong></u></td><td><strong>最簡單</strong></td></tr>
+        <tr><td><strong>路徑列舉</strong>（存 /1/5/12/）</td><td><strong>一次 LIKE '/1/5/%' 搞定</strong></td><td><u>搬移子樹要<strong>更新整批路徑</strong></u></td></tr>
+        <tr><td><strong>閉包表</strong>（存所有祖先後代配對）</td><td><strong>查詢最快最彈性</strong></td><td><u>空間較大、異動要維護</u></td></tr>
+        <tr><td><strong>巢狀集合</strong>（左右值）</td><td>查詢快</td><td><strong>插入要更新大量列——不推薦</strong></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 實務建議：鄰接串列 ＋ 遞迴 CTE 就夠用</strong><br><u>因為<strong>組織階層通常不深（5 層以內）且變動不頻繁</strong>——遞迴 CTE 的效能完全可以接受（第 104 題）。</u><br><strong>只有在階層很深、查詢極頻繁時，才值得付出閉包表的維護成本。</strong></div>
+      <div class="warn"><strong>⚠️ 務必防範「環」</strong>：<u>資料錯誤導致 A 的上級是 B、B 的上級是 A——<strong>遞迴查詢會無窮迴圈</strong>。</u><br><strong>應在寫入時檢查，並定期掃描驗證。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">139</span><span class="tag">設計</span>
+    <div class="stem">下列關於「觸發程序（trigger）」的敘述，何者<strong>最為妥適</strong>？</div>
+    <ul class="opts">
+      <li>(A) 應大量使用以簡化程式　(B) <strong>適合用於稽核軌跡等不可繞過的需求；但業務邏輯放在觸發程序會使流程難以追蹤與除錯</strong></li>
+      <li>(C) 完全不應使用　(D) 可取代所有應用邏輯</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>適合</th><th>不適合</th></tr>
+        <tr><td><strong>稽核軌跡</strong>（<u>任何路徑都繞不過</u>）</td><td>複雜的業務規則</td></tr>
+        <tr><td>維護冗餘欄位的一致性</td><td><u><strong>呼叫外部服務</strong></u></td></tr>
+        <tr><td>強制不變條件</td><td><strong>會連鎖觸發其他觸發程序的邏輯</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 觸發程序最大的問題：看不見</strong><br>
+      <u>工程師執行一句 UPDATE，<strong>背後可能連鎖執行了五個觸發程序</strong>——<strong>而程式碼裡完全看不出來</strong>。</u><br><br>
+      <strong>後果：①效能問題難以定位 ②除錯困難 ③新人接手時完全不知道有這些邏輯</strong>
+      </div>
+      <div class="hl"><strong>💡 使用原則</strong><br><u>①<strong>只用於「必須不可繞過」的事</strong>（稽核）<br>②<strong>邏輯要簡單</strong>，不呼叫外部<br>③<strong>納入版控並寫入文件</strong>——<strong>資料字典中要註明「這張表有觸發程序」</strong><br>④避免觸發程序再觸發其他觸發程序</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">140</span><span class="tag">設計 · 小結</span>
+    <div class="stem">下列關於「公務資料庫設計」的敘述，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 應保留「當時的組織與規則」而非只關聯現況　(B) 附件宜存物件儲存並保留雜湊值</li>
+      <li>(C) 多租戶應於資料庫層強制隔離　(D) <strong>稽核欄位只需記錄最後修改者即已足夠</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong>——<u>只有最後一次是不夠的，<strong>必須另設異動歷程表</strong>（第 134 題）。</u><br><br>
+      <div class="frame">
+        <span class="t">🎯 公務資料庫的一個核心觀念：時間是第一等公民</span>
+        <strong>一般商業系統關心「現在是什麼樣子」；公務系統必須能回答「當時是什麼樣子」。</strong><br><br>
+        <div class="table-wrap"><table>
+          <tr><th>資料</th><th>為何需要時間維度</th></tr>
+          <tr><td><strong>法規參數</strong></td><td>新舊法適用、程序重開</td></tr>
+          <tr><td><strong>代碼表</strong></td><td>行政區改制、機關改隸</td></tr>
+          <tr><td><strong>組織與人員</strong></td><td><u>責任歸屬、<strong>當時的管轄</strong></u></td></tr>
+          <tr><td><strong>案件狀態</strong></td><td>期限計算、爭訟舉證</td></tr>
+          <tr><td><strong>金額與資格</strong></td><td><strong>撤銷與返還的計算基礎</strong></td></tr>
+        </table></div>
+        <u><strong>「保留歷史」在公務系統不是加分功能，而是預設值。</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">141</span><span class="tag">計算</span>
+    <div class="stem">某表有 1000 萬列，索引為 B+ 樹，每頁可放 200 個鍵。樹高約為何？</div>
+    <ul class="opts"><li>(A) 2　(B) <strong>4</strong>　(C) 10　(D) 24</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 約 4 層</strong><br><br>
+      <u>200¹ = 200<br>200² = 40,000<br><strong>200³ = 8,000,000</strong><br><strong>200⁴ = 1,600,000,000</strong></u><br>
+      <u>→ 1000 萬列需要 <strong>4 層</strong>（第 3 層還不夠）</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>資料量</th><th>樹高</th><th>一次查詢的 I/O</th></tr>
+        <tr><td>4 萬</td><td>2</td><td><u>2 次（<strong>根節點通常已在記憶體</strong>）</u></td></tr>
+        <tr><td>800 萬</td><td>3</td><td>約 3 次</td></tr>
+        <tr><td><strong>1000 萬～16 億</strong></td><td><strong>4</strong></td><td><strong>約 4 次</strong></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 這就是 B+ 樹的威力</strong>：<u>資料量從 1000 萬成長到 16 億（<strong>160 倍</strong>），<strong>查詢的 I/O 次數完全不變</strong>。</u><br><strong>而全表掃描的成本會成長 160 倍。</strong></div>
+      <strong>推論</strong>：<u>「加了索引還是很慢」通常<strong>不是索引的問題</strong>，而是：<strong>①用不到索引 ②回表次數太多 ③統計資訊過期</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">142</span><span class="tag">計算</span>
+    <div class="stem">某查詢需回表讀取 10 萬列，每次隨機 I/O 約 0.1 毫秒；全表掃描需讀 5 萬頁，循序 I/O 每頁 0.01 毫秒。何者較快？</div>
+    <ul class="opts">
+      <li>(A) 索引查詢（10 秒）　(B) <strong>全表掃描（0.5 秒）</strong>　(C) 兩者相同　(D) 無法比較</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 全表掃描較快</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方式</th><th>計算</th><th>時間</th></tr>
+        <tr><td>索引 ＋ 回表</td><td>100,000 × 0.1ms</td><td><strong>10,000ms = 10 秒</strong></td></tr>
+        <tr><td><strong>全表掃描</strong></td><td>50,000 × 0.01ms</td><td><strong>500ms = 0.5 秒</strong></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 這就是優化器「放棄索引」的原因</strong><br>
+      <u>當<strong>要取回的資料佔全表的比例太高</strong>（經驗值約超過 10～20%），<strong>全表掃描反而更快</strong>。</u><br><br>
+      <strong>因為隨機 I/O 比循序 I/O 慢一個數量級——即使在 SSD 上，這個差距仍然存在（只是縮小了）。</strong>
+      </div>
+      <strong>實務啟示</strong>：
+      <div class="table-wrap"><table>
+        <tr><td><strong>①「優化器不用我建的索引」不一定是錯的</strong></td><td><u>它可能是對的</u></td></tr>
+        <tr><td><strong>② 低選擇性欄位不該建索引</strong></td><td>第 86 題</td></tr>
+        <tr><td><strong>③ 涵蓋索引能消除回表</strong></td><td><u>第 85 題——<strong>這才是真正的解法</strong></u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">143</span><span class="tag">計算</span>
+    <div class="stem">某系統平均每秒 200 次查詢，每次查詢平均耗時 50 毫秒。依 Little's Law，平均併發數約為何？</div>
+    <ul class="opts"><li>(A) 4　(B) <strong>10</strong>　(C) 200　(D) 1000</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 10</strong><br><br>
+      <strong>Little's Law</strong>：<u><strong>L（系統中的平均數量）= λ（到達率）× W（平均停留時間）</strong></u><br>
+      <u>L = 200 次/秒 × 0.05 秒 = <strong>10</strong></u><br><br>
+      <div class="hl">
+      <strong>💡 這條公式在容量規劃上極為好用</strong><br>
+      <u><strong>連線池至少要 10 個連線</strong>（否則就會排隊）</u><br>
+      <strong>若要支撐每秒 1000 次查詢且維持 50ms → 需要 50 個併發<br>若能把查詢優化到 10ms → 每秒 1000 次只需要 10 個併發</strong>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>推論</th><th>意義</th></tr>
+        <tr><td><strong>降低耗時 = 降低併發需求</strong></td><td><u><strong>優化查詢比擴大連線池有效得多</strong></u></td></tr>
+        <tr><td>耗時上升 → 併發數上升</td><td><strong>連線池滿 → 更慢 → 惡性循環</strong></td></tr>
+      </table></div>
+      <strong>公務應用</strong>：<u>報名系統的容量估算——<strong>預估尖峰每秒請求數 × 平均處理時間 = 需要的併發處理能力</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">144</span><span class="tag">計算</span>
+    <div class="stem">每日新增 5 萬筆案件，每筆含索引約 2KB。一年後資料量約為何？</div>
+    <ul class="opts"><li>(A) 約 3.6 GB　(B) <strong>約 36 GB</strong>　(C) 約 360 GB　(D) 約 3.6 TB</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 約 36 GB</strong><br><br>
+      <u>50,000 × 365 = <strong>1,825 萬筆／年</strong><br>
+      18,250,000 × 2KB = 36,500,000 KB ≈ <strong>36 GB</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>但容量規劃還要加上</th><th>估算</th></tr>
+        <tr><td><strong>附件檔案</strong></td><td><u>常常<strong>比結構化資料大 10～100 倍</strong></u></td></tr>
+        <tr><td><strong>異動歷程表</strong></td><td>可能與主表相當甚至更大</td></tr>
+        <tr><td><strong>日誌</strong></td><td><strong>視保存期限而定</strong></td></tr>
+        <tr><td><strong>備份</strong></td><td><u>依保留代數 ×N</u></td></tr>
+        <tr><td><strong>索引與碎片</strong></td><td>預留 <strong>30～50%</strong> 餘裕</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 公務系統的容量規劃有一個特殊條件：資料只增不減</strong><br><u>因為<strong>檔案法有保存年限，多數業務資料要保存 10 年、30 年，甚至永久</strong>。</u><br><strong>所以要規劃的不是「今年多少」，而是「保存年限內累積多少」——並據以設計分區與分層儲存（第 109 題）。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">145</span><span class="tag">計算</span>
+    <div class="stem">主庫每秒產生 10MB 交易日誌，備援線路頻寬 50Mbps。複製是否可能持續落後？</div>
+    <ul class="opts">
+      <li>(A) 不會落後　(B) <strong>會，因為 10MB/s = 80Mbps 已超過 50Mbps 的線路容量</strong>　(C) 無法判斷　(D) 與頻寬無關</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 會持續落後</strong><br><br>
+      <u>10 MB/s × 8 = <strong>80 Mbps</strong> &gt; 50 Mbps</u><br>
+      <u>→ 每秒<strong>累積落後 30 Mbps 的資料量</strong>，延遲會<strong>無限增長</strong>。</u><br><br>
+      <div class="warn">
+      <strong>⚠️ 位元組（MB）與位元（Mbps）的換算是最常見的計算陷阱</strong><br>
+      <strong>1 Byte = 8 bits；10 MB/s = 80 Mbps。</strong><br>
+      <u>而且實際可用頻寬還要扣除協定額外負擔（約 10～20%）。</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>對策</th><th>說明</th></tr>
+        <tr><td><strong>提升頻寬</strong></td><td>至少 100Mbps 以上並保留餘裕</td></tr>
+        <tr><td><strong>日誌壓縮</strong></td><td><u>可大幅降低傳輸量</u></td></tr>
+        <tr><td><strong>減少日誌產生</strong></td><td><strong>檢討是否有不必要的大量寫入</strong></td></tr>
+        <tr><td><strong>非同步複製</strong></td><td><u>允許延遲，<strong>但要監控並設定告警門檻</strong></u></td></tr>
+      </table></div>
+      <strong>對應</strong>：<u>複製延遲會造成「剛寫入讀不到」（第 225 題），並影響 RPO（第 91 題）——<strong>延遲 30 分鐘，就等於 RPO 是 30 分鐘</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">146</span><span class="tag">情境</span>
+    <div class="stem">承辦人反映「查詢案件時偶爾查不到剛存的資料」。最可能的原因與處理為何？</div>
+    <ul class="opts">
+      <li>(A) 資料遺失　(B) <strong>讀寫分離的複製延遲；應讓寫入後的查詢走主庫，並監控延遲</strong></li>
+      <li>(C) 權限問題　(D) 瀏覽器快取</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <strong>診斷步驟</strong>：
+      <div class="table-wrap"><table>
+        <tr><td>① <strong>確認是否真的沒寫入</strong></td><td><u>直接查主庫</u></td></tr>
+        <tr><td>② <strong>查看複製延遲的監控</strong></td><td><strong>當時延遲多少？</strong></td></tr>
+        <tr><td>③ 確認該查詢走哪一邊</td><td>連線設定</td></tr>
+        <tr><td>④ 確認有無快取介入</td><td>應用層或 CDN</td></tr>
+      </table></div>
+      <div class="table-wrap"><table>
+        <tr><th>解法</th><th>說明</th></tr>
+        <tr><td><strong>寫後讀主庫</strong></td><td><u>該使用者<strong>寫入後 N 秒內的查詢走主庫</strong></u></td></tr>
+        <tr><td><strong>介面調整</strong></td><td><strong>存檔後直接顯示剛存的內容，不要重新查詢</strong></td></tr>
+        <tr><td><strong>延遲告警</strong></td><td>超過門檻自動切回主庫</td></tr>
+      </table></div>
+      <div class="warn"><strong>⚠️ 這類問題的最大風險是「承辦人以為沒存到，於是又存一次」</strong>——<u>結果<strong>產生重複資料，甚至重複核定</strong>。</u><br><strong>所以介面上必須給明確的存檔成功回饋（含案號與時間戳記），而不是讓使用者靠「查得到」來確認。</strong></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">147</span><span class="tag">情境</span>
+    <div class="stem">統計報表的數字與業務單位自行統計的數字不符。最應先確認何者？</div>
+    <ul class="opts">
+      <li>(A) 資料庫故障　(B) <strong>雙方的統計口徑：基準日、納入範圍、狀態定義、是否含已撤銷案件</strong></li>
+      <li>(C) 硬體效能　(D) 網路問題</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>常見的口徑差異</th><th>例</th></tr>
+        <tr><td><strong>基準日</strong></td><td><u>受理日 vs <strong>核定日</strong> vs 撥款日</u></td></tr>
+        <tr><td><strong>納入範圍</strong></td><td><strong>含不含「不受理」與「撤回」？</strong></td></tr>
+        <tr><td><strong>狀態定義</strong></td><td><u>「已核定」<strong>含不含後來被撤銷的</strong>？</u></td></tr>
+        <tr><td><strong>單位</strong></td><td><strong>件數 vs 人數</strong>（<u>一人多件怎麼算？</u>）</td></tr>
+        <tr><td><strong>資料時點</strong></td><td>報表跑的時間不同</td></tr>
+        <tr><td><strong>資料來源</strong></td><td><u>報表走副本，<strong>可能有複製延遲</strong></u></td></tr>
+      </table></div>
+      <div class="hl">
+      <strong>💡 十次「數字不符」，九次是口徑問題，不是程式錯誤</strong><br>
+      <strong>正確處理：<u>①請雙方說明各自的計算方式 ②列出明細逐筆比對，找出差異的那幾筆 ③從那幾筆反推是哪一條規則不同</u></strong><br><br>
+      <strong>然後——把確認後的口徑寫進資料字典，並在報表上註明。</strong>
+      </div>
+      <strong>報表應標示</strong>：<u><strong>資料截止時間、統計口徑、資料來源</strong>——<strong>沒有這三項的報表，遲早會引起爭議</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">148</span><span class="tag">情境</span>
+    <div class="stem">資料庫磁碟空間即將用盡，最不妥適的處理為何？</div>
+    <ul class="opts">
+      <li>(A) 擴充儲存空間　(B) 清理已達保存年限且經核准銷毀的資料</li>
+      <li>(C) 將歷史資料移至分層儲存　(D) <strong>直接刪除最舊的資料以快速釋放空間</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br><br>
+      <div class="warn">
+      <strong>⚠️ 未達保存年限而銷毀公務檔案，可能涉及刑責</strong><br>
+      <u><strong>檔案法</strong>規定機關檔案的保存年限與銷毀程序；<strong>刑法第 138 條</strong>對損壞、隱匿公務員職務上掌管之文書亦有處罰規定。</u><br><br>
+      <strong>「因為磁碟快滿了」不是合法的銷毀理由。</strong>
+      </div>
+      <strong>正確的處理順序</strong>：
+      <div class="table-wrap"><table>
+        <tr><td>① <strong>緊急</strong></td><td><u>清理<strong>日誌、暫存、舊備份</strong>——這些通常能立刻釋放空間</u></td></tr>
+        <tr><td>② <strong>短期</strong></td><td><strong>擴充儲存</strong></td></tr>
+        <tr><td>③ <strong>中期</strong></td><td><strong>歷史資料移至較便宜的分層儲存</strong>（<u>仍保存，只是搬家</u>）</td></tr>
+        <tr><td>④ <strong>長期</strong></td><td><u>依<strong>檔案保存年限</strong>，循法定程序辦理銷毀</u></td></tr>
+        <tr><td>⑤ <strong>根本</strong></td><td><strong>容量趨勢監控與預測</strong>（第 119 題）——不要等到快滿才處理</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 一句話</strong>：<u><strong>「空間不足」是可以花錢解決的問題；「違法銷毀檔案」不是。</strong></u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">149</span><span class="tag">情境</span>
+    <div class="stem">要為新系統選擇資料庫產品，下列何者<strong>最應優先</strong>納入評估？</div>
+    <ul class="opts">
+      <li>(A) 市佔率　(B) <strong>業務需求（交易特性、資料量、一致性要求）、機關維護能力、授權與十年總持有成本、資料可攜性</strong></li>
+      <li>(C) 效能測試數字　(D) 廠商簡報</li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>評估項目</th><th>要問的問題</th></tr>
+        <tr><td><strong>業務需求</strong></td><td><u>需要強交易嗎？資料量級？<strong>查詢型態？</strong></u></td></tr>
+        <tr><td><strong>維護能力</strong></td><td><strong>機關內有人會嗎？找得到廠商嗎？</strong></td></tr>
+        <tr><td><strong>授權模式</strong></td><td><u>依核心數？依使用者數？<strong>虛擬化時怎麼算？</strong></u></td></tr>
+        <tr><td><strong>十年總持有成本</strong></td><td><strong>授權 ＋ 年度維護 ＋ 人力 ＋ 升級</strong></td></tr>
+        <tr><td><strong>資料可攜性</strong></td><td><u><strong>將來要換，資料能不能帶走？</strong></u></td></tr>
+        <tr><td><strong>支援年限</strong></td><td><strong>產品的生命週期是否涵蓋系統壽命</strong></td></tr>
+      </table></div>
+      <div class="warn">
+      <strong>⚠️ 授權條款是最容易踩雷的地方</strong><br>
+      <u>①<strong>虛擬化環境的授權計算方式</strong>（有些廠商要求整台實體主機的核心數都算）<br>
+      ②<strong>災備主機是否需要授權</strong><br>
+      ③<strong>年度維護費的調漲上限</strong><br>
+      ④<strong>稽核條款</strong></u><br><br>
+      <strong>這些應在採購階段就釐清並寫入契約，不是上線後才發現。</strong>
+      </div>
+      <strong>對應</strong>：<u><a href="../01-senior3/mis-bank.html">資訊管理第 52 題</a>（防廠商鎖定）、第 247 題（自建或採購）。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">150</span><span class="tag">情境 · 小結</span>
+    <div class="stem">下列關於「資料庫運維」的敘述，何者<strong>錯誤</strong>？</div>
+    <ul class="opts">
+      <li>(A) 統計數字不符應先確認口徑　(B) 空間不足不得作為銷毀檔案的理由</li>
+      <li>(C) 複製延遲會直接影響 RPO　(D) <strong>備份只要排程有執行成功，即可確認可用</strong></li>
+    </ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong>——<u><strong>「備份成功」不等於「能還原」</strong>；必須定期執行還原演練並計時（第 91 題）。</u><br><br>
+      <strong>📋 資料庫運維年度檢查表</strong>
+      <div class="table-wrap"><table>
+        <tr><th>頻率</th><th>項目</th></tr>
+        <tr><td><strong>每日</strong></td><td>備份成功與否、<strong>複製延遲</strong>、錯誤日誌、空間使用率</td></tr>
+        <tr><td><strong>每週</strong></td><td><u>慢查詢排行、<strong>鎖等待統計</strong>、連線數趨勢</u></td></tr>
+        <tr><td><strong>每月</strong></td><td><strong>統計資訊更新</strong>、索引使用率檢視、容量成長趨勢</td></tr>
+        <tr><td><strong>每季</strong></td><td><u><strong>還原演練（計時）</strong>、權限盤點</u></td></tr>
+        <tr><td><strong>每年</strong></td><td><strong>災難復原演練、版本支援年限檢視、檔案保存年限盤點</strong></td></tr>
+      </table></div>
+      <div class="frame">
+        <span class="t">🎯 申論寫法：被問到「資料庫維運計畫」</span>
+        <strong>不要只寫技術動作，要寫成「有頻率、有指標、有責任人、有異常處理」的制度。</strong><br><br>
+        <u>「本計畫依<strong>日、週、月、季、年</strong>五級頻率訂定檢查項目，<strong>各項目均設定告警門檻與處理程序</strong>；其中<strong>還原演練每季執行一次並計時，以驗證是否符合 RTO 承諾</strong>。」</u><br><br>
+        <strong>這樣寫，就從「技術員」變成「管理者」的層次。</strong>
+      </div>
+    </div></details>
   </div>
 
   <div class="card">
