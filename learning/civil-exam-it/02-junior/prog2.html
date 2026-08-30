@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>程式設計概要 進階講義 | 普通考試</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-junior">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">普通考試</a><span class="sep">/</span>
+  <a href="prog.html">程式設計概要</a><span class="sep">/</span><span>進階講義</span>
+</div>
+
+<div class="hero">
+  <div class="badge">⌨️ 普考 · 專業科目三 · 進階深度擴充</div>
+  <h1>程式設計概要 (進階)</h1>
+  <p><strong>給想拿 80 分以上的高手</strong>。本篇專注於進階資料結構實作、動態規劃 (DP)、物件導向設計原則 (SOLID) 以及安全程式設計。<br>掌握這些進階觀念，在面對申論題的「程式碼改寫」與「效能最佳化」題型時將游刃有餘。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 進階目錄</div>
+    <ol>
+      <li><a href="#c1">物件導向設計原則 (SOLID)</a></li>
+      <li><a href="#c2">進階資料結構實作 (Linked List & Tree)</a></li>
+      <li><a href="#c3">C/C++ 指標與記憶體管理深度解析</a></li>
+      <li><a href="#c4">遞迴進階與動態規劃 (DP)</a></li>
+      <li><a href="#c5">安全程式設計與例外處理</a></li>
+    </ol>
+  </div>
+
+  <!-- 第 1 章 -->
+  <div class="card" id="c1">
+    <h2>第 1 章　物件導向設計原則 (SOLID)</h2>
+    <p>物件導向 (OOP) 的三大基礎是<strong>封裝、繼承、多型</strong>。而在系統架構設計上，考題常會要求解釋 SOLID 五大原則，這是寫出可維護程式碼的核心指引。</p>
+
+    <h3>1-1　SOLID 五大原則剖析</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>原則名稱</th><th>英文全稱</th><th>核心精神與範例說明</th></tr>
+        <tr><td><strong>單一職責原則 (SRP)</strong></td><td>Single Responsibility Principle</td><td><strong>「一個類別只負責一件事，只有一個改變的理由。」</strong><br><u>反例</u>：一個 <code>Order</code> 類別同時負責計算金額、存入資料庫、還負責寄 Email。<br><u>正解</u>：拆分成 <code>OrderCalculator</code>、<code>OrderRepository</code>、<code>EmailSender</code>。</td></tr>
+        <tr><td><strong>開閉原則 (OCP)</strong></td><td>Open/Closed Principle</td><td><strong>「對擴充開放，對修改封閉。」</strong><br>當有新需求時，應該「新增」程式碼，而不是去「修改」舊的程式碼。<br><u>作法</u>：透過介面 (Interface) 或抽象類別 (Abstract Class) 搭配多型來實作。</td></tr>
+        <tr><td><strong>里氏替換原則 (LSP)</strong></td><td>Liskov Substitution Principle</td><td><strong>「子類別必須能夠完全替換掉父類別，且程式行為不變。」</strong><br><u>經典反例</u>：正方形繼承長方形。如果父類別 <code>Rectangle</code> 有 <code>setWidth</code> 和 <code>setHeight</code>，子類別 <code>Square</code> 改寫後會破壞長寬獨立的預期行為。</td></tr>
+        <tr><td><strong>介面隔離原則 (ISP)</strong></td><td>Interface Segregation Principle</td><td><strong>「用戶端不應該被迫依賴它不使用的方法。」</strong><br>與其寫一個包含十個方法的龐大 <code>IWorker</code> 介面，不如拆成 <code>IWorkable</code> 和 <code>IFeedable</code>。機器人實作 <code>IWorkable</code>，不需要被迫實作「吃飯」的方法。</td></tr>
+        <tr><td><strong>依賴反轉原則 (DIP)</strong></td><td>Dependency Inversion Principle</td><td><strong>「高階模組不應依賴低階模組，兩者都應依賴抽象；抽象不應依賴細節，細節應依賴抽象。」</strong><br>這是控制反轉 (IoC) 的基礎。類別不應該直接 <code>new MySQLDatabase()</code>，而是依賴 <code>IDatabase</code> 介面，再透過依賴注入 (DI) 傳入實體。</td></tr>
+      </table>
+    </div>
+
+    <div class="frame">
+      <span class="t">💡 考前破題技巧</span>
+      如果題目問：「請說明何謂多型 (Polymorphism) 並舉例說明其優點？」<br>
+      <strong>答題結構</strong>：<br>
+      1. <strong>定義</strong>：相同的訊息發送給不同的物件，會引發不同的行為。<br>
+      2. <strong>程式碼範例</strong>：定義 <code>Animal</code> 介面的 <code>speak()</code>，<code>Dog</code> 實作汪汪，<code>Cat</code> 實作喵喵。<br>
+      3. <strong>優點與結合 SOLID</strong>：強調多型是實現 <strong>開閉原則 (OCP)</strong> 的關鍵，未來若新增 <code>Bird</code>，完全不需要修改呼叫端 (Client) 的程式碼。
+    </div>
+  </div>
+
+  <!-- 第 2 章 -->
+  <div class="card" id="c2">
+    <h2>第 2 章　進階資料結構實作</h2>
+    <p>普考雖然偏重陣列，但近年來對於「鏈結串列 (Linked List)」與「二元樹 (Binary Tree)」的實作要求逐漸增加，尤其是在 C 語言的指標操作上。</p>
+
+    <h3>2-1　單向鏈結串列 (Singly Linked List) 反轉</h3>
+    <p>這是一道極高頻的經典面試與考試題，考驗對指標操作的掌握度。</p>
+    <pre><span class="c">// 定義節點結構</span>
+<span class="k">struct</span> Node {
+    <span class="k">int</span> data;
+    <span class="k">struct</span> Node* next;
+};
+
+<span class="c">// 反轉鏈結串列的函式</span>
+<span class="k">struct</span> Node* reverseList(<span class="k">struct</span> Node* head) {
+    <span class="k">struct</span> Node* prev = NULL;    <span class="c">// 前一個節點</span>
+    <span class="k">struct</span> Node* curr = head;    <span class="c">// 當前節點</span>
+    <span class="k">struct</span> Node* nextTemp = NULL; <span class="c">// 暫存下一個節點</span>
+    
+    <span class="k">while</span> (curr != NULL) {
+        nextTemp = curr-&gt;next;   <span class="c">// 1. 先記住下一個是誰，避免斷鏈</span>
+        curr-&gt;next = prev;       <span class="c">// 2. 反轉：把當前的 next 指向前面</span>
+        prev = curr;             <span class="c">// 3. prev 往前挪一步</span>
+        curr = nextTemp;         <span class="c">// 4. curr 往前挪一步</span>
+    }
+    <span class="k">return</span> prev;                 <span class="c">// 新的 head 是原本的最後一個節點</span>
+}</pre>
+
+    <h3>2-2　二元搜尋樹 (BST) 的走訪</h3>
+    <p>樹的走訪分為前序、中序、後序。若要將 BST 的節點「由小到大」印出，必須使用<strong>中序走訪 (Inorder Traversal)</strong>。</p>
+    <pre><span class="c">// 中序走訪：左 -> 中 -> 右</span>
+<span class="k">void</span> inorderTraversal(<span class="k">struct</span> TreeNode* root) {
+    <span class="k">if</span> (root == NULL) <span class="k">return</span>;
+    
+    inorderTraversal(root-&gt;left);       <span class="c">// 走訪左子樹</span>
+    printf(<span class="s">"%d "</span>, root-&gt;data);         <span class="c">// 處理當前節點 (印出)</span>
+    inorderTraversal(root-&gt;right);      <span class="c">// 走訪右子樹</span>
+}</pre>
+  </div>
+
+  <!-- 第 3 章 -->
+  <div class="card" id="c3">
+    <h2>第 3 章　C/C++ 指標與記憶體管理深度解析</h2>
+    <p>指標 (Pointer) 是 C 語言的靈魂，也是考試最容易失分的地方。指標本質上就是一個「儲存記憶體位址的變數」。</p>
+
+    <h3>3-1　指標與陣列的關係</h3>
+    <p>在 C 語言中，陣列名稱本身就是一個指標，指向陣列的第一個元素。</p>
+    <pre><span class="k">int</span> arr[5] = {10, 20, 30, 40, 50};
+<span class="k">int</span> *p = arr;  <span class="c">// p 指向 arr[0]</span>
+
+printf(<span class="s">"%d\n"</span>, *p);       <span class="c">// 印出 10</span>
+printf(<span class="s">"%d\n"</span>, *(p + 2)); <span class="c">// 指標加法：位址前進 2 個 int 的空間，印出 30</span>
+printf(<span class="s">"%d\n"</span>, p[2]);     <span class="c">// 等同於 *(p + 2)，印出 30</span></pre>
+
+    <h3>3-2　動態記憶體配置 (Dynamic Memory Allocation)</h3>
+    <p>靜態陣列必須在編譯時決定大小（如 <code>int a[100];</code>）。若要在執行時根據使用者輸入來決定陣列大小，必須使用 <code>malloc()</code> (C語言) 或 <code>new</code> (C++)，配置在 <strong>Heap（堆積）</strong>區塊中。</p>
+    <div class="warn">
+      <span class="t">⚠️ 記憶體洩漏 (Memory Leak)</span>
+      使用動態配置的記憶體，作業系統不會自動回收。如果程式碼沒有呼叫 <code>free()</code> (或 <code>delete</code>) 把空間還給作業系統，程式跑久了就會把記憶體吃光導致當機。
+    </div>
+    <pre><span class="c">// 動態產生一個大小為 n 的整數陣列</span>
+<span class="k">int</span> n = 10;
+<span class="k">int</span> *ptr = (<span class="k">int</span>*) malloc(n * <span class="k">sizeof</span>(<span class="k">int</span>));
+
+<span class="k">if</span> (ptr == NULL) {
+    printf(<span class="s">"記憶體配置失敗\n"</span>);
+    <span class="k">return</span> 1;
+}
+
+<span class="c">// 使用 ptr...</span>
+
+free(ptr); <span class="c">// 用完務必釋放記憶體！</span>
+ptr = NULL; <span class="c">// 避免迷途指標 (Dangling Pointer)</span></pre>
+  </div>
+
+  <!-- 第 4 章 -->
+  <div class="card" id="c4">
+    <h2>第 4 章　遞迴進階與動態規劃 (DP)</h2>
+    <p>傳統的遞迴往往因為「重複計算」導致效能極差（如樸素的費氏數列為 $O(2^n)$）。<strong>動態規劃 (Dynamic Programming, DP)</strong> 的核心概念就是「用空間換取時間」——將計算過的子問題答案記錄下來，避免重複計算。</p>
+
+    <h3>4-1　自頂向下 (Top-Down)：記憶化搜索 (Memoization)</h3>
+    <pre><span class="c">// 使用陣列 memo 記錄算過的結果，初始化為 -1</span>
+<span class="k">int</span> memo[100]; 
+<span class="k">int</span> fib_memo(<span class="k">int</span> n) {
+    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;
+    <span class="c">// 如果算過，直接查表回傳，時間複雜度降為 O(n)</span>
+    <span class="k">if</span> (memo[n] != -1) <span class="k">return</span> memo[n];
+    
+    memo[n] = fib_memo(n-1) + fib_memo(n-2);
+    <span class="k">return</span> memo[n];
+}</pre>
+
+    <h3>4-2　自底向上 (Bottom-Up)：表格法 (Tabulation)</h3>
+    <p>DP 的另一種寫法，直接用迴圈從最小的問題開始推導，甚至可以不使用遞迴函式呼叫，效能更好且不會發生 Stack Overflow。</p>
+    <pre><span class="k">int</span> fib_dp(<span class="k">int</span> n) {
+    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;
+    <span class="k">int</span> dp[n+1];
+    dp[0] = 0;
+    dp[1] = 1;
+    <span class="k">for</span> (<span class="k">int</span> i = 2; i &lt;= n; i++) {
+        dp[i] = dp[i-1] + dp[i-2];
+    }
+    <span class="k">return</span> dp[n];
+}</pre>
+    <p><u>考點提示</u>：如果題目要求「請寫出一個效能為 $O(n)$ 的費氏數列演算法」，請務必寫出上述的 DP 迴圈寫法。</p>
+  </div>
+
+  <!-- 第 5 章 -->
+  <div class="card" id="c5">
+    <h2>第 5 章　安全程式設計與例外處理</h2>
+    <p>在資安法規日益嚴格的今天，「安全程式設計 (Secure Coding)」已成為國考的新考點，常與 OWASP Top 10 結合出題。</p>
+
+    <h3>5-1　防禦 SQL 注入 (SQL Injection)</h3>
+    <p>駭客在輸入欄位輸入 <code>' OR '1'='1' --</code>，若程式直接使用字串拼接組成 SQL 語法，會導致密碼驗證被繞過。<strong>唯一的防禦正解是「參數化查詢 (Parameterized Query) / 預備語句 (Prepared Statement)」。</strong></p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>❌ 錯誤寫法 (字串拼接)</th><th>✅ 正確寫法 (參數化查詢)</th></tr>
+        <tr>
+          <td><pre>String query = "SELECT * FROM users 
+WHERE account='" + user + "' 
+AND pwd='" + pass + "'";
+<span class="c">// 駭客可輕易竄改語意</span></pre></td>
+          <td><pre>String query = "SELECT * FROM users 
+WHERE account = ? AND pwd = ?";
+PreparedStatement pstmt = conn.prepareStatement(query);
+pstmt.setString(1, user);
+pstmt.setString(2, pass);
+<span class="c">// 資料庫引擎會將輸入嚴格視為「字串值」</span></pre></td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>5-2　例外處理 (Exception Handling)</h3>
+    <p>程式執行過程中可能會發生預期之外的錯誤（如除以零、檔案找不到、網路斷線）。使用 <code>try-catch-finally</code> 區塊可以優雅地處理錯誤，而不是讓程式直接當機。</p>
+    <pre><span class="c">// Java 或 C# 範例</span>
+<span class="k">try</span> {
+    <span class="c">// 可能會發生錯誤的危險程式碼</span>
+    <span class="k">int</span> result = 10 / 0; 
+} <span class="k">catch</span> (ArithmeticException e) {
+    <span class="c">// 捕捉到特定錯誤時的處置方案</span>
+    System.out.println(<span class="s">"發生數學錯誤："</span> + e.getMessage());
+} <span class="k">catch</span> (Exception e) {
+    <span class="c">// 捕捉其他未知的錯誤</span>
+    System.out.println(<span class="s">"發生未知錯誤"</span>);
+} <span class="k">finally</span> {
+    <span class="c">// 無論是否發生錯誤，finally 區塊「一定會執行」</span>
+    <span class="c">// 常做為釋放資源、關閉資料庫連線的地方</span>
+    System.out.println(<span class="s">"清理資源"</span>);
+}</pre>
+    <p><u>考點提示</u>：考題常問「<code>finally</code> 區塊的功用為何？」標準答案是：<strong>確保無論程式是否拋出例外，關鍵的資源釋放工作（如關閉檔案、關閉資料庫連線）都絕對會被執行，避免資源洩漏 (Resource Leak)。</strong></p>
+
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="prog.html">← 返回：程式設計概要講義</a>
+    <a class="btn btn-next" href="prog-bank.html">下一步：前往程式設計題庫 →</a>
+  </div>
+
+</div>
+
+<footer>普通考試 · 程式設計概要進階講義</footer>
+
+<script src="../assets/tts.js"></script>
+</body>
+</html>

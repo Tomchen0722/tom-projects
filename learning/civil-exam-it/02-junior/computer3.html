@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>計算機概要 進階講義 | 普通考試</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-junior">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">普通考試</a><span class="sep">/</span>
+  <a href="computer.html">計算機概要</a><span class="sep">/</span><span>進階講義</span>
+</div>
+
+<div class="hero">
+  <div class="badge">💻 普考 · 專業科目一 · 進階深度擴充</div>
+  <h1>計算機概要 (進階)</h1>
+  <p><strong>這部分專為準備高考/特考，或想在普考拿下 90 分以上高分的考生所設計。</strong><br>涵蓋現代作業系統核心機制、分散式與雲端運算架構、多執行緒與並行處理原理等深層次觀念。</p>
+</div>
+
+<div class="container">
+
+  <div class="toc">
+    <div class="t">📑 進階目錄</div>
+    <ol>
+      <li><a href="#c1">現代作業系統排程演算法深度剖析</a></li>
+      <li><a href="#c2">虛擬記憶體與分頁機制 (Paging)</a></li>
+      <li><a href="#c3">多執行緒與並行處理 (Concurrency)</a></li>
+      <li><a href="#c4">分散式系統與雲端架構</a></li>
+    </ol>
+  </div>
+
+  <!-- 第 1 章 -->
+  <div class="card" id="c1">
+    <h2>第 1 章　現代作業系統排程演算法深度剖析</h2>
+    <p>傳統講義只介紹 FIFO、SJF、RR 等單一演算法，但現代作業系統（如 Windows、Linux）實際使用的排程器遠比這複雜，通常採用多層級的排程架構。</p>
+
+    <h3>1-1　多層佇列排程 (Multilevel Queue Scheduling)</h3>
+    <p>系統將行程依據性質（如系統行程、互動式行程、批次行程）分類，並將它們分配到不同的佇列中。每個佇列有自己的排程演算法。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>佇列類別</th><th>優先權</th><th>排程演算法</th><th>特性說明</th></tr>
+        <tr><td>系統行程 (System)</td><td>最高</td><td>優先權排程 (Priority)</td><td>如核心記憶體管理，不容延遲</td></tr>
+        <tr><td>互動式 (Interactive)</td><td>中高</td><td>輪轉法 (Round Robin, RR)</td><td>如滑鼠移動、鍵盤輸入，需要極短的回應時間</td></tr>
+        <tr><td>批次式 (Batch)</td><td>低</td><td>先到先服務 (FCFS)</td><td>如背景下載、報表產製，不需即時回應，只求吞吐量</td></tr>
+      </table>
+    </div>
+
+    <h3>1-2　多層回饋佇列排程 (Multilevel Feedback Queue, MFQ)</h3>
+    <p>為了解決「多層佇列」中行程無法跨佇列移動導致「飢餓 (Starvation)」的問題，MFQ 允許行程在不同優先權的佇列之間移動（回饋）。</p>
+    <div class="frame">
+      <span class="t">📐 MFQ 運作機制（以 3 個佇列為例）</span>
+      1. <strong>Q0 (RR, Time Quantum = 8ms)</strong>：新行程進入 Q0。若在 8ms 內無法執行完畢，表示它是耗費 CPU 的工作，會被<strong>降級</strong>放入 Q1。<br>
+      2. <strong>Q1 (RR, Time Quantum = 16ms)</strong>：若在 16ms 內仍未執行完，再降級至 Q2。<br>
+      3. <strong>Q2 (FCFS)</strong>：最低優先權，適合處理純運算的背景工作。<br>
+      <strong>防飢餓機制 (Aging)</strong>：若低優先權的行程等待時間過長，系統會將其<strong>升級</strong>至高優先權佇列。
+    </div>
+
+  </div>
+
+  <!-- 第 2 章 -->
+  <div class="card" id="c2">
+    <h2>第 2 章　虛擬記憶體與分頁機制 (Paging)</h2>
+    <p>記憶體管理的核心目標是「讓每個程式都以為自己擁有連續且巨大的記憶體空間」。</p>
+
+    <h3>2-1　分頁 (Paging) 的底層轉換</h3>
+    <p>作業系統將邏輯記憶體切成大小相同的<strong>分頁 (Page)</strong>，並將實體記憶體切成大小相同的<strong>頁框 (Page Frame)</strong>。Page Size 必須等於 Frame Size（通常為 4KB）。</p>
+    <div class="hl">
+      <strong>邏輯位址 (Logical Address) = 分頁號碼 (Page Number, P) + 位移量 (Offset, d)</strong><br>
+      CPU 發出邏輯位址後，透過查閱<strong>分頁表 (Page Table)</strong>，將 P 轉換為對應的頁框號碼 (Frame Number, f)，最後與原本的位移量 d 組合，形成實體位址。
+    </div>
+
+    <h3>2-2　TLB 轉譯後備緩衝區 (Translation Lookaside Buffer)</h3>
+    <p>如果每次記憶體存取都要先查一次主記憶體中的分頁表，速度會慢兩倍。因此硬體中加入了 <strong>TLB (一種極高速的關聯式記憶體快取)</strong> 來儲存最近查過的分頁紀錄。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>情境</th><th>動作流程</th><th>耗時</th></tr>
+        <tr><td><strong>TLB Hit (命中)</strong></td><td>CPU → 查 TLB → 找到 Frame → 存取實體記憶體</td><td>極快</td></tr>
+        <tr><td><strong>TLB Miss (未命中)</strong></td><td>CPU → 查 TLB 失敗 → 查主記憶體的分頁表 → 更新 TLB → 存取實體記憶體</td><td>較慢 (需存取記憶體兩次)</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- 第 3 章 -->
+  <div class="card" id="c3">
+    <h2>第 3 章　多執行緒與並行處理 (Concurrency)</h2>
+    <p>現代處理器皆為多核心架構，如何善用多執行緒 (Multithreading) 來榨乾 CPU 效能是進階重點。</p>
+
+    <h3>3-1　行程 (Process) vs 執行緒 (Thread) 深度對比</h3>
+    <div class="table-wrap">
+      <table>
+        <tr><th>比較項目</th><th>行程 (Process)</th><th>執行緒 (Thread)</th></tr>
+        <tr><td>資源擁有</td><td>作業系統分配資源的基本單位</td><td>CPU 排程的基本單位</td></tr>
+        <tr><td>記憶體空間</td><td>互相獨立，有自己的 Code, Data, Heap 段</td><td><strong>共享</strong>所屬行程的 Code, Data, Heap，但有自己獨立的 <strong>Stack (堆疊) 與 Register (暫存器)</strong></td></tr>
+        <tr><td>建立/切換成本</td><td>極高（需切換記憶體空間與快取）</td><td>極低（Lightweight Process）</td></tr>
+        <tr><td>通訊方式 (IPC)</td><td>需透過 Pipe、Message Queue、Shared Memory</td><td>直接讀寫共享變數（但需注意同步問題）</td></tr>
+      </table>
+    </div>
+
+    <h3>3-2　同步與競爭危害 (Race Condition)</h3>
+    <p>當多個執行緒同時讀寫共享變數，且最後的結果取決於執行的順序時，就會發生競爭危害。為解決此問題，作業系統提供了多種同步機制：</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>同步機制</th><th>說明與用途</th></tr>
+        <tr><td><strong>互斥鎖 (Mutex)</strong></td><td>二元信號標。同一時間只允許一個執行緒進入<strong>臨界區間 (Critical Section)</strong>。就像是一把公廁的鑰匙，進去後鎖門，出來再還鑰匙。</td></tr>
+        <tr><td><strong>號誌 (Semaphore)</strong></td><td>由 Dijkstra 提出，使用一個整數變數 <code>S</code>，支援 <code>wait()</code> (或 P) 與 <code>signal()</code> (或 V) 兩個原子操作。若 S=5，代表有 5 個資源可供存取，常用於生產者-消費者問題。</td></tr>
+        <tr><td><strong>監視器 (Monitor)</strong></td><td>一種高階的語言層級同步機制（如 Java 的 <code>synchronized</code> 關鍵字），將共享變數與操作方法封裝起來，保證同一時間只有一個執行緒能執行 Monitor 內的方法。</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- 第 4 章 -->
+  <div class="card" id="c4">
+    <h2>第 4 章　分散式系統與雲端架構</h2>
+    <p>現代系統很少單機運作，通常是橫跨多台機器的分散式系統。雲端架構的崛起正是基於分散式運算的成熟。</p>
+
+    <h3>4-1　分散式系統的 CAP 定理</h3>
+    <p>在設計分散式資料庫（如 NoSQL）時，無法同時完美滿足以下三個屬性，最多只能「三選二」：</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>屬性</th><th>意義</th></tr>
+        <tr><td><strong>一致性 (Consistency)</strong></td><td>每次讀取都能取得最新的資料，或者讀取失敗。所有節點在同一時間看到的資料必須一模一樣。</td></tr>
+        <tr><td><strong>可用性 (Availability)</strong></td><td>每個非故障的節點，都能保證對每個請求給出非錯誤的回應（但不保證是最新資料）。</td></tr>
+        <tr><td><strong>分區容忍性 (Partition Tolerance)</strong></td><td>即使節點之間的網路斷線（分成多個孤島），系統仍能繼續運作。</td></tr>
+      </table>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 實務選擇</span>
+      因為網路斷線 (P) 是常態且無法避免，所以系統通常在 <strong>CP (一致性優先，如銀行轉帳)</strong> 或 <strong>AP (可用性優先，如社群貼文)</strong> 之間做取捨。<br>
+      AP 系統通常依賴「最終一致性 (Eventual Consistency)」來彌補一致性的妥協。
+    </div>
+
+    <h3>4-2　雲端運算：虛擬化 vs 容器化</h3>
+    <p>雲端架構之所以能快速擴展，依賴底層的隔離技術。近年來，Docker 等容器技術大幅取代了傳統虛擬機。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>技術</th><th>Hypervisor 虛擬機 (VM)</th><th>容器 (Container, 如 Docker)</th></tr>
+        <tr><td>隔離層級</td><td>硬體層級的虛擬化</td><td><strong>作業系統 (OS) 層級的虛擬化</strong></td></tr>
+        <tr><td>Guest OS</td><td>每個 VM 都要安裝一個完整的客體作業系統 (如 Windows/Ubuntu)</td><td><strong>沒有 Guest OS</strong>，直接共用宿主機 (Host) 的 Linux 核心</td></tr>
+        <tr><td>啟動速度</td><td>慢 (數分鐘，需開機)</td><td><strong>極快 (數秒以內)</strong></td></tr>
+        <tr><td>資源占用</td><td>巨大 (數 GB)</td><td>極小 (數十 MB)</td></tr>
+        <tr><td>用途</td><td>需要完全隔離的安全環境、執行不同 OS 系統</td><td>微服務架構 (Microservices)、CI/CD 持續整合部署</td></tr>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="computer2.html">← 返回：計算機概要講義（下）</a>
+    <a class="btn btn-next" href="computer-bank.html">下一步：前往計算機概要題庫 →</a>
+  </div>
+
+</div>
+
+<footer>普通考試 · 計算機概要進階講義</footer>
+
+<script src="../assets/tts.js"></script>
+</body>
+</html>
