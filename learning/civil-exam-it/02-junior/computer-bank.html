@@ -5444,6 +5444,2157 @@ SSD / HDD
       </details>
     </div>
     
+
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 10 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 100 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 95%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 1)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>14.5 ns</div>
+          <div class="opt"><span class="lbl">B</span>15.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>55.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>95.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 14.5 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.95$，快取時間 $T_c = 10$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.95 \times 10 = 9.5$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 9.5 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.95 = 0.05$，主記憶體時間 $T_m = 100$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.05 \times 100 = 5.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 5.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$9.5 + 5.0 = 14.5$<br>
+              ► 結論：系統的有效存取時間為 <strong>14.5 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 5 個管線化階段 (Stages)，假設每個階段的執行時間皆為 2 奈秒 (ns)。若現在有 100 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 2)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>4.81</div>
+          <div class="opt"><span class="lbl">B</span>5</div>
+          <div class="opt"><span class="lbl">C</span>2.40</div>
+          <div class="opt"><span class="lbl">D</span>6</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 4.81。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $5 \times 2 = 10$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$10 \times 100 = 1000$ ns<br>
+              ► 結論：非管線化總共需要 1000 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 5$，指令數 $N = 100$，單階段時間 $t = 2$<br>
+              ► 代入：$(5 + 100 - 1) \times 2$<br>
+              ► 計算：$(104) \times 2 = 208$ ns<br>
+              ► 結論：管線化總共只需要 208 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$1000 \div 208$<br>
+              ► 計算：$4.81$<br>
+              ► 結論：加速比為 <strong>4.81 倍</strong>（很接近理論上限 5 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 3)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 4)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -45 的二進位表示式為何？ (題號 5)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11010011</div>
+          <div class="opt"><span class="lbl">B</span>11010010</div>
+          <div class="opt"><span class="lbl">C</span>10101101</div>
+          <div class="opt"><span class="lbl">D</span>11010011</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11010011。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 45 轉為 8-bit 二進位<br>
+              ► 計算：45 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 45 的二進位為 `00101101` (即 `00101101`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00101101`<br>
+              ► 計算：逐位元反轉後得到 `11010010`<br>
+              ► 結論：這就是 -45 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11010010` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11010011`</strong>，這就是在電腦底層儲存 -45 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 10 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 200 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 95%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 6)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>19.5 ns</div>
+          <div class="opt"><span class="lbl">B</span>20.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>105.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>190.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 19.5 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.95$，快取時間 $T_c = 10$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.95 \times 10 = 9.5$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 9.5 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.95 = 0.05$，主記憶體時間 $T_m = 200$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.05 \times 200 = 10.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 10.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$9.5 + 10.0 = 19.5$<br>
+              ► 結論：系統的有效存取時間為 <strong>19.5 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 6 個管線化階段 (Stages)，假設每個階段的執行時間皆為 2 奈秒 (ns)。若現在有 200 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 7)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>5.85</div>
+          <div class="opt"><span class="lbl">B</span>6</div>
+          <div class="opt"><span class="lbl">C</span>2.93</div>
+          <div class="opt"><span class="lbl">D</span>7</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 5.85。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $6 \times 2 = 12$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$12 \times 200 = 2400$ ns<br>
+              ► 結論：非管線化總共需要 2400 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 6$，指令數 $N = 200$，單階段時間 $t = 2$<br>
+              ► 代入：$(6 + 200 - 1) \times 2$<br>
+              ► 計算：$(205) \times 2 = 410$ ns<br>
+              ► 結論：管線化總共只需要 410 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$2400 \div 410$<br>
+              ► 計算：$5.85$<br>
+              ► 結論：加速比為 <strong>5.85 倍</strong>（很接近理論上限 6 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 8)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 9)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -35 的二進位表示式為何？ (題號 10)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11011101</div>
+          <div class="opt"><span class="lbl">B</span>11011100</div>
+          <div class="opt"><span class="lbl">C</span>10100011</div>
+          <div class="opt"><span class="lbl">D</span>11011101</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11011101。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 35 轉為 8-bit 二進位<br>
+              ► 計算：35 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 35 的二進位為 `00100011` (即 `00100011`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00100011`<br>
+              ► 計算：逐位元反轉後得到 `11011100`<br>
+              ► 結論：這就是 -35 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11011100` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11011101`</strong>，這就是在電腦底層儲存 -35 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 20 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 100 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 80%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 11)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>36.0 ns</div>
+          <div class="opt"><span class="lbl">B</span>40.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>60.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>80.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 36.0 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.8$，快取時間 $T_c = 20$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.8 \times 20 = 16.0$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 16.0 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.8 = 0.20$，主記憶體時間 $T_m = 100$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.20 \times 100 = 20.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 20.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$16.0 + 20.0 = 36.0$<br>
+              ► 結論：系統的有效存取時間為 <strong>36.0 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 5 個管線化階段 (Stages)，假設每個階段的執行時間皆為 2 奈秒 (ns)。若現在有 200 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 12)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>4.90</div>
+          <div class="opt"><span class="lbl">B</span>5</div>
+          <div class="opt"><span class="lbl">C</span>2.45</div>
+          <div class="opt"><span class="lbl">D</span>6</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 4.90。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $5 \times 2 = 10$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$10 \times 200 = 2000$ ns<br>
+              ► 結論：非管線化總共需要 2000 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 5$，指令數 $N = 200$，單階段時間 $t = 2$<br>
+              ► 代入：$(5 + 200 - 1) \times 2$<br>
+              ► 計算：$(204) \times 2 = 408$ ns<br>
+              ► 結論：管線化總共只需要 408 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$2000 \div 408$<br>
+              ► 計算：$4.90$<br>
+              ► 結論：加速比為 <strong>4.90 倍</strong>（很接近理論上限 5 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 13)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 14)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -25 的二進位表示式為何？ (題號 15)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11100111</div>
+          <div class="opt"><span class="lbl">B</span>11100110</div>
+          <div class="opt"><span class="lbl">C</span>10011001</div>
+          <div class="opt"><span class="lbl">D</span>11100111</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11100111。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 25 轉為 8-bit 二進位<br>
+              ► 計算：25 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 25 的二進位為 `00011001` (即 `00011001`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00011001`<br>
+              ► 計算：逐位元反轉後得到 `11100110`<br>
+              ► 結論：這就是 -25 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11100110` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11100111`</strong>，這就是在電腦底層儲存 -25 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 10 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 100 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 95%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 16)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>14.5 ns</div>
+          <div class="opt"><span class="lbl">B</span>15.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>55.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>95.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 14.5 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.95$，快取時間 $T_c = 10$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.95 \times 10 = 9.5$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 9.5 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.95 = 0.05$，主記憶體時間 $T_m = 100$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.05 \times 100 = 5.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 5.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$9.5 + 5.0 = 14.5$<br>
+              ► 結論：系統的有效存取時間為 <strong>14.5 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 4 個管線化階段 (Stages)，假設每個階段的執行時間皆為 5 奈秒 (ns)。若現在有 200 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 17)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>3.94</div>
+          <div class="opt"><span class="lbl">B</span>4</div>
+          <div class="opt"><span class="lbl">C</span>1.97</div>
+          <div class="opt"><span class="lbl">D</span>5</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 3.94。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $4 \times 5 = 20$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$20 \times 200 = 4000$ ns<br>
+              ► 結論：非管線化總共需要 4000 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 4$，指令數 $N = 200$，單階段時間 $t = 5$<br>
+              ► 代入：$(4 + 200 - 1) \times 5$<br>
+              ► 計算：$(203) \times 5 = 1015$ ns<br>
+              ► 結論：管線化總共只需要 1015 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$4000 \div 1015$<br>
+              ► 計算：$3.94$<br>
+              ► 結論：加速比為 <strong>3.94 倍</strong>（很接近理論上限 4 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 18)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 19)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -35 的二進位表示式為何？ (題號 20)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11011101</div>
+          <div class="opt"><span class="lbl">B</span>11011100</div>
+          <div class="opt"><span class="lbl">C</span>10100011</div>
+          <div class="opt"><span class="lbl">D</span>11011101</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11011101。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 35 轉為 8-bit 二進位<br>
+              ► 計算：35 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 35 的二進位為 `00100011` (即 `00100011`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00100011`<br>
+              ► 計算：逐位元反轉後得到 `11011100`<br>
+              ► 結論：這就是 -35 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11011100` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11011101`</strong>，這就是在電腦底層儲存 -35 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 10 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 200 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 95%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 21)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>19.5 ns</div>
+          <div class="opt"><span class="lbl">B</span>20.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>105.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>190.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 19.5 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.95$，快取時間 $T_c = 10$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.95 \times 10 = 9.5$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 9.5 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.95 = 0.05$，主記憶體時間 $T_m = 200$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.05 \times 200 = 10.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 10.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$9.5 + 10.0 = 19.5$<br>
+              ► 結論：系統的有效存取時間為 <strong>19.5 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 4 個管線化階段 (Stages)，假設每個階段的執行時間皆為 5 奈秒 (ns)。若現在有 500 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 22)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>3.98</div>
+          <div class="opt"><span class="lbl">B</span>4</div>
+          <div class="opt"><span class="lbl">C</span>1.99</div>
+          <div class="opt"><span class="lbl">D</span>5</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 3.98。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $4 \times 5 = 20$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$20 \times 500 = 10000$ ns<br>
+              ► 結論：非管線化總共需要 10000 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 4$，指令數 $N = 500$，單階段時間 $t = 5$<br>
+              ► 代入：$(4 + 500 - 1) \times 5$<br>
+              ► 計算：$(503) \times 5 = 2515$ ns<br>
+              ► 結論：管線化總共只需要 2515 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$10000 \div 2515$<br>
+              ► 計算：$3.98$<br>
+              ► 結論：加速比為 <strong>3.98 倍</strong>（很接近理論上限 4 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 23)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 24)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -25 的二進位表示式為何？ (題號 25)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11100111</div>
+          <div class="opt"><span class="lbl">B</span>11100110</div>
+          <div class="opt"><span class="lbl">C</span>10011001</div>
+          <div class="opt"><span class="lbl">D</span>11100111</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11100111。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 25 轉為 8-bit 二進位<br>
+              ► 計算：25 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 25 的二進位為 `00011001` (即 `00011001`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00011001`<br>
+              ► 計算：逐位元反轉後得到 `11100110`<br>
+              ► 結論：這就是 -25 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11100110` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11100111`</strong>，這就是在電腦底層儲存 -25 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 20 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 200 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 90%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 26)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>38.0 ns</div>
+          <div class="opt"><span class="lbl">B</span>40.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>110.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>180.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 38.0 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.9$，快取時間 $T_c = 20$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.9 \times 20 = 18.0$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 18.0 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.9 = 0.10$，主記憶體時間 $T_m = 200$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.10 \times 200 = 20.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 20.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$18.0 + 20.0 = 38.0$<br>
+              ► 結論：系統的有效存取時間為 <strong>38.0 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 6 個管線化階段 (Stages)，假設每個階段的執行時間皆為 5 奈秒 (ns)。若現在有 500 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 27)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>5.94</div>
+          <div class="opt"><span class="lbl">B</span>6</div>
+          <div class="opt"><span class="lbl">C</span>2.97</div>
+          <div class="opt"><span class="lbl">D</span>7</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 5.94。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $6 \times 5 = 30$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$30 \times 500 = 15000$ ns<br>
+              ► 結論：非管線化總共需要 15000 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 6$，指令數 $N = 500$，單階段時間 $t = 5$<br>
+              ► 代入：$(6 + 500 - 1) \times 5$<br>
+              ► 計算：$(505) \times 5 = 2525$ ns<br>
+              ► 結論：管線化總共只需要 2525 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$15000 \div 2525$<br>
+              ► 計算：$5.94$<br>
+              ► 結論：加速比為 <strong>5.94 倍</strong>（很接近理論上限 6 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 28)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 29)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -45 的二進位表示式為何？ (題號 30)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11010011</div>
+          <div class="opt"><span class="lbl">B</span>11010010</div>
+          <div class="opt"><span class="lbl">C</span>10101101</div>
+          <div class="opt"><span class="lbl">D</span>11010011</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11010011。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 45 轉為 8-bit 二進位<br>
+              ► 計算：45 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 45 的二進位為 `00101101` (即 `00101101`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00101101`<br>
+              ► 計算：逐位元反轉後得到 `11010010`<br>
+              ► 結論：這就是 -45 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11010010` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11010011`</strong>，這就是在電腦底層儲存 -45 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 20 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 100 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 90%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 31)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>28.0 ns</div>
+          <div class="opt"><span class="lbl">B</span>30.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>60.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>90.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 28.0 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.9$，快取時間 $T_c = 20$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.9 \times 20 = 18.0$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 18.0 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.9 = 0.10$，主記憶體時間 $T_m = 100$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.10 \times 100 = 10.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 10.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$18.0 + 10.0 = 28.0$<br>
+              ► 結論：系統的有效存取時間為 <strong>28.0 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 5 個管線化階段 (Stages)，假設每個階段的執行時間皆為 5 奈秒 (ns)。若現在有 100 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 32)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>4.81</div>
+          <div class="opt"><span class="lbl">B</span>5</div>
+          <div class="opt"><span class="lbl">C</span>2.40</div>
+          <div class="opt"><span class="lbl">D</span>6</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 4.81。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $5 \times 5 = 25$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$25 \times 100 = 2500$ ns<br>
+              ► 結論：非管線化總共需要 2500 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 5$，指令數 $N = 100$，單階段時間 $t = 5$<br>
+              ► 代入：$(5 + 100 - 1) \times 5$<br>
+              ► 計算：$(104) \times 5 = 520$ ns<br>
+              ► 結論：管線化總共只需要 520 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$2500 \div 520$<br>
+              ► 計算：$4.81$<br>
+              ► 結論：加速比為 <strong>4.81 倍</strong>（很接近理論上限 5 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 33)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 34)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -45 的二進位表示式為何？ (題號 35)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11010011</div>
+          <div class="opt"><span class="lbl">B</span>11010010</div>
+          <div class="opt"><span class="lbl">C</span>10101101</div>
+          <div class="opt"><span class="lbl">D</span>11010011</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11010011。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 45 轉為 8-bit 二進位<br>
+              ► 計算：45 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 45 的二進位為 `00101101` (即 `00101101`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00101101`<br>
+              ► 計算：逐位元反轉後得到 `11010010`<br>
+              ► 結論：這就是 -45 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11010010` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11010011`</strong>，這就是在電腦底層儲存 -45 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 20 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 200 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 90%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 36)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>38.0 ns</div>
+          <div class="opt"><span class="lbl">B</span>40.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>110.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>180.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 38.0 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.9$，快取時間 $T_c = 20$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.9 \times 20 = 18.0$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 18.0 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.9 = 0.10$，主記憶體時間 $T_m = 200$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.10 \times 200 = 20.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 20.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$18.0 + 20.0 = 38.0$<br>
+              ► 結論：系統的有效存取時間為 <strong>38.0 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 5 個管線化階段 (Stages)，假設每個階段的執行時間皆為 5 奈秒 (ns)。若現在有 100 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 37)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>4.81</div>
+          <div class="opt"><span class="lbl">B</span>5</div>
+          <div class="opt"><span class="lbl">C</span>2.40</div>
+          <div class="opt"><span class="lbl">D</span>6</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 4.81。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $5 \times 5 = 25$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$25 \times 100 = 2500$ ns<br>
+              ► 結論：非管線化總共需要 2500 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 5$，指令數 $N = 100$，單階段時間 $t = 5$<br>
+              ► 代入：$(5 + 100 - 1) \times 5$<br>
+              ► 計算：$(104) \times 5 = 520$ ns<br>
+              ► 結論：管線化總共只需要 520 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$2500 \div 520$<br>
+              ► 計算：$4.81$<br>
+              ► 結論：加速比為 <strong>4.81 倍</strong>（很接近理論上限 5 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 38)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 39)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -35 的二進位表示式為何？ (題號 40)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11011101</div>
+          <div class="opt"><span class="lbl">B</span>11011100</div>
+          <div class="opt"><span class="lbl">C</span>10100011</div>
+          <div class="opt"><span class="lbl">D</span>11011101</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11011101。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 35 轉為 8-bit 二進位<br>
+              ► 計算：35 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 35 的二進位為 `00100011` (即 `00100011`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00100011`<br>
+              ► 計算：逐位元反轉後得到 `11011100`<br>
+              ► 結論：這就是 -35 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11011100` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11011101`</strong>，這就是在電腦底層儲存 -35 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 10 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 100 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 80%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 41)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>28.0 ns</div>
+          <div class="opt"><span class="lbl">B</span>30.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>55.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>80.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 28.0 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.8$，快取時間 $T_c = 10$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.8 \times 10 = 8.0$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 8.0 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.8 = 0.20$，主記憶體時間 $T_m = 100$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.20 \times 100 = 20.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 20.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$8.0 + 20.0 = 28.0$<br>
+              ► 結論：系統的有效存取時間為 <strong>28.0 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 4 個管線化階段 (Stages)，假設每個階段的執行時間皆為 2 奈秒 (ns)。若現在有 200 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 42)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>3.94</div>
+          <div class="opt"><span class="lbl">B</span>4</div>
+          <div class="opt"><span class="lbl">C</span>1.97</div>
+          <div class="opt"><span class="lbl">D</span>5</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 3.94。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $4 \times 2 = 8$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$8 \times 200 = 1600$ ns<br>
+              ► 結論：非管線化總共需要 1600 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 4$，指令數 $N = 200$，單階段時間 $t = 2$<br>
+              ► 代入：$(4 + 200 - 1) \times 2$<br>
+              ► 計算：$(203) \times 2 = 406$ ns<br>
+              ► 結論：管線化總共只需要 406 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$1600 \div 406$<br>
+              ► 計算：$3.94$<br>
+              ► 結論：加速比為 <strong>3.94 倍</strong>（很接近理論上限 4 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 43)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 44)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -45 的二進位表示式為何？ (題號 45)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11010011</div>
+          <div class="opt"><span class="lbl">B</span>11010010</div>
+          <div class="opt"><span class="lbl">C</span>10101101</div>
+          <div class="opt"><span class="lbl">D</span>11010011</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11010011。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 45 轉為 8-bit 二進位<br>
+              ► 計算：45 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 45 的二進位為 `00101101` (即 `00101101`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00101101`<br>
+              ► 計算：逐位元反轉後得到 `11010010`<br>
+              ► 結論：這就是 -45 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11010010` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11010011`</strong>，這就是在電腦底層儲存 -45 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">假設某電腦系統的快取記憶體 (Cache) 存取時間為 20 奈秒 (ns)，主記憶體 (Main Memory) 存取時間為 200 奈秒。若 CPU 發出的記憶體存取要求中，快取命中率 (Hit Ratio) 為 90%。在不考慮階層式同時存取的情況下 (即若 Cache miss，則去 Main Memory 存取)，請問系統的「有效存取時間 (Effective Access Time, EAT)」為多少奈秒？ (題號 46)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>38.0 ns</div>
+          <div class="opt"><span class="lbl">B</span>40.0 ns</div>
+          <div class="opt"><span class="lbl">C</span>110.0 ns</div>
+          <div class="opt"><span class="lbl">D</span>180.0 ns</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 38.0 ns。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 了解 EAT (Effective Access Time) 的加權平均公式</strong><br>
+              ► 說明：平均存取時間，就是把「命中的機率 $\times$ 命中的時間」加上「沒命中的機率 $\times$ 沒命中的時間」。<br>
+              ► 公式：$EAT = (H \times T_c) + ( (1-H) \times T_m )$<br>
+              ► 參數：$H$ 為命中率，$T_c$ 為 Cache 時間，$T_m$ 為 Main Memory 時間。</p>
+              
+              <p><strong>Step 2: 處理「命中 (Hit)」的情況</strong><br>
+              ► 代入：命中率 $H = 0.9$，快取時間 $T_c = 20$ ns<br>
+              ► 算式：$H \times T_c$<br>
+              ► 計算：$0.9 \times 20 = 18.0$ ns<br>
+              ► 結論：命中所貢獻的平均時間為 18.0 ns。</p>
+              
+              <p><strong>Step 3: 處理「未命中 (Miss)」的情況</strong><br>
+              ► 代入：未命中率 $(1-H) = 1 - 0.9 = 0.10$，主記憶體時間 $T_m = 200$ ns<br>
+              ► 算式：$(1-H) \times T_m$<br>
+              ► 計算：$0.10 \times 200 = 20.0$ ns<br>
+              ► 結論：未命中所貢獻的平均時間為 20.0 ns。</p>
+              
+              <p><strong>Step 4: 加總求得 EAT</strong><br>
+              ► 算式：命中貢獻 ＋ 未命中貢獻<br>
+              ► 計算：$18.0 + 20.0 = 38.0$<br>
+              ► 結論：系統的有效存取時間為 <strong>38.0 ns</strong>。<br>
+              <em>(註：若題目強調是 Hierarchical access，未命中的時間會是 $T_c + T_m$。本題已宣告若 miss 則直接去主記憶體拿，故代入 $T_m$)</em></p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">某 CPU 的指令週期分為 4 個管線化階段 (Stages)，假設每個階段的執行時間皆為 2 奈秒 (ns)。若現在有 500 個連續指令需要執行，且過程中沒有發生任何分支或資料危險 (Hazards)。請問與「非管線化 (Non-pipelined)」架構相比，此管線化架構的加速比 (Speedup) 約為多少？ (題號 47)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>3.98</div>
+          <div class="opt"><span class="lbl">B</span>4</div>
+          <div class="opt"><span class="lbl">C</span>1.99</div>
+          <div class="opt"><span class="lbl">D</span>5</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 3.98。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 計算「非管線化」所需的總時間</strong><br>
+              ► 說明：非管線化就是「一個指令從頭到尾徹底做完後，下一個指令才能開始」。<br>
+              ► 算式：1 個指令時間 = 階段數 $\times$ 每個階段時間<br>
+              ► 代入：$1$ 個指令需要 $4 \times 2 = 8$ ns<br>
+              ► 總時間算式：單指令時間 $\times$ 指令總數<br>
+              ► 計算：$8 \times 500 = 4000$ ns<br>
+              ► 結論：非管線化總共需要 4000 ns。</p>
+              
+              <p><strong>Step 2: 計算「管線化」所需的總時間</strong><br>
+              ► 說明：管線化就像工廠生產線。第 1 個指令需要走完所有階段，所以花 $k$ 個時間單位；但從第 2 個指令開始，每隔 1 個階段時間，就會有 1 個指令完成！<br>
+              ► 公式：總時間 = $(k + N - 1) \times t$<br>
+              ► 參數：階段數 $k = 4$，指令數 $N = 500$，單階段時間 $t = 2$<br>
+              ► 代入：$(4 + 500 - 1) \times 2$<br>
+              ► 計算：$(503) \times 2 = 1006$ ns<br>
+              ► 結論：管線化總共只需要 1006 ns。</p>
+              
+              <p><strong>Step 3: 計算加速比 (Speedup)</strong><br>
+              ► 說明：加速比用來衡量「新架構比舊架構快了幾倍」。<br>
+              ► 算式：加速比 = (舊的時間 / 新的時間)<br>
+              ► 代入：$4000 \div 1006$<br>
+              ► 計算：$3.98$<br>
+              ► 結論：加速比為 <strong>3.98 倍</strong>（很接近理論上限 4 倍）。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">邏輯推導</span>
+      </div>
+      <div class="stem">根據布林代數與狄摩根定律 (De Morgan's Laws)，請化簡以下邏輯運算式：<br>$F = \overline{ (A + B) \cdot \overline{C} }$ (題號 48)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>$\overline{A} \cdot \overline{B} + C$</div>
+          <div class="opt"><span class="lbl">B</span>$\overline{A} + \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">C</span>$\overline{A} \cdot \overline{B} \cdot C$</div>
+          <div class="opt"><span class="lbl">D</span>$A \cdot B + \overline{C}$</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) $\overline{A} \cdot \overline{B} + C$。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 理解狄摩根定律的核心精神</strong><br>
+              ► 說明：遇到長長的否定線 (NOT) 蓋在括號上方時，可以把線「折斷」分給裡面的變數，同時必須把中間的運算符號「反轉」(AND 變 OR，OR 變 AND)。<br>
+              ► 公式：$\overline{X \cdot Y} = \overline{X} + \overline{Y}$</p>
+              
+              <p><strong>Step 2: 拆解最外層的 NOT</strong><br>
+              ► 題目：$F = \overline{ (A + B) \cdot \overline{C} }$<br>
+              ► 說明：把 $(A+B)$ 視為 $X$，$\overline{C}$ 視為 $Y$。<br>
+              ► 算式套用：$\overline{X \cdot Y} \rightarrow \overline{X} + \overline{Y}$<br>
+              ► 代入變數：$\overline{(A+B)} + \overline{\overline{C}}$</p>
+              
+              <p><strong>Step 3: 處理雙重否定 (Double Negation)</strong><br>
+              ► 說明：NOT NOT C 等於 C 本身。<br>
+              ► 算式：$\overline{\overline{C}} = C$<br>
+              ► 目前的式子：$\overline{(A+B)} + C$</p>
+              
+              <p><strong>Step 4: 對前項再次套用狄摩根定律</strong><br>
+              ► 說明：括號上面還有一條線！<br>
+              ► 算式：$\overline{A+B}$ 折斷線，中間加號變乘號。<br>
+              ► 計算：$\overline{A} \cdot \overline{B}$</p>
+              
+              <p><strong>Step 5: 組合最終答案</strong><br>
+              ► 結論：將前項與後項組合，最終化簡結果為 <strong>$\overline{A} \cdot \overline{B} + C$</strong>。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">記憶與推導</span>
+      </div>
+      <div class="stem">在 IEEE 754 浮點數標準中，「單倍精確度 (Single Precision)」的總長度為 32 bits。請問這 32 bits 中，被分配給「指數部分 (Exponent)」與「尾數部分 (Mantissa / Fraction)」的位元數分別是多少？ (題號 49)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>指數 8 bits，尾數 23 bits</div>
+          <div class="opt"><span class="lbl">B</span>指數 11 bits，尾數 20 bits</div>
+          <div class="opt"><span class="lbl">C</span>指數 8 bits，尾數 24 bits</div>
+          <div class="opt"><span class="lbl">D</span>指數 10 bits，尾數 21 bits</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 指數 8 bits，尾數 23 bits。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 結構推導與行行說明</div>
+              <p><strong>Step 1: 確認總位元數</strong><br>
+              ► 說明：單倍精確度 (float) 佔用 4 Bytes = 32 bits。</p>
+              
+              <p><strong>Step 2: 拆解正負號 (Sign Bit)</strong><br>
+              ► 說明：無論是整數還是浮點數，最前面的 1 個位元固定保留給正負號 (0 表正，1 表負)。<br>
+              ► 算式：$32 - 1 = 31$ bits。<br>
+              ► 結論：剩下 31 bits 要分給指數跟尾數。</p>
+              
+              <p><strong>Step 3: 推算指數與尾數的配置</strong><br>
+              ► 說明：在 IEEE 754 標準中，單倍精確度規定指數 (Exponent) 固定佔用 8 個位元。<br>
+              ► 算式：剩下的位元數 = $31 - 8 = 23$<br>
+              ► 結論：所以尾數 (Mantissa) 佔用 23 個位元。最終配置為：1 bit (正負) + 8 bits (指數) + 23 bits (尾數) = 32 bits。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
+    <div class="q">
+      <div class="t">
+        <span class="no">算式推導題</span><span class="tag">算式推導</span>
+      </div>
+      <div class="stem">在 8 位元的電腦系統中，若使用二補數表示法 (Two's Complement)，請問十進位數字 -25 的二進位表示式為何？ (題號 50)</div>
+      <div class="options">
+          <div class="opt"><span class="lbl">A</span>11100111</div>
+          <div class="opt"><span class="lbl">B</span>11100110</div>
+          <div class="opt"><span class="lbl">C</span>10011001</div>
+          <div class="opt"><span class="lbl">D</span>11100111</div>
+      </div>
+      <details>
+        <summary>解答與解析</summary>
+        <div class="ans">
+          
+            <p><strong>正確答案是 (A) 11100111。</strong></p>
+            <div class="easy">
+              <div class="t">✍️ 逐步算式推導與行行說明</div>
+              <p><strong>Step 1: 先寫出正數的二進位 (Sign-Magnitude)</strong><br>
+              ► 說明：要找負數的二補數，必須先寫出它「正數」長什麼樣子。<br>
+              ► 算式：將十進位 25 轉為 8-bit 二進位<br>
+              ► 計算：25 ＝ $16 + 8 + 1$<br>
+              ► 結論：正 25 的二進位為 `00011001` (即 `00011001`)。</p>
+              
+              <p><strong>Step 2: 進行「一補數 (1's Complement)」轉換</strong><br>
+              ► 說明：一補數的規則就是「把所有的 0 變成 1，所有的 1 變成 0」。<br>
+              ► 代入：原始正數 `00011001`<br>
+              ► 計算：逐位元反轉後得到 `11100110`<br>
+              ► 結論：這就是 -25 的一補數表示法，但還沒結束。</p>
+              
+              <p><strong>Step 3: 加上 1 完成「二補數 (2's Complement)」轉換</strong><br>
+              ► 說明：二補數的定義就是「一補數 ＋ 1」。<br>
+              ► 算式：`11100110` + `00000001`<br>
+              ► 計算：尾數相加，若遇 1+1 則進位。<br>
+              ► 結論：最終得到 <strong>`11100111`</strong>，這就是在電腦底層儲存 -25 的真實樣貌。</p>
+            </div>
+            
+        </div>
+      </details>
+    </div>
+        
   <div class="nav-btns">
     <a class="btn btn-prev" href="computer2.html">← 計算機概要講義（下）</a>
     <a class="btn btn-next" href="net.html">下一科：資通網路與安全概要 →</a>
