@@ -135,23 +135,50 @@
     <h4>方法一：展開法（Substitution / Iteration）</h4>
     <p>以 <code>T(n) = 2T(n/2) + n，T(1) = 1</code> 為例（Merge Sort）：</p>
     <pre>T(n) = 2T(n/2) + n
-     = 2[2T(n/4) + n/2] + n = 4T(n/4) + 2n
-     = 4[2T(n/8) + n/4] + 2n = 8T(n/8) + 3n
+<span class="c">► 說明：將 T(n/2) 再次代入原公式：T(n/2) = 2T(n/4) + n/2</span>
+<span class="c">► 算式：</span>= 2[2T(n/4) + n/2] + n 
+<span class="c">► 計算：將外面的 2 乘進去，2*(n/2) 變成 n，再加上後面的 n，得到 2n</span>
+     = 4T(n/4) + 2n
+
+<span class="c">► 說明：再次把 T(n/4) 代入公式：T(n/4) = 2T(n/8) + n/4</span>
+<span class="c">► 算式：</span>= 4[2T(n/8) + n/4] + 2n 
+<span class="c">► 計算：將外面的 4 乘進去，4*(n/4) 變成 n，加上後面的 2n，得到 3n</span>
+     = 8T(n/8) + 3n
      ...
+<span class="c">► 說明：觀察規律，展開第 k 次時，係數與分母皆為 2^k，後面的項數則為 k*n</span>
      = 2^k · T(n/2^k) + k·n
 
+<span class="c">► 說明：遞迴的終點是當括號內為 1，也就是 n/2^k = 1 時停止</span>
+<span class="c">► 推導：n = 2^k，兩邊取以 2 為底的對數，得到 k = log₂n</span>
 <span class="c">令 n/2^k = 1 → k = log₂n</span>
+
+<span class="c">► 代入：將 k 替換回原本的算式中</span>
+<span class="c">► 算式：</span>= 2^(log₂n) · T(1) + (log₂n)·n
+<span class="c">► 計算：根據對數性質，2^(log₂n) 剛好等於 n；且已知 T(1) 等於 1</span>
      = n·T(1) + n·log₂n
      = n + n log n
+<span class="c">► 結論：忽略常數與低次項，取得最高次數的項</span>
 <span class="c">→ T(n) = Θ(n log n)</span></pre>
 
     <h4>方法二：遞迴樹（Recursion Tree）</h4>
     <p>把每一層的成本畫出來相加。以 <code>T(n)=2T(n/2)+n</code>：</p>
-    <pre>層 0:            n              = n
+    <pre><span class="c">► 說明：第 0 層 (頂層)，只有 1 個問題，大小為 n。成本為 n。</span>
+層 0:            n              = n
+
+<span class="c">► 說明：第 1 層，切分為 2 個子問題，每個大小為 n/2。成本為 2 * (n/2) = n。</span>
 層 1:      n/2       n/2        = n
+
+<span class="c">► 說明：第 2 層，切分為 4 個子問題，每個大小為 n/4。成本為 4 * (n/4) = n。</span>
 層 2:   n/4  n/4  n/4  n/4      = n
 ...
+<span class="c">► 說明：到達最底層 (Base Case)，此時子問題大小為 1。</span>
+<span class="c">► 算式：從 n 每次除以 2，要除幾次才會等於 1？答案是 log₂n 次。</span>
+<span class="c">► 計算：最底層共有 n 個節點，每個成本為 1，總成本為 1 * n = n。</span>
 層 log n:  1 1 1 ... 1 (n 個)   = n
+
+<span class="c">► 結論：從層 0 到層 log n，總共有 (log n + 1) 層。</span>
+<span class="c">► 總計：每一層的成本都是 n，總共有 (log n + 1) 層，所以總成本為 n * (log n + 1) = n log n + n。</span>
+<span class="c">► 漸進符號：取最高次數項，即 Θ(n log n)。</span>
 <span class="c">共 (log n + 1) 層，每層成本 n → 總計 n log n</span></pre>
 
     <h4>方法三：主定理（Master Theorem）— 最常用</h4>
