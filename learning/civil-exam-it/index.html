@@ -20,6 +20,41 @@
      每個觀念都用高中程度的白話解釋一遍，再給申論與選擇題庫。</p>
 </div>
 
+<!-- ===== 倒數計時區 ===== -->
+<div class="countdown-section">
+  <div class="countdown-wrapper">
+
+    <!-- 報名倒數 -->
+    <div class="countdown-card">
+      <div class="countdown-badge"><span class="dot dot-reg"></span>115年地方特考 · 報名</div>
+      <h2 class="countdown-title">距離<strong>報名開始</strong></h2>
+      <p class="countdown-subtitle">報名日期：115年9月8日 ~ 9月17日</p>
+      <div class="countdown-timer" id="countdown-reg">
+        <div class="time-box"><span class="time-num" id="reg-days">--</span><span class="time-label">天</span></div>
+        <div class="time-box"><span class="time-num" id="reg-hours">--</span><span class="time-label">時</span></div>
+        <div class="time-box"><span class="time-num" id="reg-mins">--</span><span class="time-label">分</span></div>
+        <div class="time-box"><span class="time-num" id="reg-secs">--</span><span class="time-label">秒</span></div>
+      </div>
+      <div class="countdown-status" id="reg-status"></div>
+    </div>
+
+    <!-- 考試倒數 -->
+    <div class="countdown-card">
+      <div class="countdown-badge"><span class="dot dot-exam"></span>115年地方特考 · 考試</div>
+      <h2 class="countdown-title">距離<strong>考試開始</strong></h2>
+      <p class="countdown-subtitle">考試日期：115年12月5日 ~ 12月7日</p>
+      <div class="countdown-timer" id="countdown-exam">
+        <div class="time-box"><span class="time-num" id="exam-days">--</span><span class="time-label">天</span></div>
+        <div class="time-box"><span class="time-num" id="exam-hours">--</span><span class="time-label">時</span></div>
+        <div class="time-box"><span class="time-num" id="exam-mins">--</span><span class="time-label">分</span></div>
+        <div class="time-box"><span class="time-num" id="exam-secs">--</span><span class="time-label">秒</span></div>
+      </div>
+      <div class="countdown-status" id="exam-status"></div>
+    </div>
+
+  </div>
+</div>
+
 <div class="container">
 
   <div class="card">
@@ -201,6 +236,59 @@
   考科與簡章以考選部當年度公告為準
 </footer>
 
+
+<script>
+(function(){
+  // 民國115年 = 西元2026年
+  // 報名：2026/9/8 00:00 ~ 2026/9/17 23:59:59
+  // 考試：2026/12/5 00:00 ~ 2026/12/7 23:59:59
+  var REG_START  = new Date(2026, 8, 8, 0, 0, 0);   // 月份 0-indexed，8 = 9月
+  var REG_END    = new Date(2026, 8, 17, 23, 59, 59);
+  var EXAM_START = new Date(2026, 11, 5, 0, 0, 0);   // 11 = 12月
+  var EXAM_END   = new Date(2026, 11, 7, 23, 59, 59);
+
+  function updateCountdown(targetStart, targetEnd, prefix, statusId) {
+    var now = new Date();
+    var statusEl = document.getElementById(statusId);
+    var diff, label;
+
+    if (now < targetStart) {
+      diff = targetStart - now;
+      if (statusEl) { statusEl.textContent = ''; statusEl.className = 'countdown-status'; }
+    } else if (now >= targetStart && now <= targetEnd) {
+      diff = 0;
+      if (statusEl) {
+        statusEl.textContent = prefix === 'reg' ? '🟢 報名進行中！' : '📝 考試進行中！';
+        statusEl.className = 'countdown-status';
+      }
+    } else {
+      diff = 0;
+      if (statusEl) {
+        statusEl.textContent = prefix === 'reg' ? '報名已截止' : '考試已結束';
+        statusEl.className = 'countdown-status ended';
+      }
+    }
+
+    var days = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    var mins = Math.floor((diff % 3600000) / 60000);
+    var secs = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById(prefix + '-days').textContent  = days;
+    document.getElementById(prefix + '-hours').textContent = hours;
+    document.getElementById(prefix + '-mins').textContent  = mins;
+    document.getElementById(prefix + '-secs').textContent  = secs;
+  }
+
+  function tick() {
+    updateCountdown(REG_START, REG_END, 'reg', 'reg-status');
+    updateCountdown(EXAM_START, EXAM_END, 'exam', 'exam-status');
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
 
 <script src="assets/tts.js"></script>
 </body>
