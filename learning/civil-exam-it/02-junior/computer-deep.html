@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>計算機概要 深化教材 | 普通考試</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="t-junior">
+
+<div class="topbar">
+  <a href="../index.html">📘 國考教材首頁</a><span class="sep">/</span>
+  <a href="index.html">普通考試</a><span class="sep">/</span><span>計算機概要 深化</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🔬 深化教材 · 計算機概要 · 講義之外的「為什麼」</div>
+  <h1>計算機概要 深化教材</h1>
+  <p>普考計概是<strong>全測驗 50 題</strong>，每題 2 分。<br>這一頁補的是「算得出來」與「分辨得出陷阱」的部分——那正是 60 分與 80 分的差距。</p>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>📌 這一頁怎麼用</h2>
+    <div class="easy">
+      <div class="t">🧒 白話說明</div>
+      <p>計概的選擇題有兩種：<strong>「背了就會」與「算了才會」</strong>。</p>
+      <p>背的部分講義已經寫完了。這一頁專門處理<strong>會算的那一半</strong>——進位轉換、浮點數、快取命中率、RAID 容量、CPU 效能、記憶體定址。</p>
+      <p>加上一區<strong>「最容易被騙的十個陷阱」</strong>——那些每年都有人錯的題目。</p>
+    </div>
+  </div>
+
+  <div class="toc">
+    <div class="t">📑 深化目錄</div>
+    <ol>
+      <li><a href="#d1">進位系統與補數：一次算到底</a></li>
+      <li><a href="#d2">浮點數：為什麼 0.1 + 0.2 ≠ 0.3</a></li>
+      <li><a href="#d3">字元編碼：Big5、Unicode 與罕用字</a></li>
+      <li><a href="#d4">邏輯閘與布林代數化簡</a></li>
+      <li><a href="#d5">CPU 效能公式與管線化</a></li>
+      <li><a href="#d6">記憶體階層與快取命中率計算</a></li>
+      <li><a href="#d7">虛擬記憶體與分頁置換</a></li>
+      <li><a href="#d8">RAID 的容量、容錯與效能計算</a></li>
+      <li><a href="#d9">行程、執行緒與死結</a></li>
+      <li><a href="#d10">網路基礎：頻寬、延遲與 IP 計算</a></li>
+      <li><a href="#d11">最容易被騙的十個陷阱</a></li>
+      <li><a href="#d12">公務情境對應與答題策略</a></li>
+    </ol>
+  </div>
+
+  <!-- 1 -->
+  <div class="card" id="d1">
+    <h2>深化 1　進位系統與補數：一次算到底</h2>
+
+    <h3>1-1　四種進位的互換</h3>
+    <div class="table-wrap"><table>
+      <tr><th>轉換</th><th>方法</th><th>例</th></tr>
+      <tr><td><strong>十進位 → 二進位</strong></td><td><u>除 2 取餘數，由下往上讀</u></td><td>25 → 11001</td></tr>
+      <tr><td><strong>二進位 → 十六進位</strong></td><td><strong>從右邊每 4 位一組</strong></td><td>11001 → 0001 1001 → <strong>19₁₆</strong></td></tr>
+      <tr><td><strong>二進位 → 八進位</strong></td><td><strong>從右邊每 3 位一組</strong></td><td>11001 → 011 001 → <strong>31₈</strong></td></tr>
+      <tr><td><strong>小數轉二進位</strong></td><td><u><strong>乘 2 取整數，由上往下讀</strong></u></td><td>0.625 → .101</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 為何十六進位每 4 位、八進位每 3 位</strong><br>
+      <u>因為 <strong>16 = 2⁴</strong>、<strong>8 = 2³</strong>——一個十六進位數字剛好對應 4 個二進位位元。</u><br>
+      <strong>所以二↔十六、二↔八 可以直接分組轉換，不必經過十進位。</strong>
+    </div>
+
+    <h3>1-2　補數表示法（負數怎麼存）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>表示法</th><th>−5（8 位元）</th><th>問題</th></tr>
+      <tr><td><strong>帶符號大小</strong></td><td>1000 0101</td><td><u><strong>有兩個零（+0 與 −0）</strong></u></td></tr>
+      <tr><td><strong>1 的補數</strong></td><td>1111 1010（各位元取反）</td><td><strong>仍有兩個零</strong></td></tr>
+      <tr><td><strong>2 的補數</strong></td><td><strong>1111 1011</strong>（取反後加 1）</td><td><u><strong>零唯一；加減法可用同一個電路——實務採用</strong></u></td></tr>
+    </table></div>
+    <div class="plain">
+      <strong>n 位元 2 的補數的範圍：</strong><u><strong>−2ⁿ⁻¹ ～ +2ⁿ⁻¹ − 1</strong></u><br>
+      <u>8 位元：<strong>−128 ～ +127</strong>（注意負的比正的多一個）<br>
+      16 位元：−32,768 ～ +32,767<br>
+      32 位元：−2,147,483,648 ～ +2,147,483,647</u>
+    </div>
+    <div class="warn">
+      <strong>⚠️ 為何負數比正數多一個</strong><br>
+      <u>因為 2 的補數只有<strong>一個零</strong>（0000 0000），不像其他表示法浪費一個位元組合在 −0 上。<br>
+      那個省下來的組合（1000 0000）就分配給了 <strong>−128</strong>。</u>
+    </div>
+
+    <h3>1-3　溢位的判定</h3>
+    <div class="plain">
+      <u><strong>正 + 正 = 負</strong> → 溢位<br>
+      <strong>負 + 負 = 正</strong> → 溢位<br>
+      <strong>正 + 負</strong> → <strong>絕不會溢位</strong>（結果的絕對值必定變小）</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 1 必背結論</span>
+      <strong>① 二↔十六每 4 位一組、二↔八每 3 位一組，因為 16=2⁴、8=2³。</strong><br>
+      <strong>② 2 的補數 = 取反加 1；n 位元範圍 −2ⁿ⁻¹ ～ 2ⁿ⁻¹−1（負數多一個）。</strong><br>
+      <strong>③ 同號相加得異號才是溢位；異號相加絕不溢位。</strong>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card" id="d2">
+    <h2>深化 2　浮點數：為什麼 0.1 + 0.2 ≠ 0.3</h2>
+
+    <h3>2-1　IEEE 754 的結構</h3>
+    <div class="table-wrap"><table>
+      <tr><th>格式</th><th>符號</th><th>指數</th><th>尾數</th><th>總長</th><th>約略精度</th></tr>
+      <tr><td><strong>單精度 float</strong></td><td>1</td><td><strong>8</strong></td><td><strong>23</strong></td><td>32 位元</td><td><u>約 7 位十進位有效數字</u></td></tr>
+      <tr><td><strong>雙精度 double</strong></td><td>1</td><td><strong>11</strong></td><td><strong>52</strong></td><td>64 位元</td><td><strong>約 15～16 位</strong></td></tr>
+    </table></div>
+
+    <h3>2-2　0.1 為何無法精確表示</h3>
+    <div class="plain">
+      <u>十進位的 0.1，轉成二進位是<strong>無限循環小數</strong>：<br>
+      <strong>0.1₁₀ = 0.0001100110011001100…₂</strong>（0011 無限循環）<br><br>
+      就像十進位無法精確表示 1/3（= 0.333…）一樣，<strong>二進位無法精確表示 1/10</strong>。<br><br>
+      因為 <strong>10 = 2 × 5</strong>，含有質因數 5——<strong>而二進位只能精確表示分母為 2 的冪次的分數</strong>。</u>
+    </div>
+    <div class="hl">
+      <strong>💡 判準：哪些十進位小數能被二進位精確表示？</strong><br>
+      <u>把分數化到最簡，<strong>若分母只含質因數 2，就能精確表示</strong>。</u><br>
+      <strong>0.5 = 1/2 ✔　0.25 = 1/4 ✔　0.125 = 1/8 ✔　0.75 = 3/4 ✔<br>
+      0.1 = 1/10（含 5）✘　0.2 = 1/5 ✘　0.3 = 3/10 ✘</strong>
+    </div>
+    <div class="warn">
+      <strong>⚠️ 公務系統的鐵則：金額絕不可用浮點數</strong><br>
+      <u>累加一萬筆金額後，誤差可能達到好幾元——<strong>而金額算錯在公務上是「處分內容違法」</strong>。</u><br><br>
+      <strong>正確做法：①用 decimal / numeric 定點數 ②或以最小單位（分）存整數。<br>
+      比較浮點數是否相等時，也不可用 <code>==</code>，須判斷差值是否小於容許誤差。</strong>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 2 必背結論</span>
+      <strong>① IEEE 754 單精度 1+8+23、雙精度 1+11+52。</strong><br>
+      <strong>② 二進位只能精確表示分母為 2 的冪次的分數；0.1、0.2、0.3 都不行。</strong><br>
+      <strong>③ 金額必用定點數或整數；浮點數不可用 == 比較。</strong>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="d3">
+    <h2>深化 3　字元編碼：Big5、Unicode 與罕用字</h2>
+
+    <div class="table-wrap"><table>
+      <tr><th>編碼</th><th>特性</th><th>問題</th></tr>
+      <tr><td><strong>ASCII</strong></td><td>7 位元，128 個字元</td><td><u>只有英數與符號</u></td></tr>
+      <tr><td><strong>Big5</strong></td><td>雙位元組，約 1.3 萬漢字</td><td><u><strong>字集有限，大量罕用字無法表示</strong></u></td></tr>
+      <tr><td><strong>Unicode</strong></td><td>統一的字元集（碼位）</td><td>只是「編號表」，不是儲存格式</td></tr>
+      <tr><td><strong>UTF-8</strong></td><td><u><strong>可變長度 1～4 位元組；與 ASCII 相容</strong></u></td><td><strong>目前的標準選擇</strong></td></tr>
+      <tr><td><strong>UTF-16</strong></td><td>2 或 4 位元組</td><td>與 ASCII 不相容</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 UTF-8 為何成為標準：與 ASCII 完全相容</strong><br>
+      <u>英數字仍是 1 個位元組，且編碼值與 ASCII 完全相同——<strong>舊的 ASCII 檔案不用轉換就是合法的 UTF-8</strong>。</u><br>
+      <strong>而中文通常是 3 個位元組。</strong>
+    </div>
+    <div class="warn">
+      <strong>⚠️ 公務系統的罕用字問題是「侵害人民權利」的層次</strong><br>
+      <u>民眾的姓名裡真的有罕用字。若系統打不出來、存不進去，就等於：<br>
+      ①<strong>無法正確登載其姓名</strong> ②<strong>公文上的姓名是錯的（處分相對人記載錯誤）</strong> ③<strong>他可能因此無法辦理各項業務</strong>。</u><br><br>
+      <strong>另一個常見陷阱：MySQL 的 <code>utf8</code> 其實只支援 3 位元組，存不了 CJK 擴充區的字——必須用 <code>utf8mb4</code>。</strong>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 3 必背結論</span>
+      <strong>① Unicode 是字元集（編號），UTF-8/UTF-16 是編碼方式（儲存格式）。</strong><br>
+      <strong>② UTF-8 與 ASCII 相容，英數 1 位元組、中文通常 3 位元組。</strong><br>
+      <strong>③ 公務系統必須支援完整 UTF-8（含擴充區），否則無法正確登載民眾姓名。</strong>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="d4">
+    <h2>深化 4　邏輯閘與布林代數化簡</h2>
+
+    <h3>4-1　基本定律</h3>
+    <div class="table-wrap"><table>
+      <tr><th>定律</th><th>內容</th></tr>
+      <tr><td><strong>迪摩根定律</strong></td><td><u><strong>(A·B)' = A' + B'　　(A+B)' = A'·B'</strong></u></td></tr>
+      <tr><td><strong>分配律</strong></td><td>A·(B+C) = A·B + A·C　　<strong>A + B·C = (A+B)·(A+C)</strong></td></tr>
+      <tr><td><strong>吸收律</strong></td><td><strong>A + A·B = A　　A·(A+B) = A</strong></td></tr>
+      <tr><td><strong>互補律</strong></td><td>A + A' = 1　　A · A' = 0</td></tr>
+      <tr><td><strong>同一律</strong></td><td>A + 0 = A　　A · 1 = A</td></tr>
+    </table></div>
+    <div class="warn">
+      <strong>⚠️ 分配律的第二式最容易被忘記</strong><br>
+      <u><strong>A + B·C = (A+B)·(A+C)</strong>——這在一般代數中<strong>不成立</strong>，但在布林代數中成立。</u><br>
+      <strong>考題常在這裡設陷阱。</strong>
+    </div>
+
+    <h3>4-2　通用閘：NAND 與 NOR</h3>
+    <div class="plain">
+      <u><strong>NAND 與 NOR 各自都可以單獨組出所有邏輯閘</strong>，故稱為「通用閘」。<br><br>
+      以 NAND 為例：<br>
+      <strong>NOT A</strong> = A NAND A<br>
+      <strong>A AND B</strong> = (A NAND B) NAND (A NAND B)<br>
+      <strong>A OR B</strong> = (A NAND A) NAND (B NAND B)　←（迪摩根）</u>
+    </div>
+    <div class="hl">
+      <strong>💡 為什麼實務上偏好 NAND</strong><br>
+      <u>在 CMOS 製程中，<strong>NAND 閘所需的電晶體較少、速度較快</strong>——所以晶片設計常把電路全部轉換成 NAND 實作。</u>
+    </div>
+
+    <h3>4-3　常考的組合邏輯元件</h3>
+    <div class="table-wrap"><table>
+      <tr><th>元件</th><th>功能</th><th>輸入/輸出</th></tr>
+      <tr><td><strong>解碼器 Decoder</strong></td><td><u>n 條輸入 → 選中 2ⁿ 條輸出中的一條</u></td><td>n → 2ⁿ</td></tr>
+      <tr><td><strong>編碼器 Encoder</strong></td><td>反向</td><td>2ⁿ → n</td></tr>
+      <tr><td><strong>多工器 MUX</strong></td><td><strong>從 2ⁿ 個輸入中選一個輸出</strong></td><td><u>2ⁿ+n → 1</u></td></tr>
+      <tr><td><strong>半加器</strong></td><td>兩個位元相加</td><td><strong>和 = A⊕B、進位 = A·B</strong></td></tr>
+      <tr><td><strong>全加器</strong></td><td><u><strong>含進位輸入</strong></u></td><td>可串接成多位元加法器</td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 4 必背結論</span>
+      <strong>① 迪摩根：(A·B)' = A'+B'；布林代數中 A + B·C = (A+B)(A+C) 成立。</strong><br>
+      <strong>② NAND 與 NOR 是通用閘，可單獨組出所有邏輯。</strong><br>
+      <strong>③ 半加器：和 = A⊕B、進位 = A·B。</strong>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="d5">
+    <h2>深化 5　CPU 效能公式與管線化</h2>
+
+    <h3>5-1　效能公式（計算題核心）</h3>
+    <div class="plain">
+      <strong>執行時間 = 指令數 × CPI × 時脈週期</strong><br>
+      <u>＝ 指令數 × CPI ÷ 時脈頻率</u><br><br>
+      <strong>MIPS = 時脈頻率(MHz) ÷ CPI</strong>
+    </div>
+    <div class="plain">
+      <strong>例題：</strong>某程式有 10⁹ 條指令，平均 CPI = 2，時脈 2 GHz。執行時間？<br><br>
+      <u>執行時間 = 10⁹ × 2 ÷ (2 × 10⁹) = <strong>1 秒</strong></u><br><br>
+      <strong>例題二：</strong>若改善使 CPI 降為 1.5，時脈不變，效能提升多少？<br>
+      <u>新時間 = 10⁹ × 1.5 ÷ 2×10⁹ = 0.75 秒<br>
+      <strong>加速比 = 1 / 0.75 ≈ 1.33 倍（提升 33%）</strong></u>
+    </div>
+
+    <h3>5-2　Amdahl 定律</h3>
+    <div class="plain">
+      <strong>加速比 = 1 / [(1 − f) + f/s]</strong><br>
+      <u>f = 可改善部分的比例，s = 該部分的加速倍數</u>
+    </div>
+    <div class="plain">
+      <strong>例題：</strong>某程式 60% 可平行化，用 4 核心執行。整體加速比？<br><br>
+      <u>= 1 / [(1 − 0.6) + 0.6/4]<br>
+      = 1 / [0.4 + 0.15]<br>
+      = 1 / 0.55 ≈ <strong>1.82 倍</strong></u><br><br>
+      <strong>即使核心數趨近無限（s → ∞）：加速比上限 = 1/0.4 = 2.5 倍</strong>
+    </div>
+    <div class="hl">
+      <strong>💡 Amdahl 定律的核心洞見</strong><br>
+      <u><strong>不能平行化的那一部分，決定了加速的上限</strong>——不論投入多少核心。</u><br>
+      <strong>公務啟示：系統效能的瓶頸若在「單一序列步驟」（如唯一的資料庫寫入點），加再多伺服器也無濟於事。</strong>
+    </div>
+
+    <h3>5-3　管線化（Pipeline）</h3>
+    <div class="plain">
+      <u><strong>五階段：IF（取指）→ ID（解碼）→ EX（執行）→ MEM（記憶體）→ WB（寫回）</strong><br><br>
+      <strong>n 條指令、k 個階段、每階段 1 週期：</strong><br>
+      　無管線：<strong>n × k</strong> 週期<br>
+      　有管線：<strong>k + (n − 1)</strong> 週期<br><br>
+      理想加速比接近 <strong>k 倍</strong>（n 很大時）</u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>危障類型</th><th>成因</th><th>對策</th></tr>
+      <tr><td><strong>結構危障</strong></td><td><u>硬體資源衝突</u></td><td>增加硬體單元</td></tr>
+      <tr><td><strong>資料危障</strong></td><td><strong>後一條指令需要前一條的結果</strong></td><td><u><strong>資料前送（forwarding）、插入停滯</strong></u></td></tr>
+      <tr><td><strong>控制危障</strong></td><td><strong>分支指令使後續指令不確定</strong></td><td><strong>分支預測、延遲分支</strong></td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 5 必背結論</span>
+      <strong>① 執行時間 = 指令數 × CPI ÷ 時脈頻率。</strong><br>
+      <strong>② Amdahl：加速比 = 1/[(1−f)+f/s]；不可平行的部分決定上限。</strong><br>
+      <strong>③ 管線化 n 條指令 k 階段需 k+(n−1) 週期；三種危障：結構、資料、控制。</strong>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="d6">
+    <h2>深化 6　記憶體階層與快取命中率計算</h2>
+
+    <h3>6-1　記憶體階層（速度與容量的取捨）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層級</th><th>速度</th><th>容量</th><th>成本/位元</th></tr>
+      <tr><td><strong>暫存器</strong></td><td><strong>最快</strong></td><td>最小</td><td>最高</td></tr>
+      <tr><td><strong>L1／L2／L3 快取</strong></td><td>快</td><td>小</td><td>高</td></tr>
+      <tr><td><strong>主記憶體</strong></td><td>中</td><td>中</td><td>中</td></tr>
+      <tr><td><strong>SSD／硬碟</strong></td><td><u>慢</u></td><td><strong>大</strong></td><td>低</td></tr>
+      <tr><td><strong>磁帶／離線</strong></td><td>最慢</td><td>最大</td><td>最低</td></tr>
+    </table></div>
+
+    <h3>6-2　平均存取時間（AMAT）計算</h3>
+    <div class="plain">
+      <strong>AMAT = 命中時間 + 失誤率 × 失誤代價</strong>
+    </div>
+    <div class="plain">
+      <strong>例題：</strong>快取命中時間 1 ns，命中率 95%，主記憶體存取 100 ns。AMAT？<br><br>
+      <u>失誤率 = 5% = 0.05<br>
+      AMAT = 1 + 0.05 × 100 = <strong>6 ns</strong></u><br><br>
+      <strong>例題二：</strong>若命中率提升到 99%？<br>
+      <u>AMAT = 1 + 0.01 × 100 = <strong>2 ns</strong>——<strong>快了 3 倍</strong></u>
+    </div>
+    <div class="hl">
+      <strong>💡 命中率的微小差異造成巨大的效能差異</strong><br>
+      <u>命中率從 95% 提升到 99%（只多 4 個百分點），<strong>AMAT 卻從 6 ns 降到 2 ns</strong>。</u><br>
+      <strong>因為失誤代價（100 ns）遠大於命中時間（1 ns）——所以少一次失誤，省很多。</strong>
+    </div>
+
+    <h3>6-3　為何快取有效：兩個區域性原理</h3>
+    <div class="table-wrap"><table>
+      <tr><th>原理</th><th>意義</th><th>例</th></tr>
+      <tr><td><strong>時間區域性</strong></td><td><u>剛用過的資料，很快會再被用到</u></td><td><strong>迴圈中的變數</strong></td></tr>
+      <tr><td><strong>空間區域性</strong></td><td><strong>用到某位址，附近的位址也很快會用到</strong></td><td><u><strong>陣列的循序走訪</strong></u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 這解釋了「陣列比鏈結串列快」</strong><br>
+      <u>兩者走訪都是 O(n)，<strong>但陣列在記憶體中連續——一次快取載入就取得多個元素</strong>；<br>
+      鏈結串列的節點散布各處，<strong>幾乎每次存取都是快取失誤</strong>。</u><br>
+      <strong>實務上差距可達 10 倍以上——這是「複雜度相同但實際速度不同」的經典例子。</strong>
+    </div>
+
+    <h3>6-4　快取的對映方式</h3>
+    <div class="table-wrap"><table>
+      <tr><th>方式</th><th>說明</th><th>優缺</th></tr>
+      <tr><td><strong>直接對映</strong></td><td><u>每個主記憶體區塊只能放固定的一個快取行</u></td><td><strong>簡單快速；但衝突多</strong></td></tr>
+      <tr><td><strong>全關聯</strong></td><td>可放任何位置</td><td><u>衝突最少；<strong>比較電路昂貴</strong></u></td></tr>
+      <tr><td><strong>組關聯</strong></td><td><strong>折衷：分成若干組，組內全關聯</strong></td><td><u><strong>實務採用（如 4-way、8-way）</strong></u></td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 6 必背結論</span>
+      <strong>① AMAT = 命中時間 + 失誤率 × 失誤代價。</strong><br>
+      <strong>② 快取有效的原因是時間區域性與空間區域性。</strong><br>
+      <strong>③ 組關聯是直接對映與全關聯的折衷，為實務採用。</strong>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="d7">
+    <h2>深化 7　虛擬記憶體與分頁置換</h2>
+
+    <h3>7-1　分頁的基本計算</h3>
+    <div class="plain">
+      <u>若<strong>頁大小為 4 KB = 2¹² 位元組</strong>，虛擬位址 32 位元：<br><br>
+      <strong>頁內偏移 = 12 位元</strong>（因為 2¹² = 4KB）<br>
+      <strong>頁號 = 32 − 12 = 20 位元</strong><br>
+      <strong>分頁表項目數 = 2²⁰ ≈ 100 萬項</strong></u>
+    </div>
+    <div class="hl">
+      <strong>💡 頁大小的取捨</strong><br>
+      <u><strong>頁大 → 分頁表小，但內部碎片多</strong>（最後一頁可能用不滿）<br>
+      <strong>頁小 → 內部碎片少，但分頁表變大</strong></u><br>
+      <strong>常見折衷：4 KB。大型資料庫伺服器有時用 2 MB 的巨頁以減少 TLB 失誤。</strong>
+    </div>
+
+    <h3>7-2　分頁置換演算法比較</h3>
+    <div class="table-wrap"><table>
+      <tr><th>演算法</th><th>做法</th><th>特性</th></tr>
+      <tr><td><strong>FIFO</strong></td><td>換出最早進來的</td><td><u><strong>會發生 Belady 異常</strong></u></td></tr>
+      <tr><td><strong>LRU</strong></td><td><strong>換出最久未使用的</strong></td><td><u>接近最佳；實作成本較高</u></td></tr>
+      <tr><td><strong>LFU</strong></td><td>換出使用次數最少的</td><td><strong>對突發性存取不利</strong></td></tr>
+      <tr><td><strong>最佳（OPT）</strong></td><td><u>換出「未來最久不會用到的」</u></td><td><strong>理論最佳，無法實作（需預知未來）</strong></td></tr>
+      <tr><td><strong>時鐘（Clock）</strong></td><td>LRU 的近似</td><td><u><strong>實務常用</strong></u></td></tr>
+    </table></div>
+    <div class="warn">
+      <strong>⚠️ Belady 異常：增加頁框數反而增加失誤次數</strong><br>
+      <u>這違反直覺，<strong>但確實會在 FIFO 發生</strong>——這是考題最愛的點。</u><br><br>
+      <strong>LRU 與 OPT 屬於「堆疊演算法」，不會發生 Belady 異常。</strong>
+    </div>
+
+    <h3>7-3　輾轉現象（Thrashing）</h3>
+    <div class="plain">
+      <u><strong>現象：</strong>系統大部分時間都在做分頁置換，實際工作極少。<br>
+      <strong>成因：</strong>同時執行的行程太多，每個都分不到足夠的頁框。<br>
+      <strong>徵兆：</strong><strong>CPU 使用率低，但磁碟活動極高</strong>。</u>
+    </div>
+    <div class="hl">
+      <strong>💡 為何「增加多工程度」反而讓 CPU 使用率下降</strong><br>
+      <u>作業系統看到 CPU 使用率低，可能<strong>再載入更多行程</strong>——結果每個行程分到的頁框更少，輾轉更嚴重 → <strong>惡性循環</strong>。</u><br>
+      <strong>對策：工作集模型（Working Set）、頁面失誤頻率控制、必要時暫停部分行程。</strong>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 7 必背結論</span>
+      <strong>① 頁大小 2ⁿ → 頁內偏移 n 位元；頁號 = 位址長度 − n。</strong><br>
+      <strong>② FIFO 會發生 Belady 異常；LRU 與 OPT 不會。</strong><br>
+      <strong>③ 輾轉的徵兆是「CPU 使用率低但磁碟活動極高」。</strong>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="d8">
+    <h2>深化 8　RAID 的容量、容錯與效能計算</h2>
+
+    <div class="table-wrap"><table>
+      <tr><th>等級</th><th>做法</th><th>n 顆碟的可用容量</th><th>容錯</th><th>特性</th></tr>
+      <tr><td><strong>RAID 0</strong></td><td>條帶化</td><td><strong>n</strong></td><td><u><strong>無</strong></u></td><td>效能最好，<strong>但壞一顆全毀</strong></td></tr>
+      <tr><td><strong>RAID 1</strong></td><td>鏡射</td><td><strong>n/2</strong></td><td><strong>可壞 1 顆（每組）</strong></td><td><u>讀取快、寫入須寫兩份</u></td></tr>
+      <tr><td><strong>RAID 5</strong></td><td><u>條帶 ＋ 分散式同位</u></td><td><strong>n − 1</strong></td><td><strong>可壞 1 顆</strong></td><td><u><strong>寫入有同位計算的代價</strong></u></td></tr>
+      <tr><td><strong>RAID 6</strong></td><td>雙同位</td><td><strong>n − 2</strong></td><td><u><strong>可壞 2 顆</strong></u></td><td>重建期間仍有保護</td></tr>
+      <tr><td><strong>RAID 10</strong></td><td><strong>先鏡射再條帶</strong></td><td><strong>n/2</strong></td><td><u>每組可壞 1 顆</u></td><td><strong>效能與容錯兼顧，成本高</strong></td></tr>
+    </table></div>
+    <div class="plain">
+      <strong>例題：</strong>6 顆 4 TB 硬碟組 RAID 5，可用容量？<br>
+      <u>(6 − 1) × 4 TB = <strong>20 TB</strong></u><br><br>
+      <strong>例題二：</strong>同樣 6 顆組 RAID 6？<br>
+      <u>(6 − 2) × 4 TB = <strong>16 TB</strong></u><br><br>
+      <strong>例題三：</strong>同樣 6 顆組 RAID 10？<br>
+      <u>6 ÷ 2 × 4 TB = <strong>12 TB</strong></u>
+    </div>
+    <div class="warn">
+      <strong>⚠️ 為什麼大容量硬碟建議用 RAID 6 而非 RAID 5</strong><br>
+      <u>RAID 5 壞一顆後，重建期間<strong>沒有任何保護</strong>；而大容量硬碟重建需要很長時間（可能數十小時），<br>
+      <strong>在這段期間再壞第二顆，資料就全毀了</strong>——而重建時的高負載，正好提高了第二顆故障的機率。</u>
+    </div>
+    <div class="hl">
+      <strong>💡 最重要的一句：RAID 不是備份</strong><br>
+      <u>RAID 防的是<strong>「硬碟故障」</strong>；它<strong>擋不住</strong>：<br>
+      <strong>①誤刪 ②勒索軟體加密 ③機房災害 ④邏輯錯誤造成的資料損毀</strong></u><br><br>
+      <strong>因為這些操作會「正確地」被同步到所有硬碟上。備份仍須遵循 3-2-1 原則並加上離線副本。</strong>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 8 必背結論</span>
+      <strong>① RAID 5 可用 n−1、RAID 6 可用 n−2、RAID 1 與 10 可用 n/2。</strong><br>
+      <strong>② 大容量硬碟建議 RAID 6，因 RAID 5 重建期間毫無保護。</strong><br>
+      <strong>③ RAID 不是備份——擋不住誤刪、勒索軟體與機房災害。</strong>
+    </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="d9">
+    <h2>深化 9　行程、執行緒與死結</h2>
+
+    <h3>9-1　行程 vs 執行緒</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>行程 Process</th><th>執行緒 Thread</th></tr>
+      <tr><td>記憶體空間</td><td><strong>各自獨立</strong></td><td><u><strong>共用所屬行程的空間</strong></u></td></tr>
+      <tr><td>切換成本</td><td>高</td><td><strong>低</strong></td></tr>
+      <tr><td>通訊</td><td><u>須經 IPC（管線、共享記憶體、訊息佇列）</u></td><td><strong>直接共用變數</strong></td></tr>
+      <tr><td>穩定性</td><td><strong>一個崩潰不影響其他</strong></td><td><u><strong>一個崩潰可能拖垮整個行程</strong></u></td></tr>
+      <tr><td>同步問題</td><td>較少</td><td><strong>須處理競爭條件</strong></td></tr>
+    </table></div>
+
+    <h3>9-2　行程狀態轉換</h3>
+    <div class="plain">
+      <u><strong>新建 → 就緒 → 執行 → 終止</strong><br>
+      　　　　　↑　　　↓<br>
+      　　　　　└─ <strong>等待（I/O 或事件）</strong> ←┘<br><br>
+      <strong>關鍵：從「等待」不能直接回到「執行」，必須先回到「就緒」等待排程。</strong></u>
+    </div>
+
+    <h3>9-3　死結的四個必要條件</h3>
+    <div class="table-wrap"><table>
+      <tr><th>條件</th><th>能否破壞</th><th>對策</th></tr>
+      <tr><td><strong>互斥</strong></td><td>通常不能</td><td>資源本質上不可共享</td></tr>
+      <tr><td><strong>佔有並等待</strong></td><td>可</td><td><u>一次取得所有資源</u></td></tr>
+      <tr><td><strong>不可搶奪</strong></td><td>可</td><td><strong>逾時後強制釋放</strong></td></tr>
+      <tr><td><strong>循環等待</strong></td><td><strong>可——最實用</strong></td><td><u><strong>所有行程依相同順序取得資源</strong></u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 四個條件必須「同時成立」才會死結</strong><br>
+      <u>所以<strong>破壞任何一個</strong>就能預防——而實務上最容易做到的是<strong>「統一資源取得順序」</strong>。</u><br>
+      <strong>公務系統的應用：資料庫交易中，所有程式都依相同順序鎖定資料表。</strong>
+    </div>
+
+    <h3>9-4　排程演算法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>演算法</th><th>特性</th><th>問題</th></tr>
+      <tr><td><strong>FCFS</strong></td><td>先到先服務</td><td><u><strong>護送效應：短工作被長工作卡住</strong></u></td></tr>
+      <tr><td><strong>SJF</strong></td><td><strong>平均等待時間最短</strong></td><td><u>長工作可能飢餓；且需預知執行時間</u></td></tr>
+      <tr><td><strong>優先權</strong></td><td>依優先序</td><td><strong>低優先權飢餓 → 用「老化」解決</strong></td></tr>
+      <tr><td><strong>Round Robin</strong></td><td><u><strong>時間片輪流，回應時間佳</strong></u></td><td>時間片太小則切換成本高</td></tr>
+      <tr><td><strong>多層佇列</strong></td><td>依類型分佇列</td><td>實務常用</td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 9 必背結論</span>
+      <strong>① 執行緒共用記憶體、切換成本低，但一個崩潰可能拖垮整個行程。</strong><br>
+      <strong>② 死結四條件必須同時成立；最實用的預防是統一資源取得順序。</strong><br>
+      <strong>③ SJF 平均等待時間最短但會飢餓；RR 回應時間佳。</strong>
+    </div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="d10">
+    <h2>深化 10　網路基礎：頻寬、延遲與 IP 計算</h2>
+
+    <h3>10-1　單位換算（最常錯的地方）</h3>
+    <div class="warn">
+      <strong>⚠️ 1 Byte = 8 bits</strong><br>
+      <u>檔案大小用 <strong>GB／MB（位元組）</strong>；頻寬用 <strong>Mbps／Gbps（位元每秒）</strong>。</u><br>
+      <strong>看到題目同時出現 GB 和 Mbps，第一件事就是換算單位。</strong>
+    </div>
+    <div class="plain">
+      <strong>例題：</strong>1 GB 檔案，100 Mbps 線路，需多久？<br>
+      <u>1 GB = 8 Gb = 8,000 Mb<br>
+      8,000 ÷ 100 = <strong>80 秒</strong>（理論值；實際約 1.2～1.5 倍）</u>
+    </div>
+
+    <h3>10-2　子網路速算表</h3>
+    <div class="table-wrap"><table>
+      <tr><th>遮罩</th><th>/24</th><th>/25</th><th>/26</th><th>/27</th><th>/28</th><th>/29</th><th>/30</th></tr>
+      <tr><td><strong>區塊大小</strong></td><td>256</td><td>128</td><td><strong>64</strong></td><td><strong>32</strong></td><td>16</td><td>8</td><td>4</td></tr>
+      <tr><td><strong>可用主機</strong></td><td>254</td><td>126</td><td><strong>62</strong></td><td><strong>30</strong></td><td>14</td><td>6</td><td><u><strong>2</strong></u></td></tr>
+    </table></div>
+    <div class="plain">
+      <strong>公式：</strong><u>可用主機數 = 2^(32−遮罩) − 2（扣掉網路位址與廣播位址）<br>
+      區塊大小 = 256 − 遮罩最後一個非 255 的值</u>
+    </div>
+    <div class="plain">
+      <strong>例題：</strong>172.16.45.130／255.255.255.192 的網路位址與廣播位址？<br>
+      <u>255.255.255.192 = /26，區塊大小 = 256 − 192 = <strong>64</strong><br>
+      網段起點：.0、.64、<strong>.128</strong>、.192 → 130 落在 128～191<br>
+      <strong>網路位址 = .128；廣播位址 = .191；可用 .129 ～ .190</strong></u>
+    </div>
+
+    <h3>10-3　OSI 七層與設備對應</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層</th><th>名稱</th><th>協定／設備</th></tr>
+      <tr><td>7</td><td>應用層</td><td><u>HTTP、DNS、SMTP、FTP；<strong>WAF</strong></u></td></tr>
+      <tr><td>4</td><td><strong>傳輸層</strong></td><td><strong>TCP、UDP</strong></td></tr>
+      <tr><td>3</td><td><strong>網路層</strong></td><td><u><strong>IP、ICMP；路由器</strong></u></td></tr>
+      <tr><td>2</td><td><strong>資料連結層</strong></td><td><strong>乙太網、ARP、VLAN；交換器</strong></td></tr>
+      <tr><td>1</td><td>實體層</td><td>纜線、訊號；<u>集線器</u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 判斷設備在哪一層：看它「依據什麼做決定」</strong><br>
+      <u>交換器看 <strong>MAC 位址</strong> → 第 2 層<br>
+      路由器看 <strong>IP 位址</strong> → 第 3 層<br>
+      WAF 要看 <strong>HTTP 請求的內容</strong> → 第 7 層</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 10 必背結論</span>
+      <strong>① 1 Byte = 8 bits；GB 與 Mbps 同時出現時必須先換算。</strong><br>
+      <strong>② 區塊大小 = 256 − 遮罩值；可用主機 = 2^(32−遮罩) − 2。</strong><br>
+      <strong>③ 設備的層級看它「依據什麼轉發」：MAC→L2、IP→L3、內容→L7。</strong>
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="d11">
+    <h2>深化 11　最容易被騙的十個陷阱</h2>
+
+    <div class="table-wrap"><table>
+      <tr><th></th><th>陷阱</th><th>正確答案</th></tr>
+      <tr><td>①</td><td>「1 KB = 1000 位元組」</td><td><u>資訊科學中 <strong>1 KB = 1024 位元組</strong>（2¹⁰）；但硬碟廠商標示常用 1000</u></td></tr>
+      <tr><td>②</td><td>「MB 與 Mb 相同」</td><td><strong>差 8 倍（Byte vs bit）</strong></td></tr>
+      <tr><td>③</td><td>「RAID 就是備份」</td><td><u><strong>不是——擋不住誤刪、勒索軟體、機房災害</strong></u></td></tr>
+      <tr><td>④</td><td>「LRU 會有 Belady 異常」</td><td><strong>只有 FIFO 會；LRU 與 OPT 不會</strong></td></tr>
+      <tr><td>⑤</td><td>「浮點數 0.1+0.2 == 0.3」</td><td><u><strong>不成立；二進位無法精確表示 0.1</strong></u></td></tr>
+      <tr><td>⑥</td><td>「8 位元可表示 −127～+127」</td><td><strong>2 的補數是 −128～+127（負數多一個）</strong></td></tr>
+      <tr><td>⑦</td><td>「加核心數就能線性加速」</td><td><u><strong>Amdahl：不可平行的部分決定上限</strong></u></td></tr>
+      <tr><td>⑧</td><td>「Unicode 是一種編碼方式」</td><td><strong>Unicode 是字元集；UTF-8/16 才是編碼</strong></td></tr>
+      <tr><td>⑨</td><td>「/24 有 256 台可用主機」</td><td><u><strong>254（扣網路位址與廣播位址）</strong></u></td></tr>
+      <tr><td>⑩</td><td>「編譯式一定比直譯式快」</td><td><strong>一般是；但現代 JIT 可在執行期最佳化，差距已縮小</strong></td></tr>
+    </table></div>
+
+    <div class="hl">
+      <strong>💡 選擇題的答題策略</strong><br>
+      <u>① <strong>先找出「絕對化」的選項</strong>——「一定」「永遠」「所有」「完全不」通常是錯的<br>
+      ② <strong>計算題先估數量級</strong>——選項差很多時，估算就能刷掉大半<br>
+      ③ <strong>看到單位就先換算</strong>（Byte/bit、KB/MB/GB）<br>
+      ④ <strong>「以下何者錯誤」的題目要圈起來</strong>——每年都有人看錯</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 11 必背結論</span>
+      <strong>① 十個陷阱中，單位換算（Byte/bit、KB=1024）與「RAID 不是備份」最常考。</strong><br>
+      <strong>② 選項中出現「一定／永遠／所有」多半是錯的。</strong><br>
+      <strong>③ 「何者錯誤」的題型務必圈起來，避免看成「何者正確」。</strong>
+    </div>
+  </div>
+
+  <!-- 12 -->
+  <div class="card" id="d12">
+    <h2>深化 12　公務情境對應與答題策略</h2>
+
+    <h3>12-1　計概知識在公務工作的實際對應</h3>
+    <div class="table-wrap"><table>
+      <tr><th>計概概念</th><th>公務情境</th><th>做錯的後果</th></tr>
+      <tr><td><strong>浮點數誤差</strong></td><td>補助金額計算</td><td><u><strong>金額算錯 → 處分內容違法</strong></u></td></tr>
+      <tr><td><strong>字元編碼</strong></td><td><strong>民眾姓名的罕用字</strong></td><td><u><strong>無法正確登載姓名，影響其辦理業務</strong></u></td></tr>
+      <tr><td><strong>RAID 與備份</strong></td><td>機關資料保護</td><td><strong>誤以為 RAID 就夠了 → 勒索軟體全毀</strong></td></tr>
+      <tr><td><strong>快取與區域性</strong></td><td>系統效能調校</td><td>查詢緩慢，民眾等待</td></tr>
+      <tr><td><strong>Amdahl 定律</strong></td><td><u>擴充硬體的效益評估</u></td><td><strong>花錢加機器卻沒變快</strong></td></tr>
+      <tr><td><strong>子網路規劃</strong></td><td><strong>機關網段分區</strong></td><td><u>無法隔離 → 一台被入侵全網受害</u></td></tr>
+      <tr><td><strong>死結</strong></td><td>系統併發處理</td><td><strong>系統卡住無回應</strong></td></tr>
+      <tr><td><strong>虛擬記憶體輾轉</strong></td><td><u>伺服器記憶體不足</u></td><td><strong>CPU 低但系統極慢，容易誤判</strong></td></tr>
+    </table></div>
+
+    <h3>12-2　普考計概的配分策略</h3>
+    <div class="table-wrap"><table>
+      <tr><th>題型</th><th>約略比例</th><th>準備策略</th></tr>
+      <tr><td><strong>計算題</strong></td><td>約 25～30%</td><td><u><strong>必得分區——練到不用想</strong></u></td></tr>
+      <tr><td><strong>名詞與定義</strong></td><td>約 30%</td><td>講義背熟</td></tr>
+      <tr><td><strong>比較與判別</strong></td><td>約 25%</td><td><strong>用表格記憶（本頁的表都是）</strong></td></tr>
+      <tr><td><strong>新興科技</strong></td><td>約 15%</td><td><u>知道是什麼、用在哪即可</u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 計概是「投資報酬率最高」的一科</strong><br>
+      <u>因為它<strong>全部是選擇題、有標準答案、且題型固定</strong>——<br>
+      不像申論科目需要練習表達，計概<strong>練了就有分</strong>。</u><br><br>
+      <strong>而計算題更是「會就是會」——把本頁的公式練熟，那 25～30% 就是穩定的分數。</strong>
+    </div>
+
+    <h3>12-3　考前必背的十個公式</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>公式</th></tr>
+      <tr><td>①</td><td><strong>2 的補數 = 取反 + 1；n 位元範圍 −2ⁿ⁻¹ ～ 2ⁿ⁻¹−1</strong></td></tr>
+      <tr><td>②</td><td><u><strong>執行時間 = 指令數 × CPI ÷ 時脈頻率</strong></u></td></tr>
+      <tr><td>③</td><td><strong>Amdahl 加速比 = 1 / [(1−f) + f/s]</strong></td></tr>
+      <tr><td>④</td><td><u><strong>AMAT = 命中時間 + 失誤率 × 失誤代價</strong></u></td></tr>
+      <tr><td>⑤</td><td><strong>管線化 n 條指令 k 階段 = k + (n−1) 週期</strong></td></tr>
+      <tr><td>⑥</td><td><strong>RAID 5 可用 = n−1；RAID 6 = n−2；RAID 1/10 = n/2</strong></td></tr>
+      <tr><td>⑦</td><td><u><strong>可用主機數 = 2^(32−遮罩) − 2</strong></u></td></tr>
+      <tr><td>⑧</td><td><strong>區塊大小 = 256 − 遮罩最後一個非 255 的值</strong></td></tr>
+      <tr><td>⑨</td><td><u><strong>傳輸時間 = 檔案大小(bit) ÷ 頻寬(bps)；1 Byte = 8 bits</strong></u></td></tr>
+      <tr><td>⑩</td><td><strong>頁大小 2ⁿ → 頁內偏移 n 位元；頁號 = 位址長度 − n</strong></td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">🎯 本科的一句話總結</span>
+      <strong>計概是普考四科中「最不需要天分、最靠練習」的一科。</strong><br><br>
+      <u>它不像程式設計需要邏輯推導能力，也不像資訊管理需要組織表達能力——<br>
+      <strong>它就是「公式背熟、表格記牢、陷阱認得出來」</strong>。</u><br><br>
+      <strong>把這一頁的十個公式與十個陷阱練熟，計概就是穩定的高分科目。</strong>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a class="btn btn-prev" href="computer2.html">← 計算機概要講義（下）</a>
+    <a class="btn btn-next" href="computer-bank.html">下一步：計算機概要題庫 →</a>
+  </div>
+
+</div>
+
+<footer>普通考試 · 計算機概要 深化教材 · 計算、推導與陷阱辨識</footer>
+
+</body>
+</html>
