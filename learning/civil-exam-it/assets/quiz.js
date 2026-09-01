@@ -33,9 +33,12 @@
     var pass = parseFloat(box.dataset.pass || '60');
     var limit = parseInt(box.dataset.limit || '0', 10);
     var title = box.dataset.quiz || '本卷';
+    var practice = box.dataset.mode === 'practice';
     var state = load(key);
     var picked = state.picked || {};
     var graded = false;
+
+    if (practice) { initPractice(box, qs, key, title, picked); return; }
 
     /* ---------- 工具列 ---------- */
     var bar = el('div', 'quiz-bar');
@@ -236,6 +239,109 @@
     refresh();
     if (state.graded && answered()) grade();
     else if (limit) startTimer();
+  }
+
+  /* ============ 題庫練習模式：點下去立刻判對錯並展開詳解 ============ */
+  function initPractice(box, qs, key, title, picked) {
+    var bar = el('div', 'quiz-bar');
+    var stat = el('div', 'qb-stat', '');
+    var spacer = el('div', 'qb-spacer');
+    var bWrong = el('button', 'qb-ghost', '🔁 只看錯題');
+    var bRetry = el('button', 'qb-ghost', '✏️ 重做錯題');
+    var bReset = el('button', 'qb-ghost', '🗑️ 全部清除');
+    var prog = el('div', 'qb-prog', '<i></i>');
+    bWrong.type = bRetry.type = bReset.type = 'button';
+    bar.appendChild(stat);
+    bar.appendChild(spacer);
+    bar.appendChild(bWrong);
+    bar.appendChild(bRetry);
+    bar.appendChild(bReset);
+    bar.appendChild(prog);
+    box.insertBefore(bar, box.firstChild);
+
+    function persist() { save(key, { picked: picked, practice: 1 }); }
+
+    function tally() {
+      var done = 0, right = 0;
+      qs.forEach(function (q) {
+        var p = picked[q.dataset.qno];
+        if (!p) return;
+        done++;
+        if (p === q.dataset.ans) right++;
+      });
+      var rate = done ? Math.round(right / done * 100) : 0;
+      stat.innerHTML = '已練 <b>' + done + '</b> / ' + qs.length + ' 題　答對 <b>' + right
+        + '</b>　答錯 <b>' + (done - right) + '</b>　正確率 <b>' + rate + '%</b>';
+      prog.firstChild.style.width = (done / qs.length * 100) + '%';
+      bWrong.disabled = bRetry.disabled = (done - right) === 0;
+    }
+
+    function show(q) {
+      var pick = picked[q.dataset.qno], ans = q.dataset.ans;
+      var mark = q.querySelector('.mark');
+      if (!mark) { mark = el('span', 'mark', ''); q.insertBefore(mark, q.firstChild); }
+      q.classList.remove('graded', 'ok', 'ng');
+      [].slice.call(q.querySelectorAll('.ch')).forEach(function (b) {
+        b.classList.remove('right', 'wrong', 'sel');
+        b.classList.toggle('sel', b.dataset.ch === pick);
+      });
+      var det = q.querySelector('details');
+      if (!pick) { if (det) det.open = false; mark.textContent = ''; return; }
+      q.classList.add('graded', pick === ans ? 'ok' : 'ng');
+      mark.textContent = pick === ans ? '✓ 答對' : ('✗ 你選 ' + pick + '．正解 ' + ans);
+      [].slice.call(q.querySelectorAll('.ch')).forEach(function (b) {
+        if (b.dataset.ch === ans) b.classList.add('right');
+        else if (b.dataset.ch === pick) b.classList.add('wrong');
+      });
+      if (det) det.open = true;
+    }
+
+    qs.forEach(function (q, i) {
+      q.dataset.qno = q.dataset.qno || String(i + 1);
+      q.id = q.id || (key.replace(/[^\w-]/g, '') + '-q' + q.dataset.qno);
+      [].slice.call(q.querySelectorAll('.ch')).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          if (picked[q.dataset.qno]) return;      // 已作答就鎖住，避免看到答案再改
+          picked[q.dataset.qno] = btn.dataset.ch;
+          show(q);
+          persist();
+          tally();
+        });
+      });
+      show(q);
+    });
+
+    bWrong.addEventListener('click', function () {
+      var on = box.classList.toggle('only-wrong');
+      bWrong.classList.toggle('on', on);
+      bWrong.textContent = on ? '📄 顯示全部' : '🔁 只看錯題';
+    });
+    bRetry.addEventListener('click', function () {
+      qs.forEach(function (q) {
+        if (picked[q.dataset.qno] && picked[q.dataset.qno] !== q.dataset.ans) {
+          delete picked[q.dataset.qno];
+          show(q);
+        }
+      });
+      box.classList.remove('only-wrong');
+      bWrong.classList.remove('on');
+      bWrong.textContent = '🔁 只看錯題';
+      persist();
+      tally();
+      bar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    bReset.addEventListener('click', function () {
+      if (!confirm('將清除「' + title + '」的所有練習紀錄，確定？')) return;
+      Object.keys(picked).forEach(function (k) { delete picked[k]; });
+      drop(key);
+      qs.forEach(show);
+      box.classList.remove('only-wrong');
+      bWrong.classList.remove('on');
+      bWrong.textContent = '🔁 只看錯題';
+      tally();
+    });
+
+    tally();
   }
 
   /* ---------- 申論自評表 ---------- */
