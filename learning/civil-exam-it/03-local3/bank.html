@@ -14,7 +14,7 @@
 </div>
 
 <div class="hero">
-  <div class="badge">📝 選擇 45 題 ＋ 地方政府情境申論 8 題</div>
+  <div class="badge">📝 選擇 125 題 ＋ 地方政府情境申論 16 題（8 題附解答＋8 題自我練習）</div>
   <h1>地特風格題庫</h1>
   <p>全部以<strong>縣市政府實務情境</strong>包裝，與高考題庫不重複。<br>申論解答採<strong>圖表為主</strong>格式：答題骨架 → 主表 → 必寫拿分點。</p>
 </div>
@@ -809,6 +809,1048 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
     </div></details>
   </div>
 
+
+  <div class="card"><h3>C. 地方資料治理與資料庫實務（第 46～85 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">地方政府的資料問題八成不是技術問題，是<strong>「定義不一致」與「權責不清」</strong>。本區每題都請先想「誰是資料所有人」。</p>
+  </div>
+
+  <div class="q"><span class="no">46</span><span class="tag">資料治理</span>
+    <div class="stem">本府社會處與衛生局同時維護「獨居長者」名冊，兩份名冊人數相差 300 餘人。首要處理事項為何？</div>
+    <ul class="opts"><li>(A) 以人數多者為準　(B) 統一「獨居長者」之操作型定義並指定資料所有人　(C) 兩份都保留各自使用　(D) 請兩單位各自重新普查</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      差異來源通常是<strong>定義不同</strong>（設籍 vs 實際居住、是否含同住外籍看護、年齡門檻 65 或 70）。<br><br>
+      正確順序：<u>①定義 → ②指定唯一資料所有人 → ③建立主檔（Master Data） → ④其他系統改為介接而非各自維護</u>。<br><br>
+      <strong>地特加分角度</strong>：先重新普查等於<u>把成本丟給第一線</u>，且定義未統一，普查完仍會不一致。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">47</span><span class="tag">資料治理</span>
+    <div class="stem">下列何者最符合「主資料管理（Master Data Management, MDM）」之核心目的？</div>
+    <ul class="opts"><li>(A) 提升查詢效能　(B) 為關鍵實體建立單一可信版本　(C) 減少磁碟使用量　(D) 加速報表產出</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 單一可信版本（Single Source of Truth）</strong><br>
+      MDM 管理的是<strong>跨系統共用的核心實體</strong>：人（民眾、員工）、地（門牌、地段）、物（設備、車輛）、組織（局處、學校）。<br><br>
+      <strong>地特加分角度</strong>：縣市政府 MDM 的第一順位通常是<u><strong>門牌（地址）主檔</strong></u>——稅務、戶政、社政、環保、消防全部依賴地址，地址不統一則所有跨局處統計都失準。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">48</span><span class="tag">資料庫設計</span>
+    <div class="stem">本府建置「里鄰資源分布查詢」，資料表 <code>里資源(里代碼, 里名稱, 區代碼, 區名稱, 資源類別, 資源名稱)</code>。此設計主要違反何種正規化？</div>
+    <ul class="opts"><li>(A) 第一正規化　(B) 第二正規化　(C) 第三正規化　(D) 未違反</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 第三正規化（3NF）</strong><br>
+      <code>區代碼 → 區名稱</code> 是<strong>非鍵屬性決定非鍵屬性</strong>的遞移相依。<br><br>
+      後果：改一個區名要更新數千列，且可能改到一半（<strong>更新異常</strong>）。<br><br>
+      解法：拆出 <code>區(區代碼, 區名稱)</code>。詳細判定法見<a href="../01-senior3/db-deep.html">資料庫深化教材</a>第 3 章。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">49</span><span class="tag">資料庫效能</span>
+    <div class="stem">本府稅務查詢常用 <code>WHERE 稅籍年度 = ? AND 區代碼 = ?</code>，且結果依 <code>應納金額</code> 排序。下列索引何者最有效？</div>
+    <ul class="opts"><li>(A) 各建一個單欄索引　(B) 複合索引（稅籍年度, 區代碼, 應納金額）　(C) 複合索引（應納金額, 稅籍年度, 區代碼）　(D) 全表掃描較快</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      複合索引的<strong>最左前綴原則</strong>：等值條件欄位排前面，排序欄位排最後，可同時省下過濾與排序（避免 Sort 運算）。<br><br>
+      (C) 錯在把排序欄位放最前面，等值條件無法用到索引。<br><br>
+      <strong>陷阱</strong>：單欄索引雖可用 Index Merge，但成本通常高於一個設計良好的複合索引。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">50</span><span class="tag">資料庫效能</span>
+    <div class="stem">本府某查詢已建索引卻仍全表掃描。下列何者最可能是原因？</div>
+    <ul class="opts"><li>(A) 條件寫成 <code>WHERE YEAR(收件日)=2025</code>　(B) 資料量太少　(C) 索引建太多　(D) 資料庫版本太新</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      <u>欄位被<strong>函數包住</strong>，索引即失效</u>（非 Sargable）。<br><br>
+      改寫：<code>WHERE 收件日 &gt;= '2025-01-01' AND 收件日 &lt; '2026-01-01'</code>。<br><br>
+      同類陷阱：前置萬用字元的模糊查詢、<code>WHERE 金額 + 0 = 100</code>、欄位型別與參數型別不一致造成隱式轉換。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">51</span><span class="tag">交易控制</span>
+    <div class="stem">本府規費繳納系統偶發「已扣款但未銷帳」。技術上最應檢討何者？</div>
+    <ul class="opts"><li>(A) 網路頻寬　(B) 扣款與銷帳未納入同一交易或未設計補償機制　(C) 使用者操作太快　(D) 資料庫索引不足</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      扣款在<strong>金流機構</strong>、銷帳在<strong>本府系統</strong>，屬跨系統交易，無法用單一 DB 交易保證。<br><br>
+      <div class="table-wrap"><table>
+        <tr><th>手段</th><th>作用</th></tr>
+        <tr><td><strong>冪等鍵</strong></td><td>同一筆交易重送不會重複扣款</td></tr>
+        <tr><td><strong>對帳批次</strong></td><td>每日與金流機構逐筆勾稽</td></tr>
+        <tr><td><strong>補償交易</strong></td><td>對不上者自動退款或自動銷帳</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：務必寫<u>「應設每日自動對帳與人工複核之雙軌機制，並明定民眾申訴之處理期限」</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">52</span><span class="tag">交易控制</span>
+    <div class="stem">兩位承辦同時開啟同一份公文編輯，後存檔者覆蓋前者。此現象與解法為何？</div>
+    <ul class="opts"><li>(A) 死結；加大鎖定範圍　(B) 遺失更新；採樂觀鎖（版本號比對）　(C) 髒讀；提高隔離等級至可序列化　(D) 幻讀；改用唯讀交易</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 遺失更新（Lost Update）</strong><br>
+      公文編輯屬<strong>長時間人為操作</strong>，用悲觀鎖會把資料鎖住數十分鐘，影響其他人。<br><br>
+      <u>樂觀鎖：讀取時取得版本號，存檔時比對；不符即提示「本文件已被他人修改」。</u><br><br>
+      <strong>地特加分角度</strong>：介面應顯示<strong>誰在何時修改了什麼</strong>，而非只跳錯誤——第一線同仁需要的是可處理的資訊。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">53</span><span class="tag">資料倉儲</span>
+    <div class="stem">本府建置「社會福利分析平台」，欲分析各區、各年度、各補助類別之核發金額。最適合之資料模型為？</div>
+    <ul class="opts"><li>(A) 完全正規化的 3NF　(B) 星狀綱要（事實表＋維度表）　(C) 單一寬表不設關聯　(D) 鍵值儲存</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 星狀綱要（Star Schema）</strong><br>
+      <strong>事實表</strong>＝核發紀錄（金額、件數）；<strong>維度表</strong>＝區域、時間、補助類別、申請人屬性。<br><br>
+      分析型系統重<strong>讀取效能</strong>，適度反正規化可大幅減少 JOIN；交易型系統才重正規化。<br><br>
+      <strong>地特加分角度</strong>：分析平台之資料須<u><strong>去識別化</strong></u>，並限定<strong>統計目的</strong>使用（個資法第 16 條但書）。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">54</span><span class="tag">資料倉儲</span>
+    <div class="stem">維度表中「某里因行政區調整改隸他區」，若須同時保留調整前後之統計正確性，應採何種緩慢變動維度（SCD）？</div>
+    <ul class="opts"><li>(A) Type 0　(B) Type 1　(C) Type 2　(D) 直接刪除舊資料</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) SCD Type 2</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>型別</th><th>做法</th><th>後果</th></tr>
+        <tr><td>Type 1</td><td>直接覆蓋</td><td><u>歷史統計被追溯竄改</u></td></tr>
+        <tr><td><strong>Type 2</strong></td><td>新增一列並記生效／失效日</td><td>歷史正確，表會變大</td></tr>
+        <tr><td>Type 3</td><td>多開一欄存前值</td><td>只能回溯一代</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：行政區、里鄰、學區調整在地方政府是<u>常態</u>，維度設計沒做 Type 2，三年後所有趨勢圖都不能看。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">55</span><span class="tag">資料品質</span>
+    <div class="stem">本府清查發現地址欄位存在「台北市／臺北市」「1 樓／一樓／1F」等寫法。此屬何種資料品質構面之問題？</div>
+    <ul class="opts"><li>(A) 完整性　(B) 一致性　(C) 時效性　(D) 唯一性</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 一致性（Consistency）</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>構面</th><th>問句</th></tr>
+        <tr><td>完整性</td><td>該有的欄位有沒有值？</td></tr>
+        <tr><td><strong>一致性</strong></td><td>同一件事寫法是否統一？</td></tr>
+        <tr><td>正確性</td><td>值是否符合事實？</td></tr>
+        <tr><td>時效性</td><td>資料是否夠新？</td></tr>
+        <tr><td>唯一性</td><td>是否有重複紀錄？</td></tr>
+      </table></div>
+      解法：<u>導入<strong>地址正規化服務</strong>（比對內政部門牌資料庫），並在輸入端改為<strong>選單</strong>而非自由輸入。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">56</span><span class="tag">資料品質</span>
+    <div class="stem">改善資料品質時，下列何項措施之長期效益最高？</div>
+    <ul class="opts"><li>(A) 定期人工清理　(B) 在輸入端加上驗證與選單，並從源頭消除自由輸入　(C) 每年委外清洗一次　(D) 只在報表產出時修正</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「進來的時候擋，比出去的時候補便宜十倍。」</strong></u><br><br>
+      資料品質治理的優先順序：<strong>①源頭控制 → ②自動化檢核 → ③定期稽核 → ④人工修補</strong>。<br><br>
+      <strong>地特加分角度</strong>：源頭控制須<u>配合作業流程與教育訓練</u>，否則第一線會找到繞過驗證的方法（例如統一填「無」或「0」）。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">57</span><span class="tag">個資保護</span>
+    <div class="stem">本府擬將低收入戶資料提供學術機構研究。下列處理何者最符合去識別化要求？</div>
+    <ul class="opts"><li>(A) 刪除姓名即可　(B) 刪除直接識別欄位並對準識別欄位施以概化或抑制，且評估重識別風險　(C) 將身分證字號加密後保留　(D) 僅提供部分欄位</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>例</th><th>處理</th></tr>
+        <tr><td>直接識別</td><td>姓名、身分證字號</td><td>刪除</td></tr>
+        <tr><td><strong>準識別</strong></td><td>生日、里別、職業</td><td><u>概化（生日→年齡層、里→區）或抑制</u></td></tr>
+        <tr><td>敏感</td><td>病歷、犯罪紀錄</td><td>原則不提供</td></tr>
+      </table></div>
+      (C) 錯：<u>加密可還原，屬<strong>假名化</strong>而非去識別化</u>，仍是個資。<br><br>
+      判準工具：<strong>k-匿名</strong>（每組至少 k 筆相同）、<strong>l-多樣性</strong>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">58</span><span class="tag">個資保護</span>
+    <div class="stem">依個人資料保護法，公務機關保有個資檔案遭竊或洩漏時，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 僅需內部檢討　(B) 應以適當方式通知當事人　(C) 僅需通知上級機關　(D) 損害未發生即免通知</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong>（個資法第 12 條）<br>
+      <u>「應查明後以適當方式通知當事人」——通知義務不以損害已發生為要件。</u><br><br>
+      <strong>地特加分角度</strong>：實務上應同時<u>通報資安主管機關、保全證據、啟動事故應變、對外統一發言</u>。<br><br>
+      延伸：<a href="../05-common/law-bank.html">法學題庫</a>個資法專章；<a href="../05-common/law-deep.html">法學深化教材</a>第 9 章。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">59</span><span class="tag">開放資料</span>
+    <div class="stem">本府開放「各里公共設施清單」為 Open Data，下列格式何者開放程度最高？</div>
+    <ul class="opts"><li>(A) 掃描 PDF　(B) Excel　(C) CSV　(D) 具語意標註且可鏈結之 RDF</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br>
+      <strong>五星開放資料</strong>：★網路可取得 → ★★結構化（Excel） → ★★★非專屬格式（CSV） → ★★★★有 URI 可指涉 → ★★★★★可與他人資料鏈結（RDF/Linked Data）。<br><br>
+      <strong>地特加分角度</strong>：實務建議<u>「先求三星、再談五星」</u>——縣市政府人力有限，能穩定更新的 CSV 勝過做了一次就荒廢的 RDF。<u>更新頻率的承諾比格式更重要。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">60</span><span class="tag">開放資料</span>
+    <div class="stem">開放資料釋出前，下列何項檢查最不可省略？</div>
+    <ul class="opts"><li>(A) 檔案大小　(B) 是否含個資或可經比對重識別之欄位　(C) 檔名是否美觀　(D) 是否有中文說明</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>單一資料集看似無個資，與其他資料集<strong>交叉比對後可能重識別</strong>——此即<strong>馬賽克效應</strong>。</u><br><br>
+      例：釋出「低收入戶各里人數」，若某里僅 1 戶，等同指名。<br><br>
+      對策：<strong>設定最小統計單位門檻</strong>（如未滿 5 戶不揭露、以符號遮蔽）。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">61</span><span class="tag">SQL</span>
+    <div class="stem">欲查出「本年度未曾申請任何補助之低收入戶」，下列 SQL 寫法何者最不易出錯？</div>
+    <ul class="opts"><li>(A) 使用 <code>NOT IN</code> 子查詢　(B) 使用 <code>NOT EXISTS</code> 相關子查詢　(C) 使用 <code>&lt;&gt; ALL</code>　(D) 三者皆等價</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) NOT EXISTS</strong><br>
+      <u><strong>致命陷阱</strong>：若子查詢結果含 <code>NULL</code>，<code>NOT IN</code> 會回傳<strong>空集合</strong>（因為與 NULL 比較的結果是 UNKNOWN）。</u><br><br>
+      <code>NOT EXISTS</code> 對 NULL 免疫，語意也最貼近「不存在符合條件之列」。<br><br>
+      <strong>地特加分角度</strong>：這種錯誤在補助清查時會造成<u>「應通知而未通知」</u>，屬行政疏失，不只是技術問題。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">62</span><span class="tag">SQL</span>
+    <div class="stem">欲統計「各區補助件數，含件數為 0 之區」，應使用何種聯結？</div>
+    <ul class="opts"><li>(A) 以區為左表之 LEFT JOIN　(B) INNER JOIN　(C) 以申請為左表之 LEFT JOIN　(D) CROSS JOIN</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      「要保留全部的那一邊放左邊」——欲列出所有區，區就是左表。<br><br>
+      <u>另需以<strong>申請表的主鍵</strong>計數，而非 <code>COUNT(*)</code></u>：<code>COUNT(*)</code> 會把 LEFT JOIN 補出的 NULL 列也算成 1，造成無申請之區顯示為 1 件。<br><br>
+      <strong>這是實務上最常見的統計錯誤之一。</strong>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">63</span><span class="tag">SQL</span>
+    <div class="stem">下列敘述何者正確描述 <code>HAVING</code> 與 <code>WHERE</code> 之差別？</div>
+    <ul class="opts"><li>(A) 兩者可互換　(B) WHERE 於分組前過濾列，HAVING 於分組後過濾群組　(C) HAVING 效能一定較差　(D) WHERE 不能用於數值欄位</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      執行順序：<code>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</code>。<br><br>
+      <u>能寫在 WHERE 的條件就不要寫在 HAVING</u>——先把列過濾掉，分組的資料量才會小。<br><br>
+      例：「2025 年各區件數超過 100 者」→ 年度條件放 WHERE，件數條件放 HAVING。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">64</span><span class="tag">SQL</span>
+    <div class="stem">本府報表需「每區依金額排名前三之補助案件」。最適合之語法為？</div>
+    <ul class="opts"><li>(A) 直接加上筆數限制　(B) 視窗函數 <code>ROW_NUMBER() OVER (PARTITION BY 區 ORDER BY 金額 DESC)</code>　(C) 巢狀子查詢逐區跑迴圈　(D) 匯出後以試算表排序</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 視窗函數</strong><br>
+      <code>PARTITION BY</code> ＝「分組但不合併列」，正是「每組前 N 名」的標準解法。<br><br>
+      區辨：<strong>ROW_NUMBER</strong>（同分也給不同名次）、<strong>RANK</strong>（同分同名次，跳號）、<strong>DENSE_RANK</strong>（同分同名次，不跳號）。<br><br>
+      <strong>地特加分角度</strong>：涉及<u>補助排序</u>時，同分處理規則應於作業要點明定，不能由程式任意決定。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">65</span><span class="tag">資料庫維運</span>
+    <div class="stem">本府資料庫每日 02:00 完整備份，某日 15:00 硬碟毀損。若須復原至 15:00，最關鍵之要素為？</div>
+    <ul class="opts"><li>(A) 完整備份檔　(B) 交易紀錄檔（Transaction Log）之連續備份　(C) 索引重建腳本　(D) 資料庫版本</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      復原公式：<u><strong>完整備份 ＋ 差異備份 ＋ 交易紀錄 = 時間點復原（Point-in-Time Recovery）</strong></u>。<br><br>
+      只有完整備份，最多只能回到 02:00，<strong>13 小時的資料全失</strong>。<br><br>
+      <div class="frame"><span class="t">📐 兩個必背指標</span>
+        <strong>RPO</strong>（可容忍的資料遺失量）→ 決定<u>備份頻率</u><br>
+        <strong>RTO</strong>（可容忍的停機時間）→ 決定<u>備援架構</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">66</span><span class="tag">資料庫維運</span>
+    <div class="stem">關於備份，下列作法何者最重要卻最常被忽略？</div>
+    <ul class="opts"><li>(A) 增加備份份數　(B) 定期執行還原演練並驗證可用性　(C) 使用更快的磁帶　(D) 縮短備份時間</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「沒有驗證過的備份，等於沒有備份。」</strong></u><br><br>
+      常見失敗：備份檔損毀無人知、備份範圍漏了某個資料庫、還原程序無人會操作、還原金鑰遺失。<br><br>
+      <strong>3-2-1 原則</strong>：<u>3 份副本、2 種媒體、1 份異地</u>；防勒索軟體再加<strong>離線或不可竄改（WORM）副本</strong>。<br><br>
+      <strong>地特加分角度</strong>：應於<u>年度資安演練</u>納入還原演練，並留存演練紀錄備查。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">67</span><span class="tag">系統整合</span>
+    <div class="stem">本府多個系統需取得同一份人口資料，下列整合方式何者最能降低長期維護成本？</div>
+    <ul class="opts"><li>(A) 各系統各自複製一份　(B) 建立共用 API 並由單一權責單位維運　(C) 每晚以檔案互傳同步　(D) 由承辦人工匯出提供</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      整合方式成熟度：<u>人工匯出 &lt; 檔案批次 &lt; 資料庫直連 &lt; <strong>API</strong> &lt; 事件驅動</u>。<br><br>
+      各自複製的代價：<strong>N 個系統 = N 份可能不一致的資料 = N 個個資保管風險點</strong>。<br><br>
+      <strong>地特加分角度</strong>：API 化須配套<u>介接申請程序、流量控管、稽核軌跡與服務水準（SLA）</u>，否則會變成「誰都能接、出事沒人管」。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">68</span><span class="tag">系統整合</span>
+    <div class="stem">本府與中央機關介接時，對方僅提供每日一次之批次檔。本府系統需即時查詢，最務實之作法為？</div>
+    <ul class="opts"><li>(A) 要求對方立即改為即時 API　(B) 本地建置快取副本並明確標示資料基準時間　(C) 每次查詢即時去讀批次檔　(D) 放棄該功能</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>介接對象是<strong>中央機關</strong>時，本府沒有變更其系統的權力——這是地方特考的關鍵情境判斷。</u><br><br>
+      務實作法：本地建快取 ＋ <strong>畫面明確標示資料基準日</strong> ＋ 對時效敏感之作業另設人工複核。<br><br>
+      <strong>地特加分角度</strong>：同時<u>循行政程序向中央建議改善介接方式</u>，兩條路並行——這才是完整答案。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">69</span><span class="tag">NoSQL</span>
+    <div class="stem">本府 1999 話務系統需儲存大量非結構化通話摘要與附件描述，且欄位常隨業務調整。最適合之儲存方式為？</div>
+    <ul class="opts"><li>(A) 嚴格正規化之關聯式資料庫　(B) 文件型資料庫　(C) 純檔案系統　(D) 試算表</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 文件型資料庫（Document Store）</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>適用</th></tr>
+        <tr><td>關聯式</td><td>結構穩定、重視交易一致性（收費、核定）</td></tr>
+        <tr><td><strong>文件型</strong></td><td>結構彈性、巢狀資料（案件摘要、表單）</td></tr>
+        <tr><td>鍵值</td><td>快取、Session</td></tr>
+        <tr><td>圖形</td><td>關係網絡（人際、金流追查）</td></tr>
+      </table></div>
+      <strong>務實提醒</strong>：<u>核心的案件編號、承辦、時限仍應存在關聯式資料庫並保持交易一致性</u>——混合式架構才是實務解。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">70</span><span class="tag">CAP</span>
+    <div class="stem">依 CAP 理論，分散式系統於網路分割發生時必須取捨。本府稅費繳納系統應優先保障何者？</div>
+    <ul class="opts"><li>(A) 可用性　(B) 一致性　(C) 分割容忍性可放棄　(D) 三者可兼得</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 一致性</strong><br>
+      <u>只要是分散式系統，<strong>P（分割容忍）就是必選</strong>——網路一定會斷。真正的選擇是「斷線時要 C 還是 A」。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>情境</th><th>選擇</th><th>理由</th></tr>
+        <tr><td><strong>繳費、核定</strong></td><td>CP（保一致）</td><td>寧可暫停服務，不可帳目錯誤</td></tr>
+        <tr><td>資訊公告、查詢</td><td>AP（保可用）</td><td>看到稍舊的資料可接受</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：選 CP 時務必<u>同時設計「暫停服務」的對民眾說明與替代管道</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">71</span><span class="tag">GIS</span>
+    <div class="stem">本府欲分析「各里與最近之避難收容處所距離」。最適合之空間分析功能為？</div>
+    <ul class="opts"><li>(A) 疊圖分析　(B) 最近設施分析／服務區分析　(C) 內插法　(D) 影像分類</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>應以<strong>路網距離</strong>而非直線距離計算</u>——中間隔著河川或高速公路時，直線最近的設施實際上到不了。<br><br>
+      <strong>地特加分角度</strong>：避難收容分析還須考量<u>收容量、無障礙設施、獨居長者與行動不便者之接送</u>，純距離最短不等於可用。<br><br>
+      延伸：<a href="deep.html">地特三等深化教材</a>之地方情境分析章。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">72</span><span class="tag">GIS</span>
+    <div class="stem">關於地理資訊系統之「圖層疊合分析」，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 僅能疊合兩層　(B) 各圖層須採相同之空間參考系統方能正確疊合　(C) 圖層順序不影響結果　(D) 向量與網格圖層不可並用</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>座標系統不同（如 TWD97 與 WGS84）而未轉換，會造成整體偏移數十至數百公尺。</u><br><br>
+      台灣常見：<strong>TWD97 二度分帶</strong>（政府圖資）、<strong>WGS84</strong>（GPS、網路地圖）。<br><br>
+      <strong>地特加分角度</strong>：跨局處圖資整合的第一件事就是<u>統一空間參考與比例尺基準</u>，否則疊出來的分析全部無效。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">73</span><span class="tag">資料交換</span>
+    <div class="stem">本府與外部單位交換資料，需確保「檔案未遭竄改且確為對方所送」。應採用何種機制？</div>
+    <ul class="opts"><li>(A) 壓縮加密碼　(B) 數位簽章　(C) 檔名加註日期　(D) 以電子郵件寄送</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 數位簽章</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>需求</th><th>機制</th></tr>
+        <tr><td>不被看見</td><td>加密</td></tr>
+        <tr><td><strong>未遭竄改</strong></td><td>雜湊 ＋ 簽章</td></tr>
+        <tr><td><strong>確認來源／不可否認</strong></td><td><u>以私鑰簽章，對方以公鑰驗證</u></td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：政府實務採<u><strong>政府憑證管理中心（GCA）</strong>核發之機關憑證</u>，並依《電子簽章法》具法律效力。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">74</span><span class="tag">資料生命週期</span>
+    <div class="stem">本府某系統累積 15 年資料致查詢緩慢。最適當之處理為？</div>
+    <ul class="opts"><li>(A) 直接刪除舊資料　(B) 依檔案保存年限規定辦理歸檔，線上僅保留常用區間並提供歷史查詢管道　(C) 全部搬到光碟不再查詢　(D) 加大伺服器規格即可</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn">
+      <span class="t">⚠️ 法律先行</span>
+      <u>政府資料<strong>不得任意刪除</strong>——須依《檔案法》與各機關檔案保存年限區分表辦理，部分屬<strong>永久保存</strong>。技術方案不能違反保存義務。</u>
+      </div>
+      技術手段：<strong>資料分割（Partitioning）</strong>、<strong>冷熱資料分層</strong>、歷史區另建唯讀查詢介面。<br><br>
+      <strong>地特加分角度</strong>：歸檔計畫應會同<u>檔案管理單位與業務單位</u>共同核定，資訊單位不能自行決定。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">75</span><span class="tag">資料庫安全</span>
+    <div class="stem">為降低內部人員不當查詢個資之風險，下列措施何者最直接有效？</div>
+    <ul class="opts"><li>(A) 加長密碼　(B) 依職務最小權限授權，並對敏感欄位查詢留存稽核軌跡與異常告警　(C) 禁止使用資料庫　(D) 每月更換帳號</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>內部威脅的特徵：<strong>使用的是合法帳號</strong>，所以防火牆與防毒都攔不到。</u><br><br>
+      三層防護：<strong>①最小權限 ②稽核軌跡（誰、何時、查了誰） ③異常行為偵測</strong>（短時間大量查詢、查詢與業務無關之對象）。<br><br>
+      <strong>地特加分角度</strong>：實務上須<u>定期抽查稽核軌跡並簽核</u>——只記錄不檢視，等於沒有稽核。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">76</span><span class="tag">資料庫安全</span>
+    <div class="stem">下列何者為防範 SQL 注入之根本作法？</div>
+    <ul class="opts"><li>(A) 過濾特殊符號　(B) 使用參數化查詢（Prepared Statement）　(C) 隱藏錯誤訊息　(D) 限制輸入長度</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 參數化查詢</strong><br>
+      <u>根本原因是<strong>「資料被當成程式碼執行」</strong>；參數化查詢讓資料永遠只是資料，從機制上根除。</u><br><br>
+      (A)(C)(D) 都是<strong>補償控制</strong>——降低風險但不根除，黑名單過濾永遠有繞過方法。<br><br>
+      <div class="hl"><strong>💡 考點區辨</strong>：題目問「<strong>根本</strong>」選參數化；問「<strong>縱深防禦還應做什麼</strong>」才選 WAF、最小權限、錯誤訊息不外洩。（<a href="../01-senior3/net-bank.html">高考網路題庫</a>相關題）</div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">77</span><span class="tag">效能調校</span>
+    <div class="stem">本府網站於報稅期間反應緩慢，經查資料庫 CPU 未滿載但連線數已達上限。最可能之原因為？</div>
+    <ul class="opts"><li>(A) 硬碟太慢　(B) 連線未妥善釋放或未使用連線池　(C) 記憶體不足　(D) 網路頻寬不足</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>CPU 不高但連線滿 = 連線<strong>被佔著卻沒在工作</strong>（連線洩漏、交易未提交、長時間等待鎖）。</u><br><br>
+      排查順序：①查看有無長時間執行中的交易 ②檢查程式是否於例外時未關閉連線 ③確認連線池設定與逾時。<br><br>
+      <strong>地特加分角度</strong>：報稅、報名等<u>可預期的尖峰</u>應事前<strong>壓力測試</strong>並備妥限流與排隊機制，不能等當天才處理。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">78</span><span class="tag">快取</span>
+    <div class="stem">本府查詢服務導入快取後，偶發「民眾看到已修正前之舊資料」。最適當之改善為？</div>
+    <ul class="opts"><li>(A) 拉長快取時間　(B) 於資料異動時主動失效相關快取，並對關鍵資料縮短存活時間　(C) 停用快取　(D) 請民眾重新整理</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      快取策略二選一：<u><strong>時間失效（TTL）</strong>簡單但會有陳舊期；<strong>事件失效</strong>即時但實作較複雜。</u><br><br>
+      分級處理：<strong>公告、法規</strong>可長 TTL；<strong>案件狀態、餘額</strong>應事件失效或不快取。<br><br>
+      <strong>地特加分角度</strong>：涉及<u>民眾權益之時效資訊</u>（如申請截止、抽籤結果）不得依賴快取，並應顯示資料更新時間。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">79</span><span class="tag">資料遷移</span>
+    <div class="stem">本府舊系統汰換，資料遷移之驗證作業，下列何者最關鍵？</div>
+    <ul class="opts"><li>(A) 比對總筆數　(B) 除筆數外，另就金額合計、關鍵欄位抽樣及業務規則進行三方勾稽　(C) 由廠商切結即可　(D) 上線後有問題再修</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>筆數對得上，不代表<strong>內容</strong>對得上</u>——編碼轉換錯誤、日期格式錯位、金額小數截斷都不會改變筆數。<br><br>
+      <div class="table-wrap"><table>
+        <tr><th>驗證層次</th><th>做法</th></tr>
+        <tr><td>量</td><td>總筆數、各狀態筆數</td></tr>
+        <tr><td><strong>值</strong></td><td><u>金額合計、日期區間、關鍵欄位抽樣人工核對</u></td></tr>
+        <tr><td><strong>規則</strong></td><td>舊系統的業務結果與新系統重算是否一致</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：驗證應由<u><strong>業務單位</strong>簽認，不能只由資訊單位或廠商自行認定</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">80</span><span class="tag">資料遷移</span>
+    <div class="stem">舊系統使用 Big5 編碼，遷移至 UTF-8 後部分姓名出現亂碼。最可能之原因為？</div>
+    <ul class="opts"><li>(A) UTF-8 不支援中文　(B) 罕用字或造字區（使用者自訂字）無對應碼位　(C) 資料庫版本太舊　(D) 欄位長度不足</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>戶政與稅務資料的老問題：<strong>姓名罕用字</strong>常存於 Big5 造字區，該碼位<strong>各機關自行定義</strong>，轉碼時無標準對應。</u><br><br>
+      解法：<strong>①改用 CNS11643 中文標準交換碼／全字庫 ②保留原始字碼並加註 ③無法轉換者列冊人工處理</strong>。<br><br>
+      <strong>地特加分角度</strong>：<u>姓名寫錯是對民眾的失禮，且可能影響證件效力</u>，此類資料須人工確認，不可自動代換為近似字。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">81</span><span class="tag">統計應用</span>
+    <div class="stem">本府分析發現「使用線上申辦之民眾滿意度較高」，遂主張推廣線上申辦可提升滿意度。此推論之主要謬誤為？</div>
+    <ul class="opts"><li>(A) 樣本過大　(B) 以相關推論因果，且可能存在選擇偏誤　(C) 統計方法錯誤　(D) 未使用圖表</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>會使用線上申辦的民眾，本來就<strong>較熟悉數位工具、教育程度或年齡分布不同</strong>——是「這群人」滿意度高，未必是「線上申辦」造成的。</u><br><br>
+      改善：<strong>控制變因、分層比較、或做小規模隨機試辦</strong>。<br><br>
+      <strong>地特加分角度</strong>：<u>不會用線上申辦的民眾根本不在樣本裡</u>，這正是數位落差在資料上的隱形處——政策評估必須主動蒐集未使用者的意見。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">82</span><span class="tag">統計應用</span>
+    <div class="stem">本府各區平均處理天數之比較，若某區有少數極長案件，最適合之集中趨勢指標為？</div>
+    <ul class="opts"><li>(A) 算術平均數　(B) 中位數　(C) 全距　(D) 標準差</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 中位數</strong><br>
+      <u>平均數<strong>對極端值敏感</strong>；少數幾件拖了一年的案件，會把整區平均拉高，掩蓋多數案件其實很快的事實。</u><br><br>
+      實務建議並列呈現：<strong>中位數（多數人的體感） ＋ 第 90 百分位（最糟的情況） ＋ 逾期件數</strong>。<br><br>
+      <strong>地特加分角度</strong>：<u>對議會與民眾說明時，用中位數與百分位比平均數更誠實，也更不容易被質疑「數字美化」。</u>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">83</span><span class="tag">API 設計</span>
+    <div class="stem">本府對外開放查詢 API，為避免遭大量存取影響服務，最應優先實施何者？</div>
+    <ul class="opts"><li>(A) 增加伺服器　(B) 申請金鑰識別 ＋ 速率限制　(C) 只在夜間開放　(D) 加上圖形驗證碼</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>先能<strong>識別是誰</strong>，才能限制與追蹤；匿名 API 無法區分正常使用者與濫用者。</u><br><br>
+      配套：<strong>分級配額</strong>（一般開發者 vs 已簽約單位）、<strong>回傳 429 並附重試時間</strong>、<strong>使用量統計與異常告警</strong>。<br><br>
+      <strong>地特加分角度</strong>：Open Data API 的設計應<u>兼顧開放與穩定</u>——完全不設限，一個爬蟲就能讓服務中斷。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">84</span><span class="tag">API 設計</span>
+    <div class="stem">關於 RESTful API 之設計，下列何者最符合慣例？</div>
+    <ul class="opts"><li>(A) 以 POST 呼叫 <code>/getCase</code>　(B) 以 GET 取得 <code>/cases/1</code>　(C) 以 GET 呼叫 <code>/deleteCase/1</code>　(D) 以 POST 呼叫 <code>/case/update/1</code></li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      REST 原則：<strong>URL 用名詞（資源），動作用 HTTP 方法</strong>。<br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方法</th><th>語意</th><th>特性</th></tr>
+        <tr><td>GET</td><td>查詢</td><td>安全、冪等</td></tr>
+        <tr><td>POST</td><td>新增</td><td>非冪等</td></tr>
+        <tr><td>PUT</td><td>整筆更新</td><td>冪等</td></tr>
+        <tr><td>DELETE</td><td>刪除</td><td>冪等</td></tr>
+      </table></div>
+      <u>(C) 用 GET 執行刪除是嚴重錯誤</u>——瀏覽器預抓、爬蟲或使用者按重新整理都可能誤刪資料。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">85</span><span class="tag">資料治理</span>
+    <div class="stem">本府欲建立資料治理制度，下列何者應為第一步？</div>
+    <ul class="opts"><li>(A) 採購資料治理軟體　(B) 盤點資料資產並指定各資料集之權責單位　(C) 訂定罰則　(D) 全面導入 AI 分析</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「不知道有什麼資料，就不可能治理它。」</strong></u><br><br>
+      標準四步：<strong>①盤點（有什麼、在哪裡、誰在用） ②定權責（資料所有人、管理人） ③訂規則（品質、分級、開放） ④上工具</strong>。<br><br>
+      <div class="warn"><span class="t">⚠️ 常見失敗</span>
+      <u>先買工具再想制度——最後買回來的是一個沒人維護的資料目錄。工具是制度的載體，不是制度的替代品。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="card"><h3>D. 地方網路與資安實務（第 86～125 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">縣市政府的資安困境是<strong>「預算有限、人力兼辦、據點分散」</strong>。答題時請永遠先問：這個措施第一線做得到嗎？</p>
+  </div>
+
+  <div class="q"><span class="no">86</span><span class="tag">網路規劃</span>
+    <div class="stem">本府配得 <code>192.168.40.0/22</code>，欲切給 12 個區公所且每所至少可容納 200 台設備。最適當之切法為？</div>
+    <ul class="opts"><li>(A) 切成 12 個 /26　(B) 切成 16 個 /26　(C) 切成 16 個 /24　(D) 不切，全部同網段</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C)</strong><br>
+      <u>/22 共 1024 個位址；切成 /24 可得 <strong>4 個</strong>子網——不夠 12 個，故本題正解須先算清楚。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>遮罩</th><th>子網數（自 /22 切）</th><th>每網可用主機</th></tr>
+        <tr><td>/24</td><td>4</td><td>254</td></tr>
+        <tr><td><strong>/25</strong></td><td>8</td><td>126</td></tr>
+        <tr><td>/26</td><td>16</td><td>62</td></tr>
+      </table></div>
+      <strong>結論</strong>：<u>/22 無法同時滿足「12 個子網」與「每網 200 台」（需 12×256 = 3072 個位址）</u>——實務上應<strong>另申請 /21 或改採各所獨立私有網段＋路由整合</strong>。<br>
+      <strong>本題的考點</strong>：<u>先算需求總量，再判斷位址夠不夠；不夠時要敢寫「須重新配置位址規劃」，而不是硬切。</u>（速算表見<a href="../02-junior/net-deep.html">網路概要深化教材</a>第 2 章）
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">87</span><span class="tag">網路規劃</span>
+    <div class="stem">本府各區公所以 VLAN 區隔業務網與公務網。VLAN 之主要安全效益為？</div>
+    <ul class="opts"><li>(A) 加密傳輸內容　(B) 縮小廣播網域並限制第二層橫向移動　(C) 提升網路頻寬上限　(D) 取代防火牆</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>VLAN <strong>不加密</strong>，也不能取代防火牆——它做的是「切開廣播網域」。</u><br><br>
+      安全效益：一台被入侵的電腦，<strong>橫向移動的範圍被限縮在同一 VLAN 內</strong>；跨 VLAN 必須經過路由，就有機會設 ACL 檢查。<br><br>
+      <strong>地特加分角度</strong>：VLAN 劃分應對應<u>業務屬性</u>（辦公、監視器、公用 Wi-Fi、IoT），並將<strong>監視器與 IoT 一律隔離</strong>——這類設備更新最慢、最易被利用。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">88</span><span class="tag">網路規劃</span>
+    <div class="stem">區公所與本府間之連線，若需確保機敏公務資料傳輸安全且成本可控，最適當之作法為？</div>
+    <ul class="opts"><li>(A) 直接走網際網路不加密　(B) 建立 IPSec VPN 或使用政府網際服務網之封閉網段　(C) 以電子郵件傳送　(D) 使用公用 Wi-Fi</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>方案</th><th>成本</th><th>安全</th></tr>
+        <tr><td>專線</td><td>高</td><td>最高</td></tr>
+        <tr><td><strong>IPSec VPN over Internet</strong></td><td><u>低</u></td><td>高（正確設定前提下）</td></tr>
+        <tr><td>政府網際服務網（GSN）</td><td>中</td><td>高</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：VPN 的風險常不在加密本身，而在<u><strong>端點</strong>——區公所那台電腦有沒有更新、有沒有防毒、會不會共用帳號</u>。答題務必補一段端點防護。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">89</span><span class="tag">網路故障</span>
+    <div class="stem">某區公所反映「可以連本府系統，但打不開外部網站」。最可能之原因為？</div>
+    <ul class="opts"><li>(A) 網路卡損壞　(B) DNS 或對外閘道設定異常　(C) 內部交換器故障　(D) IP 位址衝突</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>「內部通、外部不通」＝ 第三層以下沒問題，問題出在<strong>對外路徑或名稱解析</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 三步排查</span>
+        <strong>①</strong> ping 外部 IP（如 1.1.1.1）→ 通則是 DNS 問題，不通則是路由或閘道<br>
+        <strong>②</strong> nslookup 測名稱解析<br>
+        <strong>③</strong> tracert 找出斷在哪一跳
+      </div>
+      <strong>地特加分角度</strong>：排查應<u>由下而上（實體 → 網路 → 應用）</u>，並先確認「是一台、一個區，還是全府」——影響範圍決定通報層級。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">90</span><span class="tag">網路故障</span>
+    <div class="stem">同一網段內兩台電腦設定相同 IP，最直接之現象為？</div>
+    <ul class="opts"><li>(A) 兩台皆完全無法上網　(B) 連線時斷時續，且系統可能出現位址衝突警告　(C) 網速變快　(D) 只有一台無法開機</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>原理：ARP 回應會互相覆蓋，交換器的 MAC 表反覆更新，封包時而送到 A、時而送到 B。</u><br><br>
+      預防：<strong>①改用 DHCP 集中配發 ②保留區段給固定 IP 設備並造冊 ③導入 IP 位址管理（IPAM）</strong>。<br><br>
+      <strong>地特加分角度</strong>：區公所常有同仁「自己改 IP 想解決連不上」，<u>治本之道是集中管理＋教育訓練，而非事後抓人</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">91</span><span class="tag">資安管理</span>
+    <div class="stem">依資通安全管理法，各機關應辦理事項不包括下列何者？</div>
+    <ul class="opts"><li>(A) 訂定資通安全維護計畫　(B) 定期辦理資通安全稽核　(C) 對外公開所有系統之弱點掃描結果　(D) 資通安全事件之通報及應變</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C)</strong><br>
+      <u>弱點掃描結果<strong>屬機敏資訊</strong>，公開等同對外公告攻擊路徑，與資安目的相反。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>法定義務</th><th>重點</th></tr>
+        <tr><td>維護計畫</td><td>依<strong>資安責任等級</strong>（A～E）辦理不同要求</td></tr>
+        <tr><td>通報應變</td><td><u>事件等級與時限有明文</u></td></tr>
+        <tr><td>稽核與演練</td><td>定期辦理並留存紀錄</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：縣市政府多屬<strong>A 級或 B 級</strong>，要求最嚴；區公所常為較低等級但仍須落實基本控制。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">92</span><span class="tag">資安管理</span>
+    <div class="stem">資通安全事件之通報，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 應先自行修復再通報　(B) 應於知悉後依規定時限通報，並持續回報處理情形　(C) 影響輕微者可不通報　(D) 僅需向媒體說明</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「先通報、再處理」是原則</strong>——延遲通報本身即為缺失，且會錯過上級的支援資源。</u><br><br>
+      應變順序：<strong>①通報 ②遏止（隔離受害主機） ③保全證據 ④根除 ⑤復原 ⑥檢討改善</strong>。<br><br>
+      <div class="warn"><span class="t">⚠️ 最常犯的錯</span>
+      <u>第一時間就重灌或關機——證據全滅，事後無法查明入侵途徑，同樣的洞會再被打一次。應先做<strong>記憶體與磁碟映像保全</strong>。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">93</span><span class="tag">資安事件</span>
+    <div class="stem">本府某局處電腦遭勒索軟體加密。下列處置何者應最優先？</div>
+    <ul class="opts"><li>(A) 支付贖金　(B) 中斷該電腦網路連線以阻止擴散，並依規定通報　(C) 立即重灌　(D) 等待廠商上班再處理</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn">
+      <span class="t">⚠️ 絕不支付贖金</span>
+      <u>公務機關支付贖金<strong>涉及預算法定用途與資助犯罪之疑慮</strong>，且付款後無法保證解密。此為必寫的法遵立場。</u>
+      </div>
+      正確順序：<strong>隔離（拔網路線／停用網路埠，但不關機） → 通報 → 保全 → 由乾淨備份還原 → 檢討</strong>。<br><br>
+      <strong>地特加分角度</strong>：勒索軟體常同時加密<u>網路磁碟機與備份</u>，故備份必須有<strong>離線或不可竄改副本</strong>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">94</span><span class="tag">資安事件</span>
+    <div class="stem">本府網站遭竄改首頁。事件處理時，下列何者最能協助釐清入侵途徑？</div>
+    <ul class="opts"><li>(A) 網頁瀏覽人數統計　(B) 網頁伺服器存取日誌與檔案異動時間　(C) 首頁的截圖　(D) 民眾的檢舉信</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      鑑識三支柱：<u><strong>①日誌（誰在何時做了什麼） ②檔案時間戳（何時被改） ③系統與應用程式版本（有哪些已知弱點）</strong></u>。<br><br>
+      <strong>前提</strong>：日誌必須<u>集中保存於獨立主機</u>——留在被入侵的機器上，攻擊者第一件事就是刪掉它。<br><br>
+      <strong>地特加分角度</strong>：資安法要求留存日誌一定期間，建議答題時寫<u>「應建置集中式日誌管理（SIEM）並確保日誌完整性」</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">95</span><span class="tag">社交工程</span>
+    <div class="stem">本府辦理社交工程演練，某局處點擊率偏高。最有效之後續作為為？</div>
+    <ul class="opts"><li>(A) 公布名單並議處　(B) 針對該局處加強情境式教育訓練並簡化通報管道　(C) 停用該局處電子郵件　(D) 不再辦理演練</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>懲罰導向的最大副作用：同仁不敢通報。</strong></u> 真的中招時反而隱匿，事件擴散更快。<br><br>
+      有效作法：<strong>①演練後立即說明「哪裡可以看出是假的」 ②提供一鍵回報按鈕 ③獎勵回報者</strong>。<br><br>
+      <strong>地特加分角度</strong>：地方政府第一線同仁<u>本來就必須打開民眾寄來的附件</u>（陳情、申請文件），純粹要求「不要點」是不切實際的；<u>應搭配沙箱檢查與郵件過濾等技術控制</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">96</span><span class="tag">身分驗證</span>
+    <div class="stem">本府開放同仁自家中連回內部系統，最應優先導入之控制為？</div>
+    <ul class="opts"><li>(A) 更複雜的密碼原則　(B) 多因子驗證（MFA）　(C) 限制連線時段　(D) 記錄連線 IP</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 多因子驗證</strong><br>
+      <u>密碼再複雜，被釣走就沒有防護力；MFA 讓「知道密碼」不等於「能登入」。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>因子</th><th>例</th></tr>
+        <tr><td>知道什麼</td><td>密碼</td></tr>
+        <tr><td><strong>持有什麼</strong></td><td>手機驗證器、實體金鑰、自然人憑證</td></tr>
+        <tr><td>是什麼</td><td>指紋、臉部</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：MFA 應<u>優先採用實體金鑰或憑證，簡訊 OTP 有 SIM 卡側錄與轉移風險</u>；並須備妥<strong>遺失手機時的救援程序</strong>，否則第一線會找方法繞過。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">97</span><span class="tag">身分驗證</span>
+    <div class="stem">關於密碼儲存，下列作法何者正確？</div>
+    <ul class="opts"><li>(A) 以對稱加密儲存以便必要時還原　(B) 以加鹽之慢速雜湊函數儲存　(C) 以 MD5 雜湊儲存　(D) 明文儲存但限制資料庫存取</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>密碼<strong>不應可還原</strong>——連系統管理者都不該知道使用者的密碼。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>要素</th><th>目的</th></tr>
+        <tr><td><strong>雜湊</strong></td><td>單向、不可逆</td></tr>
+        <tr><td><strong>加鹽（Salt）</strong></td><td>每人不同鹽值，破解一個不能通用；防彩虹表</td></tr>
+        <tr><td><strong>慢速</strong>（bcrypt / Argon2）</td><td><u>刻意增加計算成本，讓暴力破解不划算</u></td></tr>
+      </table></div>
+      (C) MD5 已可碰撞且計算太快，<strong>不得用於密碼</strong>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">98</span><span class="tag">存取控制</span>
+    <div class="stem">本府人事異動頻繁，最能降低權限累積風險之機制為？</div>
+    <ul class="opts"><li>(A) 由主管口頭確認　(B) 以角色為基礎之存取控制（RBAC）並定期複核　(C) 每人一組專屬權限　(D) 全部給唯讀權限</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) RBAC</strong><br>
+      <u>權限綁「職務」而非綁「人」；調動時換角色即可，不會把舊職務的權限帶著走（<strong>權限蔓延</strong>）。</u><br><br>
+      配套：<strong>①到職／調動／離職三個時點的權限異動流程 ②每半年權限複核並由業務主管簽認 ③離職當日立即停用</strong>。<br><br>
+      <strong>地特加分角度</strong>：地方政府常見<u>「借調、兼辦、代理」</u>，應設計<strong>有期限的暫時授權</strong>，到期自動失效。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">99</span><span class="tag">存取控制</span>
+    <div class="stem">下列何者最符合「零信任」之核心精神？</div>
+    <ul class="opts"><li>(A) 內網一律信任　(B) 每次存取皆驗證身分、裝置與情境，不因位於內網而免驗證　(C) 全面封鎖外部連線　(D) 只信任已加密的連線</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>零信任推翻的是「城堡與護城河」模型——<strong>進了內網就是自己人</strong>這個假設。</u><br><br>
+      三原則：<strong>①永不信任、始終驗證 ②最小權限 ③假設已遭入侵</strong>。<br><br>
+      <div class="hl"><strong>💡 務實提醒</strong>：<u>零信任是<strong>方向</strong>不是產品。縣市政府預算有限，應從「MFA ＋ 特權帳號管理 ＋ 關鍵系統微分段」三項先做，不必一次全面改造。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">100</span><span class="tag">加密</span>
+    <div class="stem">本府網站啟用 HTTPS 後，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 網站即不會被入侵　(B) 可保障傳輸過程之機密性與完整性，並驗證伺服器身分　(C) 資料庫內容自動加密　(D) 可防止 SQL 注入</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>HTTPS 保護的是<strong>「路上」</strong>，不保護「兩端」。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>HTTPS 能</th><th>HTTPS 不能</th></tr>
+        <tr><td>防竊聽</td><td>防 SQL 注入、XSS</td></tr>
+        <tr><td>防中途竄改</td><td>防伺服器被入侵</td></tr>
+        <tr><td>驗證伺服器身分</td><td>加密資料庫內容</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：應同時設定 <strong>HSTS</strong>、停用舊版 TLS、憑證到期<u>自動化更新與監控</u>——政府網站憑證過期上新聞，幾乎年年發生。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">101</span><span class="tag">加密</span>
+    <div class="stem">對稱式與非對稱式加密之搭配使用，實務上最常見之組合為何？</div>
+    <ul class="opts"><li>(A) 全程使用非對稱加密　(B) 以非對稱加密交換金鑰，再以對稱加密傳輸資料　(C) 全程使用對稱加密　(D) 僅使用雜湊</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>原因是<strong>效能</strong>：非對稱運算約比對稱慢數百至數千倍，不適合大量資料。</u><br><br>
+      <div class="frame"><span class="t">📐 一句話記法</span>
+        <strong>非對稱解決「金鑰怎麼給對方」，對稱解決「資料怎麼傳得快」。</strong>
+      </div>
+      延伸：<a href="../01-senior3/net-deep.html">資通網路與安全深化教材</a>第 7 章有 Diffie-Hellman 與前向保密的完整推導。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">102</span><span class="tag">網路防護</span>
+    <div class="stem">本府網站遭大量流量攻擊致無法服務。此屬何種攻擊，且最有效之防護為？</div>
+    <ul class="opts"><li>(A) SQL 注入；參數化查詢　(B) 分散式阻斷服務；上游流量清洗與 CDN 分流　(C) 跨站腳本；輸出編碼　(D) 中間人攻擊；使用 HTTPS</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) DDoS</strong><br>
+      <u><strong>關鍵觀念</strong>：DDoS 的頻寬在<strong>上游</strong>就被塞滿了，機關端無論怎麼加防火牆都無效——必須靠<strong>ISP 或雲端清洗服務</strong>在上游過濾。</u><br><br>
+      配套：<strong>①與電信業者事先簽定清洗服務 ②靜態內容上 CDN ③準備降載版首頁 ④演練切換程序</strong>。<br><br>
+      <strong>地特加分角度</strong>：地方政府易在<u>選舉、重大政策、災害期間</u>成為目標，應於這些時點前提高戒備等級。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">103</span><span class="tag">網路防護</span>
+    <div class="stem">關於防火牆與入侵偵測系統（IDS）之區別，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 兩者功能相同　(B) 防火牆依規則允許或阻擋，IDS 偵測異常並告警　(C) IDS 一定會自動阻擋　(D) 防火牆可偵測未知攻擊</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>設備</th><th>動作</th><th>位置</th></tr>
+        <tr><td>防火牆</td><td>允許／阻擋</td><td>流量路徑上</td></tr>
+        <tr><td><strong>IDS</strong></td><td><u>只偵測、只告警</u></td><td>旁路監聽</td></tr>
+        <tr><td><strong>IPS</strong></td><td>偵測並主動阻擋</td><td>流量路徑上</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：IPS 誤判會<u>擋掉正常民眾</u>，故上線初期應先以<strong>偵測模式運行一段時間調校規則</strong>，再切換為阻擋。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">104</span><span class="tag">網路防護</span>
+    <div class="stem">本府擬於各區公所提供民眾公用 Wi-Fi，下列架構何者最適當？</div>
+    <ul class="opts"><li>(A) 與公務網共用同一網段以節省設備　(B) 獨立網段並與公務網完全隔離，僅提供對外上網　(C) 不設密碼且不留紀錄　(D) 由各所自行採購自行管理</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 公用 Wi-Fi 四要件</span>
+        <strong>①隔離</strong>：獨立 VLAN／獨立線路，與公務網零連通<br>
+        <strong>②身分</strong>：簡訊或憑證認證，留存連線紀錄以備調閱<br>
+        <strong>③內容</strong>：過濾惡意網站，限制頻寬與時段<br>
+        <strong>④告知</strong>：<u>明確揭露蒐集項目與目的（個資法第 8 條告知義務）</u>
+      </div>
+      <strong>地特加分角度</strong>：(D) 各所自行採購是<u>地方政府的真實常態，也正是資安破口</u>——應由本府統一規格、統一維運，才有一致的安全水準。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">105</span><span class="tag">端點防護</span>
+    <div class="stem">本府老舊電腦仍執行已停止支援之作業系統。最務實之處置為？</div>
+    <ul class="opts"><li>(A) 繼續使用並加裝防毒　(B) 造冊列管、網路隔離、限縮功能，並排定汰換期程　(C) 立即全部斷網停用　(D) 自行修補作業系統漏洞</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>「立即全部停用」在地方政府通常做不到——那台電腦可能連著唯一一台可用的印表機或某個舊系統。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>步驟</th><th>做法</th></tr>
+        <tr><td>盤點</td><td>造冊，記錄用途與相依系統</td></tr>
+        <tr><td><strong>降低暴露</strong></td><td><u>獨立 VLAN、禁止上網、關閉不必要服務與埠</u></td></tr>
+        <tr><td>補償控制</td><td>應用程式白名單、外接埠管制</td></tr>
+        <tr><td><strong>期程</strong></td><td>編列預算、分年汰換，並向上級陳報風險</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：<u>務必寫「陳報風險並列管」</u>——書面留存是承辦人保護自己也是推動預算的正途。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">106</span><span class="tag">端點防護</span>
+    <div class="stem">下列何者最能防範同仁將公務資料以隨身碟攜出？</div>
+    <ul class="opts"><li>(A) 宣導　(B) 端點管理搭配外接儲存裝置管制與資料外洩防護（DLP）　(C) 加裝監視器　(D) 禁用電子郵件</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>三層：<strong>①阻擋</strong>（USB 唯讀或封鎖） <strong>②留痕</strong>（誰在何時複製了什麼） <strong>③內容偵測</strong>（DLP 依關鍵字或個資樣態攔截）。</u><br><br>
+      <strong>地特加分角度</strong>：全面封鎖 USB 會影響<u>與外部單位交換大檔案</u>之作業，應同時提供<strong>核准後的加密隨身碟或檔案傳輸平台</strong>，否則同仁會改用私人雲端硬碟——風險更高。<br><br>
+      <div class="hl"><strong>💡 答題公式</strong>：<u>「封鎖 ＋ 提供合規替代方案 ＋ 稽核」</u>，三者缺一不可。</div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">107</span><span class="tag">弱點管理</span>
+    <div class="stem">本府弱點掃描報告列出數百項弱點，人力有限。修補之優先順序原則為？</div>
+    <ul class="opts"><li>(A) 依編號順序　(B) 依風險值（可利用性 × 資產重要性 × 暴露面）排序，優先修補對外服務之高風險項　(C) 由廠商決定　(D) 只修容易修的</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>不是「CVSS 分數高的先修」，而是<strong>「分數高 × 對外可觸及 × 系統重要」</strong>三者相乘。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>優先序</th><th>特徵</th></tr>
+        <tr><td><strong>最高</strong></td><td><u>對外服務 ＋ 已有公開攻擊程式 ＋ 免驗證即可利用</u></td></tr>
+        <tr><td>次高</td><td>核心系統，但僅內網可觸及</td></tr>
+        <tr><td>可排期</td><td>需高權限或特殊條件才能利用</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：無法立即修補者應<u>記錄「風險接受」並經權責主管核可</u>，不是默默略過。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">108</span><span class="tag">弱點管理</span>
+    <div class="stem">關於滲透測試與弱點掃描，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 兩者相同　(B) 弱點掃描為自動化廣度檢測，滲透測試為模擬攻擊之深度驗證　(C) 滲透測試可完全自動化　(D) 弱點掃描能證明弱點確實可被利用</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>弱點掃描</th><th>滲透測試</th></tr>
+        <tr><td>方式</td><td>自動化工具</td><td>人工為主</td></tr>
+        <tr><td>特性</td><td>廣、快、<u>有誤報</u></td><td>深、慢、<u>驗證可利用性</u></td></tr>
+        <tr><td>頻率</td><td>定期（如每季）</td><td>年度或重大改版後</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：委外滲透測試須於契約明定<u><strong>測試範圍、時段、禁止行為、資料保密與成果歸屬</strong></u>，並事先報備，避免被誤判為真實攻擊。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">109</span><span class="tag">營運持續</span>
+    <div class="stem">本府訂定營運持續計畫（BCP），下列何者為首要工作？</div>
+    <ul class="opts"><li>(A) 採購備援設備　(B) 進行營運衝擊分析（BIA），確認關鍵業務與可容忍中斷時間　(C) 撰寫計畫書　(D) 舉辦教育訓練</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 營運衝擊分析</strong><br>
+      <u>先問「哪些業務停了會出人命或違法」，才知道錢該花在哪裡。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>業務</th><th>可容忍中斷</th><th>投資強度</th></tr>
+        <tr><td>災害應變、119</td><td><u>近乎零</u></td><td>雙中心即時備援</td></tr>
+        <tr><td>戶政、稅務</td><td>數小時</td><td>異地備援</td></tr>
+        <tr><td>內部行政系統</td><td>1～3 日</td><td>備份還原即可</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：BIA 必須<u>由業務單位認定，不是資訊單位猜</u>；且結果應報府級決策核定，才有預算正當性。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">110</span><span class="tag">營運持續</span>
+    <div class="stem">本府災害應變中心系統之備援設計，下列何者最適當？</div>
+    <ul class="opts"><li>(A) 備援機房設於同一棟大樓地下室　(B) 異地備援並確保不同電力與網路來源　(C) 每週手動備份至隨身硬碟　(D) 由中央機關代管即可</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>災害應變系統的最大諷刺：<strong>災害發生時，備援跟主機房一起淹水或斷電。</strong></u><br><br>
+      異地備援四要件：<strong>①足夠距離（不同淹水潛勢與斷層帶） ②不同變電所供電 ③不同電信路由 ④定期切換演練</strong>。<br><br>
+      <strong>地特加分角度</strong>：可與<u>鄰近縣市或中央機關洽談互為備援</u>，是預算有限下的務實解——並須簽訂協議明定責任與資料保護。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">111</span><span class="tag">雲端</span>
+    <div class="stem">本府擬將部分系統移至公有雲，下列考量何者最優先？</div>
+    <ul class="opts"><li>(A) 費用高低　(B) 資料性質與法規限制（機敏等級、境內存放要求）　(C) 介面是否美觀　(D) 廠商知名度</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn">
+      <span class="t">⚠️ 法遵優先於技術</span>
+      <u>政府資料上雲須符合<strong>資通安全責任等級之雲端服務規範</strong>；涉及個資或機密者，通常要求<strong>資料存放於我國境內</strong>並使用經評鑑之服務。</u>
+      </div>
+      次要考量：<strong>退場機制（資料如何完整帶走）、供應商鎖定、成本模型（用量計費可能失控）</strong>。<br><br>
+      <strong>地特加分角度</strong>：建議寫<u>「分級上雲」</u>——公開資訊網站先上雲，核心個資系統維持地端或採政府雲。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">112</span><span class="tag">雲端</span>
+    <div class="stem">關於雲端服務之「責任共擔模型」，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 上雲後資安責任全歸雲端業者　(B) 業者負責雲的安全，客戶負責雲中資料與設定之安全　(C) 客戶不需管理帳號權限　(D) IaaS 客戶責任最小</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「Security OF the cloud vs. Security IN the cloud」</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>模式</th><th>客戶責任</th></tr>
+        <tr><td><strong>IaaS</strong></td><td><u>最大</u>：作業系統、中介軟體、應用、資料</td></tr>
+        <tr><td>PaaS</td><td>中：應用、資料</td></tr>
+        <tr><td>SaaS</td><td>最小：資料與存取權限設定</td></tr>
+      </table></div>
+      <strong>實務最常出事</strong>：<u>儲存空間權限誤設為公開</u>——這是客戶責任，不是雲端業者的錯。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">113</span><span class="tag">網路協定</span>
+    <div class="stem">本府某服務改用 UDP 傳輸即時影像。相較 TCP，下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) UDP 保證送達且有序　(B) UDP 無連線、不重傳，延遲較低但可能遺失封包　(C) UDP 一定較安全　(D) UDP 有壅塞控制</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>即時影像<strong>寧可掉一格畫面，也不要為了重傳而卡住</strong>——這是選 UDP 的理由。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>需求</th><th>選擇</th></tr>
+        <tr><td>公文傳輸、資料庫</td><td><strong>TCP</strong>（一個位元都不能錯）</td></tr>
+        <tr><td><strong>監視器串流、語音</strong></td><td><u>UDP（延遲比完整更重要）</u></td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：監視系統規劃須同時考量<u>頻寬需求（路數 × 解析度 × 幀率）與儲存天數之法定要求</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">114</span><span class="tag">網路協定</span>
+    <div class="stem">下列何者最能說明 DNS 在資安上的重要性？</div>
+    <ul class="opts"><li>(A) DNS 可加速網頁載入　(B) DNS 遭汙染或劫持將導致使用者被導向偽冒網站　(C) DNS 可加密資料　(D) DNS 可阻擋病毒</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>DNS 是<strong>信任鏈的起點</strong>——名稱解析被騙，後面所有防護都在保護錯誤的目的地。</u><br><br>
+      防護：<strong>①DNSSEC（來源驗證） ②使用可信任的遞迴伺服器 ③DNS 查詢日誌監控（可及早發現受害主機連往惡意中繼站）</strong>。<br><br>
+      <strong>地特加分角度</strong>：機關網域應<u>啟用 DNSSEC 並防範網域被搶註或到期未續</u>——網域過期被他人買走，是政府機關發生過的真實事故。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">115</span><span class="tag">應用安全</span>
+    <div class="stem">本府網站表單遭插入惡意腳本，致其他使用者瀏覽時被竊取 Session。此攻擊與防護為？</div>
+    <ul class="opts"><li>(A) SQL 注入；參數化查詢　(B) 跨站腳本（XSS）；輸出編碼與內容安全政策　(C) CSRF；驗證 Referer　(D) 目錄遍歷；限制路徑</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) XSS</strong><br>
+      <u>核心觀念：<strong>輸入驗證擋不完，關鍵在「輸出時依情境編碼」</strong>——放進 HTML、屬性、JavaScript、URL 的編碼方式各不相同。</u><br><br>
+      縱深防禦：<strong>①輸出編碼 ②CSP 限制可執行的腳本來源 ③Cookie 加上 HttpOnly 與 Secure ④SameSite 屬性</strong>。<br><br>
+      <strong>地特加分角度</strong>：民眾陳情、留言板、線上報名等<u>「會把民眾輸入顯示給別人看」的功能，就是 XSS 的高風險區</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">116</span><span class="tag">應用安全</span>
+    <div class="stem">本府線上申辦系統，使用者可藉修改網址中的案件編號查看他人案件。此屬何種弱點？</div>
+    <ul class="opts"><li>(A) XSS　(B) 權限控制失效（不安全的直接物件參照）　(C) SQL 注入　(D) 弱密碼</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>根本錯誤：<strong>「畫面上沒有連結」被誤當成「沒有權限」。</strong></u><br><br>
+      正確作法：<strong>每一次存取都在伺服器端驗證「這個使用者是否有權讀取這筆資料」</strong>，不能只靠前端隱藏。<br><br>
+      <div class="warn"><span class="t">⚠️ 地方政府的高風險場景</span>
+      <u>線上申辦、案件進度查詢、繳費紀錄——一旦有此弱點，等同<strong>全體申辦民眾的個資可被逐號下載</strong>，屬重大個資事故。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">117</span><span class="tag">日誌管理</span>
+    <div class="stem">關於資安日誌之保存，下列作法何者最適當？</div>
+    <ul class="opts"><li>(A) 保存於原主機即可　(B) 集中保存於獨立日誌伺服器，設定保存期限並確保完整性　(C) 每月清除以節省空間　(D) 僅保存錯誤訊息</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      三要件：<u><strong>①集中</strong>（攻擊者刪不到） <strong>②完整</strong>（雜湊或唯寫媒體，防事後竄改） <strong>③時間同步</strong>（NTP 校時，否則跨系統事件無法勾稽）</u>。<br><br>
+      <strong>地特加分角度</strong>：日誌<u>本身可能含個資</u>（IP、身分證字號、查詢內容），其存取權限與保存期限亦須依個資法規範管理——這是常被忽略的一層。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">118</span><span class="tag">委外管理</span>
+    <div class="stem">本府系統委外維護，廠商工程師需存取正式環境資料庫。最適當之控制為？</div>
+    <ul class="opts"><li>(A) 給予固定管理者帳號以利作業　(B) 採申請核准制之臨時帳號，全程錄影或側錄並於結束後停用　(C) 由廠商自行管理帳號　(D) 禁止任何存取</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 委外存取五步驟</span>
+        <strong>①</strong> 書面申請，載明事由、範圍、時段<br>
+        <strong>②</strong> 核准後開通<u>個人化</u>臨時帳號（不得共用）<br>
+        <strong>③</strong> 全程監看或側錄操作<br>
+        <strong>④</strong> 作業結束<u>立即停用</u><br>
+        <strong>⑤</strong> 事後檢視操作紀錄
+      </div>
+      <strong>地特加分角度</strong>：契約須載明<u><strong>保密義務、資安事件責任、人員異動通知、罰則</strong></u>；並要求廠商人員簽署個別保密切結。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">119</span><span class="tag">委外管理</span>
+    <div class="stem">下列何者最能降低「機關無人懂系統、完全依賴廠商」之風險？</div>
+    <ul class="opts"><li>(A) 增加維護預算　(B) 契約要求交付原始碼、系統文件與教育訓練，並由機關人員參與開發過程　(C) 更換廠商　(D) 縮短契約年限</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>供應商鎖定的解方是<strong>「知識移轉」</strong>，不是「換一家鎖定」。</u><br><br>
+      契約應載明：<strong>①原始碼與建置腳本交付 ②系統／資料庫／介接文件 ③資料可攜（標準格式匯出） ④教育訓練與知識移轉時數 ⑤智慧財產權或授權範圍</strong>。<br><br>
+      <strong>地特加分角度</strong>：地方政府人力有限，建議<u>指定至少一位機關同仁全程參與，並要求廠商採用主流技術而非自有框架</u>。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">120</span><span class="tag">資安意識</span>
+    <div class="stem">本府擬提升同仁資安意識，下列作法何者效益最高？</div>
+    <ul class="opts"><li>(A) 每年一次線上課程並測驗　(B) 結合實際業務情境之短時多次訓練，並搭配演練回饋　(C) 張貼海報　(D) 發送宣導電子郵件</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>年度一次的線上課程，多數人是<strong>開著視窗做別的事</strong>——這是實話，答題時可寫成「單次集中訓練之留存率偏低」。</u><br><br>
+      有效設計：<strong>①短（10 分鐘） ②多次（每季） ③情境化（用本府真實案例改寫） ④演練後立即回饋</strong>。<br><br>
+      <strong>地特加分角度</strong>：<u>應針對不同角色分流</u>——第一線櫃檯重釣魚郵件與社交工程，系統管理者重權限與日誌，主管重通報決策。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">121</span><span class="tag">行動應用</span>
+    <div class="stem">本府開發市民服務 App，關於資安設計下列何者正確？</div>
+    <ul class="opts"><li>(A) 將 API 金鑰寫在 App 程式碼中即安全　(B) 敏感驗證邏輯應置於伺服器端，App 端不可儲存長期憑證於未受保護之位置　(C) 只要上架官方商店即安全　(D) 使用 HTTPS 即無須其他防護</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>App 是在「敵人的裝置」上執行的</strong>——反編譯即可看到所有寫死的內容。</u><br><br>
+      要點：<strong>①金鑰不寫死 ②驗證與授權一律伺服器端判斷 ③憑證存於系統安全儲存區（Keychain／Keystore） ④偵測 Root／越獄 ⑤憑證綁定（Certificate Pinning）</strong>。<br><br>
+      <strong>地特加分角度</strong>：App <u>不得成為唯一申辦管道</u>（數位落差），且應提供<strong>無障礙支援</strong>——這是地方政府必寫的兩點。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">122</span><span class="tag">物聯網</span>
+    <div class="stem">本府布建智慧路燈與空品感測器，其資安風險管理重點為？</div>
+    <ul class="opts"><li>(A) 設備便宜可不必管理　(B) 造冊列管、變更預設密碼、韌體更新機制與獨立網段隔離　(C) 只需防止實體遭破壞　(D) 由廠商全權負責</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>IoT 的三大特徵讓它成為破口：<strong>數量多、預設密碼、幾乎不更新</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>風險</th><th>控制</th></tr>
+        <tr><td>預設密碼</td><td><u>布建時強制變更並造冊</u></td></tr>
+        <tr><td>無法更新</td><td>採購時即要求韌體更新機制與支援年限</td></tr>
+        <tr><td>被當跳板</td><td><strong>獨立網段，僅允許連往指定平台</strong></td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：<u>採購規範是最有效的關卡</u>——設備買進來之後才想管理，通常已無法可管。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">123</span><span class="tag">監視系統</span>
+    <div class="stem">本府監視系統影像之調閱管理，下列何者最符合法規要求？</div>
+    <ul class="opts"><li>(A) 任何同仁均可查看　(B) 依申請核准程序調閱，留存調閱紀錄，並訂定影像保存期限　(C) 影像永久保存　(D) 可提供給民眾自由查詢</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>監視影像屬<strong>個人資料</strong>，其蒐集、處理、利用均受個資法規範。</u><br><br>
+      四項必備：<strong>①明確告知（設置告示牌） ②特定目的（治安、交通） ③保存期限屆滿即刪除 ④調閱申請與紀錄</strong>。<br><br>
+      <div class="warn"><span class="t">⚠️ 常見違失</span>
+      <u>「因為好奇而調閱」「應民代要求私下提供」——縱使身分是公務員，無正當目的之調閱仍屬違法利用。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">124</span><span class="tag">資安治理</span>
+    <div class="stem">本府欲導入資訊安全管理系統（ISMS），下列敘述何者正確？</div>
+    <ul class="opts"><li>(A) 取得驗證即代表不會發生資安事件　(B) 核心為 PDCA 持續改善，須界定範圍並進行風險評鑑　(C) 僅資訊單位需參與　(D) 導入後無須再稽核</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>階段</th><th>做什麼</th></tr>
+        <tr><td>Plan</td><td>界定範圍、盤點資產、<strong>風險評鑑</strong>、選擇控制措施</td></tr>
+        <tr><td>Do</td><td>實施控制、教育訓練</td></tr>
+        <tr><td>Check</td><td>內部稽核、管理審查</td></tr>
+        <tr><td>Act</td><td>矯正預防、持續改善</td></tr>
+      </table></div>
+      <strong>地特加分角度</strong>：<u>ISMS 是<strong>管理制度</strong>不是技術方案，成敗關鍵在「業務單位是否認為這是自己的事」</u>——故須由府級主管擔任推動小組召集人。
+    </div></details>
+  </div>
+
+  <div class="q"><span class="no">125</span><span class="tag">綜合判斷</span>
+    <div class="stem">本府資安預算有限，若僅能先做三件事，下列組合何者最能降低整體風險？</div>
+    <ul class="opts"><li>(A) 買最新防火牆、換全部電腦、辦大型研討會　(B) 可還原的離線備份、特權帳號 MFA、對外服務的修補與最小暴露面　(C) 全面導入 AI 資安、建置雙中心、取得國際驗證　(D) 增加監視器、加長密碼、每月改密碼</li></ul>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 為什麼是這三件</span>
+        <strong>①離線備份</strong>：勒索軟體的唯一有效解——沒有它，其他都白做<br>
+        <strong>②特權帳號 MFA</strong>：<u>阻斷「密碼被釣 → 直接拿到管理權」的最短攻擊路徑</u><br>
+        <strong>③對外服務修補與縮小暴露面</strong>：實際被入侵的入口，八成在這裡
+      </div>
+      <u>(D) 的「每月改密碼」現行指引已<strong>不建議</strong></u>——強迫頻繁更換會導致弱密碼與寫在便條紙上，應改為<strong>長密碼＋MFA＋外洩比對</strong>。<br><br>
+      <strong>地特加分角度</strong>：申論寫「預算有限」時，<u>務必給出排序與理由，不要只寫「應全面加強」</u>——排序能力就是分數。
+    </div></details>
+  </div>
   <div class="card">
     <h2>✍️ 地方政府情境申論題（16 題）</h2>
     <div class="hl">
