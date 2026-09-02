@@ -7777,6 +7777,996 @@ cases = query(<span class="s">"SELECT * FROM 案件"</span>);
   </div>
 
 
+
+  <div class="card"><h3>K. 進階推導與實務判準（第 271～320 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">本區對應<a href="ds-deep.html">深化教材第 13～24 章</a>，考的是「為什麼」與「什麼時候該選它」。</p>
+  </div>
+
+  <div class="q" data-qno="271" data-ans="B"><span class="no">271</span><span class="tag">隨機化</span>
+    <div class="stem">關於快速排序採用隨機樞紐，下列敘述何者正確？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>最壞情況變為 O(n log n)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>最壞情況仍為 O(n²)，但期望值為 O(n log n) 且不依賴輸入分布</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>平均情況變差</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>不再需要遞迴</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>隨機化改變的是<strong>「與輸入分布無關」</strong>，不是消除最壞情況——最壞仍是 O(n²)，只是機率極低。</u><br><br>
+      <strong>推導</strong>：兩元素 z<sub>i</sub>、z<sub>j</sub> 被比較的機率 = <strong>2/(j−i+1)</strong>，總和得 <strong>2n ln n</strong>。<br><br>
+      <strong>公務意義</strong>：<u>對外服務若使用者可控制輸入順序，應採<strong>隨機樞紐或 Introsort</strong>，否則構成可被利用的<strong>演算法複雜度攻擊</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="272" data-ans="A"><span class="no">272</span><span class="tag">堆積</span>
+    <div class="stem">由 n 個元素建立二元堆積（Build-Heap）之時間複雜度為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>O(n)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>O(log n)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>O(n log n)</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>O(n²)</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A) O(n)</strong><br>
+      <u>直覺會誤以為是 O(n log n)——那是<strong>成立但不緊</strong>的上界。</u><br><br>
+      <strong>推導</strong>：高度 h 的節點最多 n/2<sup>h+1</sup> 個，成本 O(h)；<br>
+      總和 = (n/2)·Σ h/2<sup>h</sup>，而 <u>Σ h/2<sup>h</sup> 收斂到 <strong>2</strong></u> → 總成本 ≤ <strong>n</strong>。<br><br>
+      <u><strong>關鍵直覺</strong>：一半的節點是葉節點，下沉成本為零。</u><br><br>
+      <strong>區辨</strong>：<u>堆積排序整體仍是 O(n log n)</u>（建堆 O(n) ＋ n 次取出 O(log n)）。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="273" data-ans="B"><span class="no">273</span><span class="tag">堆積</span>
+    <div class="stem">從 500 萬筆資料中找出最大的 20 筆，最省記憶體且有效率之方法為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>全部排序後取前 20 筆</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>維護大小為 20 的最小堆積，掃過一遍</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>執行 20 次線性搜尋</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>建立完整的最大堆積</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>方法</th><th>時間</th><th>記憶體</th></tr>
+        <tr><td>全部排序</td><td>O(n log n)</td><td><u>要載入 500 萬筆</u></td></tr>
+        <tr><td><strong>大小 k 的最小堆積</strong></td><td><u><strong>O(n log k)</strong></u></td><td><u><strong>只需 20 個元素</strong></u></td></tr>
+        <tr><td>20 次線性搜尋</td><td>O(kn)</td><td>低</td></tr>
+      </table></div>
+      <u><strong>做法</strong>：維護大小 20 的<strong>最小</strong>堆積，新元素比堆頂大就替換——堆頂永遠是「目前前 20 名中最小的」。</u><br><br>
+      <strong>公務應用</strong>：找出處理天數最長的案件、金額最高的補助、流量最大的來源 IP。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="274" data-ans="B"><span class="no">274</span><span class="tag">字串比對</span>
+    <div class="stem">KMP 演算法中的失敗函數 π[i]，其定義為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>樣式中字元 i 出現的次數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>樣式前 i 個字元中，既是真前綴又是真後綴的最長長度</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>樣式的長度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>比對失敗的次數</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>意義：比對失敗時<strong>不必從頭來過</strong>，直接把樣式右滑到「已知一定相符」的位置。</u><br><br>
+      例：樣式 <code>ABABAC</code> → π = [0, 0, 1, 2, 3, 0]<br>
+      <u>在第 6 位失敗時，π[5] = 3 → 右滑 5−3 = 2 格，且前 3 個字元已確定相符。</u><br><br>
+      <strong>複雜度 O(n+m)</strong>，理由是<u><strong>文字指標永不回頭</strong></u>（攤還分析）。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="275" data-ans="B"><span class="no">275</span><span class="tag">字串比對</span>
+    <div class="stem">機關需同時比對數百個敏感詞於大量文件中，最適合之演算法為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>對每個敏感詞各跑一次 KMP</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>Aho-Corasick 或 Rabin-Karp 多樣式比對</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>逐字元線性搜尋</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>二分搜尋</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>(A) 的成本是 <strong>樣式數 × 文字長度</strong>；多樣式演算法<strong>掃一遍就能同時比對全部樣式</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>需求</th><th>選擇</th></tr>
+        <tr><td>單一樣式</td><td>KMP，O(n+m)</td></tr>
+        <tr><td><strong>多樣式同時比對</strong></td><td><u>Aho-Corasick（建 Trie ＋ 失敗連結）或 Rabin-Karp</u></td></tr>
+        <tr><td><strong>大量文件、多樣關鍵字、需相關性排序</strong></td><td><u><strong>倒排索引（全文檢索）</strong></u></td></tr>
+      </table></div>
+      <u><strong>加分句</strong>：「若為全文檢索需求，應建置倒排索引而非逐次字串比對——前者是 O(結果數)，後者是 O(全部文件總長度)。」</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="276" data-ans="B"><span class="no">276</span><span class="tag">併查集</span>
+    <div class="stem">併查集同時採用「路徑壓縮」與「按秩合併」時，m 次操作之總複雜度為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>O(m log n)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>O(m · α(n))，α 為反阿克曼函數</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>O(mn)</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>O(m²)</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>α(n) 在所有可想像的 n 之下 <strong>≤ 4</strong>，實務上視為常數。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 必須兩者併用</span>
+      <u><strong>只用路徑壓縮</strong>：O(log n)｜<strong>只用按秩合併</strong>：O(log n)<br>
+      <strong>兩者併用才有 α(n)。</strong></u>
+      </div>
+      <strong>公務應用</strong>：<u>Kruskal 判環、地籍合併、道路連通性、重複帳號歸併。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="277" data-ans="B"><span class="no">277</span><span class="tag">併查集</span>
+    <div class="stem">關於併查集之限制，下列敘述何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>可以有效率地拆分已合併的集合</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>合併後無法有效率地拆開，業務會「反悔」時須另行設計</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>不支援查詢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只能用於數字</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>Union 之後<strong>沒有有效率的 Split</strong>。</u><br><br>
+      <strong>公務上為什麼重要</strong>：<u>行政行為可能被撤銷（錯誤歸併的更正、地號分割），<br>
+      資料模型必須支援<strong>「還原到某個時間點的狀態」</strong>。</u><br><br>
+      <strong>對策</strong>：<strong>①保留原始關係表，需要時重新計算 ②或改用可持久化的資料結構</strong>。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="278" data-ans="A"><span class="no">278</span><span class="tag">最短路徑</span>
+    <div class="stem">下列何種情形不可使用 Dijkstra 演算法？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>圖中含有負權邊</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>圖為稠密圖</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>節點數超過一萬</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>圖為無向圖</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      <div class="frame"><span class="t">📐 三點反例（申論可直接畫）</span>
+        邊：A→B 權重 <strong>2</strong>；A→C 權重 <strong>5</strong>；<u>C→B 權重 <strong>−4</strong></u><br><br>
+        Dijkstra 先確定 B = 2 並<strong>永久標記</strong>；<br>
+        但實際最短路是 A→C→B = 5 + (−4) = <strong>1</strong>。
+      </div>
+      <u><strong>根本原因</strong>：Dijkstra 的貪心正確性建立在「路徑越長距離只會增加」，<strong>負權破壞了這個前提</strong>。</u><br><br>
+      <strong>替代</strong>：<u>Bellman-Ford（O(VE)，且可<strong>偵測負環</strong>）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="279" data-ans="B"><span class="no">279</span><span class="tag">最短路徑</span>
+    <div class="stem">欲計算「每個里到最近之避難收容處所」的距離，最有效率之做法為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>對每個里各跑一次 Dijkstra</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>將所有避難所同時設為起點，跑一次多來源 Dijkstra</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>使用 Floyd-Warshall</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>使用最小生成樹</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>反向思考</strong>：建一個虛擬起點連向所有避難所（權重 0），跑<strong>一次</strong> Dijkstra 即可。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>做法</th><th>複雜度</th></tr>
+        <tr><td>每個里各跑一次</td><td><u>O(V(V+E) log V)</u></td></tr>
+        <tr><td><strong>多來源 Dijkstra</strong></td><td><u><strong>O((V+E) log V)</strong></u></td></tr>
+      </table></div>
+      <strong>地方加分角度</strong>：<u>應以<strong>路網距離</strong>而非直線距離；且須考量<strong>收容量上限</strong>——<br>加上上限就從最短路徑升級為<strong>最小成本流</strong>問題。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="280" data-ans="B"><span class="no">280</span><span class="tag">圖論</span>
+    <div class="stem">道路巡查要求「每條道路都走過一次且不重複」，此問題與「拜訪每個里辦公處各一次」在複雜度上之差異為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩者皆為 NP-完全</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>前者可多項式時間判定，後者為 NP-完全</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>兩者皆可多項式時間求解</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>前者為 NP-完全，後者可多項式時間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>問題</th><th>走過的對象</th><th>複雜度</th></tr>
+        <tr><td><strong>尤拉路徑</strong></td><td><u>每條「邊」一次</u></td><td><strong>可多項式時間判定</strong></td></tr>
+        <tr><td><strong>漢米爾頓路徑</strong></td><td>每個「點」一次</td><td><u><strong>NP-完全</strong></u></td></tr>
+      </table></div>
+      <strong>尤拉判定</strong>：<u>無向連通圖中，奇數度頂點數為 <strong>0</strong> → 有尤拉迴路；為 <strong>2</strong> → 有尤拉路徑；其他 → 不存在。</u><br><br>
+      <u>實務上是<strong>中國郵差問題</strong>：不存在尤拉迴路時，允許重複走部分路段但求總重複里程最小。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="281" data-ans="B"><span class="no">281</span><span class="tag">網路流</span>
+    <div class="stem">依最大流最小割定理，若欲提升系統之最大處理量，應優先做何事？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>平均擴充所有環節</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>找出並擴充瓶頸環節（最小割）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>擴充容量最大的環節</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>增加節點數量</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>定理</strong>：從來源到匯點的最大流量，等於所有割中容量最小者。</u><br><br>
+      <strong>直覺</strong>：流量最終一定要穿過每一個切面，<u><strong>最窄的那個切面就是瓶頸</strong></u>。<br><br>
+      <div class="hl"><strong>💡 公務意義</strong>：<u>問「這個系統最多能同時服務多少人」時，答案是<strong>找出瓶頸環節</strong>——<strong>擴充非瓶頸環節完全沒有用</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="282" data-ans="B"><span class="no">282</span><span class="tag">網路流</span>
+    <div class="stem">將「稽查人員與待查場所之配對」建模為最大流問題時，正確的建模方式為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>直接求最短路徑</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>加超級來源連向所有人員、人員連向可負責之場所、場所連向超級匯點，容量皆設為 1</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>建最小生成樹</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>做拓樸排序</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>二分圖最大匹配可轉化為最大流問題，這是申論必背的<strong>建模技巧</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>公務情境</th><th>左側</th><th>右側</th></tr>
+        <tr><td>稽查排班</td><td>稽查員</td><td>待查場所（依證照可負責者連邊）</td></tr>
+        <tr><td>公宅配租</td><td>申請戶</td><td>房型</td></tr>
+        <tr><td><strong>避難收容分配</strong></td><td>受災戶</td><td><u>收容處所（<strong>容量改為收容上限</strong>）</u></td></tr>
+      </table></div>
+      <strong>公務加分</strong>：<u>純最佳化總距離可能讓<strong>某一戶被分到極遠處</strong>——<br>應加入<strong>個別距離上限</strong>之公平性約束，並保留人工調整。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="283" data-ans="B"><span class="no">283</span><span class="tag">快取局部性</span>
+    <div class="stem">同為 O(n) 的循序走訪，陣列比鏈結串列快十倍以上，主要原因為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>陣列的演算法較好</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>陣列元素連續存放，具空間局部性，一次快取線可載入多個元素</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>鏈結串列需要排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>陣列容量較大</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>CPU 以<strong>快取線</strong>（通常 64 位元組）為單位整批讀取記憶體。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>陣列</th><th>鏈結串列</th></tr>
+        <tr><td>記憶體位置</td><td><strong>連續</strong></td><td><u>散落各處</u></td></tr>
+        <tr><td>一次快取線</td><td><u>拿到十幾個元素</u></td><td><u><strong>每個節點都是一次未命中</strong></u></td></tr>
+      </table></div>
+      <strong>必背數量級</strong>：<u>主記憶體約比 L1 慢 <strong>100 倍</strong>；硬碟約比記憶體慢 <strong>10⁵</strong> 倍。<br>
+      這正是 <strong>B+ 樹「寧可多做記憶體比較，也要少做一次磁碟存取」</strong>的設計理由。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="284" data-ans="B"><span class="no">284</span><span class="tag">外部排序</span>
+    <div class="stem">須排序 50 GB 資料但記憶體僅 8 GB，標準做法為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>增加記憶體</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>分段排序產生已排序區段，再以最小堆積做多路合併</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>使用快速排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>改用雜湊表</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 兩階段</span>
+        <strong>①產生區段</strong>：<u>每次讀入記憶體裝得下的量，排序後寫回磁碟</u><br>
+        <strong>②多路合併</strong>：<u>同時開啟各區段，用<strong>最小堆積</strong>反覆取出最小值寫出</u><br><br>
+        總 I/O 約 <strong>2 遍</strong>資料量。
+      </div>
+      <u><strong>k 不是越大越好</strong>：k 越大合併輪數越少，但每路分到的緩衝區越小、隨機 I/O 越多——實務取折衷值。</u><br><br>
+      <strong>公務建議</strong>：<u>這類需求應<strong>優先交給資料庫</strong>，其排序與外部暫存已高度最佳化。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="285" data-ans="B"><span class="no">285</span><span class="tag">布隆過濾器</span>
+    <div class="stem">關於布隆過濾器，下列敘述何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>可能偽陰性但不會偽陽性</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>可能偽陽性但絕不會偽陰性</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>兩者都可能</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者都不可能</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>回答「不存在」→ 100% 確定不存在；回答「可能存在」→ 須再查一次真實資料確認。</strong></u><br><br>
+      <strong>誤判率</strong>：p ≈ (1 − e<sup>−kn/m</sup>)<sup>k</sup>；最佳 k = <strong>0.693 × m/n</strong>。<br>
+      <u>1% 誤判率約需每元素 <strong>10 bits</strong> → 1000 萬筆只要約 <strong>12 MB</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 公務使用的鐵則</span>
+      <u><strong>只能用來「排除」與「初篩」，不可作為認定依據</strong>——<br>任何「可能存在」的結果都必須回查權威資料源，否則就是用機率決定民眾權益。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="286" data-ans="B"><span class="no">286</span><span class="tag">併發控制</span>
+    <div class="stem">多執行緒環境下 <code>count = count + 1</code> 可能導致更新遺失，主因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>記憶體不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>該敘述實為「讀取、加一、寫回」三個動作，非原子操作</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>編譯器錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>變數型別錯誤</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>兩個執行緒可能同時讀到 5，各自算成 6 寫回 → <strong>結果是 6 而不是 7</strong>。</u><br><br>
+      <strong>最危險之處</strong>：<u><strong>不會有任何錯誤訊息</strong>，丟失的那一次更新永遠找不回來。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>解法</th><th>特性</th></tr>
+        <tr><td>加鎖</td><td>簡單，但可能死結、成為瓶頸</td></tr>
+        <tr><td>無鎖（CAS）</td><td><u>高吞吐，但有 <strong>ABA 問題</strong></u></td></tr>
+        <tr><td><strong>不可變資料</strong></td><td><u><strong>天然執行緒安全</strong></u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="287" data-ans="B"><span class="no">287</span><span class="tag">併發控制</span>
+    <div class="stem">公文編輯可能長達數十分鐘，為避免兩人同時修改造成覆蓋，最適當之機制為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>悲觀鎖，開啟即鎖定</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>樂觀鎖，存檔時比對版本號</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>提高交易隔離等級至可序列化</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>禁止兩人同時開啟</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>悲觀鎖會把資料鎖住數十分鐘，其他人全部卡住；且承辦可能中途去開會。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>悲觀鎖</th><th>樂觀鎖</th></tr>
+        <tr><td>假設</td><td>一定會衝突</td><td><u>很少衝突</u></td></tr>
+        <tr><td>適合</td><td>號碼牌配號、餘額扣減</td><td><u><strong>公文會辦、案件編修</strong></u></td></tr>
+      </table></div>
+      <u><strong>(C) 是錯的</strong>：提高隔離等級<strong>不能解決遺失更新</strong>——那是應用層的問題。</u><br><br>
+      <strong>介面設計</strong>：<u>應顯示「本文件已被 OOO 於 X 時修改」並呈現差異，而非只跳錯誤。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="288" data-ans="B"><span class="no">288</span><span class="tag">索引</span>
+    <div class="stem">某查詢的選擇率為 40%（符合條件的列佔全表四成），使用索引之效果為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>一定比全表掃描快</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>可能比全表掃描慢，因大量回表產生隨機 I/O</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>與全表掃描完全相同</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>索引在任何情況下都不該建</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 判準</span>
+        <u>選擇率 <strong>&lt; 5%</strong> → 索引有效｜選擇率 <strong>&gt; 20%</strong> → 全表掃描可能更快</u>
+      </div>
+      <strong>原因</strong>：<u>透過索引找到每一列後還要<strong>回表</strong>（隨機 I/O）；要回表數十萬次時，還不如把整張表<strong>循序讀一遍</strong>。</u><br><br>
+      <div class="hl"><strong>💡 重要補充</strong>：<u><strong>選擇率要看「這個查詢」，不是只看「這個欄位」。</strong><br>
+      「狀態」欄位只有 5 種值，但若查的是只佔 0.5% 的「待補件」，索引仍然有效。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="289" data-ans="B"><span class="no">289</span><span class="tag">索引</span>
+    <div class="stem">若查詢所需的所有欄位都包含在索引中，資料庫可省去何種動作？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>排序</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>回表讀取資料列</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>建立連線</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>交易提交</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong>（稱為<strong>覆蓋索引</strong>）<br>
+      例：<code>SELECT 案號, 收件日 FROM 案件 WHERE 區碼 = ? AND 收件日 &gt;= ?</code><br>
+      <u>建索引 <strong>(區碼, 收件日, 案號)</strong> → 三個欄位都在索引中，<strong>零次回表</strong>。</u><br><br>
+      <strong>代價</strong>：<u>索引欄位變多會使索引變大、寫入更慢</u>——不能把所有欄位都放進索引。<br><br>
+      <strong>索引的整體代價</strong>：<u>空間、<strong>每次寫入都要維護所有相關索引</strong>、統計資訊維護、高併發時的鎖競爭。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="290" data-ans="B"><span class="no">290</span><span class="tag">動態規劃</span>
+    <div class="stem">動態規劃適用的兩個必要性質為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>可排序與可比較</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>最佳子結構與重疊子問題</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>連通與無環</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>遞迴與迭代</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>只有</th><th>該用</th></tr>
+        <tr><td>最佳子結構，無重疊</td><td><u>分治法（如合併排序）</u></td></tr>
+        <tr><td>重疊，無最佳子結構</td><td><u><strong>DP 會算錯</strong></u></td></tr>
+        <tr><td>兩者皆有</td><td><strong>動態規劃</strong></td></tr>
+        <tr><td>兩者 ＋ <u>貪心選擇性質</u></td><td>貪心法（更快）</td></tr>
+      </table></div>
+      <u><strong>貪心選擇性質</strong>：每步的局部最佳不會妨礙全局最佳——這正是 0/1 背包<strong>不能</strong>用貪心的原因。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="291" data-ans="A"><span class="no">291</span><span class="tag">動態規劃</span>
+    <div class="stem">補助方案預算 10 萬，計畫 A 花 6 益 7、B 花 5 益 5、C 花 5 益 5（單位萬，不可分割）。採貪心法（按效益／費用比排序）與最佳解之總效益分別為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>貪心 7、最佳 10</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>貪心 10、最佳 10</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>貪心 7、最佳 7</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>貪心 12、最佳 12</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      <div class="frame"><span class="t">📐 逐步計算</span>
+        效益／費用比：A = 7/6 ≈ <strong>1.17</strong>；B = 5/5 = 1；C = 5/5 = 1<br><br>
+        <strong>貪心</strong>：先選 A（花 6）→ 剩 4 萬，B、C 都要 5 萬，做不了 → 總效益 <strong>7</strong><br>
+        <strong>最佳</strong>：選 B + C（共 10 萬）→ 總效益 <strong>10</strong>
+      </div>
+      <u><strong>這個反例可以直接寫在申論上</strong>，證明 0/1 背包不能用貪心。</u><br><br>
+      <strong>公務加分</strong>：<u>實務上受益人數不是唯一目標，還須考量<strong>弱勢優先、地區均衡、法定義務</strong>——<br>應以多目標決策處理，權重提請權責會議核定。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="292" data-ans="B"><span class="no">292</span><span class="tag">排序</span>
+    <div class="stem">下列排序演算法中，何者最壞情況為 O(n log n) 且為穩定排序？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>快速排序</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>合併排序</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>堆積排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>選擇排序</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 合併排序</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>演算法</th><th>最壞</th><th>穩定</th><th>額外空間</th></tr>
+        <tr><td><strong>合併</strong></td><td><u><strong>n log n</strong></u></td><td><u><strong>是</strong></u></td><td>O(n)</td></tr>
+        <tr><td>堆積</td><td>n log n</td><td><u>否</u></td><td>O(1)</td></tr>
+        <tr><td>快速</td><td><u>n²</u></td><td>否</td><td>O(log n)</td></tr>
+        <tr><td>選擇</td><td>n²</td><td>否</td><td>O(1)</td></tr>
+      </table></div>
+      <u><strong>不穩定的四個</strong>：<strong>快、堆、選、希</strong>。</u><br><br>
+      <strong>為什麼穩定性重要</strong>：<u>先依姓名排、再依部門排，若第二次排序不穩定，<strong>同部門內的姓名順序就亂了</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="293" data-ans="C"><span class="no">293</span><span class="tag">複雜度</span>
+    <div class="stem">下列程式片段之時間複雜度為？<br><code>for(i=0;i&lt;n;i++) for(j=i;j&lt;n;j++) c++;</code></div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>O(n)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>O(n log n)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>O(n²)</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>O(2ⁿ)</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) O(n²)</strong><br>
+      執行次數 = n + (n−1) + … + 1 = <strong>n(n+1)/2</strong> ≈ n²/2 → O(n²)<br><br>
+      <u><strong>大 O 忽略常數係數</strong>：內層從 i 開始只讓次數少一半，<strong>不改變複雜度等級</strong>。</u><br><br>
+      <strong>對照</strong>：<u>若內層改為 <code>for(j=1;j&lt;n;j*=2)</code>，則為 <strong>O(n log n)</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="294" data-ans="B"><span class="no">294</span><span class="tag">複雜度</span>
+    <div class="stem">程式對 N 個里各自掃過全部 M 筆案件以統計件數。最佳的改善方式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>增加記憶體</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>改為掃一次案件並以雜湊表依里別累加，降為 O(M)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>改用遞迴</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>改用鏈結串列</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>原本是 <strong>O(N × M)</strong>：300 個里 × 50 萬筆 = <strong>1.5 億次</strong>——這就是報表跑一小時的原因。</u><br><br>
+      改為掃一次並累加 → <strong>O(M)</strong> = 50 萬次。<br><br>
+      <div class="hl"><strong>💡 實務原則</strong>：<u><strong>「能在資料庫算的，不要撈到程式裡算。」</strong><br>
+      直接用 <code>GROUP BY 里別</code> 並建索引，是更好的解法。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="295" data-ans="B"><span class="no">295</span><span class="tag">雜湊</span>
+    <div class="stem">關於雜湊表的碰撞處理，「鏈結法」相較「開放定址法」之特點為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>負載因子必須小於 1</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>負載因子可大於 1，但需額外指標空間且快取不友善</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>不需要雜湊函數</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>不會發生碰撞</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>鏈結法</th><th>開放定址法</th></tr>
+        <tr><td>碰撞處理</td><td>掛成串列</td><td>往後找空位</td></tr>
+        <tr><td>負載因子</td><td><u>可 &gt; 1</u></td><td><strong>必須 &lt; 1</strong></td></tr>
+        <tr><td>缺點</td><td>指標空間、快取不友善</td><td><u><strong>主要聚集；刪除需標記墓碑</strong></u></td></tr>
+      </table></div>
+      <u><strong>線性探測</strong>易產生主要聚集；改用<strong>二次探測</strong>或<strong>雙重雜湊</strong>可緩解。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="296" data-ans="B"><span class="no">296</span><span class="tag">雜湊</span>
+    <div class="stem">以雜湊值儲存身分證字號作為去識別化手段，其主要風險為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>雜湊速度太慢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>身分證字號組合有限，未加鹽時可用彩虹表反推</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>雜湊值太長</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>無法比對是否相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>雜湊不等於去識別化。</strong>身分證字號的可能組合有限（約數千萬），<br>攻擊者可預先算出所有雜湊值建成對照表。</u><br><br>
+      <strong>正確做法</strong>：<br>
+      <strong>①</strong> <u>加<strong>鹽</strong>（每人不同或系統統一的秘密鹽值），且<strong>鹽值須妥善保管</strong></u><br>
+      <strong>②</strong> 或改用<strong>不可逆的代碼對應表</strong>（另存於權限更嚴的位置）<br><br>
+      <u><strong>法律提醒</strong>：可還原者屬<strong>假名化</strong>而非去識別化，<strong>仍是個資</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="297" data-ans="B"><span class="no">297</span><span class="tag">資料結構選型</span>
+    <div class="stem">公文系統需支援「依公文字號前綴查詢」，最適合之結構為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>雜湊表</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>字典樹（Trie）或 B+ 樹索引</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>堆疊</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>最大堆積</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>雜湊表不支援前綴與範圍查詢</strong>——雜湊把「府文字第 114 號」打散，相鄰字號存在完全不同的位置。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>需求</th><th>結構</th></tr>
+        <tr><td>精確查一筆</td><td>雜湊表 O(1)</td></tr>
+        <tr><td><strong>前綴查詢</strong></td><td><u>Trie；或 B+ 樹（前綴等同範圍查詢）</u></td></tr>
+        <tr><td>日期區間、分頁</td><td><strong>B+ 樹</strong></td></tr>
+        <tr><td>主旨關鍵字全文檢索</td><td><u>倒排索引</u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="298" data-ans="B"><span class="no">298</span><span class="tag">資料結構選型</span>
+    <div class="stem">1999 話務系統需依急迫程度派工，且須避免一般案件長期等待。最適當之設計為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>先進先出佇列</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>優先佇列並加入老化機制</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>堆疊</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>隨機分派</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>純優先佇列的問題是<strong>飢餓</strong>——低優先案件永遠排不到。</u><br><br>
+      <strong>老化（Aging）</strong>：<u>等待時間每增加 N 分鐘，優先權提升一級。</u><br>
+      實作以 <strong>Heap</strong>，插入與取出皆 O(log n)。<br><br>
+      <strong>公務加分</strong>：<u>老化參數（多久升一級）應<strong>依服務承諾回推設定</strong>（如「一般案件 3 日內處理」），<br>而非由工程師隨意決定。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="299" data-ans="B"><span class="no">299</span><span class="tag">資料結構選型</span>
+    <div class="stem">案件系統需保留每次狀態變更之歷程，最適當之資料設計為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>直接覆蓋狀態欄位</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>另設狀態歷程表，記錄變更時間、變更人與前後狀態，且僅可新增不可修改</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>以備註欄文字記錄</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>每日備份即可</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>行政案件必須能回答<strong>「這件事什麼時候、由誰、改成什麼」</strong>——覆蓋式設計永遠答不出來。</u><br><br>
+      <strong>設計要點</strong>：<u>案件主表保留「現行狀態」以利查詢效能，歷程表保留完整軌跡；<br>歷程表設計為<strong>僅可新增不可修改</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 覆蓋式設計的五個後果</span>
+      <u>①不知道原本是什麼 ②不知道何時改的 ③不知道誰改的 ④<strong>無法重算過去期間</strong> ⑤<strong>爭訟時無法自證合法</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="300" data-ans="B"><span class="no">300</span><span class="tag">系統設計</span>
+    <div class="stem">線上報名開放瞬間湧入大量請求，最有效之設計為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>增加資料庫連線數上限</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>前端排隊與限流，後端以佇列非同步處理並回傳受理編號</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>請民眾分批報名</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>延長開放時間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>核心觀念：<strong>「削峰填谷」</strong>——不要讓所有人同時打到資料庫。</u><br><br>
+      <div class="frame"><span class="t">📐 四層設計</span>
+        <strong>①靜態分流</strong>：說明頁與表單放 CDN<br>
+        <strong>②排隊室</strong>：<u>顯示位置與預估時間，比直接顯示錯誤好得多</u><br>
+        <strong>③非同步</strong>：收到即入佇列並發受理編號<br>
+        <strong>④冪等</strong>：<u><strong>同一人重複送不會報名兩次</strong></u>
+      </div>
+      <strong>公務加分</strong>：<u>涉及名額競爭時，<strong>受理順序的認定方式應事先公告</strong>（以送出時間或抽籤）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="301" data-ans="B"><span class="no">301</span><span class="tag">系統設計</span>
+    <div class="stem">服務相依於外部機關 API，該 API 偶爾無回應導致本系統一併卡死。最適當之改善為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>增加重試次數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>設定逾時、斷路器與降級回應</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>改為同步等待到成功</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>移除該功能</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>沒設逾時的呼叫最危險</strong>——執行緒被占滿，整個系統跟著死（連鎖故障）。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>機制</th><th>作用</th></tr>
+        <tr><td>逾時</td><td>不無限等待</td></tr>
+        <tr><td><strong>斷路器</strong></td><td><u>連續失敗即暫停呼叫</u></td></tr>
+        <tr><td>降級</td><td>改用快取值或顯示「暫時無法取得」</td></tr>
+        <tr><td>限次重試</td><td>搭配指數退避</td></tr>
+      </table></div>
+      <u><strong>(A) 單純增加重試會雪上加霜</strong>——對方正在掛，你打得更兇。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="302" data-ans="B"><span class="no">302</span><span class="tag">系統設計</span>
+    <div class="stem">場地借用系統可能出現同一時段被兩人借到，最根本之防範為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>提醒使用者不要同時操作</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>在資料庫層以唯一性約束確保場地與時段不重複</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加快網頁反應速度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>由承辦事後人工核對</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「先查有沒有人借過，再新增」擋不住併發</strong>——兩個請求可能同時查完、同時發現沒人借、同時寫入。</u><br><br>
+      <div class="frame"><span class="t">📐 必背原則</span>
+        <u><strong>「資料的完整性規則，要交給資料庫保證，不能只靠程式檢查。」</strong></u>
+      </div>
+      <strong>做法</strong>：<u>建立唯一性約束（場地＋時段）→ 以資料庫回傳的錯誤作為判斷依據 → 對使用者顯示「該時段剛被預約」。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="303" data-ans="C"><span class="no">303</span><span class="tag">樹</span>
+    <div class="stem">某二元樹有 30 個分支度為 2 的節點，則樹葉節點數為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>29</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>30</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>31</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>無法確定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 31</strong><br>
+      <div class="frame"><span class="t">📐 必背定理與推導</span>
+        <strong>n₀ = n₂ + 1</strong> → 30 + 1 = <strong>31</strong><br><br>
+        <u>推導：總邊數 = n − 1 = n₁ + 2n₂；又 n = n₀ + n₁ + n₂，兩式相減即得。</u>
+      </div>
+      <u>此定理<strong>與分支度為 1 的節點數無關</strong>，所以答案是確定的。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="304" data-ans="C"><span class="no">304</span><span class="tag">樹</span>
+    <div class="stem">AVL 樹在最壞情況下，n 個節點的高度上界約為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>O(n)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>O(√n)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>O(log n)</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>O(n log n)</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) O(log n)</strong><br>
+      <div class="frame"><span class="t">📐 推導思路</span>
+        <u>設 N(h) 為高度 h 的 AVL 樹<strong>最少</strong>節點數：<br>
+        <strong>N(h) = N(h−1) + N(h−2) + 1</strong>（左右子樹高度差至多 1）<br><br>
+        此遞迴與費氏數列同型，成長為指數 → <strong>h ≤ 約 1.44 log₂(n+2)</strong>。</u>
+      </div>
+      <u><strong>意義</strong>：AVL 的高度最多比完美平衡樹高約 <strong>44%</strong>，仍是 O(log n)。</u><br><br>
+      <strong>對照</strong>：<u>紅黑樹的高度上界為 <strong>2 log₂(n+1)</strong>，比 AVL 寬鬆——<br>因此紅黑樹<strong>查詢略慢但插入刪除的旋轉次數較少</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="305" data-ans="B"><span class="no">305</span><span class="tag">B+ 樹</span>
+    <div class="stem">資料庫索引偏好 B+ 樹而非二元搜尋樹，主要原因為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>B+ 樹的程式碼較短</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>B+ 樹節點可容納大量鍵值，使樹高極低，大幅減少磁碟存取次數</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>B+ 樹不需要排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>二元搜尋樹無法儲存數字</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>一個節點對應一個<strong>磁碟區塊</strong>（如 4KB），可放數百個鍵值 → 分支度數百 → <strong>樹高只有 3～4 層</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>二元搜尋樹</th><th>B+ 樹</th></tr>
+        <tr><td>分支度</td><td>2</td><td><u>數百</u></td></tr>
+        <tr><td>1000 萬筆的樹高</td><td>約 <u>23 層</u></td><td><strong>約 3～4 層</strong></td></tr>
+        <tr><td>磁碟存取</td><td>約 23 次</td><td><u><strong>約 3～4 次</strong></u></td></tr>
+      </table></div>
+      <u><strong>B+ 樹的另一優勢</strong>：資料全在葉節點且<strong>葉節點串成鏈</strong>——範圍查詢與分頁只要沿著鏈走。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="306" data-ans="A"><span class="no">306</span><span class="tag">攤還分析</span>
+    <div class="stem">動態陣列（容量不足時倍增）之插入操作，其攤還時間複雜度為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>O(1)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>O(log n)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>O(n)</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>O(n log n)</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A) 攤還 O(1)</strong><br>
+      <div class="frame"><span class="t">📐 推導</span>
+        <u>容量倍增，總複製次數 = 1 + 2 + 4 + … + n/2 ≈ <strong>n</strong><br>
+        n 次插入的總成本 ≈ n（插入）+ n（複製）= <strong>2n</strong><br>
+        平均每次 <strong>2</strong> → <strong>攤還 O(1)</strong></u>
+      </div>
+      <div class="warn"><span class="t">⚠️ 與「平均情況分析」的差別</span>
+      <u><strong>攤還分析不需要機率假設，且對最壞情況序列也成立</strong>；<br>
+      平均情況分析則假設輸入是隨機的。<strong>把攤還講成「平均」是觀念錯誤。</strong></u>
+      </div>
+      <u><strong>注意</strong>：單次插入<strong>最壞仍是 O(n)</strong>（剛好觸發擴充時）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="307" data-ans="B"><span class="no">307</span><span class="tag">排序下界</span>
+    <div class="stem">比較式排序的時間複雜度下界為 Ω(n log n)，其證明依據為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>實驗統計結果</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>決策樹模型：n! 種排列需要至少 log₂(n!) 次比較</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>記憶體限制</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>CPU 速度限制</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 推導</span>
+        <u>任何比較式排序可畫成<strong>決策樹</strong>，每次比較是一個分支。<br>
+        n 個元素有 <strong>n!</strong> 種可能排列 → 決策樹至少要有 n! 個葉節點。<br>
+        高度 h 的二元樹最多 2<sup>h</sup> 個葉 → <strong>2<sup>h</sup> ≥ n!</strong> → h ≥ log₂(n!)<br><br>
+        由 Stirling 近似：<strong>log₂(n!) = Θ(n log n)</strong></u>
+      </div>
+      <u><strong>因此計數排序、基數排序能突破此下界</strong>——因為它們<strong>不是比較式排序</strong>（利用了資料的數值特性）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="308" data-ans="B"><span class="no">308</span><span class="tag">非比較排序</span>
+    <div class="stem">對 200 萬筆介於 0～100 的整數排序，最有效率之方法與其限制為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>快速排序；無限制</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>計數排序，O(n+k)；但 k 遠大於 n 時記憶體會爆</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>氣泡排序；資料量小時較快</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>二分搜尋；需先排序</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>條件符合：<strong>資料量大（n = 200 萬）但範圍小（k = 101）</strong> → O(n + k)，優於任何比較排序。</u><br><br>
+      <strong>做法</strong>：開大小 101 的計數陣列，掃一次統計，再依序輸出。<br><br>
+      <div class="warn"><span class="t">⚠️ 適用限制</span>
+      <u>若範圍是 0～10 億，計數陣列要開 10 億格——<strong>記憶體爆掉</strong>。<br>
+      <strong>計數排序只在 k 遠小於 n 時才划算。</strong></u>
+      </div>
+      <u><strong>基數排序</strong>則以「逐位排序」避開此限制，但<strong>每一輪必須用穩定排序</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="309" data-ans="B"><span class="no">309</span><span class="tag">圖走訪</span>
+    <div class="stem">欲偵測公文簽核流程設定中是否存在「循環相依」，最適合之方法為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>廣度優先搜尋計算層數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>拓樸排序或深度優先搜尋找環</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>最小生成樹</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>二分搜尋</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>拓樸排序的前提是<strong>有向無環圖（DAG）</strong>；<strong>若排不出來就代表有環</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方法</th><th>做法</th></tr>
+        <tr><td><strong>Kahn 演算法</strong></td><td><u>反覆取出入度為 0 的節點；若還有節點未取出即有環</u></td></tr>
+        <tr><td><strong>DFS 找環</strong></td><td><u>走訪中遇到「正在遞迴堆疊上的節點」即為環</u></td></tr>
+      </table></div>
+      <strong>公務意義</strong>：<u>循環相依代表流程設計錯誤（A 等 B、B 等 A），<strong>案件會永遠卡住</strong>——<br>應在設定時即檢核，而非等到有案件卡住才發現。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="310" data-ans="B"><span class="no">310</span><span class="tag">圖論應用</span>
+    <div class="stem">工程專案的多項作業具先後順序，欲找出「哪些作業一延誤全案就延誤」，應計算？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>最小生成樹</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>DAG 上的最長路徑（關鍵路徑）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>最短路徑</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>尤拉迴路</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 關鍵路徑（CPM）</strong><br>
+      <u>在 DAG 上求<strong>最長路徑</strong>，即為工程的最短可能工期。</u><br><br>
+      <strong>關鍵路徑上的作業</strong>：<u><strong>浮時為零</strong>——一延誤，全案就延誤。</u><br><br>
+      <div class="hl"><strong>💡 專案管理的直接應用</strong>：<u>資源與監控應<strong>優先投在關鍵路徑上的作業</strong>；<br>
+      非關鍵路徑的作業有浮時，可稍微彈性。</u></div>
+      <u>複雜度 <strong>O(V+E)</strong>（在 DAG 上以拓樸序 DP 求解）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="311" data-ans="B"><span class="no">311</span><span class="tag">效能診斷</span>
+    <div class="stem">查詢畫面每一列都再查一次資料庫取得局處名稱，此問題稱為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>死結</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>N+1 查詢問題</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>記憶體洩漏</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>溢位</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>查 100 列（1 次）＋ 每列各查一次名稱（100 次）＝ <strong>101 次往返</strong>。</u><br><br>
+      <strong>診斷方法</strong>：<u>看資料庫慢查詢日誌，若<strong>同一句 SQL 只有參數不同、被執行數百次</strong>，就是 N+1。</u><br><br>
+      <strong>解法</strong>：<strong>①用 JOIN 一次取回 ②或把小型代碼表整份快取在程式內</strong>（資料量小、很少變動）。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="312" data-ans="B"><span class="no">312</span><span class="tag">效能診斷</span>
+    <div class="stem">跨多張大表的彙總報表需 20 分鐘，使用者僅需每日看一次。最務實之改善為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>要求使用者等待</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>每日離峰預先計算並存為彙總表，查詢時直接讀取</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>只增加索引</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>升級伺服器</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>核心觀念：<strong>「不需要即時的東西，就不要即時算。」</strong></u><br><br>
+      做法：<strong>物化檢視或彙總表</strong>，每日凌晨批次產生。<br><br>
+      <div class="warn"><span class="t">⚠️ 兩項必要配套</span>
+      <u><strong>①畫面明確標示「資料統計至 X 月 X 日」</strong><br>
+      <strong>②批次失敗要有告警</strong>——批次沒跑成功而畫面照樣顯示舊資料，比查詢慢更危險。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="313" data-ans="B"><span class="no">313</span><span class="tag">資料比對</span>
+    <div class="stem">比對兩份各約 50 萬筆的名冊找出重複者，最有效率之方法為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>雙層迴圈逐筆比對</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>將一份建成雜湊集合，再掃過另一份</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>人工核對</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>隨機抽樣</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>(A) 是 O(n×m) = <strong>2,500 億次</strong>；(B) 是 O(n+m) = <strong>100 萬次</strong>。差距約 25 萬倍。</u><br><br>
+      <strong>替代方案</strong>：<u>兩份都排序後用<strong>雙指標合併掃描</strong>，O(n log n)，記憶體較省（適合資料量更大時）。</u><br><br>
+      <div class="hl"><strong>💡 實務難點不在演算法</strong>：<u>難在<strong>「什麼叫同一個人」</strong>——<br>
+      姓名相同但身分證不同、地址寫法不一、罕用字轉碼差異。<br>
+      <strong>應以身分證字號為主鍵，無法確定者列冊人工判斷，不可自動合併。</strong></u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="314" data-ans="B"><span class="no">314</span><span class="tag">近似演算法</span>
+    <div class="stem">從大量陳情案件中找出「內容高度相似」者以合併分析，最適合之技術為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>精確字串比對</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>文本相似度計算（TF-IDF 加餘弦相似度或 MinHash）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>雜湊表精確比對</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>二分搜尋</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>精確比對只能找到「一字不差」的；陳情內容通常大同小異但不完全相同。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>方法</th><th>適用</th></tr>
+        <tr><td>TF-IDF ＋ 餘弦相似度</td><td>數量中等、需要可解釋</td></tr>
+        <tr><td><strong>MinHash／SimHash</strong></td><td><u>數量極大時的近似去重</u></td></tr>
+        <tr><td>語意向量</td><td>用字不同但意思相同</td></tr>
+      </table></div>
+      <div class="warn"><span class="t">⚠️ 公務紅線</span>
+      <u>相似案件可<strong>合併分析</strong>，但<strong>回覆仍應個別處理</strong>——<br>每位陳情人都有受個別答覆的權利，不能因技術方便而省略。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="315" data-ans="B"><span class="no">315</span><span class="tag">GIS 資料結構</span>
+    <div class="stem">欲快速查詢「某座標周圍 500 公尺內的所有設施」，最適合之索引結構為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>B+ 樹</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>R 樹或四元樹等空間索引</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>雜湊表</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>堆疊</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>一般 B+ 樹只能對單一維度排序</strong>——經度接近的點，緯度可能差很遠。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>結構</th><th>原理</th></tr>
+        <tr><td><strong>R 樹</strong></td><td><u>以最小外接矩形階層式包覆，範圍查詢時剪枝</u></td></tr>
+        <tr><td>四元樹</td><td>遞迴把平面切成四塊</td></tr>
+        <tr><td>Geohash</td><td><u>把二維座標編碼成一維字串，可用 B+ 樹做前綴查詢</u></td></tr>
+      </table></div>
+      <strong>地方應用</strong>：<u>最近的避難所、周圍的公共設施、責任區判定。<br>
+      <strong>務必注意座標系統一致</strong>（TWD97 與 WGS84 混用會整體偏移數百公尺）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="316" data-ans="B"><span class="no">316</span><span class="tag">串流處理</span>
+    <div class="stem">欲估算網站的「不重複造訪人數」但不願儲存所有訪客識別碼，最適合之技術為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>雜湊集合精確計數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>HyperLogLog 等基數估算演算法</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>排序後去重</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>布隆過濾器</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>HyperLogLog 可用<strong>幾 KB 的空間估算上億的不重複數量</strong>，誤差約 1～2%。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>需求</th><th>結構</th></tr>
+        <tr><td>精確計數</td><td>雜湊集合（<u>空間 O(n)</u>）</td></tr>
+        <tr><td><strong>近似基數</strong></td><td><u><strong>HyperLogLog</strong>（空間近乎常數）</u></td></tr>
+        <tr><td>存在性判斷</td><td>布隆過濾器</td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 個資上的額外好處</strong>：<u>基數估算<strong>不保存個別識別碼</strong>，<br>
+      相較於「存下所有訪客 ID 再去重」，更符合<strong>最小必要原則</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="317" data-ans="B"><span class="no">317</span><span class="tag">綜合判斷</span>
+    <div class="stem">設計系統資料結構時，下列何者應最先確認？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>使用哪種程式語言</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>查詢型態（等值／範圍／前綴）、資料量級、讀寫比與是否須保留歷史</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>畫面配色</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>伺服器廠牌</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 選型前必問的五件事</span>
+        <strong>①資料量級</strong>：千筆還是千萬筆<br>
+        <strong>②讀寫比</strong>：讀多寫少還是相反<br>
+        <strong>③查詢型態</strong>：<u>等值／範圍／前綴／全文</u><br>
+        <strong>④</strong> <u><strong>是否須保留歷史</strong>（公務系統的預設答案是「要」）</u><br>
+        <strong>⑤</strong> <u><strong>法規要求</strong>：保存年限、個資分級、稽核軌跡</u>
+      </div>
+      <u><strong>第四、五點是公務系統與商業系統最大的差別</strong>——<br>商業系統可以忘記過去，公務系統不行。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="318" data-ans="B"><span class="no">318</span><span class="tag">綜合判斷</span>
+    <div class="stem">關於演算法之最壞情況分析，在公務系統的意義為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>沒有實務意義</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>須據以設定資料量上限與逾時保護，避免對外服務被惡意輸入拖垮</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>只影響開發成本</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只在學術研究中使用</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>演算法複雜度攻擊</strong>：攻擊者送出精心構造的輸入，讓伺服器落入最壞情況而 CPU 耗盡。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>風險點</th><th>防護</th></tr>
+        <tr><td>快速排序的殺手輸入</td><td><u>隨機樞紐或 Introsort</u></td></tr>
+        <tr><td>雜湊碰撞攻擊</td><td><u>帶密鑰的雜湊函數</u></td></tr>
+        <tr><td>正規表示式的災難性回溯</td><td><u><strong>限制輸入長度、設定執行逾時</strong></u></td></tr>
+        <tr><td>無上限的查詢結果</td><td>強制分頁與筆數上限</td></tr>
+      </table></div>
+      <u><strong>申論加分句</strong>：「本演算法最壞為 O(n²)，故須設定資料量上限與逾時保護。」</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="319" data-ans="B"><span class="no">319</span><span class="tag">綜合判斷</span>
+    <div class="stem">下列關鍵字與對應方法之配對，何者錯誤？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>「連接所有節點且總成本最小」→ 最小生成樹</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>「走過每一條路」→ 漢米爾頓路徑</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>「先後順序、相依關係」→ 拓樸排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>「前 N 名」→ 大小 k 的堆積</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>「走過<strong>每一條路（邊）</strong>」是<strong>尤拉路徑</strong>；<br>
+      「拜訪<strong>每一個點</strong>各一次」才是漢米爾頓路徑。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>關鍵字</th><th>對應</th><th>複雜度</th></tr>
+        <tr><td>連接所有節點、總成本最小</td><td>最小生成樹</td><td>O(E log V)</td></tr>
+        <tr><td>兩點之間最短</td><td>Dijkstra</td><td>O((V+E) log V)</td></tr>
+        <tr><td><strong>走過每一條邊</strong></td><td><u><strong>尤拉路徑</strong></u></td><td>可多項式判定</td></tr>
+        <tr><td><strong>拜訪每一個點</strong></td><td><u>漢米爾頓／TSP</u></td><td><strong>NP-完全</strong></td></tr>
+        <tr><td>有限資源效益最大、不可分割</td><td>0/1 背包（DP）</td><td>NP-完全</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="320" data-ans="B"><span class="no">320</span><span class="tag">綜合判斷</span>
+    <div class="stem">申論題要求「設計某公務系統之資料結構」時，最能拉開分數的段落為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>列出所有已知的資料結構名稱</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>配套與風險段：最壞情形因應、稽核軌跡、法規遵循、監控指標</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>詳細的程式碼</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>系統畫面設計</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">🎯 資料結構申論的萬用四段</span>
+        <strong>【一】釐清需求與限制（約 15%）</strong><br>
+        <u>資料量級、讀寫比、查詢型態、<strong>是否須保留歷史</strong>、<strong>法規要求</strong></u><br><br>
+        <strong>【二】方案比較（約 35%）——一定要畫表</strong><br>
+        <u>時間、空間、最壞情形、適用情境</u><br><br>
+        <strong>【三】決策與理由（約 30%）</strong><br>
+        <u>「因為本案<strong>以範圍查詢為主</strong>且<strong>資料量達千萬級</strong>，故選 B+ 樹索引而非雜湊索引。」</u><br><br>
+        <strong>【四】配套與風險（約 20%）——最能拉開差距</strong><br>
+        <u>最壞情形因應、<strong>稽核軌跡</strong>、<strong>法規遵循</strong>、監控指標、退場機制</u>
+      </div>
+      <u><strong>一句話總結</strong>：這科考的不是「你會不會背 AVL 的旋轉」，而是<br>
+      <strong>「你能不能在真實公務情境下選出合適結構、說出理由、並看見它的法律後果」。</strong></u>
+    </div></details>
+  </div>
     <div class="q" data-qno="進階 1" data-ans="B">
       <div class="t">
         <span class="no">進階 1</span><span class="tag">進階擴充</span>
