@@ -46,6 +46,18 @@
       <li><a href="#d10">網路基礎：頻寬、延遲與 IP 計算</a></li>
       <li><a href="#d11">最容易被騙的十個陷阱</a></li>
       <li><a href="#d12">公務情境對應與答題策略</a></li>
+      <li><a href="#d13">浮點數：為什麼 0.1 + 0.2 不等於 0.3</a></li>
+      <li><a href="#d14">管線化與 CPU 效能：為什麼時脈不等於速度</a></li>
+      <li><a href="#d15">快取的三種對映方式與命中率計算</a></li>
+      <li><a href="#d16">虛擬記憶體：分頁表、TLB 與置換演算法</a></li>
+      <li><a href="#d17">行程同步：從競爭條件到號誌</a></li>
+      <li><a href="#d18">檔案系統：從索引節點到日誌式</a></li>
+      <li><a href="#d19">虛擬化與容器：兩者到底差在哪</a></li>
+      <li><a href="#d20">資料庫基礎的三個必考推導</a></li>
+      <li><a href="#d21">網路基礎的三個必算題型</a></li>
+      <li><a href="#d22">資安基礎：三個必懂的攻擊與防禦</a></li>
+      <li><a href="#d23">容量與效能的估算題型總整理</a></li>
+      <li><a href="#d24">計算機概要的滿分策略</a></li>
     </ol>
   </div>
 
@@ -634,6 +646,742 @@
       <strong>把這一頁的十個公式與十個陷阱練熟，計概就是穩定的高分科目。</strong>
     </div>
   </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="d13">
+    <h2>深化 13　浮點數：為什麼 0.1 + 0.2 不等於 0.3</h2>
+
+    <h3>13-1　IEEE 754 的組成</h3>
+    <div class="table-wrap"><table>
+      <tr><th>格式</th><th>符號</th><th>指數</th><th>尾數</th><th>總長</th></tr>
+      <tr><td><strong>單精度 float</strong></td><td>1</td><td><strong>8</strong></td><td><strong>23</strong></td><td>32 位元</td></tr>
+      <tr><td><strong>雙精度 double</strong></td><td>1</td><td><strong>11</strong></td><td><strong>52</strong></td><td>64 位元</td></tr>
+    </table></div>
+    <p><u><strong>必背</strong>：float 是 <strong>1+8+23</strong>，double 是 <strong>1+11+52</strong>。這是每年必考的送分題。</u></p>
+
+    <h3>13-2　誤差是怎麼來的</h3>
+    <div class="frame">
+      <span class="t">📐 十進位的 0.1 在二進位是無限循環</span>
+      <u>0.1₍₁₀₎ = 0.0001100110011…₍₂₎（<strong>0011 無限循環</strong>）<br><br>
+      就像十進位無法精確表示 1/3 = 0.333… 一樣，<br>
+      <strong>二進位無法精確表示 1/10</strong>——因為 10 的質因數含 5，而二進位只有 2。</u><br><br>
+      結論：<u><strong>只有分母是 2 的次方的分數（0.5、0.25、0.125…）才能被精確表示。</strong></u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>十進位</th><th>能否精確表示</th><th>原因</th></tr>
+      <tr><td>0.5</td><td><strong>可以</strong></td><td>= 1/2</td></tr>
+      <tr><td>0.25</td><td><strong>可以</strong></td><td>= 1/4</td></tr>
+      <tr><td>0.75</td><td><strong>可以</strong></td><td>= 1/2 + 1/4</td></tr>
+      <tr><td><u>0.1</u></td><td><u><strong>不可以</strong></u></td><td>分母含質因數 5</td></tr>
+      <tr><td><u>0.3</u></td><td><u><strong>不可以</strong></u></td><td>同上</td></tr>
+    </table></div>
+
+    <h3>13-3　三種誤差現象</h3>
+    <div class="table-wrap"><table>
+      <tr><th>現象</th><th>說明</th><th>例</th></tr>
+      <tr><td><strong>捨入誤差</strong></td><td>無法精確表示而四捨五入</td><td>0.1 + 0.2 ≠ 0.3</td></tr>
+      <tr><td><strong>誤差累積</strong></td><td><u>反覆運算使誤差放大</u></td><td>累加 0.1 一萬次</td></tr>
+      <tr><td><strong>大數吃小數</strong></td><td><u><strong>大數加極小數時，小數被完全忽略</strong></u></td><td>1000000.0 + 0.0000001</td></tr>
+    </table></div>
+
+    <h3>13-4　公務系統的處理原則</h3>
+    <div class="warn">
+      <span class="t">⚠️ 金額絕不可用浮點數</span>
+      <u><strong>正確做法</strong>：<br>
+      <strong>①</strong> 以<strong>整數</strong>儲存（單位取「分」或「元」）<br>
+      <strong>②</strong> 或使用<strong>十進位型別</strong>（decimal／numeric）<br>
+      <strong>③</strong> <u>四捨五入的<strong>時機</strong>（先分項進位再加總，或先加總再進位）須依<strong>法規或作業要點</strong>認定</u><br><br>
+      <strong>為什麼一元很重要</strong>：公款的一元差額在會計上就是錯帳，累積到千筆就是可被審計糾正的事項。</u>
+    </div>
+    <p><u><strong>浮點數該用在哪</strong>：科學運算、統計、繪圖、機器學習——這些場合<strong>本來就是近似值</strong>，誤差可接受。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 13 必背結論</span>
+      <strong>①</strong> float = <strong>1+8+23</strong>；double = <strong>1+11+52</strong><br>
+      <strong>②</strong> <u>只有分母為 2 的次方的小數能精確表示</u><br>
+      <strong>③</strong> 三種誤差：<strong>捨入、累積、大數吃小數</strong><br>
+      <strong>④</strong> <u><strong>金額用整數或十進位型別，絕不用浮點數</strong></u>
+    </div>
+  </div>
+
+  <!-- ============ 14 ============ -->
+  <div class="card" id="d14">
+    <h2>深化 14　管線化與 CPU 效能：為什麼時脈不等於速度</h2>
+
+    <h3>14-1　管線化的基本概念</h3>
+    <div class="frame">
+      <span class="t">📐 五階段管線</span>
+      <u>取指令（IF）→ 解碼（ID）→ 執行（EX）→ 記憶體存取（MEM）→ 寫回（WB）</u><br><br>
+      <strong>不用管線</strong>：每個指令要 5 個週期，10 個指令 = 50 週期<br>
+      <strong>用管線</strong>：<u>第 1 個指令 5 週期，之後<strong>每個週期完成一個</strong> → 10 個指令 = 5 + 9 = <strong>14 週期</strong></u><br><br>
+      <strong>理論加速比</strong>：接近<strong>管線階段數</strong>（本例約 5 倍）
+    </div>
+    <p><u><strong>類比</strong>：洗衣服。不用管線是「洗完烘完摺完再洗下一批」；用管線是「第一批在烘的時候，第二批已經在洗」。</u></p>
+
+    <h3>14-2　三種危障（Hazard）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>危障</th><th>原因</th><th>解法</th></tr>
+      <tr><td><strong>結構危障</strong></td><td>兩個階段要用同一個硬體資源</td><td>增加硬體（如指令與資料快取分開）</td></tr>
+      <tr><td><strong>資料危障</strong></td><td><u>後一個指令需要前一個的結果，但還沒算完</u></td><td><strong>資料前送（Forwarding）</strong>、插入停頓</td></tr>
+      <tr><td><strong>控制危障</strong></td><td><u><strong>遇到分支，不知道下一個指令是哪個</strong></u></td><td><strong>分支預測</strong></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 分支預測錯誤的代價</strong><br>
+      <u>預測錯了要<strong>清空整條管線</strong>重來——現代 CPU 管線深達十幾階，一次預測錯誤可能損失 <strong>15～20 個週期</strong>。<br><br>
+      這就是為什麼「在迴圈裡放 if 判斷」有時比想像中慢，<br>
+      也是為什麼<strong>可預測的分支</strong>（如 99% 都走同一邊）幾乎沒有成本。</u>
+    </div>
+
+    <h3>14-3　時脈不等於效能</h3>
+    <div class="frame">
+      <span class="t">📐 效能公式（必背）</span>
+      <strong>執行時間 = 指令數 × CPI ÷ 時脈頻率</strong><br><br>
+      <u>三個因素都會影響效能：<br>
+      <strong>指令數</strong> ← 由編譯器與指令集決定<br>
+      <strong>CPI</strong>（每指令週期數）← 由微架構、管線、快取決定<br>
+      <strong>時脈</strong> ← 由製程與功耗決定</u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>CPU</th><th>時脈</th><th>CPI</th><th>相對效能</th></tr>
+      <tr><td>甲</td><td>3.0 GHz</td><td>2.0</td><td>1.5（= 3.0 ÷ 2.0）</td></tr>
+      <tr><td><strong>乙</strong></td><td><u>2.5 GHz</u></td><td><strong>1.0</strong></td><td><u><strong>2.5</strong>——時脈較低但較快</u></td></tr>
+    </table></div>
+    <p><u><strong>這就是「時脈迷思」</strong>：買電腦不能只看 GHz，還要看架構世代。</u></p>
+
+    <h3>14-4　阿姆達爾定律</h3>
+    <div class="frame">
+      <span class="t">📐 加速的極限</span>
+      <strong>加速比 = 1 ÷ [(1 − P) + P/N]</strong><br>
+      （P 為可平行化比例，N 為處理器數）<br><br>
+      <u>若程式有 <strong>90%</strong> 可平行化，即使用<strong>無限多</strong>處理器：<br>
+      加速比上限 = 1 ÷ 0.1 = <strong>10 倍</strong>——<strong>那 10% 的序列部分成為天花板</strong>。</u>
+    </div>
+    <p><u><strong>公務意義</strong>：「加伺服器就會變快」是有極限的。若瓶頸在<strong>單一資料庫</strong>或<strong>某段必須循序執行的邏輯</strong>，加再多機器也沒用——<strong>要先找出序列瓶頸</strong>。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 14 必背結論</span>
+      <strong>①</strong> 管線加速比接近<u>階段數</u>；三種危障：<strong>結構、資料、控制</strong><br>
+      <strong>②</strong> <strong>分支預測錯誤要清空管線</strong>，代價十幾個週期<br>
+      <strong>③</strong> <u><strong>執行時間 = 指令數 × CPI ÷ 時脈</strong></u>——時脈只是三分之一<br>
+      <strong>④</strong> <strong>阿姆達爾定律</strong>：序列部分是加速的天花板
+    </div>
+  </div>
+
+  <!-- ============ 15 ============ -->
+  <div class="card" id="d15">
+    <h2>深化 15　快取的三種對映方式與命中率計算</h2>
+
+    <h3>15-1　三種對映</h3>
+    <div class="table-wrap"><table>
+      <tr><th>方式</th><th>規則</th><th>優點</th><th>缺點</th></tr>
+      <tr><td><strong>直接對映</strong></td><td><u>每個記憶體區塊只能放在<strong>固定一格</strong></u></td><td>硬體簡單、查找快</td><td><u><strong>衝突未命中多</strong></u></td></tr>
+      <tr><td><strong>全關聯</strong></td><td>可放在<strong>任何一格</strong></td><td>衝突最少</td><td><u>要比對全部標籤，硬體昂貴</u></td></tr>
+      <tr><td><strong>N 路組關聯</strong></td><td><u>分成若干組，組內任意放</u></td><td><strong>折衷，實務主流</strong></td><td>—</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 記法</span>
+      <u><strong>直接對映 = 1 路組關聯</strong>（每組只有 1 格）<br>
+      <strong>全關聯 = N 路組關聯，N = 總格數</strong>（只有 1 組）<br><br>
+      實務上多為 <strong>4 路或 8 路</strong>。</u>
+    </div>
+
+    <h3>15-2　三種未命中（3C）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>類型</th><th>原因</th><th>改善方式</th></tr>
+      <tr><td><strong>強制未命中</strong><br>Compulsory</td><td><u>第一次存取，一定沒有</u></td><td>預取（Prefetch）、加大區塊</td></tr>
+      <tr><td><strong>容量未命中</strong><br>Capacity</td><td>資料總量超過快取容量</td><td><strong>加大快取</strong></td></tr>
+      <tr><td><strong>衝突未命中</strong><br>Conflict</td><td><u>對映到同一格而互相踢掉</u></td><td><strong>提高關聯度</strong></td></tr>
+    </table></div>
+
+    <h3>15-3　平均存取時間計算</h3>
+    <div class="frame">
+      <span class="t">📐 兩種題型的公式差異（考試陷阱）</span>
+      <strong>【型一】未命中時「先查快取再查主記憶體」</strong><br>
+      平均 = <u>快取時間 + (1 − 命中率) × 主記憶體時間</u><br><br>
+      <strong>【型二】未命中時「直接查主記憶體」</strong><br>
+      平均 = <u>命中率 × 快取時間 + (1 − 命中率) × 主記憶體時間</u><br><br>
+      <strong>看清楚題目怎麼描述，兩種算法都考過。</strong>
+    </div>
+    <p><strong>例</strong>：命中率 95%、快取 2 ns、主記憶體 80 ns<br>
+    型一：2 + 0.05 × 80 = <strong>6 ns</strong>　　型二：0.95 × 2 + 0.05 × 80 = <strong>5.9 ns</strong></p>
+
+    <h3>15-4　寫入策略</h3>
+    <div class="table-wrap"><table>
+      <tr><th>策略</th><th>做法</th><th>優缺點</th></tr>
+      <tr><td><strong>寫穿透</strong><br>Write-Through</td><td>同時寫快取與主記憶體</td><td><u>資料一致但慢</u></td></tr>
+      <tr><td><strong>寫回</strong><br>Write-Back</td><td><u>只寫快取，被換出時才寫回</u></td><td><strong>快，但斷電可能遺失</strong></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 同樣的取捨出現在很多地方</strong><br>
+      <u>資料庫的「立即寫入 vs 延遲寫入」、檔案系統的「同步 vs 非同步」、備份的「同步 vs 非同步複寫」——<br>
+      <strong>都是「安全」與「速度」的同一組取捨</strong>。理解一個就理解全部。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 15 必背結論</span>
+      <strong>①</strong> 三種對映：<u>直接（1 路）、全關聯（N 路）、組關聯（實務主流）</u><br>
+      <strong>②</strong> 3C 未命中：<strong>強制、容量、衝突</strong>，各有不同改善方式<br>
+      <strong>③</strong> 平均存取時間<u>有兩種公式，看題目描述決定</u><br>
+      <strong>④</strong> 寫穿透安全、<strong>寫回快</strong>——與資料庫、備份是同一組取捨
+    </div>
+  </div>
+
+  <!-- ============ 16 ============ -->
+  <div class="card" id="d16">
+    <h2>深化 16　虛擬記憶體：分頁表、TLB 與置換演算法</h2>
+
+    <h3>16-1　位址轉換的完整流程</h3>
+    <div class="frame">
+      <span class="t">📐 五步驟</span>
+      <strong>①</strong> CPU 產生<u>虛擬位址</u>（頁號 + 頁內偏移）<br>
+      <strong>②</strong> 先查 <strong>TLB</strong>（位址轉換的快取）<br>
+      <strong>③</strong> TLB 命中 → 直接得到頁框號<br>
+      <strong>④</strong> TLB 未命中 → <u>查<strong>分頁表</strong>（要存取記憶體一次）</u><br>
+      <strong>⑤</strong> 頁不在記憶體 → <u><strong>缺頁中斷</strong>，從磁碟載入（最慢）</u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>情況</th><th>成本</th><th>相對倍數</th></tr>
+      <tr><td>TLB 命中</td><td>約 1 ns</td><td>1</td></tr>
+      <tr><td>TLB 未命中、頁在記憶體</td><td><u>約 100 ns（多一次記憶體存取）</u></td><td>約 100</td></tr>
+      <tr><td><strong>缺頁（要讀磁碟）</strong></td><td><u><strong>約 10 ms</strong></u></td><td><strong>約 1000 萬</strong></td></tr>
+    </table></div>
+    <p><u><strong>結論</strong>：<strong>缺頁的代價高得離譜</strong>——這就是為什麼記憶體不足時系統會慢到不能用。</u></p>
+
+    <h3>16-2　置換演算法比較</h3>
+    <div class="table-wrap"><table>
+      <tr><th>演算法</th><th>規則</th><th>特性</th></tr>
+      <tr><td><strong>FIFO</strong></td><td>換掉最早進來的</td><td><u><strong>會有 Belady 異常</strong></u></td></tr>
+      <tr><td><strong>LRU</strong></td><td><u>換掉最久沒用的</u></td><td><strong>效果好但實作成本高</strong></td></tr>
+      <tr><td><strong>OPT</strong></td><td>換掉未來最久不用的</td><td><u>理論最佳，<strong>實務不可實現</strong>（需預知未來）</u></td></tr>
+      <tr><td>時鐘演算法</td><td>LRU 的近似</td><td><strong>實務常用</strong></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ Belady 異常</span>
+      <u><strong>增加頁框數，缺頁次數反而增加</strong>——只發生在 <strong>FIFO</strong>。<br>
+      LRU 與 OPT 屬「堆疊演算法」（頁框較多時的內容是較少時的超集合），<strong>不會有此現象</strong>。<br><br>
+      經典序列：<code>1,2,3,4,1,2,5,1,2,3,4,5</code> → 3 頁框 <strong>9 次</strong>缺頁；4 頁框 <strong>10 次</strong>缺頁。</u>
+    </div>
+
+    <h3>16-3　輾轉現象（Thrashing）</h3>
+    <div class="frame">
+      <span class="t">📐 惡性循環</span>
+      <u>記憶體不足 → 缺頁頻繁 → CPU 大部分時間在等磁碟 → <strong>作業系統以為「CPU 太閒」而載入更多行程</strong> → 缺頁更頻繁</u><br><br>
+      <strong>症狀</strong>：<u>硬碟燈狂閃，但 CPU 使用率很低，系統幾乎沒有反應。</u><br><br>
+      <strong>解法</strong>：<strong>①增加實體記憶體 ②減少同時執行的行程 ③工作集模型（依行程實際需要配置頁框）</strong>
+    </div>
+
+    <h3>16-4　分頁 vs 分段</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>分頁</th><th>分段</th></tr>
+      <tr><td>切法</td><td><strong>固定大小</strong></td><td>依邏輯單位，<strong>大小不一</strong></td></tr>
+      <tr><td>碎片</td><td><u><strong>內部碎片</strong></u>（最後一頁沒填滿）</td><td><u><strong>外部碎片</strong></u>（空隙塞不下）</td></tr>
+      <tr><td>使用者可見</td><td>不可見</td><td>可見（程式碼段、資料段）</td></tr>
+      <tr><td>保護</td><td>以頁為單位</td><td><u>以邏輯單位，較自然</u></td></tr>
+    </table></div>
+    <p><u><strong>記法</strong>：<strong>固定大小 → 內部碎片；大小不一 → 外部碎片。</strong>現代系統多採「分段式分頁」兼具兩者優點。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 16 必背結論</span>
+      <strong>①</strong> 轉換順序：<u>TLB → 分頁表 → <strong>缺頁中斷（貴 1000 萬倍）</strong></u><br>
+      <strong>②</strong> <strong>Belady 異常只發生在 FIFO</strong>；LRU、OPT 不會<br>
+      <strong>③</strong> <strong>輾轉現象</strong>：硬碟狂閃但 CPU 很閒<br>
+      <strong>④</strong> <u>分頁 → 內部碎片；分段 → 外部碎片</u>
+    </div>
+  </div>
+
+  <!-- ============ 17 ============ -->
+  <div class="card" id="d17">
+    <h2>深化 17　行程同步：從競爭條件到號誌</h2>
+
+    <h3>17-1　競爭條件的本質</h3>
+    <div class="frame">
+      <span class="t">📐 一行程式的三個動作</span>
+      <code>count = count + 1</code> 實際上是：<br>
+      <u><strong>①讀取 count 到暫存器 ②暫存器加一 ③寫回 count</strong></u><br><br>
+      兩個行程交錯執行時：<br>
+      A 讀到 5 → B 讀到 5 → A 算成 6 寫回 → B 算成 6 寫回 → <strong>結果是 6，不是 7</strong><br><br>
+      <u><strong>丟失的那一次更新永遠找不回來，而且不會有任何錯誤訊息。</strong></u>
+    </div>
+
+    <h3>17-2　臨界區間的三個必要條件</h3>
+    <div class="table-wrap"><table>
+      <tr><th>條件</th><th>意思</th><th>違反的後果</th></tr>
+      <tr><td><strong>互斥</strong></td><td>同時只有一個行程在臨界區間內</td><td><u>資料錯亂</u></td></tr>
+      <tr><td><strong>進步</strong></td><td>沒人在裡面時，想進去的能進去</td><td>資源閒置</td></tr>
+      <tr><td><strong>有限等待</strong></td><td><u>不會有人永遠等不到</u></td><td><strong>飢餓</strong></td></tr>
+    </table></div>
+
+    <h3>17-3　同步機制比較</h3>
+    <div class="table-wrap"><table>
+      <tr><th>機制</th><th>用途</th><th>特性</th></tr>
+      <tr><td><strong>互斥鎖</strong><br>Mutex</td><td>保護臨界區間</td><td><u>只有 0/1 兩種狀態；<strong>誰鎖誰解</strong></u></td></tr>
+      <tr><td><strong>計數號誌</strong><br>Semaphore</td><td><u>控制可用資源數量</u></td><td><strong>可以由別的行程釋放</strong></td></tr>
+      <tr><td>條件變數</td><td>等待某個條件成立</td><td>搭配互斥鎖使用</td></tr>
+      <tr><td>監視器</td><td>語言層級的封裝</td><td>較不易用錯</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 生產者消費者問題的三個號誌</strong><br>
+      <u><strong>empty</strong>（空格數，初值 = 緩衝區大小）、<strong>full</strong>（已用格數，初值 0）、<strong>mutex</strong>（互斥，初值 1）<br><br>
+      <strong>順序不能錯</strong>：生產者先 <code>wait(empty)</code> 再 <code>wait(mutex)</code>。<br>
+      <u>如果順序顛倒（先鎖 mutex 再等 empty），緩衝區滿時就會<strong>抱著鎖睡著 → 死結</strong>。</u></u>
+    </div>
+
+    <h3>17-4　死結的四條件與破解</h3>
+    <div class="table-wrap"><table>
+      <tr><th>條件</th><th>破解方式</th><th>實務可行性</th></tr>
+      <tr><td>互斥</td><td>資源改為可共享</td><td><u>多數資源做不到</u></td></tr>
+      <tr><td>持有並等待</td><td>一次取得全部資源</td><td>資源利用率低</td></tr>
+      <tr><td>不可搶奪</td><td>逾時後強制釋放並重試</td><td><strong>常用</strong></td></tr>
+      <tr><td><strong>循環等待</strong></td><td><u><strong>所有行程依相同順序取得資源</strong></u></td><td><strong>最實用</strong></td></tr>
+    </table></div>
+    <p><u><strong>實務上的第一選擇是「統一資源取得順序」</strong>——成本低、有效、不影響效能。<br>
+    資料庫的死結也是用同樣的思路解決：<strong>所有交易依相同順序鎖定資料表</strong>。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 17 必背結論</span>
+      <strong>①</strong> <code>count++</code> 是<strong>三個動作</strong>，會有競爭條件且<u>不會報錯</u><br>
+      <strong>②</strong> 臨界區間三條件：<u>互斥、進步、有限等待</u><br>
+      <strong>③</strong> 生產者消費者：<strong>先 wait(empty) 再 wait(mutex)</strong>，順序顛倒會死結<br>
+      <strong>④</strong> 破解死結最實用的是<u><strong>統一資源取得順序</strong></u>
+    </div>
+  </div>
+
+  <!-- ============ 18 ============ -->
+  <div class="card" id="d18">
+    <h2>深化 18　檔案系統：從索引節點到日誌式</h2>
+
+    <h3>18-1　三種檔案配置方式</h3>
+    <div class="table-wrap"><table>
+      <tr><th>方式</th><th>做法</th><th>優點</th><th>缺點</th></tr>
+      <tr><td><strong>連續配置</strong></td><td>檔案佔用連續磁區</td><td><u>循序讀取最快</u></td><td><strong>外部碎片；難以擴充</strong></td></tr>
+      <tr><td><strong>鏈結配置</strong></td><td>每塊指向下一塊</td><td>無外部碎片</td><td><u><strong>無法隨機存取；一個指標壞掉後面全失</strong></u></td></tr>
+      <tr><td><strong>索引配置</strong></td><td><u>用索引區塊記錄所有區塊位置</u></td><td><strong>支援隨機存取</strong></td><td>索引本身占空間</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 索引節點（inode）的多層設計</span>
+      <u>直接指標（12 個）→ 單層間接 → 雙層間接 → 三層間接<br><br>
+      <strong>設計哲學</strong>：<strong>小檔案只用直接指標（快），大檔案才走多層間接。</strong><br>
+      因為<u>絕大多數檔案都很小</u>，這樣設計對常見情況最佳化。</u>
+    </div>
+
+    <h3>18-2　日誌式檔案系統</h3>
+    <div class="hl">
+      <strong>問題</strong>：寫入檔案到一半突然斷電，檔案系統可能處於<u>不一致狀態</u>（例如已配置區塊但目錄還沒更新）。<br><br>
+      <u><strong>日誌式（Journaling）的做法</strong>：<br>
+      <strong>①</strong> 先把「我要做什麼」寫進日誌<br>
+      <strong>②</strong> 實際執行變更<br>
+      <strong>③</strong> 標記日誌完成<br><br>
+      <strong>重開機時</strong>：<u>檢查日誌，未完成的重做或撤銷 → <strong>不必掃描整個磁碟</strong>。</u></u>
+    </div>
+    <p><u><strong>同樣的思路</strong>：資料庫的交易紀錄檔（WAL）、應用程式的操作日誌——<strong>「先記錄意圖，再執行」是可靠性設計的通用手法</strong>。</u></p>
+
+    <h3>18-3　權限與存取控制</h3>
+    <div class="table-wrap"><table>
+      <tr><th>數字</th><th>權限</th><th>典型用途</th></tr>
+      <tr><td><strong>755</strong></td><td>rwxr-xr-x</td><td>程式檔、目錄</td></tr>
+      <tr><td><strong>644</strong></td><td>rw-r--r--</td><td>一般檔案</td></tr>
+      <tr><td><strong>600</strong></td><td>rw-------</td><td><u><strong>金鑰檔、設定檔（含密碼）</strong></u></td></tr>
+      <tr><td>777</td><td>rwxrwxrwx</td><td><u><strong>幾乎永遠是錯的</strong></u></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 777 的危險</span>
+      <u>設成 777 通常是「權限有問題所以全開」的偷懶做法。<br>
+      後果：<strong>任何登入者都能修改該檔案</strong>——若是網頁目錄，等於讓任何人可以植入程式。<br><br>
+      <strong>正確做法是找出真正需要的權限，而不是全開。</strong></u>
+    </div>
+
+    <h3>18-4　目錄權限的特殊之處</h3>
+    <div class="table-wrap"><table>
+      <tr><th>權限</th><th>對檔案</th><th>對目錄</th></tr>
+      <tr><td><strong>r</strong></td><td>可讀內容</td><td><u>可<strong>列出</strong>裡面有什麼</u></td></tr>
+      <tr><td><strong>w</strong></td><td>可修改內容</td><td><u><strong>可新增或刪除裡面的檔案</strong></u></td></tr>
+      <tr><td><strong>x</strong></td><td>可執行</td><td><u><strong>可進入該目錄（cd）</strong></u></td></tr>
+    </table></div>
+    <p><u><strong>重要陷阱</strong>：<strong>刪除檔案的權限，看的是「目錄」的 w 而不是「檔案」的權限。</strong><br>
+    所以一個唯讀檔案，若所在目錄可寫，還是會被刪掉。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 18 必背結論</span>
+      <strong>①</strong> 三種配置：<u>連續（快但碎片）、鏈結（不可隨機）、<strong>索引（主流）</strong></u><br>
+      <strong>②</strong> inode <strong>小檔用直接指標、大檔走多層間接</strong><br>
+      <strong>③</strong> 日誌式：<u><strong>先記錄意圖再執行</strong></u>——與資料庫 WAL 同一思路<br>
+      <strong>④</strong> <u><strong>刪檔看目錄的 w 權限，不是檔案的權限</strong></u>
+    </div>
+  </div>
+
+  <!-- ============ 19 ============ -->
+  <div class="card" id="d19">
+    <h2>深化 19　虛擬化與容器：兩者到底差在哪</h2>
+
+    <h3>19-1　架構差異</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>虛擬機（VM）</th><th>容器（Container）</th></tr>
+      <tr><td>虛擬化層級</td><td><u>硬體層（Hypervisor）</u></td><td><u><strong>作業系統層</strong></u></td></tr>
+      <tr><td>作業系統</td><td><strong>每台 VM 各有一套完整 OS</strong></td><td><u><strong>共用主機的核心</strong></u></td></tr>
+      <tr><td>啟動時間</td><td>數十秒至數分鐘</td><td><strong>秒級</strong></td></tr>
+      <tr><td>資源開銷</td><td>大（GB 級）</td><td><u>小（MB 級）</u></td></tr>
+      <tr><td><strong>隔離強度</strong></td><td><u><strong>強</strong></u></td><td><u><strong>較弱（共用核心）</strong></u></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 最關鍵的一句</span>
+      <u><strong>容器共用主機核心 → 隔離性比虛擬機弱。</strong><br><br>
+      這代表：<strong>核心層的漏洞可能讓容器逃逸到主機</strong>。<br>
+      因此<strong>不同安全等級的服務不應共用同一台主機的容器環境</strong>——這是申論的加分點。</u>
+    </div>
+
+    <h3>19-2　各自適合的場景</h3>
+    <div class="table-wrap"><table>
+      <tr><th>需求</th><th>選擇</th><th>理由</th></tr>
+      <tr><td><u>不同安全等級的系統</u></td><td><strong>虛擬機</strong></td><td>隔離性強</td></tr>
+      <tr><td>需要不同作業系統</td><td><strong>虛擬機</strong></td><td>容器共用核心，做不到</td></tr>
+      <tr><td><u>快速部署、環境一致</u></td><td><strong>容器</strong></td><td>「在我電腦上可以跑」的問題消失</td></tr>
+      <tr><td>需要快速擴縮</td><td><strong>容器</strong></td><td>秒級啟動</td></tr>
+      <tr><td>老舊系統遷移</td><td>虛擬機</td><td><u>可整台搬過去不必改</u></td></tr>
+    </table></div>
+
+    <h3>19-3　容器的資安要點</h3>
+    <div class="table-wrap"><table>
+      <tr><th>要點</th><th>說明</th></tr>
+      <tr><td><strong>映像檔來源</strong></td><td><u>只使用官方或機關自建的映像檔；<strong>來路不明的映像檔可能含惡意程式</strong></u></td></tr>
+      <tr><td><strong>不以最高權限執行</strong></td><td>容器內不要用 root 執行應用程式</td></tr>
+      <tr><td><strong>映像檔掃描</strong></td><td><u>建置流程中自動掃描已知漏洞</u></td></tr>
+      <tr><td>最小化映像檔</td><td>不裝用不到的工具，減少攻擊面</td></tr>
+      <tr><td><strong>不把機密寫進映像檔</strong></td><td><u><strong>密碼、金鑰要用外部注入</strong>，寫進映像檔等於公開</u></td></tr>
+    </table></div>
+
+    <h3>19-4　公務環境的務實建議</h3>
+    <div class="warn">
+      <span class="t">⚠️ 技術要與維運能量相稱</span>
+      <u>容器與容器編排平台功能強大，但需要：<strong>持續整合流程、映像檔倉庫、監控、日誌集中、人員技能</strong>。<br><br>
+      <strong>縣市政府資訊室 6 個人要維運一套完整的容器平台，通常撐不住。</strong><br><br>
+      <strong>務實路徑</strong>：<u>①先用虛擬機把環境標準化 ②單一系統試辦容器化 ③確認維運能量足夠再擴大<br>
+      或 ④直接使用<strong>託管服務</strong>，把平台維運交給服務商</u></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 19 必背結論</span>
+      <strong>①</strong> <u>VM 虛擬化<strong>硬體</strong>、容器虛擬化<strong>作業系統</strong>並<strong>共用核心</strong></u><br>
+      <strong>②</strong> <strong>容器隔離性較弱</strong> → 不同安全等級不共用主機<br>
+      <strong>③</strong> 容器資安：<u>映像檔來源、非 root 執行、掃描、<strong>機密不寫進映像檔</strong></u><br>
+      <strong>④</strong> 導入要<strong>與維運能量相稱</strong>，可先試辦或用託管服務
+    </div>
+  </div>
+
+  <!-- ============ 20 ============ -->
+  <div class="card" id="d20">
+    <h2>深化 20　資料庫基礎的三個必考推導</h2>
+
+    <h3>20-1　正規化的判定流程</h3>
+    <div class="frame">
+      <span class="t">📐 三步驟判定</span>
+      <strong>①看有沒有「一格塞多個值」</strong> → 有就違反 <strong>1NF</strong><br>
+      <strong>②主鍵是不是複合鍵？</strong><br>
+      　　<u>不是 → 一定符合 2NF（單一主鍵不可能有部分相依）</u><br>
+      　　是 → 檢查有沒有欄位<strong>只依賴主鍵的一部分</strong> → 有就違反 <strong>2NF</strong><br>
+      <strong>③有沒有「非鍵欄位決定非鍵欄位」</strong> → 有就違反 <strong>3NF</strong>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>關聯</th><th>違反</th><th>理由</th></tr>
+      <tr><td>選課(<u>學號, 課號</u>, 成績, <strong>學生姓名</strong>)</td><td><strong>2NF</strong></td><td>姓名只由學號決定（部分相依）</td></tr>
+      <tr><td>員工(<u>員工編號</u>, 姓名, <strong>部門代碼, 部門名稱</strong>)</td><td><strong>3NF</strong></td><td><u>部門代碼 → 部門名稱（遞移相依）</u></td></tr>
+      <tr><td>學生(<u>學號</u>, 姓名, <strong>電話（多支塞一格）</strong>)</td><td><strong>1NF</strong></td><td>欄位不可再分</td></tr>
+    </table></div>
+
+    <h3>20-2　SQL 執行順序（解釋一切的關鍵）</h3>
+    <div class="frame">
+      <span class="t">📐 必背順序</span>
+      <strong>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</strong>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>常見疑問</th><th>用執行順序解釋</th></tr>
+      <tr><td>為什麼 WHERE 不能用 COUNT？</td><td><u>WHERE 比 GROUP BY 早，此時還沒分組</u></td></tr>
+      <tr><td>為什麼 WHERE 不能用 SELECT 裡取的別名？</td><td><u>SELECT 比 WHERE 晚執行</u></td></tr>
+      <tr><td>為什麼 ORDER BY 可以用別名？</td><td><strong>ORDER BY 最後執行</strong></td></tr>
+      <tr><td>WHERE 與 HAVING 該用哪個？</td><td><u><strong>能寫 WHERE 就寫 WHERE</strong>（先過濾，分組資料量較小）</u></td></tr>
+    </table></div>
+
+    <h3>20-3　聯結的三個陷阱</h3>
+    <div class="table-wrap"><table>
+      <tr><th>陷阱</th><th>錯誤寫法的後果</th><th>正確做法</th></tr>
+      <tr><td><strong>要保留哪一邊</strong></td><td>用 INNER JOIN 會漏掉沒有對應的資料</td><td><u>要全部保留的放左邊，用 LEFT JOIN</u></td></tr>
+      <tr><td><strong>COUNT(*) 的陷阱</strong></td><td><u><strong>LEFT JOIN 補出的 NULL 列被算成 1</strong></u></td><td><strong>用 COUNT(右表主鍵)</strong></td></tr>
+      <tr><td><strong>NOT IN 遇到 NULL</strong></td><td><u><strong>子查詢含 NULL 時回傳空集合</strong></u></td><td><strong>改用 NOT EXISTS</strong></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 這三個陷阱在公務系統的實際後果</span>
+      <u><strong>①</strong> 統計時漏掉「件數為零」的單位 → 報表不完整<br>
+      <strong>②</strong> 零件數顯示成一件 → <strong>數字對不起來</strong><br>
+      <strong>③</strong> 清查「未申請者」時回傳空集合 → <strong>應通知而未通知，屬行政疏失</strong></u>
+    </div>
+
+    <h3>20-4　索引的基本判斷</h3>
+    <div class="table-wrap"><table>
+      <tr><th>情況</th><th>索引有沒有用</th></tr>
+      <tr><td><code>WHERE 案號 = ?</code></td><td><strong>有用</strong>（選擇率極低）</td></tr>
+      <tr><td><code>WHERE 收件日 BETWEEN ? AND ?</code></td><td><u>有用（B+ 樹支援範圍）</u></td></tr>
+      <tr><td><code>WHERE YEAR(收件日) = 2026</code></td><td><u><strong>沒用（欄位被函數包住）</strong></u></td></tr>
+      <tr><td><code>WHERE 性別 = '男'</code></td><td><u>幾乎沒用（選擇率約 50%）</u></td></tr>
+      <tr><td>前置萬用字元的模糊查詢</td><td><strong>沒用</strong></td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 20 必背結論</span>
+      <strong>①</strong> <u>2NF 只有<strong>複合主鍵</strong>才可能違反</u>；3NF 看非鍵決定非鍵<br>
+      <strong>②</strong> <strong>SQL 執行順序</strong>可以解釋所有「為什麼不能這樣寫」<br>
+      <strong>③</strong> 三個聯結陷阱：<u>保留哪邊、COUNT(*)、<strong>NOT IN 遇 NULL</strong></u><br>
+      <strong>④</strong> <strong>欄位被函數包住，索引就失效</strong>
+    </div>
+  </div>
+
+  <!-- ============ 21 ============ -->
+  <div class="card" id="d21">
+    <h2>深化 21　網路基礎的三個必算題型</h2>
+
+    <h3>21-1　子網路計算的標準流程</h3>
+    <div class="frame">
+      <span class="t">📐 四步驟（任何子網路題都用這個）</span>
+      <strong>①算區塊大小</strong>：<u>2<sup>(32 − 遮罩)</sup></u><br>
+      <strong>②找網段起點</strong>：<u>該 IP 的最後一段，落在區塊大小的哪個倍數區間</u><br>
+      <strong>③算廣播位址</strong>：<u>下一個網段起點 − 1</u><br>
+      <strong>④算可用主機</strong>：<u>區塊大小 − 2</u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>遮罩</th><th>區塊大小</th><th>可用主機</th><th>自 /24 可切</th></tr>
+      <tr><td>/24</td><td>256</td><td>254</td><td>1</td></tr>
+      <tr><td>/25</td><td>128</td><td>126</td><td>2</td></tr>
+      <tr><td>/26</td><td><strong>64</strong></td><td><strong>62</strong></td><td>4</td></tr>
+      <tr><td>/27</td><td><strong>32</strong></td><td><strong>30</strong></td><td>8</td></tr>
+      <tr><td>/28</td><td>16</td><td>14</td><td>16</td></tr>
+      <tr><td>/29</td><td>8</td><td>6</td><td>32</td></tr>
+      <tr><td>/30</td><td>4</td><td><u>2（點對點連線用）</u></td><td>64</td></tr>
+    </table></div>
+    <p><u><strong>反推題型</strong>：「需容納 500 台主機」→ 2⁹ − 2 = 510 ≥ 500 → 主機位元 9 → <strong>/23</strong>。</u></p>
+
+    <h3>21-2　傳輸時間計算</h3>
+    <div class="frame">
+      <span class="t">📐 兩個容易錯的地方</span>
+      <strong>①單位</strong>：<u>檔案用 <strong>MB</strong>（Byte），網速用 <strong>Mbps</strong>（bit）→ <strong>要乘 8</strong></u><br>
+      <strong>②實際 vs 理論</strong>：<u>實際速率通常只有標稱的 60～80%（協定開銷、共享）</u>
+    </div>
+    <p><strong>例</strong>：100 Mbps 傳 250 MB → 250 × 8 = 2000 Mb ÷ 100 = <strong>20 秒</strong>（理論值）</p>
+
+    <h3>21-3　埠號與協定對照（每年必考）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>埠</th><th>協定</th><th>安全性</th><th>埠</th><th>協定</th><th>安全性</th></tr>
+      <tr><td>20/21</td><td>FTP</td><td><u>明文</u></td><td>110</td><td>POP3</td><td>明文</td></tr>
+      <tr><td><strong>22</strong></td><td><strong>SSH</strong></td><td><strong>加密</strong></td><td>143</td><td>IMAP</td><td>明文</td></tr>
+      <tr><td><strong>23</strong></td><td><strong>Telnet</strong></td><td><u><strong>明文，應停用</strong></u></td><td>389</td><td>LDAP</td><td>明文</td></tr>
+      <tr><td>25</td><td>SMTP</td><td>明文</td><td><strong>443</strong></td><td><strong>HTTPS</strong></td><td><strong>加密</strong></td></tr>
+      <tr><td>53</td><td>DNS</td><td>明文</td><td>3389</td><td>RDP</td><td>加密</td></tr>
+      <tr><td><strong>80</strong></td><td><strong>HTTP</strong></td><td>明文</td><td>1433/3306</td><td>SQL Server／MySQL</td><td><u>不應對外開放</u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 公務系統的檢查點</strong><br>
+      <u>對外只應開放 <strong>80/443</strong>（且 80 應導向 443）。<br>
+      <strong>22、3389、1433、3306 絕不可對整個網際網路開放</strong>——這是弱點掃描一定會抓到的高風險項目。</u>
+    </div>
+
+    <h3>21-4　TCP 與 UDP 的選擇判準</h3>
+    <div class="table-wrap"><table>
+      <tr><th>需求特徵</th><th>選擇</th><th>公務例</th></tr>
+      <tr><td><u>一個位元都不能錯</u></td><td><strong>TCP</strong></td><td>公文傳輸、資料庫、網頁</td></tr>
+      <tr><td><u>延遲比完整更重要</u></td><td><strong>UDP</strong></td><td>視訊會議、監視器串流、語音</td></tr>
+      <tr><td>單次短查詢</td><td>UDP</td><td>DNS、DHCP</td></tr>
+      <tr><td>大量資料傳輸</td><td>TCP</td><td>檔案傳輸</td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 21 必背結論</span>
+      <strong>①</strong> 子網路四步：<u>區塊大小 → 網段起點 → 廣播位址 → 可用主機</u><br>
+      <strong>②</strong> <strong>MB 與 Mbps 差 8 倍</strong>——這是最常錯的一題<br>
+      <strong>③</strong> <strong>SSH 22、Telnet 23</strong>；<u>22/3389/1433/3306 不可對外</u><br>
+      <strong>④</strong> <u>完整性優先 → TCP；延遲優先 → UDP</u>
+    </div>
+  </div>
+
+  <!-- ============ 22 ============ -->
+  <div class="card" id="d22">
+    <h2>深化 22　資安基礎：三個必懂的攻擊與防禦</h2>
+
+    <h3>22-1　三大應用層攻擊的區辨</h3>
+    <div class="table-wrap"><table>
+      <tr><th>攻擊</th><th>受害者</th><th>原理</th><th>根本防禦</th></tr>
+      <tr><td><strong>SQL 注入</strong></td><td>資料庫</td><td><u>使用者輸入被當成 SQL 執行</u></td><td><strong>參數化查詢</strong></td></tr>
+      <tr><td><strong>XSS</strong></td><td><u><strong>其他使用者的瀏覽器</strong></u></td><td>惡意腳本被存下來並顯示給別人</td><td><strong>輸出時依情境編碼</strong></td></tr>
+      <tr><td><strong>CSRF</strong></td><td>已登入的使用者</td><td><u>冒用其身分送出請求（瀏覽器自動帶 Cookie）</u></td><td><strong>CSRF Token</strong></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 一句話區辨</span>
+      <u><strong>SQL 注入</strong>：騙資料庫執行指令<br>
+      <strong>XSS</strong>：騙<strong>別的使用者</strong>的瀏覽器執行腳本<br>
+      <strong>CSRF</strong>：騙<strong>伺服器</strong>以為是使用者本人的操作</u>
+    </div>
+
+    <h3>22-2　為什麼「過濾特殊字元」不是根本解</h3>
+    <div class="warn">
+      <span class="t">⚠️ 黑名單永遠有漏網之魚</span>
+      <u>過濾單引號 → 攻擊者用編碼繞過<br>
+      過濾 script 字樣 → 攻擊者用大小寫混合或其他事件屬性<br><br>
+      <strong>根本解是改變「資料被如何處理」，不是猜測「攻擊者會輸入什麼」。</strong><br>
+      參數化查詢讓資料永遠是資料；輸出編碼讓資料永遠是文字。</u>
+    </div>
+
+    <h3>22-3　權限控制失效（最常出現在公務系統）</h3>
+    <div class="hl">
+      <strong>典型情境</strong>：<u>案件查詢網址是 <code>/case?id=12345</code>，使用者把 id 改成 12346 就看到別人的案件。</u><br><br>
+      <strong>根本錯誤</strong>：<u>把「畫面上沒有連結」誤當成「使用者沒有權限」。</u><br><br>
+      <strong>正確作法</strong>：<u><strong>每一次資料存取，都在伺服器端檢查「這個登入者是否有權讀取這一筆」。</strong></u><br><br>
+      <strong>後果</strong>：<u>一旦有此弱點，等同<strong>全體申辦民眾的個資可被逐號下載</strong>——屬重大個資事故，須通知全體當事人。</u>
+    </div>
+
+    <h3>22-4　密碼與驗證的現行建議</h3>
+    <div class="table-wrap"><table>
+      <tr><th>項目</th><th>過時做法</th><th>現行建議</th></tr>
+      <tr><td>密碼長度與複雜度</td><td>8 碼含大小寫數字符號</td><td><u><strong>長度優先</strong>，鼓勵通行短句</u></td></tr>
+      <tr><td>定期更換</td><td><u>每 30/60 天強制更換</u></td><td><strong>不建議定期強制更換</strong>；<u>疑似外洩時才換</u></td></tr>
+      <tr><td>儲存</td><td>MD5 雜湊</td><td><u><strong>bcrypt／Argon2 ＋ 加鹽</strong></u></td></tr>
+      <tr><td>額外防護</td><td>密碼提示問題</td><td><strong>多因子驗證（MFA）</strong></td></tr>
+      <tr><td>檢查</td><td>—</td><td><u>比對已知外洩密碼清單</u></td></tr>
+    </table></div>
+    <p><u><strong>為什麼不再建議定期強制更換</strong>：實際結果是使用者改成 Pass01! → Pass02!，或寫在便條紙上——<strong>安全性反而下降</strong>。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 22 必背結論</span>
+      <strong>①</strong> <u>SQL 注入騙資料庫、XSS 騙<strong>別人的瀏覽器</strong>、CSRF 騙伺服器</u><br>
+      <strong>②</strong> <strong>黑名單過濾不是根本解</strong>——要改變資料被處理的方式<br>
+      <strong>③</strong> <u>畫面隱藏 ≠ 權限控制</u>；每次存取都要在伺服器端驗證<br>
+      <strong>④</strong> <strong>不再建議定期強制更換密碼</strong>；改為長密碼 ＋ MFA ＋ 外洩比對
+    </div>
+  </div>
+
+  <!-- ============ 23 ============ -->
+  <div class="card" id="d23">
+    <h2>深化 23　容量與效能的估算題型總整理</h2>
+
+    <h3>23-1　儲存容量估算</h3>
+    <div class="table-wrap"><table>
+      <tr><th>題型</th><th>公式</th><th>注意</th></tr>
+      <tr><td>備份空間</td><td><u>台數 × 每台每日量 × 保留天數</u></td><td><strong>增量備份與重複資料刪除可大幅下修</strong></td></tr>
+      <tr><td>監視影像</td><td><u>支數 × 每小時容量 × 24 × 保存天數</u></td><td><strong>保存期限須依規定，不是越久越好</strong></td></tr>
+      <tr><td>資料庫成長</td><td>每筆大小 × 年件數 × 年數</td><td><u>要加索引空間（約資料的 20～50%）</u></td></tr>
+      <tr><td>日誌</td><td>每日日誌量 × 保存天數</td><td>資安法有保存期限要求</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 估算後一定要做的兩件事</span>
+      <strong>①加餘裕</strong>：<u>實務抓 <strong>1.3～1.5 倍</strong></u><br>
+      <strong>②回推採購前置期</strong>：<u><strong>採購程序 3～6 個月</strong>，所以「還剩 9 個月會滿」就該開始編預算</u>
+    </div>
+
+    <h3>23-2　頻寬估算</h3>
+    <div class="table-wrap"><table>
+      <tr><th>應用</th><th>單人需求</th><th>特性</th></tr>
+      <tr><td>網頁作業、公文</td><td>約 0.5 Mbps</td><td><u>突發性，可共享</u></td></tr>
+      <tr><td>視訊會議</td><td><strong>2～4 Mbps</strong></td><td>雙向</td></tr>
+      <tr><td><strong>監視器 1080p</strong></td><td><strong>4～8 Mbps</strong></td><td><u><strong>24 小時持續占用</strong></u></td></tr>
+    </table></div>
+    <p><u><strong>監視器最容易被低估</strong>：16 支 × 6 Mbps ≈ 96 Mbps，<strong>一條 100M 線路就滿了</strong>。<br>
+    解法：<strong>影像存本地，調閱時才傳輸。</strong></u></p>
+
+    <h3>23-3　可用率與停機時間</h3>
+    <div class="table-wrap"><table>
+      <tr><th>可用率</th><th>每年停機</th><th>每月停機</th><th>典型適用</th></tr>
+      <tr><td>99%</td><td>約 3.65 天</td><td>約 7.2 小時</td><td>內部行政系統</td></tr>
+      <tr><td><strong>99.9%</strong></td><td><strong>約 8.8 小時</strong></td><td>約 43 分鐘</td><td>對外服務</td></tr>
+      <tr><td>99.99%</td><td>約 52 分鐘</td><td>約 4.3 分鐘</td><td><u>災害應變等關鍵系統</u></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 契約必須定義「服務時間」</span>
+      <u>若只算上班時間，系統<strong>週末掛掉不算違約</strong>。<br>
+      民眾線上申辦系統應以 <strong>24×7</strong> 計算。</u>
+    </div>
+
+    <h3>23-4　處理時間與吞吐量</h3>
+    <div class="frame">
+      <span class="t">📐 兩個常見題型</span>
+      <strong>批次處理時間</strong> = 筆數 × 每筆處理時間<br>
+      <u>例：50 萬筆 × 0.4 ms = 200,000 ms = <strong>200 秒 ≈ 3.3 分鐘</strong></u><br><br>
+      <strong>系統吞吐量</strong> = 併發數 ÷ 平均回應時間<br>
+      <u>例：50 個併發、平均 0.5 秒 → 每秒可處理 <strong>100 筆</strong></u>
+    </div>
+    <p><u><strong>做完計算一定要加一句實務判斷</strong>：「批次應安排於離峰時段，並設定執行失敗之告警——<strong>沒跑成功卻沒人知道，比跑得慢更危險</strong>。」</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 23 必背結論</span>
+      <strong>①</strong> 估算後要<u>加 1.3～1.5 倍餘裕</u>並<strong>回推採購前置期</strong><br>
+      <strong>②</strong> <strong>監視器頻寬最容易被低估</strong>——本地儲存是解法<br>
+      <strong>③</strong> <u>99.9% ≈ 每年 8.8 小時</u>；<strong>契約必須定義服務時間</strong><br>
+      <strong>④</strong> 批次要有<strong>離峰時段與失敗告警</strong>
+    </div>
+  </div>
+
+  <!-- ============ 24 ============ -->
+  <div class="card" id="d24">
+    <h2>深化 24　計算機概要的滿分策略</h2>
+
+    <h3>24-1　六大「練了就會」的計算題型</h3>
+    <div class="table-wrap"><table>
+      <tr><th>題型</th><th>核心公式</th><th>年約題數</th></tr>
+      <tr><td><strong>進位轉換</strong></td><td><u>位權相加；十六進位每 4 位元一組</u></td><td>3～5</td></tr>
+      <tr><td><strong>補數運算</strong></td><td><u>反轉 + 1；範圍 −2<sup>n−1</sup> ～ 2<sup>n−1</sup>−1</u></td><td>2～3</td></tr>
+      <tr><td><strong>邏輯閘與布林代數</strong></td><td>真值表；笛摩根「斷線變號」</td><td>3～4</td></tr>
+      <tr><td><strong>CPU 效能與快取</strong></td><td><u>指令數 × CPI ÷ 時脈；平均存取時間</u></td><td>2～3</td></tr>
+      <tr><td><strong>RAID 容量</strong></td><td><u>RAID 5 = (n−1)×S；RAID 6 = (n−2)×S</u></td><td>1～2</td></tr>
+      <tr><td><strong>子網路計算</strong></td><td>區塊大小 = 2<sup>(32−遮罩)</sup></td><td>2～3</td></tr>
+    </table></div>
+    <p><u><strong>合計約 15～20 題（30～40 分）</strong>，且全部是「練了就會、不會忘」的類型。<strong>把這六塊練到接近滿分，這科就穩了 70 分以上。</strong></u></p>
+
+    <h3>24-2　觀念區辨題的整理法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>常考的區辨組</th><th>一句話記法</th></tr>
+      <tr><td>PC vs IR</td><td><u>PC 存<strong>位址</strong>，IR 存<strong>指令</strong></u></td></tr>
+      <tr><td>組合 vs 循序邏輯</td><td><strong>會不會記憶過去的狀態</strong></td></tr>
+      <tr><td>分頁 vs 分段</td><td><u>固定大小→內部碎片；大小不一→外部碎片</u></td></tr>
+      <tr><td>行程 vs 執行緒</td><td><u>執行緒<strong>私有的只有堆疊與程式計數器</strong></u></td></tr>
+      <tr><td>穩定 vs 不穩定排序</td><td><strong>「快堆選希」不穩定</strong></td></tr>
+      <tr><td>編譯器 vs 直譯器</td><td>一次全翻 vs 逐行翻</td></tr>
+      <tr><td>對稱 vs 非對稱加密</td><td><u>同一把快 vs 公私鑰慢但解決金鑰交換</u></td></tr>
+      <tr><td>TCP vs UDP</td><td><u>完整性優先 vs 延遲優先</u></td></tr>
+    </table></div>
+
+    <h3>24-3　陷阱關鍵字清單</h3>
+    <div class="table-wrap"><table>
+      <tr><th>看到這些字要停一秒</th><th>要注意什麼</th></tr>
+      <tr><td>「<strong>錯誤</strong>」「<strong>不是</strong>」「<strong>不包括</strong>」</td><td><u>找的是<strong>相反</strong>的那一個——每年都有人看漏</u></td></tr>
+      <tr><td>「最<strong>緊</strong>的上界」</td><td>O(n³) 為真但不夠精確，答 O(n²)</td></tr>
+      <tr><td>「<strong>最壞</strong>情況」</td><td><u>快排是 O(n²)</u></td></tr>
+      <tr><td>「根為第 <strong>0</strong> 層」</td><td>公式改為 2<sup>h+1</sup> − 1</td></tr>
+      <tr><td>「MB」與「Mbps」</td><td><u><strong>差 8 倍</strong></u></td></tr>
+      <tr><td>「等待時間」vs「完成時間」</td><td><u>完成 = 等待 + 執行</u></td></tr>
+      <tr><td>「2 的次方」vs「10 的次方」</td><td>1 TB vs 1 TiB 差約 10%</td></tr>
+    </table></div>
+
+    <h3>24-4　考場作答策略</h3>
+    <div class="frame">
+      <span class="t">🎯 三輪作答法（不倒扣的最佳解）</span>
+      <strong>第一輪（前 60%時間）</strong>：<u>會的直接寫；猶豫的標「?」；完全不會的標「×」</u><br>
+      <strong>第二輪</strong>：回頭處理「?」，用<strong>刪去法</strong><br>
+      <strong>第三輪</strong>：處理「×」，<u>刪去明顯錯誤後再猜；真的沒頭緒就統一猜同一個選項</u><br>
+      <strong>最後 3 分鐘</strong>：<u><strong>逐格確認沒有任何空白，並檢查劃記有無跳行</strong></u><br><br>
+      <u><strong>刪去法能刪掉 2 個選項，命中率就從 25% 升到 50%</strong>——這比多背十個名詞有效。</u>
+    </div>
+
+    <h3>24-5　本科的一句話總結</h3>
+    <div class="frame">
+      <span class="t">🎯 計概是最容易拉分的一科</span>
+      <u><strong>因為它有標準答案、不倒扣、而且一半以上是「練了就會」的計算題。</strong><br><br>
+      在五科平均的計分方式下，<strong>這科多 10 分等於總平均多 2 分</strong>——<br>
+      而這 10 分，往往只是把六大計算題型多練三遍而已。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 24 必背結論</span>
+      <strong>①</strong> 六大計算題型約占 <u>30～40 分</u>，且穩定不會忘<br>
+      <strong>②</strong> 觀念區辨用<strong>一句話記法</strong>整理成表<br>
+      <strong>③</strong> 陷阱字：<u><strong>「錯誤／不是」、最緊、最壞、MB 與 Mbps</strong></u><br>
+      <strong>④</strong> <strong>三輪作答法</strong>，最後確認<u>一格都不能空</u>
+    </div>
+  </div>
+
 
   <div class="nav-btns">
     <a class="btn btn-prev" href="computer2.html">← 計算機概要講義（下）</a>
