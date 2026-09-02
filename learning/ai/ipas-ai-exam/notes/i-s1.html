@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級科目一講義：AI 技術應用與規劃 — iPAS AI 模擬測驗</title>
+<meta name="description" content="iPAS AI 應用規劃師中級科目一完整講義：問題框定、特徵管理、可重現性、部署策略、線上實驗、漂移監控、LLM 服務工程、系統可靠性、威脅建模與 AI 治理，以高中程度深入解說。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="notes.css">
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a class="logo" href="../index.html"><span class="logo-dot"></span>iPAS <em>AI</em> 講義</a>
+    <nav class="nav-links">
+      <a href="b-s1.html">初級一</a>
+      <a href="b-s2.html">初級二</a>
+      <a href="i-s1.html" class="active">中級一</a>
+      <a href="i-s2.html">中級二</a>
+      <a href="i-s3.html">中級三</a>
+      <a href="../index.html">← 回測驗</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell">
+
+<aside class="toc">
+  <h4>本篇目錄</h4>
+  <a href="#c1">1　問題框定與成功指標</a>
+  <a href="#c2">2　資料工程與特徵管理</a>
+  <a href="#c3">3　可重現性與實驗管理</a>
+  <a href="#c4">4　部署策略與上線流程</a>
+  <a href="#c5">5　線上實驗設計</a>
+  <a href="#c6">6　監控、漂移與再訓練</a>
+  <a href="#c7">7　LLM 服務工程</a>
+  <a href="#c8">8　RAG 與 Agent 工程化</a>
+  <a href="#c9">9　系統可靠性與容量</a>
+  <a href="#c10">10　資安與威脅建模</a>
+  <a href="#c11">11　AI 治理與法遵</a>
+  <a href="#c12">12　專案、組織與投資組合</a>
+  <a href="#c13">13　應用架構情境速查</a>
+  <a href="#c14">14　考前總複習表</a>
+</aside>
+
+<main>
+
+<div class="hero">
+  <div class="pill">📙 中級 · 科目一（必考）</div>
+  <h1>AI 技術應用與規劃<br>完整講義</h1>
+  <p class="sub">中級科目一考的是「<strong>把模型變成可靠的生產系統</strong>」。初級問「該用哪種模型」，中級問「上線後壞掉怎麼辦、怎麼證明它有效、怎麼不出事」。這份講義以工程實務與治理為主軸，數學部分仍維持高中程度。</p>
+</div>
+
+<!-- ══════════════ 1 ══════════════ -->
+<section class="ch" id="c1">
+<h2><span class="num">CH 1</span>問題框定與成功指標</h2>
+
+<h3>1-1　把業務問題翻譯成機器學習問題</h3>
+<p>業務單位說「希望用 AI 減少客戶流失」——這句話<strong>無法直接對應到任何可訓練的模型</strong>。必須回答五個問題：</p>
+<ol class="steps">
+  <li><strong>預測標的</strong>：流失的操作型定義是什麼（主動解約？連續三期未消費？），<strong>時間窗</strong>多長（未來 30 天？90 天？）。這直接決定標籤怎麼產生。</li>
+  <li><strong>預測時點與特徵截止</strong>：模型在什麼時間點做預測、<strong>當下實際能取得哪些特徵</strong>。這關係到時間點正確性與資料洩漏的防範。</li>
+  <li><strong>決策者與行動</strong>：結果給誰用、他能採取什麼行動、<strong>行動的產能上限</strong>是多少。這決定了模型要輸出「排序名單」還是「二元判斷」。</li>
+  <li><strong>成本與效益</strong>：挽留一位客戶的成本、留住的期望價值、誤判的代價。這決定<strong>決策閾值</strong>與應優先最佳化的指標。</li>
+  <li><strong>可行性</strong>：資料是否足夠、標籤延遲多久、是否有可比較的現行作法。</li>
+</ol>
+<p>釐清之後才會發現：這其實是一個「<strong>在固定行動產能下，對客戶依流失風險排序</strong>」的排序問題，而非單純的分類問題——因此該看的指標是<strong>名單前 N 名的精確率或提升度</strong>，而不是整體準確率。</p>
+
+<h3>1-2　離線指標好、線上成效卻沒改善</h3>
+<div class="box case">
+  <div class="bt">💼 AUC 0.86 但挽留專案毫無效果，為什麼？</div>
+  <p><strong>最根本的原因是「預測與決策的錯配」。</strong>流失預測回答的是「<em>誰會走</em>」，但挽留行動需要的是「<em>誰會因為我們的行動而改變決定</em>」——這兩者不同。高風險客戶中有一部分不論做什麼都會離開（<strong>流失型</strong>），也有一部分本來就不會走（<strong>必然型</strong>，行動白花錢）。</p>
+  <p>正確的建模方式是<strong>增益模型（Uplift Modeling）</strong>，直接估計<strong>處理效果</strong>，把資源投給「<strong>說服型</strong>」（發了才留、不發就走）的客群。訓練增益模型需要<strong>隨機對照實驗</strong>的資料。</p>
+  <p><strong>其他排查方向</strong>：名單有沒有真的被執行、執行率多少、聯繫時效是否在風險窗內；有沒有對照組可以歸因；以及對高風險客戶採取行動後會改變其實際流失率，使後續的標籤與訓練資料產生<strong>選擇偏誤</strong>。</p>
+</div>
+
+<h3>1-3　基準線（Baseline）不可省略</h3>
+<div class="keys">
+  <div class="k"><b>現行作法優先</b>：先量測目前實際在用的方法（人工經驗規則、上期數值沿用、熱門排行）在<strong>同一份評估集與同一組指標</strong>上的表現。</div>
+  <div class="k"><b>簡單模型基準</b>：再加一個容易實作的簡單模型（邏輯迴歸、單層決策樹、移動平均）。若複雜模型只比它好一點點，考量維運成本後未必值得。</div>
+  <div class="k"><b>商業門檻</b>：除了統計改善，還要換算成商業價值並與導入成本比較，訂出「<strong>至少要好多少才值得上線</strong>」的門檻。</div>
+  <div class="k"><b>診斷價值</b>：若複雜模型無法明顯勝過簡單基準，通常代表<strong>特徵資訊不足或問題定義有誤</strong>，應回頭檢視而非繼續加深模型。</div>
+</div>
+
+<h3>1-4　資料量需求怎麼估</h3>
+<p>不能憑經驗法則亂喊數字，應以<strong>學習曲線</strong>實測：以現有資料抽取不同比例（10%、25%、50%、100%）分別訓練，把驗證分數對訓練樣本數作圖。</p>
+<div class="fml">曲線仍<b>陡升</b> → 增加資料仍有明顯效益，可依斜率外推所需量體
+曲線已<b>平緩</b> → 瓶頸在特徵、標籤品質或模型架構，加資料幫助有限</div>
+<p>影響需求量的因素：類別數與平衡度（應以「<strong>最稀有類別的樣本數</strong>」為關鍵指標）、任務難度、是否可用預訓練與自監督（<strong>最有效的槓桿</strong>）、標籤品質（雜訊會使有效樣本數打折）、以及可容忍的效能水準。</p>
+
+<h3>1-5　標註品質：Kappa 與一致性</h3>
+<div class="box case">
+  <div class="bt">💼 三位標註者只有 68% 一致，怎麼辦？</div>
+  <p><strong>關鍵認知</strong>：標註者一致性隱含著<strong>模型能達到的效能上限</strong>。如果人類專家彼此都只有 68% 一致，模型幾乎不可能在同一份標準下達到 90% 準確率，因為標籤本身就充滿矛盾。</p>
+  <p><strong>處置流程</strong>：</p>
+  <ol>
+    <li><strong>量化</strong>：用 Cohen 或 Fleiss 的 Kappa 係數<strong>扣除隨機一致的部分</strong>，得到更真實的一致性水準。</li>
+    <li><strong>診斷</strong>：建立標註者之間的混淆矩陣，找出歧異集中在哪幾對類別。</li>
+    <li><strong>修訂指南</strong>：針對歧異類別寫出明確判準，並附上 10–20 個實際的<strong>邊界案例與判定理由</strong>（比抽象定義有效得多）。</li>
+    <li><strong>檢討類別設計</strong>：若兩類本來就難以區分且下游處理方式相同，應考慮合併。</li>
+    <li><strong>校準與監控</strong>：正式標註前先做共同校準題並討論歧異；正式標註中持續穿插重複樣本抽測。</li>
+  </ol>
+</div>
+</section>
+
+<!-- ══════════════ 2 ══════════════ -->
+<section class="ch" id="c2">
+<h2><span class="num">CH 2</span>資料工程與特徵管理</h2>
+
+<h3>2-1　訓練與服務偏斜（Training-Serving Skew）</h3>
+<div class="box warn">
+  <div class="bt">🚨 生產環境最常見也最難察覺的失效</div>
+  <p><strong>症狀</strong>：離線指標完全正常，上線後準確率明顯偏低。</p>
+  <p><strong>三大成因：</strong></p>
+  <ol>
+    <li><strong>實作不一致</strong>：離線用 SQL 或資料框計算、線上用另一套程式碼重寫，兩邊的邊界條件、時區、空值處理不同。</li>
+    <li><strong>資料新鮮度不一致</strong>：離線用完整月份資料計算「過去 30 天平均消費」，線上卻只有到前一日凌晨的批次結果。</li>
+    <li><strong>時間點錯誤</strong>：訓練時不小心使用了預測時點之後才產生的資訊。</li>
+  </ol>
+  <p><strong>系統性解法：特徵儲存（Feature Store）</strong>，核心價值是「<strong>一次定義、兩處使用</strong>」——離線層供訓練取用具時間點正確性的歷史特徵值，線上層以低延遲提供最新值，兩者共用<strong>同一份特徵定義與轉換邏輯</strong>。</p>
+  <p><strong>配套實務</strong>：特徵版本控管與中繼資料；定期比對線上特徵值分布與訓練資料分布並告警；把線上實際使用的特徵<strong>回寫</strong>作為下次訓練的資料來源（從根本消除差異）；上線前做<strong>影子測試</strong>比對離線與線上預測。</p>
+</div>
+
+<h3>2-2　時間點正確性（Point-in-time Correctness）</h3>
+<p>建立「使用者過去 7 天的訂單數」這個特徵時，若用整份歷史資料一次算出每位使用者的數值再貼到所有樣本上，早期樣本就會攜帶<strong>未來資訊</strong>。</p>
+<div class="fml">✗ 錯誤：對所有樣本套用同一個「整段期間的 7 天訂單數」
+✓ 正確：每筆樣本記錄其事件時間戳，只彙總<b>該時間之前</b>已發生的事件</div>
+<div class="box warn">
+  <div class="bt">⚠️ 進階細節：「發生時間」不等於「可得時間」</div>
+  <p>即使事件發生在預測時點之前，若當時尚未寫入系統（例如批次每日更新），線上也取不到。<strong>特徵定義應以「可得時間」而非「發生時間」為界。</strong></p>
+</div>
+
+<h3>2-3　三種容易忽略的洩漏</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>類型</th><th>情境</th><th>正確做法</th></tr>
+<tr><td><strong>群組洩漏</strong></td><td>同一位病人的多次就診紀錄同時出現在訓練與測試集，模型學到的是「認出這個病人」</td><td>依病人<strong>分組切分</strong>（GroupKFold），確保同一群組只出現在同一側</td></tr>
+<tr><td><strong>目標編碼洩漏</strong></td><td>計算某商家的平均轉換率時把該筆樣本自己的標籤也算進去</td><td><strong>折內計算</strong>（每折只用其他折的資料）或只用歷史期間資料；並做<strong>平滑</strong>（樣本少的類別靠近全體平均）</td></tr>
+<tr><td><strong>前處理洩漏</strong></td><td>先用整份資料算標準化參數或做過採樣，再切分</td><td>把所有前處理封裝進 <strong>Pipeline</strong>，讓交叉驗證的每一折只以該折訓練部分擬合</td></tr>
+</table>
+</div>
+<div class="box exam">
+  <div class="bt">🎯 設計驗證方案的核心提問</div>
+  <p><strong>「這個模型上線後面對的是什麼樣的新資料——新病人、新時間，還是新院所？」</strong>驗證切分就應該模擬那個情境。要推廣到新院所，就該保留整個院所作為測試集（跨機構驗證）。</p>
+</div>
+
+<h3>2-4　資料契約與品質檢核</h3>
+<div class="box case">
+  <div class="bt">💼 上游把「訂單狀態」由中文改為英文代碼，下游默默失效兩週</div>
+  <p>程式沒有例外、監控沒有告警，但所有新值都被歸為「未知類別」——這叫<strong>無聲失敗</strong>。</p>
+  <p><strong>資料契約</strong>應明訂：欄位名稱、型別、是否可為空、值域或允許的類別集合、語意定義與擁有者、以及<strong>變更政策</strong>（哪些變更向後相容、哪些需要新版本與過渡期、通知提前時間）。</p>
+  <p><strong>自動化檢核四層</strong>：結構檢核（欄位、型別）、值域檢核（範圍、日期合理性、類別白名單）、統計檢核（缺失率、唯一值數、分布偏離）、跨表一致性（外鍵、彙總對帳）。違反時<strong>依嚴重程度</strong>決定告警或中止，避免錯誤資料流向下游。</p>
+  <p><strong>本題最關鍵的一點</strong>：「未知類別佔比」本身就應該是監控指標——若有此監控，第一天就會發現異常。</p>
+</div>
+
+<h3>2-5　資料管線的冪等性</h3>
+<p>批次作業失敗重跑後資料被重複寫入、統計數字翻倍——這是<strong>缺乏冪等性</strong>。</p>
+<div class="keys">
+  <div class="k"><b>冪等性定義</b>：同一個任務用相同輸入重複執行多次，結果應與執行一次相同。</div>
+  <div class="k"><b>實作方式</b>：以<strong>分區覆寫</strong>取代附加寫入、使用主鍵做<strong>合併寫入</strong>、或先寫入暫存區驗證後再原子性切換。</div>
+  <div class="k"><b>資料就緒檢查</b>：不應僅依時間排程啟動，而應檢查上游資料是否完整產出（成功標記檔、預期分區是否存在、筆數是否合理）。</div>
+  <div class="k"><b>編排工具</b>：以<strong>依賴關係</strong>而非固定時間觸發任務；失敗時阻擋下游並告警；支援從失敗點續行與指定日期範圍回填。</div>
+</div>
+</section>
+
+<!-- ══════════════ 3 ══════════════ -->
+<section class="ch" id="c3">
+<h2><span class="num">CH 3</span>可重現性與實驗管理</h2>
+
+<h3>3-1　四類資產都要版本化</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>資產</th><th>要記錄什麼</th></tr>
+<tr><td><strong>資料</strong></td><td>以不可變的快照或分區保存；至少要能回答「這個模型是用哪個時間範圍、哪個版本的資料訓練的」</td></tr>
+<tr><td><strong>程式碼</strong></td><td>特徵處理、訓練、評估程式碼納入版本控管並記錄提交編號；相依套件以鎖定檔或<strong>容器映像</strong>固定（套件版本差異足以改變結果）</td></tr>
+<tr><td><strong>設定與結果</strong></td><td>以實驗追蹤工具記錄超參數、隨機種子、資料版本、評估指標與產出圖表，讓實驗可比較、可搜尋</td></tr>
+<tr><td><strong>模型</strong></td><td>存入<strong>模型註冊庫</strong>，綁定訓練資料版本、程式碼版本、指標、核准狀態與負責人</td></tr>
+</table>
+</div>
+
+<h3>3-2　模型註冊庫與版本治理</h3>
+<div class="box case">
+  <div class="bt">💼 五個版本同時線上，事故時無法確定誰被哪一版處理</div>
+  <p><strong>模型註冊庫</strong>應作為單一事實來源，每個版本記錄：唯一識別碼、訓練資料版本與期間、程式碼提交編號、超參數、離線評估指標（<strong>含分群體表現</strong>）、核准人與日期、適用範圍與限制、生命週期狀態（開發／待核／上線／已淘汰）。</p>
+  <p><strong>預測層追溯（最關鍵）</strong>：每一筆線上推論的紀錄都應寫入<strong>模型版本識別碼</strong>、輸入特徵的關鍵值或雜湊、輸出分數與最終決策。如此才能在客戶申訴或主管機關查核時重現當時的判斷依據。</p>
+  <p><strong>部署綁定</strong>：部署設定明確指定<strong>版本</strong>而非浮動標籤；任何上線、切換與回滾都自動產生紀錄。</p>
+</div>
+
+<h3>3-3　機器學習的 CI/CD</h3>
+<p>相較於一般軟體，ML 管線需要額外納入<strong>資料與模型的驗證關卡</strong>：</p>
+<ol class="steps">
+  <li><strong>程式碼層</strong>：單元測試（特徵轉換邏輯）與整合測試。</li>
+  <li><strong>資料層</strong>：訓練資料的結構檢核、統計檢核、標籤合理性檢查，不通過即中止。</li>
+  <li><strong>訓練與評估</strong>：自動化訓練並在固定評估集上計算指標，設定<strong>必須超越的門檻</strong>（優於現行模型或基準線），同時檢查分群體表現以避免對特定族群退化。</li>
+  <li><strong>封裝</strong>：把模型、相依套件與服務程式封裝為<strong>不可變的容器映像</strong>並打上版本標籤。</li>
+  <li><strong>部署</strong>：金絲雀或藍綠方式逐步切換，搭配自動化健康檢查與指標監控，異常自動回滾。</li>
+  <li><strong>治理</strong>：重要模型設置人工核准關卡，自動產生變更紀錄與模型文件。</li>
+</ol>
+
+<h3>3-4　實驗追蹤</h3>
+<p>三個月做了數百次實驗，卻無法回答「當初表現最好的設定用了哪些參數與哪個版本的資料」——這是缺乏實驗追蹤。</p>
+<p>記錄應<strong>自動化並嵌入訓練腳本</strong>，任何依賴人工填寫的流程都會在忙碌時被跳過。工具需提供查詢、排序、多實驗比較與視覺化，讓「找出某條件下最佳設定」變成一次查詢而非考古。</p>
+<div class="box warn">
+  <div class="bt">⚠️ 實驗追蹤 vs. 模型註冊庫</div>
+  <p>兩者<strong>互補</strong>：前者記錄探索過程中的<strong>所有實驗</strong>，後者管理經核准進入<strong>生產</strong>的模型版本及其生命週期。兩者應能互相連結，讓線上模型可回溯到產生它的那次實驗。</p>
+</div>
+</section>
+
+<!-- ══════════════ 4 ══════════════ -->
+<section class="ch" id="c4">
+<h2><span class="num">CH 4</span>部署策略與上線流程</h2>
+
+<h3>4-1　四種部署方式</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>策略</th><th>做法</th><th>適用時機</th></tr>
+<tr><td><strong>影子模式</strong><br>Shadow</td><td>新模型接收<strong>真實流量</strong>並計算預測，但輸出<strong>不影響決策</strong>，只記錄下來與現行模型比對</td><td>需在真實流量上驗證但<strong>不能承擔決策風險</strong>時（風控、醫療）</td></tr>
+<tr><td><strong>金絲雀</strong><br>Canary</td><td>先切 1–5% 流量給新模型實際決策，監控後逐步放大到 25%、50%、100%</td><td>大多數情境的標準作法</td></tr>
+<tr><td><strong>藍綠部署</strong></td><td>同時維護兩套環境，驗證後一次切換流量</td><td>需要快速完整回滾</td></tr>
+<tr><td><strong>A／B 測試</strong></td><td>隨機分流，比較商業指標的因果效果</td><td>要證明「新模型帶來多少價值」</td></tr>
+</table>
+</div>
+
+<div class="box case">
+  <div class="bt">💼 影子模式能揭露什麼？</div>
+  <p>這是測試環境<strong>看不到</strong>的四件事：</p>
+  <ul>
+    <li>真實流量的分布與測試集的差異</li>
+    <li>特徵取得是否正常（<strong>訓練服務偏斜</strong>）</li>
+    <li>延遲與資源消耗是否可接受</li>
+    <li>新舊模型<strong>決策不一致</strong>的案例有多少、集中在哪類客戶</li>
+  </ul>
+</div>
+
+<h3>4-2　功能旗標（Feature Flag）</h3>
+<p>讓「<strong>部署</strong>」與「<strong>發布</strong>」解耦：程式碼可以先上線但功能保持關閉，再透過設定逐步開放，出問題時<strong>秒級關閉</strong>而不需回滾部署。</p>
+<div class="keys">
+  <div class="k"><b>多維度控制</b>：依百分比、客戶名單、地區、方案等級開啟；同一使用者在同一會話中應得到<strong>一致</strong>的體驗（以穩定的雜湊分流）。</div>
+  <div class="k"><b>緊急關閉</b>：提供明確的中止開關，並確保值班人員<strong>知道且有權限</strong>使用。</div>
+  <div class="k"><b>治理</b>：每個旗標登記擁有者、用途與<strong>移除計畫</strong>——長期堆積的舊旗標會使程式碼路徑爆炸性成長，是常見的技術債。</div>
+  <div class="k"><b>稽核</b>：記錄誰在何時改了哪個旗標，事故調查時極為重要。</div>
+</div>
+
+<h3>4-3　冠軍挑戰者（Champion-Challenger）</h3>
+<p>模型持續改善的標準治理框架，在金融風控等受監理領域尤其常見：</p>
+<ol class="steps">
+  <li>現行的<strong>冠軍</strong>模型負責實際業務決策。</li>
+  <li>一個或多個<strong>挑戰者</strong>以影子模式接收相同流量並產生預測，僅記錄不執行。</li>
+  <li>累積足夠樣本與實際標籤後，在<strong>同一批真實資料</strong>上比較。</li>
+  <li>挑戰者在<strong>預先約定</strong>的主要指標上顯著勝出，且通過其他檢核（穩定性、各子群體無退化、公平性、可解釋性、運算成本），才晉升為新冠軍。</li>
+  <li>晉升後仍應以金絲雀方式逐步放量並保留回滾能力。</li>
+</ol>
+<p><strong>治理價值</strong>：晉升條件<strong>事前約定</strong>並留下紀錄，避免事後挑選有利結果。</p>
+
+<h3>4-4　模型版本升級的風險</h3>
+<div class="box warn">
+  <div class="bt">⚠️ 供應商更新模型，同一組提示的行為就變了</div>
+  <p>同一組提示詞在不同版本上的行為可能改變（輸出格式、詳略程度、拒答傾向、推理風格），而這些變化<strong>不會有編譯錯誤提示</strong>。</p>
+  <p><strong>遷移流程</strong>：(1) 提前規劃，關注版本淘汰公告；(2) <strong>離線比對</strong>，用固定評估集同時跑新舊版本，量化品質、格式符合率、詞元用量與延遲差異；(3) 針對性調整提示或解析容錯；(4) <strong>灰度上線</strong>，先切少量流量監控；(5) 保留一鍵切回的回滾能力；(6) 日常應<strong>鎖定明確版本</strong>而非使用會自動更新的別名。</p>
+  <p>這也凸顯了<strong>評估集</strong>的重要性——沒有評估集就無法客觀判斷升級是變好還是變差。</p>
+</div>
+
+<h3>4-5　API 契約與相容性</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>變更類型</th><th>相容性</th><th>處理</th></tr>
+<tr><td>新增選填欄位</td><td>向後相容</td><td>可直接發布</td></tr>
+<tr><td>更名／移除欄位、改型別</td><td><strong>破壞性</strong></td><td>發布新版本，新舊並行過渡期，公告淘汰時程</td></tr>
+<tr><td>擴充列舉值</td><td><strong>破壞性</strong></td><td>下游可能有未涵蓋的分支，須事前通知</td></tr>
+<tr><td><strong>語意變更</strong>（分數尺度或校準改變、類別定義調整）</td><td><strong>最危險</strong></td><td>結構沒變但意義變了，<strong>不會造成解析錯誤卻會使下游閾值失準</strong>，必須明確通知並協助重新校準</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ══════════════ 5 ══════════════ -->
+<section class="ch" id="c5">
+<h2><span class="num">CH 5</span>線上實驗設計</h2>
+
+<h3>5-1　A／B 測試的五個要素</h3>
+<ol class="steps">
+  <li><strong>隨機分流</strong>：以<strong>使用者為單位</strong>隨機分配並保持一致性，避免同一人來回看到不同版本。</li>
+  <li><strong>事前指定主要指標</strong>：只有主要指標用於決策；次要指標輔助理解；<strong>護欄指標</strong>確認沒有在他處造成傷害（退貨率、客訴、延遲、長尾曝光）。</li>
+  <li><strong>樣本量與時間</strong>：事前依<strong>可偵測的最小效果量</strong>估算所需樣本，涵蓋完整週期（至少一到兩週）以排除星期效應。</li>
+  <li><strong>統計顯著性與效果量</strong>：除了是否顯著，更要看差異幅度是否具<strong>商業意義</strong>。</li>
+  <li><strong>只改變一個變因</strong>：同時改了文案生成與版面設計，就無法歸因。</li>
+</ol>
+
+<h3>5-2　四個常見陷阱</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>陷阱</th><th>說明</th><th>對策</th></tr>
+<tr><td><strong>新奇效應</strong></td><td>使用者對新介面短期好奇而提高互動，隨時間衰減</td><td>延長觀察期並檢視效果隨時間的變化趨勢</td></tr>
+<tr><td><strong>干擾（違反獨立性）</strong></td><td>共用庫存、共用曝光位、社交互動會使兩組互相影響（實驗組多賣的熱門商品減少對照組的可得庫存）</td><td>改以<strong>叢集分流</strong>（依地區、時段或商家分組）</td></tr>
+<tr><td><strong>反覆查看直到顯著</strong></td><td>隨機波動總會在某個時點跨過門檻，<strong>大幅提高偽陽性</strong></td><td>事前定樣本量；需期中分析則採<strong>序貫檢定</strong>方法</td></tr>
+<tr><td><strong>多重比較</strong></td><td>同時檢定 12 個指標，至少一個偶然顯著的機率接近 46%</td><td>事前指定單一主要指標；次要指標採校正方法</td></tr>
+</table>
+</div>
+
+<div class="box math">
+  <div class="bt">📐 多重比較的機率計算（高中機率）</div>
+  <div class="fml">單次檢定偶然顯著的機率 = 0.05
+12 次都<b>不</b>偶然顯著的機率 = 0.95¹² ≈ 0.54
+<b>至少一次</b>偶然顯著的機率 = 1 − 0.54 = <b>0.46</b></div>
+  <p>所以「12 個指標中有 1 個顯著」幾乎是純粹偶然可預期的結果，不構成有效證據。</p>
+</div>
+
+<h3>5-3　統計顯著 ≠ 實務顯著</h3>
+<div class="box case">
+  <div class="bt">💼 p 值小於 0.001，效果是提升 0.05 個百分點，投入 400 萬值得嗎？</div>
+  <p>樣本量極大時（每日數百萬次曝光），即使 0.05 個百分點的微小差異也很容易達到極小的 p 值。<strong>p 值反映的是證據強度與樣本量，不代表效果量的大小。</strong></p>
+  <p><strong>決策流程</strong>：(1) 把效果量乘以實際交易量，換算年度毛利增量；(2) 計入完整成本（一次性投入＋維運＋技術債）；(3) 以效果量<strong>信賴區間的下界</strong>做保守估算；(4) 評估<strong>機會成本</strong>——這 400 萬與工程人力投入其他專案的預期報酬為何。</p>
+  <p><strong>結論可能是「顯著但不值得做」，這是完全合理的專業判斷。</strong></p>
+</div>
+
+<div class="box warn">
+  <div class="bt">⚠️ 信賴區間的正確解讀</div>
+  <p>「提升 2.1%（95% 信賴區間 −0.3% 到 4.5%）」——區間<strong>涵蓋 0</strong>，代表無法排除「沒有效果」甚至「略有負面效果」，<strong>不應斷言有提升</strong>；且區間寬達 4.8 個百分點，顯示估計不精確，應增加樣本或延長實驗。</p>
+  <p>另外，「不顯著」只代表<strong>證據不足</strong>，不等於證明無效——尤其在檢定力不足時。</p>
+</div>
+</section>
+
+<!-- ══════════════ 6 ══════════════ -->
+<section class="ch" id="c6">
+<h2><span class="num">CH 6</span>監控、漂移與再訓練</h2>
+
+<h3>6-1　標籤延遲下的四層監控</h3>
+<p>信用評分模型的違約標籤要六個月後才知道——不能等到那時才開始監控。</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>層級</th><th>監控什麼</th><th>常用方法</th></tr>
+<tr><td>① 輸入分布</td><td>各特徵的分布是否偏移、缺失率、新類別比例</td><td>群體穩定性指標（PSI，常以 0.1／0.25 為輕微／顯著漂移的參考）、KS 檢定、卡方檢定、分布距離</td></tr>
+<tr><td>② 預測分布</td><td>模型輸出分數或類別比例的變化</td><td><strong>標籤延遲時最重要的先行指標</strong>，綜合反映所有輸入變化的影響</td></tr>
+<tr><td>③ 代理指標</td><td>核准率、各分數區間件數、人工推翻率、申覆量、轉真人率</td><td>可即時取得，與模型行為高度相關</td></tr>
+<tr><td>④ 實際效能</td><td>標籤到齊後的真實指標</td><td>依貸放時間做<strong>世代分析</strong>，比較不同月份核准件的表現</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="bt">⚠️ 兩個必考觀念</div>
+  <p>1. <strong>漂移不等於效能下降。</strong>輸入分布改變可能只是業務擴展到新客群而模型仍有效；反之輸入穩定也可能因概念漂移而效能下滑。<strong>偵測到漂移應觸發調查，而非自動重訓。</strong></p>
+  <p>2. <strong>模型的決策本身會改變後續資料分布。</strong>被拒絕者沒有違約結果，造成<strong>選擇偏誤</strong>，需以保留少量隨機核准或推論方法處理。</p>
+</div>
+
+<h3>6-2　再訓練策略：混合觸發</h3>
+<div class="keys">
+  <div class="k"><b>時間觸發</b>：依業務變化節奏設定基礎頻率。推薦或詐欺偵測可能每日或每週；信用風險模型可能每季或每半年。<strong>對慢變化的領域過於頻繁只會增加維運負擔與不穩定。</strong></div>
+  <div class="k"><b>事件觸發</b>：漂移指標超標、線上代理指標異常、效能低於約定水準時；也包括業務事件（新產品線、法規變更、上游系統改版）。</div>
+  <div class="k"><b>共同關卡</b>：無論何種觸發都必須通過——資料檢核、離線評估門檻（優於現行且無分群體退化）、<strong>穩定性檢查</strong>（新舊模型預測差異過大應人工審視）、線上灰度驗證、版本紀錄與回滾能力。</div>
+  <div class="k"><b>反饋迴圈警訊</b>：模型決策影響後續蒐集到的資料，長期自動重訓可能<strong>放大偏誤</strong>，需保留隨機探索或以因果方法校正。</div>
+</div>
+
+<h3>6-3　生成式應用的品質監控</h3>
+<p>模型回答變差時<strong>伺服器仍然「正常運作」</strong>，傳統系統指標完全看不出來。應建立內容層面的可觀測性：</p>
+<ul>
+  <li><strong>行為指標</strong>：拒答率（突然升高可能代表檢索出問題）、轉真人率與原因、對話輪數、輸出長度、格式驗證失敗率。</li>
+  <li><strong>使用者訊號</strong>：滿意度、按讚倒讚、錯誤回報、重問率。</li>
+  <li><strong>檢索指標</strong>：相似度分數分布、無結果比率、引用來源分布是否異常集中。</li>
+  <li><strong>離線回歸（關鍵）</strong>：固定評估集定期自動重跑，<strong>這是唯一能在使用者發現之前捕捉退化的方法</strong>。</li>
+</ul>
+<p>並把<strong>模型版本、提示版本、知識庫版本</strong>都記錄在每次呼叫的中繼資料中，品質變化時才能快速歸因。</p>
+</section>
+
+<!-- ══════════════ 7 ══════════════ -->
+<section class="ch" id="c7">
+<h2><span class="num">CH 7</span>LLM 服務工程</h2>
+
+<h3>7-1　延遲的兩個關鍵指標</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>指標</th><th>意義</th><th>主要成因</th><th>最佳化手段</th></tr>
+<tr><td><strong>首字延遲</strong><br>TTFT</td><td>送出請求到產出第一個詞元</td><td>排隊等待、<strong>輸入詞元的預填計算</strong>（與輸入長度大致成正比）、網路往返</td><td>精簡系統提示、減少檢索段落數、移除不必要範例、<strong>提示前綴快取</strong>、調整批次策略</td></tr>
+<tr><td><strong>每字延遲</strong><br>TPOT</td><td>之後每產出一個詞元的時間</td><td>模型大小、記憶體頻寬、批次併發程度</td><td>量化、較小模型、更適合的推論引擎</td></tr>
+</table>
+</div>
+<div class="box exam">
+  <div class="bt">🎯 體驗層最重要的手段</div>
+  <p><strong>串流輸出</strong>：使用者的感知延遲取決於<strong>首字延遲</strong>而非總時間。案例中「首字 2.4 秒、總計 6 秒」，抱怨的主因是那 2.4 秒。監控應追蹤兩者的 <strong>P95、P99 分位數</strong>而非平均值。</p>
+</div>
+
+<h3>7-2　吞吐最佳化：連續批次與 KV 快取</h3>
+<div class="box case">
+  <div class="bt">💼 高併發時 GPU 使用率只有 40%，為什麼？</div>
+  <p><strong>傳統靜態批次</strong>要等湊滿一批才開始，且必須等最長的請求完成整批才釋放，導致短請求完成後運算槽位閒置。</p>
+  <p><strong>連續批次（Continuous Batching）</strong>：在每個生成步驟後檢查——已完成的請求立即移出並釋放資源，等待中的新請求立即補入，使批次維持在高佔用狀態，<strong>吞吐通常可提升數倍</strong>。</p>
+  <p><strong>鍵值快取（KV Cache）</strong>：自迴歸生成時每個新詞元都需用到先前所有詞元的鍵與值，快取它們可避免重複計算；但快取佔用的記憶體隨序列長度與併發數成長，成為容量瓶頸。<strong>分頁式的快取管理</strong>能減少記憶體碎片、提高可同時服務的請求數。</p>
+  <p>其他手段：提示前綴共享、投機解碼、量化降低記憶體頻寬需求、依請求特性分流。</p>
+</div>
+
+<h3>7-3　成本工程</h3>
+<div class="box case">
+  <div class="bt">💼 固定 3,000 詞元系統提示、每日 30 萬次呼叫，輸入成本佔九成</div>
+  <ol class="steps">
+    <li><strong>提示前綴快取</strong>：把固定內容放最前方且<strong>保持完全一致</strong>（連空白標點都不能變），變動內容放後方。</li>
+    <li><strong>精簡提示</strong>：實測刪除各段落對品質的影響；極少觸發的例外規則改為<strong>條件式載入</strong>。</li>
+    <li><strong>微調替代</strong>：規範穩定且範例充足時，把行為寫入模型可省去每次的長提示（需權衡維護成本與彈性損失）。</li>
+    <li><strong>模型分級路由</strong>：簡單請求用小模型，僅在信心不足或困難案例時升級。</li>
+    <li><strong>批次化</strong>：非即時請求改用批次方案取得較低費率。</li>
+  </ol>
+  <p><strong>成本治理</strong>：以獨立金鑰或專案區分用量、在應用層記錄每次呼叫的用途標籤與詞元數、建立成本歸屬報表與預算告警、對各應用設定速率與用量配額（避免單一應用的程式錯誤耗盡整體配額）。</p>
+  <p><strong>成本異常分析要可拆解</strong>：請求數、每次請求的平均詞元數、快取命中率、重試次數、代理人平均步數、模型組合、單價；並把成本跳升的時間點與部署或提示變更紀錄<strong>時間對齊</strong>比對。</p>
+</div>
+</section>
+
+<!-- ══════════════ 8 ══════════════ -->
+<section class="ch" id="c8">
+<h2><span class="num">CH 8</span>RAG 與 Agent 工程化</h2>
+
+<h3>8-1　RAG 的量化評估</h3>
+<p>「試用起來還不錯」不是上線依據。應<strong>分層</strong>建立評估集與指標：</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>層級</th><th>指標</th></tr>
+<tr><td><strong>檢索面</strong></td><td>前 K 名召回率（正確段落是否在取回的前 K 個中）、平均倒數排名、無結果比率</td></tr>
+<tr><td><strong>生成面</strong></td><td>答案正確性、<strong>可歸因性</strong>（每句是否都能由引用段落支持，抑制幻覺的關鍵）、完整性、<strong>適當拒答率</strong></td></tr>
+<tr><td><strong>端到端</strong></td><td>使用者任務完成率、轉人工比率、錯誤回報率</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 評估集設計三要點</div>
+  <ul>
+    <li><strong>必須包含負向樣本</strong>——知識庫確實沒有答案的問題，否則無法量測系統是否會亂答。</li>
+    <li>涵蓋不同難度：單段落可答、需跨段整合、需多跳推理。</li>
+    <li>標註正確來源段落，這是分層評估的前提。</li>
+  </ul>
+</div>
+
+<h3>8-2　延遲預算分配</h3>
+<div class="box case">
+  <div class="bt">💼 端到端預算 3 秒，實際檢索 0.4 ＋ 重排 0.6 ＋ 生成 2.5 秒</div>
+  <p><strong>不要憑直覺砍最耗時的環節。</strong>正確流程是<strong>消融實驗</strong>：量測每個階段對最終答案品質的<strong>邊際貢獻</strong>，得到「每節省 100 毫秒損失多少品質」的對照表，優先砍掉「耗時多但品質貢獻小」的環節。</p>
+  <p>本題中重排序雖耗 0.6 秒，但它通常對答案正確性貢獻顯著，未必是最該砍的。可行方向：檢索與其他準備工作<strong>平行化</strong>、重排改用蒸餾小模型、生成採<strong>串流</strong>、熱門問題<strong>快取</strong>、以及<strong>分級路由</strong>（簡單問題走快速路徑）。</p>
+</div>
+
+<h3>8-3　Agent 的可靠性工程</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>機制</th><th>解決什麼</th></tr>
+<tr><td><strong>冪等鍵</strong></td><td>為每個具副作用的操作產生穩定唯一鍵，下游依此去重；重試時回傳既有結果而非重複執行。<strong>這是避免重複建單、重複寄送的核心手段</strong></td></tr>
+<tr><td><strong>狀態持久化</strong></td><td>記錄各步驟狀態與產出，重試時<strong>從中斷點續行</strong>而非從頭</td></tr>
+<tr><td><strong>補償機制</strong></td><td>對已完成但需回復的動作設計對應的補償操作（跨系統操作無法用資料庫交易回滾）</td></tr>
+<tr><td><strong>錯誤分類</strong></td><td>暫時性錯誤（逾時、限流）退避重試；確定性錯誤（參數錯、權限不足、業務規則不符）重試無益，直接進失敗處理</td></tr>
+<tr><td><strong>硬性上限</strong></td><td>最大步數、最大詞元用量、最長執行時間；並偵測「原地打轉」的重複動作</td></tr>
+</table>
+</div>
+
+<h3>8-4　人在迴路的正確設計</h3>
+<div class="box warn">
+  <div class="bt">🚨 自動化偏誤（Automation Bias）</div>
+  <p>人在面對長期表現良好的自動化系統時，會逐漸降低警覺並傾向直接接受其輸出。案例中「多數建議都正確 → 審核流於形式 → 錯誤金額被核准送出」正是如此。</p>
+  <p><strong>單純要求「看仔細一點」無效</strong>，必須從設計著手：</p>
+  <ul>
+    <li><strong>風險導向分層審核</strong>：依金額級距、是否新供應商、與歷史行情的偏離程度分流；低風險自動放行加事後抽樣稽核，高風險強制逐項確認。</li>
+    <li><strong>突顯重點</strong>：介面主動標示異常項目與低信心欄位，並顯示對照基準（歷史平均單價、預算餘額），讓審核者知道<strong>該看哪裡</strong>。</li>
+    <li><strong>自動化規則檢核</strong>：金額加總、單價合理區間、預算是否足夠——這些確定性檢查應由程式執行，不該仰賴人眼。</li>
+    <li><strong>主動式確認</strong>：關鍵欄位要求實際輸入或勾選，而非一鍵全部核准。</li>
+    <li><strong>品質維持</strong>：定期以已知含錯誤的案例做<strong>抽測</strong>，量測審核攔截率。</li>
+  </ul>
+  <p><strong>另一個關鍵：量能匹配。</strong>要求人工複核 100% 的案件，往往使自動化效益被審核瓶頸抵銷（每日 3,000 件但人力只能處理 1,200 件）。應把人力配置到最需要判斷的地方。</p>
+</div>
+
+<h3>8-5　多租戶隔離</h3>
+<div class="box warn">
+  <div class="bt">🚨 跨租戶洩漏是最嚴重的信任事故</div>
+  <p>隔離必須貫穿<strong>所有可能承載資料的層面</strong>，任何一處遺漏都可能洩漏：</p>
+  <ul>
+    <li><strong>資料儲存</strong>：實體隔離或以租戶欄位邏輯隔離，並在<strong>資料存取層強制注入</strong>租戶條件（而非依賴每個查詢的開發者自行加上）。</li>
+    <li><strong>向量索引</strong>：各租戶獨立索引或命名空間，檢索時以中繼資料強制過濾。</li>
+    <li><strong>快取（常見疏漏點）</strong>：快取鍵必須包含租戶識別碼——語意快取若未含租戶維度，A 公司的答案可能被回傳給 B 公司。</li>
+    <li><strong>日誌與追蹤</strong>：分離儲存或標記，限制支援人員的存取範圍。</li>
+    <li><strong>模型上下文與微調權重</strong>：單次請求組裝的提示只能包含該租戶資料；客戶專屬的適配權重同樣需隔離。</li>
+  </ul>
+  <p>並以<strong>自動化測試</strong>驗證隔離（刻意嘗試跨租戶存取應被拒絕）。</p>
+</div>
+</section>
+
+<!-- ══════════════ 9 ══════════════ -->
+<section class="ch" id="c9">
+<h2><span class="num">CH 9</span>系統可靠性與容量</h2>
+
+<h3>9-1　服務等級目標與錯誤預算</h3>
+<div class="keys">
+  <div class="k"><b>SLO 指標選擇</b>：反映使用者實際感受——成功回應比例、P95／P99 端到端延遲、以及 AI 特有的品質指標（可歸因率、拒答適當率、人工推翻率）。</div>
+  <div class="k"><b>目標值設定</b>：依業務需求與成本現實。可用率從 99.9% 提高到 99.99% 的成本可能是<strong>數倍</strong>。</div>
+  <div class="k"><b>錯誤預算</b>：把「允許不達標的額度」明確化——99.9% 的可用率代表每月約 <strong>43 分鐘</strong>的預算。預算充足時可加速推新功能；預算即將耗盡時應暫停高風險變更並投入穩定性改善。<strong>這讓速度與穩定的取捨有客觀依據而非各說各話。</strong></div>
+</div>
+
+<h3>9-2　限流、佇列與非同步</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>機制</th><th>解決什麼</th><th>要點</th></tr>
+<tr><td><strong>分層限流</strong></td><td>單一客戶的程式錯誤在十分鐘內送出 200 萬次請求，耗盡整體配額</td><td>依客戶、金鑰、端點設定每秒與每日上限；<strong>全域總量上限無法防止單一客戶獨佔</strong>；超限回傳標準狀態碼並附重試建議</td></tr>
+<tr><td><strong>退避重試</strong></td><td>限流或暫時性錯誤</td><td><strong>指數退避加隨機抖動</strong>，避免所有客戶端同時重試造成二次衝擊</td></tr>
+<tr><td><strong>非同步佇列</strong></td><td>長時間任務（40 秒的文件分析）造成前端逾時與重複提交</td><td>立即回傳任務識別碼並放入工作佇列；以輪詢或推播取得結果；<strong>以冪等鍵避免重複提交造成重複處理</strong></td></tr>
+<tr><td><strong>熔斷</strong></td><td>某依賴持續失敗</td><td>暫時停止呼叫，避免累積等待拖垮整體</td></tr>
+</table>
+</div>
+
+<h3>9-3　備援與故障轉移</h3>
+<div class="box case">
+  <div class="bt">💼 只串接單一供應商，中斷時業務停擺兩小時</div>
+  <p>兩小時中有大半是「<strong>確認問題</strong>」的時間——這正是缺乏自動偵測的代價。</p>
+  <p><strong>「準備好但平時不用」的作法：</strong></p>
+  <ol>
+    <li><strong>抽象層</strong>：在應用與供應商之間建立統一介面，封裝呼叫格式與錯誤處理差異，使切換只需改設定。</li>
+    <li><strong>備援驗證</strong>：選定一家備援並<strong>以自有評估集實測</strong>，量化品質差異、延遲與成本，並<strong>事前準備好該供應商所需的提示調整版本</strong>（不同模型對同一提示的反應不同）。</li>
+    <li><strong>自動化轉移</strong>：以健康檢查與錯誤率門檻自動觸發切換。</li>
+    <li><strong>定期演練</strong>：週期性把小比例流量導向備援——<strong>未經演練的備援經常在真正需要時失效</strong>（金鑰過期、模型下架）。</li>
+    <li><strong>品質預期管理</strong>：明確記錄備援模式下的品質差異，啟用時通知業務單位。</li>
+  </ol>
+</div>
+
+<h3>9-4　容量規劃與壓力測試</h3>
+<div class="box warn">
+  <div class="bt">⚠️ 生成式應用壓測的特殊之處</div>
+  <p><strong>請求特徵決定資源消耗</strong>：輸入與輸出的詞元長度直接影響計算量與記憶體，因此測試資料應取自<strong>真實流量的長度分布</strong>，而非統一使用短請求——否則會嚴重<strong>高估</strong>容量。</p>
+  <p><strong>四種測試</strong>：負載測試（預期尖峰下是否達標）、壓力測試（超出預期時是否<strong>優雅降級</strong>而非崩潰）、浸泡測試（長時間是否有記憶體洩漏）、尖峰測試（自動擴縮的反應速度與<strong>冷啟動時間</strong>）。</p>
+  <p><strong>同時驗證保護機制</strong>：限流、熔斷、佇列上限、降級路徑是否真的在壓力下如預期運作；並涵蓋下游依賴（資料庫、向量索引、外部 API 配額）是否會先成為瓶頸。</p>
+  <p>依結果規劃容量緩衝（通常預留尖峰的 30% 以上），並確認供應商配額是否需<strong>事先申請提高</strong>（通常需提前數週）。</p>
+</div>
+
+<h3>9-5　韌性與事故演練</h3>
+<p>應盤點的故障情境：供應商完全中斷、部分區域中斷、限流、延遲劇增、<strong>回應品質異常下降</strong>、認證失效、以及自身元件故障。</p>
+<p><strong>關鍵要素</strong>：自動偵測（以指標門檻判定，而非依賴人工察覺）、預先實作的降級與轉移路徑、熔斷與退避、<strong>定期故障注入演練</strong>（驗證告警是否送達、值班人員是否知道怎麼做、備援是否真的可用）、事故手冊與明確的決策授權、以及事後檢討更新。</p>
+</section>
+
+<!-- ══════════════ 10 ══════════════ -->
+<section class="ch" id="c10">
+<h2><span class="num">CH 10</span>資安與威脅建模</h2>
+
+<h3>10-1　威脅建模五步驟</h3>
+<ol class="steps">
+  <li><strong>描繪系統</strong>：畫出元件、資料流、儲存位置與外部依賴，明確標示<strong>信任邊界</strong>（使用者到應用、應用到模型服務、外部內容進入系統之處）。</li>
+  <li><strong>識別威脅</strong>：沿每條跨越信任邊界的資料流，檢視身分偽造、資料竄改、否認、資訊揭露、阻斷服務、權限提升；<strong>AI 系統另需加上</strong>：提示注入、模型輸出被下游當成可信指令執行、訓練資料投毒、模型與提示的萃取、推論結果洩漏訓練資料。</li>
+  <li><strong>評估</strong>：依可能性與影響排序。</li>
+  <li><strong>緩解</strong>：為每個威脅指定具體控制措施，並記錄接受的<strong>殘餘風險</strong>與理由。</li>
+  <li><strong>驗證與迭代</strong>：把緩解措施轉為測試案例與監控項目；架構變更時重新檢視。</li>
+</ol>
+<p><strong>關鍵</strong>：開發團隊<strong>必須參與</strong>，因為只有他們清楚實際的資料流與實作細節；資安部門提供方法論與審查，但無法代替設計者理解系統。</p>
+
+<h3>10-2　模型端點的基本防護</h3>
+<div class="box warn">
+  <div class="bt">🚨 把 API 金鑰寫在前端 JavaScript 中</div>
+  <p><strong>任何放在前端的秘密都必須視為公開</strong>——使用者可以檢視原始碼、反編譯或攔截網路請求取得。金鑰長度、混淆處理都無濟於事。</p>
+  <p><strong>正確架構：</strong></p>
+  <ul>
+    <li><strong>後端代理</strong>：前端只呼叫自家後端，由後端在伺服器端持有憑證並轉呼叫，憑證<strong>永不下發到用戶端</strong>。</li>
+    <li><strong>身分與授權</strong>：後端對每個請求驗證使用者身分並檢查權限。</li>
+    <li><strong>速率限制與配額</strong>：防止匿名濫用（成為他人的免費模型代理是常見的濫用型態）。</li>
+    <li><strong>憑證管理</strong>：使用秘密管理服務、最小權限、定期輪替；疑似外洩時<strong>立即撤銷</strong>。</li>
+    <li><strong>供應商端用量上限與告警</strong>作為最後一道成本防線。</li>
+  </ul>
+</div>
+
+<div class="box case">
+  <div class="bt">💼 憑證被提交到版本庫且曾短暫公開</div>
+  <p><strong>處置順序（第一步最重要）：</strong></p>
+  <ol>
+    <li><strong>立即撤銷並輪替</strong>所有可能外洩的憑證——只要舊憑證仍有效，風險就持續存在。</li>
+    <li><strong>影響評估</strong>：檢視存取紀錄找出異常使用；必要時依個資法規評估是否構成須通報的事件。</li>
+    <li><strong>歷史清理</strong>：從版本庫歷史移除；但<strong>分叉與複本可能仍保有紀錄，清理不能取代輪替</strong>。</li>
+    <li><strong>架構改善</strong>：改用秘密管理服務，或更理想的<strong>以身分為基礎的授權</strong>（讓服務以其身分直接取得權限，完全不需長期憑證）。</li>
+    <li><strong>預防</strong>：提交前掛鉤與 CI 流程加入<strong>秘密掃描</strong>，偵測到即阻擋。</li>
+  </ol>
+</div>
+
+<h3>10-3　AI 系統的安全測試</h3>
+<p>準確率達標<strong>完全不代表安全</strong>——它衡量的是正常輸入下的表現。應包含：</p>
+<ul>
+  <li><strong>提示層攻擊</strong>：直接與間接注入、越獄、系統提示外洩。</li>
+  <li><strong>對抗樣本</strong>：微小擾動是否造成誤判，並評估實體世界的可行性。</li>
+  <li><strong>資料與供應鏈</strong>：訓練資料是否可能被投毒；外部預訓練模型的後門風險。</li>
+  <li><strong>隱私攻擊</strong>：成員推論（判斷某筆資料是否在訓練集中）、模型反演（從輸出重建訓練資料）、模型萃取（大量查詢複製模型行為）——後者需評估是否應限制查詢頻率或輸出精度。</li>
+  <li><strong>內容安全紅隊</strong>：涵蓋多語言與各種話術。</li>
+  <li><strong>穩健性</strong>：極端值、格式異常、超長輸入、空值與邊界條件。</li>
+  <li><strong>傳統資安</strong>：端點鑑權、授權、注入漏洞、相依套件漏洞仍不可省略。</li>
+</ul>
+<p><strong>流程</strong>：發現的問題分級、排定修補、把<strong>成功的攻擊案例納入自動化回歸測試</strong>，並在每次模型或提示更新後重跑。高風險系統應考慮引入獨立的第三方測試並保留報告。</p>
+</section>
+
+<!-- ══════════════ 11 ══════════════ -->
+<section class="ch" id="c11">
+<h2><span class="num">CH 11</span>AI 治理與法遵</h2>
+
+<h3>11-1　風險導向治理</h3>
+<p>對 14 個不同性質的 AI 應用套用同一套繁複流程並不合理——<strong>資源應配置到風險最高的地方</strong>。</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>分級維度</th><th>說明</th></tr>
+<tr><td>影響對象</td><td>內部員工或外部客戶；是否影響個人權益（授信、就業、醫療）</td></tr>
+<tr><td>自動化程度</td><td>完全自動決策，或僅輔助人工</td></tr>
+<tr><td>可逆性</td><td>錯誤是否可挽回</td></tr>
+<tr><td>規模</td><td>影響人數</td></tr>
+<tr><td>資料敏感度</td><td>是否處理個資或特種個資</td></tr>
+<tr><td>適用法規</td><td>金融、醫療、勞動法規</td></tr>
+</table>
+</div>
+<p>高風險者需獨立驗證、公平性稽核、詳細文件、上線前正式核准、較高頻率的效能覆核與人工複核比例；低風險者可簡化流程以維持推進速度。<strong>應用的用途擴大或使用者增加時應重新評估等級。</strong></p>
+<div class="box warn">
+  <div class="bt">⚠️ 治理的第一個困難</div>
+  <p>許多組織連「自己有多少 AI 應用在運作」都不知道。<strong>建立 AI 應用清冊（風險登錄）是治理的起點</strong>，記錄用途、擁有者、資料來源、模型、上線狀態與所屬業務流程。</p>
+</div>
+
+<h3>11-2　歐盟人工智慧法的風險分級</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>層級</th><th>處置</th></tr>
+<tr><td>不可接受風險</td><td>原則<strong>禁止</strong>（如社會評分、特定的操縱性系統）</td></tr>
+<tr><td><strong>高風險</strong></td><td>須符合一系列義務。<strong>就業與勞工管理（招募篩選、升遷、績效評估）、授信、教育、司法等用途多屬此類</strong></td></tr>
+<tr><td>有限風險</td><td>透明度義務（如告知使用者正在與 AI 互動）</td></tr>
+<tr><td>最小風險</td><td>多為自願性規範</td></tr>
+</table>
+</div>
+<p><strong>高風險系統提供者的主要義務</strong>：風險管理制度；資料治理（訓練、驗證與測試資料的品質、代表性與偏誤檢視）；技術文件與自動紀錄保存以確保可追溯；提供清楚的使用說明；設計上支援<strong>有效的人為監督</strong>；適當的準確性、穩健性與網路安全水準；品質管理系統；符合性評鑑與登錄程序。<strong>部署者亦有義務</strong>（依說明使用、確保輸入資料相關、監控與保存紀錄、特定情形告知受影響者）。</p>
+<div class="box warn">
+  <div class="bt">⚠️ 域外效力</div>
+  <p>該法具域外效力：<strong>非歐盟業者若其系統在歐盟市場提供，或其輸出於歐盟境內使用，仍可能被涵蓋。</strong>具體適用與時程請以最新法規版本與專業法律意見為準。</p>
+</div>
+
+<h3>11-3　資料保護影響評估</h3>
+<p>當處理可能對當事人權益造成高風險時（大規模處理、系統性監控、行為分析、敏感資料），事前評估是良好實務，在部分法域對特定情形更是法定義務。應涵蓋：</p>
+<ol class="steps">
+  <li><strong>處理描述</strong>：目的、資料類別、來源、保存期限、接收者、是否跨境。</li>
+  <li><strong>法律依據與必要性</strong>：為何需要這些資料、<strong>是否有侵害較小的替代方案</strong>、是否符合比例原則——這是最關鍵也最常被忽略的一步。</li>
+  <li><strong>風險識別</strong>：對當事人的可能影響（監控感、通訊隱私、被推論出的敏感資訊）。</li>
+  <li><strong>緩解措施</strong>：資料最小化（只取中繼資料而非內容）、彙總與去識別化、存取控管與稽核、保存期限、可選擇退出。</li>
+  <li><strong>當事人參與</strong>：事前告知與溝通，必要時諮詢員工代表。</li>
+  <li><strong>結論與監控</strong>：記錄殘餘風險是否可接受、由適當層級核准、系統變更時重新評估。</li>
+</ol>
+<div class="box warn">
+  <div class="bt">⚠️ 僱傭關係中的「同意」</div>
+  <p>因為存在<strong>權力不對等</strong>，員工同意的<strong>自由性</strong>常受質疑，<strong>不宜單以同意作為唯一依據</strong>，仍須通過必要性與比例原則的檢驗。</p>
+</div>
+
+<h3>11-4　個資外洩事故處理</h3>
+<div class="fml">1. 止血：立即停用受影響功能或回滾
+2. <b>保全證據</b>：完整保存日誌、設定與版本紀錄（<b>絕不可刪除</b>）
+3. 範圍界定：誰在何時看到了哪些他人資料、涉及的資料類別與敏感程度
+4. 通報義務：依個資法及各目的事業主管機關規定辦理（部分產業要求極短時間內先行通報）
+5. 當事人通知：說明事實、風險、建議措施與已採取的行動
+6. 根因分析與系統性改善（權限過濾的自動化測試、輸出中的跨租戶資料偵測、縮短偵測時間）
+7. 完整記錄處理過程以備查核</div>
+
+<h3>11-5　第三方與供應鏈風險</h3>
+<div class="keys">
+  <div class="k"><b>技術面</b>：資安措施與第三方認證、資料處理位置與隔離、事故通報時限；並了解其<strong>自身依賴</strong>造成的連鎖風險。</div>
+  <div class="k"><b>商業面</b>：財務穩定性、<strong>模型版本的淘汰政策與通知期</strong>（模型下架是實際發生過且影響重大的風險）、價格調整機制、服務終止時的過渡協助；評估替代方案與遷移成本。</div>
+  <div class="k"><b>法遵面</b>：追蹤服務條款與使用政策變更，特別是<strong>對特定用途的限制</strong>——條款變更可能使既有的使用情境突然變成違約。</div>
+  <div class="k"><b>管理機制</b>：供應商分級、定期覆核、維護軟體與模型的<strong>物料清單</strong>，以便漏洞或事件發生時快速評估影響範圍。</div>
+</div>
+
+<h3>11-6　開源模型的授權</h3>
+<p>「開源模型」的授權條款差異極大，<strong>不能一概理解為沒有限制</strong>：</p>
+<ul>
+  <li>有些採標準的寬鬆開源授權，有些是供應商自訂的<strong>社群授權</strong>並附帶條件。</li>
+  <li>可能包含：禁止特定用途、要求遵守可接受使用政策、對<strong>超過一定使用者規模</strong>的企業要求另行授權。</li>
+  <li><strong>標示與命名義務</strong>：部分條款要求在產品中標示所用模型，或規定衍生模型的名稱須包含特定字樣。</li>
+  <li>衍生模型權重是否可再散布、以何種授權散布。</li>
+  <li><strong>模型權重的授權不等同於其訓練資料的權利狀態</strong>。</li>
+</ul>
+<p><strong>實務</strong>：由法務逐一審閱並建立可用模型清單、在軟體物料清單中記錄授權、依規定標示、並在條款更新時重新檢視。</p>
+</section>
+
+<!-- ══════════════ 12 ══════════════ -->
+<section class="ch" id="c12">
+<h2><span class="num">CH 12</span>專案、組織與投資組合</h2>
+
+<h3>12-1　分階段關卡：POC → MVP → 量產</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>階段</th><th>驗證什麼</th><th>通過條件</th></tr>
+<tr><td><strong>概念驗證</strong><br>POC</td><td><strong>技術可行性與價值假設</strong>。通常用整理過的離線資料、由資料科學家手動執行</td><td>效能達門檻＋粗估效益</td></tr>
+<tr><td><strong>最小可行產品</strong><br>MVP</td><td><strong>完全不同的事</strong>：資料能否自動穩定取得、與既有系統的<strong>整合難度</strong>、真實流程中使用者<strong>是否願意使用</strong>、真實分布下效能是否維持</td><td>在小範圍實際運行並量測業務指標</td></tr>
+<tr><td><strong>量產</strong></td><td>工程化（自動化管線、監控、再訓練、容量、成本）與變革管理</td><td>穩定運行且效益可驗證</td></tr>
+</table>
+</div>
+<div class="box exam">
+  <div class="bt">🎯 關卡有效的前提</div>
+  <p><strong>願意停損。</strong>每個關卡都應有明確的通過條件、負責決策的人、以及「不通過就停損或轉向」的共識。每階段都應更新效益估算與風險評估，避免<strong>沉沒成本效應</strong>驅動決策。</p>
+</div>
+
+<h3>12-2　權責矩陣：消除「以為對方會做」</h3>
+<p>AI 專案最常見的失敗不是技術問題，而是<strong>責任邊界不清</strong>。應明確界定的項目：</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>項目</th><th>常見空窗</th></tr>
+<tr><td>資料品質</td><td>來源系統的資料正確性由誰負責、發現異常時誰處理</td></tr>
+<tr><td>特徵與業務定義</td><td>關鍵指標的定義由誰核定、變更時如何通知下游</td></tr>
+<tr><td>模型效能</td><td>上線後由誰監控、指標劣化時誰決定是否重訓或回滾</td></tr>
+<tr><td><strong>業務規則變更通知</strong></td><td>業務單位有義務在流程或政策變更時通知技術團隊——<strong>這常是模型失效的原因，也最容易被遺漏</strong></td></tr>
+<tr><td>上線核准</td><td>誰有權核准、高風險模型是否需更高層級或獨立審查</td></tr>
+<tr><td>事故處理</td><td>值班安排、決策授權、對外溝通</td></tr>
+</table>
+</div>
+
+<h3>12-3　使用者採用：技術好卻沒人用</h3>
+<div class="box case">
+  <div class="bt">💼 上線半年使用率只有 20%</div>
+  <p>訪談發現三個原因，各有對應解法：</p>
+  <ul>
+    <li><strong>流程斷點</strong>（需切換視窗）→ 把建議<strong>內嵌到既有系統</strong>中，在決策發生的當下自然呈現。</li>
+    <li><strong>不理解依據</strong>→ 提供主要影響因子、可查證的佐證資料、信心與適用範圍，並<strong>誠實說明已知限制</strong>。</li>
+    <li><strong>責任不對稱</strong>（採納出錯要自己扛、不採納則無風險）→ 由管理層<strong>明確界定在遵循既定流程下採納建議的責任歸屬</strong>。這是理性行為問題，不是態度問題。</li>
+  </ul>
+  <p><strong>推動方式</strong>：選擇有意願的試點單位、找出具影響力的同儕成為示範者、讓實際執行工作的員工參與流程設計、並以<strong>實證（採納與未採納案件的結果差異）說服而非命令</strong>。</p>
+  <p><strong>強制規定使用率並納入考績會導致「打開後直接忽略」的表面應付</strong>，並加深抗拒。</p>
+</div>
+
+<h3>12-4　招標與委外</h3>
+<div class="keys">
+  <div class="k"><b>效能定義要具體</b>：指標名稱與計算公式（是巨觀或微觀平均）、評估資料集<strong>由採購方提供且未曾提供給廠商</strong>、各類別或族群是否有個別門檻。</div>
+  <div class="k"><b>資料權利</b>：採購方資料的使用範圍、<strong>是否可用於訓練</strong>、保密與返還銷毀義務、<strong>微調後模型的權利歸屬</strong>。</div>
+  <div class="k"><b>交付物範圍</b>：不只是可運行的系統，還包括技術文件、資料處理與訓練程式碼、模型權重或可重現的訓練流程、評估報告、模型文件與已知限制。</div>
+  <div class="k"><b>驗收方式（最有效）</b>：由<strong>內部人員依交付文件，在自家環境中實際重現一次完整的訓練與部署</strong>，任何卡住的地方就是文件的缺口。</div>
+  <div class="k"><b>維運與移轉</b>：保固期間、效能維持義務、再訓練責任、監控與事故回應的服務等級、以及合約終止時的知識移轉與資料轉出協助。<strong>這些必須在簽約時就寫入，事後補提缺乏籌碼。</strong></div>
+</div>
+
+<h3>12-5　模型退役與投資組合管理</h3>
+<p><strong>模型退役</strong>是常被忽略的治理環節。無人使用的舊模型會消耗運算與儲存、佔用監控與值班注意力、<strong>增加資安攻擊面</strong>（過時的相依套件與未維護的端點）、並在稽核時造成負擔。應定期盤點呼叫量、下游使用者、業務貢獻與維運成本；退役流程為「通知下游 → 停用觀察期（保留快速恢復能力，觀察是否有未知依賴）→ 正式下線並清理」，期間保留必要的文件與紀錄以符合保存期限。</p>
+<p><strong>投資組合管理</strong>：統一登錄所有專案的目標、投入、階段與效益指標；採用<strong>一致的效益量測方式</strong>避免各自用有利於自己的算法；定期覆核並依實績決定加碼、調整或停止（<strong>要有停止的機制與文化</strong>）；識別可共用的能力（資料資產、平台元件、知識）以避免重複建置——<strong>這通常是投資組合管理最大的效益來源</strong>。</p>
+</section>
+
+<!-- ══════════════ 13 ══════════════ -->
+<section class="ch" id="c13">
+<h2><span class="num">CH 13</span>應用架構情境速查</h2>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>情境</th><th>架構重點</th></tr>
+<tr><td><strong>即時推薦</strong><br>（800 萬影片、100 毫秒）</td><td><strong>多階段漏斗</strong>：召回（多路併行，向量檢索＋協同過濾＋熱門，追求高召回率）→ 排序（複雜模型精算少數候選）→ 重排（多樣性、新鮮度、業務規則、探索比例）。物品向量與候選集<strong>離線預先計算</strong></td></tr>
+<tr><td><strong>站內搜尋</strong></td><td>索引以變更事件<strong>增量更新</strong>（特別注意刪除，殘留孤兒向量是常見錯誤）；<strong>上下架與庫存以中繼資料即時過濾</strong>，不依賴索引更新；保留定期全量重建作一致性校正</td></tr>
+<tr><td><strong>產線影像檢測</strong></td><td>依漏檢與誤判成本設定閾值（漏檢代價高故偏向敏感）；設<strong>人工複判站</strong>對被攔下的件二次確認（複判量能反過來限制閾值下限）；提供熱區圖等視覺依據；<strong>複判結果是最有價值的標註資料</strong>，回饋再訓練</td></tr>
+<tr><td><strong>即時語音客服</strong></td><td>全程<strong>串流化</strong>：音訊小片段持續傳送並產生部分辨識結果；語音活動偵測判斷語句邊界；意圖與建議<strong>增量更新</strong>；各環節分配延遲預算；建議應<strong>標示信心</strong>避免辨識錯誤誤導客服</td></tr>
+<tr><td><strong>文件智慧</strong></td><td>分階段管線：影像前處理與品質檢核 → 文件分類 → 依類型抽取欄位 → <strong>規則與外部資料交叉驗證</strong>（檢查碼、加總、與既有客戶資料比對）→ 依信心分流自動入檔或人工複核 → 保留可追溯紀錄</td></tr>
+<tr><td><strong>資安告警</strong></td><td><strong>以人力量能反推可接受的告警量</strong>並據此設定門檻；聚合關聯告警為單一事件（常可降低一個數量級）；風險評分排序；自動化處置已知良性樣態；回饋調整。<strong>超過量能的告警等同不存在，還會造成告警疲勞</strong></td></tr>
+<tr><td><strong>需求預測</strong></td><td><strong>階層調和</strong>使各層加總一致（由上而下／由下而上／最佳調和）；底層稀疏且雜訊大，需適合的模型與指標；提供<strong>預測區間</strong>而非單一點預測，並依過剩與短缺的成本不對稱選擇分位數作為訂購依據</td></tr>
+<tr><td><strong>動態定價</strong></td><td>最佳化模型之上加<strong>業務約束層</strong>：價格上下限與成本底線、限制單位時間變動幅度、特殊事件（天災）觸發人工審核或凍結、避免難以說明的差別定價、保留完整決策紀錄</td></tr>
+<tr><td><strong>路線規劃</strong></td><td>本質是<strong>組合最佳化</strong>（硬性限制須保證滿足），用運籌方法求解；<strong>機器學習負責預測其輸入參數</strong>（各時段路段行駛時間、服務時長）。「ML 做預測、最佳化做決策」是實務主流分工</td></tr>
+<tr><td><strong>金融風控</strong></td><td><strong>規則與模型並行</strong>：規則負責明確的法遵紅線與可解釋攔截，模型負責偵測複雜樣態；整合為<strong>統一風險評分與案件佇列</strong>；分別監控各自的命中量與誤報率，<strong>定期淘汰失效規則</strong>；調查結論回寫為訓練資料</td></tr>
+<tr><td><strong>醫療影像</strong></td><td>依醫療器材法規完成查驗登記；需<strong>外部驗證</strong>（非開發資料來源的機構、不同設備、不同族群）；風險管理與品質系統；標示與使用說明；<strong>上市後監督</strong>，且模型更新可能構成需重新審查的變更</td></tr>
+<tr><td><strong>預測維護</strong></td><td>最大難點是<strong>標籤定義</strong>：與維修專家共同定義故障事件與預警時間窗；可建為分類（未來 N 天內是否需維修）或<strong>剩餘壽命迴歸／存活分析</strong>（能處理尚未故障的右設限資料）；明確切分健康期、劣化期與維修後的重置點</td></tr>
+<tr><td><strong>邊緣機隊</strong></td><td>分階段推送、相容性與資源前檢、<strong>原子性更新與雙分割區設計</strong>（啟動失敗自動回滾）、狀態回傳與集中監控、斷點續傳、簽章驗證；資料回流只<strong>選擇性回傳</strong>有價值樣本（低信心、被人工修正、異常）並去識別化</td></tr>
+<tr><td><strong>聯邦式學習</strong></td><td>三大工程挑戰：<strong>資料異質性</strong>（加權彙整、個人化聯邦學習）、<strong>通訊成本</strong>（本地多輪後再上傳、參數壓縮）、<strong>參與方品質與治理</strong>（品質標準、貢獻度評估、惡意更新偵測、退出機制）。<strong>隱私非自動保證</strong>，需搭配安全彙總或差分隱私</td></tr>
+</table>
+</div>
+</section>
+
+<!-- ══════════════ 14 ══════════════ -->
+<section class="ch" id="c14">
+<h2><span class="num">CH 14</span>考前總複習表</h2>
+
+<h3>14-1　症狀 → 根因對照表</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>症狀</th><th>優先懷疑</th></tr>
+<tr><td>離線分數高、上線後崩潰</td><td><strong>訓練服務偏斜</strong>或<strong>資料洩漏</strong>（含時間性、群組性）</td></tr>
+<tr><td>離線指標好但商業成效沒改善</td><td><strong>預測與決策錯配</strong>（該用增益模型）、行動未落實、缺乏對照組</td></tr>
+<tr><td>模型沒改、效能逐漸下滑</td><td><strong>資料漂移／概念漂移</strong></td></tr>
+<tr><td>上游改了欄位、下游默默失效</td><td>缺乏<strong>資料契約與品質檢核</strong>；未監控「未知類別佔比」</td></tr>
+<tr><td>重跑批次造成資料翻倍</td><td>缺乏<strong>冪等性</strong></td></tr>
+<tr><td>人工審核流於形式</td><td><strong>自動化偏誤</strong>；應改風險分層並突顯重點</td></tr>
+<tr><td>GPU 使用率低但延遲高</td><td>逐筆處理未用<strong>連續批次</strong>；或資料載入瓶頸</td></tr>
+<tr><td>成本突然翻數倍</td><td>提示變長、重試迴圈、代理人步數失控、快取失效、模型切換</td></tr>
+<tr><td>事故時無法確定是哪一版模型</td><td>缺乏<strong>模型註冊庫與預測層追溯</strong></td></tr>
+<tr><td>供應商中斷、兩小時才確認</td><td>缺乏<strong>自動偵測與已驗證的備援</strong></td></tr>
+</table>
+</div>
+
+<h3>14-2　核心對比速記</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>A</th><th>B</th><th>關鍵差別</th></tr>
+<tr><td>影子模式</td><td>金絲雀</td><td>影子<strong>不影響決策</strong>；金絲雀是<strong>真的用小流量決策</strong></td></tr>
+<tr><td>部署</td><td>發布</td><td>功能旗標讓兩者解耦</td></tr>
+<tr><td>實驗追蹤</td><td>模型註冊庫</td><td>記錄<strong>所有實驗</strong> vs. 管理<strong>生產模型</strong>的生命週期</td></tr>
+<tr><td>資料漂移</td><td>概念漂移</td><td>輸入分布變 vs. 輸入與輸出的關係變</td></tr>
+<tr><td>首字延遲</td><td>每字延遲</td><td>受<strong>輸入長度與排隊</strong>影響 vs. 受<strong>模型大小與記憶體頻寬</strong>影響</td></tr>
+<tr><td>統計顯著</td><td>實務顯著</td><td>差異不像隨機 vs. 值不值得投入</td></tr>
+<tr><td>微調</td><td>RAG</td><td>行為模式 vs. 事實知識（且只有 RAG 能附出處）</td></tr>
+<tr><td>SLO</td><td>錯誤預算</td><td>目標 vs. 允許不達標的額度（用來取捨速度與穩定）</td></tr>
+</table>
+</div>
+
+<h3>14-3　「一定是錯的」選項特徵</h3>
+<div class="box warn">
+  <div class="bt">🚫 看到這些描述，直接刪</div>
+  <ul>
+    <li>「只要模型準確率夠高就可以上線」</li>
+    <li>「直接全量切換，出問題再修」</li>
+    <li>「以測試集反覆調參」／「把測試集併入訓練」</li>
+    <li>「持續查看實驗直到出現顯著就停止」</li>
+    <li>「偵測到漂移就自動全量重訓取代現行模型」</li>
+    <li>「權限用系統提示要求模型不要洩漏即可」</li>
+    <li>「把金鑰放在前端但做混淆處理」</li>
+    <li>「開源模型一定可以自由商用」</li>
+    <li>「事故時先修好程式，通報之後再說」／「刪除日誌避免留下紀錄」</li>
+    <li>「增加人工檢查清單就能取代自動化管線」</li>
+    <li>「所有 AI 應用一律適用最高治理標準」（過度僵化會導致流程被規避）</li>
+  </ul>
+</div>
+
+<div class="box exam">
+  <div class="bt">🎯 最後叮嚀</div>
+  <p>中級科目一的思維主軸是<strong>「假設它會壞，然後設計成壞掉時傷害最小、最快發現、最快復原」</strong>。答題時偏向那個「<em>先量測、先隔離、先小流量、保留回滾與人工介入、留下可稽核紀錄</em>」的選項，正確率會很高。</p>
+</div>
+
+<div class="pager">
+  <a href="b-s2.html">← 上一篇：初級科目二</a>
+  <a href="i-s2.html">下一篇：中級科目二 · 大數據處理分析與應用 →</a>
+</div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function onScroll() {
+    var y = window.scrollY + 120, idx = 0;
+    for (var i = 0; i < secs.length; i++) { if (secs[i] && secs[i].offsetTop <= y) idx = i; }
+    links.forEach(function (a, i) { a.classList.toggle('on', i === idx); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>

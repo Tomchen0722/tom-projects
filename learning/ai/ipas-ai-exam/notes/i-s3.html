@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級科目三講義：機器學習技術與應用 — iPAS AI 模擬測驗</title>
+<meta name="description" content="iPAS AI 應用規劃師中級科目三完整講義：損失函數與最佳化、正則化、驗證設計、特徵工程、半監督與自監督、深度學習架構、評估指標、可解釋性與穩健性、推論最佳化與實作陷阱，以高中程度深入解說。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="notes.css">
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a class="logo" href="../index.html"><span class="logo-dot"></span>iPAS <em>AI</em> 講義</a>
+    <nav class="nav-links">
+      <a href="b-s1.html">初級一</a>
+      <a href="b-s2.html">初級二</a>
+      <a href="i-s1.html">中級一</a>
+      <a href="i-s2.html">中級二</a>
+      <a href="i-s3.html" class="active">中級三</a>
+      <a href="../index.html">← 回測驗</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell">
+
+<aside class="toc">
+  <h4>本篇目錄</h4>
+  <a href="#c1">1　損失函數的選擇</a>
+  <a href="#c2">2　最佳化與訓練技巧</a>
+  <a href="#c3">3　驗證設計與超參數</a>
+  <a href="#c4">4　特徵工程進階</a>
+  <a href="#c5">5　資料稀缺的解法</a>
+  <a href="#c6">6　深度學習架構</a>
+  <a href="#c7">7　視覺與語言實務</a>
+  <a href="#c8">8　評估指標進階</a>
+  <a href="#c9">9　不確定性與可解釋性</a>
+  <a href="#c10">10　穩健性、公平性與持續學習</a>
+  <a href="#c11">11　壓縮與推論最佳化</a>
+  <a href="#c12">12　實作陷阱</a>
+  <a href="#c13">13　系統性除錯流程</a>
+  <a href="#c14">14　考前總複習表</a>
+</aside>
+
+<main>
+
+<div class="hero">
+  <div class="pill">📒 中級 · 科目三（選考）</div>
+  <h1>機器學習技術<br>與應用講義</h1>
+  <p class="sub">這一科考的是「<strong>會調、會診斷、會判斷取捨</strong>」。同樣的演算法名詞，初級問「是什麼」，中級問「什麼時候該用、參數怎麼調、出問題怎麼查」。數學部分維持高中程度，但會把每個公式背後的直覺講透。</p>
+</div>
+
+<!-- ══════════════ 1 ══════════════ -->
+<section class="ch" id="c1">
+<h2><span class="num">CH 1</span>損失函數的選擇</h2>
+
+<p class="lede">損失函數<strong>定義了模型優化的目標</strong>，選錯了，再怎麼調參都是往錯的方向努力。</p>
+
+<h3>1-1　迴歸損失三兄弟</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>損失</th><th>對誤差的態度</th><th>估計的是</th><th>優缺點</th></tr>
+<tr><td><strong>均方誤差 MSE</strong></td><td>平方 → 大誤差懲罰呈<strong>二次成長</strong></td><td>條件<strong>平均數</strong></td><td>處處可微、梯度隨誤差線性變化、最佳化行為良好；但<strong>對離群值極度敏感</strong></td></tr>
+<tr><td><strong>平均絕對誤差 MAE</strong></td><td>一視同仁（梯度為固定常數）</td><td>條件<strong>中位數</strong></td><td>對離群值穩健；但零點不可微、<strong>梯度不隨誤差縮小</strong>，收斂較慢也難精細調整</td></tr>
+<tr><td><strong>Huber 損失</strong></td><td>誤差小時<strong>如 MSE</strong>、大時<strong>如 MAE</strong></td><td>折衷</td><td>兼顧穩健性與可訓練性；需以驗證集調校門檻參數</td></tr>
+</table>
+</div>
+<div class="box case">
+  <div class="bt">💼 房價模型對一般住宅系統性高估</div>
+  <p>因為資料中有少數豪宅（價格是一般住宅的數十倍），MSE 會讓模型<strong>極力減少那幾筆的巨大誤差</strong>，代價是把整體預測往上拉偏。改用 MAE 偏高改善但收斂變慢 → <strong>Huber 損失</strong>是最合適的折衷。</p>
+  <p><strong>延伸選擇</strong>：若高估與低估的<strong>成本不對稱</strong>，應使用<strong>分位數損失</strong>直接預測特定分位數；若目標值跨越數個數量級，可先對目標取對數再以 MSE 訓練（等同於優化<strong>相對誤差</strong>）。</p>
+</div>
+
+<h3>1-2　目標變數右偏怎麼處理</h3>
+<div class="box math">
+  <div class="bt">📐 保險理賠：多數數千元、少數數百萬</div>
+  <p><strong>症狀</strong>：殘差呈<strong>漏斗狀</strong>（變異數隨水準增大，稱為異質變異），對一般案件系統性偏誤。</p>
+  <p><strong>路線一：目標轉換</strong></p>
+  <ul>
+    <li><strong>對數轉換</strong>：壓縮右尾、使分布接近對稱並穩定變異數。</li>
+    <li><strong>Box-Cox</strong>：以一個參數涵蓋對數與各種冪次轉換，可由資料估計最適參數（僅適用正值；含零或負值可用 Yeo-Johnson）。</li>
+    <li><strong>反轉換的偏差（必考細節）</strong>：對數尺度上的平均值取指數後得到的是原尺度上的<strong>幾何平均而非算術平均</strong>，會系統性低估；若下游需要期望值須做偏差修正。</li>
+  </ul>
+  <p><strong>路線二：換損失與分布</strong></p>
+  <ul>
+    <li><strong>Gamma 迴歸</strong>：正值右偏且變異數與平均值平方成正比。</li>
+    <li><strong>Tweedie 迴歸</strong>：處理「大量為零 ＋ 正值右偏」的複合分布，在<strong>保險理賠與需求預測</strong>中非常常用。</li>
+  </ul>
+  <p><strong>評估也要注意</strong>：原尺度的 RMSE 會被極端值主導，可同時報告對數尺度的誤差或相對誤差指標。</p>
+</div>
+
+<h3>1-3　分類損失與極度不平衡</h3>
+<div class="box case">
+  <div class="bt">💼 瑕疵只佔 0.8%，模型全判為正常</div>
+  <p><strong>原因</strong>：大量<strong>容易分類</strong>的多數類樣本雖然各自損失很小，但數量龐大，加總後仍<strong>主導了梯度</strong>。</p>
+  <p><strong>兩條改善路線：</strong></p>
+  <ol>
+    <li><strong>重新加權</strong>：在交叉熵中為各類別加權（通常與頻率成反比），提高少數類錯誤的懲罰。</li>
+    <li><strong>聚焦困難樣本（Focal Loss）</strong>：在交叉熵前乘上一個調變因子，<strong>該因子隨預測信心提高而快速趨近於零</strong>——模型已經很有把握的樣本幾乎不再貢獻損失，訓練訊號自然集中在難分類的樣本上。常用於物件偵測這類正負樣本比例極度懸殊的場景。</li>
+  </ol>
+  <p><strong>必須搭配</strong>：適當的評估指標（PR-AUC、特定召回率下的精確率，<strong>而非準確率</strong>）、依成本結構調校決策閾值、以及資料層面的處理。</p>
+  <p><strong>副作用提醒</strong>：重新加權會影響輸出機率的<strong>校準</strong>，若下游需要可靠機率應另做校準。</p>
+</div>
+
+<h3>1-4　輸出層設計：多類別 vs. 多標籤</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>多類別（Multi-class）</th><th>多標籤（Multi-label）</th></tr>
+<tr><td>類別關係</td><td><strong>互斥</strong>，只屬一類</td><td><strong>獨立</strong>，可同時屬多類</td></tr>
+<tr><td>輸出層</td><td><strong>Softmax</strong>（各類機率加總為 1）</td><td>各類別各自 <strong>Sigmoid</strong>（獨立機率）</td></tr>
+<tr><td>損失</td><td>類別交叉熵</td><td>二元交叉熵（每標籤獨立）</td></tr>
+<tr><td>預測</td><td>取機率最高者</td><td>各標籤<strong>各自與閾值比較</strong>，可能輸出 0、1 或多個</td></tr>
+<tr><td>評估</td><td>準確率、巨集 F1、混淆矩陣</td><td>各標籤 F1、巨集平均、子集準確率、漢明損失</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 誤用 Softmax 於多標籤</div>
+  <p>會<strong>強迫各類機率互相競爭而總和為 1</strong>，模型無法同時給多個類別高機率，明顯不符語意。</p>
+</div>
+
+<h3>1-5　序數目標（有順序的類別）</h3>
+<p>「非常不滿意 → 非常滿意」五個等級：標準多類別分類會把「非常滿意誤判為非常不滿意」與「誤判為滿意」視為<strong>同樣嚴重</strong>，忽略了順序資訊。</p>
+<div class="keys">
+  <div class="k"><b>累積二元分類</b>：轉為 K−1 個子問題（是否至少為不滿意、是否至少為普通…），共享特徵表示，<strong>自然編碼順序關係</strong>。</div>
+  <div class="k"><b>序數損失</b>：在多類別架構上使用考慮距離的損失，偏離越遠懲罰越大。</div>
+  <div class="k"><b>迴歸加閾值</b>：以迴歸訓練後<strong>學習最佳切分閾值</strong>（而非簡單四捨五入）。</div>
+  <div class="k"><b>評估指標</b>：用<strong>二次加權 Kappa</strong>（懲罰隨偏離距離的平方成長）或以等級數值計算的 MAE，而非單純準確率。</div>
+</div>
+</section>
+
+<!-- ══════════════ 2 ══════════════ -->
+<section class="ch" id="c2">
+<h2><span class="num">CH 2</span>最佳化與訓練技巧</h2>
+
+<h3>2-1　正則化三選一</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>L1（Lasso）</th><th>L2（Ridge）</th><th>Elastic Net</th></tr>
+<tr><td>懲罰</td><td>係數<strong>絕對值</strong>和</td><td>係數<strong>平方</strong>和</td><td>兩者混合</td></tr>
+<tr><td>係數行為</td><td>部分推到<strong>恰好為 0</strong>（稀疏化）</td><td>只壓小，<strong>不會為 0</strong></td><td>可稀疏且保留群組效應</td></tr>
+<tr><td>相關特徵</td><td><strong>任選一個保留</strong>，其餘歸零 → 選擇<strong>不穩定</strong></td><td><strong>平均分攤</strong>權重 → 穩定</td><td>傾向被<strong>一起保留或一起剔除</strong></td></tr>
+<tr><td>適用</td><td>需自動特徵選擇</td><td>共線性嚴重且不需選擇</td><td>特徵多且高度相關</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 兩個必守前提</div>
+  <p>(1) 使用正則化前<strong>務必先標準化特徵</strong>，否則懲罰對不同尺度的特徵不公平。<br>(2) 正則化強度是<strong>關鍵超參數</strong>，過強欠擬合、過弱失效，必須以交叉驗證調校。<br>(3) <strong>樹模型的正則化機制完全不同</strong>（樹深度、葉節點最小樣本數、學習率、子採樣比例），上述討論不適用。</p>
+</div>
+
+<h3>2-2　學習率排程</h3>
+<div class="fml">訓練<b>初期</b>問題：權重隨機初始化，梯度方向不可靠且量值可能很大
+  → <b>預熱（Warmup）</b>：由接近零在數百至數千步內線性升高到目標值
+  → Transformer 與大批次訓練幾乎必備
+
+訓練<b>後期</b>問題：已接近最小值區域，固定大步伐在谷底來回跳動
+  → <b>衰減排程</b>：階梯式／指數／<b>餘弦退火</b>（目前常用）／依驗證停滯時降低</div>
+<p><strong>進階</strong>：帶重啟的餘弦退火（週期性把學習率拉高再降低，有助跳出較差區域並可搭配<strong>快照集成</strong>）。<strong>注意</strong>：批次大小改變時學習率通常需按比例調整；使用 Adam 等自適應優化器時<strong>仍建議搭配排程</strong>，兩者互補而非替代。</p>
+
+<h3>2-3　三種優化器的差別</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>優化器</th><th>機制</th><th>特性</th></tr>
+<tr><td><strong>SGD + 動量</strong></td><td>所有參數同一學習率；動量累積歷史梯度方向以平滑震盪</td><td>需細心調校，但調好後在<strong>部分視覺任務泛化略優</strong>（一般認為與其較大的梯度雜訊有助收斂到<strong>較平坦的極小值</strong>有關）</td></tr>
+<tr><td><strong>Adam</strong></td><td>維護梯度的一階與二階動量，<strong>為每個參數自適應調整步伐</strong></td><td>收斂快、對初始學習率較不敏感；NLP 與多數場景的預設</td></tr>
+<tr><td><strong>AdamW</strong></td><td>把<strong>權重衰減與梯度更新解耦</strong></td><td>修正了 Adam 中「L2 懲罰被二階動量的自適應縮放扭曲」的問題，使正則化行為符合預期；<strong>目前主流</strong></td></tr>
+</table>
+</div>
+<p><strong>實務建議</strong>：從 AdamW 開始並搭配預熱與餘弦衰減；追求極致效果且資源允許時，再比較調校過的 SGD。</p>
+
+<h3>2-4　權重初始化：打破對稱性</h3>
+<div class="box math">
+  <div class="bt">📐 為什麼不能全部初始化為同一個常數</div>
+  <p>若同層所有神經元初始權重相同 → 接收相同輸入、產生相同輸出 → 反向傳播得到<strong>完全相同的梯度</strong> → 更新後仍然相同 → <strong>永遠無法分化為不同的特徵偵測器</strong>，整層的有效容量退化為單一神經元。全零初始化同樣如此（且梯度也為零）。</p>
+  <p><strong>尺度控制</strong>：初始權重的變異數決定訊號在前向傳播時被放大或縮小的程度，以及梯度在反向傳播時的衰減或爆炸。</p>
+  <div class="fml">Xavier（Glorot）：考慮輸入與輸出維度 → 適合 <b>Sigmoid / Tanh</b>（關於零對稱）
+He：考慮 ReLU 會把約一半輸出歸零而使變異數減半 → 採<b>較大變異數</b>，搭配 <b>ReLU 系列</b></div>
+  <p>使用批次正規化或層正規化時，對初始化的敏感度會降低但仍建議使用合適的初始化；<strong>預訓練模型的權重本身就是最好的初始化</strong>。</p>
+</div>
+
+<h3>2-5　正規化層怎麼選</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>層</th><th>統計量的計算維度</th><th>適用</th><th>限制</th></tr>
+<tr><td><strong>批次正規化</strong></td><td>對每個通道，<strong>跨批次內所有樣本</strong></td><td>卷積網路標準元件</td><td>批次過小時統計不穩；<strong>訓練與推論行為不一致</strong>（推論用移動平均）；<strong>對變長序列不友善</strong>（填充位置汙染統計）；分散式訓練等效批次變小</td></tr>
+<tr><td><strong>層正規化</strong></td><td>對每個樣本，<strong>跨其特徵維度</strong></td><td>Transformer 與循環網路標準</td><td>不依賴批次，訓練與推論行為一致</td></tr>
+<tr><td><strong>群組正規化</strong></td><td>通道分組，組內跨空間維度</td><td>批次極小的視覺任務（高解析度分割與偵測）</td><td>不依賴批次</td></tr>
+</table>
+</div>
+
+<h3>2-6　梯度問題與省記憶體技巧</h3>
+<div class="keys">
+  <div class="k"><b>梯度爆炸</b>（損失突然變無限大）：以<strong>梯度裁剪</strong>處置——當梯度整體範數超過門檻時<strong>等比例縮放回門檻</strong>（保持方向不變，只限制量值），門檻常設 1 到 5。同時排查：學習率過高（最常見）、資料異常值、數值不穩定（對數或除法輸入接近零，應用框架的數值穩定實作）、混合精度的溢位。</div>
+  <div class="k"><b>混合精度訓練</b>：大部分運算以半精度執行，<strong>權重主副本與數值敏感運算保持單精度</strong>；因半精度數值範圍較窄，微小梯度可能下溢為零，需搭配<strong>損失縮放</strong>（把損失乘上係數使梯度落入可表示範圍，更新前再除回）。效益：記憶體約減半、可利用硬體專用運算單元加速。</div>
+  <div class="k"><b>梯度累積</b>：把大批次拆成 N 個小批次逐一計算梯度並<strong>累加</strong>（不清空），累積 N 次後才更新一次，等效於 N 倍大的批次。記憶體只需容納小批次，代價是總時間增加。<strong>細節</strong>：損失應除以累積步數以保持梯度尺度；含批次正規化的模型其統計量仍基於小批次，與真正的大批次<strong>不完全等價</strong>。</div>
+</div>
+</section>
+
+<!-- ══════════════ 3 ══════════════ -->
+<section class="ch" id="c3">
+<h2><span class="num">CH 3</span>驗證設計與超參數</h2>
+
+<h3>3-1　切分方式必須模擬部署情境</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>資料結構</th><th>正確切分</th><th>錯誤切分的後果</th></tr>
+<tr><td>有<strong>群組</strong>（同一病人多次就診、同一使用者多筆交易）</td><td><strong>分組切分</strong>（GroupKFold）</td><td>模型學到「認出這個人」而非「判斷病況」，分數虛高</td></tr>
+<tr><td><strong>時間序列</strong></td><td>依時間切分、<strong>滾動或逐步擴張視窗</strong>驗證</td><td>用未來預測過去，離線分數虛高</td></tr>
+<tr><td><strong>類別不平衡</strong></td><td>分層 K 折</td><td>某折可能完全沒有少數類</td></tr>
+<tr><td>要推廣到<strong>新機構／新地區</strong></td><td>保留整個機構作為測試集（跨機構驗證）</td><td>無法暴露<strong>捷徑學習</strong>與領域偏移</td></tr>
+</table>
+</div>
+<div class="box exam">
+  <div class="bt">🎯 設計驗證前的核心提問</div>
+  <p><strong>「這個模型上線後面對的是什麼樣的新資料？」</strong>——新病人、新時間，還是新院所？驗證切分就應該模擬那個情境。</p>
+</div>
+
+<h3>3-2　超參數搜尋策略</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>策略</th><th>原理</th><th>適用</th></tr>
+<tr><td>網格搜尋</td><td>窮舉所有組合</td><td>參數少時。<strong>組合數隨參數個數指數成長</strong>，且把大量預算浪費在對不重要參數的重複嘗試上</td></tr>
+<tr><td><strong>隨機搜尋</strong></td><td>在各參數分布中隨機取樣</td><td>相同試驗次數下，<strong>每個重要參數會被嘗試到更多不同的值</strong>，高維空間通常優於網格；易平行化</td></tr>
+<tr><td><strong>貝氏最佳化</strong></td><td>以已完成試驗建立代理模型，依「預期改善」選下一組</td><td>單次訓練成本高時；代價是試驗間有依賴而較難完全平行</td></tr>
+<tr><td>早期淘汰</td><td>以較少資源同時評估多組，逐輪淘汰表現差者</td><td>大幅提升預算效率，可與上述搭配</td></tr>
+</table>
+</div>
+<p><strong>實務技巧</strong>：先以領域知識縮小範圍（<strong>學習率以對數尺度取樣</strong>）；優先調校影響最大的少數參數；搜尋完成後仍須以獨立測試集或巢狀交叉驗證確認。</p>
+
+<h3>3-3　巢狀交叉驗證：為什麼選參後的分數會樂觀</h3>
+<div class="box math">
+  <div class="bt">📐 選參偏誤的直覺</div>
+  <p>當我們嘗試了 200 組超參數並挑出交叉驗證上表現最好的一組，這個最佳分數同時包含了<strong>真實效能</strong>與<strong>對驗證資料的偶然適配</strong>。嘗試的組合越多、資料量越小，樂觀偏誤越大。</p>
+  <p><strong>兩種解法：</strong></p>
+  <ul>
+    <li><strong>巢狀交叉驗證</strong>：外層負責<strong>估計泛化效能</strong>、內層負責<strong>選超參數</strong>。外層的每次評估都用到「未參與該次選參」的資料。缺點是運算成本為兩層折數的乘積。<em>注意：外層估計的是「這套建模流程」的預期效能，最終上線的模型仍應以全部資料重新選參與訓練。</em></li>
+    <li><strong>保留獨立測試集</strong>：一開始就切出測試集<strong>完全封存</strong>，所有探索與選參都只在其餘資料上進行，最後才用測試集評估一次。作法簡單、成本低，是資料量足夠時的主流選擇。</li>
+  </ul>
+</div>
+
+<h3>3-4　學習曲線 vs. 驗證曲線</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>學習曲線</th><th>驗證曲線</th></tr>
+<tr><td>橫軸</td><td><strong>訓練樣本數</strong></td><td><strong>某個超參數</strong>（如樹深度）</td></tr>
+<tr><td>回答</td><td>「該不該蒐集更多資料？」</td><td>「該用多複雜的模型？」</td></tr>
+<tr><td>判讀</td><td>兩線<strong>間隙大且未收斂</strong> → 高變異，增加資料有效<br>兩線<strong>已收斂且都低</strong> → 高偏差，加資料無用，該加複雜度或特徵</td><td>訓練分數<strong>單調上升</strong>；驗證分數<strong>先升後降</strong>，最佳點在驗證高點<br>高點左側欠擬合、右側過擬合</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 三個判讀細節</div>
+  <ul>
+    <li>訓練分數隨資料增加而<strong>下降是正常現象</strong>（資料變多後模型無法完全記住），不代表需要簡化模型。</li>
+    <li><strong>不能用訓練分數最高的參數</strong>——它會單調上升直到完全記住訓練資料。</li>
+    <li>若驗證分數高點附近<strong>相當平坦，應選較簡單的模型</strong>（更穩健、推論更快）。</li>
+  </ul>
+</div>
+
+<h3>3-5　早停指標的選擇</h3>
+<div class="box case">
+  <div class="bt">💼 驗證損失上升，但驗證準確率還在改善</div>
+  <p>兩者不同步是常見現象：模型在後期可能對已答對的樣本<strong>變得過度自信</strong>，對少數答錯的樣本給出極端錯誤的機率，導致平均損失上升，但判斷正確與否甚至排序能力仍在改善——<strong>這也提示模型的校準正在變差</strong>。</p>
+  <p><strong>原則：早停與模型選擇應依「最終用來評估成敗的指標」</strong>。若下游需要可靠機率（期望值計算、成本敏感決策），損失與校準指標更重要；若只需排序或分類結果，AUC、F1 或業務指標更合適。可儲存排序最佳的權重後再另行做<strong>機率校準</strong>。</p>
+</div>
+
+<h3>3-6　集成方法</h3>
+<div class="keys">
+  <div class="k"><b>集成有效的關鍵條件</b>：各基模型要「<strong>夠好且夠不同</strong>」。若錯誤高度相關，集成後幾乎沒有改善。</div>
+  <div class="k"><b>加權平均</b>：對各模型輸出的機率取平均，權重可依驗證分數設定。簡單穩健，最常用。分數尺度不一致時可改用<strong>排名平均</strong>。</div>
+  <div class="k"><b>Stacking</b>：以各基模型的預測作為特徵訓練元模型。<strong>關鍵實作細節</strong>：元模型的訓練特徵必須以<strong>交叉驗證的折外預測</strong>產生，否則基模型在自己看過的資料上表現過好，元模型會學到錯誤的權重並嚴重過擬合。</div>
+  <div class="k"><b>快照集成</b>：以帶重啟的週期性學習率排程，在<strong>單次訓練</strong>中取得多個位於不同區域的模型再集成。相關的<strong>隨機權重平均</strong>則直接平均後期多個時間點的權重，推論成本與單一模型相同（需重新計算批次正規化統計量）。</div>
+</div>
+<p><strong>代價</strong>：集成增加推論成本與系統複雜度、可解釋性較差。若推論延遲敏感，可用<strong>知識蒸餾</strong>把集成的知識蒸餾到單一模型。</p>
+</section>
+
+<!-- ══════════════ 4 ══════════════ -->
+<section class="ch" id="c4">
+<h2><span class="num">CH 4</span>特徵工程進階</h2>
+
+<h3>4-1　樹模型 vs. 神經網路（表格資料）</h3>
+<div class="box case">
+  <div class="bt">💼 為什麼梯度提升樹在表格資料上這麼強？</div>
+  <p><strong>樹模型的六個優勢</strong>：以切分閾值運作，天然處理<strong>非線性與交互作用</strong>；對<strong>單調變換不敏感</strong>，不需標準化；對混合型別友善，部分實作原生支援類別特徵；對缺失值有內建處理；對不相關特徵較穩健且提供特徵重要度；預設值通常已有不錯表現，<strong>調校成本低</strong>且訓練快。</p>
+  <p><strong>神經網路的優勢</strong>：能從原始的高維結構化資料（像素、序列、波形）自動學習<strong>層次化表示</strong>；資料量極大時能持續受益於規模；可端到端訓練並利用預訓練知識。</p>
+  <p><strong>實務建議</strong>：表格資料<strong>先以梯度提升樹建立強基準</strong>，除非有明確理由（需與其他模態聯合建模、需端到端學習表示、資料量極大且已驗證有增益）才投入神經網路。兩者也可集成互補。</p>
+</div>
+
+<h3>4-2　類別特徵編碼（依基數選擇）</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>情況</th><th>編碼</th><th>注意</th></tr>
+<tr><td>低基數無序（支付方式）</td><td>獨熱編碼</td><td>線性模型需刪一欄避免共線性</td></tr>
+<tr><td>有自然順序（教育程度）</td><td>順序編碼</td><td>順序是真實資訊，應保留</td></tr>
+<tr><td><strong>高基數</strong>（4,000 個郵遞區號）</td><td>目標編碼／頻率編碼／嵌入向量／<strong>依領域知識聚合</strong></td><td>獨熱會維度爆炸；<strong>目標編碼須折外計算並平滑</strong>；並須處理推論時的未見類別</td></tr>
+</table>
+</div>
+<div class="box exam">
+  <div class="bt">🎯 高基數的最佳解往往是領域知識</div>
+  <p>把郵遞區號聚合為<strong>縣市或行政區</strong>，或連結外部資料轉為該區域的<strong>所得中位數、人口密度</strong>等數值特徵——兼顧資訊量與泛化能力，通常優於機械式的編碼。</p>
+</div>
+
+<h3>4-3　週期性特徵</h3>
+<div class="box math">
+  <div class="bt">📐 為什麼 23 點與 0 點在模型眼中差 23 小時</div>
+  <p>直接輸入 0–23 的整數會產生兩個問題：端點距離被<strong>錯誤放大</strong>（數值距離 23 但實際只隔一小時）；模型誤以為數值大小有<strong>單調意義</strong>。</p>
+  <div class="fml">正弦餘弦成對轉換（映射到單位圓）：
+  特徵1 = sin(2π × 小時 ÷ 24)
+  特徵2 = cos(2π × 小時 ÷ 24)
+
+<span class="cm"># 必須成對使用：單獨用正弦會使一天中兩個不同時刻對應相同值</span></div>
+  <p>同理適用於星期幾（週期 7）、月份（週期 12）、一年中的第幾天（週期 365）、風向角度。<strong>替代方案</strong>：若某些時段有明確業務語意（上班時段、深夜），直接建立布林特徵或分箱可能更有效且更可解釋。</p>
+</div>
+
+<h3>4-4　分箱、交互與目標變換</h3>
+<div class="keys">
+  <div class="k"><b>分箱</b>：價值在於<strong>表達非單調關係</strong>（線性模型只能表達單調線性效應，分箱後各箱可有各自的係數，即可表達 U 型風險）、<strong>與業務級距對齊</strong>、穩健性、可把缺失單獨成一箱。代價是<strong>組內資訊損失</strong>與<strong>切點選擇會顯著影響結果</strong>（應以等頻或依目標表現的最佳化切分決定，並確保每箱樣本足夠）。<strong>樹模型能自行學習切點，通常不需人工分箱。</strong></div>
+  <div class="k"><b>交互特徵</b>：線性模型假設各特徵影響<strong>可加且獨立</strong>，無法表達「高收入且年輕」這種組合效應。可明確建立乘積項或分組組合（注意維度膨脹與共線性，應搭配正則化並依領域知識選擇），或改用<strong>樹模型</strong>（連續切分天然表達交互）。實務作法：先用樹模型診斷是否存在明顯交互，找出後再決定沿用樹模型或把該交互明確加入線性模型以保留可解釋性。</div>
+  <div class="k"><b>樣本權重</b>：可表達<strong>時間衰減</strong>（近期樣本權重高，以指數衰減的半衰期控制，並以最近期間的驗證集調校）、資料可信度、抽樣設計校正、成本敏感學習。<strong>與類別權重的差別</strong>是指定粒度——類別權重以類別為單位、樣本權重可逐筆指定，後者更彈性且可涵蓋前者。<strong>副作用</strong>：加權會改變輸出機率的隱含先驗使校準偏移。</div>
+</div>
+
+<h3>4-5　特徵選擇與共線性</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>方法</th><th>原理</th><th>優缺點</th></tr>
+<tr><td>過濾法</td><td>依統計量獨立評估（相關係數、互資訊、卡方）</td><td>快、與模型無關；但<strong>忽略交互作用</strong>，也可能保留一堆冗餘特徵</td></tr>
+<tr><td>包裝法</td><td>以實際模型的驗證表現評估特徵子集</td><td>貼近目標模型；但<strong>運算昂貴</strong>且小樣本上易對驗證集過擬合</td></tr>
+<tr><td><strong>嵌入法</strong></td><td>訓練過程中自然完成（L1、樹模型重要度、SHAP 排序）</td><td>效率與效果兼顧，<strong>實務主流</strong></td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">🚨 樹模型內建重要度的系統性偏誤</div>
+  <p>以不純度下降加總計算時，<strong>具有更多可能切分點的特徵</strong>（連續變數、高基數類別）有更多機會被選中，重要度被<strong>高估</strong>；只有一個切分點的二元特徵即使真的重要，累積分數也偏低。且它是在<strong>訓練資料</strong>上計算的，會反映過擬合。</p>
+  <p><strong>替代方法</strong>：<strong>置換重要度</strong>（在驗證資料上打亂某特徵後看分數下降幅度；直接衡量對泛化的貢獻、模型無關、不受切分點數量影響）與 <strong>SHAP</strong>。兩者<strong>共同的限制</strong>：特徵高度相關時貢獻會被分攤而<strong>雙雙低估</strong>——應對相關特徵群<strong>整體評估</strong>。</p>
+  <p><strong>額外提醒</strong>：重要度異常高的特徵往往是<strong>資料洩漏</strong>的訊號。</p>
+</div>
+<div class="box math">
+  <div class="bt">📐 多重共線性：係數為什麼會反號又不穩定</div>
+  <p>當變數幾乎可由其他變數線性表示時，最小平方解在數學上接近<strong>不唯一</strong>，係數的標準誤大幅膨脹 → 正負號可能與直覺相反、數值極不穩定、個別係數的顯著性檢定失去意義。</p>
+  <p><strong>診斷</strong>：相關矩陣（只能發現兩兩相關）、<strong>變異數膨脹因子</strong>（把每個變數對其餘變數迴歸後計算，常以超過 5 或 10 為警訊，能發現多變數的線性組合關係）、觀察係數是否隨資料子集大幅變動。</p>
+  <p><strong>處置</strong>：依領域知識移除冗餘變數、合併為綜合指標、主成分降維、或改用 <strong>L2 正則化</strong>（讓相關變數平均分攤權重，這正是 Ridge 的設計動機）。</p>
+  <p><strong>關鍵區分</strong>：若目的<strong>只是預測</strong>而非解釋個別變數效應，共線性通常<strong>不會顯著損害預測精度</strong>，只是不能信任個別係數的解釋。</p>
+</div>
+</section>
+
+<!-- ══════════════ 5 ══════════════ -->
+<section class="ch" id="c5">
+<h2><span class="num">CH 5</span>資料稀缺的解法</h2>
+
+<h3>5-1　方法地圖</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>情況</th><th>方法</th><th>核心思想</th></tr>
+<tr><td>少量標註 ＋ 大量未標註</td><td><strong>半監督</strong>（偽標籤、一致性正則化）</td><td>從未標註資料萃取額外訊號</td></tr>
+<tr><td>大量未標註、標註極貴</td><td><strong>自監督預訓練</strong></td><td>從資料本身建構學習訊號，再以少量標註微調</td></tr>
+<tr><td>標註預算有限</td><td><strong>主動學習</strong></td><td>挑選資訊量最高的樣本優先標註</td></tr>
+<tr><td>專家知識豐富但標註時間少</td><td><strong>弱監督</strong>（程式化標註）</td><td>把判斷邏輯寫成標註函式大規模產生雜訊標籤</td></tr>
+<tr><td>新類別持續新增、每類極少樣本</td><td><strong>少樣本學習</strong></td><td>學習良好的嵌入與相似度，而非固定分類器</td></tr>
+<tr><td>目標領域與來源領域不同</td><td><strong>遷移學習／領域自適應</strong></td><td>重用既有知識並適應新分布</td></tr>
+</table>
+</div>
+
+<h3>5-2　偽標籤的風險：確認偏誤</h3>
+<div class="box warn">
+  <div class="bt">🚨 模型把自己有把握但實際錯誤的預測當成事實學習</div>
+  <p>會逐輪<strong>強化錯誤並累積放大</strong>，特別容易發生在少數類別或分布邊緣的樣本上（模型對它們既容易錯又可能過度自信）。</p>
+  <p><strong>五項防護</strong>：設定較高的信心門檻並<strong>各類別分別設門檻</strong>（避免只吸收容易的多數類而加劇不平衡）；<strong>逐步迭代</strong>每輪只加入少量；以完全乾淨的標註驗證集監控每輪表現，下降立即停止；對偽標籤樣本給予<strong>較低的損失權重</strong>；抽樣人工檢核偽標籤的正確率。</p>
+  <p><strong>更穩健的替代</strong>：<strong>一致性正則化</strong>（要求模型對同一未標註影像的不同增強版本給出一致預測，不需明確產生標籤）；影像領域效益最高的通常是<strong>自監督預訓練</strong>。</p>
+</div>
+
+<h3>5-3　自監督學習（影像）</h3>
+<div class="keys">
+  <div class="k"><b>對比學習</b>：對同一影像施加兩種不同的隨機增強得到兩個視圖，訓練模型使兩者的表示<strong>互相接近</strong>，而與其他影像的表示<strong>互相遠離</strong>。直覺是迫使模型學習「不論怎麼變換都保持不變」的<strong>語意內容</strong>，而非表面的像素細節。要點：增強策略的設計（過弱則任務太簡單、過強則破壞語意）、以及取得足夠負樣本（大批次、記憶佇列，或改用不需負樣本的自蒸餾架構）。</div>
+  <div class="k"><b>遮罩重建</b>：把影像切成區塊並隨機遮蔽大部分，要求模型重建被遮蔽的內容，藉此學習全域結構理解。</div>
+  <div class="k"><b>工業應用的優勢</b>：在<strong>自家的產品影像</strong>上做自監督預訓練，領域比通用預訓練權重更貼近，在標註稀缺的瑕疵檢測上常顯著優於從零訓練。可先以公開預訓練權重初始化再做領域自監督。以<strong>線性探測</strong>（凍結表示只訓練線性分類頭）可快速評估表示品質。</div>
+</div>
+
+<h3>5-4　主動學習的三種策略</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>策略</th><th>挑選依據</th><th>注意</th></tr>
+<tr><td><strong>不確定性抽樣</strong></td><td>最高類別機率最低者、前兩名機率差距最小（邊界抽樣）、預測分布熵最大</td><td>落在決策邊界附近，標註後最能修正邊界</td></tr>
+<tr><td><strong>多樣性抽樣</strong></td><td>結合分群或核心集選擇</td><td>單純依不確定性容易<strong>一次挑到一批高度相似的樣本</strong>（不確定性都高但資訊重複）</td></tr>
+<tr><td>委員會查詢</td><td>多個模型意見分歧最大者</td><td>需訓練多個模型</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 四個實務陷阱</div>
+  <ul>
+    <li><strong>冷啟動</strong>：初期模型還很差，不確定性估計不可靠，宜以隨機或多樣性抽樣建立基礎。</li>
+    <li><strong>離群與雜訊</strong>：不確定性最高的樣本有時是無法標註的離群樣本，標了沒用甚至有害，需加入品質篩選。</li>
+    <li><strong>批次多樣性</strong>：批次挑選時務必納入多樣性。</li>
+    <li><strong>必須驗證</strong>：以固定測試集追蹤每輪的實際提升，確認確實優於隨機基準（某些情況下優勢並不明顯）。</li>
+  </ul>
+</div>
+
+<h3>5-5　弱監督與標籤雜訊</h3>
+<div class="box case">
+  <div class="bt">💼 專家有一堆規則，但每條單獨都不準</div>
+  <p><strong>程式化標註</strong>：把每條規則寫成<strong>標註函式</strong>（關鍵詞比對、正規表達式、外部知識庫查詢、既有模型輸出、啟發式規則），每個函式可以不準確、涵蓋率不完整、甚至只對部分樣本表態。</p>
+  <p><strong>關鍵步驟是標籤模型</strong>：分析各函式之間的一致與分歧樣態，估計每個函式的<strong>準確率與函式之間的相關性</strong>（例如兩個都依賴同一關鍵詞的函式其錯誤是相關的），據此整合成<strong>機率式標籤</strong>——這比單純多數決更準確，因為多數決假設所有函式同等可靠且彼此獨立。</p>
+  <p><strong>務必保留一小份高品質的人工標註作為驗證與測試基準</strong>（絕不能用弱標籤評估）。</p>
+</div>
+<div class="box case">
+  <div class="bt">💼 8% 的標籤是錯的，模型效能觸頂</div>
+  <p><strong>診斷</strong>：量化雜訊比例與型態——是隨機分布還是集中在特定<strong>類別對</strong>、特定標註者、或特定資料來源。</p>
+  <p><strong>識別可疑樣本</strong>：以交叉驗證產生<strong>折外預測</strong>，找出模型高信心地預測為其他類別的樣本；也可用訓練過程中的<strong>損失變化</strong>（雜訊樣本通常損失居高不下或很晚才被記住）。找出後<strong>送人工複核而非自動修改</strong>。</p>
+  <p><strong>訓練層面緩解</strong>：對雜訊穩健的損失、<strong>標籤平滑</strong>（把硬標籤改為略微平滑的分布，降低過度自信）、樣本重新加權、共同訓練、以及<strong>早停</strong>（模型通常先學乾淨樣本的一般規律，後期才開始記憶雜訊）。</p>
+  <p><strong>投報最高的方向仍是源頭改善</strong>：修訂標註指南、補充邊界案例、加強一致性檢核、關鍵樣本多人標註後仲裁。</p>
+</div>
+
+<h3>5-6　遷移學習與領域自適應</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>資料量</th><th>領域相似</th><th>領域差異大</th></tr>
+<tr><td><strong>少</strong></td><td>凍結大部分層，只訓練分類頭</td><td><strong>最棘手</strong>：淺層保留、解凍<strong>較高的若干層</strong>並用<strong>很小的學習率</strong>；強力搭配資料增強、正則化與早停；可採漸進式解凍</td></tr>
+<tr><td><strong>多</strong></td><td>全部微調，中等學習率</td><td>全部微調甚至考慮從頭訓練</td></tr>
+</table>
+</div>
+<p><strong>技巧</strong>：<strong>分層學習率</strong>（越靠近輸出的層學習率越大，因為它們需要改變得更多）；微調的整體學習率應遠小於預訓練時；注意批次正規化層在微調時的統計量更新方式。</p>
+<div class="box case">
+  <div class="bt">💼 A 廠訓練的模型移到 B 廠準確率大跌</div>
+  <p>光源色溫、鏡頭型號、背景材質不同，但<strong>瑕疵的定義相同</strong>——這是<strong>共變量偏移</strong>（輸入的邊際分布改變但輸入與標籤的關係不變）。</p>
+  <ul>
+    <li><strong>有 B 廠少量標註</strong>（最實際）：微調；資料極少時也可只重新校準最後的分類層或決策閾值。</li>
+    <li><strong>只有 B 廠未標註資料</strong>：無監督領域自適應——<strong>對抗式領域對齊</strong>（加入領域判別器，訓練特徵萃取器使其產生的特徵無法被判別出來自哪一廠，從而學到<strong>領域不變的表示</strong>）、或以統計量對齊特徵分布。</li>
+    <li><strong>完全無 B 廠資料</strong>：訓練階段就以<strong>資料增強模擬可能的變異</strong>（色溫偏移、亮度對比、雜訊、輕微幾何變形）——成本最低且效益明確的預防措施。</li>
+    <li><strong>工程面往往最有效</strong>：標準化各廠的取像條件（統一光源、鏡頭與角度）；並為每個廠建立<strong>各自的驗證集與監控</strong>，避免以整體平均掩蓋單廠問題。</li>
+  </ul>
+</div>
+
+<h3>5-7　少樣本與開放集</h3>
+<div class="keys">
+  <div class="k"><b>少樣本學習</b>：把問題從「學習分類器」轉為「<strong>學習良好的相似度或表示</strong>」。以既有大量類別訓練嵌入模型使同類相近、異類相遠（訓練時常採<strong>情節式</strong>方式模擬少樣本情境）；推論時新類別只需計算其少數範例嵌入的<strong>平均值作為原型</strong>，待分類影像指派給最近的原型，<strong>完全不需重新訓練</strong>——新商品上架當天就能分類。</div>
+  <div class="k"><b>開放集問題</b>：一般分類模型建立在<strong>封閉集假設</strong>之上（輸入必然屬於已知類別之一），Softmax 會把機率分配到已知類別，遇到完全沒見過的物件仍會強行指派且可能高信心。<strong>需加入分布外偵測</strong>：以最大 Softmax 機率（簡單但校準不佳）、經溫度縮放修正的分數、<strong>能量分數</strong>、或特徵空間中與各類訓練分布的馬氏距離設門檻；也可訓練明確的「未知類別」或使用離群暴露。<strong>拒絕辨識的樣本應轉人工並記錄——這正是最有價值的新類別線索。</strong></div>
+</div>
+</section>
+
+<!-- ══════════════ 6 ══════════════ -->
+<section class="ch" id="c6">
+<h2><span class="num">CH 6</span>深度學習架構</h2>
+
+<h3>6-1　殘差連接解決的「退化問題」</h3>
+<div class="box math">
+  <div class="bt">📐 56 層比 20 層更差，而且連訓練誤差都更高</div>
+  <p><strong>判斷關鍵</strong>：訓練誤差<strong>也</strong>變高 → 不是過擬合（過擬合是訓練低、驗證高），而是<strong>最佳化困難</strong>。</p>
+  <p>理論上 56 層的表達能力必然涵蓋 20 層（多出的層可學成恆等映射），表現變差顯示最佳化器<strong>難以找到好的解</strong>，這稱為<strong>退化問題</strong>。</p>
+  <div class="fml">殘差區塊：輸出 = 輸入 + F(輸入)
+
+效果一：學習恆等映射變得容易 → 只需讓 F 的權重趨近於零，加深不會變差
+效果二：梯度可透過<b>捷徑路徑</b>直接回傳到淺層，緩解逐層連乘的衰減</div>
+  <p>這是深度學習發展的關鍵突破，此後幾乎所有深層架構（包括 Transformer）都採用殘差連接搭配正規化層。相關創新還有：稠密連接、<strong>深度可分離卷積</strong>（把標準卷積拆成逐通道的空間卷積與逐點的通道混合，大幅減少參數與運算，是行動裝置架構的核心）、瓶頸結構。</p>
+</div>
+
+<h3>6-2　感受野與空洞卷積</h3>
+<p><strong>感受野</strong>＝輸出特徵圖上一個位置所對應的原始輸入區域範圍。若感受野<strong>小於待辨識物件的尺寸</strong>，模型判斷某像素時看不到足夠脈絡，就會出現「大物件內部預測破碎」的現象。</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>擴大方法</th><th>代價</th></tr>
+<tr><td>加深網路</td><td>參數與運算增加</td></tr>
+<tr><td>池化或步幅卷積下採樣</td><td><strong>降低空間解析度</strong>，對需要精細邊界的分割不利</td></tr>
+<tr><td><strong>空洞（膨脹）卷積</strong></td><td>在卷積核取樣點之間插入間隔，<strong>以相同參數量覆蓋更大範圍且不降低解析度</strong>；多個不同膨脹率並聯可捕捉多尺度脈絡</td></tr>
+<tr><td>金字塔式池化</td><td>以多種區域大小池化後上採樣合併，明確聚合局部到全域的資訊</td></tr>
+</table>
+</div>
+<p><strong>分割網路的核心取捨是「感受野」與「空間解析度」</strong>——編碼器解碼器架構搭配<strong>跳接連接</strong>正是為了兼顧：編碼器下採樣擴大感受野取得語意，解碼器上採樣並融合編碼器的高解析度特徵以還原邊界細節。</p>
+
+<h3>6-3　Transformer 的兩個關鍵</h3>
+<div class="box math">
+  <div class="bt">📐 位置編碼：為什麼沒有它就分不出「貓追狗」與「狗追貓」</div>
+  <p>自注意力的計算對輸入順序具有<strong>置換等變性</strong>——打亂輸入，輸出也只是相應打亂，內容本身不變。若不額外提供位置資訊，模型看到的其實是一個<strong>詞的集合</strong>而非序列。</p>
+  <ul>
+    <li><strong>絕對正弦編碼</strong>：以不同頻率的正弦餘弦為每個位置產生固定向量；不需學習、<strong>可外推</strong>到訓練時未見的長度。</li>
+    <li><strong>可學習位置嵌入</strong>：簡單有效，但難以外推。</li>
+    <li><strong>相對位置編碼</strong>（如旋轉位置編碼）：直接編碼<strong>兩個位置的相對距離</strong>，更符合語言直覺且外推性較好，是目前大型語言模型的主流。</li>
+  </ul>
+</div>
+<div class="box math">
+  <div class="bt">📐 注意力的平方複雜度</div>
+  <p>自注意力需計算序列中<strong>每一對位置</strong>之間的相似度，形成長度乘以長度的矩陣：<strong>序列長度增加 10 倍，成本增加約 100 倍</strong>。這是處理長文本的主要瓶頸。</p>
+  <p><strong>四類緩解</strong>：稀疏化注意力樣態（局部視窗＋少數全域位置）；低秩或核方法的線性近似（有近似誤差）；<strong>記憶體高效的精確實作</strong>（透過分塊計算與重新計算，避免把完整矩陣具體化，<strong>不改變數學結果</strong>，是目前最常用且無精度損失的作法）；架構層面（階層式處理、檢索取相關段落）。</p>
+</div>
+
+<h3>6-4　分詞粒度</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>粒度</th><th>優點</th><th>缺點</th></tr>
+<tr><td>字元</td><td>詞彙表極小、無未登錄詞</td><td>序列變長（成本高、長距離依賴難）、單一字元語意有限</td></tr>
+<tr><td>完整詞</td><td>語意單元明確、序列短</td><td>詞彙表龐大、稀有詞訓練不足、<strong>未登錄詞完全無法表示</strong></td></tr>
+<tr><td><strong>子詞</strong></td><td>常見詞保持完整、罕見詞拆成常見片段；詞彙表可控（通常數萬）、<strong>任何輸入都能表示</strong>、形態相關的詞共享子詞</td><td>需與模型配對，更換分詞器須重新訓練</td></tr>
+</table>
+</div>
+<p>常見演算法：位元組對編碼（反覆合併最高頻的相鄰單元對）、WordPiece、Unigram 語言模型。<strong>中文因無空格，多採用直接在位元組或字元序列上學習的方式；分詞效率直接影響詞元數與成本。</strong></p>
+
+<h3>6-5　生成模型的解碼與擴散</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>解碼策略</th><th>特性</th><th>適用</th></tr>
+<tr><td>貪婪解碼</td><td>每步選最高機率；確定性高但<strong>容易陷入重複循環</strong>（模型對已出現的模式賦予高機率而自我強化），且局部最佳未必整體最佳</td><td>—</td></tr>
+<tr><td>束搜尋</td><td>維持多條候選路徑依累積機率擴展</td><td>翻譯、摘要等有明確目標的任務；需搭配<strong>重複懲罰與長度正規化</strong>，束寬過大可能產生乏味句子</td></tr>
+<tr><td>核採樣（Top-p）</td><td>從累積機率達 p 的最小候選集合採樣，<strong>依分布形狀動態調整候選數</strong></td><td>需要多樣性的創作</td></tr>
+</table>
+</div>
+<div class="box case">
+  <div class="bt">💼 擴散模型的原理</div>
+  <p><strong>正向過程</strong>（固定、不需學習）：對真實影像逐步加入高斯雜訊，足夠多步後變成接近純雜訊。<br><strong>反向過程</strong>：訓練模型在給定帶噪影像與時間步時，<strong>預測該步加入的雜訊</strong>。<br><strong>生成</strong>：從隨機雜訊出發反覆去噪。</p>
+  <p><strong>相較 GAN 的優勢</strong>：訓練目標是簡單的迴歸損失而非對抗博弈，<strong>訓練穩定得多、不會模式崩潰</strong>，樣本多樣性更好。<strong>限制</strong>：推論需多步迭代而較慢——改善方向是更高效的採樣器、以及在<strong>低維潛在空間</strong>而非像素空間進行擴散（潛在擴散，已成主流）。條件生成透過交叉注意力注入文字嵌入，並以<strong>無分類器引導強度</strong>控制與提示的貼合度（強度過高會損害多樣性與自然度）。</p>
+</div>
+</section>
+
+<!-- ══════════════ 7 ══════════════ -->
+<section class="ch" id="c7">
+<h2><span class="num">CH 7</span>視覺與語言實務</h2>
+
+<h3>7-1　資料增強的邊界</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>技術</th><th>做法</th><th>效果與注意</th></tr>
+<tr><td>基本幾何與色彩</td><td>旋轉、翻轉、裁切、亮度對比</td><td>擴充同一張影像的不同呈現</td></tr>
+<tr><td><strong>Mixup</strong></td><td>兩張影像與其標籤依比例<strong>線性混合</strong></td><td>鼓勵樣本之間的線性過渡、決策邊界更平滑，<strong>顯著改善校準</strong></td></tr>
+<tr><td><strong>CutMix</strong></td><td>一張影像的<strong>區塊貼到另一張</strong>，標籤依面積比例混合</td><td>影像更接近自然；迫使模型從<strong>局部區域</strong>也能辨識，對遮擋更穩健</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">🚨 增強必須符合任務的不變性假設</div>
+  <p>套用不當的增強<strong>等於製造錯誤標籤</strong>：辨識數字 6 與 9 不可上下翻轉；判讀胸部 X 光左右翻轉會改變<strong>解剖語意</strong>；色彩是關鍵特徵時不應大幅擾動色相。混合類增強在分類上效果好，但對<strong>需要精確空間對應</strong>的偵測與分割需特別設計；細粒度或醫療影像也需驗證是否破壞關鍵診斷特徵。增強強度過強會使訓練分布偏離真實分布。<strong>所有增強都應以驗證表現驗證其實際效益。</strong></p>
+</div>
+
+<h3>7-2　偵測與分割的實務</h3>
+<div class="box case">
+  <div class="bt">💼 非極大值抑制的門檻取捨</div>
+  <p><strong>作法</strong>：依信心分數排序，取最高者加入結果，刪除與它的<strong>交集比聯集（IoU）</strong>超過門檻的其他框，重複至結束。</p>
+  <div class="fml">門檻太<b>低</b>（如 0.3）→ 相鄰但確實不同的物件（密集停車場中兩台緊鄰的車）被<b>誤刪</b> → 漏檢
+門檻太<b>高</b>（如 0.8）→ 同一物件的多個框無法合併 → 重複偵測</div>
+  <p><strong>密集場景的改良</strong>：<strong>軟性抑制</strong>（不直接刪除而是依重疊程度衰減分數）、以同時考慮中心點距離與長寬比的重疊度量、<strong>依類別分別執行抑制</strong>；部分新式架構以集合預測直接輸出不重複結果而不需此後處理。</p>
+</div>
+<div class="box case">
+  <div class="bt">💼 分割的極度像素不平衡（病灶佔 0.5%）</div>
+  <p>逐像素交叉熵把每個像素視為獨立分類並平均，背景佔 99.5% 時<strong>全判背景就有極低的平均損失</strong>。</p>
+  <ul>
+    <li><strong>Dice 損失</strong>：以預測區域與標註區域的<strong>重疊比例</strong>為基礎（兩倍交集除以兩者面積和），衡量的是<strong>區域重疊而非逐像素平均</strong>，天然對前景大小不敏感。其變體 <strong>Tversky 損失</strong>可分別調整偽陰性與偽陽性的權重，適合需偏重召回的臨床場景。</li>
+    <li><strong>組合損失</strong>：實務常把 Dice 與交叉熵相加，兼顧區域重疊與逐像素的梯度穩定性（純 Dice 在訓練初期梯度可能不穩）。</li>
+    <li><strong>取樣策略</strong>：以病灶為中心裁切訓練區塊，提高每批次的前景像素比例。</li>
+    <li><strong>評估</strong>：像素準確率毫無意義（全判背景就有 99.5%），應用 Dice 係數、IoU、以及依臨床需求的敏感度；並應以<strong>病灶為單位</strong>（而非像素）計算偵測率。</li>
+  </ul>
+</div>
+
+<h3>7-3　Vision Transformer vs. CNN</h3>
+<div class="box math">
+  <div class="bt">📐 歸納偏置（Inductive Bias）決定樣本效率</div>
+  <p><strong>CNN 內建三項與影像高度契合的假設</strong>：局部性（有意義的圖案通常是局部的）、權重共享帶來的平移等變性、層次化組合結構。這些假設<strong>大幅縮小了搜尋空間</strong>，使它在資料有限時就能學到合理表示。</p>
+  <p><strong>ViT 幾乎不假設任何空間結構</strong>（位置資訊僅由位置編碼提供），必須從資料中自行學習「哪些區塊該互相關注」。小資料上是劣勢（缺乏約束容易學到不良模式），<strong>但在大規模資料或預訓練下成為優勢</strong>——不受局部性限制，能在淺層就建立全域關聯，且規模擴大時的表現提升更持續。</p>
+  <p><strong>實務結論</strong>：資料量有限且無合適預訓練權重 → CNN 仍穩健；能用大規模預訓練權重微調 → Transformer 系列往往更佳。<strong>混合架構</strong>（早期層用卷積、或階層式視窗注意力）在中等資料規模下兼顧兩者優點。</p>
+</div>
+
+<h3>7-4　NLP 三個實務要點</h3>
+<div class="keys">
+  <div class="k"><b>文字表示的取捨</b>：TF-IDF 加線性模型——計算快、<strong>可解釋</strong>（可看出關鍵詞係數）、領域詞彙明確時效果不俗；限制是<strong>詞袋忽略語序、無法處理同義與一詞多義</strong>。預訓練語言模型——捕捉上下文語意、小資料受益於遷移知識；限制是成本高、可解釋性差。<strong>應先以 TF-IDF 建立基準再評估增益</strong>；中文需注意斷詞品質。</div>
+  <div class="k"><b>NER 必須用實體層級評估</b>：逐字元準確率會被大量非實體字元<strong>稀釋而虛高</strong>，且<strong>無法反映邊界錯誤</strong>（把「台灣大學」抓成「台灣」，字元層級有一半是對的，實務上卻是完全錯誤的實體）。應以「起訖位置與類型都完全一致」計算精確率、召回率與 F1，並<strong>分實體類型報告</strong>。錯誤分析要區分邊界錯誤（常與分詞或標註規範不一致有關）、類型錯誤與完全漏抓。</div>
+  <div class="k"><b>檢索架構：雙塔 vs. 交叉編碼器</b>——雙塔分別編碼查詢與文件，<strong>文件向量可離線預計算並建索引</strong>，適合大規模即時檢索；交叉編碼器把兩者<strong>一起</strong>輸入深度互動，精度高但<strong>無法預計算</strong>，只適合對少量候選重排序。標準架構是<strong>兩階段</strong>：雙塔（可搭配關鍵字檢索形成混合檢索）快速召回數十至數百候選 → 交叉編碼器重排取前 10。訓練雙塔的關鍵是<strong>負樣本設計</strong>。</div>
+</div>
+
+<h3>7-5　推薦與多模態</h3>
+<div class="box warn">
+  <div class="bt">🚨 只用正樣本訓練 → 模型對所有物品都給高分</div>
+  <p>模型可以把所有嵌入映射到同一區域就讓所有正對的相似度都很高，<strong>完全學不到區辨能力</strong>。必須引入負樣本：</p>
+  <ul>
+    <li><strong>批次內負採樣</strong>：把同批次中其他使用者的正樣本當作負樣本；簡單高效，雙塔訓練的標準作法。</li>
+    <li><strong>熱門度加權採樣</strong>：完全均勻隨機會抽到太多冷門物品（太容易分辨、訊號有限）；依熱門度採樣更有意義但會引入採樣偏誤，需以對數機率修正等方式校正。</li>
+    <li><strong>困難負樣本挖掘</strong>：以當前模型檢索出分數高但未被互動的物品；能顯著提升區辨細微差異的能力，但<strong>未互動不等於不喜歡</strong>（可能只是沒被曝光），過度激進會引入<strong>偽負樣本</strong>。</li>
+  </ul>
+  <p><strong>其他考量</strong>：<strong>曝光偏誤</strong>（訓練資料只反映系統曾經推薦過的物品，需以隨機曝光資料或傾向分數修正）；評估應在<strong>完整候選集</strong>上用排序指標。</p>
+</div>
+<p><strong>多模態對比學習</strong>：以大量圖文配對訓練影像與文字兩個編碼器，使配對的表示互相接近、非配對的遠離，讓兩者落在<strong>共享的語意空間</strong>——文字查詢向量可直接與影像向量計算相似度做跨模態檢索，並帶來<strong>零樣本能力</strong>（用文字描述新類別即可檢索或分類）。實務上以通用預訓練多模態模型為起點，再用自家圖文配對微調，效果最佳且成本可控。</p>
+</section>
+
+<!-- ══════════════ 8 ══════════════ -->
+<section class="ch" id="c8">
+<h2><span class="num">CH 8</span>評估指標進階</h2>
+
+<h3>8-1　ROC-AUC vs. PR-AUC</h3>
+<div class="box math">
+  <div class="bt">📐 為什麼兩個 ROC-AUC 都是 0.95，實用性卻天差地遠</div>
+  <p>詐欺率 0.2%，PR-AUC 分別是 0.42 與 0.18。</p>
+  <div class="fml">ROC 橫軸 = 偽陽率 = 偽陽性 ÷ <b>全部實際負樣本數</b>
+  → 負樣本佔 99.8%，分母極大
+  → 偽陽性增加數千個，偽陽率變化仍然很小 → 曲線依舊漂亮
+
+PR 縱軸 = 精確率 = 真陽性 ÷ <b>被判為陽性的總數</b>
+  → 偽陽性一增加，精確率立刻下降
+  → 敏銳反映「為了多抓詐欺，要誤擋多少正常交易」</div>
+  <p><strong>基準線的差別</strong>：PR-AUC 的基準線等於<strong>正樣本比例</strong>（本題 0.002），因此 0.42 其實是巨大的提升；ROC-AUC 的基準線恆為 0.5，不隨不平衡程度改變。</p>
+  <p><strong>實務</strong>：不平衡任務以 PR-AUC 為主要指標，並同時報告「<strong>在業務可接受的召回率下的精確率</strong>」——單一曲線下面積仍可能掩蓋工作點附近的差異。</p>
+</div>
+
+<h3>8-2　三種平均方式</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>平均</th><th>計算</th><th>特性</th></tr>
+<tr><td><strong>微觀</strong>（Micro）</td><td>先把所有類別的 TP、FP、FN 加總再計算</td><td>由<strong>多數類主導</strong>；單標籤多分類時等於整體準確率</td></tr>
+<tr><td><strong>巨集</strong>（Macro）</td><td>各類別各自計算後<strong>取簡單平均</strong></td><td><strong>各類別等權</strong>——只要有少數類別極差，整體就明顯下降</td></tr>
+<tr><td>加權</td><td>以各類樣本數加權</td><td>結果接近微觀平均</td></tr>
+</table>
+</div>
+<p><strong>案例判讀</strong>：微觀 0.88、巨集 0.51 → 強烈暗示<strong>稀有類別幾乎完全失效</strong>。選擇原則：各類別重要性相同（或稀有類別正是關注重點）→ 以巨集為主；整體處理量最重要 → 微觀或加權。<strong>三者都報告，並務必附上逐類別報表與混淆矩陣。</strong></p>
+
+<h3>8-3　排序與偵測指標</h3>
+<div class="keys">
+  <div class="k"><b>NDCG</b>：為每個位置的結果依<strong>相關程度</strong>給增益，除以隨排名增加的<strong>對數折扣</strong>後累加（排名越後貢獻越小），再除以<strong>理想排序</strong>的最大值正規化，使跨查詢可比較。適合支援多級相關性的搜尋評估。</div>
+  <div class="k"><b>MAP</b>：對每個相關結果出現的位置計算精確率後平均，適合二元相關性。<b>MRR</b>：第一個相關結果排名的倒數，適合只關心「最佳答案排多前面」的問答式場景。</div>
+  <div class="k"><b>mAP（物件偵測）</b>：以 IoU 判定匹配（同一標註框只能被匹配一次，其餘算偽陽性），依信心排序累積計算精確率召回率曲線求平均精確率，再對所有類別平均。<strong>必須說明所用的重疊門檻</strong>——以 0.5 為門檻較寬鬆，而在 0.5 至 0.95 之間取多門檻再平均的形式對定位精度要求更嚴，<strong>兩者不可直接比較</strong>。應另分小、中、大物件報告（小物件通常最難）。</div>
+</div>
+
+<h3>8-4　模型比較的統計嚴謹性</h3>
+<div class="box warn">
+  <div class="bt">⚠️ 87.2% vs. 87.8%，可以說 B 較好嗎？</div>
+  <ul>
+    <li><strong>配對比較</strong>：兩模型在同一批測試樣本上評估，應使用考慮<strong>配對結構</strong>的方法（比較兩者預測不一致的樣本，或以自助重抽樣估計差異的信賴區間），比獨立樣本檢定更有檢定力。若差異的信賴區間涵蓋零，就不能宣稱較好。</li>
+    <li><strong>測試集大小</strong>：在數千筆的測試集上，0.6 個百分點往往不具統計意義。</li>
+    <li><strong>訓練隨機性</strong>：同一設定不同隨機種子的分數就可能相差可觀，應以<strong>多個種子的平均與標準差</strong>比較。<strong>挑最好的種子等於對驗證集過度擬合</strong>，報告的分數無法重現。</li>
+    <li><strong>切片檢視</strong>：整體分數相近的兩個模型，在各子群體上的表現可能差異很大。</li>
+  </ul>
+</div>
+</section>
+
+<!-- ══════════════ 9 ══════════════ -->
+<section class="ch" id="c9">
+<h2><span class="num">CH 9</span>不確定性與可解釋性</h2>
+
+<h3>9-1　校準：機率可不可信</h3>
+<div class="box case">
+  <div class="bt">💼 模型說 0.8 的那群，實際只有 0.55 發生</div>
+  <p><strong>區辨能力</strong>（能否把正負樣本排開，以 AUC 衡量）與<strong>校準</strong>（輸出機率是否對應真實發生率）是<strong>兩件不同的事</strong>。當下游要用機率做期望值計算、定價、資源配置或成本導向的閾值時，校準就變得關鍵。</p>
+  <p><strong>診斷</strong>：<strong>可靠度圖</strong>（把預測機率分箱，比較每箱的平均預測機率與實際發生率，理想應貼近對角線）；量化指標用<strong>期望校準誤差</strong>或 Brier 分數。</p>
+  <p><strong>校準方法</strong>：<strong>Platt 縮放</strong>（以邏輯迴歸把原始分數映射到機率，適合分數呈 S 形偏差且資料量較少）、<strong>等滲迴歸</strong>（無母數的單調映射，較有彈性但需較多資料且易過擬合）。<strong>必須在獨立的校準集上進行</strong>，不能用訓練集。</p>
+  <p><strong>常見成因</strong>：使用了過採樣或類別權重（會系統性抬高正類機率，事後需做<strong>先驗校正</strong>）、模型本身特性、資料分布漂移。<strong>上線後也應持續監控校準</strong>，因為它會隨時間退化。</p>
+</div>
+
+<h3>9-2　不確定性估計</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>方法</th><th>原理</th><th>成本與品質</th></tr>
+<tr><td><strong>深度集成</strong></td><td>獨立訓練數個模型（不同初始化與資料順序），以預測分歧作為不確定性</td><td>作法簡單、<strong>效果通常最佳</strong>；訓練與推論成本乘以模型數</td></tr>
+<tr><td>蒙地卡羅 Dropout</td><td>推論時保持 Dropout 開啟，多次前向傳播取變異</td><td>成本較低但估計品質通常不如集成</td></tr>
+<tr><td>貝氏神經網路</td><td>對權重建模為分布</td><td>理論完整但實作複雜</td></tr>
+</table>
+</div>
+<div class="box math">
+  <div class="bt">📐 兩種不確定性要分清楚</div>
+  <p><strong>偶然不確定性</strong>：源自<strong>資料本身的雜訊與模糊</strong>（影像品質差、病灶本身難以判定）。<strong>增加資料無法消除</strong>，可透過模型直接預測輸出的變異來捕捉。</p>
+  <p><strong>認知不確定性</strong>：源自<strong>模型對該區域缺乏訓練資料</strong>。<strong>可透過增加相關資料降低</strong>；集成方法的分歧主要反映這一類。</p>
+  <p><strong>臨床配套</strong>：以不確定性設定拒絕判讀的門檻並轉人工；把不確定性呈現給醫師；把高不確定案例蒐集為後續標註的優先對象；並<strong>驗證不確定性估計本身的品質</strong>（高不確定的樣本其實際錯誤率是否確實較高）。</p>
+</div>
+
+<h3>9-3　共形預測：無分布假設的保證</h3>
+<div class="box math">
+  <div class="bt">📐 「有 90% 把握結果落在這個範圍」怎麼做到</div>
+  <p><strong>作法</strong>：切出一份未參與訓練的<strong>校準集</strong>，對其中每個樣本計算<strong>不符合度分數</strong>（迴歸常用預測誤差絕對值；分類可用一減去真實類別的預測機率）；取這些分數的適當<strong>分位數</strong>作為門檻；對新樣本，把所有不符合度低於門檻的可能輸出納入預測集合（迴歸則形成區間）。</p>
+  <p><strong>保證</strong>：在資料<strong>可交換</strong>的假設下（比獨立同分布更弱），預測集合涵蓋真實值的機率不低於設定水準，且是<strong>有限樣本</strong>的保證而非漸近性質。</p>
+  <p><strong>四個特性</strong>：模型無關（可包裝在任何既有模型之上，不需重新訓練）；分類輸出是<strong>集合</strong>——困難樣本的集合較大，<strong>集合大小本身就是不確定性的直觀表達</strong>；可延伸為條件式版本使各<strong>子群體</strong>都達到覆蓋率（邊際覆蓋率成立不代表各群體都成立，這在公平性上很重要）；迴歸可搭配分位數迴歸得到寬度自適應的區間。</p>
+  <p><strong>限制</strong>：資料分布漂移會破壞可交換性假設，需採用適應性變體並<strong>持續監控實際覆蓋率</strong>。</p>
+</div>
+
+<h3>9-4　SHAP 的假設與陷阱</h3>
+<div class="box warn">
+  <div class="bt">🚨 三個必須理解的限制</div>
+  <ol>
+    <li><strong>特徵相關性</strong>：兩個高度相關的特徵<strong>貢獻會被分攤</strong>，個別值都偏低，容易誤以為兩者都不重要。應對相關特徵<strong>群組整體評估</strong>。此外常用的近似實作可能隱含特徵獨立假設，在高度相關時會評估到<strong>不真實的特徵組合</strong>而產生誤導。</li>
+    <li><strong>關聯而非因果</strong>：SHAP 解釋的是「<strong>模型如何使用特徵</strong>」，而模型學到的是訓練資料中的關聯。<strong>不能把 SHAP 值當成「改變這個變數就會有這個效果」的行動保證</strong>——要回答干預問題需要因果推論方法或實驗。</li>
+    <li><strong>其他</strong>：基準值的選擇會影響貢獻解讀；不同實作與近似方法可能給出不同結果；高維資料的計算成本高。</li>
+  </ol>
+  <p><strong>工程實務</strong>：對樹模型使用<strong>專用的高效實作</strong>（把指數等級的計算降到多項式等級）；只對<strong>需要說明的案件</strong>（婉拒件、申訴件）計算局部解釋；全域解釋以抽樣產出；把 SHAP 值轉譯為<strong>固定的理由代碼</strong>以利業務溝通與一致性。</p>
+</div>
+
+<h3>9-5　部分依賴圖與累積局部效應</h3>
+<div class="box math">
+  <div class="bt">📐 PDP 的外推問題</div>
+  <p>PDP 的計算方式是「對目標特徵取一系列的值，<strong>每個值都套用到所有樣本上</strong>（其他特徵保持原值）」，再取預測平均。</p>
+  <p><strong>問題</strong>：當目標特徵與其他特徵高度相關時，這會產生<strong>現實中不存在的組合</strong>——把某個小坪數樣本的面積改成 200 坪但房間數仍為 1。模型在此處的預測是<strong>外推的、不可靠的</strong>，把它們平均進來會使曲線失真。</p>
+  <p><strong>ALE（累積局部效應）</strong>：把目標特徵分成若干區間，<strong>在每個區間內只使用實際落在該區間的樣本</strong>，計算特徵值在區間兩端之間的預測差異（局部效應），再累加。因為只在資料實際存在的鄰域內做微小變動，<strong>避免了外推到不真實的組合</strong>。</p>
+  <p><strong>補充工具</strong>：<strong>個別條件期望圖（ICE）</strong>呈現每個樣本各自的曲線而非平均，能揭露被平均掩蓋的<strong>異質效應</strong>（不同子群方向相反時，平均可能是平的）。同樣要記得：這些圖呈現的是<strong>模型的行為，不是真實世界的因果關係</strong>。</p>
+</div>
+
+<h3>9-6　反事實解釋</h3>
+<p>回答「<strong>要改變什麼、改多少，結果才會不同</strong>」，比單純指出影響因子更具行動指引價值。設計要點：</p>
+<ul>
+  <li><strong>可行性</strong>：建議的變動必須真的能改變——<strong>年齡、性別、出生地等不可改變或受保護的屬性不得出現</strong>。</li>
+  <li><strong>合理性</strong>：符合現實約束（收入不可能一個月翻倍）與特徵間的相依關係。</li>
+  <li><strong>稀疏性</strong>：變動的特徵越少越好，容易理解與執行。</li>
+  <li><strong>穩健性</strong>：不應因模型微幅更新就完全失效。</li>
+  <li><strong>揭露風險</strong>：過於精確的反事實等同揭露<strong>決策邊界</strong>，可能被用於規避風控，因此對外通常給出方向與大致區間而非精確門檻，並需與法遵討論。</li>
+  <li><strong>不可承諾</strong>：應明確說明這是依現行模型的估計，不構成核准保證。</li>
+</ul>
+</section>
+
+<!-- ══════════════ 10 ══════════════ -->
+<section class="ch" id="c10">
+<h2><span class="num">CH 10</span>穩健性、公平性與持續學習</h2>
+
+<h3>10-1　對抗穩健性</h3>
+<div class="keys">
+  <div class="k"><b>成因</b>：高維空間中，樣本點距離決策邊界可能比直覺想像的近得多，沿特定方向的微小移動就足以跨越邊界。</div>
+  <div class="k"><b>攻擊分類</b>：白箱（知道結構與參數，可直接用梯度計算最有效的擾動）／黑箱（只能查詢輸出，利用對抗樣本的<strong>可遷移性</strong>，先攻擊自建替身模型再套用）。</div>
+  <div class="k"><b>防禦</b>：<strong>對抗訓練</strong>（在訓練中即時生成對抗樣本並納入訓練，目前最有效的經驗性防禦；代價是訓練成本大幅增加，且通常會犧牲一部分乾淨資料的準確率）；輸入前處理與偵測；模型集成與隨機化；<strong>系統層的多感測器融合</strong>（安全關鍵應用最重要）。</div>
+  <div class="k"><b>評估的關鍵</b>：必須用<strong>強度足夠的攻擊</strong>——許多看似有效的防禦只是使梯度難以計算（<strong>梯度遮蔽</strong>），在更強的攻擊或黑箱攻擊下即失效。應使用公認的標準攻擊套件與自適應攻擊，報告在<strong>指定擾動範圍內</strong>的穩健準確率。若需形式保證，可用<strong>隨機平滑</strong>（對輸入加高斯雜訊並多次取樣，可證明在一定半徑內預測不變），代價是保證半徑較小且推論成本高。</div>
+</div>
+
+<h3>10-2　捷徑學習</h3>
+<div class="box warn">
+  <div class="bt">🚨 模型靠「醫院標記與設備紋理」判讀肺炎</div>
+  <p><strong>捷徑學習</strong>指模型找到了在訓練資料中有效、但<strong>不具泛化性</strong>的表面線索。若重症病患多在某台設備拍攝，模型只要辨認設備紋理就能取得高準確率，完全不需理解病灶。</p>
+  <p><strong>最關鍵的防範是驗證方式</strong>：必須採用<strong>跨機構的外部驗證</strong>——隨機切分的內部測試集<strong>無法暴露捷徑學習</strong>，因為捷徑在訓練與測試中同樣有效。</p>
+  <p><strong>其他層面</strong>：資料層（移除或遮蔽識別標記、統一前處理、涵蓋多來源多設備以打破捷徑與標籤的關聯、檢查各來源的標籤分布是否不均）；解釋層（以顯著圖檢視模型關注區域是否落在病灶上，集中在角落或背景即是明確警訊；並做遮蔽對照實驗）；方法層（領域泛化或不變風險最小化）。</p>
+  <p><strong>核心提醒：高準確率從來不是模型可信的充分證據。</strong></p>
+</div>
+
+<h3>10-3　公平性緩解的三個介入時機</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>階段</th><th>做法</th><th>優缺點</th></tr>
+<tr><td><strong>前處理</strong></td><td>重新加權或重新取樣、修正標籤中的歷史偏誤、學習不含敏感資訊的表示</td><td>與後續模型無關、一次處理可供多模型使用；可能損失資訊</td></tr>
+<tr><td><strong>中處理</strong></td><td>在訓練目標中加入公平性約束或正則化；對抗式作法讓判別器無法從表示中預測敏感屬性</td><td>能較細緻地最佳化準確率與公平性；需修改訓練流程且較複雜</td></tr>
+<tr><td><strong>後處理</strong></td><td>對不同群體調整決策閾值</td><td>簡單、不需重新訓練；但<strong>可能需要在推論時使用敏感屬性</strong>（某些法域有爭議），且對不同群體採不同標準本身也可能引發質疑</td></tr>
+</table>
+</div>
+<div class="box exam">
+  <div class="bt">🎯 關鍵前提</div>
+  <p>必須<strong>先確定要滿足哪一種公平性定義</strong>（統計均等／機會均等／預測值平價），因為<strong>多種定義通常無法同時滿足</strong>。公平性與整體準確率之間常有取捨，該取捨的接受度是<strong>業務與法遵的價值判斷而非技術決定</strong>，應留下決策紀錄。技術緩解也無法解決根本的社會結構問題，不能取代對資料蒐集與問題定義本身的檢討。</p>
+</div>
+
+<h3>10-4　漂移偵測與持續學習</h3>
+<p><strong>漂移偵測的分層</strong>（詳見中級科目一）：輸入分布（PSI、KS 檢定、分布距離；也可訓練分類器嘗試區分訓練與線上資料）→ 預測分布（標籤延遲時最重要的先行指標）→ 效能。<strong>注意多重比較</strong>（監控上百個特徵時必然有些偶然顯著）與<strong>樣本量效應</strong>（樣本大時微小差異也會顯著），應同時看效果量。</p>
+<div class="box case">
+  <div class="bt">💼 只用新資料微調 → 舊類別準確率大跌</div>
+  <p>這是<strong>災難性遺忘</strong>。三類處置：</p>
+  <ul>
+    <li><strong>重播</strong>：保留部分舊資料（或以生成模型合成代表樣本）與新資料混合訓練。<strong>最直接有效</strong>；關鍵是舊樣本要有代表性（可用核心集選擇）。</li>
+    <li><strong>正則化</strong>：以費雪資訊估計各參數對舊任務的重要性並施加不同強度的懲罰。不需保留舊資料（<strong>隱私敏感場景很有價值</strong>），但效果通常不如重播。</li>
+    <li><strong>參數隔離</strong>：為新任務分配專屬參數（新增分支、遮罩、低秩適配器），舊參數凍結。<strong>完全避免遺忘</strong>但模型會膨脹，且需知道推論時屬於哪個任務。</li>
+  </ul>
+  <p><strong>重要提醒</strong>：<strong>若舊資料仍可取得且運算資源允許，直接以完整的新舊資料重新訓練通常是最單純、效果最好且最容易驗證的作法</strong>。持續學習方法主要適用於舊資料無法保留或需頻繁快速更新的場景。無論何種方法，都必須建立<strong>涵蓋新舊類別的完整評估集</strong>。</p>
+</div>
+
+<h3>10-5　因果機器學習</h3>
+<p>詳見中級科目二 CH 8-6 的增益模型四象限。此處補充：增益模型的建模方法包括<strong>雙模型法</strong>（分別對實驗組與對照組建模後相減）、單模型加交互項法、以及直接以增益為目標的樹模型；<strong>評估需使用專門的指標</strong>（增益曲線與其曲線下面積），且訓練與驗證都<strong>依賴隨機分派的實驗資料</strong>。</p>
+</section>
+
+<!-- ══════════════ 11 ══════════════ -->
+<section class="ch" id="c11">
+<h2><span class="num">CH 11</span>壓縮與推論最佳化</h2>
+
+<h3>11-1　三種壓縮技術的分工</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>技術</th><th>做什麼</th><th>要點</th></tr>
+<tr><td><strong>量化</strong></td><td>降低權重與運算的<strong>數值精度</strong>（16 位元 → 8 或 4 位元）</td><td>記憶體用量約成比例下降，且因記憶體頻寬需求降低而加速。一般 8 位元品質損失很小，4 位元需實測。方法：訓練後量化（簡便）／量化感知訓練（成本高但損失小）。<strong>加速效果取決於硬體與框架是否支援對應的低精度運算</strong></td></tr>
+<tr><td><strong>剪枝</strong></td><td>移除冗餘的權重或結構</td><td>結構化剪枝較容易獲得實際加速</td></tr>
+<tr><td><strong>知識蒸餾</strong></td><td>用大模型（教師）的<strong>完整機率分布</strong>訓練小模型（學生）</td><td>軟標籤包含<strong>類別之間的相對相似度</strong>（暗知識），比硬標籤資訊豐富。搭配<strong>溫度參數</strong>平滑分布（學生也用相同溫度，損失需乘溫度平方以維持梯度尺度），並同時使用軟標籤損失與真實標籤損失</td></tr>
+</table>
+</div>
+<div class="box case">
+  <div class="bt">💼 蒸餾的兩個實務優勢與一個陷阱</div>
+  <p><strong>優勢一</strong>：可使用<strong>未標註資料</strong>（教師能提供標籤），大幅擴充可用的訓練資料量。<br><strong>優勢二</strong>：除輸出層外，也可蒸餾中間層的特徵表示或注意力圖；也可把<strong>集成模型</strong>的知識蒸餾到單一模型。</p>
+  <p><strong>陷阱</strong>：必須以<strong>人工標註的獨立測試集</strong>驗證學生模型——<strong>與教師一致不代表正確，那只是複製了教師的錯誤</strong>。應先抽樣評估教師的準確率作為天花板參考，並過濾明顯異常的樣本。同時要確認服務條款是否允許以其輸出訓練其他模型。</p>
+</div>
+
+<h3>11-2　推論加速（不改架構、不犧牲準確率）</h3>
+<ol class="steps">
+  <li><strong>圖層級最佳化</strong>：<strong>算子融合</strong>（把連續的卷積、批次正規化與激活合併為單一核心，減少記憶體讀寫與核心啟動開銷，通常帶來顯著加速）、常數摺疊、死節點消除、記憶體配置最佳化。</li>
+  <li><strong>硬體特定最佳化</strong>：針對目標裝置選擇最適合的核心實作與資料排列格式。</li>
+  <li><strong>推論專用執行環境</strong>：通常比直接以訓練框架執行快上數倍。</li>
+  <li><strong>批次處理</strong>：提高吞吐但可能增加單次延遲，需依需求取捨。</li>
+  <li><strong>不要忽略前後處理</strong>：影像解碼、縮放、正規化常佔總延遲相當大的比例卻被忽略。</li>
+</ol>
+<div class="box warn">
+  <div class="bt">⚠️ 方法論</div>
+  <p><strong>先做效能剖析找出真正的瓶頸再對症下藥</strong>，而非盲目最佳化。每項變更後都必須<strong>驗證輸出與原模型的數值差異</strong>在可接受範圍（量化與融合可能造成細微差異），並在真實負載下量測延遲的<strong>分位數</strong>而非平均值。</p>
+</div>
+
+<h3>11-3　動態批次的兩個參數</h3>
+<div class="fml">最大批次大小 → 決定<b>吞吐上限與記憶體用量</b>
+最大等待時間 → 決定<b>延遲的保障</b>（低流量時單筆請求不會無限等待）
+
+調校原則：先確定服務等級目標（如 P99 延遲需低於 100 毫秒）
+        → 把最大等待時間設在延遲預算內的<b>一小部分</b>（總延遲還包含推論本身與網路往返）
+        → 在此前提下把批次大小調到記憶體與延遲允許的最大值
+        → 以實際流量壓測，觀察不同流量水準下的延遲分位數與吞吐</div>
+<p><strong>其他考量</strong>：高流量時批次自然容易湊滿；低流量時主要受等待時間影響，可依流量動態調整。輸入長度不一的模型需填補到相同長度，<strong>過度填補會浪費運算</strong>，可依長度分組批次。應監控<strong>批次實際填充率</strong>、佇列長度與延遲分位數。</p>
+
+<h3>11-4　分散式訓練</h3>
+<div class="keys">
+  <div class="k"><b>資料平行（最常用）</b>：每張卡持有<strong>完整模型副本</strong>並處理不同的資料分片，反向傳播後以集合通訊<strong>同步平均梯度</strong>。</div>
+  <div class="k"><b>必須調整的超參數</b>：等效批次變為單卡的 N 倍，通常需<strong>按比例（或以平方根等較溫和的規則）調高學習率並搭配預熱</strong>，否則收斂變慢或不穩；也要注意過大的等效批次可能損害泛化。</div>
+  <div class="k"><b>資料切分</b>：需使用分散式取樣器確保各卡拿到<strong>不重複</strong>的資料，且每回合重新洗牌並<strong>同步隨機種子</strong>。</div>
+  <div class="k"><b>批次正規化</b>：各卡只看到自己的小批次，有效批次變小；批次很小時可改用<strong>同步的批次正規化</strong>跨卡計算統計量（增加通訊成本）或改用不依賴批次的正規化。</div>
+  <div class="k"><b>其他</b>：通訊開銷使<strong>擴展效率非線性</strong>；日誌與檢查點應只由主程序寫出。模型大到單卡放不下時才需要<strong>模型平行或流水線平行</strong>（實作複雜度與通訊需求都更高）。</div>
+</div>
+</section>
+
+<!-- ══════════════ 12 ══════════════ -->
+<section class="ch" id="c12">
+<h2><span class="num">CH 12</span>實作陷阱</h2>
+
+<h3>12-1　scikit-learn 的三個必考</h3>
+<div class="box warn">
+  <div class="bt">🚨 陷阱一：前處理在切分前擬合</div>
+  <p>先對整份資料標準化或補值再切分 → <strong>測試資料的統計資訊（平均、標準差、中位數）洩漏到訓練過程</strong>，分數樂觀偏誤。</p>
+  <p><strong>常被誤解的一點</strong>：洩漏<strong>不限於使用標籤的步驟</strong>——即使是不看標籤的標準化，只要是用包含測試資料的整體統計量擬合的，就構成分布資訊的洩漏。同樣的問題也發生在：整份資料的中位數補值、決定分箱切點、特徵選擇、擬合 PCA、以及<strong>切分前執行過採樣</strong>。</p>
+  <p><strong>正解</strong>：把所有前處理與模型封裝成 <strong>Pipeline</strong>，交叉驗證時框架會在<strong>每一折內部只用該折的訓練部分</strong>擬合所有轉換器，從機制上杜絕洩漏；同時確保線上推論使用完全相同的轉換邏輯。</p>
+  <p><strong>另一個錯誤</strong>：對測試集<strong>獨立擬合</strong>轉換器——測試集必須使用<u>訓練集擬合出的參數</u>轉換，否則表示不一致且不符合線上情境（線上來一筆資料時不可能有整批資料算統計量）。</p>
+</div>
+<div class="box case">
+  <div class="bt">💼 陷阱二：混合型別的前處理</div>
+  <p>手動分別處理再合併，最大的風險不是程式冗長，而是<strong>訓練與推論的處理不一致</strong>——推論時漏掉某步驟、順序不同、或參數不同，都會使模型接收到不同分布的輸入，<strong>而且不會拋出例外，只會默默降低準確率</strong>。</p>
+  <p><strong>正解</strong>：用 <code>ColumnTransformer</code> 依欄位指定各自的轉換流程並自動合併，再與模型組成單一 Pipeline。好處：一致性、防洩漏、<strong>可一併序列化保存</strong>、參數可納入超參數搜尋。</p>
+</div>
+<div class="box case">
+  <div class="bt">💼 陷阱三：同時調校前處理與模型參數</div>
+  <p>把整條 Pipeline 傳入超參數搜尋工具，以「步驟名稱＋雙底線＋參數名稱」指定各步驟參數。好處是<strong>防洩漏</strong>（每折重新擬合整條流程）與<strong>聯合最佳化</strong>（前處理參數與模型參數存在交互作用，例如主成分保留維度會影響最佳正則化強度）。搜尋完成後工具通常以最佳參數在全部訓練資料上重新擬合一次。</p>
+</div>
+
+<h3>12-2　閾值、權重與序列化</h3>
+<div class="keys">
+  <div class="k"><b>predict vs. predict_proba</b>：多數分類器內部輸出的是機率或決策分數，<strong>類別預測只是與預設閾值 0.5 比較的結果</strong>。因此調整判定鬆緊<strong>完全不需要重新訓練</strong>——取得機率後在驗證集上掃描閾值，依成本結構選定工作點。多類別可對每類各自調整（多標籤尤其重要）。<strong>前提是機率要校準</strong>。</div>
+  <div class="k"><b>class_weight vs. sample_weight</b>：機制相同（都在損失中為樣本乘上係數），差別在<strong>指定粒度</strong>。樣本權重更彈性且可涵蓋類別權重的效果，還能表達資料可信度、時間衰減、抽樣設計校正與成本敏感學習。<strong>加權與重新取樣是替代方案而非必須並用</strong>，同時使用可能造成過度加權。評估時通常<strong>不對測試集加權</strong>（應反映真實分布）。</div>
+  <div class="k"><b>模型序列化</b>：模型檔案的行為<strong>依賴整個執行環境</strong>。應以<strong>容器映像</strong>固定環境、以鎖定檔記錄精確的套件版本（含間接相依）、完整保存前處理流程與特徵順序名稱、記錄框架版本與中繼資料。<strong>最關鍵的實務是冒煙測試</strong>：保存一組固定測試樣本與其在訓練環境下的預測結果，部署後立即比對，差異超過容許範圍即中止部署。</div>
+</div>
+
+<h3>12-3　推論端的三個無聲失敗</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>問題</th><th>症狀</th><th>對策</th></tr>
+<tr><td><strong>特徵順序錯位</strong></td><td>上游改了欄位順序，服務<strong>不報錯</strong>但預測全部異常</td><td>以<strong>名稱而非位置</strong>組裝特徵；推論前驗證欄位集合完全一致（缺少、多餘、順序不同都應偵測）；以結構描述定義輸入契約；監控預測分布（順序錯位通常會使分布明顯偏移）</td></tr>
+<tr><td><strong>未見類別</strong></td><td>新產品類別使編碼器拋出例外，<strong>服務中斷</strong></td><td>編碼器設為對未見類別安全處理（全零編碼＋<strong>未知類別指示欄位</strong>）；更好的是<strong>訓練時就把低頻類別合併為「其他」</strong>讓模型學會處理；監控未見類別的出現頻率；任何前處理例外都應優雅降級而非讓服務中斷</td></tr>
+<tr><td><strong>缺失值靜默填補</strong></td><td>上游故障使某特徵全空，模型仍以中位數填補照常輸出</td><td>填補統計量須<strong>來自訓練集並隨模型版本保存</strong>；加入缺失指示特徵；<strong>監控缺失率並設異常告警</strong>；依缺失嚴重程度分級降級（標記低信心／改用備援模型／拒絕預測）。<strong>系統應讓失敗可見，而不是靜默產出低品質結果</strong></td></tr>
+</table>
+</div>
+
+<h3>12-4　PyTorch 訓練迴圈的三個經典錯誤</h3>
+<div class="fml">① 忘記清空梯度
+   PyTorch 的梯度是<b>累加</b>的 → 本次梯度疊加到上次殘留 → 更新方向錯誤且不斷放大
+   症狀：損失劇烈震盪、不收斂
+   ✓ 每次反向傳播前呼叫優化器的梯度清零
+
+② 驗證時未切換到<b>評估模式</b>
+   Dropout 訓練時隨機關閉、評估時應全開
+   批次正規化訓練時用當前批次統計並更新移動平均、評估時應用累積的移動平均
+   症狀：驗證結果不穩定，且<b>錯誤地更新統計量汙染模型狀態</b>
+   ✓ 驗證前切評估模式、<b>驗證後務必切回訓練模式</b>
+
+③ 驗證時未<b>停用梯度計算</b>
+   前向傳播預設會建立計算圖 → 驗證不需梯度卻仍建圖 → <b>記憶體持續累積</b>
+   ✓ 以停用梯度的上下文包住驗證迴圈（同時也能加速）</div>
+<p><strong>其他常見錯誤</strong>：把<strong>含計算圖的張量</strong>累加到損失統計中造成記憶體洩漏（應先取出純數值）、資料與模型不在同一裝置、多程序資料載入的隨機種子設定問題。</p>
+
+<h3>12-5　效能與記憶體排查</h3>
+<div class="box case">
+  <div class="bt">💼 GPU 使用率只有 20% 且波動大、CPU 接近滿載</div>
+  <p><strong>典型的資料管線瓶頸</strong>——GPU 算得比資料供得快。改善順序：</p>
+  <ol>
+    <li>增加資料載入的<strong>工作程序數</strong>（通常設在 CPU 核心數附近並實測）。</li>
+    <li>啟用<strong>記憶體固定與預先取樣</strong>，讓傳輸與計算重疊。</li>
+    <li>最佳化前處理——<strong>影像解碼（尤其是 JPEG）與複雜增強往往最耗時</strong>，可改用更高效的函式庫、把部分增強移到 GPU、或先預處理成固定尺寸的張量。</li>
+    <li>儲存層——大量小檔案的隨機讀取在網路儲存上極慢，<strong>打包成順序讀取友善的分片格式</strong>通常帶來顯著改善。</li>
+    <li>資料集不大時整份載入記憶體。</li>
+  </ol>
+  <p><strong>關鍵提醒</strong>：若真正的瓶頸在資料端，<strong>更換更快的 GPU 幾乎不會改善訓練時間</strong>。</p>
+</div>
+<div class="box case">
+  <div class="bt">💼 跑數十回合後才發生記憶體不足</div>
+  <p>「跑久了才爆」是<strong>記憶體逐步累積</strong>的特徵，排查方向：</p>
+  <ul>
+    <li><strong>最常見</strong>：把仍帶有計算圖的張量保存（把損失張量直接累加到列表中），使整個計算圖無法釋放。</li>
+    <li>驗證階段未停用梯度計算。</li>
+    <li>迴圈中重複建立模型、優化器或資料載入器而舊物件未回收。</li>
+    <li><strong>快取累積</strong>：某些操作會為每種輸入尺寸快取工作空間，輸入尺寸多樣時記憶體持續增長（可固定輸入尺寸或關閉自動調校）。</li>
+  </ul>
+  <p><strong>排查方法</strong>：在訓練迴圈各階段插入記憶體用量查詢並記錄，觀察增長發生在哪一步；也可用框架的記憶體快照工具。<strong>另需區分「記憶體洩漏」與「記憶體碎片」</strong>（後者是配置與釋放的樣態造成可用區塊零碎，症狀類似但處理方式不同）。</p>
+</div>
+
+<h3>12-6　隨機性與可重現</h3>
+<div class="box warn">
+  <div class="bt">⚠️ 同樣的程式碼跑兩次差 1.5 個百分點</div>
+  <p><strong>隨機來源</strong>：資料切分與洗牌、權重初始化、Dropout 遮罩、資料增強的隨機參數、以及某些 GPU 運算的非確定性累加順序。</p>
+  <p><strong>兩個層面的紀律：</strong></p>
+  <ol>
+    <li><strong>可重現性</strong>：固定並記錄所有隨機種子（框架、資料載入器、資料增強各自的種子），必要時啟用確定性演算法模式（可能犧牲速度），記錄套件版本與硬體環境。</li>
+    <li><strong>統計嚴謹性（更重要）</strong>：單一種子的結果只是一次抽樣。應以<strong>多個種子重複訓練</strong>（常見 3 到 10 次），報告平均與標準差；比較兩個方法時，若分布明顯重疊就不能宣稱有改善。<strong>「挑最好的種子」等於對驗證集過度擬合</strong>，報告的分數無法重現。</li>
+  </ol>
+</div>
+</section>
+
+<!-- ══════════════ 13 ══════════════ -->
+<section class="ch" id="c13">
+<h2><span class="num">CH 13</span>系統性除錯流程</h2>
+
+<div class="box exam">
+  <div class="bt">🎯 由下而上，先排除低階問題</div>
+  <p>越基礎的問題造成的影響越大，而<strong>調整架構與超參數通常是投報率最低的一步</strong>。</p>
+</div>
+
+<ol class="steps">
+  <li><strong>資料與標籤</strong>：檢視樣本與標籤的正確性、標註一致性、類別分布、缺失與異常值。<strong>許多效果不佳的根因在此，且再好的模型也無法克服錯誤的標籤。</strong></li>
+  <li><strong>洩漏檢查</strong>：分數異常高要懷疑洩漏；離線高而線上低要檢查時間性洩漏與訓練服務偏斜；重要度異常高的特徵是明確警訊。</li>
+  <li><strong>評估設定</strong>：切分方式是否符合資料結構（時間、分組、分層）、指標選擇是否與業務目標一致、評估集是否具代表性。<strong>錯誤的評估會讓所有後續判斷失去意義。</strong></li>
+  <li><strong>訓練流程正確性</strong>：一個極有效的檢查是<strong>讓模型在極小的樣本（數十筆）上刻意過擬合</strong>——若連這都做不到，代表訓練迴圈、損失函數、標籤對應或學習率設定有錯誤，<strong>此時調參毫無意義</strong>。</li>
+  <li><strong>建立簡單基準</strong>：若複雜模型贏不了基準，通常代表特徵資訊不足或問題定義有誤。</li>
+  <li><strong>誤差分析與切片評估</strong>：見下方。</li>
+  <li><strong>最後</strong>才進入架構與超參數的最佳化。</li>
+</ol>
+
+<h3>13-1　誤差分析怎麼做</h3>
+<div class="keys">
+  <div class="k"><b>切片評估</b>：依有意義的維度切分測試集（類別、地區、通路、裝置、時段、使用者分群、輸入長度、影像解析度與拍攝條件、資料來源系統），分別計算指標找出明顯低於整體的切片。表現差的切片<strong>往往指向具體且可行動的問題</strong>。注意切片的樣本量需足夠才能可靠比較。</div>
+  <div class="k"><b>錯誤型態歸納</b>：抽取一定數量的錯誤樣本人工檢視並分類——<strong>標籤本身錯誤</strong>（這類「錯誤」其實是資料問題）、輸入品質問題、類別定義模糊、確實困難的樣本、分布外樣本。<strong>統計各型態的比例可估算改善的上限</strong>：若三成錯誤來自標籤錯誤，再怎麼改模型也無法突破。</div>
+  <div class="k"><b>混淆分析</b>：找出最常被誤判的類別對，通常反映類別定義或特徵區辨力的問題。</div>
+  <div class="k"><b>依錯誤成本排序</b>：把改善資源投在成本最高的錯誤類型上，而非數量最多的。</div>
+  <div class="k"><b>建立回歸測試集</b>：把典型的失敗案例保留下來，確保後續改版不會退化。</div>
+</div>
+
+<h3>13-2　離線與線上落差的排查順序</h3>
+<div class="fml">1. <b>特徵一致性</b>（最有效的診斷）
+   比對同一筆請求在線上取得的特徵值與離線訓練時的值
+   → 用線上<b>記錄的實際特徵</b>重新做離線評估：
+      分數也降 → 問題在特徵（訓練服務偏斜）
+      分數仍高 → 問題在別處
+
+2. <b>時間性洩漏</b>：訓練是否使用了預測時點之後才可得的資訊；驗證是否為隨機切分
+
+3. <b>分布差異</b>：線上流量與訓練資料的特徵分布與族群組成
+
+4. <b>標籤口徑</b>：線上計算指標所用的標籤定義、觀察窗與排除規則是否與離線一致
+   （常被忽略卻極易造成落差）
+
+5. <b>版本一致</b>：線上載入的模型版本、前處理參數與離線評估是否完全相同
+
+6. <b>選擇偏誤</b>：模型上線後會影響後續資料分布（被拒絕者沒有結果）</div>
+</section>
+
+<!-- ══════════════ 14 ══════════════ -->
+<section class="ch" id="c14">
+<h2><span class="num">CH 14</span>考前總複習表</h2>
+
+<h3>14-1　情境 → 對策速查</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>情境</th><th>對策</th></tr>
+<tr><td>目標含少數極端值，模型系統性偏誤</td><td><strong>Huber 損失</strong>；或對數／Box-Cox 轉換；或分位數損失</td></tr>
+<tr><td>目標右偏且含大量零</td><td><strong>Tweedie 迴歸</strong></td></tr>
+<tr><td>極度不平衡，損失被多數類主導</td><td><strong>Focal Loss</strong> 或類別權重＋PR-AUC＋閾值調校</td></tr>
+<tr><td>類別有順序（滿意度五級）</td><td><strong>序數迴歸</strong>＋二次加權 Kappa</td></tr>
+<tr><td>特徵多且高度相關，需稀疏化</td><td><strong>Elastic Net</strong></td></tr>
+<tr><td>訓練初期震盪、後期無法精細收斂</td><td><strong>預熱＋餘弦退火</strong></td></tr>
+<tr><td>小批次或變長序列，批次正規化不穩</td><td><strong>層正規化</strong>或群組正規化</td></tr>
+<tr><td>顯存不足但想要大批次效果</td><td><strong>梯度累積</strong>（＋混合精度）</td></tr>
+<tr><td>同一病人多筆資料，分數虛高</td><td><strong>分組切分</strong>（GroupKFold）</td></tr>
+<tr><td>選參後的分數不可信</td><td><strong>巢狀交叉驗證</strong>或封存獨立測試集</td></tr>
+<tr><td>時間特徵 23 點與 0 點不相鄰</td><td><strong>正弦餘弦成對轉換</strong></td></tr>
+<tr><td>高基數類別特徵</td><td>目標編碼（<strong>折外＋平滑</strong>）／嵌入／依領域知識聚合</td></tr>
+<tr><td>大量未標註、標註極貴</td><td><strong>自監督預訓練</strong>＋少量標註微調</td></tr>
+<tr><td>標註預算有限</td><td><strong>主動學習</strong>（不確定性＋多樣性）</td></tr>
+<tr><td>新類別持續新增、每類極少樣本</td><td><strong>少樣本學習</strong>（原型網路）</td></tr>
+<tr><td>換廠後準確率大跌（定義未變）</td><td><strong>領域自適應</strong>＋模擬變異的資料增強＋分廠評估</td></tr>
+<tr><td>大物件分割破碎</td><td>擴大<strong>感受野</strong>（空洞卷積、金字塔池化）</td></tr>
+<tr><td>密集場景框被誤刪</td><td>調整 NMS 門檻／<strong>軟性抑制</strong></td></tr>
+<tr><td>分割前景只佔 0.5%</td><td><strong>Dice 損失</strong>（或與交叉熵組合）</td></tr>
+<tr><td>機率值不可信但排序不錯</td><td><strong>校準</strong>（Platt 縮放／等滲迴歸，在獨立校準集上）</td></tr>
+<tr><td>需要「90% 把握」的區間保證</td><td><strong>共形預測</strong></td></tr>
+<tr><td>遇到沒見過的類別仍高信心亂猜</td><td><strong>分布外偵測</strong>＋拒絕辨識</td></tr>
+<tr><td>只用新資料微調造成舊類別退化</td><td><strong>重播</strong>（或正則化／參數隔離）；資料可得時直接全量重訓最單純</td></tr>
+<tr><td>推論太慢但不能換模型</td><td><strong>圖最佳化＋算子融合＋推論執行環境＋量化＋動態批次</strong></td></tr>
+</table>
+</div>
+
+<h3>14-2　核心對比速記</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>A</th><th>B</th><th>關鍵差別</th></tr>
+<tr><td>MSE</td><td>MAE</td><td>估條件平均、對離群敏感 vs. 估條件中位數、穩健但收斂慢</td></tr>
+<tr><td>Softmax</td><td>Sigmoid（多標籤）</td><td>類別互斥、機率和為 1 vs. 各標籤獨立</td></tr>
+<tr><td>L1</td><td>L2</td><td>推到恰好為 0、相關特徵任選一個（不穩定） vs. 只壓小、相關特徵平均分攤（穩定）</td></tr>
+<tr><td>Adam</td><td>AdamW</td><td>權重衰減<strong>被自適應縮放扭曲</strong> vs. 解耦，正則化行為符合預期</td></tr>
+<tr><td>批次正規化</td><td>層正規化</td><td>跨樣本（依賴批次） vs. 跨特徵（不依賴批次）</td></tr>
+<tr><td>學習曲線</td><td>驗證曲線</td><td>橫軸是資料量（該不該加資料） vs. 超參數（該多複雜）</td></tr>
+<tr><td>ROC-AUC</td><td>PR-AUC</td><td>不平衡時<strong>過於樂觀</strong> vs. 敏銳反映精確率召回率取捨</td></tr>
+<tr><td>微觀平均</td><td>巨集平均</td><td>多數類主導 vs. <strong>各類等權</strong>（揭露稀有類失效）</td></tr>
+<tr><td>區辨能力</td><td>校準</td><td>能否排開（AUC） vs. 機率是否對應真實發生率</td></tr>
+<tr><td>偶然不確定性</td><td>認知不確定性</td><td>資料本身雜訊（加資料無用） vs. 模型缺乏該區域資料（加資料有用）</td></tr>
+<tr><td>PDP</td><td>ALE</td><td>會產生<strong>不真實的特徵組合</strong> vs. 只在資料存在的鄰域內計算</td></tr>
+<tr><td>置換重要度</td><td>內建重要度</td><td>驗證集上、模型無關 vs. 訓練集上、<strong>偏好高基數與連續特徵</strong></td></tr>
+<tr><td>量化</td><td>蒸餾</td><td>降低數值精度 vs. 用大模型的軟標籤訓練小模型</td></tr>
+</table>
+</div>
+
+<h3>14-3　「一定是錯的」選項特徵</h3>
+<div class="box warn">
+  <div class="bt">🚫 看到這些描述，直接刪</div>
+  <ul>
+    <li>「損失函數的選擇不影響結果」／「優化器的選擇不影響最終結果」</li>
+    <li>「初始化方式不影響訓練結果」／「應把所有權重初始化為零以求公平」</li>
+    <li>「批次正規化適用於所有情境」／「層正規化與批次正規化完全等價」</li>
+    <li>「L2 可以把不重要的係數壓縮到恰好為零」</li>
+    <li>「在資料切分前先做 SMOTE 以增加樣本」</li>
+    <li>「內建特徵重要度沒有任何偏誤，可直接使用」</li>
+    <li>「SHAP 值就是因果效應，可直接作為行動依據」</li>
+    <li>「Softmax 的最高機率就是可靠的信心指標」</li>
+    <li>「只要提高標準測試集的準確率就代表更安全」（對抗穩健性）</li>
+    <li>「模型分數較高就一定較佳」（未考慮統計顯著與隨機性）</li>
+    <li>「只跑一次就可以下結論」／「應選擇分數最高的那次結果」</li>
+    <li>「增加訓練回合數就能解決類別不平衡」</li>
+    <li>「刪除少數類樣本以簡化問題」</li>
+    <li>「更換更快的 GPU 就能解決資料載入瓶頸」</li>
+    <li>「這個警告可以忽略，資料一定會被修改」（鏈式賦值）</li>
+  </ul>
+</div>
+
+<div class="box exam">
+  <div class="bt">🎯 最後叮嚀</div>
+  <p>中級科目三的三個判斷主軸：<br><strong>① 先問「這個方法的假設是什麼」</strong>——SMOTE 假設數值連續、PDP 假設特徵獨立、共形預測假設可交換、MAPE 假設分母不為零。假設不成立就會出事。<br><strong>② 先問「這個指標在衡量什麼」</strong>——AUC 衡量排序、校準衡量機率、巨集平均衡量各類等權。指標選錯，優化方向就錯。<br><strong>③ 先問「這個症狀的最低階原因是什麼」</strong>——資料與標籤 → 洩漏 → 評估設定 → 訓練流程 → 才輪到模型與超參數。</p>
+</div>
+
+<div class="pager">
+  <a href="i-s2.html">← 上一篇：中級科目二</a>
+  <a href="../index.html">回模擬測驗，開始練題 →</a>
+</div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function onScroll() {
+    var y = window.scrollY + 120, idx = 0;
+    for (var i = 0; i < secs.length; i++) { if (secs[i] && secs[i].offsetTop <= y) idx = i; }
+    links.forEach(function (a, i) { a.classList.toggle('on', i === idx); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>

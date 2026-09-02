@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>初級科目一講義：人工智慧基礎概論 — iPAS AI 模擬測驗</title>
+<meta name="description" content="iPAS AI 應用規劃師初級科目一完整講義：AI 定義與分級、機器學習三大類、資料處理、模型訓練與評估、深度學習、AI 倫理與企業導入，以高中程度深入解說。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="notes.css">
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a class="logo" href="../index.html"><span class="logo-dot"></span>iPAS <em>AI</em> 講義</a>
+    <nav class="nav-links">
+      <a href="b-s1.html" class="active">初級一</a>
+      <a href="b-s2.html">初級二</a>
+      <a href="i-s1.html">中級一</a>
+      <a href="i-s2.html">中級二</a>
+      <a href="i-s3.html">中級三</a>
+      <a href="../index.html">← 回測驗</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell">
+
+<aside class="toc">
+  <h4>本篇目錄</h4>
+  <a href="#c1">1　AI 到底是什麼</a>
+  <a href="#c2">2　機器學習的三種學法</a>
+  <a href="#c3">3　資料：一切的地基</a>
+  <a href="#c4">4　模型是怎麼「學」的</a>
+  <a href="#c5">5　過擬合與偏差變異</a>
+  <a href="#c6">6　評估指標完全拆解</a>
+  <a href="#c7">7　經典演算法家族</a>
+  <a href="#c8">8　神經網路與深度學習</a>
+  <a href="#c9">9　電腦視覺與自然語言</a>
+  <a href="#c10">10　AI 倫理、偏誤與法規</a>
+  <a href="#c11">11　企業導入與 MLOps</a>
+  <a href="#c12">12　考前總複習表</a>
+</aside>
+
+<main>
+
+<div class="hero">
+  <div class="pill">📘 初級 · 科目一</div>
+  <h1>人工智慧基礎概論<br>完整講義</h1>
+  <p class="sub">這份講義假設你只有高中程度的數學（比例、平均、機率、指數與對數、座標與向量），不需要任何程式背景。每個概念都會先用生活比喻帶你進門，再拆解原理，最後告訴你考試會怎麼考、實務上會怎麼踩雷。</p>
+</div>
+
+<!-- ══════════════ 1 ══════════════ -->
+<section class="ch" id="c1">
+<h2><span class="num">CH 1</span>AI 到底是什麼</h2>
+
+<p class="lede">很多人以為 AI 是「會思考的電腦」。這個印象不完全錯，但太模糊，考試也不會這樣考。我們要先把定義、分級與歷史三件事釐清。</p>
+
+<h3>1-1　一句話定義</h3>
+<p><strong>人工智慧（Artificial Intelligence）是讓電腦系統展現出「原本需要人類智慧才能完成」之行為的技術總稱。</strong>這些行為包含三個核心能力：</p>
+<ul>
+  <li><strong>學習</strong>：能從資料或經驗中萃取規律，而不是全靠人一條一條寫死。</li>
+  <li><strong>推理</strong>：能根據已知的資訊，推導出新的判斷。</li>
+  <li><strong>自我修正</strong>：能依據回饋調整自己，讓下次做得更好。</li>
+</ul>
+
+<div class="box metaphor">
+  <div class="bt">🍜 白話比喻</div>
+  <p>想像你要教一個學徒煮牛肉麵。<strong>傳統程式</strong>像是給他一本超詳細的食譜：「水滾後放入牛肉 3 分鐘、加鹽 5 公克……」，只要情況跟食譜寫的一樣就沒問題，一旦換了牛肉品種、換了鍋子，食譜就失效了。<strong>機器學習</strong>則是讓他試煮 500 碗，每碗客人給評分，他自己慢慢摸索出「這種肉要煮久一點、這鍋火比較旺要減時間」的規律。前者是人把規則塞進去，後者是機器從資料裡把規則挖出來——這就是 AI 與傳統程式最根本的差別。</p>
+</div>
+
+<h3>1-2　能力分級：弱 AI、AGI、ASI</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>層級</th><th>意義</th><th>現況</th><th>例子</th></tr>
+<tr><td>狹義 AI<br>（Narrow / 弱 AI）</td><td>只專精於單一或少數特定任務，無法把能力遷移到其他任務。</td><td><strong>目前 100% 的商用 AI 都在這一層</strong></td><td>下棋程式、人臉辨識、推薦系統、翻譯、ChatGPT</td></tr>
+<tr><td>通用 AI<br>（AGI / 強 AI）</td><td>能像人一樣把學到的能力自由遷移到各種未曾訓練過的任務。</td><td>尚未實現，時程學界爭議極大</td><td>科幻電影中的機器人</td></tr>
+<tr><td>超級 AI<br>（ASI）</td><td>在幾乎所有領域全面超越最頂尖的人類。</td><td>僅存在於理論討論</td><td>—</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="bt">⚠️ 最常見的誤解</div>
+  <p>「這個 AI 下棋贏了世界冠軍，所以它超越人類了。」——<strong>錯</strong>。它是狹義 AI，換一個任務（看 X 光片、開車）就完全歸零。考試很愛用這種「以偏概全」的敘述當錯誤選項。另外，「具備自我意識」也不是現在任何 AI 的特性，看到選項寫「AI 已具備自我意識」一律刪掉。</p>
+</div>
+
+<h3>1-3　兩個必考的哲學論證</h3>
+<ul>
+  <li><strong>圖靈測試（1950, Alan Turing）</strong>：評審透過純文字視窗，同時與一台機器和一個真人對話。若評審無法可靠分辨誰是機器，就認定該機器展現了與人相當的智慧。<br><em>關鍵理解：它測的是「行為表現像不像人」，不保證機器真的理解語意。</em></li>
+  <li><strong>中文房間（John Searle）</strong>：一個完全不懂中文的人被關在房裡，手上有一本超完整的規則書。外面遞進中文紙條，他照規則書查表就能寫出正確的中文回覆。從房外看他「懂中文」，實際上他只是在做符號比對。<br><em>關鍵理解：這是用來<strong>反駁</strong>「輸出正確就等於真的理解」的思想實驗，不是一種可操作的測試。</em></li>
+</ul>
+
+<h3>1-4　發展史的三個轉折</h3>
+<ol class="steps">
+  <li><strong>1950–60 年代：符號主義與感知器。</strong>達特茅斯會議（1956）正式提出「人工智慧」一詞。同期出現感知器（Perceptron），是最早的類神經網路。後因無法解決非線性問題（如 XOR）而受挫，進入第一次 AI 寒冬。</li>
+  <li><strong>1980 年代：專家系統的興衰。</strong>把領域專家的知識編成成千上萬條 if-then 規則（代表案例：醫療診斷系統 MYCIN、企業設定系統 XCON）。缺點有三：知識擷取極耗人力、規則互相衝突難維護、遇到規則沒涵蓋的狀況就完全失效（脆弱性）。1987 年前後投資退潮，史稱<strong>第二次 AI 寒冬</strong>。</li>
+  <li><strong>2012 年至今：深度學習革命。</strong>AlexNet 在 ImageNet 影像辨識競賽以大幅領先奪冠，關鍵三要素同時到位：<strong>海量資料</strong>（網際網路）、<strong>強大算力</strong>（GPU 平行運算）、<strong>演算法突破</strong>（深層網路的訓練技巧）。2017 年 Transformer 問世，2022 年 ChatGPT 引爆生成式 AI 熱潮。</li>
+</ol>
+
+<div class="box exam">
+  <div class="bt">🎯 考點提醒</div>
+  <p>考題常給一段情境描述，要你判斷「這是哪個時期／哪種技術」。判斷訣竅：出現「人工撰寫大量規則」→ 專家系統；出現「從資料自動學習特徵」→ 機器學習／深度學習；出現「生成新內容」→ 生成式 AI。</p>
+</div>
+</section>
+
+<!-- ══════════════ 2 ══════════════ -->
+<section class="ch" id="c2">
+<h2><span class="num">CH 2</span>機器學習的三種學法</h2>
+
+<p class="lede">這一章是整個科目的骨幹。看到任何情境題，你第一件事就是判斷：這是監督式、非監督式，還是強化學習？判斷方法只有兩個問題。</p>
+
+<div class="box math">
+  <div class="bt">🔑 兩個判斷問題</div>
+  <p><strong>問題一：資料有沒有「標準答案」（標籤）？</strong><br>有 → 監督式學習；沒有 → 非監督式學習。</p>
+  <p><strong>問題二（若是監督式）：要預測的是「類別」還是「數值」？</strong><br>類別 → 分類（Classification）；連續數值 → 迴歸（Regression）。</p>
+  <p>若情境中出現「代理人在環境中不斷嘗試、依獎懲調整策略」→ 強化學習。</p>
+</div>
+
+<h3>2-1　監督式學習（Supervised Learning）</h3>
+<p>資料是一組一組的「輸入 → 正確答案」配對。模型的任務是找出一個函數 <code>f</code>，讓 <code>f(輸入)</code> 盡量接近正確答案。</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>子類型</th><th>輸出</th><th>情境範例</th><th>常用評估指標</th></tr>
+<tr><td>二元分類</td><td>兩個類別</td><td>會不會退會、是不是詐欺、有沒有瑕疵</td><td>準確率、精確率、召回率、F1、AUC</td></tr>
+<tr><td>多元分類</td><td>三個以上互斥類別</td><td>客訴屬於退貨／維修／帳務</td><td>巨集平均 F1、混淆矩陣</td></tr>
+<tr><td>多標籤分類</td><td>可同時屬於多類</td><td>一篇文章同時是科技＋財經</td><td>各標籤的 F1</td></tr>
+<tr><td>迴歸</td><td>連續數值</td><td>房價、下月銷量、剩餘壽命</td><td>MAE、RMSE、R²</td></tr>
+</table>
+</div>
+
+<h3>2-2　非監督式學習（Unsupervised Learning）</h3>
+<p>資料<strong>沒有標籤</strong>，目標是「探索資料中自然存在的結構」。</p>
+<ul>
+  <li><strong>分群（Clustering）</strong>：把相似的資料點分成幾群。K-means、階層式分群、DBSCAN。<br>常見應用：顧客分群（RFM 分析）、文件主題分群。</li>
+  <li><strong>降維（Dimensionality Reduction）</strong>：把很多欄位壓縮成少數幾個綜合指標，同時盡量保留資訊。代表：主成分分析（PCA）。</li>
+  <li><strong>關聯規則（Association Rule）</strong>：找出「買了 A 也常買 B」的組合。代表：Apriori。</li>
+  <li><strong>異常偵測（Anomaly Detection）</strong>：只學習「正常長什麼樣」，偏離者即示警。</li>
+</ul>
+
+<div class="box warn">
+  <div class="bt">⚠️ 關鍵陷阱</div>
+  <p>分群的結果<strong>沒有標準答案</strong>，演算法只會告訴你「這些點比較像」，至於這一群叫「高頻低價通勤族」還是「假日家庭客」，必須由懂業務的人來命名與解讀。考題常說「模型自動判斷出這是高價值客戶」——這句話有問題，因為「高價值」是人給的定義。</p>
+</div>
+
+<h3>2-3　強化學習（Reinforcement Learning）</h3>
+<p>沒有現成的正確答案，而是靠「做了動作 → 環境給獎懲 → 調整策略」的循環學習。四大要素必背：</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>要素</th><th>英文</th><th>倉儲機器人的例子</th></tr>
+<tr><td>代理人</td><td>Agent</td><td>揀貨機器人本身</td></tr>
+<tr><td>環境</td><td>Environment</td><td>倉庫格局、貨架位置</td></tr>
+<tr><td>行動</td><td>Action</td><td>前進、左轉、停止、夾取</td></tr>
+<tr><td>獎勵</td><td>Reward</td><td>準時取貨 +10、撞架 −50</td></tr>
+</table>
+</div>
+<p>強化學習的核心難題是<strong>探索與利用的權衡（Exploration-Exploitation Tradeoff）</strong>：一直走已知的好路線（利用）可能錯過更短的路；一直嘗試新路（探索）又會浪費時間。目標是最大化<strong>長期累積獎勵</strong>，而不是單步的立即回報。</p>
+
+<h3>2-4　三種變形（初級也會考）</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>名稱</th><th>特徵</th><th>典型場景</th></tr>
+<tr><td>半監督式學習</td><td>少量標註 ＋ 大量未標註</td><td>醫療影像（醫師標註很貴）</td></tr>
+<tr><td>自監督式學習</td><td>標籤從資料本身自動生成（如遮住一個詞讓模型猜）</td><td>大型語言模型的預訓練</td></tr>
+<tr><td>遷移學習</td><td>把在大資料集訓練好的模型搬到新任務，只微調最後幾層</td><td>工廠瑕疵檢測（只有 1,200 張照片）</td></tr>
+</table>
+</div>
+
+<div class="box case">
+  <div class="bt">💼 遷移學習為什麼有效？</div>
+  <p>深度網路是<strong>分層學習</strong>的：靠近輸入的淺層學到的是「邊緣、角點、紋理、色塊」這類通用視覺特徵，不管你看的是貓、車還是螺絲都用得上；越深的層才越專屬於原任務的類別。所以我們可以把預訓練模型的淺層當成現成的「特徵擷取器」凍結起來，只重新訓練最後的分類層。效果是：需要的標註資料量大幅下降、訓練時間縮短、小資料集上不易過擬合。</p>
+</div>
+
+<div class="selfq">
+  <b>❓ 自我檢核</b>
+  <p style="margin:8px 0 0;font-size:14.5px;">某健身房有 3 年會員資料，每筆已標記「隔月是否退會」，想提前找出可能退會的人。這是哪一類任務？</p>
+  <details><summary>看解答</summary><p><strong>監督式學習的二元分類。</strong>判斷依據：(1) 有標籤（已標記是否退會）→ 監督式；(2) 輸出只有兩個類別 → 二元分類。實務上稱為流失預測（Churn Prediction）。</p></details>
+</div>
+</section>
+
+<!-- ══════════════ 3 ══════════════ -->
+<section class="ch" id="c3">
+<h2><span class="num">CH 3</span>資料：一切的地基</h2>
+
+<p class="lede">業界有句話：「Garbage in, garbage out（垃圾進、垃圾出）」。資料工程通常佔一個 AI 專案六到八成的工時，而考題最愛考的就是這一段的判斷力。</p>
+
+<h3>3-1　缺失值處理</h3>
+<p>面對空值，第一件事<strong>不是</strong>決定怎麼補，而是問：<strong>為什麼會缺？</strong></p>
+<div class="tbl-wrap">
+<table>
+<tr><th>缺失類型</th><th>意義</th><th>處理原則</th></tr>
+<tr><td>完全隨機缺失</td><td>缺失與任何變數都無關（如系統偶發當機）</td><td>直接刪除該列相對安全</td></tr>
+<tr><td>隨機缺失</td><td>缺失與其他已觀測變數有關（如年輕人較少填收入）</td><td>依相關變數分組補值</td></tr>
+<tr><td>非隨機缺失</td><td>缺失與該欄位自身的值有關（如高收入者不願透露收入）</td><td>最棘手，補值必然有偏；務必保留缺失指示欄位</td></tr>
+</table>
+</div>
+<p><strong>常用補值方法與時機：</strong></p>
+<ul>
+  <li><strong>中位數補值</strong>：適合右偏分布（如收入、房價），因為中位數不受極端值影響。</li>
+  <li><strong>平均數補值</strong>：適合近似對稱的分布。</li>
+  <li><strong>眾數補值</strong>：類別型欄位。</li>
+  <li><strong>分組補值</strong>：用同年齡層、同地區的統計量填補，保留族群差異，通常優於全體統計量。</li>
+  <li><strong>新增「是否原為缺失」旗標</strong>：非常重要！「不願填寫收入」這件事本身可能就帶有資訊，保留這個訊號讓模型自行判斷。</li>
+</ul>
+
+<div class="box warn">
+  <div class="bt">⚠️ 千萬別做的事</div>
+  <p><strong>把所有空值填 0。</strong>這等於把「未知」錯誤地表達成「數值為零」，憑空製造大量假資料。例如年收入欄位填 0，模型會以為有一大群零收入的人，整體平均被嚴重拉低。</p>
+</div>
+
+<h3>3-2　離群值處理</h3>
+<p>離群值分兩種，處理方式完全不同：</p>
+<ul>
+  <li><strong>錯誤資料</strong>（年薪誤填月薪、負數薪資）→ 可修正的就修正（年薪除以 12），無法還原的視為缺失值處理。</li>
+  <li><strong>真實極端值</strong>（公司真的有一位高薪主管、真的有一筆巨額交易）→ <strong>往往是最有價值的訊號</strong>！詐欺偵測、設備異常偵測要抓的目標，本身就是離群值。</li>
+</ul>
+
+<div class="box math">
+  <div class="bt">📐 IQR 法則（高中統計就學過）</div>
+  <p>把資料由小到大排序，取第 25 百分位數 Q1、第 75 百分位數 Q3，四分位距 IQR = Q3 − Q1。</p>
+  <div class="fml">下界 = Q1 − 1.5 × IQR
+上界 = Q3 + 1.5 × IQR
+<span class="cm"># 超出此範圍者標記為疑似離群值</span></div>
+  <p>另一種方法是 <strong>Z 分數</strong>：<code>Z = (x − 平均) ÷ 標準差</code>，通常取 |Z| &gt; 3 為離群。注意：Z 分數本身會被極端值影響（平均與標準差都被拉走），因此在嚴重偏斜的資料上，IQR 法則更穩健。</p>
+</div>
+
+<h3>3-3　特徵縮放：為什麼一定要做</h3>
+<p>假設模型使用兩個特徵：年齡（20–65）與年收入（30 萬–300 萬）。KNN、K-means、SVM 這類演算法都用「距離」判斷相似度：</p>
+<div class="fml">年齡差 10 歲 → 距離平方貢獻 = 10² = 100
+收入差 10 萬 → 距離平方貢獻 = 100000² = 10,000,000,000
+<span class="cm"># 相差 8 個數量級，年齡等於完全被忽略</span></div>
+<div class="tbl-wrap">
+<table>
+<tr><th>方法</th><th>公式</th><th>結果範圍</th><th>適用時機</th></tr>
+<tr><td>標準化<br>（Z-score）</td><td>(x − 平均) ÷ 標準差</td><td>平均 0、標準差 1</td><td>資料近似常態、或存在離群值</td></tr>
+<tr><td>正規化<br>（Min-Max）</td><td>(x − 最小) ÷ (最大 − 最小)</td><td>0 到 1</td><td>需要固定範圍（如神經網路輸入）；對離群值敏感</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 兩個必考細節</div>
+  <p>1. <strong>縮放參數只能用訓練集計算</strong>，再套用到驗證集與測試集。若用整份資料計算平均與標準差，就構成<strong>資料洩漏</strong>。</p>
+  <p>2. <strong>決策樹與隨機森林不需要縮放</strong>，因為它們是依「特徵值是否大於某閾值」切分，任何單調變換都不改變切分點的相對順序。</p>
+</div>
+
+<h3>3-4　類別特徵編碼</h3>
+<p>先分清楚兩種尺度：</p>
+<ul>
+  <li><strong>名目尺度（Nominal）</strong>：只是名稱，沒有大小順序。如北區／中區／南區、現金／信用卡。</li>
+  <li><strong>順序尺度（Ordinal）</strong>：有明確順序。如國中／高中／大學、低／中／高滿意度。</li>
+</ul>
+<div class="tbl-wrap">
+<table>
+<tr><th>編碼方式</th><th>做法</th><th>適用</th><th>注意</th></tr>
+<tr><td>獨熱編碼<br>One-Hot</td><td>每個類別開一欄 0/1</td><td>名目、低基數</td><td>類別多會維度爆炸；線性模型須刪一欄避免共線性</td></tr>
+<tr><td>順序編碼<br>Ordinal</td><td>依順序給 1,2,3…</td><td>順序尺度</td><td>用在名目尺度會製造假的大小關係</td></tr>
+<tr><td>目標編碼<br>Target</td><td>用該類別的目標平均值取代</td><td>高基數（如上千個郵遞區號）</td><td><strong>極易造成資料洩漏</strong>，須用折外計算並做平滑</td></tr>
+</table>
+</div>
+
+<h3>3-5　資料切分與資料洩漏（本章最重要）</h3>
+<p><strong>標準三分法：</strong></p>
+<ol class="steps">
+  <li><strong>訓練集（60–70%）</strong>：模型用來學習參數。像是平常寫的練習題。</li>
+  <li><strong>驗證集（15–20%）</strong>：用來比較不同超參數組合、選擇模型。像是模擬考。</li>
+  <li><strong>測試集（15–20%）</strong>：必須<strong>封存</strong>，只在最終確認效能時使用<strong>一次</strong>。像是正式的期末考卷。</li>
+</ol>
+<p>若資料量不大，可用 <strong>K 折交叉驗證</strong>取代單一驗證集：把資料切成 K 等份，每次拿 1 份當驗證、其餘 K−1 份訓練，重複 K 次取平均。常用 K = 5 或 10。若類別不平衡，須用<strong>分層 K 折</strong>確保每折的類別比例一致。</p>
+
+<div class="box warn">
+  <div class="bt">🚨 資料洩漏（Data Leakage）——一定會考</div>
+  <p><strong>定義</strong>：訓練資料中混入了「預測當下根本不可能取得」的資訊，等於考試偷看答案。症狀是<strong>離線分數異常高，上線後崩潰</strong>。</p>
+  <p><strong>四大常見來源：</strong></p>
+  <ul>
+    <li><strong>結果衍生欄位</strong>：預測「是否住院」卻使用了「病房號碼」；預測「是否理賠」卻使用了「理賠金額」。這些欄位是結果發生後才產生的。</li>
+    <li><strong>前處理順序錯誤</strong>：先用整份資料算標準化參數或做補值，再切訓練與測試集。</li>
+    <li><strong>時間序列隨機切分</strong>：把時間資料隨機打散，導致用未來資料預測過去。</li>
+    <li><strong>群組洩漏</strong>：同一位病人的多筆就診紀錄同時出現在訓練集與測試集，模型學會的是「認出這個人」而非「判斷病況」。</li>
+  </ul>
+  <p><strong>防範方法</strong>：逐一檢視每個特徵「在預測時間點是否真的已經存在」，並把所有前處理步驟包進 Pipeline，只依訓練集擬合。</p>
+</div>
+
+<h3>3-6　類別不平衡</h3>
+<p>詐欺交易只佔 0.3%，模型全部猜「正常」就有 99.7% 準確率——這叫<strong>準確率悖論</strong>，模型的商業價值等於零。</p>
+<p><strong>處理策略（指標與訓練兩端並行）：</strong></p>
+<ul>
+  <li><strong>換指標</strong>：Recall（抓到多少詐欺）、Precision、F1、PR-AUC。極度不平衡時 PR-AUC 比 ROC-AUC 更能反映真實表現。</li>
+  <li><strong>過採樣</strong>：SMOTE 以內插方式合成新的少數類樣本。<strong>只能在訓練折內做</strong>，否則造成洩漏。</li>
+  <li><strong>欠採樣</strong>：隨機減少多數類，但會損失資訊。</li>
+  <li><strong>類別權重</strong>：提高少數類的誤判懲罰，讓模型不敢忽略它。</li>
+  <li><strong>調整決策閾值</strong>：把預設的 0.5 降到 0.2，以犧牲精確率換取召回率。</li>
+</ul>
+</section>
+
+<!-- ══════════════ 4 ══════════════ -->
+<section class="ch" id="c4">
+<h2><span class="num">CH 4</span>模型是怎麼「學」的</h2>
+
+<p class="lede">這章要回答一個很多人只會背名詞卻說不清楚的問題：模型裡面那幾百萬個數字，到底是怎麼被調整到「對」的？</p>
+
+<h3>4-1　用高中數學看懂梯度下降</h3>
+<p>先從最簡單的例子出發。假設我們要用「坪數 x」預測「房價 y」，模型是一條直線：</p>
+<div class="fml">預測值 ŷ = w × x + b   <span class="cm"># w 是斜率、b 是截距，這兩個就是「參數」</span></div>
+<p>我們怎麼知道這條線好不好？用<strong>損失函數</strong>衡量預測與真實答案的差距。最常用的是均方誤差：</p>
+<div class="fml">MSE = (1/n) × Σ (真實值 yᵢ − 預測值 ŷᵢ)²   <span class="cm"># 平方是為了讓正負誤差不互相抵消，且放大大誤差</span></div>
+
+<div class="box metaphor">
+  <div class="bt">⛰️ 白話比喻：蒙眼下山</div>
+  <p>把損失函數想成一座山的高度，山的位置由 (w, b) 決定。我們的目標是走到山谷最低點（損失最小）。但我們蒙著眼睛看不到全貌，只能<strong>用腳感覺當下這一點的坡度</strong>，然後往下坡方向踏一步。這個坡度在數學上就是<strong>梯度（微分）</strong>，踏一步的大小就是<strong>學習率</strong>。反覆「感覺坡度 → 踏一步」，就會慢慢走到谷底。這就是<strong>梯度下降（Gradient Descent）</strong>。</p>
+</div>
+
+<div class="fml">新參數 = 舊參數 − 學習率 × 梯度</div>
+<p><strong>學習率設定的兩種災難：</strong></p>
+<ul>
+  <li><strong>太大</strong>：一步跨過山谷，在兩側來回彈跳，甚至越走越高，損失變成無限大（發散）。</li>
+  <li><strong>太小</strong>：要走非常久才會到谷底，還容易卡在小坑洞（局部極小值）。</li>
+</ul>
+<p><strong>實務對策：</strong>學習率排程（先大步接近、後小步微調，如餘弦退火）、學習率預熱（訓練初期由極小值逐步升高）、自適應優化器（Adam、AdamW 會依各參數的梯度歷史自動調整步伐）。</p>
+
+<h3>4-2　三個常被搞混的訓練名詞</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>名詞</th><th>意義</th><th>舉例</th></tr>
+<tr><td>Epoch（回合）</td><td>把<strong>全部</strong>訓練資料完整看過一遍</td><td>10,000 筆資料看完一次 = 1 個 epoch</td></tr>
+<tr><td>Batch Size（批次大小）</td><td>每次計算梯度、更新一次參數所用的樣本數</td><td>設 100 → 每次拿 100 筆算梯度</td></tr>
+<tr><td>Iteration（迭代）</td><td>更新參數的次數</td><td>10,000 ÷ 100 = 100 次迭代 = 1 個 epoch</td></tr>
+</table>
+</div>
+<p><strong>批次大小的三層取捨：</strong></p>
+<ul>
+  <li><strong>運算效率</strong>：大批次能充分利用 GPU 平行運算，但顯示記憶體用量約與批次大小成正比。</li>
+  <li><strong>梯度品質</strong>：小批次的梯度帶有隨機雜訊，反而有助於跳出不好的局部極小值，通常泛化較好；大批次梯度平滑穩定但可能收斂到尖銳的極小值。</li>
+  <li><strong>與學習率的連動</strong>：增大批次時通常需按比例調高學習率並搭配預熱。</li>
+</ul>
+
+<h3>4-3　超參數 vs. 參數</h3>
+<div class="keys">
+  <div class="k"><b>參數（Parameter）</b>：模型從資料中<strong>自己學到</strong>的數字。例如直線的斜率 w、神經網路的權重。</div>
+  <div class="k"><b>超參數（Hyperparameter）</b>：訓練<strong>之前由人設定</strong>的數字。例如學習率、批次大小、樹的深度、K 值、神經網路的層數。</div>
+</div>
+<p>超參數要用<strong>驗證集</strong>來調，調法有三種：網格搜尋（窮舉所有組合，維度高時組合數爆炸）、隨機搜尋（在高維空間中通常更有效率）、貝氏最佳化（以歷史結果選擇下一個最有希望的組合，適合單次訓練成本高的情況）。</p>
+</section>
+
+<!-- ══════════════ 5 ══════════════ -->
+<section class="ch" id="c5">
+<h2><span class="num">CH 5</span>過擬合、欠擬合與偏差變異</h2>
+
+<p class="lede">這是初級考試的高頻考點，而且情境題非常好認——只要看「訓練分數」與「驗證分數」這兩個數字的關係。</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>狀況</th><th>訓練分數</th><th>驗證分數</th><th>兩者差距</th><th>本質</th></tr>
+<tr><td>欠擬合</td><td>低</td><td>低</td><td>接近</td><td>高偏差：模型太簡單，連規律都學不到</td></tr>
+<tr><td>剛好</td><td>高</td><td>高</td><td>小</td><td>理想狀態</td></tr>
+<tr><td>過擬合</td><td>很高（接近滿分）</td><td>明顯較低</td><td>大</td><td>高變異：把雜訊也背起來了</td></tr>
+</table>
+</div>
+
+<div class="box metaphor">
+  <div class="bt">📚 白話比喻：三種考生</div>
+  <p><strong>欠擬合</strong>＝完全沒讀書，平時考跟正式考都不及格。<br><strong>過擬合</strong>＝把考古題答案一字不漏死背，平時考滿分，但一換題目就崩潰。<br><strong>剛好</strong>＝理解原理，題目怎麼變都能答。</p>
+</div>
+
+<h3>5-1　偏差與變異權衡（Bias-Variance Tradeoff）</h3>
+<p>用射箭來理解最直觀：</p>
+<ul>
+  <li><strong>高偏差</strong>：每一箭都穩穩地射在靶心左下角。<strong>穩定但偏</strong>——不論換哪批訓練資料，模型都錯在同一個方向。</li>
+  <li><strong>高變異</strong>：箭散落一大片，有時中靶心、有時脫靶。<strong>不穩定</strong>——換一批資料結果就大不同。</li>
+</ul>
+<div class="fml">總誤差 ≈ 偏差² + 變異 + 不可約誤差
+<span class="cm"># 不可約誤差來自資料本身的隨機性，任何模型都消不掉</span></div>
+
+<h3>5-2　對抗過擬合的七種武器</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>方法</th><th>原理</th><th>備註</th></tr>
+<tr><td>增加資料</td><td>資料越多越難只靠背誦</td><td>最根本但最貴</td></tr>
+<tr><td>資料增強</td><td>旋轉、翻轉、調亮度擴增樣本多樣性</td><td>須符合任務語意（辨識 6 和 9 就不能上下翻轉）</td></tr>
+<tr><td>L1 正則化<br>（Lasso）</td><td>懲罰係數<strong>絕對值</strong>總和，會把部分係數推到<strong>恰好為 0</strong></td><td>可做自動特徵選擇</td></tr>
+<tr><td>L2 正則化<br>（Ridge）</td><td>懲罰係數<strong>平方</strong>總和，讓係數整體變小</td><td>相關特徵平均分攤權重，較穩定</td></tr>
+<tr><td>Dropout</td><td>訓練時隨機關閉部分神經元</td><td>推論時全開；相當於集成多個子網路</td></tr>
+<tr><td>Early Stopping</td><td>驗證損失連續數回合不改善就停止，回復最佳權重</td><td>容忍值（patience）避免因短暫波動誤停</td></tr>
+<tr><td>簡化模型</td><td>減少層數、限制樹深度</td><td>降低有效複雜度</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="bt">⚠️ 反向操作</div>
+  <p>看到「過擬合」情境，選項若寫「應增加模型層數與參數量讓它學得更好」——<strong>一定是錯的</strong>。那只會讓模型記憶力更強、過擬合更嚴重。反之，<strong>欠擬合</strong>才要增加複雜度、加入更好的特徵、減弱正則化。</p>
+</div>
+</section>
+
+<!-- ══════════════ 6 ══════════════ -->
+<section class="ch" id="c6">
+<h2><span class="num">CH 6</span>評估指標完全拆解</h2>
+
+<p class="lede">這章的計算題一定要會。我們用一個具體例子把所有指標算一遍，你就再也不會混淆。</p>
+
+<h3>6-1　混淆矩陣（Confusion Matrix）</h3>
+<p><strong>記憶訣竅</strong>：前面的「真／偽」指模型<strong>判斷對不對</strong>，後面的「陽／陰」指模型<strong>說了什麼</strong>。</p>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>模型說：陽性（有病）</th><th>模型說：陰性（沒病）</th></tr>
+<tr><td><strong>實際：有病</strong></td><td>真陽性 TP<br>（判對了，說有病，真的有病）</td><td>偽陰性 FN<br>（判錯了，說沒病，其實有病）<strong>← 漏抓</strong></td></tr>
+<tr><td><strong>實際：沒病</strong></td><td>偽陽性 FP<br>（判錯了，說有病，其實沒病）<strong>← 誤報</strong></td><td>真陰性 TN<br>（判對了，說沒病，真的沒病）</td></tr>
+</table>
+</div>
+
+<div class="box math">
+  <div class="bt">📐 完整計算演練</div>
+  <p>某疫病篩檢，1,000 人受測：實際患病 100 人（其中判陽性 80、判陰性 20）；實際健康 900 人（其中判陽性 45、判陰性 855）。</p>
+  <div class="fml">TP = 80   FN = 20   FP = 45   TN = 855
+
+準確率 Accuracy = (TP+TN) ÷ 全部 = (80+855) ÷ 1000 = <b>93.5%</b>
+  → 「所有判斷中，對了幾成？」
+
+召回率 Recall  = TP ÷ (TP+FN) = 80 ÷ 100 = <b>80%</b>
+  → 「所有真的有病的人，我抓出幾成？」（分母是實際陽性）
+
+精確率 Precision = TP ÷ (TP+FP) = 80 ÷ 125 = <b>64%</b>
+  → 「我說有病的人，真的有病的佔幾成？」（分母是判為陽性）
+
+F1 = 2 × (0.64 × 0.80) ÷ (0.64 + 0.80) ≈ <b>71.1%</b>
+  → 精確率與召回率的調和平均</div>
+</div>
+
+<h3>6-2　為什麼 F1 用調和平均而不是算術平均？</h3>
+<p>比較兩個模型：A 的精確率 0.90、召回率 0.30；B 的精確率 0.60、召回率 0.60。</p>
+<div class="fml">算術平均：A = (0.90+0.30)/2 = 0.60   B = (0.60+0.60)/2 = 0.60   <span class="cm"># 看起來一樣好！</span>
+調和平均：A = 2×0.27÷1.20 = <b>0.45</b>      B = 2×0.36÷1.20 = <b>0.60</b>   <span class="cm"># B 明顯較佳</span></div>
+<p><strong>調和平均的特性是「被小的那一邊拖住」</strong>，只要其中一項很低，整體就被拉下來。這逼迫模型必須兩邊都顧好，不能靠犧牲一邊來換漂亮數字。A 雖然說是好的就幾乎都對，卻漏掉了七成，實務上是嚴重缺陷。</p>
+
+<h3>6-3　精確率與召回率的取捨（超高頻考點）</h3>
+<div class="box case">
+  <div class="bt">💼 判斷公式：哪一種錯誤的代價比較高？</div>
+  <ul>
+    <li><strong>漏抓（偽陰性）代價高 → 提高召回率</strong>（降低決策閾值）<br>例：疾病篩檢漏掉病患、詐欺偵測漏掉盜刷、工廠漏掉瑕疵品流到客戶手上。</li>
+    <li><strong>誤報（偽陽性）代價高 → 提高精確率</strong>（提高決策閾值）<br>例：垃圾郵件過濾器直接刪除信件（誤刪客戶詢價信損失一筆訂單）、推播打擾用戶。</li>
+  </ul>
+  <p><strong>加分觀念</strong>：更好的產品設計是把「不可逆的錯誤」變成「可挽回的錯誤」——垃圾信不要直接刪除，改成移入垃圾郵件匣保留 30 天。</p>
+</div>
+
+<h3>6-4　ROC-AUC 的正確理解</h3>
+<p>ROC 曲線是把決策閾值從 1 一路降到 0，把每個閾值下的「真陽率（召回率）」對「偽陽率」畫成的曲線；AUC 就是曲線下面積。</p>
+<div class="keys">
+  <div class="k"><b>最直觀的解釋</b>：隨機抽一個正樣本與一個負樣本，模型給正樣本較高分數的機率，就是 AUC。所以 AUC 衡量的是<strong>排序能力</strong>，且不受決策閾值影響。</div>
+  <div class="k"><b>判讀基準</b>：0.5 ＝ 瞎猜；0.7–0.8 可接受；0.8–0.9 良好；0.9 以上優異。</div>
+  <div class="k"><b>重要限制</b>：正負樣本極度不平衡時（如詐欺率 0.1%），ROC-AUC 容易看起來很漂亮，此時應改看 <b>PR-AUC</b>。</div>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ AUC ≠ 準確率</div>
+  <p>AUC 0.87 <strong>不是</strong>「87% 的機率預測正確」，而是「排序正確的機率是 87%」。這是選擇題最愛設的陷阱。</p>
+</div>
+
+<h3>6-5　迴歸指標</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>指標</th><th>公式概念</th><th>特性</th></tr>
+<tr><td>MAE</td><td>誤差取絕對值後平均</td><td>每筆誤差權重相同，對離群值穩健</td></tr>
+<tr><td>RMSE</td><td>誤差平方後平均再開根號</td><td><strong>對大誤差特別敏感</strong>（平方會放大）</td></tr>
+<tr><td>R²</td><td>1 − (模型殘差平方和 ÷ 總變異平方和)</td><td>模型解釋了目標變數多少比例的變異</td></tr>
+</table>
+</div>
+<div class="box math">
+  <div class="bt">📐 RMSE 遠大於 MAE 代表什麼？</div>
+  <p>某房價模型 MAE = 45 萬、RMSE = 130 萬。因為平方會把大誤差急遽放大（誤差 10 萬平方後是 100 億，誤差 500 萬平方後是 25 兆），<strong>RMSE 遠大於 MAE 代表誤差分布不均勻</strong>：多數預測其實不錯，但有少數幾筆錯得非常離譜（可能是豪宅、法拍屋或資料錯誤）。應該去檢視誤差最大的那些樣本。<br>數學上 RMSE ≥ MAE 恆成立，只有在所有誤差絕對值相等時才相等。</p>
+</div>
+<div class="box math">
+  <div class="bt">📐 R² 的三個提醒</div>
+  <ul>
+    <li>R² = 0 代表模型跟「直接猜平均值」一樣爛；R² <strong>可以是負的</strong>，代表比猜平均值還差。</li>
+    <li>每多加一個特徵，R² 只會上升不會下降，所以比較不同特徵數的模型時要看<strong>調整後 R²</strong>。</li>
+    <li>高 R² 不等於因果關係，也不保證在新資料上有效。</li>
+  </ul>
+</div>
+</section>
+
+<!-- ══════════════ 7 ══════════════ -->
+<section class="ch" id="c7">
+<h2><span class="num">CH 7</span>經典演算法家族</h2>
+
+<p class="lede">初級不會要你推導數學，但會考「這個情境該用哪一種」以及「這個演算法的核心特性」。</p>
+
+<h3>7-1　監督式演算法</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>演算法</th><th>核心概念</th><th>優點</th><th>缺點</th></tr>
+<tr><td>線性迴歸</td><td>找一條最能貼合資料的直線／超平面</td><td>簡單、可解釋</td><td>只能表達線性關係</td></tr>
+<tr><td>邏輯迴歸</td><td>線性組合後過 <strong>Sigmoid</strong> 壓到 0–1 當機率</td><td>可解釋、輸出機率</td><td>名為迴歸實為<strong>分類</strong>演算法</td></tr>
+<tr><td>決策樹</td><td>一連串 if-then 是非問句</td><td><strong>本質可解釋</strong>，可直接翻成人話</td><td>單棵樹變異高、易過擬合</td></tr>
+<tr><td>隨機森林</td><td>Bagging：資料抽樣 ＋ 特徵抽樣，多棵樹投票</td><td>穩定、抗過擬合、有特徵重要度</td><td>可解釋性下降</td></tr>
+<tr><td>梯度提升樹<br>(XGBoost 等)</td><td>Boosting：後一棵樹修正前一棵的殘差</td><td><strong>表格資料的最強基準</strong></td><td>須依序訓練、對雜訊敏感</td></tr>
+<tr><td>KNN</td><td>近朱者赤：看最近的 K 個鄰居</td><td>無需訓練、直觀</td><td>對特徵尺度極敏感、推論慢</td></tr>
+<tr><td>SVM</td><td>找出讓兩類<strong>間隔最大</strong>的分隔超平面</td><td>小樣本高維表現佳（核技巧處理非線性）</td><td>資料量大時訓練極慢</td></tr>
+<tr><td>樸素貝葉斯</td><td>貝氏定理 ＋ 特徵條件獨立假設</td><td>訓練極快、適合文本</td><td>「天真」假設在真實語言不成立</td></tr>
+</table>
+</div>
+
+<div class="box math">
+  <div class="bt">📐 Bagging vs. Boosting（必考對比）</div>
+  <div class="tbl-wrap" style="margin:8px 0 0;">
+  <table>
+  <tr><th></th><th>Bagging（隨機森林）</th><th>Boosting（XGBoost）</th></tr>
+  <tr><td>訓練方式</td><td><strong>並行</strong>，各模型獨立</td><td><strong>序列</strong>，後者修正前者</td></tr>
+  <tr><td>主要降低</td><td><strong>變異</strong>（Variance）</td><td><strong>偏差</strong>（Bias）</td></tr>
+  <tr><td>基學習器</td><td>高變異低偏差（未剪枝深樹）</td><td>偏弱（淺樹）</td></tr>
+  <tr><td>對雜訊</td><td>較穩健</td><td>較敏感</td></tr>
+  </table>
+  </div>
+</div>
+
+<h3>7-2　非監督式演算法</h3>
+<ul>
+  <li><strong>K-means</strong>：需事先指定群數 K。用<strong>手肘法</strong>決定 K——把 K 與群內平方和誤差畫成折線，找曲線由陡降轉緩降的轉折點。<br><em>為什麼不能選誤差最小的 K？因為 K 越大誤差必然越小，K 等於樣本數時誤差為 0，但毫無意義。</em>另可用<strong>輪廓係數</strong>輔助，最重要的是<strong>業務可執行性</strong>。</li>
+  <li><strong>階層式分群</strong>：不需指定群數，產生<strong>樹狀圖（Dendrogram）</strong>，可事後決定在哪個高度切一刀。缺點是運算成本高。</li>
+  <li><strong>DBSCAN</strong>：以<strong>密度</strong>定義群集，可找出<strong>任意形狀</strong>的群，並自動把稀疏點標記為<strong>雜訊</strong>。適合地理熱點分析。</li>
+  <li><strong>PCA</strong>：找出資料<strong>變異最大</strong>的正交方向作為新座標軸。注意三點：(1) 必須先標準化；(2) 主成分是原變數的線性組合，需人為命名解讀；(3) 它是非監督方法，不保證保留下來的成分對預測目標最有用。</li>
+  <li><strong>Apriori（關聯規則）</strong>：三個指標必背——</li>
+</ul>
+<div class="fml">支援度 Support   = 同時含 A 與 B 的交易數 ÷ 總交易數   <span class="cm"># 規則涵蓋範圍夠不夠大</span>
+信賴度 Confidence = 含 A 且含 B 的交易數 ÷ 含 A 的交易數   <span class="cm"># 規則可靠度</span>
+提升度 Lift       = 信賴度 ÷ B 的整體購買率
+  Lift &gt; 1 正相關   Lift = 1 獨立無關   Lift &lt; 1 負相關</div>
+<p>提升度的用途是<strong>排除「B 本身就是熱銷品」的假象</strong>。例如「買尿布的人也買啤酒」信賴度 60%、提升度 3.5，代表買尿布者買啤酒的機率是隨機顧客的 3.5 倍。但要記住：<strong>關聯不等於因果</strong>，是否真的能靠陳列促銷提升業績，仍須以 A／B 測試驗證。</p>
+</section>
+
+<!-- ══════════════ 8 ══════════════ -->
+<section class="ch" id="c8">
+<h2><span class="num">CH 8</span>神經網路與深度學習</h2>
+
+<h3>8-1　為什麼一定要有激活函數</h3>
+<p>這是理解深度學習最關鍵的一點。若每一層都只做線性變換（乘權重再加偏差），那麼多層堆疊在數學上仍可化簡成<strong>單一個線性變換</strong>：</p>
+<div class="fml">第一層：y₁ = W₁x + b₁
+第二層：y₂ = W₂y₁ + b₂ = W₂(W₁x + b₁) + b₂ = (W₂W₁)x + (W₂b₁ + b₂)
+       ↑ 化簡後仍是「某個矩陣 × x ＋ 某個向量」，還是一條線！</div>
+<p>所以不論疊幾層，表達能力都等同於一層線性模型。<strong>激活函數在每層之後加入非線性轉折</strong>，才讓網路能組合出任意複雜的函數。</p>
+<div class="tbl-wrap">
+<table>
+<tr><th>激活函數</th><th>輸出範圍</th><th>特性與用途</th></tr>
+<tr><td>Sigmoid</td><td>0 ~ 1</td><td>適合二元分類<strong>輸出層</strong>；輸入絕對值大時梯度趨近 0，<strong>易梯度消失</strong></td></tr>
+<tr><td>Tanh</td><td>−1 ~ 1</td><td>以 0 為中心，收斂較 Sigmoid 快，仍有飽和問題</td></tr>
+<tr><td>ReLU</td><td>0 ~ ∞</td><td>取 max(0, x)。計算快、正區間梯度恆為 1，<strong>隱藏層預設選擇</strong>；負區間梯度為 0 可能造成神經元死亡</td></tr>
+<tr><td>Softmax</td><td>加總為 1</td><td>多分類<strong>輸出層</strong>，把分數轉成機率分布</td></tr>
+</table>
+</div>
+
+<h3>8-2　反向傳播（Backpropagation）</h3>
+<p>一次訓練迭代包含三步：</p>
+<ol class="steps">
+  <li><strong>前向傳播</strong>：資料由輸入層經各隱藏層算到輸出層，產生預測值。</li>
+  <li><strong>計算損失</strong>：用損失函數量化預測與正確答案的差距（分類用交叉熵、迴歸用均方誤差）。</li>
+  <li><strong>反向傳播</strong>：利用微積分的<strong>連鎖律</strong>，從損失開始由輸出層往輸入層逐層計算「每個權重對總損失的偏微分」，也就是梯度。直觀理解就是：<em>這個權重要為誤差負多少責任、往哪個方向調可以讓誤差變小</em>。接著由優化器依梯度更新權重。</li>
+</ol>
+<p><strong>反向傳播的價值在於效率</strong>：它透過中間結果重用，讓計算所有權重梯度的成本大約只等於一次前向傳播的常數倍，使訓練上億參數的模型成為可能。</p>
+
+<h3>8-3　梯度消失與殘差連接</h3>
+<div class="box case">
+  <div class="bt">💼 為什麼 30 層的 Sigmoid 網路訓練不動？</div>
+  <p>反向傳播依連鎖律<strong>逐層相乘</strong>，而 Sigmoid 的導數最大值只有 0.25。30 層相乘等於把許多小於 1 的數字連乘 30 次，結果趨近於 0 → 傳到淺層時梯度幾乎消失，淺層權重形同凍結。這就是<strong>梯度消失</strong>。</p>
+  <p><strong>四大解方：</strong>(1) 改用 <strong>ReLU</strong> 系列（正區間導數恆為 1）；(2) <strong>殘差連接</strong>（讓梯度透過捷徑直接跳層回傳，這是深度能推進到上百層的關鍵突破）；(3) <strong>批次正規化</strong>（把每層輸入拉回適當分布，避免落入飽和區）；(4) 妥善的<strong>權重初始化</strong>（搭配 ReLU 用 He 初始化、搭配 Tanh 用 Xavier 初始化）。</p>
+  <p>反過來若梯度變成無限大，叫<strong>梯度爆炸</strong>，處置方式是<strong>梯度裁剪</strong>。</p>
+</div>
+
+<h3>8-4　四大架構速覽</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>架構</th><th>設計理念</th><th>適用</th></tr>
+<tr><td><strong>CNN</strong><br>卷積神經網路</td><td>三大設計：<strong>局部感受野</strong>（只看一小塊）、<strong>權重共享</strong>（同一個濾波器滑過全圖，大幅減少參數）、<strong>平移不變性</strong>（不論物件在哪都能偵測）。池化層負責縮小尺寸、擴大感受野並提升穩健性。</td><td>影像</td></tr>
+<tr><td><strong>RNN / LSTM</strong><br>循環神經網路</td><td>用<strong>隱藏狀態</strong>把前一時刻資訊帶到下一時刻。RNN 長序列會梯度消失；LSTM 以<strong>遺忘閘、輸入閘、輸出閘</strong>控制細胞狀態，因為更新以加法為主而非連乘，可記住長距離資訊。</td><td>文字、語音、時間序列</td></tr>
+<tr><td><strong>Transformer</strong></td><td><strong>自注意力</strong>：處理每個詞時，同時衡量它與句中所有詞的關聯強度。兩大優勢：(1) 可<strong>平行運算</strong>整個序列（RNN 必須依序）；(2) 任意兩詞距離皆為<strong>一步</strong>，能捕捉長距離依賴。因本身不含順序資訊，需加<strong>位置編碼</strong>。</td><td>幾乎所有 NLP、現已擴及影像</td></tr>
+<tr><td><strong>GAN</strong><br>生成對抗網路</td><td>生成器製造假樣本、判別器分辨真假，兩者對抗訓練。挑戰：訓練不穩定、<strong>模式崩潰</strong>（只會生成同一種樣本）、缺乏客觀收斂指標。</td><td>影像生成（近年多被擴散模型取代）</td></tr>
+</table>
+</div>
+<p>另外兩個常考架構：<strong>自編碼器（Autoencoder）</strong>把高維輸入壓縮成低維潛在表示再重建，用途包括非線性降維、去雜訊、<strong>異常偵測</strong>（只用正常資料訓練，異常樣本的重建誤差會顯著變大）；<strong>詞嵌入（Word Embedding）</strong>用數百維稠密向量表示每個詞，語意相近的詞在向量空間中相鄰，甚至能做「國王 − 男人 + 女人 ≈ 王后」的類比運算，相較獨熱編碼大幅降維且保留語意。</p>
+</section>
+
+<!-- ══════════════ 9 ══════════════ -->
+<section class="ch" id="c9">
+<h2><span class="num">CH 9</span>電腦視覺與自然語言應用</h2>
+
+<h3>9-1　電腦視覺任務階梯</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>任務</th><th>回答什麼</th><th>輸出</th><th>標註成本</th></tr>
+<tr><td>影像分類</td><td>這張圖是什麼</td><td>一個類別標籤</td><td>最低（數秒）</td></tr>
+<tr><td>物件偵測</td><td>有哪些東西、各在哪裡</td><td>多個邊界框＋類別＋信心</td><td>中（拉框，數十秒）</td></tr>
+<tr><td>語意分割</td><td>每個像素屬於哪一類</td><td>與原圖同尺寸的遮罩</td><td><strong>最高</strong>（描輪廓，可達 30–90 分鐘）</td></tr>
+<tr><td>實例分割</td><td>逐像素且區分個體</td><td>每個個體各一遮罩</td><td>最高</td></tr>
+</table>
+</div>
+<p><strong>選型關鍵</strong>：需要計算「面積、覆蓋率」→ 分割；需要「計數、定位」→ 偵測；只需判斷「有沒有」→ 分類。即時性需求高（如產線、監控）通常選單階段模型如 YOLO；精度優先選兩階段模型如 Faster R-CNN。</p>
+
+<h3>9-2　自然語言處理任務</h3>
+<ul>
+  <li><strong>情感分析</strong>：三大限制必考——(1) <strong>反諷</strong>（「真是太棒了，等了三小時」）；(2) <strong>程度與中性判斷</strong>（「還可以啦」）；(3) <strong>面向缺失</strong>（一則留言同時稱讚產品、抱怨客服，整體極性互相抵銷）。解法是<strong>面向式情感分析</strong>：先抽取面向再各自判斷情緒。</li>
+  <li><strong>命名實體辨識（NER）</strong>：從文本抽出人名、公司、金額、日期。難點：中文無空格造成<strong>邊界判定</strong>困難、<strong>同名歧義</strong>（蘋果是公司還是水果）、<strong>未登錄詞</strong>。評估必須用<strong>實體層級</strong>（邊界與類型都要完全正確），用逐字元準確率會嚴重虛高。</li>
+  <li><strong>文本摘要</strong>：<strong>抽取式</strong>直接挑原文句子（不會捏造但可能不連貫）；<strong>生成式</strong>用自己的話重寫（流暢但有<strong>幻覺</strong>風險）。高風險場域應採混合策略並附原文出處。</li>
+  <li><strong>機器翻譯</strong>：注意「翻譯 ≠ 在地化」。在地化還包含單位、日期格式、貨幣、文化情境與法規用語。</li>
+</ul>
+
+<h3>9-3　推薦系統</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>協同過濾</th><th>內容式推薦</th></tr>
+<tr><td>依據</td><td>人與人（或物與物）的<strong>行為相似度</strong></td><td>物品本身的<strong>屬性</strong>與用戶偏好輪廓</td></tr>
+<tr><td>優勢</td><td>能發現標籤看不出的關聯，較有驚喜感</td><td>新物品只要有標籤就能推；可解釋</td></tr>
+<tr><td>弱點</td><td><strong>冷啟動</strong>、資料稀疏、熱門偏誤</td><td><strong>同質化</strong>，越推越窄</td></tr>
+</table>
+</div>
+<p><strong>冷啟動的解法</strong>：新用戶用熱門榜單、註冊偏好問卷、人口統計特徵過渡；新商品用內容式推薦並保留「探索位」強制曝光（技術上可用多臂拉霸機演算法平衡探索與利用）。</p>
+<div class="box warn">
+  <div class="bt">⚠️ 過濾泡泡與指標錯位</div>
+  <p>若推薦演算法<strong>只優化點擊率</strong>，最有效的策略往往是推送聳動標題與情緒性內容——短期指標漂亮，長期消耗使用者信任。這是<strong>指標錯位</strong>：點擊率只是容易衡量的短期代理指標，與「使用者真正獲得價值」不等價。改善方向：多目標優化（納入留存、完成率、內容品質）、主動注入多樣性、提供使用者控制權。</p>
+</div>
+</section>
+
+<!-- ══════════════ 10 ══════════════ -->
+<section class="ch" id="c10">
+<h2><span class="num">CH 10</span>AI 倫理、偏誤與法規</h2>
+
+<h3>10-1　偏誤的五種來源</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>類型</th><th>成因</th><th>案例</th></tr>
+<tr><td><strong>歷史偏誤</strong></td><td>資料正確記錄了過去，但過去的決策本身就不公平</td><td>用 10 年錄取名單訓練履歷篩選，把歷史性別歧視自動化</td></tr>
+<tr><td>取樣偏誤</td><td>訓練資料未涵蓋所有族群</td><td>只用單一地區資料訓練</td></tr>
+<tr><td>標註偏誤</td><td>標註者的主觀成見帶入標籤</td><td>不同標註者對「客訴」認定不一</td></tr>
+<tr><td>測量偏誤</td><td>代理指標選得不當</td><td>用「逮捕率」代替「犯罪率」</td></tr>
+<tr><td>部署偏誤</td><td>模型被用在與設計情境不同的場合</td><td>為 A 族群設計卻用於 B 族群</td></tr>
+</table>
+</div>
+
+<div class="box warn">
+  <div class="bt">🚨 代理變數（Proxy Variable）</div>
+  <p><strong>刪除性別欄位 ≠ 沒有性別歧視。</strong>模型可以透過與性別高度相關的其他特徵（消費通路、畢業學校、居住地、用詞習慣）間接重建敏感屬性，造成<strong>間接歧視</strong>。這是選擇題的超高頻陷阱：看到「只要移除敏感欄位即可避免歧視」一律判錯。</p>
+</div>
+
+<h3>10-2　公平性有多種互斥定義</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>定義</th><th>要求</th></tr>
+<tr><td>統計均等<br>（群體公平性）</td><td>各群體的<strong>正向決策比率</strong>相同（如錄取率一致）</td></tr>
+<tr><td>機會均等</td><td>各群體中「實際合格者被正確錄取」的比率相同（<strong>真陽率</strong>一致）</td></tr>
+<tr><td>預測值平價</td><td>各群體中「被判合格者實際合格」的比率相同（<strong>精確率</strong>一致）</td></tr>
+<tr><td>個體公平性</td><td>相似的個體應得到相似的對待</td></tr>
+</table>
+</div>
+<p><strong>關鍵理論結果</strong>：當各群體的基礎發生率不同時，這幾種定義<strong>在數學上被證明無法同時滿足</strong>，只能取捨。因此專業態度不是尋找唯一正確答案，而是先釐清「這個應用中哪一種錯誤傷害最大」，再由業務、法遵與受影響群體代表共同選定主要指標並記錄理由。</p>
+
+<h3>10-3　可解釋 AI（XAI）</h3>
+<div class="keys">
+  <div class="k"><b>全域解釋</b>：描述模型<strong>整體</strong>行為。工具：特徵重要度、部分依賴圖。用途：向管理層說明、模型驗證。</div>
+  <div class="k"><b>局部解釋</b>：說明<strong>單筆</strong>預測的成因。工具：LIME（在該樣本附近用簡單線性模型近似）、SHAP（以合作賽局理論的 Shapley 值公平分配各特徵貢獻）。用途：產出個案理由、處理客戶申訴。</div>
+  <div class="k"><b>三個限制</b>：解釋是<strong>近似</strong>而非模型真實內部機制；不同方法可能給出不一致結論；解釋反映的是<strong>相關性而非因果</strong>，不可直接當成「改變這個變數就會改變結果」的保證。</div>
+</div>
+
+<h3>10-4　隱私與去識別化</h3>
+<div class="box case">
+  <div class="bt">💼 為什麼刪掉姓名還是會被認出來？</div>
+  <p>關鍵在<strong>準識別欄位（Quasi-identifiers）</strong>：出生日期、性別、郵遞區號這類單獨看不足以識別、組合起來卻高度唯一的欄位。經典研究指出，僅憑這三者就足以唯一識別相當高比例的人口，再與公開名冊比對即可還原身分——這叫<strong>再識別風險</strong>。</p>
+  <p><strong>正確技術：</strong></p>
+  <ul>
+    <li><strong>概化</strong>：出生年月日 → 出生年或年齡區間；五碼郵遞區號 → 三碼。</li>
+    <li><strong>抑制</strong>：刪除或遮蔽極端稀有的值。</li>
+    <li><strong>k-匿名</strong>：確保任一組準識別欄位的組合至少對應 k 筆記錄。</li>
+    <li><strong>差分隱私</strong>：在統計輸出中加入<strong>經數學校準的雜訊</strong>，保證「任一個體是否被納入，對輸出的分布影響極小」，因此無法從結果反推個體。這是可量化的數學保證，不依賴「攻擊者不知道什麼」的假設。</li>
+  </ul>
+</div>
+<p><strong>兩種進階隱私技術：</strong></p>
+<ul>
+  <li><strong>聯邦式學習</strong>：「讓模型移動，而不是讓資料移動」。各方在本地訓練，只上傳模型參數更新到中央彙整。適合醫院、金融等資料不得離開機構的場景。<em>注意：它不自動保證隱私</em>——研究顯示從梯度可能反推部分訓練樣本，需搭配安全彙總或差分隱私。</li>
+  <li><strong>差分隱私</strong>：如上。核心取捨是隱私預算——預算越小保護越強但雜訊越大、統計效用越低，且多次查詢會累積消耗預算。</li>
+</ul>
+
+<h3>10-5　法規重點</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>法規</th><th>核心要求</th></tr>
+<tr><td>台灣<strong>個人資料保護法</strong></td><td>目的特定、告知義務、當事人查詢更正與刪除權、安全維護義務、委外監督責任；個資<strong>國際傳輸</strong>主管機關得於特定情形限制之</td></tr>
+<tr><td>歐盟 <strong>GDPR</strong></td><td>第 22 條：對當事人產生法律效果或重大影響的<strong>全自動化決策</strong>受限制；當事人有權要求<strong>人工介入、表達意見、提出異議</strong>，並取得決策邏輯的有意義說明</td></tr>
+<tr><td>歐盟<strong>人工智慧法</strong></td><td>風險分級：不可接受風險（原則禁止）／高風險（風險管理、資料治理、技術文件、人為監督、準確性與穩健性、符合性評鑑）／有限風險（透明度義務）／最小風險。<strong>就業、授信、教育、司法等用途多屬高風險</strong>；具域外效力</td></tr>
+<tr><td>台灣<strong>營業秘密法</strong></td><td>保護要件包含「已採取<strong>合理保密措施</strong>」——把未公開技術輸入不受控的外部 AI 服務，可能被認為未盡保密義務</td></tr>
+</table>
+</div>
+
+<h3>10-6　AI 資安三種攻擊</h3>
+<ul>
+  <li><strong>對抗樣本（Adversarial Example）</strong>：加入人眼幾乎察覺不到的微小擾動，讓模型高信心地判錯（如在停止標誌貼幾張貼紙被判成速限標誌）。防禦：對抗訓練、輸入前處理與偵測、模型集成，以及最重要的<strong>多感測器融合</strong>。</li>
+  <li><strong>資料投毒（Data Poisoning）</strong>：把惡意樣本混入訓練資料。特別危險的是<strong>後門攻擊</strong>——模型在一般輸入表現正常，只有遇到特定觸發器才做出攻擊者指定的判斷，極難被例行測試發現。防禦：來源管控與信譽評分、限制單一來源影響力、上線前以受保護的<strong>黃金測試集</strong>驗證。</li>
+  <li><strong>深度偽造（Deepfake）</strong>：合成逼真的影音進行詐騙。防禦重點是<strong>不要把身分驗證建立在可被合成的訊號上</strong>——回撥通訊錄上的既有號碼、雙人覆核、金額門檻審批、預先約定暗號。</li>
+</ul>
+</section>
+
+<!-- ══════════════ 11 ══════════════ -->
+<section class="ch" id="c11">
+<h2><span class="num">CH 11</span>企業導入與 MLOps</h2>
+
+<h3>11-1　CRISP-DM 六階段</h3>
+<ol class="steps">
+  <li><strong>商業理解（Business Understanding）</strong>：釐清要解決的問題、成功的可量測定義、限制條件與最終使用方式。<strong>最常被跳過卻最關鍵</strong>。</li>
+  <li><strong>資料理解</strong>：盤點可取得的資料、檢視品質與分布、探索性分析。</li>
+  <li><strong>資料準備</strong>：清洗、整合、特徵工程。通常佔最多工時。</li>
+  <li><strong>建模</strong>：選演算法、訓練與調參。</li>
+  <li><strong>評估</strong>：不只看技術指標，更要回頭檢視是否達成商業目標、有無未預期風險。</li>
+  <li><strong>部署</strong>：整合進實際流程、建立監控與再訓練機制、教育使用者。</li>
+</ol>
+<p>整個流程是<strong>迭代而非線性</strong>的，評估階段常會發現需要回頭補資料或重新定義問題。</p>
+
+<div class="box case">
+  <div class="bt">💼 啟動前必須回答的四個問題</div>
+  <ol>
+    <li>這個決策<strong>目前怎麼做</strong>？（基準線在哪）</li>
+    <li>改善後能帶來<strong>多少價值</strong>？（換算成金額）</li>
+    <li>模型結果<strong>由誰使用</strong>、他能採取什麼行動？</li>
+    <li>模型<strong>失準時的後果</strong>與備援方案是什麼？</li>
+  </ol>
+  <p>這四題答不出來，就不應該開始建模。</p>
+</div>
+
+<h3>11-2　基準線（Baseline）為什麼必要</h3>
+<p>沒有基準線就無法回答「這個模型到底值不值得」。應先量測<strong>現行作法</strong>（人工規則、上期數值直接沿用）在<strong>相同評估集與相同指標</strong>上的表現，再加上一個容易實作的<strong>簡單模型</strong>作為第二基準。若複雜模型只比簡單基準好一點點，考量維運成本後未必值得上線。</p>
+
+<h3>11-3　Build vs. Buy 決策</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>維度</th><th>判斷</th></tr>
+<tr><td>差異化程度</td><td>是核心競爭優勢來源 → 自建；通用能力 → 採購</td></tr>
+<tr><td>團隊能力</td><td>無專職團隊時，自建的隱形成本（更新、監控、故障排除、人才流動）極高</td></tr>
+<tr><td>總持有成本</td><td>SaaS 前期低、上線快，但用量放大後可能超越自建；需算損益兩平點</td></tr>
+<tr><td>資料合規</td><td>涉及個資須確認：處理位置、<strong>是否用於訓練</strong>、保存期限與刪除、次處理者、稽核權</td></tr>
+<tr><td>供應商鎖定</td><td>應保持資料與提示的<strong>可攜性</strong>，避免深度綁定專屬功能</td></tr>
+</table>
+</div>
+
+<h3>11-4　邊緣 vs. 雲端</h3>
+<div class="keys">
+  <div class="k"><b>推論放邊緣</b>的四個理由：延遲（毫秒級要求）、可用性（斷網仍可運作）、頻寬與成本（高解析影像不必全數上傳）、隱私（資料不離開廠區）。代價是裝置算力有限，模型須經<strong>量化、剪枝、蒸餾</strong>輕量化。</div>
+  <div class="k"><b>訓練放雲端</b>的理由：訓練需大量算力但屬週期性任務，雲端可彈性擴充、用完釋放，且便於彙整多廠資料與實驗管理。</div>
+  <div class="k"><b>模型下發</b>需分階段推送、裝置端保留前一版可自動回滾、回傳狀態供集中監控。</div>
+</div>
+
+<h3>11-5　上線之後才是開始：漂移與監控</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>類型</th><th>定義</th><th>例子</th></tr>
+<tr><td><strong>資料漂移</strong><br>Data Drift</td><td>輸入特徵的<strong>分布</strong>改變</td><td>電商新增大量新品類、客群結構因促銷改變</td></tr>
+<tr><td><strong>概念漂移</strong><br>Concept Drift</td><td>輸入與輸出之間的<strong>關係</strong>改變</td><td>經濟環境變化使同樣的財務特徵不再對應同樣的違約風險</td></tr>
+</table>
+</div>
+<p><strong>監控應分四層：</strong></p>
+<ol class="steps">
+  <li><strong>輸入分布</strong>：以統計檢定或分布距離監控各特徵，並監控缺失率、新類別出現比例。</li>
+  <li><strong>預測分布</strong>：模型輸出分數或類別比例的變化。<strong>標籤延遲時最重要的先行指標</strong>。</li>
+  <li><strong>代理指標</strong>：核准率、人工推翻率、轉真人比率、客訴量。</li>
+  <li><strong>實際效能</strong>：標籤到齊後計算真實指標。</li>
+</ol>
+<div class="box warn">
+  <div class="bt">⚠️ 重要觀念</div>
+  <p><strong>漂移不等於效能下降。</strong>輸入分布改變可能只是業務擴展到新客群而模型仍然有效；反之輸入分布穩定也可能因為概念漂移而效能下滑。因此偵測到漂移應<strong>觸發調查</strong>而非自動重訓。</p>
+</div>
+
+<h3>11-6　為什麼概念驗證成功卻無法上線</h3>
+<p>這是俗稱的「最後一哩路」問題。原因通常不是模型不夠準，而是缺乏 <strong>MLOps</strong> 能力：</p>
+<ul>
+  <li>資料來源是<strong>手動匯出</strong>的檔案，無法自動化。</li>
+  <li>程式碼、資料版本、超參數<strong>沒有版本控管</strong>，無法重現。</li>
+  <li>沒有模型註冊庫，不知道線上跑的是哪一版、誰核准的。</li>
+  <li>沒有監控，效能默默下滑數月才從客訴中得知。</li>
+  <li>沒有回滾機制，新模型出問題無法立即切回。</li>
+</ul>
+<p><strong>團隊角色分工</strong>也不可少：資料工程師（管線與品質）、資料科學家（建模與驗證）、機器學習工程師（服務化、部署、監控）、<strong>領域專家</strong>（定義問題、驗證輸出、決定採用——缺少他們是專案失敗的主因之一）、專案經理（跨部門溝通與變革管理）。</p>
+</section>
+
+<!-- ══════════════ 12 ══════════════ -->
+<section class="ch" id="c12">
+<h2><span class="num">CH 12</span>考前總複習表</h2>
+
+<h3>12-1　一分鐘判斷流程</h3>
+<ol class="steps">
+  <li>看到情境題，先問<strong>有沒有標籤</strong> → 監督式／非監督式。</li>
+  <li>監督式再問<strong>輸出是類別還是數值</strong> → 分類／迴歸。</li>
+  <li>看到「訓練高、驗證低」→ <strong>過擬合</strong>；「兩者都低且接近」→ <strong>欠擬合</strong>。</li>
+  <li>看到「離線分數異常高、上線後崩潰」→ 先懷疑<strong>資料洩漏</strong>。</li>
+  <li>看到「準確率 99% 但抓不到目標」→ <strong>類別不平衡</strong>，改看 Recall／PR-AUC。</li>
+  <li>看到「上線一段時間後效能下滑」→ <strong>資料漂移／概念漂移</strong>。</li>
+  <li>看到「刪除敏感欄位就沒有歧視」→ <strong>錯</strong>，代理變數問題。</li>
+</ol>
+
+<h3>12-2　極易混淆的名詞對照</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>A</th><th>B</th><th>差別</th></tr>
+<tr><td>參數</td><td>超參數</td><td>前者模型學到、後者人設定</td></tr>
+<tr><td>精確率</td><td>召回率</td><td>分母不同：判為陽性的總數 vs. 實際陽性的總數</td></tr>
+<tr><td>偽陽性</td><td>偽陰性</td><td>誤報 vs. 漏抓</td></tr>
+<tr><td>L1</td><td>L2</td><td>L1 推到恰好為 0（可選特徵）；L2 只壓小（較穩定）</td></tr>
+<tr><td>Bagging</td><td>Boosting</td><td>並行降變異 vs. 序列降偏差</td></tr>
+<tr><td>資料漂移</td><td>概念漂移</td><td>輸入分布變 vs. 輸入與輸出的關係變</td></tr>
+<tr><td>驗證集</td><td>測試集</td><td>調參用 vs. 最終評估用（只用一次）</td></tr>
+<tr><td>邏輯迴歸</td><td>線性迴歸</td><td>前者是<strong>分類</strong>（過 Sigmoid）、後者是迴歸</td></tr>
+<tr><td>相關</td><td>因果</td><td>共同出現 vs. 干預後真的會改變；建立因果需隨機實驗</td></tr>
+</table>
+</div>
+
+<h3>12-3　「一定是錯的」選項特徵</h3>
+<div class="box warn">
+  <div class="bt">🚫 看到這些描述，直接刪</div>
+  <ul>
+    <li>「AI 已具備自我意識」</li>
+    <li>「準確率越高模型一定越好」</li>
+    <li>「只要移除性別欄位就不會有歧視」</li>
+    <li>「資料越多越好，不需篩選品質」</li>
+    <li>「模型上線後就不需要維護」</li>
+    <li>「AI 可完全取代醫師／律師做出最終決定」</li>
+    <li>「只要在系統提示中要求，模型就一定會遵守」</li>
+    <li>「免責聲明可以免除所有法律責任」</li>
+    <li>「加密後就不算個資國際傳輸」</li>
+  </ul>
+</div>
+
+<div class="box exam">
+  <div class="bt">🎯 最後叮嚀</div>
+  <p>iPAS 初級的情境題大多不考艱深計算，而是考<strong>判斷力</strong>：這個做法合不合理、有沒有風險、該優先做什麼。答題時若猶豫，選擇那個「<strong>先釐清問題、先驗證、先小規模試點、保留人工介入</strong>」的選項，正確率通常最高——因為這正是專業的工作方式。</p>
+</div>
+
+<div class="pager">
+  <a href="../index.html">← 回模擬測驗</a>
+  <a href="b-s2.html">下一篇：初級科目二 · 生成式 AI 應用與規劃 →</a>
+</div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+// 目錄高亮
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function onScroll() {
+    var y = window.scrollY + 120, idx = 0;
+    for (var i = 0; i < secs.length; i++) { if (secs[i] && secs[i].offsetTop <= y) idx = i; }
+    links.forEach(function (a, i) { a.classList.toggle('on', i === idx); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>

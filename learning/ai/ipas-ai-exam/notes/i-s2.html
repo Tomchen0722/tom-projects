@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中級科目二講義：大數據處理分析與應用 — iPAS AI 模擬測驗</title>
+<meta name="description" content="iPAS AI 應用規劃師中級科目二完整講義：資料架構與湖倉、儲存格式、維度建模、分散式運算、串流處理、資料治理與隱私、統計分析陷阱、指標體系、SQL 與 Pandas 實務，以高中程度深入解說。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="notes.css">
+</head>
+<body>
+
+<header>
+  <div class="nav-inner">
+    <a class="logo" href="../index.html"><span class="logo-dot"></span>iPAS <em>AI</em> 講義</a>
+    <nav class="nav-links">
+      <a href="b-s1.html">初級一</a>
+      <a href="b-s2.html">初級二</a>
+      <a href="i-s1.html">中級一</a>
+      <a href="i-s2.html" class="active">中級二</a>
+      <a href="i-s3.html">中級三</a>
+      <a href="../index.html">← 回測驗</a>
+    </nav>
+  </div>
+</header>
+
+<div class="shell">
+
+<aside class="toc">
+  <h4>本篇目錄</h4>
+  <a href="#c1">1　資料架構與湖倉</a>
+  <a href="#c2">2　儲存格式與檔案管理</a>
+  <a href="#c3">3　維度建模</a>
+  <a href="#c4">4　分散式運算原理</a>
+  <a href="#c5">5　串流處理</a>
+  <a href="#c6">6　資料品質與治理</a>
+  <a href="#c7">7　隱私、權限與法遵</a>
+  <a href="#c8">8　統計方法與分析陷阱</a>
+  <a href="#c9">9　指標體系與視覺化</a>
+  <a href="#c10">10　SQL 實務精要</a>
+  <a href="#c11">11　Pandas 與大量資料</a>
+  <a href="#c12">12　查詢最佳化與成本</a>
+  <a href="#c13">13　考前總複習表</a>
+</aside>
+
+<main>
+
+<div class="hero">
+  <div class="pill">📕 中級 · 科目二（選考）</div>
+  <h1>大數據處理分析<br>與應用講義</h1>
+  <p class="sub">這一科橫跨<strong>資料工程</strong>（架構、格式、分散式運算、串流）、<strong>資料治理</strong>（品質、隱私、法遵）與<strong>資料分析</strong>（統計方法、指標、視覺化），另有 SQL 與 Pandas 的實作邏輯題。統計部分會用高中數學完整推導。</p>
+</div>
+
+<!-- ══════════════ 1 ══════════════ -->
+<section class="ch" id="c1">
+<h2><span class="num">CH 1</span>資料架構與湖倉</h2>
+
+<h3>1-1　為什麼要把交易與分析分開</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>OLTP（交易處理）</th><th>OLAP（分析處理）</th></tr>
+<tr><td>存取樣態</td><td>大量<strong>短小的讀寫</strong>，每次只碰少數列</td><td>少量但<strong>掃描大範圍</strong>的聚合查詢</td></tr>
+<tr><td>要求</td><td>低延遲、高併發、強一致</td><td>高吞吐、複雜聚合</td></tr>
+<tr><td>建模</td><td>正規化（避免更新異常）</td><td>適度去正規化（提升查詢效能）</td></tr>
+<tr><td>儲存</td><td>行式（Row-based）</td><td>列式（Columnar）</td></tr>
+</table>
+</div>
+<p>兩者共用同一套資源時，分析查詢會耗盡緩衝區與輸出入頻寬並可能持有鎖，<strong>直接拖垮前台</strong>。正確作法是實體分離，以複寫、批次抽取或<strong>變更資料擷取</strong>同步。</p>
+<div class="box warn">
+  <div class="bt">⚠️ 常見錯誤選項</div>
+  <p>「加索引就能解決」——索引有助點查詢，但無法解決<strong>大範圍掃描</strong>對資源的競爭，甚至因額外索引維護而拖慢寫入。「限制分析只能深夜查詢」——嚴重限制時效與彈性，且深夜通常也是批次高峰。</p>
+</div>
+
+<h3>1-2　資料湖、資料倉儲與湖倉</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>資料湖</th><th>資料倉儲</th><th>湖倉（Lakehouse）</th></tr>
+<tr><td>結構</td><td><strong>讀取時定義</strong>（Schema-on-Read）</td><td><strong>寫入時定義</strong>（Schema-on-Write）</td><td>分層兼具</td></tr>
+<tr><td>資料型態</td><td>原始、半結構化、非結構化</td><td>結構化、已清洗</td><td>全部</td></tr>
+<tr><td>優點</td><td>彈性高、成本低、可回溯重處理</td><td>一致、可信賴、查詢快</td><td>單一份儲存兼顧兩者、開放格式避免鎖定</td></tr>
+<tr><td>缺點</td><td>易變成「資料沼澤」</td><td>彈性低、成本高</td><td>需要治理與工程能力</td></tr>
+</table>
+</div>
+<div class="box case">
+  <div class="bt">💼 三層架構（Medallion 分層）</div>
+  <ol class="steps">
+    <li><strong>原始層</strong>：保存未經轉換的原始資料（含半結構化日誌與事件），保留最大彈性與可回溯性，供資料科學探索與日後重新處理。</li>
+    <li><strong>整理層</strong>：清洗、標準化、去重、定義結構，並以<strong>開放表格式</strong>維護（提供交易語意、結構演進、時間旅行與檔案管理）。</li>
+    <li><strong>彙總層</strong>：依業務主題建立維度模型或寬表，供報表與互動查詢，可搭配預聚合。</li>
+  </ol>
+  <p>財務報表所需的可信賴性由整理層與彙總層的品質檢核、血緣紀錄與版本控管達成；探索需求由原始層滿足。</p>
+</div>
+
+<h3>1-3　開放表格式解決了什麼</h3>
+<p>傳統資料湖直接以檔案目錄組織資料，<strong>缺乏交易語意</strong>：會讀到寫入中間狀態、並行寫入互相覆蓋、無法回溯歷史。開放表格式（Delta Lake、Apache Iceberg、Apache Hudi）在檔案之上加了一層<strong>中繼資料與交易日誌</strong>：</p>
+<div class="keys">
+  <div class="k"><b>原子性與快照隔離</b>：寫入完成後才以原子方式更新中繼資料指標，讀取者永遠看到<strong>一致的快照</strong>。</div>
+  <div class="k"><b>時間旅行</b>：可依版本號或時間戳查詢過去的狀態，對稽核、除錯與<strong>機器學習訓練資料的可重現性</strong>極有價值。</div>
+  <div class="k"><b>結構演進與強制</b>：可安全新增欄位並防止不相容的寫入。</div>
+  <div class="k"><b>有效的更新與刪除</b>：支援合併寫入，這對實作<strong>緩慢變動維度</strong>與<strong>個資刪除要求</strong>特別重要。</div>
+  <div class="k"><b>檔案管理</b>：內建壓實、清理過期版本與統計資訊維護。</div>
+</div>
+<p><strong>注意</strong>：歷史版本會佔用儲存，需設定保留期限與定期清理；時間旅行的可用範圍受保留設定限制；並行寫入通常採樂觀並行控制，衝突時需重試。</p>
+
+<h3>1-4　NoSQL 選型</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>類型</th><th>資料模型</th><th>適用</th><th>限制</th></tr>
+<tr><td><strong>鍵值</strong></td><td>鍵 → 值</td><td>工作階段、個人化設定、快取、計數器</td><td>只能以鍵查詢</td></tr>
+<tr><td><strong>文件</strong></td><td>JSON 類文件</td><td>商品目錄、內容管理（結構多變）</td><td>複雜跨文件連接較弱</td></tr>
+<tr><td><strong>寬列</strong></td><td>分區鍵＋叢集鍵</td><td>高寫入吞吐的時序或事件資料</td><td>查詢模式必須<strong>建表時就設計好</strong></td></tr>
+<tr><td><strong>圖</strong></td><td>節點與邊</td><td>多層關聯遍歷（社交、詐欺網路、供應鏈）</td><td>大規模更新較複雜</td></tr>
+<tr><td><strong>搜尋引擎</strong></td><td>倒排索引</td><td>全文檢索與彈性聚合</td><td>非強一致</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 選型的隱形成本</div>
+  <p>過多的資料庫種類會顯著增加<strong>維運負擔</strong>。實務上常在滿足需求的前提下盡量<strong>收斂技術選擇</strong>。</p>
+</div>
+
+<h3>1-5　一致性與分片</h3>
+<div class="box math">
+  <div class="bt">📐 分區容錯下的取捨</div>
+  <p>網路分區在分散式系統中<strong>無法避免</strong>，因此分區發生時只能在一致性與可用性之間取捨：</p>
+  <ul>
+    <li><strong>選強一致</strong>（拒絕可能回傳過期資料的請求）→ 分區期間部分不可用。適合<strong>金流、庫存扣減、座位預訂</strong>——錯誤代價高於延遲代價。</li>
+    <li><strong>選高可用</strong>（繼續服務，分區恢復後收斂）→ 短暫不一致。適合<strong>社群計數、推薦、日誌與分析</strong>。</li>
+  </ul>
+  <p><strong>補充</strong>：一致性有多個層級（讀己所寫、單調讀等中間保證）；許多系統允許<strong>每個查詢指定一致性層級</strong>；即使沒有分區，強一致也會帶來額外延遲；應用層可設計補償機制（超賣後的取消與退款）降低最終一致的業務風險。</p>
+</div>
+<p><strong>分片鍵設計四原則</strong>：分布均勻（避免城市、狀態碼這類高度傾斜的欄位）、基數足夠、支援主要查詢樣態（否則每次查詢都要廣播到所有分片）、避免單調遞增（時間戳或自增識別碼會使所有新寫入集中在最後一個分片形成熱點）。<strong>多數系統在建表後難以變更分片鍵</strong>，設計時要特別謹慎。</p>
+</section>
+
+<!-- ══════════════ 2 ══════════════ -->
+<section class="ch" id="c2">
+<h2><span class="num">CH 2</span>儲存格式與檔案管理</h2>
+
+<h3>2-1　列式儲存為什麼快</h3>
+<div class="box math">
+  <div class="bt">📐 一個具體的數量級計算</div>
+  <p>一張 200 欄的寬表，查詢只需要 4 個欄位，資料量數百 GB。</p>
+  <div class="fml">CSV（行式文字）：資料按<b>列</b>連續存放
+  → 即使只要 4 欄，仍須讀取並解析<b>整列全部內容</b>
+  → 讀取量 ≈ 100%
+
+Parquet（列式）：同一欄位的資料連續存放
+  → 只讀取用到的 4 欄 → 讀取量 ≈ 4/200 = <b>2%</b>
+  → 再加上同欄位型別相近的<b>高壓縮率</b>，實際傳輸量更少</div>
+</div>
+<p><strong>列式格式的三大優勢</strong>：</p>
+<ol class="steps">
+  <li><strong>投影裁剪</strong>：只讀取查詢用到的欄位。</li>
+  <li><strong>高壓縮率</strong>：同欄位資料型別與值域相近，配合字典編碼與行程長度編碼效果極佳。</li>
+  <li><strong>內建統計資訊</strong>：每個資料區塊記錄各欄的最小最大值與空值數，查詢時可<strong>跳過不可能符合條件的區塊</strong>（謂詞下推與區塊跳過），對範圍篩選特別有效。</li>
+</ol>
+<div class="box warn">
+  <div class="bt">⚠️ 列式不是萬用</div>
+  <p>列式適合<strong>分析型的大範圍掃描與聚合</strong>；若工作負載是頻繁的<strong>單列讀寫或更新</strong>，行式儲存仍較合適。這正是交易與分析系統採用不同格式的原因。</p>
+</div>
+
+<h3>2-2　格式選型</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>格式</th><th>特性</th><th>適用層級</th></tr>
+<tr><td><strong>Avro</strong></td><td>列導向二進位；<strong>結構演進支援佳</strong>；寫入效率高</td><td>資料交換、訊息序列化、擷取層</td></tr>
+<tr><td><strong>Parquet</strong></td><td>列式；跨引擎相容性最廣</td><td>分析層（主流選擇）</td></tr>
+<tr><td><strong>ORC</strong></td><td>列式；部分生態系對更新與索引支援較佳</td><td>分析層</td></tr>
+<tr><td><strong>JSON</strong></td><td>彈性、可讀；<strong>體積大、解析慢、無型別保證</strong></td><td>原始層短期保留或除錯</td></tr>
+<tr><td><strong>CSV</strong></td><td>無型別與結構資訊、壓縮率低、無法有效支援巢狀結構</td><td>僅作交換用途</td></tr>
+</table>
+</div>
+<p><strong>壓縮編碼</strong>：Snappy（壓縮率中等但編解碼快且<strong>可分割</strong>，適合熱資料）、Zstandard（壓縮率與速度兼具）、Gzip（壓縮率高但<strong>通常不可分割</strong>會影響平行處理，適合冷資料）。</p>
+
+<h3>2-3　小檔案問題</h3>
+<div class="box case">
+  <div class="bt">💼 串流每分鐘寫一個檔案，一年後數十萬個小檔</div>
+  <p><strong>為什麼慢？</strong>每個檔案都需要一次開檔、讀取中繼資料與排程一個任務，<strong>固定開銷與檔案數成正比</strong>；數十萬個檔案會使「列出檔案清單」本身就成為瓶頸；且每個小檔的壓縮與統計資訊效益都很差。</p>
+  <p><strong>處置：</strong></p>
+  <ul>
+    <li><strong>壓實（Compaction）</strong>：把同分區的小檔合併為目標大小（一般建議 128 MB 至 1 GB）。開放表格式通常內建最佳化指令且能維持交易一致性。</li>
+    <li><strong>源頭控制</strong>：拉長串流寫入的觸發間隔、控制寫出時的分區數、寫入前重新分區。</li>
+    <li><strong>分區設計</strong>：避免粒度過細（「小時＋高基數欄位」會產生大量僅含少量資料的分區）。</li>
+    <li><strong>混合架構</strong>：串流寫入小檔到即時區，背景作業壓實到歷史區，查詢時聯集兩者。</li>
+  </ul>
+</div>
+
+<h3>2-4　分區與資料跳過</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>技術</th><th>適用欄位</th><th>原理</th></tr>
+<tr><td><strong>分區</strong><br>Partitioning</td><td><strong>低基數</strong>且常用於篩選（日期、地區）</td><td>目錄層級隔離，查詢時直接排除不相關分區（分區裁剪）</td></tr>
+<tr><td><strong>分桶</strong><br>Bucketing</td><td>高基數但常查詢（使用者編號）</td><td>依雜湊分配到固定數量的桶，同值必落同桶；<strong>兩表以同鍵分桶時連接可免洗牌</strong></td></tr>
+<tr><td><strong>多維排序</strong><br>Z-Order</td><td>多個常用篩選欄位</td><td>把多維值交錯映射到一維後排序寫入，配合檔案統計資訊<strong>跳過整個檔案</strong></td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">🚨 分區鍵的經典錯誤</div>
+  <p>以「訂單編號」（高基數唯一值）作為分區鍵 → <strong>分區數達數百萬個</strong>，每個分區只含極少資料，造成嚴重的小檔案問題與中繼資料膨脹，光是列出分區清單就極慢。</p>
+  <p><strong>正確原則</strong>：分區鍵必須是<strong>查詢常用的低基數篩選欄位</strong>；層級不宜過深（一到兩層）；分布要相對均勻。高基數欄位的加速應改用分桶或多維排序。</p>
+</div>
+
+<h3>2-5　生命週期與分層儲存</h3>
+<div class="box case">
+  <div class="bt">💼 三年以上的原始日誌佔七成儲存但幾乎不被查詢</div>
+  <p><strong>分層儲存</strong>：雲端物件儲存的標準層／低頻層／封存層，單位成本可相差數倍到數十倍，代價是取用延遲較長且可能有取用費用與最短保存期限。設定自動轉移規則（30 天轉低頻、365 天轉封存），並注意<strong>頻繁取用封存資料反而可能更貴</strong>。</p>
+  <p><strong>保留政策</strong>：綜合法規要求（部分產業有法定保存年限）、業務需求（模型訓練需要多長歷史）、以及<strong>個資保護的保存最小化原則</strong>，訂定期限並自動執行刪除。</p>
+  <p><strong>其他手段</strong>：把原始文字日誌轉為<strong>列式格式加高壓縮</strong>（體積常可降到數分之一）、以彙總取代明細長期保存、清理重複與失敗作業的殘留、以及<strong>成本可視化</strong>讓資料擁有者有誘因整理。</p>
+</div>
+</section>
+
+<!-- ══════════════ 3 ══════════════ -->
+<section class="ch" id="c3">
+<h2><span class="num">CH 3</span>維度建模</h2>
+
+<h3>3-1　星型、雪花與寬表</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>模型</th><th>結構</th><th>優點</th><th>缺點</th></tr>
+<tr><td><strong>星型</strong></td><td>事實表＋去正規化的維度表，<strong>一層連接</strong></td><td>直觀易懂、查詢效能佳、引擎有專門最佳化</td><td>維度屬性有冗餘</td></tr>
+<tr><td><strong>雪花</strong></td><td>維度表再正規化為多層</td><td>減少冗餘與更新異常</td><td>連接層數增加、查詢複雜</td></tr>
+<tr><td><strong>寬表</strong></td><td>一張大表包含所有欄位</td><td>免連接、特定高頻查詢最快；適合機器學習特徵表</td><td>儲存膨脹、任一維度屬性變更需大範圍更新、<strong>易產生口徑不一致</strong></td></tr>
+</table>
+</div>
+<p><strong>實務作法</strong>：以星型架構作為可信賴的<strong>核心模型</strong>維持一致性與治理，再針對高頻用途從中衍生寬表或物化視圖作為<strong>加速層</strong>，並確保衍生層可由核心層完全重建。列式儲存的欄位裁剪已大幅降低寬表的掃描成本，使寬表比過去更可行。</p>
+
+<h3>3-2　事實表粒度（最關鍵的第一個決定）</h3>
+<div class="box exam">
+  <div class="bt">🎯 原則：選擇最細的原子粒度</div>
+  <p>因為<strong>細可以彙總成粗，反之不可能</strong>。若一開始只存訂單層，日後想分析商品組合、單品毛利或品項退貨率就完全無資料可用。</p>
+  <p><strong>四個必守要點：</strong></p>
+  <ol>
+    <li><strong>粒度必須全表一致</strong>——混合粒度會導致重複計算與錯誤彙總，是嚴重的建模缺陷。</li>
+    <li><strong>度量的可加性</strong>：完全可加（銷售金額，可沿任何維度加總）／半可加（庫存量，可沿商品加總但<strong>不可沿時間加總</strong>）／不可加（比率、單價，<strong>必須分子分母各自加總後再計算</strong>）。</li>
+    <li>訂單層才有的度量（運費、訂單折扣）另建訂單層事實表，或依規則分攤並記錄分攤邏輯。</li>
+    <li><strong>退化維度</strong>（如訂單編號）可直接保留在事實表中以支援回溯查詢。</li>
+  </ol>
+</div>
+
+<h3>3-3　緩慢變動維度（SCD）</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>型別</th><th>做法</th><th>適用</th></tr>
+<tr><td>Type 1</td><td>直接<strong>覆寫</strong>舊值，只保留現況</td><td>純粹的錯誤更正（修正拼錯的名稱）</td></tr>
+<tr><td><strong>Type 2</strong></td><td>屬性變更時<strong>新增一列</strong>並記錄生效日、失效日與目前旗標；以<strong>代理鍵</strong>區分同一自然鍵的不同版本</td><td><strong>最常用</strong>。需要「查 5 月訂單時顯示當時分級」的情境</td></tr>
+<tr><td>Type 3</td><td>同列額外保留前一個值的欄位</td><td>需同時比較「現在分類」與「前一次分類」</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ Type 2 的實作前提</div>
+  <p><strong>事實表必須使用代理鍵而非自然鍵</strong>作為外鍵，否則無法區分版本。另需處理遲到的維度變更與同日多次變更；查詢現況時透過目前版本旗標篩選。</p>
+</div>
+
+<h3>3-4　代理鍵（Surrogate Key）</h3>
+<p>由倉儲自行產生、<strong>與來源系統業務意義無關</strong>的識別碼（通常為遞增整數）。使用理由：</p>
+<ul>
+  <li><strong>隔離來源系統</strong>：來源編號規則變更、系統汰換或<strong>多來源整併（併購重號）</strong>時，倉儲的關聯結構不受影響。</li>
+  <li><strong>支援 SCD Type 2</strong>：同一實體的不同歷史版本需要不同主鍵。</li>
+  <li><strong>效能</strong>：整數鍵的連接與索引效率優於長字串或複合鍵。</li>
+  <li><strong>處理未知</strong>：可預先定義特殊代理鍵代表「未知」「尚未指派」，避免使用空值造成連接遺失。</li>
+</ul>
+<p>維度表應<strong>同時保留自然鍵與來源系統識別</strong>形成可追溯的對照；載入事實表時透過查找把自然鍵轉為當時有效的代理鍵。</p>
+
+<h3>3-5　實體解析與主資料管理</h3>
+<div class="box case">
+  <div class="bt">💼 併購後同一客戶被算成兩位，客單價統計失真</div>
+  <ol class="steps">
+    <li><strong>標準化</strong>：去除多餘空白與全半形差異、統一公司名稱寫法、地址正規化、電話去除分隔符號並補齊區碼。</li>
+    <li><strong>分塊</strong>：先以某些欄位（統編前幾碼、地址區域）把候選限縮在小群組內，<strong>避免兩兩比對的組合爆炸</strong>。</li>
+    <li><strong>比對與評分</strong>：確定性比對用唯一識別欄位（統編、身分證號、電子郵件）；機率性比對對名稱、地址、電話計算相似度（編輯距離、語音相似度、詞彙重疊）並加權。</li>
+    <li><strong>決策</strong>：設定<strong>兩個門檻</strong>——高於上門檻自動合併、低於下門檻判定不同、中間的灰色地帶進入<strong>人工審核佇列</strong>。</li>
+    <li><strong>黃金紀錄</strong>：合併時決定各欄位採用哪個來源的值（依來源可信度、更新時間或完整度），並<strong>保留原始紀錄與對照關係</strong>以便追溯與修正。</li>
+  </ol>
+</div>
+
+<h3>3-6　語意層：終結「三個部門三個數字」</h3>
+<div class="box warn">
+  <div class="bt">🚨 指標口徑不一致是最傷害信任的問題</div>
+  <p>根源在於<strong>定義散落在各處的查詢中而缺乏單一權威來源</strong>。解法是建立語意層或指標層：</p>
+  <ul>
+    <li><strong>定義治理</strong>：由業務擁有者與資料團隊共同確定每個指標的精確定義——事件來源、篩選條件、時間窗、去重方式、<strong>時區</strong>、以及排除規則（測試帳號、內部員工、退款訂單）；記錄擁有者與變更歷史。</li>
+    <li><strong>程式碼化</strong>：把定義寫成可版本控管的設定或轉換模型，而非散落在各報表的查詢中。</li>
+    <li><strong>統一引用</strong>：BI 工具、自助分析與資料 API 都從同一層取得定義，確保任何入口算出的數字一致。</li>
+    <li><strong>可發現性</strong>：提供指標目錄讓使用者查詢定義、擁有者與使用範例。</li>
+    <li><strong>變更管理</strong>：定義變更需通知使用者並說明對歷史數字的影響，必要時提供新舊口徑並行的過渡期。</li>
+  </ul>
+</div>
+</section>
+
+<!-- ══════════════ 4 ══════════════ -->
+<section class="ch" id="c4">
+<h2><span class="num">CH 4</span>分散式運算原理</h2>
+
+<h3>4-1　為什麼 Spark 比多階段 MapReduce 快</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>MapReduce</th><th>Spark</th></tr>
+<tr><td>中間結果</td><td><strong>每階段都寫入分散式檔案系統</strong>並依副本數複寫</td><td>可保留在<strong>記憶體</strong>中傳遞，必要時才落地</td></tr>
+<tr><td>最佳化</td><td>每步當成獨立作業</td><td>以<strong>有向無環圖</strong>描述整個流程，可綜觀全局最佳化</td></tr>
+<tr><td>重複使用</td><td>需重新讀取</td><td>可明確<strong>快取</strong>，迭代型演算法效益明顯</td></tr>
+</table>
+</div>
+<p><strong>注意</strong>：Spark 並非在所有情況下都更快——對於單一階段的超大規模掃描且記憶體不足時，優勢有限；且記憶體管理不當容易造成記憶體不足錯誤。</p>
+
+<h3>4-2　惰性求值與轉換／行動</h3>
+<div class="fml">轉換（Transformation）：篩選、映射、連接、聚合的定義 → <b>只建立執行計畫，不運算</b>
+行動（Action）：寫出檔案、收集到驅動端、計數、取前幾筆 → <b>觸發整個計畫執行</b></div>
+<p><strong>惰性求值的價值</strong>：讓最佳化器在真正執行前綜觀整個計畫——把篩選條件<strong>下推</strong>到最靠近資料來源處、只讀取實際用到的欄位、合併連續的窄依賴運算、依統計資訊選擇最佳連接策略。</p>
+<div class="box warn">
+  <div class="bt">⚠️ 四個實務推論</div>
+  <ol>
+    <li>錯誤直到行動才會顯現，除錯時堆疊訊息可能指向行動那一行，<strong>實際問題可能在前面的轉換定義中</strong>。</li>
+    <li>同一中間結果被多個行動使用時，<strong>預設會重新計算整條血緣</strong>，需明確快取。</li>
+    <li>在驅動端收集大量資料的行動可能造成<strong>驅動端記憶體不足</strong>。</li>
+    <li>可透過查看執行計畫理解引擎的實際執行方式。</li>
+  </ol>
+</div>
+
+<h3>4-3　窄依賴、寬依賴與洗牌</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th></th><th>窄依賴</th><th>寬依賴</th></tr>
+<tr><td>定義</td><td>子分區只依賴少數固定的父分區</td><td>子分區依賴<strong>多個</strong>父分區的資料</td></tr>
+<tr><td>運算</td><td>篩選、映射</td><td>依鍵分組、去重、依鍵連接、重新分區</td></tr>
+<tr><td>資料移動</td><td>不需移動，可在同節點連續執行</td><td>需<strong>洗牌（Shuffle）</strong>：跨節點傳輸＋中間結果落地</td></tr>
+<tr><td>成本</td><td>低，多個窄依賴會合併到同一階段</td><td><strong>分散式運算中最昂貴的操作</strong>，是階段邊界與效能瓶頸</td></tr>
+</table>
+</div>
+<p><strong>降低洗牌成本的五個手段</strong>：(1) 洗牌前<strong>先做局部聚合</strong>（用會先在各分區聚合再合併的運算子）；(2) 篩選盡量前置；(3) 小表連接改用<strong>廣播</strong>；(4) 反覆以同鍵連接的表預先<strong>分桶</strong>儲存；(5) 調整洗牌分區數（過少造成單分區過大與記憶體不足，過多產生大量小任務的排程開銷）。</p>
+
+<h3>4-4　連接策略</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>策略</th><th>適用</th><th>原理</th></tr>
+<tr><td><strong>廣播連接</strong></td><td>一大一小（如 2 TB 對 30 MB）</td><td>小表複製到各執行節點記憶體建雜湊表，大表<strong>本地完成連接，完全免除洗牌</strong></td></tr>
+<tr><td>排序合併連接</td><td>兩張大表</td><td>雙方洗牌後排序合併，記憶體需求較低</td></tr>
+<tr><td>洗牌雜湊連接</td><td>一側較小但超過廣播門檻</td><td>洗牌後建雜湊表</td></tr>
+</table>
+</div>
+<p><strong>廣播的實務要點</strong>：引擎通常有自動廣播的大小門檻，若統計資訊不準確（未收集統計或經複雜轉換後大小估計失準）可能不會自動觸發，此時可用<strong>提示</strong>明確指定；廣播表過大會造成執行節點的記憶體壓力與驅動端瓶頸。</p>
+
+<h3>4-5　資料傾斜</h3>
+<div class="box case">
+  <div class="bt">💼 200 個任務中 198 個兩分鐘完成，2 個跑了 50 分鐘</div>
+  <p><strong>本質</strong>：無論總分區數多少，<strong>同一個鍵的所有資料必然落在同一個分區</strong>，因此單純增加分區數無法拆開熱點鍵，增加節點也不改變單一任務的資料量。</p>
+  <p><strong>有效處置：</strong></p>
+  <ul>
+    <li><strong>加鹽兩階段聚合</strong>：第一階段在鍵後附加隨機後綴（把熱點鍵拆成 N 份）做局部聚合，第二階段移除後綴再最終聚合。<strong>對可結合的聚合（加總、計數、極值）特別有效。</strong></li>
+    <li><strong>分離處理</strong>：把少數熱點鍵單獨抽出特殊處理，其餘走一般路徑，最後合併。</li>
+    <li><strong>連接場景</strong>：小表改廣播完全避免洗牌；大表對大表則對傾斜鍵加鹽並把另一側對應鍵複製多份。</li>
+    <li><strong>引擎機制</strong>：啟用<strong>自適應查詢執行</strong>，可在執行期依實際統計偵測並自動分割傾斜分區。</li>
+    <li><strong>預防</strong>：設計時先取樣統計鍵的分布；<strong>空值也是常見的傾斜來源</strong>，連接前應過濾或替換。</li>
+  </ul>
+</div>
+
+<h3>4-6　分區數、快取與記憶體</h3>
+<div class="keys">
+  <div class="k"><b>分區數</b>：目標每個任務處理<strong>數百 MB</strong>，且分區數大致為總核心數的二到四倍。過少造成記憶體壓力與資源閒置；過多使<strong>排程開銷主導</strong>執行時間並產生小檔案。減少分區時，若不需重新分布資料，用「只做合併」的運算子比完整重分區更有效率。</div>
+  <div class="k"><b>快取</b>：同一中間結果被多分支使用時明確持久化。層級選擇：純記憶體最快但可能被逐出；記憶體加磁碟在不足時溢寫；序列化儲存大幅減少記憶體但增加解序列化成本。<strong>快取是惰性的</strong>（需行動觸發），且<strong>用完應主動釋放</strong>以免排擠後續階段。</div>
+  <div class="k"><b>記憶體不足排查</b>：驅動端 → 收集大量資料回驅動、廣播表過大、分區過多；執行器端 → 單分區資料量過大（分區不足或傾斜）、洗牌中間資料、快取佔用排擠執行空間、程式碼在單一任務中建立大型物件。診斷看各任務的輸入量、洗牌讀寫量、<strong>溢寫量與垃圾回收時間</strong>。</div>
+</div>
+</section>
+
+<!-- ══════════════ 5 ══════════════ -->
+<section class="ch" id="c5">
+<h2><span class="num">CH 5</span>串流處理</h2>
+
+<h3>5-1　事件時間 vs. 處理時間</h3>
+<div class="box case">
+  <div class="bt">💼 下午 3 點發生的事件，5 點才進入系統</div>
+  <p><strong>事件時間</strong>＝事件實際發生的時刻（由來源裝置寫入資料中）；<strong>處理時間</strong>＝被系統接收或處理的時刻。網路延遲、裝置離線、系統重啟或回填歷史資料時，兩者可能相差很大。</p>
+  <p>若統計語意是「<strong>實際發生</strong>」，就必須以事件時間分組，否則結果會隨系統狀況變動，且<strong>同一批資料重跑會得到不同結果</strong>（不具可重現性）。</p>
+</div>
+
+<h3>5-2　水位線與遲到資料</h3>
+<div class="keys">
+  <div class="k"><b>水位線（Watermark）</b>：系統據以估計「事件時間早於某時刻的資料應該都到齊了」，作為觸發視窗計算的依據。<strong>水位線的寬鬆程度是延遲與完整性的取捨。</strong></div>
+  <div class="k"><b>允許遲到（Allowed Lateness）</b>：水位線通過後仍保留視窗狀態一段時間，讓遲到資料能<strong>更新已輸出的結果</strong>；超過期限者導向<strong>側輸出</strong>另行處理而非直接丟棄。</div>
+  <div class="k"><b>結果更新語意</b>：下游必須能處理同一視窗結果被<strong>多次更新</strong>（需支援更新或覆寫，而非單純累加）。</div>
+</div>
+<div class="box exam">
+  <div class="bt">🎯 三層策略（實務標準答案）</div>
+  <ol>
+    <li><strong>近即時速報</strong>：較短的水位線延遲（如 5 分鐘）快速輸出供監看與告警，<strong>明確標示為速報值</strong>。</li>
+    <li><strong>修正機制</strong>：設定允許遲到期間（數小時），期間內的遲到事件觸發視窗重算並更新輸出。</li>
+    <li><strong>批次重算</strong>：每日以批次作業重新計算完整結果作為<strong>權威值</strong>供對帳，同時提供對串流結果正確性的稽核。</li>
+  </ol>
+  <p>並監控遲到事件的比例與延遲分布作為調整水位線的依據；儀表板上標示資料的完整度與最後更新時間。</p>
+</div>
+
+<h3>5-3　三種視窗</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>視窗</th><th>特性</th><th>適用</th><th>成本</th></tr>
+<tr><td><strong>滾動</strong><br>Tumbling</td><td>固定長度、<strong>不重疊</strong>，每筆事件只屬一個視窗</td><td>每小時訂單總額、每日活躍用戶</td><td>低</td></tr>
+<tr><td><strong>滑動</strong><br>Sliding</td><td>固定長度但依步長<strong>重疊</strong>，同一事件屬多個視窗</td><td>過去 30 分鐘的移動平均、5 分鐘內錯誤率</td><td>重疊倍數＝長度÷步長</td></tr>
+<tr><td><strong>會話</strong><br>Session</td><td>無固定長度，以<strong>活動間隔超過閒置門檻</strong>作為結束；每個鍵各自有邊界</td><td>使用者連續行為區段、通話、遊戲對局</td><td>較高（新事件可能使兩個會話合併）</td></tr>
+</table>
+</div>
+
+<h3>5-4　恰好一次語意（Exactly-once）</h3>
+<div class="box warn">
+  <div class="bt">🚨 三個環節缺一不可</div>
+  <ol class="steps">
+    <li><strong>來源可重播</strong>：訊息系統保留訊息並支援依位移重讀。<strong>位移提交必須與處理進度一致</strong>——先提交後處理會遺失、先處理後提交會重複，因此需與檢查點協調。</li>
+    <li><strong>引擎狀態一致性</strong>：定期建立<strong>檢查點</strong>，把運算狀態與來源位移<strong>一併</strong>持久化；故障恢復回到最後一個一致的檢查點。</li>
+    <li><strong>輸出端冪等或交易</strong>：即使內部狀態恰好一次，寫出到外部系統仍可能因重試而重複。解法是<strong>冪等寫入</strong>（以唯一鍵覆寫或忽略重複，最常用且較簡單）或<strong>交易式提交</strong>（輸出與位移提交在同一交易中，或兩階段提交）。</li>
+  </ol>
+  <p><strong>計費場景</strong>務必在寫入端以唯一鍵去重，保留原始事件，並建立每日批次對帳比對串流結果與來源。</p>
+</div>
+
+<h3>5-5　狀態管理與背壓</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>議題</th><th>處置</th></tr>
+<tr><td><strong>狀態膨脹</strong><br>（三個月成長到數 TB）</td><td>設定<strong>狀態存活時間</strong>自動清除不活躍鍵（最有效）；使用支援<strong>增量檢查點</strong>與磁碟溢寫的狀態後端；依鍵均勻分區；<strong>架構層面</strong>——長期累計改由批次計算、串流只維護短期視窗，查詢時合併</td></tr>
+<tr><td><strong>背壓</strong><br>Backpressure</td><td>下游跟不上時反向讓上游放慢，避免記憶體無限累積。處置順序：確認背壓機制未被關閉且佇列保留期足夠 → 以各運算子的忙碌率<strong>定位瓶頸</strong>（常見是外部系統寫入）→ 最佳化（批次提交取代逐筆、檢視索引與鎖競爭、非同步呼叫）→ 擴展平行度（<strong>受限於佇列分區數</strong>）→ 降級策略 → 以積壓量與端到端延遲設告警</td></tr>
+</table>
+</div>
+
+<h3>5-6　Kafka 的兩個必考點</h3>
+<div class="box case">
+  <div class="bt">💼 6 個分區、10 個消費者，為什麼 4 個閒置？</div>
+  <p><strong>同一消費者群組中，每個分區同時只會分配給一個消費者</strong>（為了保證分區內順序與位移管理正確性）。因此<strong>消費平行度的上限就是分區數</strong>，多出的實例會閒置。</p>
+  <p><strong>相關要點</strong>：分區數可增加但通常無法減少，且增加會改變鍵到分區的映射而影響原有的順序保證；重新平衡期間處理會短暫暫停，<strong>頻繁重新平衡</strong>（常因處理逾時或心跳設定不當）會嚴重影響吞吐；<strong>消費落後量</strong>是核心健康指標。</p>
+</div>
+<div class="box case">
+  <div class="bt">💼 「出貨」比「建立訂單」先到，狀態機處理錯誤</div>
+  <p><strong>生產端</strong>：Kafka 僅保證<strong>同一分區內</strong>的順序。未指定鍵時訊息會輪流分配到各分區，同一訂單的事件因此可能落在不同分區。以<strong>訂單編號作為訊息鍵</strong>可確保同一訂單的事件雜湊到同一分區，同時保有跨訂單的平行處理能力。</p>
+  <p><strong>消費端</strong>：即使有鍵保證，仍可能因上游寫入順序錯誤、重試重複、分區數變更而亂序。穩健設計是<strong>攜帶版本號或事件時間</strong>，處理時比對狀態版本、過舊事件直接忽略；並把狀態轉換設計為<strong>冪等</strong>。</p>
+  <p><strong>錯誤選項</strong>：「把分區數改為 1 以保證全域順序」——完全喪失平行處理能力，吞吐無法擴展。</p>
+</div>
+
+<h3>5-7　CDC 與資料回填</h3>
+<p><strong>變更資料擷取（CDC）</strong>直接讀取資料庫<strong>交易日誌</strong>取得插入、更新與刪除事件。相較於定期全表掃描比對的優勢：對來源負擔極低（不需查詢也不需觸發器）、能捕捉<strong>每一次</strong>變更含中間狀態、能捕捉<strong>刪除事件</strong>（查詢比對很難偵測）、延遲秒級、提供變更前後的完整資料。注意事項：需開啟資料庫日誌設定；初次啟動需先做完整快照再無縫接續日誌；結構變更需正確傳遞；下游須以主鍵合併寫入；監控延遲與日誌保留量；且變更流中<strong>包含完整資料內容</strong>，需注意個資保護。</p>
+<div class="box case">
+  <div class="bt">💼 串流邏輯錯誤，7 天的彙總都不正確</div>
+  <p><strong>安全的回填流程：</strong></p>
+  <ol>
+    <li>確認來源訊息的<strong>保留期間涵蓋該時段</strong>（這是回填能力的前提，也是保留期設定的重要考量）。</li>
+    <li><strong>隔離執行</strong>：以新的消費者群組與獨立資源啟動修正版，輸出到<strong>另一個目標位置</strong>，完全不影響線上管線。</li>
+    <li><strong>驗證</strong>：比對修正結果與預期（抽樣人工核對或與批次重算對照）。</li>
+    <li><strong>原子切換</strong>：以表格式的原子寫入、分區覆寫或視圖切換一次性替換，避免下游讀到混合的新舊資料。</li>
+    <li>確保下游冪等；並注意已基於錯誤結果產生的<strong>下游衍生資料</strong>也需一併重算。</li>
+    <li>通知使用該資料的單位修正範圍與影響，並記錄事件經過。</li>
+  </ol>
+</div>
+</section>
+
+<!-- ══════════════ 6 ══════════════ -->
+<section class="ch" id="c6">
+<h2><span class="num">CH 6</span>資料品質與治理</h2>
+
+<h3>6-1　資料品質六維度</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>維度</th><th>檢核方式</th></tr>
+<tr><td>完整性</td><td>必填欄位的空值率、預期筆數是否到齊</td></tr>
+<tr><td>正確性</td><td>與權威來源比對、業務規則驗證（金額不得為負、日期不得在未來）</td></tr>
+<tr><td>一致性</td><td>跨系統或跨表的相同欄位是否相符（訂單金額＝明細加總、與上游對帳）</td></tr>
+<tr><td>時效性</td><td>最後更新時間與預期延遲範圍</td></tr>
+<tr><td>唯一性</td><td>主鍵是否重複、實體是否有重複記錄</td></tr>
+<tr><td>有效性</td><td>格式與值域（統一編號檢查碼、類別是否在允許清單中）</td></tr>
+</table>
+</div>
+<p><strong>實作要點</strong>：把規則寫成可執行的測試並納入管線，在資料進入下游<strong>之前</strong>執行；依嚴重程度分級處置（致命錯誤中止、警告記錄並放行）；記錄結果形成<strong>趨勢</strong>；產出品質分數呈現於資料目錄；建立問題追蹤與根因修復流程，而非只是持續告警。規則應由業務與資料團隊共同定義。</p>
+
+<h3>6-2　資料可觀測性的四大支柱</h3>
+<div class="keys">
+  <div class="k"><b>新鮮度</b>：最後成功更新時間，超過約定時限自動告警。應為關鍵資料集訂定<strong>完成時限（SLO）</strong>，並為關鍵路徑上的中間節點設預期完成時間以<strong>提早預警</strong>。</div>
+  <div class="k"><b>量體</b>：筆數是否異常增減。</div>
+  <div class="k"><b>分布</b>：關鍵欄位的統計量是否偏移；<strong>未知類別佔比</strong>是極有價值的指標。</div>
+  <div class="k"><b>結構</b>：欄位是否變動、型別是否正確。</div>
+</div>
+<p>另需記錄各任務的<strong>歷史耗時基線</strong>並偵測異常變慢的環節（常見原因：上游資料量成長、資料傾斜出現、外部系統變慢、叢集資源被排擠），並做<strong>關鍵路徑分析</strong>把最佳化資源集中在決定總完成時間的路徑上。</p>
+
+<h3>6-3　資料契約與血緣</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>機制</th><th>內容</th><th>價值</th></tr>
+<tr><td><strong>資料契約</strong></td><td>結構定義、欄位語意、值域、品質保證（延遲與完整度）、變更政策、擁有者</td><td>把生產者與消費者之間的隱性期待<strong>明文化</strong>，並以自動檢核在寫入時驗證</td></tr>
+<tr><td><strong>資料血緣</strong></td><td>從來源欄位到下游報表與特徵的依賴關係圖（表級或<strong>欄位級</strong>）</td><td>① 變更前<strong>影響分析</strong>；② 數字有誤時<strong>根因追溯</strong>；③ 法遵——回答「某個個資欄位流向了哪些系統」</td></tr>
+<tr><td><strong>資料目錄</strong></td><td>自動採集技術中繼資料＋業務說明＋擁有者＋<strong>可信度標示</strong>（原始／已認證／已棄用）＋搜尋＋使用熱度</td><td>解決 3,000 張表中「找不到、不知道哪張可信」的問題</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 成功關鍵</div>
+  <p>中繼資料的維護必須<strong>盡量自動化</strong>並納入資料集上線的必要流程，否則目錄很快就會過期而失去信任。人工維護的試算表在組織規模擴大後必然失準。</p>
+</div>
+
+<h3>6-4　管線的工程紀律</h3>
+<div class="keys">
+  <div class="k"><b>分層測試</b>：單元測試（轉換邏輯，以固定輸入驗證輸出，涵蓋邊界值與空值）→ 整合測試（端到端銜接）→ <strong>生產資料上的資料測試</strong>（結構、值域、主鍵唯一性、參照完整性、筆數與歷史比較、<strong>關鍵指標的合理性檢核</strong>）→ <strong>回歸比對</strong>（改版前以相同輸入跑新舊版本比對差異）。</div>
+  <div class="k"><b>環境分離</b>：開發／測試／正式各有獨立儲存與運算；非正式環境使用<strong>去識別化的資料子集</strong>；正式環境的寫入權限<strong>僅由自動化部署流程</strong>以服務帳號執行；設定外部化避免程式碼寫死而誤連正式環境。</div>
+  <div class="k"><b>可重現分析</b>：資料版本化或善用<strong>時間旅行</strong>；分析程式碼納入版本控管；記錄每次分析所用的資料版本與程式碼版本；指標定義變更需記錄時間，避免把口徑變更誤解為業務變化。</div>
+</div>
+
+<h3>6-5　資料網格（Data Mesh）</h3>
+<p>針對「中央團隊成為瓶頸、且不了解各領域業務語意」的組織性問題，四大原則：</p>
+<ol class="steps">
+  <li><strong>領域自治</strong>：把資料責任交回最了解業務語意的領域團隊。</li>
+  <li><strong>資料即產品</strong>：需具備可發現性、可理解性、可信賴性（明確的品質保證與服務水準）與可存取性。</li>
+  <li><strong>自助式平台</strong>：中央團隊轉型為平台提供者，讓領域團隊能自主完成擷取、轉換、發布、監控，避免每個團隊重造輪子。</li>
+  <li><strong>聯邦式計算治理</strong>：制定跨領域的共通標準（識別碼、安全與隱私分類、互通格式、品質基準、指標定義的跨域一致性），並盡量以平台<strong>自動化執行</strong>而非人工審查。</li>
+</ol>
+<div class="box warn">
+  <div class="bt">⚠️ 導入前提</div>
+  <p>這是<strong>組織與文化的轉型</strong>而非單純的技術方案，需要領域團隊具備相應能力與人力；不適合規模較小或領域界線不明確的組織；且<strong>若沒有強而有力的聯邦治理，容易退化為各自為政的資料孤島</strong>。</p>
+</div>
+
+<h3>6-6　治理為何常常流於形式</h3>
+<div class="box case">
+  <div class="bt">💼 制度寫得完善，但沒人維護、稽核前才臨時補文件</div>
+  <p><strong>失敗原因不是規範不完整，而是缺乏責任歸屬與執行機制。</strong>有效落地的五個關鍵：</p>
+  <ul>
+    <li><strong>明確角色</strong>：指派資料擁有者（業務主管，對正確性與使用規則負責）與資料管理員（日常中繼資料維護、品質監控），<strong>並正式納入工作說明與績效考核</strong>，而非額外的義務勞動。</li>
+    <li><strong>嵌入流程</strong>：讓「做對」成為阻力最小的路徑——新資料集上線時必須填寫擁有者與欄位說明才能通過部署、品質檢核自動執行且未通過即阻擋、敏感標籤自動觸發存取控管。<strong>自動化執行遠比人工審查有效。</strong></li>
+    <li><strong>由小做起</strong>：從最關鍵、最多人使用的少數資料集開始，展示價值後再擴大。</li>
+    <li><strong>提供價值而非只有負擔</strong>：讓參與者感受到好處（更容易找到資料、更少的重複詢問與錯誤）。</li>
+    <li><strong>可視化與回饋</strong>：公布各領域的治理成熟度與品質分數，形成正向的同儕壓力。</li>
+  </ul>
+</div>
+</section>
+
+<!-- ══════════════ 7 ══════════════ -->
+<section class="ch" id="c7">
+<h2><span class="num">CH 7</span>隱私、權限與法遵</h2>
+
+<h3>7-1　資料分類分級與個資盤點</h3>
+<p><strong>制度面</strong>：定義分類標準（公開／內部／機密／限制級）與各級的保護要求（存取控管、加密、遮罩、保存期限、可否用於測試環境）；定義個資與特種個資的類別。</p>
+<p><strong>技術面</strong>：以自動化掃描辨識敏感資料——欄位名稱比對、<strong>格式樣式比對</strong>（身分證號、統一編號、信用卡號都有可驗證的格式與檢查碼）、內容取樣分析；結果寫回資料目錄形成可查詢的<strong>個資地圖</strong>。</p>
+<div class="box warn">
+  <div class="bt">⚠️ 最容易遺漏的位置</div>
+  <p>檔案儲存、<strong>備份</strong>、<strong>日誌</strong>、測試環境與<strong>試算表匯出</strong>——這些往往是最容易被忽略卻風險最高的地方。人工問卷盤點容易遺漏、無法涵蓋欄位層級且很快過期。</p>
+  <p>另一個極端也要避免：把所有資料都當成最高機密處理，會使正常使用受到不必要阻礙而導致<strong>流程被繞過</strong>，反而降低實際保護效果。</p>
+</div>
+
+<h3>7-2　非正式環境的資料處理</h3>
+<div class="box case">
+  <div class="bt">💼 開發測試環境直接複製正式資料庫，外包人員也能存取</div>
+  <p>這是資料外洩風險最高卻最常被忽視的作法——非正式環境的防護通常較弱、存取者較多且包含外部人員，且往往缺乏稽核。</p>
+  <p><strong>去識別化技術：</strong></p>
+  <ul>
+    <li><strong>遮罩</strong>：以固定字元取代（電話只保留末三碼）。</li>
+    <li><strong>替換</strong>：以假名或隨機產生但<strong>格式合法</strong>的值取代（否則測試會失敗）。</li>
+    <li><strong>一致性假名化（最關鍵）</strong>：同一真實值在各表中對應到<strong>同一個假值</strong>，以維持外鍵參照完整性與跨表關聯的測試效度。</li>
+    <li><strong>資料子集</strong>：只複製部分資料量。</li>
+    <li><strong>合成資料</strong>：完全以生成方式產生，適合敏感度極高的場景。</li>
+  </ul>
+</div>
+
+<h3>7-3　存取控管：從檢視表到政策</h3>
+<div class="box warn">
+  <div class="bt">🚨 為每種權限組合建一個檢視表 → 組合爆炸</div>
+  <p>新增一個部門或角色就要新增多個檢視表，邏輯變更需同步修改上百處，極易遺漏導致權限錯誤。</p>
+  <p><strong>現代作法：</strong></p>
+  <ul>
+    <li><strong>資料列層級安全</strong>：在表上定義政策，依查詢者的身分或屬性<strong>動態附加過濾條件</strong>；使用者查詢同一張表但各自看到不同範圍。</li>
+    <li><strong>欄位層級安全與動態遮罩</strong>：依角色決定欄位回傳原值、遮罩值或不可見。</li>
+    <li><strong>以屬性為基礎的存取控管</strong>：把政策寫成規則（依使用者屬性、資料標籤、環境條件判斷），並與<strong>資料分類標籤連動</strong>——做到「標註為個資的欄位自動套用遮罩政策」。</li>
+    <li><strong>集中治理與自動化測試</strong>：政策納入版本控管與變更審查，並以各類使用者身分驗證可見範圍是否正確。</li>
+    <li><strong>稽核</strong>：記錄誰存取了哪些敏感資料，並對異常存取告警。</li>
+  </ul>
+</div>
+
+<h3>7-4　個資刪除的工程實作</h3>
+<div class="box case">
+  <div class="bt">💼 客戶要求刪除資料，但它散落在十幾個地方</div>
+  <ol class="steps">
+    <li><strong>盤點</strong>：依個資地圖與資料血緣找出所有存放位置——交易庫、資料湖各層、快取、搜尋索引、訊息佇列中未過期的訊息、日誌、備份與下游衍生表。</li>
+    <li><strong>可直接刪除處</strong>：交易庫直接刪除；資料湖若使用支援刪除的開放表格式可執行條件刪除，並在後續最佳化中真正移除底層檔案（<strong>時間旅行的歷史版本也要在保留期限內清除</strong>）。</li>
+    <li><strong>難以逐筆刪除處</strong>：備份與封存通常是不可變的整體快照。常見合規作法是<strong>加密抹除</strong>（以加密方式儲存，刪除時銷毀對應金鑰使其無法還原），或建立排除清單確保還原時一併排除並記錄理由。</li>
+    <li><strong>衍生資料</strong>：聚合統計若已無法識別個人通常可保留；含識別資訊的明細衍生表需一併處理。</li>
+    <li><strong>例外評估</strong>：法令要求保存的資料（稅務憑證、依法應保存的交易紀錄）可能構成不予刪除的正當理由，應由法務評估並向當事人說明。</li>
+    <li><strong>紀錄與回覆</strong>：記錄處理範圍、方式與完成時間，並在法定期限內回覆當事人。</li>
+  </ol>
+</div>
+
+<h3>7-5　跨境架構</h3>
+<p><strong>分層設計</strong>：含可識別個資的明細層<strong>留在當地區域</strong>儲存與運算；僅把去識別化、假名化或聚合後不再具識別性的結果傳輸到全球分析層。此設計既滿足在地要求，又保留全球視野。</p>
+<p><strong>技術控管</strong>：以資料標籤與政策引擎自動控管流向，防止受限資料被誤複製；管線中加入區域檢核。</p>
+<div class="box warn">
+  <div class="bt">⚠️ 兩個容易忽略的點</div>
+  <p>(1) <strong>加密不改變資料被傳輸至境外處理的法律性質</strong>。<br>(2) 即使資料儲存在當地，<strong>總部人員的遠端存取也可能構成傳輸</strong>，需一併納入評估。</p>
+</div>
+</section>
+
+<!-- ══════════════ 8 ══════════════ -->
+<section class="ch" id="c8">
+<h2><span class="num">CH 8</span>統計方法與分析陷阱</h2>
+
+<h3>8-1　抽樣偏誤：樣本再大也救不了</h3>
+<div class="box case">
+  <div class="bt">💼 網路廣告招募的問卷說「78% 每天用某 App 超過三小時」</div>
+  <p><strong>選擇偏誤</strong>：能看到網路廣告並願意點擊參與的人，本身就是網路使用較頻繁的族群，估計值必然高於母體真實值。</p>
+  <p><strong>其他常見偏誤</strong>：無回應偏誤（願意回答與不願回答者有系統性差異）、<strong>存活者偏誤</strong>（只分析仍存在的樣本，如只看現有客戶而忽略已流失者）、自我選擇偏誤。</p>
+  <p><strong>處理方式</strong>：設計階段採<strong>機率抽樣</strong>（每個母體單位都有已知且非零的被抽中機率，如分層隨機抽樣）；事後以已知人口特徵<strong>加權</strong>校正（但只能校正已觀測到的特徵）；多管道招募；<strong>誠實揭露</strong>抽樣方法與可能的偏誤方向。</p>
+  <p><strong>必背</strong>：<strong>樣本量只影響隨機誤差（精確度），完全無法修正系統性偏誤</strong>——偏誤的樣本再大，也只是更精確地估計了一個錯誤的對象。</p>
+</div>
+
+<h3>8-2　辛普森悖論</h3>
+<div class="box math">
+  <div class="bt">📐 為什麼分層都贏、合併卻輸？</div>
+  <p>新版在行動與桌面裝置上的轉換率<strong>都</strong>高於舊版，但整體卻較低。</p>
+  <div class="fml">假設：行動裝置轉換率本來就低、桌面較高
+      新版的流量中<b>行動裝置佔比較高</b>
+
+整體轉換率 = (行動轉換率 × 行動佔比) + (桌面轉換率 × 桌面佔比)
+           ↑ 這是<b>加權平均</b>，權重不同就可能逆轉結論</div>
+  <p><strong>處理方式</strong>：(1) 辨識<strong>混淆變數</strong>（同時影響分組比例與結果的變數）；先檢查是否為實驗分流不當造成；(2) <strong>分層檢視</strong>；(3) <strong>標準化比較</strong>（以相同的組成權重重算）；(4) 以迴歸控制混淆變數，或在實驗設計時就以<strong>分層隨機分派</strong>確保各層比例一致。</p>
+  <p><strong>關鍵判斷</strong>：不能機械式認為「分層一定對」。若分層變數是處理<strong>前</strong>就存在的混淆變數（如裝置類型），應以分層或標準化結果為準；但若它是<strong>受處理影響的中介變數</strong>，分層反而會產生偏誤。必須先理解變數之間的因果結構。</p>
+</div>
+
+<h3>8-3　相關 vs. 因果</h3>
+<div class="box case">
+  <div class="bt">💼 「使用某功能的用戶留存高 40%，所以要全力推廣」</div>
+  <p><strong>替代解釋</strong>：本來就活躍、意圖較強的用戶更可能去探索進階功能。高留存可能是「活躍」造成的，功能使用與高留存都是<strong>同一個潛在原因的結果</strong>。</p>
+  <p><strong>建立因果證據的方法（依強度排序）：</strong></p>
+  <div class="tbl-wrap" style="margin:8px 0 0;">
+  <table>
+  <tr><th>方法</th><th>原理</th><th>強度</th></tr>
+  <tr><td><strong>隨機對照實驗</strong></td><td>隨機分派能平衡<strong>所有</strong>可觀測與不可觀測的混淆變數</td><td>黃金標準</td></tr>
+  <tr><td>傾向分數配對</td><td>估計每人使用該功能的傾向，把使用者與特徵相近的未使用者配對比較</td><td>只能平衡<strong>可觀測</strong>的混淆變數</td></tr>
+  <tr><td>差異中之差異</td><td>利用前後期與受影響／未受影響群體的雙重比較，消除固定的群體差異與共同時間趨勢</td><td>需平行趨勢假設</td></tr>
+  <tr><td>工具變數／不連續回歸</td><td>利用外生的變異來源</td><td>需要合適的工具</td></tr>
+  </table>
+  </div>
+  <p>報告準實驗結果時應<strong>誠實說明假設與限制</strong>。</p>
+</div>
+
+<h3>8-4　p 值、信賴區間與檢定力</h3>
+<div class="box math">
+  <div class="bt">📐 三個常見誤用</div>
+  <p><strong>誤用一：顯著即重要。</strong>p 值受樣本量強烈影響——樣本夠大時，即使 0.01 個百分點的差異也會顯著。必須同時報告<strong>效果量</strong>與信賴區間，由業務判斷是否值得行動。</p>
+  <p><strong>誤用二：不顯著即無差異。</strong>未達顯著只代表證據不足，可能是真的沒效果，也可能是<strong>檢定力太低</strong>。要主張「兩者實質相同」需使用<strong>等價檢定</strong>。</p>
+  <p><strong>誤用三：多重比較。</strong></p>
+  <div class="fml">12 個指標，每個顯著水準 0.05
+至少一個偶然顯著的機率 = 1 − 0.95¹² ≈ <b>46%</b></div>
+  <p>對策：事前指定<strong>單一主要指標</strong>；次要指標採 Bonferroni 校正（顯著水準除以檢定數）或控制偽發現率。<strong>反覆查看直到顯著才停止，也是多重比較的一種形式。</strong></p>
+  <p><strong>樣本量估算需要四個輸入</strong>：基準轉換率、<strong>可偵測的最小效果量</strong>（業務決策而非統計問題）、顯著水準、檢定力（通常 0.8 或 0.9）。</p>
+</div>
+
+<h3>8-5　存活分析與世代分析</h3>
+<div class="box case">
+  <div class="bt">💼 留存分析的兩個經典工具</div>
+  <p><strong>存活分析</strong>處理<strong>右設限</strong>問題：仍在訂閱的用戶只知道「至少訂了 N 天」，不知最終值。只用已退訂者計算平均會<strong>系統性低估</strong>；把仍在訂閱者當成當天退訂則直接製造錯誤資料。</p>
+  <ul>
+    <li><strong>Kaplan-Meier</strong>：在每個事件時點計算條件存活機率並連乘，設限觀測在退出觀察前<strong>仍貢獻於風險集合</strong>，因此能無偏估計存活曲線；可讀出中位存活時間與各時點留存率，並以對數秩檢定比較分組。</li>
+    <li><strong>Cox 比例風險模型</strong>：同時納入多個解釋變數估計<strong>風險比</strong>，不需假設基準風險的具體形式。</li>
+    <li><strong>前提</strong>：設限必須是<strong>非資訊性</strong>的（設限原因與事件風險無關）。</li>
+  </ul>
+  <p><strong>世代分析</strong>：依註冊月份等共同起始事件分組，追蹤各世代在後續各期的留存。它能回答整體指標無法回答的問題——留存曲線是否形成<strong>穩定的平台</strong>、<strong>較新的世代</strong>在同樣的第 N 期是否優於舊世代（這才是產品改善的真實證據）、以及某次改版後的世代表現是否改變。<strong>整體活躍數成長可能只是靠大量獲客掩蓋了既有用戶的流失。</strong></p>
+</div>
+
+<h3>8-6　歸因與增益</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>歸因模型</th><th>偏誤方向</th></tr>
+<tr><td>最後點擊</td><td>系統性<strong>高估</strong>漏斗末端管道（品牌關鍵字、再行銷郵件），低估上層的認知建立管道</td></tr>
+<tr><td>首次點擊</td><td>相反</td></tr>
+<tr><td>線性平均</td><td>假設所有接觸點貢獻相同，通常不符現實</td></tr>
+<tr><td>資料驅動</td><td>較精細，但仍建立在<strong>觀察性資料</strong>上，無法排除選擇效應</td></tr>
+</table>
+</div>
+<p><strong>真正能回答「增量」的是實驗</strong>：隨機把部分地區或使用者的某管道曝光關閉，比較兩組的轉換差異。</p>
+<div class="box exam">
+  <div class="bt">🎯 增益模型的四象限（極常考）</div>
+  <div class="tbl-wrap" style="margin:8px 0 0;">
+  <table>
+  <tr><th>類型</th><th>行為</th><th>該不該投放</th></tr>
+  <tr><td><strong>說服型</strong></td><td>發券才買</td><td><strong>唯一值得投放的族群</strong></td></tr>
+  <tr><td>必然型</td><td>不論是否發券都會買</td><td>不該——白白給折扣、侵蝕利潤</td></tr>
+  <tr><td>流失型</td><td>發券反而不買（被打擾、覺得產品廉價）</td><td>絕對不該</td></tr>
+  <tr><td>無感型</td><td>不論如何都不買</td><td>不該——純屬浪費</td></tr>
+  </table>
+  </div>
+  <p><strong>關鍵洞見</strong>：傳統的購買預測模型會把分數最高者排前面，但這些往往正是<strong>必然型</strong>客群，投放的邊際效益最低甚至為負。這是常見的資源錯配。增益模型的訓練與驗證都<strong>依賴隨機分派的實驗資料</strong>。</p>
+</div>
+
+<h3>8-7　時間序列與異常偵測</h3>
+<p><strong>分解</strong>：趨勢＋季節性（可能同時有週與年的<strong>多重季節性</strong>）＋殘差。用途：量化各成分貢獻、<strong>季節調整</strong>後比較（避免把「十二月比十一月高」誤解為成長）、<strong>異常偵測</strong>（殘差中的極端值）、以及分別建模後合成預測。</p>
+<p><strong>注意</strong>：判斷是加法模型（季節振幅固定）或<strong>乘法模型</strong>（振幅隨水準等比例變化，零售常見，可先取對數轉為加法）；已知的異常事件應<strong>標記為特殊事件</strong>並以虛擬變數處理或排除，而非直接刪除後遺忘；<strong>移動節日</strong>（農曆春節）會使年度季節性錯位，需特別處理。</p>
+<div class="box case">
+  <div class="bt">💼 「平均加三倍標準差」為什麼誤報極多？</div>
+  <p><strong>兩個根本問題：</strong></p>
+  <ol>
+    <li><strong>方法與分布不匹配</strong>：此判準隱含常態分布假設，但交易金額通常嚴重<strong>右偏</strong>，且平均值與標準差本身<strong>就會被極端值拉高</strong>（破壞點極低）。應改用中位數與四分位距為基礎的判準、或先取對數轉換、或直接用分位數（超過第 99.5 百分位）。</li>
+    <li><strong>未分群建立基線</strong>：企業戶與個人戶的正常範圍可能差數個數量級，單一全體門檻必然對某群大量誤報而對另一群漏報。應<strong>依業務族群分別建立基線</strong>，甚至為每個客戶建立個人化基線。</li>
+  </ol>
+  <p><strong>進階</strong>：異常往往不只是「金額大」，而是「金額、時間、地點、對手方」的<strong>組合異常</strong>，可用孤立森林、單類別支援向量機或自編碼器的重建誤差偵測多維異常；並以歷史標記資料校準門檻，<strong>與人工審核量能匹配</strong>。</p>
+</div>
+
+<h3>8-8　指標選擇的陷阱：MAPE</h3>
+<div class="box math">
+  <div class="bt">📐 為什麼平均絕對百分比誤差會爆炸</div>
+  <div class="fml">MAPE = 平均( |實際 − 預測| ÷ |實際| )
+
+實際銷量 = 1 件，預測 3 件 → 誤差百分比 = |1−3|÷1 = <b>200%</b></div>
+  <p><strong>三個缺陷：</strong></p>
+  <ol>
+    <li><strong>分母為零時無定義、接近零時爆炸</strong>——在間歇性需求中極為常見，使指標被少數低銷量商品主導。</li>
+    <li><strong>不對稱懲罰</strong>：低估的百分比誤差最大只能到 100%（預測為零時），高估則<strong>沒有上限</strong>。因此以 MAPE 為目標最佳化的模型會<strong>系統性偏向低估</strong>，對備貨可能造成缺貨。</li>
+    <li>跨商品加總時，低銷量商品的權重被不當放大。</li>
+  </ol>
+  <p><strong>替代指標</strong>：加權絕對百分比誤差（絕對誤差總和÷實際值總和，等同以銷量加權，不受零值影響）、對稱式百分比誤差、<strong>縮放後的平均絕對誤差</strong>（以簡單基準的誤差為分母，小於 1 代表優於基準且可跨序列比較）、以及直接報告絕對誤差與其成本影響。</p>
+</div>
+</section>
+
+<!-- ══════════════ 9 ══════════════ -->
+<section class="ch" id="c9">
+<h2><span class="num">CH 9</span>指標體系與視覺化</h2>
+
+<h3>9-1　分層指標體系</h3>
+<div class="keys">
+  <div class="k"><b>北極星指標</b>（1–3 個）：代表產品為使用者創造的核心價值，且與長期營收有因果關聯。作用是讓全公司對「什麼是成功」有共識。</div>
+  <div class="k"><b>驅動指標</b>：把北極星拆解成可被各團隊<strong>直接影響</strong>的組成因子（活躍訂閱數 = 新增 − 流失 → 再拆為流量、轉換率、留存率），形成<strong>指標樹</strong>。</div>
+  <div class="k"><b>護欄指標</b>：監控優化主要指標時可能被犧牲的面向（優化短期點擊率時監控退貨率、客訴率、內容品質與長期留存），<strong>防止局部最佳化造成整體傷害</strong>。</div>
+</div>
+<p><strong>其他要點</strong>：統一定義集中管理；指標必須<strong>可行動</strong>（無法被行動影響的只適合作背景資訊）；定期檢視——<strong>被當成目標的指標容易被扭曲</strong>；每個角色的儀表板應聚焦於其可行動的少數指標。</p>
+
+<h3>9-2　儀表板設計七原則</h3>
+<ol class="steps">
+  <li><strong>以受眾與決策出發</strong>：高階主管需要的是少數關鍵指標的現況、趨勢與異常，並提供從概覽鑽取到明細的路徑。</li>
+  <li><strong>圖表類型匹配資料</strong>：時間趨勢用折線；類別比較用長條（<strong>基線必須從零開始</strong>）；比例在類別少時用圓餅或堆疊長條；分布用直方圖或箱形圖；兩變數關係用散佈圖。</li>
+  <li><strong>提供脈絡</strong>：單一數字沒有意義，應同時呈現比較基準（去年同期、目標值、前期）與變化幅度，讓使用者立即判斷「這個數字是好是壞」。</li>
+  <li><strong>減少非資料墨水</strong>：移除立體效果（<strong>立體長條圖尤其容易造成長度誤讀</strong>）、漸層背景、多餘格線。</li>
+  <li><strong>色彩使用</strong>：建立一致語意、限制色彩數量、<strong>避免僅以紅綠區分</strong>（有色覺辨識困難者無法分辨）、確保足夠對比。</li>
+  <li><strong>標示清楚</strong>：標題直接寫出結論、軸標籤與單位、資料來源與<strong>最後更新時間</strong>。</li>
+  <li><strong>持續驗證</strong>：觀察使用者實際如何使用並蒐集回饋迭代。</li>
+</ol>
+
+<h3>9-3　圖表誤導</h3>
+<div class="box warn">
+  <div class="bt">🚨 截斷縱軸的長條圖</div>
+  <p>82 分與 85 分（實際差距約 3.7%），若縱軸從 80 開始，視覺上會呈現為<strong>三倍</strong>的差異。長條圖以<strong>長度</strong>編碼數值，基線不從零開始，長度比例就不再對應數值比例。</p>
+  <p><strong>正確作法</strong>：長條圖一律從零開始；要凸顯小範圍差異可改用<strong>點圖</strong>（以位置編碼，可合理使用非零起點）；必須截斷時明確標示斷軸符號；並<strong>同時呈現不確定性</strong>（3 分的差異可能落在誤差範圍內）。</p>
+  <p><strong>其他誤導手法</strong>：折線圖的縱軸縮放操弄趨勢陡峭度、以面積或體積編碼一維數值、選擇性的時間範圍、<strong>雙縱軸製造虛假的相關印象</strong>、不當的資料分箱。</p>
+</div>
+
+<h3>9-4　自助分析的治理</h3>
+<p>「200 份客製報表 vs. 完全開放自助」不是二選一，而是<strong>分層設計</strong>：</p>
+<ul>
+  <li><strong>治理的基礎</strong>：資料團隊維護高品質、有明確定義與擁有者的標準資料集與<strong>語意層</strong>，把指標定義集中管理，並在此層落實資料列與欄位層級的權限控管。</li>
+  <li><strong>開放自助</strong>：業務單位在此基礎上自由組合探索，不必排隊。</li>
+  <li><strong>分層責任</strong>：對外報表、財務報表與法遵報表仍由資料團隊維護並經審核；業務自助分析明確標示為內部探索用途，兩者的可信等級應在工具中清楚區分。</li>
+  <li><strong>賦能</strong>：資料素養訓練（如何正確解讀指標、常見的分析陷阱）、範本與文件、諮詢窗口。<strong>使用者能力是自助分析成敗的關鍵。</strong></li>
+  <li><strong>監控與收斂</strong>：找出被重複建立且廣泛使用的分析，升格為官方資料集；並整併重複報表。</li>
+</ul>
+
+<h3>9-5　解讀數字時的必要檢查</h3>
+<div class="box case">
+  <div class="bt">💼 某產品線營收暴增 300%，先別急著報喜</div>
+  <p><strong>先排除資料問題再解讀業務意義</strong>（資料錯誤的機率往往高於業務真的暴增）：</p>
+  <ol>
+    <li><strong>重複與遺漏</strong>：批次作業是否重複執行造成重複載入；補跑歷史是否被誤計入本期。</li>
+    <li><strong>資料汙染</strong>：測試訂單、內部員工交易、取消或退款訂單是否被誤計。</li>
+    <li><strong>定義變更</strong>：產品分類的對應是否調整、指標口徑是否改變、<strong>幣別或單位</strong>是否變更。</li>
+    <li><strong>來源對帳</strong>：直接與來源系統統計比對（最有力的驗證）。</li>
+    <li><strong>分解分析</strong>：拆到更細維度——若集中在單一客戶或單一天，通常指向資料問題或單筆大額交易；均勻分布則較可能是真實成長。</li>
+  </ol>
+  <p>同理，「客訴量下降 15%」也要先確認<strong>指標定義是否變動</strong>（是否把部分案件重新分類）與<strong>資料蒐集是否完整</strong>（客服信箱是否曾故障）。良好實務是維護<strong>指標定義的變更歷史</strong>、在圖表上以註記標示變更時間點、並在報告中誠實揭露干擾因素。</p>
+</div>
+</section>
+
+<!-- ══════════════ 10 ══════════════ -->
+<section class="ch" id="c10">
+<h2><span class="num">CH 10</span>SQL 實務精要</h2>
+
+<h3>10-1　邏輯執行順序（一切的基礎）</h3>
+<div class="fml">FROM / JOIN → WHERE → GROUP BY → 聚合函數 → HAVING → SELECT → ORDER BY → LIMIT</div>
+<p>因為 <code>WHERE</code> 在分組與聚合<strong>之前</strong>執行，此時聚合結果尚不存在，所以<strong>不能在 WHERE 中使用聚合函數</strong>；針對聚合結果的條件必須寫在 <code>HAVING</code>。</p>
+<div class="keys">
+  <div class="k"><b>效能建議</b>：盡量把能在 WHERE 處理的條件放 WHERE——越早篩選，需要參與分組與聚合的資料越少。</div>
+  <div class="k"><b>別名陷阱</b>：因為 SELECT 在 HAVING 之後執行，多數資料庫<strong>不允許在 WHERE 或 HAVING 中引用 SELECT 定義的別名</strong>。</div>
+</div>
+
+<h3>10-2　視窗函數：每組取最新一筆</h3>
+<div class="fml"><span class="cm">-- 需求：取出每個訂單「最新一次」的完整狀態列</span>
+SELECT * FROM (
+  SELECT *,
+         ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) AS rn
+  FROM order_status
+) t
+WHERE rn = 1;</div>
+<div class="tbl-wrap">
+<table>
+<tr><th>函數</th><th>相同值的處理</th><th>結果範例</th><th>適用</th></tr>
+<tr><td>ROW_NUMBER</td><td>任意分出先後，序號<strong>連續且唯一</strong></td><td>1, 2, 3, 4</td><td>每組只要一筆</td></tr>
+<tr><td>RANK</td><td>相同名次並<strong>跳號</strong></td><td>1, 1, 3, 4</td><td>競賽排名</td></tr>
+<tr><td>DENSE_RANK</td><td>相同名次<strong>不跳號</strong></td><td>1, 1, 2, 3</td><td>等級劃分</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 三個要點</div>
+  <ul>
+    <li>視窗函數<strong>不能直接寫在 WHERE 中</strong>，必須以子查詢或共用資料表運算式包一層。</li>
+    <li>若排序鍵可能相同，應在 ORDER BY 中<strong>加入次要排序鍵</strong>（如主鍵）以確保結果穩定可重現。</li>
+    <li><code>SELECT order_id, MAX(updated_at), status ... GROUP BY order_id</code> 在標準 SQL 中<strong>不合法</strong>；部分資料庫雖允許但會回傳<strong>不確定的任意值</strong>，是常見的錯誤來源。</li>
+  </ul>
+</div>
+<p>另一個常用的視窗應用是把組層級統計值加回明細列：<code>SUM(amount) OVER (PARTITION BY customer_id)</code>，可直接計算每筆訂單佔該客戶總消費的比例。</p>
+
+<h3>10-3　連接造成的資料膨脹（最危險的無聲錯誤）</h3>
+<div class="box warn">
+  <div class="bt">🚨 訂單主檔連接明細後 SUM 訂單金額 → 金額變三倍</div>
+  <p><strong>原理</strong>：一對多連接會使主檔的每一列<strong>依明細筆數重複出現</strong>。金額 1,000 元的訂單對應 3 筆明細 → 變成 3 列各帶 1,000 元 → 加總得 3,000 元。<strong>查詢不會報錯，只會默默給出錯誤數字。</strong></p>
+  <p><strong>正確作法：</strong></p>
+  <ul>
+    <li><strong>先聚合再連接</strong>：在明細表先依 order_id 聚合成每訂單一列，再與主檔連接。</li>
+    <li><strong>分別查詢</strong>：訂單層度量與明細層度量分開查詢後再合併。</li>
+    <li><strong>去重聚合</strong>：必要時對主檔度量使用去重的聚合方式。</li>
+  </ul>
+  <p><strong>預防</strong>：連接前後<strong>比對筆數</strong>（連接後筆數增加就代表存在一對多）；理解每張表的粒度並在建模時明確標註。這與維度建模「一張事實表只能有一個粒度」的原則相通。</p>
+</div>
+
+<h3>10-4　NULL 的三個必考行為</h3>
+<div class="fml"><span class="cm">-- NULL 代表「未知」，不是 0 也不是空字串</span>
+
+聚合：COUNT(欄位) <b>略過 NULL</b>（可能小於 COUNT(*)）
+      SUM / AVG 的分母也<b>只計非 NULL</b> 的列
+      → 若業務上 NULL 應視為 0，須先用 COALESCE 補值
+
+比較：任何值與 NULL 比較的結果都是<b>「未知」</b>
+      → WHERE discount &lt;&gt; 100 <b>不會</b>回傳 discount 為 NULL 的列
+      → 必須用 IS NULL / IS NOT NULL
+
+其他：字串串接遇 NULL 多數資料庫結果為 NULL
+      算術運算遇 NULL 結果為 NULL
+      GROUP BY 會把所有 NULL 歸為同一組
+      ORDER BY 的 NULL 位置各家預設不同，可用 NULLS FIRST/LAST 明確指定</div>
+
+<h3>10-5　去重與時區</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>需求</th><th>作法</th></tr>
+<tr><td>移除<strong>完全重複</strong>的列</td><td><code>SELECT DISTINCT</code> 或 GROUP BY 所有欄位；更好的是在來源端以冪等寫入或唯一約束避免產生</td></tr>
+<tr><td>同一鍵有多筆<strong>欄位值不同</strong>，需保留一筆</td><td>視窗函數編號後篩選，並<strong>明確定義保留優先順序</strong>（最新時間、最完整、來源可信度最高）——這是<strong>業務決策</strong>而非技術問題</td></tr>
+</table>
+</div>
+<div class="box warn">
+  <div class="bt">⚠️ 去重前先釐清成因</div>
+  <p>若欄位值不同代表的是<strong>真實的歷史變化</strong>，正確作法可能是建立緩慢變動維度<strong>保留歷史</strong>而非去重；若代表同一客戶在不同來源系統的記錄，則屬於<strong>實體解析</strong>的範疇。</p>
+</div>
+<div class="box case">
+  <div class="bt">💼 時區的三種災難</div>
+  <p>以無時區資訊的當地時間字串儲存會造成：(1) <strong>無法比較先後</strong>（同樣是上午 9 點在不同時區是不同時刻）；(2) <strong>日光節約時間的歧義</strong>（時鐘回撥當天有一小時出現兩次、前撥當天有一小時完全不存在）；(3) <strong>彙總錯誤</strong>（各地日界不同無法直接相加）。</p>
+  <p><strong>正確原則：儲存用絕對時間、呈現用當地時間。</strong>使用帶時區的時間戳型別，或統一以協調世界時儲存並另存<strong>時區名稱</strong>（而非固定偏移量，因為偏移量會隨日光節約時間變化）。並在文件中明確定義報表的「一天」以哪個時區為準。</p>
+</div>
+</section>
+
+<!-- ══════════════ 11 ══════════════ -->
+<section class="ch" id="c11">
+<h2><span class="num">CH 11</span>Pandas 與大量資料</h2>
+
+<h3>11-1　記憶體最佳化</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>手段</th><th>效益</th></tr>
+<tr><td><strong>指定型別</strong></td><td>預設載入為 64 位元；依值域改用 8/16 位元整數；<strong>低基數字串改用 category</strong>（內部以整數編碼加字典，記憶體常降到數十分之一，<strong>通常是最大的節省來源</strong>）</td></tr>
+<tr><td>只讀需要的欄位</td><td>避免把不用的欄位讀進記憶體</td></tr>
+<tr><td>分塊讀取</td><td>逐塊完成聚合或篩選後再合併，適合可分塊計算的任務</td></tr>
+<tr><td>換格式與工具</td><td>轉為 <strong>Parquet</strong>（欄位裁剪、型別保留、高壓縮）；或改用支援延遲計算與超出記憶體處理的框架</td></tr>
+<tr><td>運算下推</td><td><strong>最佳解</strong>：把聚合邏輯交給資料庫或分散式引擎執行，只回傳彙總後的少量結果</td></tr>
+</table>
+</div>
+<div class="box math">
+  <div class="bt">📐 分塊聚合的可行性判斷</div>
+  <p>可<strong>結合</strong>的聚合能逐塊累加後合併：計數、加總、最大最小值。<br>平均值需<strong>分別累計總和與筆數</strong>最後再相除。<br><strong>中位數、不重複計數、百分位數無法簡單合併</strong>，需使用近似演算法（HyperLogLog 估基數、t-digest 估分位數）或改採其他策略。</p>
+  <p><strong>分塊時要注意</strong>：同一客戶的資料必須落在同一批（依客戶編號分組而非隨機切分），否則客戶層級的聚合會被切斷。</p>
+</div>
+
+<h3>11-2　三個必考的 Pandas 陷阱</h3>
+<div class="box warn">
+  <div class="bt">🚨 陷阱一：鏈式賦值（SettingWithCopyWarning）</div>
+  <div class="fml">✗ df[df.age &gt; 30][欄位] = 值
+   → 第一個中括號可能回傳<b>副本</b>，賦值只作用在暫時物件上
+   → <b>原資料未被修改，且不會報錯</b>（靜默失敗）
+
+✓ df.loc[df.age &gt; 30, 欄位] = 值
+   → 明確告訴 pandas 要對原資料賦值</div>
+  <p><strong>原則</strong>：一律使用 <code>.loc</code>（依標籤）或 <code>.iloc</code>（依位置）；若確實需要獨立副本，明確呼叫 <code>copy()</code> 讓意圖清楚；<strong>不要關閉這個警告</strong>——它提示的是真實存在的邏輯風險。修改後應驗證受影響的列數與內容。</p>
+</div>
+<div class="box warn">
+  <div class="bt">🚨 陷阱二：agg 與 transform 搞混</div>
+  <div class="tbl-wrap" style="margin:8px 0 0;">
+  <table>
+  <tr><th></th><th>agg（聚合）</th><th>transform</th></tr>
+  <tr><td>輸出列數</td><td>等於<strong>組數</strong>（每組壓縮成一列）</td><td>等於<strong>原資料框列數</strong>且索引對齊</td></tr>
+  <tr><td>用途</td><td>產生彙總表</td><td>把組層級統計值<strong>廣播回組內每一列</strong>，可直接指派為新欄位</td></tr>
+  </table>
+  </div>
+  <p>需求「為每列加上該列所屬客戶的訂單總金額，以計算佔比」→ 用 <code>transform</code>。等價的 SQL 是視窗函數 <code>SUM(amount) OVER (PARTITION BY customer_id)</code>。<strong>避免用 apply 搭配逐列迴圈</strong>，在大資料量下效能會差上數十甚至數百倍。</p>
+</div>
+<div class="box warn">
+  <div class="bt">🚨 陷阱三：merge 的多對多爆炸</div>
+  <p>兩張各 5 萬列的表連接後變成 300 萬列——因為連接鍵在<strong>兩側都有重複</strong>，產生所有匹配組合。若某鍵在左表 10 列、右表 20 列，光這個鍵就產生 200 列。</p>
+  <p><strong>防範</strong>：合併前確認連接鍵在各側的唯一性；使用 merge 的 <code>validate</code> 參數指定預期關係（一對一、一對多），不符即拋出錯誤；事前去重或聚合；<strong>合併後比對列數與關鍵度量的合計</strong>；檢視是否需要多欄位組成的複合鍵才能唯一識別。</p>
+</div>
+
+<h3>11-3　近似演算法：HyperLogLog</h3>
+<div class="box math">
+  <div class="bt">📐 用幾 KB 估算數十億的不重複計數</div>
+  <p><strong>問題</strong>：即時儀表板要顯示「過去一小時的不重複訪客數」，精確去重需要記住所有出現過的識別碼，記憶體用量與不重複值數量成正比，高流量下不可行。</p>
+  <p><strong>原理（直覺版）</strong>：對每個識別碼取雜湊值，依前綴分桶，記錄各桶中觀察到的<strong>最長前導零長度</strong>——直觀上，觀察到越長的前導零，代表看過越多不同的值（就像連續擲硬幣出現越多次正面，代表擲了越多次）；再以調和平均綜合估計基數。</p>
+  <p><strong>三大特性</strong>：記憶體固定且極小（常見設定下數 KB 可估數十億基數，誤差率約 1% 上下）；<strong>可合併</strong>（多個結構可直接合併得聯集的估計，非常適合分散式與時間視窗聚合）；誤差可透過精度參數調整。</p>
+  <p><strong>限制</strong>：結果是<strong>估計值</strong>，若業務需要精確數字（計費、法遵報表）則不適用，應以批次方式另行精確計算；不支援直接的交集運算。</p>
+  <p><strong>同類工具</strong>：Count-Min Sketch（估計頻率）、Bloom Filter（成員存在性判斷）、t-digest（估計分位數）。</p>
+</div>
+</section>
+
+<!-- ══════════════ 12 ══════════════ -->
+<section class="ch" id="c12">
+<h2><span class="num">CH 12</span>查詢最佳化與成本</h2>
+
+<h3>12-1　執行計畫要看什麼</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>最佳化</th><th>如何確認生效</th><th>失效的常見原因</th></tr>
+<tr><td><strong>分區裁剪</strong></td><td>掃描節點顯示的分區數遠少於總分區數</td><td>在分區欄位上<strong>套用函式</strong>、型別隱含轉換、條件寫在無法下推的位置</td></tr>
+<tr><td><strong>投影裁剪</strong></td><td>執行計畫中實際讀取的欄位清單</td><td>使用「選取全部欄位」的寫法</td></tr>
+<tr><td><strong>謂詞下推</strong></td><td>條件被推到儲存層，依檔案統計資訊跳過整個檔案</td><td>條件寫在連接之後或包在無法解析的運算式中</td></tr>
+<tr><td>連接策略</td><td>小表是否選用廣播</td><td>統計資訊過期導致大小估計失準</td></tr>
+</table>
+</div>
+<p>比對掃描節點顯示的<strong>分區數、檔案數與實際讀取位元組數</strong>與全表規模，即可判斷最佳化是否生效。</p>
+
+<h3>12-2　索引設計（交易型資料庫）</h3>
+<div class="box math">
+  <div class="bt">📐 複合索引的欄位順序</div>
+  <p>查詢：<em>依客戶編號（等值）與訂單日期範圍查詢，回傳金額與狀態</em></p>
+  <div class="fml">✓ 複合索引 (客戶編號, 訂單日期)
+   → <b>等值條件的欄位放前面、範圍條件放後面</b>
+   → 順序顛倒會使索引的定位效率大幅下降（最常見的設計錯誤）
+
+進階：把回傳欄位（金額、狀態）也納入索引 → <b>涵蓋索引</b>
+   → 查詢只讀索引不需回表，大幅減少隨機讀取
+   → 代價：索引體積變大、寫入成本增加</div>
+  <p><strong>索引失效的三種寫法</strong>：在索引欄位上套用函式、型別隱含轉換、前置萬用字元的模糊比對。</p>
+  <p><strong>索引不是越多越好</strong>：每個索引都會增加寫入維護負擔與儲存空間，並可能使最佳化器選錯。應以實際查詢樣態建立必要索引，並定期移除未被使用者。驗證方式是<strong>以執行計畫確認索引確實被使用</strong>，並在真實資料量下測試。</p>
+</div>
+
+<h3>12-3　預聚合與快取</h3>
+<div class="box case">
+  <div class="bt">💼 儀表板每次開啟都對數十億列做即時聚合，40 秒</div>
+  <p>當查詢樣態<strong>固定且重複</strong>時，預聚合是效益最高的手段：把「每次都重算」改為「算一次多次使用」。</p>
+  <p><strong>設計要點：</strong></p>
+  <ul>
+    <li><strong>維度組合選擇</strong>：涵蓋所有組合會造成組合爆炸，應依實際查詢紀錄選擇高頻組合；可建立日、月、年多個粒度。</li>
+    <li><strong>可加性（最關鍵）</strong>：只有可加的度量能安全預聚合。<strong>比率類指標應預存分子與分母而非預存比率</strong>，查詢時再相除，否則加總比率會得到錯誤結果；不重複計數也不可直接加總。</li>
+    <li><strong>刷新策略</strong>：依時效需求選擇定期全量重建或增量更新，並在儀表板標示<strong>最後更新時間</strong>。</li>
+    <li><strong>一致性</strong>：彙總表應可由明細完全重建，並定期比對兩者。</li>
+    <li><strong>保留鑽取路徑</strong>讓使用者能下探明細查證。</li>
+  </ul>
+</div>
+<div class="box warn">
+  <div class="bt">🚨 BI 快取的兩個經典缺陷</div>
+  <p>案例：資料團隊修正了錯誤資料並重跑，但儀表板仍顯示舊數字；權限被調降的使用者仍看到先前層級的答案。</p>
+  <ul>
+    <li><strong>快取鍵的完整性</strong>：必須涵蓋所有會影響答案的維度——問題內容、<strong>資料集版本</strong>、<strong>使用者權限層級</strong>、語言、模型與提示版本。缺少權限維度就會發生越權讀取。</li>
+    <li><strong>主動失效</strong>：資料更新時應觸發相關快取失效；可在快取項目中記錄其依賴的資料集，更新時反查清除；至少要在版本號變動時整體失效。並依變動頻率設定合理的存活時間，提供強制重新整理的方式。</li>
+  </ul>
+</div>
+
+<h3>12-4　資料服務層（Data API）</h3>
+<p>當資料需要被多個<strong>線上系統</strong>程式化取用時，直接開放資料庫連線會造成：權限難以細緻控管、查詢品質不可控（單一重查詢可能拖垮所有使用者）、資料模型變更直接破壞下游、無法有效限流與監控。</p>
+<div class="keys">
+  <div class="k"><b>封裝</b>：把查詢邏輯與資料模型細節封裝在服務內，下游只依賴穩定的介面契約。</div>
+  <div class="k"><b>權限與稽核</b>：在服務層統一實施身分驗證與授權，可做到欄位與資料列層級的控管並記錄軌跡。</div>
+  <div class="k"><b>保護</b>：速率限制與配額；以快取降低後端負載。</div>
+  <div class="k"><b>效能隔離</b>：線上服務查詢應與分析查詢使用<strong>不同資源池</strong>；常用資料可同步到低延遲的鍵值儲存——<strong>分析型資料倉儲為掃描最佳化，不適合高併發的點查詢</strong>。</div>
+  <div class="k"><b>版本管理</b>：介面變更依相容性規則發布新版本並保留過渡期。</div>
+</div>
+
+<h3>12-5　成本最佳化與容量規劃</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>面向</th><th>手段</th></tr>
+<tr><td><strong>運算</strong>（通常佔比最高）</td><td><strong>查詢最佳化影響最大</strong>（分區裁剪、欄位裁剪、避免重複計算，常能降低一個數量級）；依作業特性調整叢集規模、自動縮放與閒置自動關閉；可容忍中斷的批次用<strong>競價型執行個體</strong>，穩定負載用預留或承諾用量折扣；避免不必要的高頻執行</td></tr>
+<tr><td><strong>儲存</strong></td><td>列式格式加高效壓縮、生命週期分層、清理暫存與過期資料、去除重複副本</td></tr>
+<tr><td><strong>傳輸</strong></td><td>把運算與儲存部署在<strong>同區域</strong>；避免資料頻繁在雲端與地端往返；注意從雲端流出的費用</td></tr>
+<tr><td><strong>管理</strong></td><td>成本標籤與歸屬報表、預算告警與異常偵測、定期檢視最昂貴的前幾項作業與查詢</td></tr>
+</table>
+</div>
+<p><strong>容量規劃</strong>：依每日新增量與成長率推算各年需求，並記得加上<strong>經常被低估的部分</strong>——中間結果與暫存資料、多份副本與備份、索引與物化視圖、各環境的資料。運算需求以<strong>尖峰</strong>而非平均為基準。架構上選擇<strong>運算與儲存分離</strong>，讓兩者能各自依需求擴展。以真實查詢樣態與預期併發做壓力測試並識別瓶頸。</p>
+</section>
+
+<!-- ══════════════ 13 ══════════════ -->
+<section class="ch" id="c13">
+<h2><span class="num">CH 13</span>考前總複習表</h2>
+
+<h3>13-1　症狀 → 根因對照表</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>症狀</th><th>優先懷疑</th></tr>
+<tr><td>分析查詢一跑前台就慢</td><td>OLTP 與 OLAP <strong>未分離</strong></td></tr>
+<tr><td>只查 4 欄卻掃描數百 GB</td><td>用了<strong>行式文字格式</strong>（CSV），應改列式（Parquet）</td></tr>
+<tr><td>查詢越來越慢、中繼資料服務負載高</td><td><strong>小檔案問題</strong>，需壓實與調整分區粒度</td></tr>
+<tr><td>分區數數百萬個</td><td>用了<strong>高基數欄位當分區鍵</strong>，應改分桶或多維排序</td></tr>
+<tr><td>198 個任務兩分鐘、2 個五十分鐘</td><td><strong>資料傾斜</strong>，加鹽兩階段聚合或分離處理</td></tr>
+<tr><td>連接後金額變成三倍</td><td><strong>一對多連接的資料膨脹</strong></td></tr>
+<tr><td>三個部門三個「活躍用戶數」</td><td>缺乏<strong>語意層／指標定義治理</strong></td></tr>
+<tr><td>重跑批次造成資料翻倍</td><td>缺乏<strong>冪等性</strong></td></tr>
+<tr><td>上游改欄位、下游默默失效</td><td>缺乏<strong>資料契約與品質檢核</strong></td></tr>
+<tr><td>串流統計短少</td><td>用了<strong>處理時間</strong>而非事件時間；或水位線設定與遲到處理不當</td></tr>
+<tr><td>10 個消費者 4 個閒置</td><td>消費者數<strong>超過分區數</strong></td></tr>
+<tr><td>事件亂序造成狀態機錯誤</td><td>未指定<strong>訊息鍵</strong>；消費端未設計版本比對</td></tr>
+<tr><td>問卷結果與其他調查差異極大</td><td><strong>抽樣偏誤</strong>（樣本大小無法修正）</td></tr>
+<tr><td>分層都贏、合併卻輸</td><td><strong>辛普森悖論</strong>（組成比例差異）</td></tr>
+<tr><td>低銷量商品主導誤差指標</td><td><strong>MAPE 的分母問題</strong>，改用加權或縮放後指標</td></tr>
+</table>
+</div>
+
+<h3>13-2　核心對比速記</h3>
+<div class="tbl-wrap">
+<table>
+<tr><th>A</th><th>B</th><th>關鍵差別</th></tr>
+<tr><td>OLTP</td><td>OLAP</td><td>短小讀寫、行式 vs. 大範圍掃描、列式</td></tr>
+<tr><td>Schema-on-Read</td><td>Schema-on-Write</td><td>資料湖（彈性） vs. 資料倉儲（一致）</td></tr>
+<tr><td>分區</td><td>分桶</td><td>低基數篩選欄位 vs. 高基數雜湊分配（且可免洗牌連接）</td></tr>
+<tr><td>窄依賴</td><td>寬依賴</td><td>不需移動資料 vs. 需<strong>洗牌</strong>（最昂貴）</td></tr>
+<tr><td>轉換</td><td>行動</td><td>惰性建計畫 vs. 觸發執行</td></tr>
+<tr><td>事件時間</td><td>處理時間</td><td>實際發生 vs. 進入系統（有延遲時差異巨大）</td></tr>
+<tr><td>滾動視窗</td><td>滑動視窗</td><td>不重疊 vs. 重疊（成本＝長度÷步長）</td></tr>
+<tr><td>SCD Type 1</td><td>SCD Type 2</td><td>覆寫（只留現況） vs. 新增列（保留歷史，需代理鍵）</td></tr>
+<tr><td>WHERE</td><td>HAVING</td><td>聚合<strong>前</strong>篩個別列 vs. 聚合<strong>後</strong>篩分組</td></tr>
+<tr><td>agg</td><td>transform</td><td>輸出＝組數 vs. 輸出＝原列數（可直接指派新欄位）</td></tr>
+<tr><td>相關</td><td>因果</td><td>共同出現 vs. 干預後會改變（需隨機實驗或因果推論）</td></tr>
+<tr><td>統計顯著</td><td>實務顯著</td><td>不像隨機 vs. 值不值得做</td></tr>
+</table>
+</div>
+
+<h3>13-3　「一定是錯的」選項特徵</h3>
+<div class="box warn">
+  <div class="bt">🚫 看到這些描述，直接刪</div>
+  <ul>
+    <li>「樣本數夠大就一定有代表性」</li>
+    <li>「相關性夠強就代表因果關係」</li>
+    <li>「p 值小於 0.05 就代表結果一定正確」／「不顯著就是沒有差異」</li>
+    <li>「增加分區數或節點數就能解決資料傾斜」</li>
+    <li>「NULL 在計算時會被視為 0」</li>
+    <li>「merge 一定不會增加列數」</li>
+    <li>「只要移除姓名與身分證字號就完成去識別化」</li>
+    <li>「加密後就不算個資國際傳輸」</li>
+    <li>「開發測試需要真實資料才能測」</li>
+    <li>「離群值一律刪除」／「異常點直接刪除且不需記錄」</li>
+    <li>「截斷縱軸的長條圖只要有標數值就不算誤導」</li>
+    <li>「把所有資料都當成最高機密處理最安全」</li>
+    <li>「先把資料全部載入記憶體再處理最有效率」</li>
+  </ul>
+</div>
+
+<div class="box exam">
+  <div class="bt">🎯 最後叮嚀</div>
+  <p>中級科目二的三條主軸：<strong>①「先問資料對不對，再問分析對不對」</strong>（任何異常先排除資料問題）；<strong>②「把運算推到資料所在之處」</strong>（下推、預聚合、只讀需要的欄位）；<strong>③「定義比技巧更重要」</strong>（指標口徑、粒度、資料契約、時區）。答題時偏向那個「先釐清定義、先驗證資料、先量化再下結論」的選項。</p>
+</div>
+
+<div class="pager">
+  <a href="i-s1.html">← 上一篇：中級科目一</a>
+  <a href="i-s3.html">下一篇：中級科目三 · 機器學習技術與應用 →</a>
+</div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var secs = links.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function onScroll() {
+    var y = window.scrollY + 120, idx = 0;
+    for (var i = 0; i < secs.length; i++) { if (secs[i] && secs[i].offsetTop <= y) idx = i; }
+    links.forEach(function (a, i) { a.classList.toggle('on', i === idx); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+
+</body>
+</html>
