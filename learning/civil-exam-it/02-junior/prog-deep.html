@@ -47,6 +47,18 @@
       <li><a href="#d10">公務程式的五個必檢邏輯</a></li>
       <li><a href="#d11">程式撰寫申論的答題模板</a></li>
       <li><a href="#d12">安全撰碼：從考題到實務</a></li>
+      <li><a href="#d13">遞迴的完整思考法：從展開到轉迴圈</a></li>
+      <li><a href="#d14">迴圈與邊界：差一錯誤的完整防範</a></li>
+      <li><a href="#d15">資料型別的陷阱：整數、浮點與字串</a></li>
+      <li><a href="#d16">函式設計：參數、回傳與副作用</a></li>
+      <li><a href="#d17">例外處理：讓錯誤被看見而不是被吞掉</a></li>
+      <li><a href="#d18">物件導向：從封裝到設計原則</a></li>
+      <li><a href="#d19">資料庫存取程式的三個必修</a></li>
+      <li><a href="#d20">網頁程式的安全撰寫</a></li>
+      <li><a href="#d21">測試：從單元測試到驗收</a></li>
+      <li><a href="#d22">可維護的程式：命名、註解與重構</a></li>
+      <li><a href="#d23">效能問題的診斷與改善順序</a></li>
+      <li><a href="#d24">程式設計概要的滿分策略</a></li>
     </ol>
   </div>
 
@@ -686,6 +698,733 @@
       <strong>——這四件事，比任何演算法的巧妙都重要。</strong>
     </div>
   </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="d13">
+    <h2>深化 13　遞迴的完整思考法：從展開到轉迴圈</h2>
+
+    <h3>13-1　寫遞迴的三個必要問題</h3>
+    <div class="frame">
+      <span class="t">📐 三問</span>
+      <strong>①終止條件是什麼？</strong>（什麼情況直接回答，不再遞迴）<br>
+      <strong>②如何縮小問題？</strong>（<u>每次呼叫必須更接近終止條件</u>）<br>
+      <strong>③如何用子問題的答案組出答案？</strong><br><br>
+      <u>三問缺一：<strong>缺①或②會無窮遞迴 → 堆疊溢位</strong>；缺③會算錯。</u>
+    </div>
+
+    <h3>13-2　追蹤遞迴的正確方法</h3>
+    <div class="hl">
+      <strong>從終止條件往回算，不要從最外層往下想。</strong><br><br>
+      <u>例：<code>f(n) = n × f(n-1)</code>，<code>f(1) = 1</code>，求 f(5)<br><br>
+      f(1) = 1 → f(2) = 2×1 = <strong>2</strong> → f(3) = 3×2 = <strong>6</strong> → f(4) = 4×6 = <strong>24</strong> → f(5) = 5×24 = <strong>120</strong></u><br><br>
+      <strong>考場技巧</strong>：<u>在題目旁邊由小到大列出 f(1)、f(2)、f(3)…，五秒鐘就能算出來，比展開遞迴樹快得多。</u>
+    </div>
+
+    <h3>13-3　遞迴的效能陷阱</h3>
+    <div class="table-wrap"><table>
+      <tr><th>寫法</th><th>複雜度</th><th>f(40) 大約要</th></tr>
+      <tr><td><u>單純遞迴費氏數列</u></td><td><u><strong>O(2ⁿ)</strong></u></td><td><strong>數秒到數十秒</strong></td></tr>
+      <tr><td><strong>記憶化遞迴</strong></td><td>O(n)</td><td>瞬間</td></tr>
+      <tr><td><strong>迴圈</strong></td><td>O(n)</td><td>瞬間</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 為什麼單純遞迴這麼慢</span>
+      <u>算 f(5) 時，f(3) 被算了 <strong>2 次</strong>、f(2) 被算了 <strong>3 次</strong>、f(1) 被算了 <strong>5 次</strong>——<br>
+      <strong>大量重複計算</strong>。n 越大重複越誇張。<br><br>
+      <strong>解法：把算過的存起來（記憶化）</strong>，這就是動態規劃的核心思想。</u>
+    </div>
+
+    <h3>13-4　遞迴改迴圈</h3>
+    <div class="table-wrap"><table>
+      <tr><th>遞迴類型</th><th>能否輕易改迴圈</th><th>說明</th></tr>
+      <tr><td><strong>尾遞迴</strong></td><td><u><strong>可以</strong></u></td><td>遞迴呼叫是最後一個動作，直接改成迴圈</td></tr>
+      <tr><td>線性遞迴（費氏）</td><td>可以</td><td><u>用兩個變數往前推</u></td></tr>
+      <tr><td>樹狀遞迴（走訪）</td><td>較難</td><td><u>需自行用<strong>堆疊</strong>模擬</u></td></tr>
+    </table></div>
+    <p><u><strong>什麼時候該用遞迴</strong>：<strong>問題本身有遞迴結構</strong>（樹走訪、目錄搜尋、分治法）時，遞迴寫起來清楚很多。<br>
+    <strong>什麼時候不該</strong>：深度可能很大（堆疊溢位風險）、或有大量重複子問題（改用 DP）。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 13 必背結論</span>
+      <strong>①</strong> 三問：<u>終止條件、縮小問題、組合子答案</u><br>
+      <strong>②</strong> <strong>追蹤遞迴要從終止條件往回算</strong>，考場最快<br>
+      <strong>③</strong> 單純遞迴費氏是 <u><strong>O(2ⁿ)</strong></u>——重複計算是元凶<br>
+      <strong>④</strong> <u>尾遞迴易改迴圈；樹狀遞迴需用堆疊模擬</u>
+    </div>
+  </div>
+
+  <!-- ============ 14 ============ -->
+  <div class="card" id="d14">
+    <h2>深化 14　迴圈與邊界：差一錯誤的完整防範</h2>
+
+    <h3>14-1　迴圈次數的計算公式</h3>
+    <div class="table-wrap"><table>
+      <tr><th>迴圈</th><th>次數</th><th>備註</th></tr>
+      <tr><td><code>for(i=0; i&lt;n; i++)</code></td><td><strong>n</strong></td><td>最標準的寫法</td></tr>
+      <tr><td><code>for(i=0; i&lt;=n; i++)</code></td><td><u><strong>n+1</strong></u></td><td><u>陣列會越界</u></td></tr>
+      <tr><td><code>for(i=1; i&lt;=n; i++)</code></td><td><strong>n</strong></td><td>從 1 開始的寫法</td></tr>
+      <tr><td><code>for(i=a; i&lt;b; i+=d)</code></td><td><u><strong>⌈(b−a)/d⌉</strong></u></td><td>步進不為 1 時</td></tr>
+      <tr><td><code>for(i=n; i&gt;0; i/=2)</code></td><td><u><strong>約 log₂n</strong></u></td><td>對數次</td></tr>
+    </table></div>
+
+    <h3>14-2　邊界檢查清單</h3>
+    <div class="frame">
+      <span class="t">📐 每個迴圈都要問的五個問題</span>
+      <strong>①</strong> 第一次的值是什麼？<u>會不會少做一次？</u><br>
+      <strong>②</strong> 最後一次的值是什麼？<u><strong>會不會越界？</strong></u><br>
+      <strong>③</strong> n = 0 時會發生什麼？<u>（空陣列、沒有資料）</u><br>
+      <strong>④</strong> n = 1 時會發生什麼？<u>（只有一筆）</u><br>
+      <strong>⑤</strong> 條件會不會永遠成立？<u>（無窮迴圈）</u>
+    </div>
+    <div class="hl">
+      <strong>💡 考場技巧</strong><br>
+      <u>看到迴圈題，<strong>先代 n = 1 或 n = 2 手算一次</strong>——<br>
+      小數字五秒就算完，而且最容易看出差一錯誤。<strong>不要用眼睛看程式碼推理。</strong></u>
+    </div>
+
+    <h3>14-3　陣列越界的後果</h3>
+    <div class="table-wrap"><table>
+      <tr><th>語言</th><th>越界時</th><th>危險程度</th></tr>
+      <tr><td><strong>C／C++</strong></td><td><u>不檢查，讀到隨機記憶體或崩潰（未定義行為）</u></td><td><strong>最高</strong></td></tr>
+      <tr><td>Java／C#</td><td>拋出陣列越界例外</td><td>中</td></tr>
+      <tr><td>Python</td><td>拋出索引錯誤；<u>負索引另有意義</u></td><td>中</td></tr>
+    </table></div>
+    <p><u><strong>資安關聯</strong>：C 語言的越界<strong>寫入</strong>就是<strong>緩衝區溢位</strong>——經典的漏洞類型，可導致任意程式碼執行。</u></p>
+
+    <h3>14-4　公務程式的邊界值</h3>
+    <div class="table-wrap"><table>
+      <tr><th>情境</th><th>要測的邊界</th></tr>
+      <tr><td><strong>級距判定</strong></td><td><u><strong>剛好等於門檻的那一元</strong>（是 &gt; 還是 ≥ 依法規認定）</u></td></tr>
+      <tr><td><strong>期間計算</strong></td><td><u>月底、跨年、<strong>2 月 29 日</strong>、末日為假日</u></td></tr>
+      <tr><td>金額</td><td><strong>0 元、負數、超過上限</strong></td></tr>
+      <tr><td>資料筆數</td><td><u>0 筆、1 筆、剛好等於分頁大小</u></td></tr>
+      <tr><td>字串</td><td>空字串、只有空白、超長、含特殊字元</td></tr>
+      <tr><td><strong>年齡／年資</strong></td><td><u>生日當天、閏年出生（2/29）</u></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 為什麼公務程式的邊界特別重要</span>
+      <u>級距邊界差一元，可能就是<strong>核准與駁回的差別</strong>；<br>
+      期間差一天，可能就是<strong>受理與逾期的差別</strong>。<br><br>
+      <strong>這些不是「小 bug」，是會影響民眾權益與處分合法性的錯誤。</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 14 必背結論</span>
+      <strong>①</strong> <u><code>i&lt;n</code> 是 n 次、<code>i&lt;=n</code> 是 n+1 次</u>；步進不為 1 用 ⌈(b−a)/d⌉<br>
+      <strong>②</strong> 五個邊界問題，<strong>特別是 n=0 與 n=1</strong><br>
+      <strong>③</strong> <u>考場先代 n=1 或 2 手算</u>，不要用看的<br>
+      <strong>④</strong> 公務邊界：<strong>級距門檻、月底跨年、閏年、末日假日</strong>
+    </div>
+  </div>
+
+  <!-- ============ 15 ============ -->
+  <div class="card" id="d15">
+    <h2>深化 15　資料型別的陷阱：整數、浮點與字串</h2>
+
+    <h3>15-1　整數溢位</h3>
+    <div class="frame">
+      <span class="t">📐 溢位的危險在於「不會報錯」</span>
+      <u>8 位元無號整數上限 255；250 + 10 = 260 → <strong>260 − 256 = 4</strong>（回繞）<br><br>
+      <strong>程式繼續跑，但數字已經錯了，而且沒有任何錯誤訊息。</strong><br>
+      這比當機更危險——當機至少會被發現。</u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>型別</th><th>範圍</th><th>公務適用</th></tr>
+      <tr><td>8 位元有號</td><td>−128 ～ 127</td><td>幾乎不用</td></tr>
+      <tr><td>16 位元有號</td><td>−32768 ～ 32767</td><td><u>件數可能不夠</u></td></tr>
+      <tr><td><strong>32 位元有號</strong></td><td>約 ±21 億</td><td><u><strong>金額以「分」計時可能不夠</strong></u></td></tr>
+      <tr><td><strong>64 位元有號</strong></td><td>約 ±9.2×10¹⁸</td><td><strong>安全的預設選擇</strong></td></tr>
+    </table></div>
+
+    <h3>15-2　浮點數不可用於金額</h3>
+    <div class="warn">
+      <span class="t">⚠️ 0.1 + 0.2 ≠ 0.3</span>
+      <u>因為 0.1 在二進位是<strong>無限循環小數</strong>，無法精確表示。<br>
+      <strong>只有分母是 2 的次方的小數（0.5、0.25、0.125）能精確表示。</strong><br><br>
+      <strong>正確做法</strong>：<br>
+      <strong>①</strong> 以<strong>整數</strong>儲存（單位取「分」）<br>
+      <strong>②</strong> 或用<strong>十進位型別</strong>（decimal／numeric）<br>
+      <strong>③</strong> <u>四捨五入的<strong>時機</strong>依法規或作業要點認定，不由程式設計者決定</u></u>
+    </div>
+    <p><u><strong>浮點數該用在哪</strong>：科學運算、統計、繪圖——這些場合<strong>本來就是近似值</strong>。</u></p>
+
+    <h3>15-3　字串處理的三個陷阱</h3>
+    <div class="table-wrap"><table>
+      <tr><th>陷阱</th><th>說明</th><th>公務影響</th></tr>
+      <tr><td><strong>編碼</strong></td><td><u>Big5 檔以 UTF-8 讀取 → 亂碼</u></td><td><strong>舊系統資料轉換</strong></td></tr>
+      <tr><td><strong>中文字長度</strong></td><td><u>一個中文字在 UTF-8 是 <strong>3 個位元組</strong></u></td><td>欄位長度限制要算清楚</td></tr>
+      <tr><td><strong>罕用字</strong></td><td><u>Big5 造字區<strong>各機關自訂</strong>，轉碼無標準對應</u></td><td><strong>姓名寫錯影響證件效力</strong></td></tr>
+      <tr><td>前後空白</td><td>使用者輸入常帶空白</td><td><u>比對失敗、重複資料</u></td></tr>
+      <tr><td>全形半形</td><td>全形數字與半形數字不相等</td><td>身分證字號比對失敗</td></tr>
+    </table></div>
+    <p><u><strong>實務建議</strong>：輸入時<strong>統一正規化</strong>（去頭尾空白、全形轉半形、英文轉大寫），再儲存與比對。</u></p>
+
+    <h3>15-4　型別轉換的陷阱</h3>
+    <div class="table-wrap"><table>
+      <tr><th>轉換</th><th>問題</th></tr>
+      <tr><td>浮點轉整數</td><td><u><strong>是截斷還是四捨五入？</strong>不同語言不同</u></td></tr>
+      <tr><td>大型別轉小型別</td><td>可能溢位且不報錯</td></tr>
+      <tr><td>字串轉數字</td><td><u>轉換失敗時回傳什麼？0 還是拋錯？</u></td></tr>
+      <tr><td><strong>整數除法</strong></td><td><u><strong>5 / 2 = 2 而不是 2.5</strong></u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 整數除法是考試最愛的陷阱</strong><br>
+      <u><code>n = 100; while(n&gt;1) n = n/2;</code><br>
+      追蹤：100 → 50 → 25 → <strong>12</strong>（25/2 取整）→ 6 → 3 → <strong>1</strong><br><br>
+      如果誤以為是小數除法，答案就會完全不同。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 15 必背結論</span>
+      <strong>①</strong> <u><strong>整數溢位不會報錯</strong></u>——公務系統預設用 64 位元<br>
+      <strong>②</strong> <strong>金額用整數或十進位型別，絕不用浮點數</strong><br>
+      <strong>③</strong> 字串三陷阱：<u>編碼、中文字長度、<strong>罕用字造字區</strong></u><br>
+      <strong>④</strong> <u><strong>整數除法會截斷</strong></u>——追蹤題必查
+    </div>
+  </div>
+
+  <!-- ============ 16 ============ -->
+  <div class="card" id="d16">
+    <h2>深化 16　函式設計：參數、回傳與副作用</h2>
+
+    <h3>16-1　傳值與傳址的實際差異</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>傳值</th><th>傳址</th></tr>
+      <tr><td>傳入</td><td>副本</td><td>位址</td></tr>
+      <tr><td>函式內修改</td><td><u>不影響原變數</u></td><td><strong>會改到原變數</strong></td></tr>
+      <tr><td>大型資料</td><td>複製成本高</td><td>效率好</td></tr>
+      <tr><td><strong>風險</strong></td><td>低</td><td><u><strong>可能在你沒預期時改掉原值</strong></u></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 一個常見的誤解</span>
+      <u>「傳址比較安全，因為不用複製」——<strong>剛好相反</strong>。<br>
+      傳址讓函式<strong>有能力改掉呼叫者的資料</strong>，是難查 bug 的來源。<br><br>
+      <strong>正確原則</strong>：需要效率但不打算修改時，用<strong>唯讀的參照</strong>。</u>
+    </div>
+
+    <h3>16-2　副作用（Side Effect）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>類型</th><th>例</th><th>問題</th></tr>
+      <tr><td><strong>純函式</strong></td><td>同樣輸入永遠同樣輸出，不改變外部狀態</td><td><u>好測試、好推理</u></td></tr>
+      <tr><td>有副作用</td><td><u>改全域變數、寫檔案、改資料庫、發郵件</u></td><td>難測試、難預測</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 設計原則</strong><br>
+      <u><strong>把「計算」與「副作用」分開。</strong><br><br>
+      不好：一個函式同時<u>算補助金額 ＋ 寫入資料庫 ＋ 發簡訊</u><br>
+      較好：<u><strong>算金額（純函式，可單獨測試）</strong> → 寫入 → 發簡訊，各自獨立<br><br>
+      好處：<strong>金額計算邏輯可以寫自動化測試，不需要真的連資料庫或發簡訊。</strong></u>
+    </div>
+
+    <h3>16-3　函式的三個設計原則</h3>
+    <div class="frame">
+      <span class="t">📐 三原則</span>
+      <strong>①單一職責</strong>：<u>一個函式只做一件事；名字說不清楚在做什麼，通常就是做了太多事</u><br>
+      <strong>②參數不要太多</strong>：<u>超過四五個就該考慮包成一個結構</u><br>
+      <strong>③明確的錯誤處理</strong>：<u><strong>失敗時要讓呼叫者知道</strong>——回傳錯誤或拋出例外，不要默默回傳 0 或 null</u>
+    </div>
+
+    <h3>16-4　變數作用範圍</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>區域變數</th><th>全域變數</th></tr>
+      <tr><td>作用範圍</td><td>所屬區塊</td><td><u>整個程式</u></td></tr>
+      <tr><td>生命週期</td><td>離開區塊即消失</td><td>程式結束才消失</td></tr>
+      <tr><td>維護性</td><td><strong>好（影響範圍小）</strong></td><td><u><strong>差（任何地方都可能改到）</strong></u></td></tr>
+    </table></div>
+    <p><u><strong>原則</strong>：<strong>變數的作用範圍應盡可能小</strong>。需要共用時，優先以「參數傳入、回傳值傳出」，而非全域變數。<br>
+    全域變數在多執行緒環境下更是<strong>競爭條件的主要來源</strong>。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 16 必背結論</span>
+      <strong>①</strong> <u><strong>傳址風險較高</strong></u>（可能改到原值），不是比較安全<br>
+      <strong>②</strong> <strong>把計算與副作用分開</strong>——計算部分才好寫測試<br>
+      <strong>③</strong> 三原則：<u>單一職責、參數不多、<strong>明確錯誤處理</strong></u><br>
+      <strong>④</strong> 變數作用範圍<strong>越小越好</strong>
+    </div>
+  </div>
+
+  <!-- ============ 17 ============ -->
+  <div class="card" id="d17">
+    <h2>深化 17　例外處理：讓錯誤被看見而不是被吞掉</h2>
+
+    <h3>17-1　三種錯誤處理策略</h3>
+    <div class="table-wrap"><table>
+      <tr><th>策略</th><th>做法</th><th>問題</th></tr>
+      <tr><td><strong>回傳錯誤碼</strong></td><td>函式回傳成功或失敗</td><td><u>呼叫者容易忘記檢查</u></td></tr>
+      <tr><td><strong>拋出例外</strong></td><td>錯誤時中斷正常流程</td><td>需要在適當層級接住</td></tr>
+      <tr><td><u>忽略錯誤</u></td><td><u><strong>捕捉例外但什麼都不做</strong></u></td><td><u><strong>最危險——資料壞了卻沒人知道</strong></u></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 最糟的寫法</span>
+      <u>「捕捉所有例外，然後什麼都不做」——這叫<strong>吞掉例外</strong>。<br><br>
+      後果：程式看起來正常運作，<strong>但每一筆處理失敗的資料都消失了</strong>，<br>
+      而且事後完全查不出來發生過什麼事。<br><br>
+      <strong>寧可讓程式明顯地失敗，也不要讓它靜靜地錯下去。</strong></u>
+    </div>
+
+    <h3>17-2　例外處理的三個層次</h3>
+    <div class="frame">
+      <span class="t">📐 分層處理</span>
+      <strong>①能處理的就處理</strong>：<u>如網路逾時 → 重試三次</u><br>
+      <strong>②不能處理的往上拋</strong>：<u>加上情境資訊再拋，不要把原始錯誤丟掉</u><br>
+      <strong>③最外層統一處理</strong>：<u><strong>記錄詳細錯誤到日誌 ＋ 對使用者顯示友善訊息</strong></u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>對象</th><th>應該看到什麼</th></tr>
+      <tr><td><strong>使用者</strong></td><td><u>「系統忙碌，請稍後再試」＋<strong>錯誤代碼供查詢</strong></u></td></tr>
+      <tr><td><strong>維護人員</strong></td><td><u>完整的錯誤訊息、堆疊追蹤、當時的輸入值</u></td></tr>
+    </table></div>
+    <p><u><strong>為什麼不能對使用者顯示詳細錯誤</strong>：<strong>會洩漏資料庫結構、檔案路徑、程式框架版本</strong>——<br>這些都是攻擊者的情報。</u></p>
+
+    <h3>17-3　防禦性程式設計</h3>
+    <div class="table-wrap"><table>
+      <tr><th>原則</th><th>做法</th></tr>
+      <tr><td><strong>不信任外部輸入</strong></td><td><u>一律驗證格式、範圍、長度；<strong>驗證要在伺服器端做</strong></u></td></tr>
+      <tr><td><strong>預期會失敗</strong></td><td>外部呼叫一定要設<u>逾時</u>；檔案可能不存在；網路可能斷</td></tr>
+      <tr><td><strong>安全地失敗</strong></td><td><u>失敗時往<strong>安全的方向</strong>倒（驗證服務掛掉 → 拒絕存取）</u></td></tr>
+      <tr><td>前置條件檢查</td><td>函式開頭先檢查參數是否合理</td></tr>
+    </table></div>
+
+    <h3>17-4　公務系統的錯誤處理要求</h3>
+    <div class="frame">
+      <span class="t">📐 四個必要條件</span>
+      <strong>①民眾的事要辦得成</strong>：<u>系統故障時要有<strong>人工替代程序</strong></u><br>
+      <strong>②錯誤要被記錄</strong>：<u>時間、使用者、輸入、錯誤內容——否則無法追查</u><br>
+      <strong>③資料不能半調子</strong>：<u><strong>交易要嘛全成功，要嘛全失敗</strong>，不可以扣了款沒銷帳</u><br>
+      <strong>④要能重試</strong>：<u><strong>冪等設計</strong>——同一筆重送不會重複處理</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 17 必背結論</span>
+      <strong>①</strong> <u><strong>吞掉例外是最危險的寫法</strong></u>——資料壞了沒人知道<br>
+      <strong>②</strong> <u>使用者看友善訊息，維護人員看詳細日誌</u>——詳細錯誤不可對外顯示<br>
+      <strong>③</strong> 防禦四原則：<strong>不信任輸入、預期失敗、安全失效、前置檢查</strong><br>
+      <strong>④</strong> 公務四要求：<u>人工替代、錯誤記錄、<strong>交易完整</strong>、冪等可重試</u>
+    </div>
+  </div>
+
+  <!-- ============ 18 ============ -->
+  <div class="card" id="d18">
+    <h2>深化 18　物件導向：從封裝到設計原則</h2>
+
+    <h3>18-1　三大特性的實際價值</h3>
+    <div class="table-wrap"><table>
+      <tr><th>特性</th><th>做什麼</th><th>實際好處</th></tr>
+      <tr><td><strong>封裝</strong></td><td><u>隱藏內部實作，只露出介面</u></td><td><strong>改內部時外面不用跟著改</strong></td></tr>
+      <tr><td><strong>繼承</strong></td><td>子類別沿用父類別</td><td><u>共同行為只寫一次</u></td></tr>
+      <tr><td><strong>多型</strong></td><td><u>同一個呼叫，不同物件不同行為</u></td><td><strong>新增類型時不必改既有程式</strong></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 多型的實際用途</span>
+      <u>假設有五種補助，每種計算方式不同。<br><br>
+      <strong>沒有多型</strong>：一大串 if-else 判斷是哪一種補助 → <u>新增第六種要回去改這串判斷</u><br>
+      <strong>有多型</strong>：每種補助是一個類別，都有 <code>計算金額()</code> 方法 → <u><strong>新增第六種只要加一個新類別</strong></u></u>
+    </div>
+
+    <h3>18-2　繼承的陷阱</h3>
+    <div class="warn">
+      <span class="t">⚠️ 繼承被過度使用</span>
+      <u><strong>繼承代表「是一種」（is-a）關係</strong>，不是「有一個」（has-a）。<br><br>
+      錯誤：<u>「案件」繼承「使用者」——因為案件<strong>不是</strong>一種使用者<br>
+      正確：<u>「案件」<strong>擁有</strong>一個「承辦人」（組合）</u><br><br>
+      <strong>設計原則：優先使用組合而非繼承</strong>——繼承的耦合太緊，父類別一改全部子類別受影響。</u>
+    </div>
+
+    <h3>18-3　類別設計的五個原則（SOLID 簡版）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>原則</th><th>一句話</th><th>公務例</th></tr>
+      <tr><td><strong>單一職責</strong></td><td><u>一個類別只有一個改變的理由</u></td><td>「案件」不該同時管計算與寄信</td></tr>
+      <tr><td><strong>開放封閉</strong></td><td><u><strong>對擴充開放、對修改封閉</strong></u></td><td>新增補助類型不必改既有程式</td></tr>
+      <tr><td>里氏替換</td><td>子類別要能替換父類別而不出錯</td><td>不要在子類別違反父類別的約定</td></tr>
+      <tr><td>介面隔離</td><td><u>不要強迫實作用不到的方法</u></td><td>介面切小一點</td></tr>
+      <tr><td><strong>依賴反轉</strong></td><td><u>依賴抽象而非具體實作</u></td><td><strong>換簡訊供應商不必改業務邏輯</strong></td></tr>
+    </table></div>
+    <p><u><strong>對公務系統最實用的兩條</strong>：<strong>單一職責</strong>（好維護）與<strong>依賴反轉</strong>（換廠商或換服務時不必大改）。</u></p>
+
+    <h3>18-4　什麼時候不需要物件導向</h3>
+    <div class="hl">
+      <u><strong>簡單的批次程式、一次性的資料轉換腳本、單純的計算</strong>——<br>
+      硬套物件導向反而讓程式變複雜。<br><br>
+      <strong>判準</strong>：<u>如果這段程式<strong>會長期維護、會有多種類型、會被多處使用</strong>，物件導向有價值；<br>
+      如果是<strong>寫一次跑一次就丟</strong>，寫得清楚簡單就好。</u><br><br>
+      <strong>技術要與問題規模相稱</strong>——這在公務環境特別重要。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 18 必背結論</span>
+      <strong>①</strong> <u>封裝讓內部可改、繼承讓程式碼共用、<strong>多型讓新增類型不必改舊程式</strong></u><br>
+      <strong>②</strong> <strong>繼承是 is-a，不是 has-a</strong>；<u>優先使用組合</u><br>
+      <strong>③</strong> 最實用兩原則：<strong>單一職責</strong>與<strong>依賴反轉</strong><br>
+      <strong>④</strong> <u>一次性腳本不需要物件導向</u>——技術要與規模相稱
+    </div>
+  </div>
+
+  <!-- ============ 19 ============ -->
+  <div class="card" id="d19">
+    <h2>深化 19　資料庫存取程式的三個必修</h2>
+
+    <h3>19-1　參數化查詢（不只是為了安全）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>好處</th><th>說明</th></tr>
+      <tr><td><strong>防 SQL 注入</strong></td><td><u>資料永遠是資料，不會被當成程式碼</u></td></tr>
+      <tr><td><strong>效能較好</strong></td><td><u>資料庫可以<strong>重用執行計畫</strong>（同一句 SQL 只是參數不同）</u></td></tr>
+      <tr><td>不必處理跳脫</td><td>姓名含單引號也不會出錯</td></tr>
+      <tr><td>型別正確</td><td>日期、數字不必轉成字串</td></tr>
+    </table></div>
+    <p><u><strong>常見誤解</strong>：「我有過濾特殊字元所以安全」——<strong>黑名單永遠有繞過方法</strong>，<br>
+    而且會擋掉正常的姓名（如帶單引號的外國名字）。</u></p>
+
+    <h3>19-2　連線管理</h3>
+    <div class="warn">
+      <span class="t">⚠️ 連線洩漏是公務系統最常見的效能事故</span>
+      <u><strong>症狀</strong>：CPU 不高、記憶體正常，但<strong>連線數滿了、新請求全部失敗</strong>。<br><br>
+      <strong>原因</strong>：<u>程式在發生例外時沒有關閉連線</u>——正常流程有關，<strong>例外流程忘了關</strong>。<br><br>
+      <strong>解法</strong>：<strong>①使用語言提供的自動釋放語法 ②使用連線池並設定逾時 ③監控「最長執行中交易」</strong></u>
+    </div>
+
+    <h3>19-3　N+1 查詢問題</h3>
+    <div class="frame">
+      <span class="t">📐 症狀與診斷</span>
+      <u>查 100 列資料（1 次查詢），再<strong>為每列各查一次</strong>關聯資料（100 次）＝ <strong>101 次往返</strong>。<br><br>
+      <strong>診斷方法</strong>：<u>看資料庫慢查詢日誌，若發現<strong>同一句 SQL 只有參數不同、被執行數百次</strong>，就是 N+1。</u><br><br>
+      <strong>解法</strong>：<strong>①用 JOIN 一次取回 ②或把小型代碼表整份快取在程式內</strong></u>
+    </div>
+
+    <h3>19-4　批次處理的正確寫法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>做法</th><th>10 萬筆的相對速度</th><th>說明</th></tr>
+      <tr><td><u>逐筆寫入且逐筆提交</u></td><td><u><strong>最慢</strong></u></td><td>每筆都有交易與往返成本</td></tr>
+      <tr><td><strong>批次寫入（每 500～1000 筆一批）</strong></td><td><strong>快數十倍</strong></td><td><u>平衡效能與交易大小</u></td></tr>
+      <tr><td>全部放在一個交易</td><td>快但危險</td><td><u>鎖住太久、交易紀錄檔暴增</u></td></tr>
+      <tr><td>大量匯入工具</td><td>最快</td><td>適合初次資料轉換</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 批次程式的三個必要設計</strong><br>
+      <u><strong>①可中斷可續跑</strong>：記錄處理到哪一筆，中斷後從那裡繼續<br>
+      <strong>②冪等</strong>：<strong>重跑一次不會產生重複資料</strong><br>
+      <strong>③失敗告警</strong>：<u>沒跑成功卻沒人知道，比跑得慢更危險</u></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 19 必背結論</span>
+      <strong>①</strong> 參數化查詢<u>不只防注入，還能<strong>重用執行計畫</strong></u><br>
+      <strong>②</strong> <strong>連線洩漏</strong>：CPU 不高但連線滿——例外流程忘了關<br>
+      <strong>③</strong> <strong>N+1</strong> 的診斷：同一句 SQL 被執行數百次<br>
+      <strong>④</strong> 批次三設計：<u>可續跑、<strong>冪等</strong>、失敗告警</u>
+    </div>
+  </div>
+
+  <!-- ============ 20 ============ -->
+  <div class="card" id="d20">
+    <h2>深化 20　網頁程式的安全撰寫</h2>
+
+    <h3>20-1　輸入驗證的正確位置</h3>
+    <div class="warn">
+      <span class="t">⚠️ 前端驗證不是安全機制</span>
+      <u>前端驗證是<strong>使用者體驗</strong>（讓使用者早點知道打錯了），<br>
+      <strong>不是安全機制</strong>——攻擊者可以直接送出請求，完全繞過前端。<br><br>
+      <strong>所有驗證都必須在伺服器端再做一次。</strong></u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>驗證項目</th><th>檢查什麼</th></tr>
+      <tr><td>格式</td><td>身分證字號、日期、電話的格式</td></tr>
+      <tr><td>範圍</td><td><u>金額不可為負、日期不可為未來、數量有上限</u></td></tr>
+      <tr><td>長度</td><td>防止超長輸入耗盡資源</td></tr>
+      <tr><td><strong>業務規則</strong></td><td><u><strong>這個人有沒有資格、這個時段還開不開放</strong></u></td></tr>
+      <tr><td><strong>授權</strong></td><td><u><strong>這個使用者有沒有權限操作這一筆</strong></u></td></tr>
+    </table></div>
+
+    <h3>20-2　三大網頁攻擊的防禦寫法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>攻擊</th><th>根本防禦</th><th>額外防護</th></tr>
+      <tr><td><strong>SQL 注入</strong></td><td><u>參數化查詢</u></td><td>資料庫最小權限、WAF</td></tr>
+      <tr><td><strong>XSS</strong></td><td><u><strong>輸出時依情境編碼</strong></u></td><td>CSP、HttpOnly Cookie</td></tr>
+      <tr><td><strong>CSRF</strong></td><td><u>CSRF Token 並在伺服器端驗證</u></td><td>SameSite Cookie、重要操作再驗證</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 XSS 為什麼是「輸出編碼」而不是「輸入過濾」</span>
+      <u>同一段文字放在<strong>不同位置</strong>要用<strong>不同的編碼方式</strong>：<br>
+      放在 HTML 內文、放在標籤屬性、放在 JavaScript 裡、放在網址裡——<strong>四種編碼都不一樣</strong>。<br><br>
+      輸入時<strong>不知道</strong>這段文字未來會被放到哪裡，所以<strong>只能在輸出時依當下情境編碼</strong>。</u>
+    </div>
+
+    <h3>20-3　權限控制失效（公務系統最常見）</h3>
+    <div class="hl">
+      <strong>典型情境</strong>：<u>網址是 <code>/case?id=12345</code>，改成 12346 就看到別人的案件。</u><br><br>
+      <strong>根本錯誤</strong>：<u>把「畫面上沒有連結」誤當成「沒有權限」。</u><br><br>
+      <strong>正確寫法</strong>：<u><strong>每一次資料存取，都在伺服器端檢查「這個登入者是否有權讀取這一筆」</strong>——<br>
+      不能只靠前端隱藏，也不能只靠「參數不外洩」。</u><br><br>
+      <strong>後果</strong>：<u>一旦有此弱點，等同<strong>全體申辦民眾的個資可被逐號下載</strong>，屬重大個資事故。</u>
+    </div>
+
+    <h3>20-4　檔案上傳的五道防護</h3>
+    <div class="frame">
+      <span class="t">📐 缺一不可</span>
+      <strong>①白名單</strong>：<u>只允許必要的類型，並<strong>檢查實際內容而非只看副檔名</strong></u><br>
+      <strong>②大小限制</strong>：防止耗盡磁碟<br>
+      <strong>③重新命名</strong>：<u>避免原檔名含路徑符號造成目錄遍歷，或覆蓋既有檔案</u><br>
+      <strong>④存放位置</strong>：<u><strong>放在網站根目錄之外</strong>，或設定該目錄不得執行程式</u><br>
+      <strong>⑤掃毒</strong>：以防毒或沙箱檢查<br><br>
+      <u><strong>最嚴重的後果</strong>：攻擊者上傳一個可執行的網頁程式並直接呼叫它 → <strong>取得伺服器控制權</strong>。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 20 必背結論</span>
+      <strong>①</strong> <u><strong>前端驗證是體驗，伺服器端驗證才是安全</strong></u><br>
+      <strong>②</strong> <strong>XSS 靠輸出編碼</strong>（因為輸入時不知道會被放到哪裡）<br>
+      <strong>③</strong> <u>每次存取都要在伺服器端<strong>驗證授權</strong></u>，不是靠隱藏<br>
+      <strong>④</strong> 上傳五道防護，關鍵是<strong>重新命名 ＋ 放在不可執行的目錄</strong>
+    </div>
+  </div>
+
+  <!-- ============ 21 ============ -->
+  <div class="card" id="d21">
+    <h2>深化 21　測試：從單元測試到驗收</h2>
+
+    <h3>21-1　四個測試層次</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層次</th><th>測什麼</th><th>誰做</th><th>頻率</th></tr>
+      <tr><td><strong>單元測試</strong></td><td>單一函式或模組</td><td>開發人員</td><td><u>每次改動</u></td></tr>
+      <tr><td><strong>整合測試</strong></td><td>模組之間的介接</td><td>開發人員</td><td>每次建置</td></tr>
+      <tr><td><strong>系統測試</strong></td><td>整體功能與非功能需求</td><td>測試人員</td><td>版本發布前</td></tr>
+      <tr><td><strong>使用者驗收（UAT）</strong></td><td><u><strong>實際業務情境是否可行</strong></u></td><td><strong>業務單位</strong></td><td>驗收前</td></tr>
+    </table></div>
+    <p><u><strong>各層不可互相取代</strong>。單元測試全過不代表整合沒問題；系統測試通過不代表業務單位覺得可用。</u></p>
+
+    <h3>21-2　最該優先寫測試的三類邏輯</h3>
+    <div class="frame">
+      <span class="t">📐 公務系統的優先順序</span>
+      <strong>①金額計算</strong>：<u>級距、比例、四捨五入、加總</u><br>
+      <strong>②日期與期間</strong>：<u><strong>始日不計入、末日假日順延、閏年、跨年</strong></u><br>
+      <strong>③資格判定</strong>：<u>各種條件組合，特別是<strong>邊界值</strong></u><br><br>
+      <u><strong>理由</strong>：這三類算錯的後果不是畫面醜，是<strong>民眾權益受損與處分違法</strong>。</u>
+    </div>
+
+    <h3>21-3　測試案例的設計方法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>方法</th><th>做法</th><th>例（補助金額 5 萬以下補 30%）</th></tr>
+      <tr><td><strong>等價分割</strong></td><td><u>把輸入分成幾類，每類測一個</u></td><td>低於 5 萬、等於 5 萬、高於 5 萬</td></tr>
+      <tr><td><strong>邊界值</strong></td><td><u><strong>測邊界及其前後一個單位</strong></u></td><td><strong>49999、50000、50001</strong></td></tr>
+      <tr><td>錯誤猜測</td><td>憑經驗猜哪裡容易錯</td><td>0 元、負數、超大金額</td></tr>
+      <tr><td>決策表</td><td><u>多條件組合時列出所有組合</u></td><td>低收入戶 × 有無身障 × 年齡層</td></tr>
+    </table></div>
+    <p><u><strong>邊界值是投報率最高的方法</strong>——大部分 bug 都在邊界。</u></p>
+
+    <h3>21-4　測試資料的紅線</h3>
+    <div class="warn">
+      <span class="t">⚠️ 不可使用正式個資測試</span>
+      <u>測試環境的防護通常較弱（沒有完整的防火牆規則、沒有稽核、廠商人員可自由存取），<br>
+      把正式個資搬進去，等於<strong>把個資放在最不安全的地方</strong>。<br><br>
+      <strong>正確做法</strong>：<br>
+      <strong>①</strong> 使用<u>去識別化資料</u>（姓名、身分證字號、地址全部代換）<br>
+      <strong>②</strong> 或產生<u>合成測試資料</u><br>
+      <strong>③</strong> 若因特殊需要必須使用，須<strong>經核准、限期、限範圍並留存紀錄</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 21 必背結論</span>
+      <strong>①</strong> 四層測試不可互相取代；<strong>UAT 由業務單位做</strong><br>
+      <strong>②</strong> 優先測：<u><strong>金額、日期期間、資格判定</strong></u><br>
+      <strong>③</strong> <strong>邊界值</strong>是投報率最高的測試設計方法<br>
+      <strong>④</strong> <u><strong>測試環境不可使用正式個資</strong></u>
+    </div>
+  </div>
+
+  <!-- ============ 22 ============ -->
+  <div class="card" id="d22">
+    <h2>深化 22　可維護的程式：命名、註解與重構</h2>
+
+    <h3>22-1　命名的價值</h3>
+    <div class="table-wrap"><table>
+      <tr><th>不好</th><th>好</th><th>差別</th></tr>
+      <tr><td><code>d</code></td><td><code>daysSinceReceived</code></td><td><u>不必猜</u></td></tr>
+      <tr><td><code>flag</code></td><td><code>isEligibleForSubsidy</code></td><td><strong>布林值用 is/has 開頭</strong></td></tr>
+      <tr><td><code>process()</code></td><td><code>calculateSubsidyAmount()</code></td><td><u>知道回傳什麼</u></td></tr>
+      <tr><td><code>data</code></td><td><code>applicantList</code></td><td>知道是什麼與是複數</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 一個判準</span>
+      <u><strong>好的命名讓程式不需要註解就看得懂「在做什麼」。</strong><br>
+      註解應該用來說明<strong>「為什麼」</strong>，而不是重複程式碼在做什麼。</u>
+    </div>
+
+    <h3>22-2　公務程式最需要的註解</h3>
+    <div class="table-wrap"><table>
+      <tr><th>沒用的註解</th><th>有價值的註解</th></tr>
+      <tr><td><u>「i 加 1」</u></td><td><u><strong>「依 OO 作業要點第 3 點，末日為假日應順延」</strong></u></td></tr>
+      <tr><td>「呼叫函式」</td><td>「此處不用批次，因介接對象僅提供單筆查詢」</td></tr>
+      <tr><td>「宣告變數」</td><td><u><strong>「金額以分為單位儲存，避免浮點誤差」</strong></u></td></tr>
+      <tr><td>「迴圈」</td><td>「115 年起法規修正為三級距，舊案仍依原規則計算」</td></tr>
+    </table></div>
+    <p><u><strong>「法規依據」是公務程式最重要的註解</strong>——三年後承辦換人，沒有這行註解，<strong>沒人敢改這段邏輯，也不知道能不能改</strong>。</u></p>
+
+    <h3>22-3　技術債的償還</h3>
+    <div class="table-wrap"><table>
+      <tr><th>步驟</th><th>做法</th><th>為什麼是這個順序</th></tr>
+      <tr><td><strong>①先補測試</strong></td><td><u>為要重構的部分寫自動化測試</u></td><td><strong>改壞了會知道</strong></td></tr>
+      <tr><td><strong>②小步重構</strong></td><td>一次改一小塊，每次都跑測試</td><td>出錯時容易定位</td></tr>
+      <tr><td>③持續進行</td><td>每次改功能時順手改善周邊</td><td><u>不需要專案就能慢慢還債</u></td></tr>
+      <tr><td><u>不要一次重寫</u></td><td>—</td><td><u><strong>整批重寫的失敗率極高</strong></u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 公務環境的技術債特別重</strong><br>
+      <u>承辦輪調、需求臨時、沒有預算做重構。<br><br>
+      <strong>務實建議</strong>：<strong>將重構納入年度維護契約的工作項目</strong>——<br>
+      而不是等系統完全不能動才整批重置（那時的成本是十倍）。</u>
+    </div>
+
+    <h3>22-4　版本控制的公務價值</h3>
+    <div class="table-wrap"><table>
+      <tr><th>能回答的問題</th><th>沒有版本控制時</th></tr>
+      <tr><td><u>這段是誰在什麼時候為什麼改的？</u></td><td><strong>完全查不到</strong></td></tr>
+      <tr><td>可以退回上一版嗎？</td><td>只能靠備份或重寫</td></tr>
+      <tr><td>兩個人同時改會怎樣？</td><td><u>後存檔的覆蓋前者</u></td></tr>
+      <tr><td>驗收時交付的是最新版嗎？</td><td>無法確認</td></tr>
+    </table></div>
+    <p><u><strong>契約要點</strong>：應要求廠商<strong>將程式碼提交至機關的版本控制系統</strong>，<br>而非只在結案時交一份壓縮檔——後者無法看出開發過程，也無法確認是最新版。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 22 必背結論</span>
+      <strong>①</strong> <u>好命名讓程式不需註解就看得懂「做什麼」</u><br>
+      <strong>②</strong> 註解寫<strong>「為什麼」</strong>；公務最重要的是<u><strong>法規依據</strong></u><br>
+      <strong>③</strong> 還技術債：<strong>先補測試 → 小步重構</strong>，<u>不要一次重寫</u><br>
+      <strong>④</strong> 版本控制應<u>納入契約，由機關保管</u>
+    </div>
+  </div>
+
+  <!-- ============ 23 ============ -->
+  <div class="card" id="d23">
+    <h2>深化 23　效能問題的診斷與改善順序</h2>
+
+    <h3>23-1　先量測，不要猜</h3>
+    <div class="warn">
+      <span class="t">⚠️ 過早最佳化</span>
+      <u>「我覺得這裡很慢」——<strong>通常是猜錯的</strong>。<br><br>
+      正確做法：<strong>先量測找出真正的瓶頸</strong>，再針對瓶頸改善。<br>
+      改善一個只佔總時間 3% 的環節，就算變快十倍，整體也只快 2.7%。</u>
+    </div>
+    <div class="frame">
+      <span class="t">📐 阿姆達爾定律的實務版</span>
+      <u><strong>整體改善幅度受限於「那個環節佔總時間的比例」。</strong><br><br>
+      所以要先問：<strong>時間都花在哪裡？</strong><br>
+      ——資料庫查詢？網路往返？計算？渲染？</u>
+    </div>
+
+    <h3>23-2　常見瓶頸與改善方式</h3>
+    <div class="table-wrap"><table>
+      <tr><th>瓶頸</th><th>症狀</th><th>改善</th></tr>
+      <tr><td><strong>資料庫查詢</strong></td><td><u>多數時間在等資料庫</u></td><td><strong>索引、改寫查詢、消除 N+1</strong></td></tr>
+      <tr><td><strong>N+1 查詢</strong></td><td><u>同一句 SQL 執行數百次</u></td><td>JOIN 或預先載入</td></tr>
+      <tr><td><strong>外部呼叫</strong></td><td>等外部 API 回應</td><td><u>快取、非同步、設逾時</u></td></tr>
+      <tr><td>大量資料載入記憶體</td><td>記憶體用量暴增</td><td><u><strong>分批處理或串流</strong></u></td></tr>
+      <tr><td>重複計算</td><td>CPU 高</td><td>記憶化、快取結果</td></tr>
+      <tr><td><strong>連線洩漏</strong></td><td><u>CPU 不高但連線滿</u></td><td>檢查例外流程是否關閉連線</td></tr>
+    </table></div>
+
+    <h3>23-3　改善的成本效益排序</h3>
+    <div class="table-wrap"><table>
+      <tr><th>順序</th><th>做什麼</th><th>效益／成本</th></tr>
+      <tr><td>1</td><td><u>改寫查詢（消除函數包欄位、消除 N+1）</u></td><td><strong>最高／零</strong></td></tr>
+      <tr><td>2</td><td>建立或調整索引</td><td>高／低</td></tr>
+      <tr><td>3</td><td>加入快取</td><td>高／中（<u>要處理一致性</u>）</td></tr>
+      <tr><td>4</td><td>改為非同步或批次</td><td>中／中</td></tr>
+      <tr><td>5</td><td><u>升級硬體</u></td><td><strong>最低／最高</strong></td></tr>
+    </table></div>
+    <p><u><strong>申論結論句</strong>：「效能問題應<strong>先從程式與資料庫層面著手</strong>，硬體升級為最後手段——<br>因為前者常有數十倍改善，後者通常只有數倍。」</u></p>
+
+    <h3>23-4　快取的正確使用</h3>
+    <div class="frame">
+      <span class="t">📐 什麼該快取、什麼不該</span>
+      <strong>適合快取</strong>：<u>公告、法規、代碼表、統計結果——<strong>變動少、讀取多</strong></u><br>
+      <strong>不適合快取</strong>：<u><strong>案件狀態、餘額、名額</strong>——涉及民眾權益的即時資訊</u><br><br>
+      <strong>兩種失效策略</strong>：<br>
+      <u><strong>時間失效（TTL）</strong>：簡單，但會有陳舊期<br>
+      <strong>事件失效</strong>：資料異動時主動清除快取，即時但實作較複雜</u>
+    </div>
+    <p><u><strong>公務鐵則</strong>：<strong>涉及民眾權益的時效資訊不得依賴快取</strong>，<br>且畫面應顯示<strong>資料更新時間</strong>。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 23 必背結論</span>
+      <strong>①</strong> <u><strong>先量測再改善</strong></u>——猜的瓶頸通常是錯的<br>
+      <strong>②</strong> 最常見瓶頸：<strong>資料庫查詢與 N+1</strong><br>
+      <strong>③</strong> 改善順序：<u>查詢 → 索引 → 快取 → 非同步 → <strong>硬體（最後）</strong></u><br>
+      <strong>④</strong> <u>涉及權益的即時資訊<strong>不可依賴快取</strong></u>
+    </div>
+  </div>
+
+  <!-- ============ 24 ============ -->
+  <div class="card" id="d24">
+    <h2>深化 24　程式設計概要的滿分策略</h2>
+
+    <h3>24-1　選擇題的四大題型</h3>
+    <div class="table-wrap"><table>
+      <tr><th>題型</th><th>解法</th><th>年約題數</th></tr>
+      <tr><td><strong>程式追蹤</strong></td><td><u><strong>畫追蹤表，一行一行寫變數值</strong></u></td><td>4～6</td></tr>
+      <tr><td><strong>複雜度判斷</strong></td><td>看迴圈層數與成長方式</td><td>2～3</td></tr>
+      <tr><td><strong>觀念區辨</strong></td><td>整理成比較表</td><td>3～4</td></tr>
+      <tr><td><strong>資料結構操作</strong></td><td><u>堆疊、佇列、樹的走訪</u></td><td>2～3</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 程式追蹤題的鐵律</span>
+      <u><strong>畫表，不要用眼睛看。</strong><br><br>
+      表格欄位：<strong>第幾次迴圈 ｜ 各變數的值 ｜ 條件判斷結果</strong><br><br>
+      <strong>三十秒畫完表，答案就浮出來了</strong>——比盯著程式碼想五分鐘準確得多。</u>
+    </div>
+
+    <h3>24-2　追蹤題的五個檢查點</h3>
+    <div class="table-wrap"><table>
+      <tr><th>檢查點</th><th>常見陷阱</th></tr>
+      <tr><td><strong>整數除法</strong></td><td><u>5/2 = 2 不是 2.5</u></td></tr>
+      <tr><td><strong>迴圈條件</strong></td><td><u><code>&lt;</code> 還是 <code>&lt;=</code></u></td></tr>
+      <tr><td><strong>前置與後置遞增</strong></td><td>++i 與 i++ 在運算式中的差別</td></tr>
+      <tr><td><strong>break 與 continue</strong></td><td><u>break 跳出整個迴圈；continue 只跳過本次</u></td></tr>
+      <tr><td><strong>陣列索引</strong></td><td><u>由 0 起算還是由 1 起算</u></td></tr>
+    </table></div>
+
+    <h3>24-3　申論題的四段結構</h3>
+    <div class="frame">
+      <span class="t">🎯 時間不夠時，四段各寫一點也比第一段寫死好</span>
+      <strong>【一】解題思路（用文字說明，約 25%）</strong><br>
+      <u>「本題可用 XX 方法，步驟為：先…，再…，最後…」<br>
+      <strong>就算後面程式寫不完，這段也有分。</strong></u><br><br>
+      <strong>【二】流程或虛擬碼（約 25%）</strong><br>
+      <u>條列步驟，不必寫成可編譯的程式</u><br><br>
+      <strong>【三】關鍵程式片段（約 30%）</strong><br>
+      <u>核心邏輯寫清楚，週邊（宣告、輸入輸出）可省略</u><br><br>
+      <strong>【四】複雜度與邊界情況（約 20%）</strong><br>
+      <u><strong>「時間複雜度為 O(n)；須處理空輸入、資料量過大與例外情形」</strong>——這段最容易被忽略，也最容易補分</u>
+    </div>
+
+    <h3>24-4　公務程式的加分句</h3>
+    <div class="table-wrap"><table>
+      <tr><th>面向</th><th>句子</th></tr>
+      <tr><td>金額</td><td><u>「金額採<strong>整數或十進位型別</strong>，避免浮點誤差；四捨五入時機依作業要點明定。」</u></td></tr>
+      <tr><td>期間</td><td><u>「期間計算依行政程序法<strong>始日不計入</strong>，末日為假日順延，並每年更新行事曆。」</u></td></tr>
+      <tr><td>安全</td><td><u>「資料庫存取採<strong>參數化查詢</strong>；所有驗證於<strong>伺服器端</strong>執行。」</u></td></tr>
+      <tr><td>權限</td><td><u>「每次資料存取均於伺服器端驗證<strong>該使用者是否有權讀取該筆資料</strong>。」</u></td></tr>
+      <tr><td>錯誤</td><td><u>「對使用者顯示友善訊息，<strong>詳細錯誤寫入日誌</strong>，避免洩漏系統資訊。」</u></td></tr>
+      <tr><td>測試</td><td><u>「就<strong>金額、期間、資格判定</strong>三類邏輯建立自動化測試，含邊界值案例。」</u></td></tr>
+      <tr><td>批次</td><td><u>「批次程式須<strong>可中斷續跑、具冪等性，並設失敗告警</strong>。」</u></td></tr>
+    </table></div>
+
+    <h3>24-5　本科的一句話總結</h3>
+    <div class="frame">
+      <span class="t">🎯 程式設計概要要考的是什麼</span>
+      <u><strong>選擇題考的是「你會不會追蹤」——畫表就能拿分。</strong><br>
+      <strong>申論題考的是「你想不想得清楚」——結構完整就能拿分。</strong><br><br>
+      <strong>而真正拉開差距的，是你知不知道：<br>
+      公務程式算錯一元、算錯一天，不是 bug，是會影響民眾權益與處分合法性的錯誤。</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 24 必背結論</span>
+      <strong>①</strong> 追蹤題<u><strong>一律畫表</strong></u>，不要用眼睛看<br>
+      <strong>②</strong> 五個檢查點：<strong>整數除法、迴圈條件、遞增位置、break/continue、索引起點</strong><br>
+      <strong>③</strong> 申論四段：<u>思路 → 虛擬碼 → 程式片段 → <strong>複雜度與邊界</strong></u><br>
+      <strong>④</strong> 七句公務加分句，每題挑三句
+    </div>
+  </div>
+
 
   <div class="nav-btns">
     <a class="btn btn-prev" href="prog2.html">← 程式設計概要講義（下）</a>

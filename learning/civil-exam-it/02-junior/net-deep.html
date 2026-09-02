@@ -46,6 +46,18 @@
       <li><a href="#d10">資安管理：CIA、風險與備份</a></li>
       <li><a href="#d11">法規：資安法、個資法與刑法的分工</a></li>
       <li><a href="#d12">易混淆名詞總表與答題策略</a></li>
+      <li><a href="#d13">封包的一生：從按下 Enter 到網頁出現</a></li>
+      <li><a href="#d14">TCP 的可靠性機制：它到底做了什麼</a></li>
+      <li><a href="#d15">交換器的運作：MAC 表、生成樹與埠安全</a></li>
+      <li><a href="#d16">路由的運作：靜態、動態與預設路由</a></li>
+      <li><a href="#d17">無線網路：從訊號到企業級認證</a></li>
+      <li><a href="#d18">防火牆與網路防護設備的層次</a></li>
+      <li><a href="#d19">VPN 與遠距辦公的安全架構</a></li>
+      <li><a href="#d20">網路可用性：從單點失效到備援設計</a></li>
+      <li><a href="#d21">郵件安全：機關最常被攻擊的入口</a></li>
+      <li><a href="#d22">監控與日誌：讓問題自己浮出來</a></li>
+      <li><a href="#d23">常見網路故障的完整排查手冊</a></li>
+      <li><a href="#d24">資通網路概要的滿分策略</a></li>
     </ol>
   </div>
 
@@ -642,6 +654,748 @@
       <u>「這個措施防的是哪一種攻擊？」——而不是「我們有沒有做資安」。</u></strong>
     </div>
   </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="d13">
+    <h2>深化 13　封包的一生：從按下 Enter 到網頁出現</h2>
+
+    <h3>13-1　完整流程（把所有協定串起來）</h3>
+    <div class="frame">
+      <span class="t">📐 十個步驟</span>
+      <strong>①</strong> 瀏覽器檢查本機快取與 hosts 檔<br>
+      <strong>②</strong> <u><strong>DNS 查詢</strong>：本機快取 → 遞迴伺服器 → 根 → 頂級網域 → 權威伺服器</u><br>
+      <strong>③</strong> 取得 IP 後，作業系統查<strong>路由表</strong>決定要送給誰<br>
+      <strong>④</strong> <u>若目的地在同網段：用 <strong>ARP</strong> 查對方 MAC；不同網段：查<strong>閘道</strong>的 MAC</u><br>
+      <strong>⑤</strong> <strong>TCP 三向交握</strong>建立連線<br>
+      <strong>⑥</strong> <u><strong>TLS 交握</strong>：交換金鑰、驗證憑證</u><br>
+      <strong>⑦</strong> 送出 HTTP 請求<br>
+      <strong>⑧</strong> 沿途<strong>路由器逐跳轉送</strong>（每跳 TTL 減 1，重新封裝第二層標頭）<br>
+      <strong>⑨</strong> 伺服器處理並回應<br>
+      <strong>⑩</strong> 瀏覽器解析、載入資源、渲染畫面
+    </div>
+    <div class="hl">
+      <strong>💡 這個流程是所有網路故障排查的地圖</strong><br>
+      <u>打不開網頁時，就是從這十步裡找出<strong>斷在哪一步</strong>：<br>
+      <strong>②壞</strong> → DNS 問題；<strong>④壞</strong> → 同網段連線問題；<strong>⑤壞</strong> → 防火牆擋住；<strong>⑥壞</strong> → 憑證問題。</u>
+    </div>
+
+    <h3>13-2　封裝與解封裝</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層</th><th>加上什麼</th><th>單位名稱</th></tr>
+      <tr><td>應用層</td><td>資料本身</td><td>訊息</td></tr>
+      <tr><td>傳輸層</td><td><u>加 TCP／UDP 標頭（含<strong>埠號</strong>）</u></td><td><strong>區段</strong></td></tr>
+      <tr><td>網路層</td><td><u>加 IP 標頭（含<strong>來源與目的 IP</strong>）</u></td><td><strong>封包</strong></td></tr>
+      <tr><td>資料連結層</td><td><u>加 MAC 標頭（含<strong>來源與目的 MAC</strong>）</u></td><td><strong>訊框</strong></td></tr>
+      <tr><td>實體層</td><td>轉成電或光訊號</td><td>位元</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 最重要的一個觀念</span>
+      <u><strong>IP 位址從頭到尾不變，MAC 位址每一跳都會換。</strong><br><br>
+      因為 IP 是「最終要去哪」，MAC 是「下一步交給誰」。<br>
+      這解釋了為什麼交換器（第 2 層）不能跨網段，而路由器（第 3 層）可以。</u>
+    </div>
+
+    <h3>13-3　MTU 與封包分割</h3>
+    <div class="table-wrap"><table>
+      <tr><th>概念</th><th>說明</th><th>常見問題</th></tr>
+      <tr><td><strong>MTU</strong></td><td>單一訊框可承載的最大資料量（乙太網路通常 <strong>1500</strong> 位元組）</td><td>—</td></tr>
+      <tr><td>分割</td><td>封包超過 MTU 就要切開</td><td><u>增加開銷與遺失風險</u></td></tr>
+      <tr><td><strong>VPN 的 MTU 問題</strong></td><td><u>VPN 加上額外標頭，實際可用 MTU 變小</u></td><td><strong>網頁開得開但檔案傳不完</strong></td></tr>
+    </table></div>
+    <p><u><strong>實務故障樣態</strong>：「VPN 連得上、小網頁開得開，但下載大檔案會卡住」——<strong>典型的 MTU 設定問題</strong>，調降 MTU 即可解決。這個症狀值得記起來。</u></p>
+
+    <h3>13-4　排查工具對應到哪一步</h3>
+    <div class="table-wrap"><table>
+      <tr><th>工具</th><th>驗證哪一步</th></tr>
+      <tr><td><code>ipconfig</code> / <code>ifconfig</code></td><td>本機 IP 組態是否正確</td></tr>
+      <tr><td><code>ping 閘道</code></td><td><u>第 ④ 步：同網段連線正常嗎</u></td></tr>
+      <tr><td><code>ping 外部 IP</code></td><td>路由與對外連線正常嗎</td></tr>
+      <tr><td><code>nslookup</code> / <code>dig</code></td><td><u><strong>第 ② 步：DNS 解析</strong></u></td></tr>
+      <tr><td><code>tracert</code></td><td>第 ⑧ 步：斷在哪一跳</td></tr>
+      <tr><td><code>telnet 主機 埠</code></td><td><u>第 ⑤ 步：該埠是否開放（防火牆有沒有擋）</u></td></tr>
+      <tr><td>瀏覽器開發者工具</td><td>第 ⑨⑩ 步：狀態碼與載入時間</td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 13 必背結論</span>
+      <strong>①</strong> 十步流程是<u>故障排查的地圖</u>——找出斷在哪一步<br>
+      <strong>②</strong> <u><strong>IP 不變、MAC 每跳都換</strong></u><br>
+      <strong>③</strong> 封裝單位：<strong>訊息 → 區段 → 封包 → 訊框 → 位元</strong><br>
+      <strong>④</strong> <u>VPN 大檔傳不完 = MTU 問題</u>
+    </div>
+  </div>
+
+  <!-- ============ 14 ============ -->
+  <div class="card" id="d14">
+    <h2>深化 14　TCP 的可靠性機制：它到底做了什麼</h2>
+
+    <h3>14-1　四個保證與對應機制</h3>
+    <div class="table-wrap"><table>
+      <tr><th>保證</th><th>機制</th><th>說明</th></tr>
+      <tr><td><strong>不遺失</strong></td><td>確認與重傳</td><td><u>沒收到 ACK 就重送</u></td></tr>
+      <tr><td><strong>不重複</strong></td><td>序號</td><td>收到重複序號就丟棄</td></tr>
+      <tr><td><strong>不亂序</strong></td><td>序號重組</td><td><u>依序號排好才交給應用層</u></td></tr>
+      <tr><td><strong>不壓垮對方</strong></td><td><u><strong>流量控制</strong>（接收視窗）</u></td><td>對方說「我只能收這麼多」</td></tr>
+      <tr><td><strong>不壓垮網路</strong></td><td><u><strong>壅塞控制</strong></u></td><td>依網路狀況調整送出速度</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 流量控制 vs 壅塞控制（每年必考的區辨）</span>
+      <u><strong>流量控制</strong>：保護<strong>接收端</strong>（對方處理不過來）→ 由<strong>接收視窗</strong>決定<br>
+      <strong>壅塞控制</strong>：保護<strong>網路</strong>（中間路由器塞車）→ 由<strong>壅塞視窗</strong>決定<br><br>
+      實際送出量 = <strong>min(接收視窗, 壅塞視窗)</strong>——取兩者較小值。</u>
+    </div>
+
+    <h3>14-2　壅塞控制的四階段</h3>
+    <div class="table-wrap"><table>
+      <tr><th>階段</th><th>行為</th><th>成長方式</th></tr>
+      <tr><td><strong>慢啟動</strong></td><td>從很小開始快速探測</td><td><u><strong>指數成長</strong>（每個 RTT 加倍）</u></td></tr>
+      <tr><td><strong>壅塞避免</strong></td><td>超過門檻後謹慎增加</td><td><u><strong>線性成長</strong></u></td></tr>
+      <tr><td><strong>快速重傳</strong></td><td><u>收到三個重複 ACK 就立刻重傳</u></td><td>不等逾時</td></tr>
+      <tr><td><strong>快速恢復</strong></td><td>重傳後不回到最小，減半後繼續</td><td>避免效能大幅下降</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 「慢啟動」其實一點都不慢</strong><br>
+      <u>它是<strong>指數成長</strong>——名字取「慢」是因為<strong>起點很小</strong>，不是成長速度慢。<br>
+      這是考試常設計的陷阱。</u>
+    </div>
+
+    <h3>14-3　為什麼高延遲會嚴重影響吞吐量</h3>
+    <div class="frame">
+      <span class="t">📐 頻寬延遲乘積</span>
+      <strong>最大吞吐量 ≈ 視窗大小 ÷ RTT</strong><br><br>
+      <u>視窗 64 KB、RTT 10 ms → 64 KB ÷ 0.01 s = <strong>約 51 Mbps</strong><br>
+      同樣視窗、RTT 100 ms → <strong>約 5.1 Mbps</strong>——<strong>頻寬再大也沒用</strong>。</u><br><br>
+      <strong>結論</strong>：<u>跨國或衛星連線的瓶頸<strong>不是頻寬，是延遲</strong>。<br>
+      解法是<strong>加大視窗</strong>或<strong>減少來回次數</strong>，不是加頻寬。</u>
+    </div>
+
+    <h3>14-4　實務上的觀察指標</h3>
+    <div class="table-wrap"><table>
+      <tr><th>指標</th><th>異常代表什麼</th></tr>
+      <tr><td><strong>重傳率</strong></td><td><u>偏高表示線路品質差或壅塞</u></td></tr>
+      <tr><td><strong>RTT 與抖動</strong></td><td>抖動大會影響視訊與語音品質</td></tr>
+      <tr><td>封包遺失率</td><td><u>對 TCP 是效能問題，對 UDP 是品質問題</u></td></tr>
+      <tr><td>連線建立失敗率</td><td>防火牆、伺服器負載或 SYN Flood</td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 14 必背結論</span>
+      <strong>①</strong> <u><strong>流量控制保護接收端，壅塞控制保護網路</strong></u>；實際送 min(兩者)<br>
+      <strong>②</strong> 四階段：<strong>慢啟動（指數）→ 壅塞避免（線性）→ 快速重傳 → 快速恢復</strong><br>
+      <strong>③</strong> <u>「慢啟動」是指數成長，不慢</u><br>
+      <strong>④</strong> <strong>吞吐量 ≈ 視窗 ÷ RTT</strong>——高延遲時加頻寬無效
+    </div>
+  </div>
+
+  <!-- ============ 15 ============ -->
+  <div class="card" id="d15">
+    <h2>深化 15　交換器的運作：MAC 表、生成樹與埠安全</h2>
+
+    <h3>15-1　交換器如何學習</h3>
+    <div class="frame">
+      <span class="t">📐 三個動作</span>
+      <strong>①學習</strong>：<u>收到訊框時，記下「來源 MAC ↔ 進來的埠」</u><br>
+      <strong>②轉送</strong>：<u>查目的 MAC 在表中 → 只送到那個埠</u><br>
+      <strong>③氾濫</strong>：<u>目的 MAC 不在表中（或為廣播）→ <strong>送到除來源外的所有埠</strong></u>
+    </div>
+    <p><u><strong>安全影響</strong>：<strong>MAC 表溢位攻擊</strong>——攻擊者送出大量偽造來源 MAC 塞爆表格，<br>
+    交換器只好對所有流量進行氾濫，<strong>等於變成集線器，攻擊者就能竊聽整個網段</strong>。<br>
+    防禦：<strong>埠安全（限制每埠可學習的 MAC 數量）</strong>。</u></p>
+
+    <h3>15-2　廣播風暴與生成樹</h3>
+    <div class="warn">
+      <span class="t">⚠️ 迴圈的災難</span>
+      <u>第二層<strong>沒有 TTL</strong>——廣播訊框在迴圈中會<strong>永遠繞下去並不斷複製</strong>，<br>
+      幾秒內就能讓整個網段癱瘓。這就是<strong>廣播風暴</strong>。<br><br>
+      <strong>最常見的成因</strong>：<u>同仁把兩條網路線插進同一台小型交換器，或私接的無線基地台形成迴圈。</u></u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>防護</th><th>做法</th></tr>
+      <tr><td><strong>生成樹協定（STP）</strong></td><td><u>自動偵測迴圈並<strong>阻斷冗餘路徑</strong>，保留無迴圈的樹狀結構</u></td></tr>
+      <tr><td>BPDU 保護</td><td><u>存取埠收到 BPDU 就關閉——防止私接交換器</u></td></tr>
+      <tr><td>風暴控制</td><td>限制廣播流量比例</td></tr>
+      <tr><td>埠安全</td><td>限制每埠 MAC 數量</td></tr>
+    </table></div>
+
+    <h3>15-3　VLAN 的兩種埠</h3>
+    <div class="table-wrap"><table>
+      <tr><th>埠類型</th><th>用途</th><th>特性</th></tr>
+      <tr><td><strong>存取埠</strong><br>Access</td><td>接終端設備</td><td><u>只屬於一個 VLAN，不帶標籤</u></td></tr>
+      <tr><td><strong>幹道埠</strong><br>Trunk</td><td><u>交換器之間的連線</u></td><td><strong>可承載多個 VLAN，訊框帶標籤</strong></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 常見設定錯誤</span>
+      <u><strong>①</strong> 該設幹道卻設成存取 → <strong>只有一個 VLAN 通得過，其他全斷</strong><br>
+      <strong>②</strong> 兩端的原生 VLAN 不一致 → <u>可能造成 VLAN 跳躍的安全問題</u><br>
+      <strong>③</strong> 幹道未限制允許的 VLAN → <strong>不必要的 VLAN 也流過去，擴大攻擊面</strong></u>
+    </div>
+
+    <h3>15-4　機關的埠安全基線</h3>
+    <div class="table-wrap"><table>
+      <tr><th>措施</th><th>目的</th></tr>
+      <tr><td><strong>停用未使用的埠</strong></td><td><u>會議室、走廊的網路孔不應直接可用</u></td></tr>
+      <tr><td>埠安全限制 MAC 數</td><td>防私接交換器與 MAC 溢位</td></tr>
+      <tr><td><strong>BPDU 保護</strong></td><td>防私接造成迴圈</td></tr>
+      <tr><td><u>802.1X 埠認證</u></td><td><strong>未經認證的裝置接上也不給網路</strong></td></tr>
+      <tr><td>訪客網路隔離</td><td>與公務網完全分離</td></tr>
+    </table></div>
+    <p><u><strong>優先順序建議</strong>：先做<strong>「停用未使用的埠」</strong>——零成本、立即見效；<br>802.1X 效果最好但需要較多建置與維運。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 15 必背結論</span>
+      <strong>①</strong> 交換器三動作：<u>學習、轉送、<strong>氾濫</strong></u>；MAC 表溢位可讓它變集線器<br>
+      <strong>②</strong> <u><strong>第二層沒有 TTL</strong></u> → 迴圈造成廣播風暴 → <strong>用 STP</strong><br>
+      <strong>③</strong> <strong>存取埠一個 VLAN、幹道埠多 VLAN 帶標籤</strong><br>
+      <strong>④</strong> 最划算的基線：<u><strong>停用未使用的埠</strong></u>
+    </div>
+  </div>
+
+  <!-- ============ 16 ============ -->
+  <div class="card" id="d16">
+    <h2>深化 16　路由的運作：靜態、動態與預設路由</h2>
+
+    <h3>16-1　路由表的查找規則</h3>
+    <div class="frame">
+      <span class="t">📐 最長前綴匹配</span>
+      <u>當多筆路由都符合時，<strong>選遮罩最長（最精確）的那一筆</strong>。</u><br><br>
+      例：目的地 <code>10.1.2.5</code><br>
+      <u>路由 A：<code>10.0.0.0/8</code> → 走甲<br>
+      路由 B：<code>10.1.0.0/16</code> → 走乙<br>
+      路由 C：<code>10.1.2.0/24</code> → 走丙　<strong>← 選這個（最精確）</strong></u>
+    </div>
+    <p><u><strong>預設路由</strong> <code>0.0.0.0/0</code> 是<strong>最短前綴</strong>，所以永遠是最後才被選中——<br>「都不符合時就走這裡」。</u></p>
+
+    <h3>16-2　靜態 vs 動態路由</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>靜態路由</th><th>動態路由</th></tr>
+      <tr><td>設定</td><td>人工逐條設定</td><td><u>路由器之間互相學習</u></td></tr>
+      <tr><td>適合</td><td><u><strong>網路小、拓樸穩定</strong></u></td><td>網路大、常變動</td></tr>
+      <tr><td>故障切換</td><td><strong>不會自動切換</strong></td><td><u>自動繞道</u></td></tr>
+      <tr><td>可預測性</td><td><strong>高</strong></td><td>較低</td></tr>
+      <tr><td>公務適用</td><td><strong>區公所到本府的固定連線</strong></td><td>多據點多路徑的大型網路</td></tr>
+    </table></div>
+    <p><u><strong>多數縣市政府的網路規模，靜態路由加上少量動態即可</strong>——不需要複雜的動態路由協定，<br>因為<strong>拓樸穩定且路徑單純</strong>。</u></p>
+
+    <h3>16-3　常見的路由問題</h3>
+    <div class="table-wrap"><table>
+      <tr><th>症狀</th><th>可能原因</th><th>檢查方式</th></tr>
+      <tr><td>單向通、反向不通</td><td><u><strong>回程路由沒設</strong>（非對稱路由）</u></td><td>兩端都要 tracert</td></tr>
+      <tr><td>可以 ping 但服務連不上</td><td>防火牆擋該埠</td><td><u>telnet 測該埠</u></td></tr>
+      <tr><td>某些網段通、某些不通</td><td>路由表缺該網段</td><td>檢查路由表</td></tr>
+      <tr><td><strong>時通時不通</strong></td><td><u>路由迴圈、或兩條路徑不對稱</u></td><td>連續 ping 觀察</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 「單向通」是最容易誤判的問題</strong><br>
+      <u>A 可以連到 B，B 連不到 A——<strong>不是「A 沒問題」，而是回程路由或防火牆規則不對稱</strong>。<br>
+      排查時<strong>兩端都要測</strong>，不能只從一邊看。</u>
+    </div>
+
+    <h3>16-4　NAT 對排查與稽核的影響</h3>
+    <div class="warn">
+      <span class="t">⚠️ NAT 之後，日誌會失去意義</span>
+      <u>經過 NAT 後，外部看到的都是<strong>同一個公有 IP</strong>。<br>
+      發生資安事件時，若沒有 <strong>NAT 轉換紀錄</strong>（哪個時間、哪個內部 IP、對應到哪個對外埠），<br>
+      <strong>就無法追查是內部哪一台電腦</strong>。<br><br>
+      <strong>因此 NAT 轉換紀錄必須保存，且要與其他日誌時間同步。</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 16 必背結論</span>
+      <strong>①</strong> 路由查找用<u><strong>最長前綴匹配</strong></u>；預設路由永遠最後被選<br>
+      <strong>②</strong> <u>機關網路規模通常靜態路由即可</u>——穩定且可預測<br>
+      <strong>③</strong> <strong>「單向通」通常是回程路由或防火牆不對稱</strong>，兩端都要測<br>
+      <strong>④</strong> <u><strong>NAT 轉換紀錄必須保存</strong></u>，否則事件無法追查
+    </div>
+  </div>
+
+  <!-- ============ 17 ============ -->
+  <div class="card" id="d17">
+    <h2>深化 17　無線網路：從訊號到企業級認證</h2>
+
+    <h3>17-1　2.4 GHz 與 5 GHz 的取捨</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>2.4 GHz</th><th>5 GHz</th></tr>
+      <tr><td>穿透力</td><td><strong>強</strong>（穿牆較好）</td><td>弱</td></tr>
+      <tr><td>涵蓋範圍</td><td><u>大</u></td><td>小</td></tr>
+      <tr><td>頻寬</td><td>低</td><td><strong>高</strong></td></tr>
+      <tr><td>干擾</td><td><u><strong>嚴重</strong>（藍牙、微波爐、其他 AP）</u></td><td>較少</td></tr>
+      <tr><td>不重疊頻道</td><td><u><strong>只有 1、6、11 三個</strong></u></td><td>多</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 為什麼 2.4 GHz 只有三個不重疊頻道</span>
+      <u>雖然有 1～13 個頻道，但<strong>每個頻道的訊號寬度會佔用相鄰頻道</strong>。<br>
+      要完全不重疊，必須間隔 5 個頻道 → <strong>1、6、11</strong>。<br><br>
+      <strong>實務意義</strong>：<u>相鄰的 AP 要交錯使用 1／6／11，若全部設成同一頻道，<strong>彼此干擾會讓速度變成三分之一</strong>。</u></u>
+    </div>
+
+    <h3>17-2　為什麼 Wi-Fi 訊號滿格卻很慢</h3>
+    <div class="table-wrap"><table>
+      <tr><th>原因</th><th>說明</th><th>解法</th></tr>
+      <tr><td><strong>同頻干擾</strong></td><td><u>附近 AP 用同一頻道</u></td><td>頻道規劃（1/6/11 交錯）</td></tr>
+      <tr><td><strong>連線裝置太多</strong></td><td><u>無線是<strong>共享媒介</strong>，人越多每人越慢</u></td><td>增加 AP、限制每 AP 連線數</td></tr>
+      <tr><td><strong>慢速裝置拖累</strong></td><td><u>舊裝置佔用較長傳輸時間，拖慢整個 AP</u></td><td>停用過舊的傳輸速率</td></tr>
+      <tr><td>回程頻寬不足</td><td>AP 很快但上游線路很慢</td><td>檢查上游</td></tr>
+    </table></div>
+    <p><u><strong>「訊號滿格」只代表<strong>訊號強度</strong>，不代表<strong>可用頻寬</strong></strong>——這是使用者最常見的誤解。</u></p>
+
+    <h3>17-3　個人版 vs 企業版</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>WPA2/3-Personal</th><th>WPA2/3-Enterprise</th></tr>
+      <tr><td>認證方式</td><td><u>共用密碼（PSK）</u></td><td><strong>個人帳號（802.1X ＋ RADIUS）</strong></td></tr>
+      <tr><td>人員離職</td><td><u><strong>全機關要一起換密碼</strong></u></td><td><strong>停用該帳號即可</strong></td></tr>
+      <tr><td>稽核</td><td>無法辨識是誰</td><td><u>可記錄誰在何時連線</u></td></tr>
+      <tr><td>建置成本</td><td>低</td><td>中（需 RADIUS 伺服器）</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 公務網路的建議</strong><br>
+      <u><strong>公務無線網路應採 Enterprise 版</strong>——理由不只是安全，更是<strong>可管理性</strong>：<br>
+      共用密碼一旦外流（寫在便條紙上、離職員工帶走），全機關要一起改，實務上根本改不動。</u>
+    </div>
+
+    <h3>17-4　公用 Wi-Fi 的四要件</h3>
+    <div class="frame">
+      <span class="t">📐 缺一不可</span>
+      <strong>①隔離</strong>：<u>獨立 VLAN 或獨立線路，與公務網<strong>零連通</strong>；並啟用<strong>用戶端隔離</strong>（同一 AP 下的裝置也不能互連）</u><br>
+      <strong>②身分</strong>：<u>簡訊或其他方式認證，並留存連線紀錄以備調閱</u><br>
+      <strong>③內容</strong>：惡意網站過濾、頻寬與時段限制<br>
+      <strong>④告知</strong>：<u><strong>明確揭露蒐集項目與目的（個資法告知義務）</strong></u>
+    </div>
+    <p><u><strong>常見缺失</strong>：<strong>各區公所自行採購自行管理</strong>——這是地方政府的真實常態，也正是資安破口。<br>應由本府<strong>統一規格、統一維運</strong>，才有一致的安全水準。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 17 必背結論</span>
+      <strong>①</strong> 2.4 GHz <u>只有 <strong>1、6、11</strong> 三個不重疊頻道</u>，要交錯規劃<br>
+      <strong>②</strong> <u><strong>訊號滿格 ≠ 速度快</strong></u>——無線是共享媒介<br>
+      <strong>③</strong> 公務網路用 <strong>Enterprise 版</strong>：離職只需停帳號，且可稽核<br>
+      <strong>④</strong> 公用 Wi-Fi 四要件：<u>隔離、身分、內容、<strong>告知</strong></u>
+    </div>
+  </div>
+
+  <!-- ============ 18 ============ -->
+  <div class="card" id="d18">
+    <h2>深化 18　防火牆與網路防護設備的層次</h2>
+
+    <h3>18-1　防火牆的三個世代</h3>
+    <div class="table-wrap"><table>
+      <tr><th>類型</th><th>判斷依據</th><th>擋得住</th><th>擋不住</th></tr>
+      <tr><td><strong>封包過濾</strong></td><td>IP、埠、協定</td><td>簡單的存取控制</td><td><u>合法埠上的惡意內容</u></td></tr>
+      <tr><td><strong>狀態檢視</strong></td><td><u>連線狀態（是否為已建立連線的回應）</u></td><td>偽造的回應封包</td><td>應用層攻擊</td></tr>
+      <tr><td><strong>次世代／應用層</strong></td><td><u>應用程式辨識、使用者身分、內容</u></td><td><strong>特定應用、惡意內容</strong></td><td><u>加密流量（除非解密檢查）</u></td></tr>
+      <tr><td><strong>WAF</strong></td><td>HTTP 請求內容</td><td><u><strong>SQL 注入、XSS 等網頁攻擊</strong></u></td><td>非網頁的攻擊</td></tr>
+    </table></div>
+
+    <h3>18-2　防護設備的正確擺放</h3>
+    <div class="frame">
+      <span class="t">📐 三區架構</span>
+      <u><strong>網際網路</strong> ←→ 邊界防火牆 ←→ <strong>DMZ</strong>（網站、郵件）←→ 內部防火牆 ←→ <strong>內部網路</strong></u><br><br>
+      <strong>規則設計</strong>：<br>
+      <u>外部 → DMZ：<strong>只開 80/443</strong><br>
+      <strong>DMZ → 內部：原則全部拒絕</strong>，僅開放必要的資料庫埠且指定來源與目的<br>
+      內部 → 外部：依政策過濾<br>
+      <strong>核心思維：假設 DMZ 的主機一定會被攻陷，設計上讓它「攻陷了也走不進來」。</strong></u>
+    </div>
+
+    <h3>18-3　規則設計的四個原則</h3>
+    <div class="table-wrap"><table>
+      <tr><th>原則</th><th>說明</th></tr>
+      <tr><td><strong>預設拒絕</strong></td><td><u>最後一條是「全部拒絕」，明確允許才通過</u></td></tr>
+      <tr><td><strong>最小開放</strong></td><td>指定<u>來源、目的、埠</u>，不要用 any</td></tr>
+      <tr><td><strong>順序重要</strong></td><td><u>由上而下比對，<strong>第一條符合就套用</strong>——寬鬆的規則放前面會讓後面的規則失效</u></td></tr>
+      <tr><td><strong>定期清理</strong></td><td><u><strong>下架的系統要把規則一起刪掉</strong>——這是最常見的遺留破口</u></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 規則庫的熵增</span>
+      <u>防火牆規則會<strong>只增不減</strong>：新系統上線就加規則，系統下架卻沒人記得刪。<br>
+      三年後規則庫有 500 條，沒有人知道哪些還在用。<br><br>
+      <strong>對策</strong>：<strong>每條規則都要記錄「申請單位、用途、申請日期」，並定期複審。</strong></u>
+    </div>
+
+    <h3>18-4　IDS、IPS、WAF、SIEM 的分工</h3>
+    <div class="table-wrap"><table>
+      <tr><th>設備</th><th>位置</th><th>動作</th><th>強項</th></tr>
+      <tr><td><strong>IDS</strong></td><td>旁路監聽</td><td><u>只告警</u></td><td>不影響流量，可全面監控</td></tr>
+      <tr><td><strong>IPS</strong></td><td>流量路徑上</td><td><strong>偵測並阻擋</strong></td><td>即時阻斷</td></tr>
+      <tr><td><strong>WAF</strong></td><td>網站前方</td><td>過濾 HTTP</td><td><u>網頁應用層攻擊</u></td></tr>
+      <tr><td><strong>SIEM</strong></td><td>日誌集中</td><td>關聯分析</td><td><u><strong>把分散的線索串起來</strong></u></td></tr>
+    </table></div>
+    <p><u><strong>導入建議</strong>：IPS 上線初期應先以<strong>偵測模式</strong>運行一段時間調校規則，再切換為阻擋——<br>否則誤擋正常民眾，第一天就會被投訴。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 18 必背結論</span>
+      <strong>①</strong> 防火牆三代：<u>封包過濾 → 狀態檢視 → 應用層</u>；<strong>WAF 專擋網頁攻擊</strong><br>
+      <strong>②</strong> <strong>DMZ → 內部原則全部拒絕</strong>——假設 DMZ 會被攻陷<br>
+      <strong>③</strong> 規則四原則：<u>預設拒絕、最小開放、<strong>順序重要</strong>、定期清理</u><br>
+      <strong>④</strong> <u>IPS 先跑偵測模式調校，再切阻擋</u>
+    </div>
+  </div>
+
+  <!-- ============ 19 ============ -->
+  <div class="card" id="d19">
+    <h2>深化 19　VPN 與遠距辦公的安全架構</h2>
+
+    <h3>19-1　兩種 VPN 型態</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>站對站 VPN</th><th>遠端存取 VPN</th></tr>
+      <tr><td>連接對象</td><td><u>機關與機關（如本府與區公所）</u></td><td>個人裝置與機關</td></tr>
+      <tr><td>建立者</td><td>路由器或防火牆自動維持</td><td>使用者手動連線</td></tr>
+      <tr><td>常用協定</td><td><strong>IPSec</strong></td><td>SSL/TLS VPN、IPSec</td></tr>
+      <tr><td><strong>主要風險</strong></td><td>設定錯誤</td><td><u><strong>端點本身不安全</strong></u></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 最關鍵的一句</span>
+      <u><strong>VPN 的風險通常不在加密本身，而在「端點」。</strong><br><br>
+      加密再強，如果連進來的那台家用電腦已經中毒、沒更新、全家共用，<br>
+      <strong>等於把惡意程式接進機關內網</strong>——VPN 反而成了攻擊通道。</u>
+    </div>
+
+    <h3>19-2　遠距辦公的四層防護</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層次</th><th>措施</th><th>優先度</th></tr>
+      <tr><td><strong>身分</strong></td><td><u><strong>多因子驗證（必要）</strong></u></td><td><strong>最高</strong></td></tr>
+      <tr><td><strong>端點</strong></td><td><u>連線前檢查（更新狀態、防毒、加密）</u></td><td>高</td></tr>
+      <tr><td><strong>存取</strong></td><td><u><strong>只開放必要的系統，不是整個內網</strong></u></td><td>高</td></tr>
+      <tr><td>資料</td><td>限制下載、遠端桌面取代直接存取</td><td>中</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 「只開放必要的系統」為什麼重要</strong><br>
+      <u>傳統 VPN 一連上就等於「人在辦公室」，<strong>整個內網都看得到</strong>。<br>
+      正確做法是<strong>依角色只開放需要的系統</strong>——這也是零信任的核心概念之一。</u>
+    </div>
+
+    <h3>19-3　遠端桌面 vs 直接存取</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>VPN ＋ 直接存取</th><th>遠端桌面／虛擬桌面</th></tr>
+      <tr><td>資料位置</td><td><u><strong>會下載到個人電腦</strong></u></td><td><strong>資料留在機關內</strong></td></tr>
+      <tr><td>端點風險</td><td>高</td><td><u>較低（只傳畫面）</u></td></tr>
+      <tr><td>頻寬需求</td><td>視資料量</td><td>穩定但持續</td></tr>
+      <tr><td>使用體驗</td><td>較順</td><td>受延遲影響</td></tr>
+    </table></div>
+    <p><u><strong>公務建議</strong>：<strong>涉及個資的作業優先採遠端桌面</strong>——因為資料不會離開機關，<br>即使個人電腦遭入侵，也拿不到檔案。</u></p>
+
+    <h3>19-4　零信任的務實導入路徑</h3>
+    <div class="frame">
+      <span class="t">📐 三個原則與三步導入</span>
+      <strong>三原則</strong>：<u>永不信任始終驗證、最小權限、假設已遭入侵</u><br><br>
+      <strong>務實三步（預算有限時的順序）</strong>：<br>
+      <strong>①</strong> <u><strong>全面 MFA</strong>（尤其特權帳號）</u><br>
+      <strong>②</strong> <u><strong>特權帳號集中管理</strong>（不共用、可稽核、限時授權）</u><br>
+      <strong>③</strong> <u><strong>關鍵系統微分段</strong>（限制橫向移動）</u><br><br>
+      <strong>零信任是方向不是產品</strong>——<u>不必也不可能一次全面改造。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 19 必背結論</span>
+      <strong>①</strong> <u><strong>VPN 的風險在端點，不在加密</strong></u><br>
+      <strong>②</strong> 遠距四層：<strong>MFA → 端點檢查 → 最小存取 → 資料控制</strong><br>
+      <strong>③</strong> <u>涉個資作業優先用<strong>遠端桌面</strong></u>——資料不離開機關<br>
+      <strong>④</strong> 零信任務實三步：<strong>MFA → 特權帳號管理 → 微分段</strong>
+    </div>
+  </div>
+
+  <!-- ============ 20 ============ -->
+  <div class="card" id="d20">
+    <h2>深化 20　網路可用性：從單點失效到備援設計</h2>
+
+    <h3>20-1　找出單點失效</h3>
+    <div class="table-wrap"><table>
+      <tr><th>元件</th><th>失效後果</th><th>備援方式</th></tr>
+      <tr><td><strong>對外線路</strong></td><td>全機關斷網</td><td><u>雙線路，<strong>不同電信業者、不同路由</strong></u></td></tr>
+      <tr><td><strong>核心交換器</strong></td><td>全網癱瘓</td><td>成對部署</td></tr>
+      <tr><td><strong>防火牆</strong></td><td>對外服務全斷</td><td>高可用配對</td></tr>
+      <tr><td><strong>電力</strong></td><td>全部設備停止</td><td><u>UPS ＋ 發電機</u></td></tr>
+      <tr><td>空調</td><td><u>設備過熱自動關機</u></td><td>備援空調 ＋ 溫度告警</td></tr>
+      <tr><td><strong>DNS</strong></td><td><u>名稱解析失敗，等同全斷</u></td><td>多台 DNS</td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 最常被忽略的兩個</span>
+      <u><strong>①空調</strong>：機房空調壞掉，半小時內設備就會因過熱而自動關機——比斷網更常見。<br>
+      <strong>②DNS</strong>：DNS 掛掉時，使用者的症狀是「什麼都連不上」，很容易被誤判為線路問題。</u>
+    </div>
+
+    <h3>20-2　雙線路的正確做法</h3>
+    <div class="frame">
+      <span class="t">📐 「雙線路」的三個層次</span>
+      <strong>假備援</strong>：<u>同一家電信、同一條實體管線 → <strong>挖斷一次全斷</strong></u><br>
+      <strong>半備援</strong>：不同電信但同一條管線進大樓 → 仍有共同風險<br>
+      <strong>真備援</strong>：<u><strong>不同電信、不同實體路由、不同機房進線點</strong></u><br><br>
+      <u><strong>採購時要問的問題</strong>：「這兩條線的實體路徑有沒有重疊？」——<br>很多機關買了兩條線，才發現走的是同一條管溝。</u>
+    </div>
+
+    <h3>20-3　備援切換的三個現實問題</h3>
+    <div class="table-wrap"><table>
+      <tr><th>問題</th><th>沒事先想好的後果</th></tr>
+      <tr><td><strong>誰有權決定切換</strong></td><td><u>事故當下沒人敢做決定</u></td></tr>
+      <tr><td><strong>切換要多久</strong></td><td>包含 DNS 生效、連線設定更新、快取清除</td></tr>
+      <tr><td><strong>怎麼切回來</strong></td><td><u><strong>備援期間的資料如何同步回主系統</strong>——最常被忽略</u></td></tr>
+    </table></div>
+
+    <h3>20-4　演練與紀錄</h3>
+    <div class="hl">
+      <u><strong>「沒有演練過的備援，等同沒有備援。」</strong><br><br>
+      年度演練應涵蓋：<br>
+      <strong>①</strong> 實際切換到備援線路或設備<br>
+      <strong>②</strong> <u>實際還原一份備份並驗證資料完整性</u><br>
+      <strong>③</strong> <u><strong>記錄實際花費時間並與 RTO 比對</strong></u><br>
+      <strong>④</strong> 切回主系統<br><br>
+      <strong>演練紀錄要留存</strong>——既是資安法要求，也是<strong>爭取預算最有力的依據</strong>（「本次演練實際復原時間 6 小時，超過訂定之 RTO 4 小時，建議增購…」）。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 20 必背結論</span>
+      <strong>①</strong> 單點失效清單要含<u><strong>空調與 DNS</strong></u>——最常被忽略<br>
+      <strong>②</strong> 雙線路要問<u><strong>「實體路徑有沒有重疊」</strong></u><br>
+      <strong>③</strong> 切換要先定義：<strong>誰決定、多久、怎麼切回</strong><br>
+      <strong>④</strong> <u>演練紀錄是爭取預算最有力的依據</u>
+    </div>
+  </div>
+
+  <!-- ============ 21 ============ -->
+  <div class="card" id="d21">
+    <h2>深化 21　郵件安全：機關最常被攻擊的入口</h2>
+
+    <h3>21-1　三個防偽冒機制</h3>
+    <div class="table-wrap"><table>
+      <tr><th>機制</th><th>作用</th><th>設定在哪</th></tr>
+      <tr><td><strong>SPF</strong></td><td><u>宣告哪些伺服器有權以本網域名義寄信</u></td><td>DNS TXT 紀錄</td></tr>
+      <tr><td><strong>DKIM</strong></td><td><u>以數位簽章證明郵件確由本網域發出且未遭竄改</u></td><td>DNS ＋ 郵件伺服器</td></tr>
+      <tr><td><strong>DMARC</strong></td><td><u><strong>宣告驗證失敗時如何處置</strong>（放行／隔離／拒收）並回報</u></td><td>DNS TXT 紀錄</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 三者的關係</span>
+      <u><strong>SPF 檢查「誰寄的」，DKIM 檢查「有沒有被改」，DMARC 決定「不合格怎麼辦」。</strong><br><br>
+      只設 SPF 與 DKIM 而沒設 DMARC，等於<strong>檢查了但沒有處置</strong>——收件方仍可能放行偽冒信。</u>
+    </div>
+    <p><u><strong>對機關的價值</strong>：這三項保護的是<strong>「詐騙集團冒用機關名義寄信給民眾」</strong>——<br>保護的是<strong>機關信譽與民眾</strong>，不只是自己的信箱。</u></p>
+
+    <h3>21-2　釣魚郵件的四個檢查點</h3>
+    <div class="table-wrap"><table>
+      <tr><th>檢查點</th><th>怎麼看</th></tr>
+      <tr><td><strong>寄件者網域</strong></td><td><u>細看有無替換字元（把 rn 看成 m、多減一個字母）；<strong>顯示名稱可以隨便寫</strong></u></td></tr>
+      <tr><td><strong>連結實際位址</strong></td><td><u>滑鼠移上去（<strong>不要點</strong>）看狀態列顯示的真實網址</u></td></tr>
+      <tr><td><strong>急迫感</strong></td><td>「24 小時內未處理將停用」是典型話術</td></tr>
+      <tr><td><strong>要求</strong></td><td><u><strong>正當機關不會用郵件連結要你輸入密碼</strong></u></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 兩個已經失效的判準</span>
+      <u><strong>①「中文寫得很爛就是假的」</strong> → 現在的釣魚信文字流暢、沒有錯字<br>
+      <strong>②「有機關 Logo 就是真的」</strong> → Logo 可以直接複製<br><br>
+      <strong>唯一可靠的判準是「寄件網域」與「連結實際位址」。</strong></u>
+    </div>
+
+    <h3>21-3　演練的正確做法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>做法</th><th>效果</th></tr>
+      <tr><td><u>公布點擊名單並議處</u></td><td><strong>同仁不敢通報，事件反而藏得更深</strong></td></tr>
+      <tr><td><strong>演練後立即說明「哪裡看得出是假的」</strong></td><td><u>當下的教學效果最好</u></td></tr>
+      <tr><td><strong>提供一鍵回報按鈕</strong></td><td>降低回報門檻</td></tr>
+      <tr><td><strong>獎勵回報者</strong></td><td><u>把「回報」變成正向行為</u></td></tr>
+    </table></div>
+    <p><u><strong>關鍵指標</strong>：<strong>回報率</strong>比點擊率更有價值——它代表同仁<strong>知道該怎麼做而且敢做</strong>。</u></p>
+
+    <h3>21-4　技術面的縱深防禦</h3>
+    <div class="frame">
+      <span class="t">📐 五層</span>
+      <strong>①</strong> <u>SPF／DKIM／DMARC（防別人冒用我們）</u><br>
+      <strong>②</strong> 郵件閘道過濾（垃圾信、惡意連結、已知惡意檔）<br>
+      <strong>③</strong> <u><strong>附件沙箱檢查</strong>（未知檔案先在隔離環境開一次看看行為）</u><br>
+      <strong>④</strong> 連結改寫（點擊時才即時檢查該網址是否已被列為惡意）<br>
+      <strong>⑤</strong> <u><strong>MFA</strong>——即使密碼被騙走，攻擊者仍登不進去</u><br><br>
+      <u><strong>第五層是最後也最有效的一層</strong>：釣魚的目的多半是取得帳密，MFA 讓這個目的落空。</u>
+    </div>
+    <p><u><strong>公務現實</strong>：<strong>第一線同仁本來就必須打開民眾寄來的附件</strong>（陳情、申請文件），<br>純粹要求「不要點」不切實際——<strong>必須靠技術控制補足</strong>。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 21 必背結論</span>
+      <strong>①</strong> <u>SPF 查誰寄、DKIM 查有沒有改、<strong>DMARC 決定怎麼辦</strong></u><br>
+      <strong>②</strong> <strong>「中文寫得好」與「有 Logo」已不是判準</strong>；只看網域與連結<br>
+      <strong>③</strong> 演練重<u><strong>回報率</strong></u>而非點擊率；懲罰導向會讓人不敢通報<br>
+      <strong>④</strong> <strong>MFA 是釣魚的最後一道也是最有效的一道防線</strong>
+    </div>
+  </div>
+
+  <!-- ============ 22 ============ -->
+  <div class="card" id="d22">
+    <h2>深化 22　監控與日誌：讓問題自己浮出來</h2>
+
+    <h3>22-1　該監控什麼</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層次</th><th>指標</th><th>異常代表</th></tr>
+      <tr><td><strong>線路</strong></td><td>頻寬使用率、封包遺失、延遲</td><td><u>使用率長期 &gt; 70% 就該規劃擴充</u></td></tr>
+      <tr><td><strong>設備</strong></td><td>CPU、記憶體、溫度、風扇</td><td>硬體即將故障的前兆</td></tr>
+      <tr><td><strong>服務</strong></td><td><u>各服務的可用性與回應時間</u></td><td>使用者實際的體驗</td></tr>
+      <tr><td><strong>安全</strong></td><td><u>異常連線、登入失敗次數、對外大量傳輸</u></td><td><strong>入侵或資料外洩的徵兆</strong></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 一個高價值的資安指標</strong><br>
+      <u><strong>「出向流量異常」</strong>——內部主機突然對外傳送大量資料，<br>
+      這通常代表<strong>資料正在被外傳</strong>。<br>
+      多數機關只監控進來的流量，<strong>卻是出去的流量才代表已經出事了</strong>。</u>
+    </div>
+
+    <h3>22-2　日誌的三個必要條件</h3>
+    <div class="frame">
+      <span class="t">📐 集中、同步、防竄改</span>
+      <strong>①集中</strong>：<u>存在獨立主機——<strong>留在被入侵的機器上，攻擊者第一件事就是刪掉它</strong></u><br>
+      <strong>②時間同步</strong>：<u><strong>全機關 NTP 校時</strong>。時間差三分鐘，跨系統的事件時序就對不起來</u><br>
+      <strong>③防竄改</strong>：<u>唯寫媒體或雜湊，確保<strong>連管理者也不能改</strong></u>
+    </div>
+
+    <h3>22-3　日誌本身的個資問題</h3>
+    <div class="warn">
+      <span class="t">⚠️ 最常被忽略的一層</span>
+      <u>日誌裡通常有：<strong>IP、帳號、查詢的身分證字號、查詢內容、位置</strong>。<br><br>
+      因此日誌也必須：<br>
+      <strong>①</strong> 設定<u>存取權限</u>（不是所有資訊人員都能看）<br>
+      <strong>②</strong> 訂定<u>保存期限並屆期刪除</u><br>
+      <strong>③</strong> <u><strong>對日誌的查詢也要留紀錄</strong></u><br>
+      <strong>④</strong> 避免記錄<u>密碼、完整卡號等不必要的敏感資料</u></u>
+    </div>
+
+    <h3>22-4　告警設計</h3>
+    <div class="table-wrap"><table>
+      <tr><th>原則</th><th>說明</th></tr>
+      <tr><td><strong>可行動</strong></td><td><u>每個告警都要對應一個「收到後該做什麼」</u></td></tr>
+      <tr><td><strong>分級</strong></td><td>緊急（立即）／警告（上班處理）／資訊（只記錄不通知）</td></tr>
+      <tr><td><strong>抑制重複</strong></td><td><u>同一問題不要連發兩百封</u></td></tr>
+      <tr><td><strong>定期檢討</strong></td><td>沒有人在處理的告警，要嘛修好它，要嘛關掉它</td></tr>
+    </table></div>
+    <p><u><strong>告警疲勞</strong>：每天收到 50 封告警信，第三天起就沒有人在看了。<br>
+    <strong>「告警太多」等於「沒有告警」</strong>——寧可少而準。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 22 必背結論</span>
+      <strong>①</strong> 四個層次都要監控；<u><strong>出向流量異常</strong>是資料外洩的關鍵徵兆</u><br>
+      <strong>②</strong> 日誌三條件：<strong>集中、NTP 同步、防竄改</strong><br>
+      <strong>③</strong> <u><strong>日誌本身含個資</strong></u>——權限、期限、查詢紀錄都要管<br>
+      <strong>④</strong> 告警要<u>可行動、分級、抑制重複</u>；太多等於沒有
+    </div>
+  </div>
+
+  <!-- ============ 23 ============ -->
+  <div class="card" id="d23">
+    <h2>深化 23　常見網路故障的完整排查手冊</h2>
+
+    <h3>23-1　排查的兩個大原則</h3>
+    <div class="frame">
+      <span class="t">📐 先範圍，再分層</span>
+      <strong>①先確認影響範圍</strong><br>
+      <u>一台 → 端點問題｜一個區域 → 該區的線路或設備｜全機關 → 對外線路、DNS 或核心設備</u><br><br>
+      <strong>②由下而上分層</strong><br>
+      <u>實體（線、燈號）→ 網路層（IP、路由）→ 名稱解析（DNS）→ 傳輸層（埠、防火牆）→ 應用層</u>
+    </div>
+
+    <h3>23-2　症狀對照表</h3>
+    <div class="table-wrap"><table>
+      <tr><th>症狀</th><th>最可能原因</th><th>驗證方式</th></tr>
+      <tr><td><strong>內部通、外部不通</strong></td><td><u>對外閘道或 DNS</u></td><td>ping 外部 IP（通 → DNS 問題）</td></tr>
+      <tr><td><strong>能 ping 但網頁開不了</strong></td><td><u><strong>DNS 問題</strong></u></td><td>nslookup</td></tr>
+      <tr><td><strong>時通時不通</strong></td><td><u>IP 衝突、無線干擾、線路不穩</u></td><td>連續 ping 觀察</td></tr>
+      <tr><td><strong>能 ping 但服務連不上</strong></td><td>防火牆擋該埠</td><td><u>telnet 主機 埠</u></td></tr>
+      <tr><td><strong>單向通、反向不通</strong></td><td><u>回程路由或防火牆規則不對稱</u></td><td><strong>兩端都要測</strong></td></tr>
+      <tr><td>整個網段突然全斷</td><td><u><strong>廣播風暴（私接造成迴圈）</strong></u></td><td>看交換器 CPU 與流量</td></tr>
+      <tr><td>大檔傳不完但網頁正常</td><td><strong>MTU 問題</strong>（常見於 VPN）</td><td>調降 MTU 測試</td></tr>
+      <tr><td>訊號滿格但很慢</td><td><u>無線同頻干擾或連線裝置過多</u></td><td>掃描鄰近 AP 頻道</td></tr>
+    </table></div>
+
+    <h3>23-3　問對問題比亂查快十倍</h3>
+    <div class="hl">
+      <strong>接到報修時該問的五個問題</strong><br>
+      <u><strong>①</strong> 什麼時候開始的？<br>
+      <strong>②</strong> <strong>只有你，還是旁邊的人也一樣？</strong>（確認範圍）<br>
+      <strong>③</strong> <strong>之前正常嗎？中間有沒有換過什麼？</strong>（找觸發點）<br>
+      <strong>④</strong> 完全不能用，還是有時候可以？<br>
+      <strong>⑤</strong> 錯誤訊息是什麼？（請對方拍照或截圖）</u><br><br>
+      <u><strong>第③題最有價值</strong>——多數故障都有觸發點：搬了位子、換了線、裝了新軟體、機房昨天施工。</u>
+    </div>
+
+    <h3>23-4　處理與後續</h3>
+    <div class="table-wrap"><table>
+      <tr><th>階段</th><th>要做的事</th></tr>
+      <tr><td><strong>止血</strong></td><td><u>先讓民眾與同仁的工作能繼續（替代管道、暫時方案）</u></td></tr>
+      <tr><td><strong>修復</strong></td><td>找出並排除原因</td></tr>
+      <tr><td><strong>記錄</strong></td><td><u>症狀、原因、處理方式——<strong>建立知識庫，下次不用重查</strong></u></td></tr>
+      <tr><td><strong>預防</strong></td><td><u><strong>問到根因</strong>：為什麼會發生？制度上要改什麼？</u></td></tr>
+    </table></div>
+    <p><u><strong>「記錄」這一步是新人與老手的分野</strong>——<br>
+    同一個問題查第二次，代表第一次沒有留下紀錄。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 23 必背結論</span>
+      <strong>①</strong> <u><strong>先確認範圍，再由下而上分層</strong></u><br>
+      <strong>②</strong> 症狀對照表要背熟：<u>能 ping 打不開網頁 = DNS；能 ping 連不上服務 = 防火牆</u><br>
+      <strong>③</strong> 報修必問：<strong>什麼時候開始、範圍多大、中間換過什麼</strong><br>
+      <strong>④</strong> 處理完要<u><strong>記錄並問根因</strong></u>，否則會一直查同一個問題
+    </div>
+  </div>
+
+  <!-- ============ 24 ============ -->
+  <div class="card" id="d24">
+    <h2>深化 24　資通網路概要的滿分策略</h2>
+
+    <h3>24-1　四大高頻區塊</h3>
+    <div class="table-wrap"><table>
+      <tr><th>區塊</th><th>核心內容</th><th>年約題數</th><th>準備難度</th></tr>
+      <tr><td><strong>子網路計算</strong></td><td><u>區塊大小、網段、廣播、可用主機、反推遮罩</u></td><td>2～4</td><td><strong>低（練就會）</strong></td></tr>
+      <tr><td><strong>OSI 與設備對應</strong></td><td>七層順序、交換器/路由器層級</td><td>2～3</td><td>低</td></tr>
+      <tr><td><strong>協定與埠號</strong></td><td><u>22/23/25/53/80/443 等</u></td><td>2～3</td><td>低</td></tr>
+      <tr><td><strong>常見攻擊與防禦</strong></td><td>SQL 注入、XSS、CSRF、DDoS、MITM</td><td>3～5</td><td>中</td></tr>
+    </table></div>
+    <p><u><strong>合計約 10～15 題</strong>，且前三塊幾乎都是「背了就有分」的類型。</u></p>
+
+    <h3>24-2　觀念區辨的一句話記法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>區辨組</th><th>一句話</th></tr>
+      <tr><td>交換器 vs 路由器</td><td><u>交換器看 <strong>MAC</strong>（第 2 層），路由器看 <strong>IP</strong>（第 3 層）</u></td></tr>
+      <tr><td>TCP vs UDP</td><td>完整性優先 vs <u>延遲優先</u></td></tr>
+      <tr><td>流量控制 vs 壅塞控制</td><td><u>保護<strong>接收端</strong> vs 保護<strong>網路</strong></u></td></tr>
+      <tr><td>IDS vs IPS</td><td><u>只告警 vs <strong>會阻擋</strong></u></td></tr>
+      <tr><td>對稱 vs 非對稱加密</td><td>同一把快 vs <u>公私鑰解決金鑰交換</u></td></tr>
+      <tr><td>加密 vs 簽章</td><td><u><strong>公鑰加密（保密）vs 私鑰簽章（不可否認）</strong></u></td></tr>
+      <tr><td>DHCP vs DNS vs ARP</td><td><u>發 IP vs 名稱轉 IP vs <strong>IP 轉 MAC</strong></u></td></tr>
+      <tr><td>SPF vs DKIM vs DMARC</td><td>誰寄的 vs 有沒有改 vs <u><strong>不合格怎麼辦</strong></u></td></tr>
+    </table></div>
+
+    <h3>24-3　陷阱關鍵字</h3>
+    <div class="table-wrap"><table>
+      <tr><th>陷阱</th><th>要注意</th></tr>
+      <tr><td>「<strong>錯誤</strong>」「<strong>不是</strong>」</td><td><u>找相反的那一個</u></td></tr>
+      <tr><td>SSH 與 Telnet</td><td><u><strong>SSH 是 22，Telnet 是 23</strong></u></td></tr>
+      <tr><td>「由下而上」vs「由上而下」</td><td>OSI 七層順序要看清楚問法</td></tr>
+      <tr><td>MB 與 Mbps</td><td><strong>差 8 倍</strong></td></tr>
+      <tr><td>172.16～172.31</td><td><u>私有位址只到 <strong>31</strong></u></td></tr>
+      <tr><td>可用主機數</td><td><u>區塊大小 <strong>減 2</strong></u></td></tr>
+      <tr><td>「慢啟動」</td><td><strong>其實是指數成長</strong></td></tr>
+    </table></div>
+
+    <h3>24-4　申論的三段模板</h3>
+    <div class="frame">
+      <span class="t">🎯 網路概要的申論結構</span>
+      <strong>【一】技術說明（40%）</strong><br>
+      <u>原理、架構圖或表、各元件的角色</u><br><br>
+      <strong>【二】安全與風險（35%）</strong><br>
+      <u><strong>分「根本解」與「補償控制」</strong>；說明各措施擋得住什麼、擋不住什麼</u><br><br>
+      <strong>【三】公務落實（25%）</strong><br>
+      <u><strong>法規遵循</strong>（資安法通報、個資法通知）、<strong>分期實施</strong>、<strong>維運能量相稱</strong>、<strong>替代管道</strong></u>
+    </div>
+
+    <h3>24-5　本科的一句話總結</h3>
+    <div class="frame">
+      <span class="t">🎯 資通網路概要要考的是什麼</span>
+      <u><strong>前半是「算得出來、背得起來」的基本功</strong>——子網路、埠號、七層、協定。<br>
+      <strong>後半是「知道每個防護措施的極限在哪」</strong>——這才是拉開差距的地方。<br><br>
+      <strong>能寫出「HTTPS 保護路上不保護兩端」「VPN 的風險在端點」「DDoS 要靠上游清洗」的人，<br>
+      分數會明顯高於只會列出設備名稱的人。</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 24 必背結論</span>
+      <strong>①</strong> 四大高頻區塊約 10～15 題，<u>前三塊背了就有分</u><br>
+      <strong>②</strong> 八組區辨用<strong>一句話記法</strong>整理<br>
+      <strong>③</strong> 陷阱：<u><strong>SSH 22／Telnet 23</strong>、私有位址到 31、可用主機減 2</u><br>
+      <strong>④</strong> 申論三段：<strong>技術 → 安全（分根本解與補償） → 公務落實</strong>
+    </div>
+  </div>
+
 
   <div class="nav-btns">
     <a class="btn btn-prev" href="net2.html">← 資通網路概要講義（下）</a>
