@@ -51,6 +51,18 @@
       <li><a href="#d10">動態規劃與貪心：可用性的判定</a></li>
       <li><a href="#d11">P、NP 與歸約：申論怎麼寫才不會出錯</a></li>
       <li><a href="#d12">公務系統的資料結構決策：完整判準表</a></li>
+      <li><a href="#d13">隨機化的力量：快速排序期望 O(n log n) 的推導</a></li>
+      <li><a href="#d14">建堆為何是 O(n)：一個最常被答錯的複雜度</a></li>
+      <li><a href="#d15">字串比對：KMP 失敗函數與 Rabin-Karp 的推理</a></li>
+      <li><a href="#d16">併查集：兩個優化如何把複雜度壓到近乎常數</a></li>
+      <li><a href="#d17">最短路徑家族：一張表選對演算法</a></li>
+      <li><a href="#d18">網路流：最大流最小割與指派問題</a></li>
+      <li><a href="#d19">快取局部性：為什麼理論最佳不等於實際最快</a></li>
+      <li><a href="#d20">外部排序：資料放不進記憶體時怎麼辦</a></li>
+      <li><a href="#d21">布隆過濾器：誤判率公式與它的正確用法</a></li>
+      <li><a href="#d22">併發環境下的資料結構：鎖、無鎖與不可變</a></li>
+      <li><a href="#d23">索引該不該建：用選擇率算給主管看</a></li>
+      <li><a href="#d24">關鍵字反查表：看到題目就知道要用什麼</a></li>
     </ol>
   </div>
 
@@ -758,6 +770,629 @@
       <u>前者是大學考試；<strong>後者才是高考三級。</strong></u>
     </div>
   </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="d13">
+    <h2>深化 13　隨機化的力量：快速排序期望 O(n log n) 的推導</h2>
+
+    <h3>13-1　為什麼要談「期望」而不是「平均」</h3>
+    <div class="hl">
+      <u><strong>平均情況分析</strong>假設「輸入是隨機的」——但真實資料常常已經排序好（例如按日期匯入的案件檔）。<br>
+      <strong>隨機化分析</strong>把隨機性放進<strong>演算法自己</strong>（隨機選樞紐），<u>不論輸入長什麼樣，期望值都成立</u>。</u>
+    </div>
+    <p>這個差別在申論題很值錢：<strong>「對已排序資料，傳統快排退化為 O(n²)；改用隨機樞紐後，期望仍為 O(n log n) 且與輸入分布無關。」</strong></p>
+
+    <h3>13-2　期望比較次數的推導</h3>
+    <div class="frame">
+      <span class="t">📐 用「指示變數」推導（申論可直接照抄）</span>
+      設排序後的元素為 z₁ &lt; z₂ &lt; … &lt; zₙ。<br>
+      令 X<sub>ij</sub> = 1 表示 z<sub>i</sub> 與 z<sub>j</sub> 曾被互相比較，否則為 0。<br><br>
+      <strong>關鍵觀察</strong>：<u>z<sub>i</sub> 與 z<sub>j</sub> 會被比較，<strong>當且僅當</strong> 兩者之中有一個是 {z<sub>i</sub>, …, z<sub>j</sub>} 這 (j−i+1) 個元素中<strong>第一個被選為樞紐</strong>的。</u><br><br>
+      （若先選到中間的某個 z<sub>k</sub>，z<sub>i</sub> 與 z<sub>j</sub> 就被分到兩邊，永遠不會再比較。）<br><br>
+      故 <strong>P(X<sub>ij</sub> = 1) = 2 / (j − i + 1)</strong><br><br>
+      總期望比較次數 = ΣᵢΣⱼ 2/(j−i+1) = <u>Σ 2·H<sub>n</sub></u> ≈ <strong>2n ln n ≈ 1.39 n log₂ n</strong> → <strong>O(n log n)</strong>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 最常寫錯的地方</span>
+      <u>寫「隨機樞紐讓最壞情況變成 O(n log n)」是<strong>錯的</strong>——最壞情況<strong>仍然是 O(n²)</strong>（只是機率極低，約 n!⁻¹ 等級）。<br>
+      正確說法：<strong>「最壞情況不變，但期望值為 O(n log n)，且不依賴輸入分布。」</strong></u>
+    </div>
+
+    <h3>13-3　三數取中 vs 隨機樞紐</h3>
+    <div class="table-wrap"><table>
+      <tr><th>策略</th><th>對已排序輸入</th><th>可被惡意構造攻擊</th><th>成本</th></tr>
+      <tr><td>取首元素</td><td><u>退化為 O(n²)</u></td><td>是</td><td>0</td></tr>
+      <tr><td>三數取中</td><td>良好</td><td><u><strong>是</strong>（可構造出殺手輸入）</u></td><td>極低</td></tr>
+      <tr><td><strong>隨機樞紐</strong></td><td>良好</td><td><strong>否</strong></td><td>每次一個亂數</td></tr>
+      <tr><td>Introsort（混合）</td><td>良好</td><td>否</td><td><u>遞迴過深即改用堆積排序，<strong>最壞保證 O(n log n)</strong></u></td></tr>
+    </table></div>
+    <p><strong>公務系統的選擇</strong>：<u>對外服務若使用者可控制輸入順序，應採 <strong>Introsort 或隨機樞紐</strong>——否則構成一種可被利用的<strong>演算法複雜度攻擊</strong>（送出精心排列的資料讓伺服器 CPU 爆掉）。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 13 必背結論</span>
+      <strong>①</strong> 兩元素被比較的機率 = <strong>2/(j−i+1)</strong>，總和得 <strong>2n ln n</strong><br>
+      <strong>②</strong> 隨機化改變的是<u>「與輸入分布無關」</u>，<strong>不是</strong>改變最壞情況<br>
+      <strong>③</strong> 對外服務要防<strong>演算法複雜度攻擊</strong> → 用 Introsort 或隨機樞紐
+    </div>
+  </div>
+
+  <!-- ============ 14 ============ -->
+  <div class="card" id="d14">
+    <h2>深化 14　建堆為何是 O(n)：一個最常被答錯的複雜度</h2>
+
+    <h3>14-1　直覺為何會騙人</h3>
+    <p>常見錯誤推理：「有 n 個節點，每個下沉最多 log n 步，所以是 O(n log n)。」<br>
+    <u>這個上界<strong>成立但不緊</strong>——因為<strong>大部分節點根本不在頂端</strong>，下沉不了幾層。</u></p>
+
+    <h3>14-2　嚴謹推導</h3>
+    <div class="frame">
+      <span class="t">📐 按層加總</span>
+      高度為 h 的節點，最多有 <strong>⌈n / 2<sup>h+1</sup>⌉</strong> 個，每個下沉成本 O(h)。<br><br>
+      總成本 = Σ<sub>h=0</sub><sup>log n</sup> (n / 2<sup>h+1</sup>) · h = <strong>(n/2) · Σ h/2<sup>h</sup></strong><br><br>
+      而 <u>Σ<sub>h=0</sub><sup>∞</sup> h/2<sup>h</sup> = <strong>2</strong></u>（收斂級數）<br><br>
+      故總成本 ≤ (n/2) × 2 = <strong>n</strong> → <strong>O(n)</strong>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>層（由下往上）</th><th>節點數</th><th>每個下沉步數</th><th>該層成本</th></tr>
+      <tr><td>葉（h=0）</td><td><strong>n/2</strong></td><td>0</td><td>0</td></tr>
+      <tr><td>h=1</td><td>n/4</td><td>1</td><td>n/4</td></tr>
+      <tr><td>h=2</td><td>n/8</td><td>2</td><td>n/4</td></tr>
+      <tr><td>h=3</td><td>n/16</td><td>3</td><td>3n/16</td></tr>
+      <tr><td>根</td><td>1</td><td>log n</td><td>log n</td></tr>
+    </table></div>
+    <p><u><strong>一半的節點是葉節點，成本為零</strong>——這就是直覺出錯的原因。</u></p>
+
+    <h3>14-3　考點區辨表</h3>
+    <div class="table-wrap"><table>
+      <tr><th>操作</th><th>複雜度</th><th>常見誤答</th></tr>
+      <tr><td><strong>建堆（Build-Heap）</strong></td><td><u><strong>O(n)</strong></u></td><td>O(n log n)</td></tr>
+      <tr><td>插入一個元素</td><td>O(log n)</td><td>—</td></tr>
+      <tr><td>取出最小／最大</td><td>O(log n)</td><td>—</td></tr>
+      <tr><td>查看最小／最大</td><td><strong>O(1)</strong></td><td>O(log n)</td></tr>
+      <tr><td><strong>堆積排序整體</strong></td><td><u>O(n log n)</u>（建堆 O(n) ＋ n 次取出 O(log n)）</td><td>O(n)</td></tr>
+      <tr><td>找第 k 小（k 很小）</td><td><u><strong>O(n + k log n)</strong></u></td><td>O(n log n)</td></tr>
+    </table></div>
+
+    <h3>14-4　公務應用：Top-K 統計的正確做法</h3>
+    <div class="hl">
+      <strong>情境</strong>：從 500 萬筆案件中找出「處理天數最長的 20 件」。<br><br>
+      <u><strong>錯誤做法</strong>：全部排序後取前 20 → O(n log n)，且需把 500 萬筆載入記憶體。<br>
+      <strong>正確做法</strong>：維護一個<strong>大小為 20 的最小堆積</strong>，掃過一遍，比堆頂大就替換 → <strong>O(n log k)</strong>，記憶體只需 20 個元素。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 14 必背結論</span>
+      <strong>①</strong> <strong>建堆 O(n)</strong>，堆積排序整體 O(n log n)——這兩個常被混為一談<br>
+      <strong>②</strong> 推導關鍵：<u>Σ h/2<sup>h</sup> 收斂到 2</u>；一半節點是葉、成本為零<br>
+      <strong>③</strong> <strong>Top-K 用大小 k 的堆積掃一遍</strong>，O(n log k)，記憶體 O(k)
+    </div>
+  </div>
+
+  <!-- ============ 15 ============ -->
+  <div class="card" id="d15">
+    <h2>深化 15　字串比對：KMP 失敗函數與 Rabin-Karp 的推理</h2>
+
+    <h3>15-1　樸素比對為什麼慢</h3>
+    <p>文字長 n、樣式長 m。樸素法每次錯位就把樣式往右移<strong>一格</strong>，<u>把之前比對過的資訊全部丟掉</u> → 最壞 <strong>O(nm)</strong>。</p>
+
+    <h3>15-2　KMP 的核心：失敗函數</h3>
+    <div class="frame">
+      <span class="t">📐 失敗函數的定義</span>
+      <strong>π[i]</strong> = 樣式前 i 個字元中，<u><strong>「既是真前綴又是真後綴」的最長長度</strong></u>。<br><br>
+      意義：比對失敗時，<u>不必從頭來過，直接把樣式往右滑到「已知一定相符」的位置</u>。
+    </div>
+    <p>例：樣式 <code>ABABAC</code></p>
+    <div class="table-wrap"><table>
+      <tr><th>i</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+      <tr><td>字元</td><td>A</td><td>B</td><td>A</td><td>B</td><td>A</td><td>C</td></tr>
+      <tr><td><strong>π[i]</strong></td><td>0</td><td>0</td><td><strong>1</strong></td><td><strong>2</strong></td><td><strong>3</strong></td><td>0</td></tr>
+    </table></div>
+    <p><u>在第 6 位（C）失敗時，π[5] = 3 → 樣式右滑 5−3 = 2 格，且<strong>前 3 個字元已確定相符，不用重比</strong>。</u></p>
+    <div class="hl">
+      <strong>複雜度</strong>：建表 <strong>O(m)</strong> ＋ 掃描 <strong>O(n)</strong> = <u><strong>O(n + m)</strong></u>。<br>
+      <strong>為什麼是線性</strong>：<u>文字指標<strong>永不回頭</strong>；樣式指標每次回退都對應先前的一次前進，攤還後總移動不超過 2n。</u>
+    </div>
+
+    <h3>15-3　Rabin-Karp：用雜湊做比對</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>KMP</th><th>Rabin-Karp</th></tr>
+      <tr><td>原理</td><td>失敗函數跳躍</td><td><u>滾動雜湊，O(1) 更新視窗雜湊值</u></td></tr>
+      <tr><td>平均</td><td>O(n+m)</td><td>O(n+m)</td></tr>
+      <tr><td>最壞</td><td><strong>O(n+m)</strong></td><td><u>O(nm)（大量雜湊碰撞時）</u></td></tr>
+      <tr><td><strong>強項</strong></td><td>單一樣式</td><td><u><strong>同時比對多個樣式</strong></u>（把樣式雜湊值放進集合）</td></tr>
+    </table></div>
+    <p><strong>公務應用</strong>：<u>敏感詞過濾、個資樣態偵測（同時比對數百個樣式）用 <strong>Rabin-Karp 或 Aho-Corasick</strong>；單一關鍵字搜尋用 KMP。</u></p>
+
+    <h3>15-4　實務上的正解通常不是自己寫演算法</h3>
+    <div class="warn">
+      <span class="t">⚠️ 申論的加分句</span>
+      <u>「若為<strong>全文檢索</strong>需求（大量文件、多樣關鍵字、需相關性排序），應建置<strong>倒排索引</strong>而非逐次字串比對——<br>
+      前者是 <strong>O(結果數)</strong>，後者是 <strong>O(全部文件總長度)</strong>。」</u><br><br>
+      這句話能把「會背 KMP」提升到「知道什麼時候<strong>不該</strong>用 KMP」。
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 15 必背結論</span>
+      <strong>①</strong> KMP 的 π[i] = <u>最長的「既是真前綴又是真後綴」</u>；整體 <strong>O(n+m)</strong><br>
+      <strong>②</strong> 線性的理由：<u>文字指標永不回頭</u>（攤還分析）<br>
+      <strong>③</strong> 多樣式比對用 Rabin-Karp／Aho-Corasick；<strong>大量文件檢索用倒排索引</strong>
+    </div>
+  </div>
+
+  <!-- ============ 16 ============ -->
+  <div class="card" id="d16">
+    <h2>深化 16　併查集：兩個優化如何把複雜度壓到近乎常數</h2>
+
+    <h3>16-1　基本操作與樸素版的問題</h3>
+    <p><strong>Find(x)</strong>：找 x 所屬集合的代表元；<strong>Union(x,y)</strong>：合併兩集合。<br>
+    <u>樸素版可能形成一條長鏈 → Find 為 <strong>O(n)</strong>。</u></p>
+
+    <h3>16-2　兩個優化</h3>
+    <div class="table-wrap"><table>
+      <tr><th>優化</th><th>做法</th><th>效果</th></tr>
+      <tr><td><strong>按秩（或按大小）合併</strong></td><td><u>矮樹掛到高樹底下</u></td><td>樹高 ≤ log n</td></tr>
+      <tr><td><strong>路徑壓縮</strong></td><td><u>Find 時把沿途節點<strong>全部直接指向根</strong></u></td><td>下次查詢近乎 O(1)</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 複雜度結論</span>
+      兩者<strong>併用</strong>時，m 次操作的總成本為 <strong>O(m · α(n))</strong>，<br>
+      其中 <strong>α</strong> 是<u>反阿克曼函數</u>——<strong>在所有可想像的 n 之下 α(n) ≤ 4</strong>，實務上<u>視為常數</u>。<br><br>
+      <u><strong>只用其中一個</strong>：路徑壓縮單獨用為 O(log n)；按秩合併單獨用為 O(log n)。<strong>要併用才有 α。</strong></u>
+    </div>
+
+    <h3>16-3　公務應用場景</h3>
+    <div class="table-wrap"><table>
+      <tr><th>情境</th><th>如何對應</th></tr>
+      <tr><td><strong>地籍合併與分割</strong></td><td>每筆地號一個節點，合併即 Union</td></tr>
+      <tr><td><strong>Kruskal 求最小生成樹</strong></td><td><u>判斷加入這條邊會不會成環 → Find 兩端是否同集合</u></td></tr>
+      <tr><td>災害後的道路連通性</td><td>逐條恢復道路，即時查詢兩地是否已連通</td></tr>
+      <tr><td>重複帳號歸併</td><td><u>把判定為同一人的帳號 Union 起來</u></td></tr>
+      <tr><td>社福個案的家戶關係</td><td>同戶者歸為同一集合</td></tr>
+    </table></div>
+
+    <h3>16-4　它的限制（申論寫出來就贏一半）</h3>
+    <div class="warn">
+      <span class="t">⚠️ 併查集不支援「拆開」</span>
+      <u>Union 之後<strong>無法有效率地 Split</strong>。若業務會發生「合併後又要分開」（如地號分割、錯誤歸併的更正），<br>
+      應改為：<strong>①保留原始關係表，重新計算 ②或改用可持久化／可回溯的資料結構</strong>。</u><br><br>
+      <strong>公務上這點很重要</strong>：<u>行政行為可能被撤銷，資料模型必須支援「還原到某個時間點的狀態」。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 16 必背結論</span>
+      <strong>①</strong> 路徑壓縮 ＋ 按秩合併 → <strong>O(α(n))</strong>，α ≤ 4 視為常數；<u>只用一個是 O(log n)</u><br>
+      <strong>②</strong> 典型用途：<strong>Kruskal 判環</strong>、連通性、歸併<br>
+      <strong>③</strong> <u>不支援拆分</u>——業務會「反悔」時要另設計
+    </div>
+  </div>
+
+  <!-- ============ 17 ============ -->
+  <div class="card" id="d17">
+    <h2>深化 17　最短路徑家族：一張表選對演算法</h2>
+
+    <h3>17-1　完整判準表</h3>
+    <div class="table-wrap"><table>
+      <tr><th>演算法</th><th>來源</th><th>負權邊</th><th>複雜度</th><th>何時用</th></tr>
+      <tr><td><strong>BFS</strong></td><td>單源</td><td>—</td><td>O(V+E)</td><td><u>所有邊權重相同</u></td></tr>
+      <tr><td><strong>Dijkstra</strong></td><td>單源</td><td><u><strong>不可</strong></u></td><td>O((V+E) log V)</td><td>一般正權圖</td></tr>
+      <tr><td><strong>Bellman-Ford</strong></td><td>單源</td><td><strong>可</strong></td><td>O(VE)</td><td><u>有負權，或<strong>需偵測負環</strong></u></td></tr>
+      <tr><td><strong>Floyd-Warshall</strong></td><td><u>全點對</u></td><td>可（無負環）</td><td>O(V³)</td><td>點少、要所有點對距離</td></tr>
+      <tr><td><strong>A*</strong></td><td>單源單匯</td><td>不可</td><td>視啟發式而定</td><td><u>有好的距離估計（如地理座標）</u></td></tr>
+      <tr><td>多來源 Dijkstra</td><td><u>多起點</u></td><td>不可</td><td>O((V+E) log V)</td><td><strong>「到最近的設施」類問題</strong></td></tr>
+    </table></div>
+
+    <h3>17-2　為什麼 Dijkstra 遇負權會錯</h3>
+    <div class="frame">
+      <span class="t">📐 一個三點反例（申論可直接畫）</span>
+      邊：A→B 權重 <strong>2</strong>；A→C 權重 <strong>5</strong>；<u>C→B 權重 <strong>−4</strong></u><br><br>
+      Dijkstra 從 A 出發：先確定 B = 2（因為 2 &lt; 5）並<strong>永久標記</strong>。<br>
+      但實際最短路是 A→C→B = 5 + (−4) = <strong>1</strong> &lt; 2。<br><br>
+      <u><strong>根本原因</strong>：Dijkstra 的貪心正確性建立在<strong>「路徑越長距離只會增加」</strong>；負權破壞了這個前提。</u>
+    </div>
+
+    <h3>17-3　A* 的可採納性條件</h3>
+    <div class="hl">
+      A* 以 <strong>f(n) = g(n) + h(n)</strong> 排序（g 為已走距離，h 為估計剩餘距離）。<br><br>
+      <u><strong>可採納（Admissible）</strong>：h(n) <strong>永不高估</strong>真實剩餘距離 → 保證找到最短路。<br>
+      <strong>一致（Consistent）</strong>：h(n) ≤ cost(n,n') + h(n') → 每個節點只需展開一次。</u><br><br>
+      <strong>地圖應用</strong>：<u>用<strong>直線距離</strong>當 h 是可採納的（直線一定不長於實際路徑）；<br>
+      但若用「直線距離 × 1.3」就<strong>可能高估</strong>，會更快卻不保證最短。</u>
+    </div>
+
+    <h3>17-4　公務情境的正確對應</h3>
+    <div class="table-wrap"><table>
+      <tr><th>需求</th><th>選什麼</th><th>常見錯選</th></tr>
+      <tr><td>各里到<strong>最近</strong>避難所</td><td><u><strong>多來源 Dijkstra</strong>（所有避難所同時當起點）</u></td><td>對每個里各跑一次</td></tr>
+      <tr><td>垃圾車走遍<strong>每條路</strong></td><td>尤拉路徑／中國郵差問題</td><td>最短路徑</td></tr>
+      <tr><td>光纖連通<strong>所有</strong>區公所</td><td>最小生成樹</td><td>最短路徑</td></tr>
+      <tr><td>公文簽核流程的<strong>最長路徑</strong></td><td><u>DAG 上的關鍵路徑（CPM）</u></td><td>Dijkstra</td></tr>
+      <tr><td>金流異常的<strong>環狀</strong>偵測</td><td>Bellman-Ford 負環偵測／DFS 找環</td><td>Floyd</td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 17 必背結論</span>
+      <strong>①</strong> <u>Dijkstra 不可有負權</u>（貪心前提被破壞，反例背起來）<br>
+      <strong>②</strong> 負權或偵測負環 → <strong>Bellman-Ford</strong>；全點對 → Floyd O(V³)<br>
+      <strong>③</strong> 「到最近的 X」→ <strong>多來源 Dijkstra 跑一次</strong>，不要跑 V 次<br>
+      <strong>④</strong> A* 的 h 必須<strong>不高估</strong>才保證最短
+    </div>
+  </div>
+
+  <!-- ============ 18 ============ -->
+  <div class="card" id="d18">
+    <h2>深化 18　網路流：最大流最小割與指派問題</h2>
+
+    <h3>18-1　最大流最小割定理</h3>
+    <div class="frame">
+      <span class="t">📐 定理</span>
+      <strong>從來源 s 到匯點 t 的最大流量，等於所有 s-t 割中容量最小者。</strong><br><br>
+      <u>直覺：流量最終一定要穿過每一個「把 s 與 t 分開的切面」；<br>
+      所以<strong>最窄的那個切面就是瓶頸</strong>。</u>
+    </div>
+    <p><strong>公務意義</strong>：<u>問「這個系統最多能同時服務多少人」時，答案就是<strong>找出瓶頸環節</strong>——擴充非瓶頸環節完全沒有用。</u></p>
+
+    <h3>18-2　二分圖最大匹配 = 最大流</h3>
+    <div class="hl">
+      <strong>建模方法</strong>（申論必背的轉換技巧）：<br>
+      <u>①加一個超級來源 s，連向所有「人員」，容量 1<br>
+      ②每個人員連向他能做的「任務」，容量 1<br>
+      ③所有任務連向超級匯點 t，容量 1<br>
+      ④求 s→t 最大流 = <strong>最多能配對幾組</strong></u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>公務情境</th><th>左側</th><th>右側</th><th>邊的意義</th></tr>
+      <tr><td><strong>稽查人員排班</strong></td><td>稽查員</td><td>待查場所</td><td>該員具備該類證照</td></tr>
+      <tr><td>志工媒合</td><td>志工</td><td>服務時段</td><td>該志工可服務該時段</td></tr>
+      <tr><td>公宅配租</td><td>申請戶</td><td>房型</td><td>符合資格條件</td></tr>
+      <tr><td><strong>避難收容分配</strong></td><td>受災戶</td><td>收容處所</td><td><u>距離可達；容量改為收容上限</u></td></tr>
+    </table></div>
+    <p><u><strong>加上容量就從「匹配」升級為「最小成本流」</strong>——避難所可收 200 人時，把 t 端的容量設為 200 即可。</u></p>
+
+    <h3>18-3　最小成本流：同時考慮公平</h3>
+    <div class="warn">
+      <span class="t">⚠️ 純最佳化的公務陷阱</span>
+      <u>把「總距離最小」設為唯一目標，可能讓<strong>某一戶被分配到極遠的收容所</strong>——總和最佳但個別極差。<br><br>
+      <strong>公務上的正確做法</strong>：<br>
+      ①加入<strong>硬約束</strong>（任何一戶距離不得超過 X 公里）<br>
+      ②或改為<strong>最小化最大值</strong>（Minimax）而非最小化總和<br>
+      ③保留<strong>人工調整</strong>與<strong>申訴</strong>機制</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 18 必背結論</span>
+      <strong>①</strong> <strong>最大流 = 最小割</strong>；<u>擴充非瓶頸環節無效</u><br>
+      <strong>②</strong> 二分匹配的建模：<u>超級來源 → 人 → 任務 → 超級匯點，容量皆 1</u><br>
+      <strong>③</strong> 有上限就設容量；<u>公務上要加公平性約束，不能只最佳化總和</u>
+    </div>
+  </div>
+
+  <!-- ============ 19 ============ -->
+  <div class="card" id="d19">
+    <h2>深化 19　快取局部性：為什麼理論最佳不等於實際最快</h2>
+
+    <h3>19-1　一個違反直覺的事實</h3>
+    <div class="hl">
+      <u>對 100 萬筆資料做「循序走訪」，<strong>陣列</strong>比<strong>鏈結串列</strong>快 <strong>10 倍以上</strong>——<br>
+      即使兩者的漸進複雜度<strong>都是 O(n)</strong>。</u>
+    </div>
+    <p><strong>原因</strong>：CPU 讀記憶體是<u>以「快取線」（通常 64 位元組）為單位整批讀取</u>。<br>
+    陣列元素在記憶體中連續 → <u>讀一次就拿到十幾個元素</u>；<br>
+    鏈結串列節點散落各處 → <u>每個節點都是一次快取未命中，要等主記憶體</u>。</p>
+
+    <h3>19-2　記憶體階層的延遲差距（數量級記憶）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層級</th><th>延遲（約略）</th><th>相對倍數</th></tr>
+      <tr><td>暫存器</td><td>&lt; 1 ns</td><td>1</td></tr>
+      <tr><td>L1 快取</td><td>約 1 ns</td><td>約 1～4</td></tr>
+      <tr><td>L2／L3 快取</td><td>約 10 ns</td><td>約 10～40</td></tr>
+      <tr><td><strong>主記憶體</strong></td><td>約 100 ns</td><td><u><strong>約 100</strong></u></td></tr>
+      <tr><td>SSD</td><td>約 100 μs</td><td>約 10 萬</td></tr>
+      <tr><td><strong>硬碟</strong></td><td>約 10 ms</td><td><u><strong>約 1000 萬</strong></u></td></tr>
+    </table></div>
+    <p><u><strong>這張表解釋了 B+ 樹的整個設計哲學</strong>：磁碟比記憶體慢七個數量級，所以<strong>寧可多做很多次記憶體比較，也要少做一次磁碟存取</strong>。</u></p>
+
+    <h3>19-3　兩種局部性</h3>
+    <div class="table-wrap"><table>
+      <tr><th>類型</th><th>意思</th><th>如何善用</th></tr>
+      <tr><td><strong>時間局部性</strong></td><td>剛用過的資料很快會再用</td><td>快取、記憶化</td></tr>
+      <tr><td><strong>空間局部性</strong></td><td><u>用了某個位址，附近的很快會被用</u></td><td><strong>連續儲存、循序存取</strong></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 實務三條規則</span>
+      <strong>①</strong> 大量循序處理 → <u>用陣列或連續配置，不要用鏈結串列</u><br>
+      <strong>②</strong> 二維陣列走訪 → <u><strong>依儲存順序走</strong></u>（列為主就先跑列），順序寫錯效能可差數倍<br>
+      <strong>③</strong> 大檔案處理 → <u>分塊讀取（Buffer），不要一筆一筆讀</u>
+    </div>
+
+    <h3>19-4　公務系統的實際案例</h3>
+    <div class="warn">
+      <span class="t">⚠️ 申論加分段落</span>
+      <u>「本系統效能瓶頸經分析並非演算法複雜度，而在<strong>磁碟 I/O 次數</strong>。<br>
+      因此改善方向為：<strong>①建立適當索引以減少掃描 ②批次讀取取代逐筆查詢（消除 N+1） ③熱資料快取於記憶體</strong>——<br>
+      三者皆屬<strong>常數項</strong>的改善，卻可帶來數十倍的實際效能提升。」</u><br><br>
+      <strong>這段話展現的是「懂實務」，比多背一個演算法有價值。</strong>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 19 必背結論</span>
+      <strong>①</strong> 同為 O(n)，<u>陣列因空間局部性遠快於鏈結串列</u><br>
+      <strong>②</strong> <strong>磁碟比記憶體慢約 10⁵～10⁷ 倍</strong> → B+ 樹寧可增加比較、減少 I/O<br>
+      <strong>③</strong> 實務調校往往在<u>常數項</u>：索引、批次、快取
+    </div>
+  </div>
+
+  <!-- ============ 20 ============ -->
+  <div class="card" id="d20">
+    <h2>深化 20　外部排序：資料放不進記憶體時怎麼辦</h2>
+
+    <h3>20-1　問題設定</h3>
+    <p>要排序 <strong>50 GB</strong> 的案件檔，但伺服器只有 <strong>8 GB</strong> 記憶體。<u>所有「把資料載入記憶體再排序」的方法全部失效。</u></p>
+
+    <h3>20-2　多路合併排序（標準解）</h3>
+    <div class="frame">
+      <span class="t">📐 兩階段</span>
+      <strong>【階段一】產生排序好的區段（Run）</strong><br>
+      <u>每次讀入記憶體裝得下的量（如 4 GB），在記憶體內排序，寫回磁碟成為一個區段。<br>
+      50 GB ÷ 4 GB → 得到 <strong>13 個已排序區段</strong>。</u><br><br>
+      <strong>【階段二】多路合併</strong><br>
+      <u>同時開啟 13 個區段，各讀一小塊進記憶體；<br>
+      用<strong>最小堆積</strong>反覆取出當前最小值寫出 → 一次掃過即完成。</u><br><br>
+      <strong>總 I/O</strong>：讀 1 次 ＋ 寫 1 次 ＋ 合併時再讀寫 1 次 = <u>約 <strong>2 遍</strong>資料量</u>
+    </div>
+
+    <h3>20-3　關鍵參數的取捨</h3>
+    <div class="table-wrap"><table>
+      <tr><th>參數</th><th>調大</th><th>調小</th></tr>
+      <tr><td><strong>區段大小</strong></td><td>區段數變少，合併輪數少</td><td>記憶體壓力小但區段多</td></tr>
+      <tr><td><strong>合併路數 k</strong></td><td><u>合併輪數 = log<sub>k</sub>(區段數)，k 越大輪數越少</u></td><td>每路的緩衝區可以大一點</td></tr>
+      <tr><td>緩衝區大小</td><td><u>減少隨機 I/O，磁碟友善</u></td><td>可支援更多路</td></tr>
+    </table></div>
+    <p><u><strong>取捨的本質</strong>：k 越大輪數越少，但每一路分到的緩衝區越小、隨機 I/O 越多。<strong>實務上取一個折衷值，而非極大化 k。</strong></u></p>
+
+    <h3>20-4　公務系統的外部處理場景</h3>
+    <div class="table-wrap"><table>
+      <tr><th>情境</th><th>做法</th></tr>
+      <tr><td><strong>年度全國資料勾稽</strong></td><td>雙方各自排序後<u>雙指標合併掃描</u>，避免全部載入</td></tr>
+      <tr><td>大量匯入前的去重</td><td>外部排序後掃一遍找相鄰重複</td></tr>
+      <tr><td><strong>跨機關名冊比對</strong></td><td><u>小檔建雜湊集合、大檔串流掃過</u>（記憶體只需裝小檔）</td></tr>
+      <tr><td>日誌分析</td><td>分塊處理 ＋ 逐塊彙總，最後合併結果</td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 更務實的第一選擇</strong><br>
+      <u>在公務環境中，這類需求<strong>應優先交給資料庫</strong>——資料庫的排序、合併與外部暫存已經高度最佳化，<br>
+      自己寫外部排序通常只在「資料不在資料庫內」（如純檔案交換）時才需要。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 20 必背結論</span>
+      <strong>①</strong> 外部排序 = <strong>分段排序 ＋ 多路合併</strong>，約 2 遍 I/O<br>
+      <strong>②</strong> 合併時用<strong>最小堆積</strong>選出 k 路中的最小值<br>
+      <strong>③</strong> <u>k 不是越大越好</u>——緩衝區會變小，隨機 I/O 增加<br>
+      <strong>④</strong> 公務上優先交給資料庫處理
+    </div>
+  </div>
+
+  <!-- ============ 21 ============ -->
+  <div class="card" id="d21">
+    <h2>深化 21　布隆過濾器：誤判率公式與它的正確用法</h2>
+
+    <h3>21-1　結構與操作</h3>
+    <p>一個 <strong>m 位元</strong>的位元陣列 ＋ <strong>k 個</strong>獨立雜湊函數。<br>
+    <u><strong>加入</strong>：把 k 個雜湊位置設為 1。<strong>查詢</strong>：k 個位置<strong>都是 1</strong> 才回答「可能存在」。</u></p>
+
+    <div class="frame">
+      <span class="t">📐 最重要的性質</span>
+      <strong>只會偽陽性（False Positive），絕不會偽陰性（False Negative）。</strong><br><br>
+      <u>回答「不存在」→ <strong>100% 確定不存在</strong><br>
+      回答「可能存在」→ <strong>需要再查一次真實資料確認</strong></u>
+    </div>
+
+    <h3>21-2　誤判率推導</h3>
+    <div class="hl">
+      插入 n 個元素後，某個位元<strong>仍為 0</strong> 的機率 = (1 − 1/m)<sup>kn</sup> ≈ <strong>e<sup>−kn/m</sup></strong><br><br>
+      故誤判率 <strong>p ≈ (1 − e<sup>−kn/m</sup>)<sup>k</sup></strong><br><br>
+      <u>最佳雜湊函數個數：<strong>k = (m/n) · ln 2 ≈ 0.693 · (m/n)</strong><br>
+      此時每個元素約需 <strong>1.44 · log₂(1/p)</strong> 位元</u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>目標誤判率</th><th>每元素所需位元</th><th>1000 萬筆需要</th></tr>
+      <tr><td>1%</td><td>約 9.6 bits</td><td><strong>約 12 MB</strong></td></tr>
+      <tr><td>0.1%</td><td>約 14.4 bits</td><td>約 18 MB</td></tr>
+      <tr><td>0.01%</td><td>約 19.2 bits</td><td>約 24 MB</td></tr>
+    </table></div>
+    <p><u><strong>對比</strong>：1000 萬個身分證字號用雜湊集合存，至少要數百 MB。<strong>布隆過濾器只要 12 MB</strong>——這就是它的價值。</u></p>
+
+    <h3>21-3　公務適用與不適用</h3>
+    <div class="table-wrap"><table>
+      <tr><th>可以用</th><th>不可以用</th></tr>
+      <tr><td><u>大量比對前的<strong>快速過濾</strong></u>（先篩掉「確定不在名單」的，剩下的再查資料庫）</td><td><u><strong>資格判定</strong></u>——不能因為誤判就核給或否准</td></tr>
+      <tr><td>快取穿透防護（先問布隆過濾器，避免每次都打資料庫）</td><td>任何<strong>作為行政處分依據</strong>的判斷</td></tr>
+      <tr><td>已處理案件的去重初篩</td><td>金額或件數的<strong>精確統計</strong></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 公務使用的鐵則</span>
+      <u><strong>布隆過濾器只能用來「排除」，不能用來「認定」。</strong><br>
+      任何回答「可能存在」的結果，<strong>必須再查一次權威資料源確認</strong>——否則就是用機率決定民眾權益。</u>
+    </div>
+
+    <h3>21-4　不能刪除的問題與變形</h3>
+    <p><u>標準布隆過濾器<strong>不支援刪除</strong>（把位元改回 0 會誤傷其他元素）。<br>
+    需要刪除時改用 <strong>Counting Bloom Filter</strong>（每格改存計數器，代價是空間變 3～4 倍）。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 21 必背結論</span>
+      <strong>①</strong> <strong>只有偽陽性，沒有偽陰性</strong>——說「沒有」就一定沒有<br>
+      <strong>②</strong> 最佳 k = <strong>0.693 · m/n</strong>；1% 誤判約需每元素 <strong>10 bits</strong><br>
+      <strong>③</strong> 公務上<u>只能用於「排除」與「初篩」，不可作為認定依據</u><br>
+      <strong>④</strong> 不支援刪除 → 需要刪除改用 Counting 版
+    </div>
+  </div>
+
+  <!-- ============ 22 ============ -->
+  <div class="card" id="d22">
+    <h2>深化 22　併發環境下的資料結構：鎖、無鎖與不可變</h2>
+
+    <h3>22-1　為什麼單執行緒的正確不等於多執行緒的正確</h3>
+    <div class="warn">
+      <span class="t">⚠️ 經典錯誤</span>
+      <code>count = count + 1</code> 看起來是一個動作，<u>實際上是三步：<strong>讀取 → 加一 → 寫回</strong>。<br>
+      兩個執行緒同時做，可能兩個都讀到 5，各自算成 6，寫回後結果是 <strong>6 而不是 7</strong>。</u><br><br>
+      這就是<strong>競爭條件（Race Condition）</strong>——<u>丟失的那一次更新永遠找不回來，而且不會報錯。</u>
+    </div>
+
+    <h3>22-2　三種策略比較</h3>
+    <div class="table-wrap"><table>
+      <tr><th>策略</th><th>做法</th><th>優點</th><th>缺點</th></tr>
+      <tr><td><strong>加鎖</strong></td><td>同一時間只讓一個執行緒進入</td><td>簡單、易懂</td><td><u>可能死結；競爭激烈時成為瓶頸</u></td></tr>
+      <tr><td><strong>無鎖（CAS）</strong></td><td>比較並交換，失敗就重試</td><td>無死結、高吞吐</td><td><u>實作困難；有 ABA 問題</u></td></tr>
+      <tr><td><strong>不可變</strong></td><td><u>資料建立後不再修改，要改就產生新版本</u></td><td><strong>天然執行緒安全</strong>、易推理</td><td>記憶體用量較大</td></tr>
+      <tr><td>分片</td><td>把資料切成多份各自加鎖</td><td>降低競爭</td><td>跨片操作變複雜</td></tr>
+    </table></div>
+
+    <h3>22-3　樂觀鎖 vs 悲觀鎖（公務系統最常遇到的選擇）</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>悲觀鎖</th><th>樂觀鎖</th></tr>
+      <tr><td>假設</td><td>一定會衝突</td><td><u>很少衝突</u></td></tr>
+      <tr><td>做法</td><td>先鎖住再操作</td><td><u>記版本號，寫回時比對</u></td></tr>
+      <tr><td>適合</td><td>衝突頻繁、操作極短</td><td><strong>人為編輯（公文、案件表單）</strong></td></tr>
+      <tr><td>公務例</td><td>號碼牌配號、餘額扣減</td><td><u><strong>公文會辦、案件編修</strong></u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>為什麼公文編輯要用樂觀鎖</strong>：<br>
+      <u>承辦打開公文可能編輯 30 分鐘，甚至去開會。悲觀鎖會把資料鎖住 30 分鐘，其他人全部卡住。<br>
+      樂觀鎖則是：存檔時才發現有人改過，<strong>提示「本文件已被 OOO 於 X 時修改」並顯示差異</strong>。</u>
+    </div>
+
+    <h3>22-4　ABA 問題</h3>
+    <div class="frame">
+      <span class="t">📐 什麼是 ABA</span>
+      執行緒 1 讀到值 <strong>A</strong>，準備用 CAS 換成 C。<br>
+      期間執行緒 2 把它改成 B，又改回 <strong>A</strong>。<br>
+      執行緒 1 的 CAS <u>「看起來成功」——但中間發生的事已經被忽略了</u>。<br><br>
+      <strong>解法</strong>：<u>加上<strong>版本號</strong>（值 ＋ 版本一起比較），這也正是樂觀鎖的原理。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 22 必背結論</span>
+      <strong>①</strong> <code>count++</code> 不是原子操作 → <strong>競爭條件</strong>，會靜默丟失更新<br>
+      <strong>②</strong> <u>長時間人為編輯用<strong>樂觀鎖</strong></u>；短交易高衝突用悲觀鎖<br>
+      <strong>③</strong> 不可變資料<strong>天然執行緒安全</strong><br>
+      <strong>④</strong> CAS 有 <strong>ABA 問題</strong>，加版本號解決
+    </div>
+  </div>
+
+  <!-- ============ 23 ============ -->
+  <div class="card" id="d23">
+    <h2>深化 23　索引該不該建：用選擇率算給主管看</h2>
+
+    <h3>23-1　選擇率（Selectivity）</h3>
+    <div class="frame">
+      <span class="t">📐 定義與判準</span>
+      <strong>選擇率 = 符合條件的列數 ÷ 總列數</strong><br><br>
+      <u>選擇率<strong>低</strong>（結果很少，如 &lt; 5%）→ <strong>索引有效</strong><br>
+      選擇率<strong>高</strong>（結果很多，如 &gt; 20%）→ <strong>全表掃描反而更快</strong></u>
+    </div>
+    <p><strong>為什麼結果多反而不該用索引</strong>：<u>透過索引找到每一列後還要<strong>回表</strong>（隨機 I/O）；<br>
+    當要回表 50 萬次時，還不如把整張表<strong>循序讀一遍</strong>（順序 I/O 快得多）。</u></p>
+
+    <h3>23-2　實際算一次</h3>
+    <div class="table-wrap"><table>
+      <tr><th>欄位</th><th>相異值數</th><th>選擇率</th><th>建索引？</th></tr>
+      <tr><td>案件編號</td><td>500 萬（唯一）</td><td><u>0.00002%</u></td><td><strong>✔ 極有效</strong></td></tr>
+      <tr><td>身分證字號</td><td>約 200 萬</td><td>0.00005%</td><td><strong>✔ 有效</strong></td></tr>
+      <tr><td>行政區代碼</td><td>12</td><td>約 8%</td><td><u>視查詢而定（可作複合索引前綴）</u></td></tr>
+      <tr><td>案件狀態</td><td>5</td><td>約 20%</td><td><u>單獨建效益低</u></td></tr>
+      <tr><td><strong>性別</strong></td><td>2</td><td><strong>約 50%</strong></td><td><u><strong>✘ 幾乎無效</strong></u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>💡 例外：低選擇率欄位仍可能有用</strong><br>
+      <u>若查詢是 <code>WHERE 狀態 = '待補件'</code> 而待補件只占 <strong>0.5%</strong>，那這個查詢的選擇率其實很低 → <strong>索引有效</strong>。<br>
+      <strong>選擇率要看「這個查詢」，不是只看「這個欄位」。</strong></u>
+    </div>
+
+    <h3>23-3　索引的成本（申論必寫的另一半）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>成本</th><th>說明</th></tr>
+      <tr><td><strong>空間</strong></td><td>每個索引都是一份額外的資料結構</td></tr>
+      <tr><td><strong>寫入變慢</strong></td><td><u>每次 INSERT／UPDATE／DELETE 都要同步維護所有相關索引</u></td></tr>
+      <tr><td>維護</td><td>統計資訊過期會導致執行計畫選錯</td></tr>
+      <tr><td><strong>鎖競爭</strong></td><td>高併發寫入時，索引本身成為競爭點</td></tr>
+    </table></div>
+    <p><u><strong>結論句</strong>：「索引不是越多越好——<strong>讀取加速的代價是寫入變慢</strong>。應依實際查詢樣態（可由慢查詢日誌分析）建立，並定期檢視未被使用的索引予以移除。」</u></p>
+
+    <h3>23-4　覆蓋索引：連回表都省掉</h3>
+    <div class="frame">
+      <span class="t">📐 概念</span>
+      <u>若<strong>查詢需要的所有欄位都在索引裡</strong>，資料庫就<strong>不必回表</strong>——直接從索引取值即可。</u><br><br>
+      例：<code>SELECT 案號, 收件日 FROM 案件 WHERE 區碼 = ? AND 收件日 &gt;= ?</code><br>
+      建索引 <strong>(區碼, 收件日, 案號)</strong> → <u>三個欄位都在索引中，<strong>零次回表</strong></u>。
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 23 必背結論</span>
+      <strong>①</strong> 選擇率 &lt; 5% 索引有效；&gt; 20% 全表掃描可能更快（<u>回表是隨機 I/O</u>）<br>
+      <strong>②</strong> <u>選擇率看「這個查詢」，不是只看「這個欄位」</u><br>
+      <strong>③</strong> 索引的代價是<strong>寫入變慢 ＋ 空間</strong>；要定期清掉沒在用的<br>
+      <strong>④</strong> <strong>覆蓋索引</strong>可完全省去回表
+    </div>
+  </div>
+
+  <!-- ============ 24 ============ -->
+  <div class="card" id="d24">
+    <h2>深化 24　關鍵字反查表：看到題目就知道要用什麼</h2>
+
+    <h3>24-1　題目關鍵字 → 資料結構／演算法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>題目出現這些字</th><th>對應</th><th>複雜度</th></tr>
+      <tr><td>「連接<strong>所有</strong>節點」「總成本最小」「不重複繞行」</td><td><strong>最小生成樹</strong>（Kruskal／Prim）</td><td>O(E log V)</td></tr>
+      <tr><td>「<strong>兩點之間</strong>最短」「最快到達」</td><td>Dijkstra</td><td>O((V+E) log V)</td></tr>
+      <tr><td>「到<strong>最近的</strong>某設施」</td><td><u><strong>多來源 Dijkstra</strong></u></td><td>O((V+E) log V)</td></tr>
+      <tr><td>「走過<strong>每一條路</strong>」</td><td>尤拉路徑／中國郵差</td><td>可多項式判定</td></tr>
+      <tr><td>「拜訪<strong>每一個點</strong>各一次」</td><td>漢米爾頓／TSP</td><td><u><strong>NP-完全</strong></u></td></tr>
+      <tr><td>「先後順序」「相依關係」</td><td>拓樸排序（DAG）</td><td>O(V+E)</td></tr>
+      <tr><td>「工期最短」「哪一項延誤會影響全案」</td><td><u>關鍵路徑 CPM（DAG 最長路徑）</u></td><td>O(V+E)</td></tr>
+      <tr><td>「有限資源下效益最大」「不可分割」</td><td><strong>0/1 背包（DP）</strong></td><td>O(nW)，NP-完全</td></tr>
+      <tr><td>「配對」「媒合」「一對一分派」</td><td>二分圖最大匹配／最大流</td><td>多項式</td></tr>
+      <tr><td>「優先處理」「避免長期等待」</td><td><u><strong>優先佇列 ＋ 老化機制</strong></u></td><td>O(log n)</td></tr>
+      <tr><td>「前綴查詢」「自動完成」</td><td>Trie／B+ 樹</td><td>O(字串長度)</td></tr>
+      <tr><td>「範圍查詢」「日期區間」「分頁」</td><td><strong>B+ 樹索引</strong></td><td>O(log n + 結果數)</td></tr>
+      <tr><td>「前 N 名」「最大的 K 個」</td><td><u>大小 k 的堆積</u></td><td>O(n log k)</td></tr>
+      <tr><td>「是否曾經出現過」（可容誤判）</td><td>布隆過濾器</td><td>O(k)</td></tr>
+      <tr><td>「合併」「是否屬於同一群」</td><td>併查集</td><td>O(α(n))</td></tr>
+      <tr><td>「資料放不進記憶體」</td><td>外部排序／串流處理</td><td>約 2 遍 I/O</td></tr>
+    </table></div>
+
+    <h3>24-2　陷阱關鍵字（看到要提高警覺）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>陷阱字</th><th>要注意什麼</th></tr>
+      <tr><td>「<strong>最緊的</strong>上界」</td><td><u>2n² = O(n³) 為真，但不是最緊；答 O(n²)</u></td></tr>
+      <tr><td>「<strong>最壞</strong>情況」</td><td>快排是 <u>O(n²)</u> 不是 O(n log n)</td></tr>
+      <tr><td>「<strong>穩定</strong>排序」</td><td><u>快、堆、選、希 <strong>不穩定</strong></u></td></tr>
+      <tr><td>「根為第 <strong>0</strong> 層」</td><td>公式要改為 2<sup>h+1</sup> − 1</td></tr>
+      <tr><td>「<strong>等待</strong>時間」vs「<strong>完成</strong>時間」</td><td><u>完成 = 等待 ＋ 執行</u></td></tr>
+      <tr><td>「索引 <strong>由 1 起算</strong>」</td><td>陣列位址公式要 +1</td></tr>
+      <tr><td>「<strong>負權</strong>邊」</td><td><u>Dijkstra 不可用，改 Bellman-Ford</u></td></tr>
+      <tr><td>「<strong>不倒扣</strong>」</td><td>選擇題一格都不能空</td></tr>
+    </table></div>
+
+    <h3>24-3　把技術答案升級為「高考三級」答案</h3>
+    <div class="frame">
+      <span class="t">🎯 每一題都可以再補的三句話</span>
+      <strong>①最壞情況與因應</strong>：<u>「本演算法最壞為 O(n²)，故須設定資料量上限與逾時保護。」</u><br><br>
+      <strong>②法規與稽核</strong>：<u>「處理結果涉及民眾權益，須保留完整稽核軌跡並提供人工複核。」</u><br><br>
+      <strong>③公平與可及性</strong>：<u>「最佳化目標不應僅為總和最小，須加入個別上限之公平性約束，並保留非數位替代管道。」</u><br><br>
+      <strong>這三句可以套用在幾乎所有申論題上——而且每一句都是分數。</strong>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 24 必背結論</span>
+      <strong>①</strong> <u>「所有邊」→ 尤拉；「所有點」→ 漢米爾頓（NP）；「連接所有點」→ MST</u><br>
+      <strong>②</strong> <u>「到最近的 X」→ 多來源 Dijkstra 跑一次</u><br>
+      <strong>③</strong> 看到「最緊」「最壞」「穩定」「第 0 層」就要停下來想一秒<br>
+      <strong>④</strong> 申論結尾三句：<strong>最壞情況 ＋ 稽核法遵 ＋ 公平可及</strong>
+    </div>
+  </div>
+
 
   <div class="nav-btns">
     <a class="btn btn-prev" href="ds2.html">← 資料結構講義（下）</a>

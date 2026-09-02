@@ -46,6 +46,18 @@
       <li><a href="#d10">分散式：CAP、BASE、2PC 與 Saga</a></li>
       <li><a href="#d11">公務資料庫的時態設計（雙時態）</a></li>
       <li><a href="#d12">技術決策 ↔ 法律後果與申論架構</a></li>
+      <li><a href="#d13">交易隔離等級：四種異常與四種等級的完整對應</a></li>
+      <li><a href="#d14">MVCC：為什麼讀不會擋寫、寫不會擋讀</a></li>
+      <li><a href="#d15">查詢執行計畫：看懂資料庫在想什麼</a></li>
+      <li><a href="#d16">分割與分片：資料太大時的兩條路</a></li>
+      <li><a href="#d17">資料庫加密：三層防護與各自擋得住什麼</a></li>
+      <li><a href="#d18">資料倉儲深入：ETL、ELT 與資料血緣</a></li>
+      <li><a href="#d19">時態資料：公務系統的預設需求</a></li>
+      <li><a href="#d20">主從式複寫與高可用：RPO/RTO 怎麼落地</a></li>
+      <li><a href="#d21">NoSQL 選型：四種類型與公務混合架構</a></li>
+      <li><a href="#d22">資料品質的量化：從「感覺不準」到可衡量的指標</a></li>
+      <li><a href="#d23">資料庫維運的可觀測性：該監控哪些指標</a></li>
+      <li><a href="#d24">資料庫申論的完整答題模板</a></li>
     </ol>
   </div>
 
@@ -740,6 +752,655 @@ CREATE TABLE 設籍紀錄 (
       <strong>——前面十一章的每一個設計原則，都是為了這一句話。</strong>
     </div>
   </div>
+
+  <!-- ============ 13 ============ -->
+  <div class="card" id="d13">
+    <h2>深化 13　交易隔離等級：四種異常與四種等級的完整對應</h2>
+
+    <h3>13-1　三種讀取異常（先分清楚才談等級）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>異常</th><th>發生什麼</th><th>公務例</th></tr>
+      <tr><td><strong>髒讀</strong><br>Dirty Read</td><td><u>讀到別人<strong>還沒提交</strong>的資料</u></td><td>看到一筆稍後被回滾的核定金額</td></tr>
+      <tr><td><strong>不可重複讀</strong><br>Non-repeatable Read</td><td><u>同一交易內讀<strong>同一列</strong>兩次，值變了</u></td><td>核算過程中，餘額被他人修改</td></tr>
+      <tr><td><strong>幻讀</strong><br>Phantom Read</td><td><u>同一交易內用<strong>同一條件</strong>查兩次，<strong>列數</strong>變了</u></td><td>統計進行中，新案件被插入</td></tr>
+      <tr><td><strong>遺失更新</strong><br>Lost Update</td><td>兩人同時改，後者覆蓋前者</td><td><strong>公文同時編輯</strong></td></tr>
+    </table></div>
+
+    <h3>13-2　四種隔離等級</h3>
+    <div class="table-wrap"><table>
+      <tr><th>等級</th><th>髒讀</th><th>不可重複讀</th><th>幻讀</th><th>效能</th></tr>
+      <tr><td>Read Uncommitted</td><td><u>可能</u></td><td>可能</td><td>可能</td><td>最快</td></tr>
+      <tr><td><strong>Read Committed</strong></td><td>不會</td><td><u>可能</u></td><td>可能</td><td>快（多數資料庫預設）</td></tr>
+      <tr><td><strong>Repeatable Read</strong></td><td>不會</td><td>不會</td><td><u>可能</u></td><td>中</td></tr>
+      <tr><td><strong>Serializable</strong></td><td>不會</td><td>不會</td><td>不會</td><td><u>最慢</u></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 記法</span>
+      <u>由上而下，<strong>每降一階就多擋掉一種異常</strong>，代價是併發度下降。<br>
+      三種異常的嚴重度由輕到重：<strong>幻讀 &lt; 不可重複讀 &lt; 髒讀</strong>——所以擋的順序是反過來的。</u>
+    </div>
+
+    <h3>13-3　公務系統的等級選擇</h3>
+    <div class="table-wrap"><table>
+      <tr><th>作業</th><th>建議等級</th><th>理由</th></tr>
+      <tr><td>一般查詢與報表</td><td>Read Committed</td><td>效能優先，可接受些微不一致</td></tr>
+      <tr><td><strong>金額核算、對帳</strong></td><td><u>Repeatable Read 以上</u></td><td>同一交易內讀到的值必須一致</td></tr>
+      <tr><td><strong>名額分配、抽籤</strong></td><td><strong>Serializable</strong> 或明確加鎖</td><td><u>不能有幻讀，否則會超額核給</u></td></tr>
+      <tr><td>統計快照</td><td>快照隔離／另建彙總表</td><td>避免長交易鎖住整張表</td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 最容易被忽略的一點</span>
+      <u><strong>提高隔離等級不能解決「遺失更新」</strong>——那是應用層的問題，要靠<strong>樂觀鎖（版本號）</strong>或 <code>SELECT ... FOR UPDATE</code> 解決。<br>
+      申論若寫「用 Serializable 解決公文同時編輯」是<strong>錯的</strong>（也不可行，會鎖住半小時）。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 13 必背結論</span>
+      <strong>①</strong> 異常三種：<u>髒讀（未提交）、不可重複讀（值變）、幻讀（列數變）</u><br>
+      <strong>②</strong> 等級四階，<strong>Read Committed 是多數資料庫預設</strong><br>
+      <strong>③</strong> <u>名額分配須防幻讀</u>；<strong>遺失更新要用樂觀鎖，不是提高隔離等級</strong>
+    </div>
+  </div>
+
+  <!-- ============ 14 ============ -->
+  <div class="card" id="d14">
+    <h2>深化 14　MVCC：為什麼讀不會擋寫、寫不會擋讀</h2>
+
+    <h3>14-1　傳統鎖的困境</h3>
+    <p><u>純鎖式的資料庫：有人在寫，讀的人就要等；有人在讀，寫的人也要等。<br>
+    在「報表查詢跑十分鐘」的公務系統裡，這代表<strong>整張表被鎖十分鐘</strong>。</u></p>
+
+    <h3>14-2　MVCC 的核心想法</h3>
+    <div class="frame">
+      <span class="t">📐 多版本並行控制</span>
+      <u>每次更新<strong>不覆蓋舊值</strong>，而是產生一個<strong>新版本</strong>並標記交易編號。<br>
+      每個交易依自己的「快照時間點」，去讀<strong>當時應該看到的那個版本</strong>。</u><br><br>
+      結果：<strong>讀取者不需要鎖，寫入者也不會被讀取者擋住。</strong>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>時間</th><th>交易 A（查詢）</th><th>交易 B（更新）</th><th>A 看到的值</th></tr>
+      <tr><td>T1</td><td>開始，取得快照</td><td>—</td><td>100</td></tr>
+      <tr><td>T2</td><td>—</td><td>把值改為 200 並提交</td><td><u><strong>仍是 100</strong></u></td></tr>
+      <tr><td>T3</td><td>再讀一次</td><td>—</td><td><u><strong>仍是 100</strong>（同一快照）</u></td></tr>
+      <tr><td>T4</td><td>結束；新交易開始</td><td>—</td><td>200</td></tr>
+    </table></div>
+
+    <h3>14-3　MVCC 的代價</h3>
+    <div class="table-wrap"><table>
+      <tr><th>代價</th><th>說明</th><th>維運要點</th></tr>
+      <tr><td><strong>舊版本堆積</strong></td><td>被取代的版本仍占空間</td><td><u>須定期清理（如 VACUUM）</u></td></tr>
+      <tr><td><strong>長交易的傷害</strong></td><td><u>一個開了三小時沒結束的交易，會讓這三小時的所有舊版本<strong>都不能清</strong></u></td><td><strong>設定交易逾時；報表改讀副本</strong></td></tr>
+      <tr><td>寫入放大</td><td>更新一列可能觸發索引多處更新</td><td>控制索引數量</td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 公務系統的實際事故樣態</span>
+      <u>「資料庫空間暴增、效能崩潰」的常見原因不是資料變多，而是<strong>某個程式開了交易卻忘了提交或回滾</strong>（例如連線洩漏），<br>
+      導致舊版本永遠無法清理。<strong>監控「最長執行中交易時間」是必要指標。</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 14 必背結論</span>
+      <strong>①</strong> MVCC 讓<strong>讀不擋寫、寫不擋讀</strong>，靠的是<u>保留多版本 ＋ 快照</u><br>
+      <strong>②</strong> 代價是<u>舊版本要清理</u>；<strong>長交易會讓清理失效</strong><br>
+      <strong>③</strong> 必監控指標：<strong>最長執行中交易、未提交交易數</strong>
+    </div>
+  </div>
+
+  <!-- ============ 15 ============ -->
+  <div class="card" id="d15">
+    <h2>深化 15　查詢執行計畫：看懂資料庫在想什麼</h2>
+
+    <h3>15-1　三種聯結演算法</h3>
+    <div class="table-wrap"><table>
+      <tr><th>演算法</th><th>做法</th><th>適合</th><th>複雜度</th></tr>
+      <tr><td><strong>巢狀迴圈</strong></td><td>對外表每一列去內表找</td><td><u>外表很小、內表有索引</u></td><td>O(n × log m)</td></tr>
+      <tr><td><strong>雜湊聯結</strong></td><td><u>小表建雜湊表，大表掃過去查</u></td><td><strong>等值聯結、兩表都大</strong></td><td>O(n + m)</td></tr>
+      <tr><td><strong>合併聯結</strong></td><td>兩表都排序後雙指標掃</td><td><u>兩表已依聯結鍵排序（或有索引）</u></td><td>O(n log n + m log m)</td></tr>
+    </table></div>
+    <p><u><strong>非等值聯結</strong>（如 <code>ON a.金額 &gt; b.門檻</code>）<strong>不能用雜湊聯結</strong>——雜湊只能做等值比對。這是常考的判斷點。</u></p>
+
+    <h3>15-2　執行計畫要看的五件事</h3>
+    <div class="frame">
+      <span class="t">📐 診斷順序</span>
+      <strong>①掃描方式</strong>：<u>看到 <strong>Full Table Scan</strong> 且表很大 → 檢查索引與條件寫法</u><br>
+      <strong>②預估 vs 實際列數</strong>：<u>差距超過十倍 → <strong>統計資訊過期</strong>，須更新</u><br>
+      <strong>③聯結演算法</strong>：大表對大表卻用巢狀迴圈 → 通常是估算錯誤<br>
+      <strong>④排序與暫存</strong>：<u>出現「使用暫存檔」表示記憶體不夠，會落到磁碟</u><br>
+      <strong>⑤成本最高的節點</strong>：從最貴的那一步開始改，不要亂調
+    </div>
+
+    <h3>15-3　統計資訊為什麼關鍵</h3>
+    <div class="hl">
+      <u>資料庫是靠<strong>統計資訊</strong>（每個欄位有幾個相異值、資料分布如何）來估算「這個條件會篩出幾列」，<br>
+      再據以決定要不要用索引、用哪種聯結。</u><br><br>
+      <strong>統計過期的典型場景</strong>：<u>年初剛匯入 500 萬筆資料，但統計還停在去年的 10 萬筆 →<br>
+      資料庫以為只有 10 萬筆，選了巢狀迴圈 → <strong>查詢從 2 秒變成 40 分鐘</strong>。</u>
+    </div>
+    <p><strong>維運作為</strong>：<u>大量匯入或刪除後<strong>主動更新統計資訊</strong>；並排定定期維護作業。</u></p>
+
+    <h3>15-4　公務系統的效能調校順序</h3>
+    <div class="table-wrap"><table>
+      <tr><th>順序</th><th>做什麼</th><th>效益／成本</th></tr>
+      <tr><td>1</td><td><u>改寫查詢（消除函數包欄位、消除 N+1）</u></td><td><strong>最高</strong>／零成本</td></tr>
+      <tr><td>2</td><td>建立或調整索引</td><td>高／低</td></tr>
+      <tr><td>3</td><td>更新統計資訊、調整參數</td><td>中／低</td></tr>
+      <tr><td>4</td><td>加彙總表或快取</td><td>高／中（要處理一致性）</td></tr>
+      <tr><td>5</td><td><u>升級硬體</u></td><td><strong>最低</strong>／最高</td></tr>
+    </table></div>
+    <p><u><strong>申論結論句</strong>：「效能問題應<strong>先從查詢與索引著手</strong>，硬體升級是最後手段——因為前者常有數十倍改善，後者通常只有數倍。」</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 15 必背結論</span>
+      <strong>①</strong> 三種聯結：<u>巢狀迴圈（小外表）、雜湊（等值大表）、合併（已排序）</u><br>
+      <strong>②</strong> <strong>非等值聯結不能用雜湊聯結</strong><br>
+      <strong>③</strong> 預估與實際列數差十倍以上 → <u>統計資訊過期</u><br>
+      <strong>④</strong> 調校順序：<strong>查詢 → 索引 → 統計 → 快取 → 硬體</strong>
+    </div>
+  </div>
+
+  <!-- ============ 16 ============ -->
+  <div class="card" id="d16">
+    <h2>深化 16　分割與分片：資料太大時的兩條路</h2>
+
+    <h3>16-1　分割（Partitioning）：同一台機器內切</h3>
+    <div class="table-wrap"><table>
+      <tr><th>方式</th><th>依據</th><th>公務適用</th></tr>
+      <tr><td><strong>範圍分割</strong></td><td>依日期或編號區間</td><td><u><strong>最常用</strong>：依年度分割案件表</u></td></tr>
+      <tr><td>雜湊分割</td><td>依鍵值雜湊平均分配</td><td>資料量平均、無明顯時間性</td></tr>
+      <tr><td>清單分割</td><td>依明確值列舉</td><td>依行政區分割</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 分割的三大效益</span>
+      <strong>①分割裁剪</strong>：<u>查 115 年的案件時，資料庫<strong>只掃 115 年那一塊</strong>，其他年度完全不碰</u><br>
+      <strong>②維護獨立</strong>：<u>可單獨對某一年做重建索引、備份或壓縮</u><br>
+      <strong>③快速歸檔</strong>：<u>要把 100 年以前的資料下線，<strong>直接卸載該分割即可</strong>，不需 DELETE 500 萬筆</u>
+    </div>
+    <p><u><strong>第三點在公務系統特別重要</strong>：大量 DELETE 會產生巨量交易紀錄、鎖表、且空間不會馬上釋放；<strong>卸載分割是瞬間完成的。</strong></u></p>
+
+    <h3>16-2　分片（Sharding）：拆到不同機器</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>分割</th><th>分片</th></tr>
+      <tr><td>範圍</td><td>單一資料庫內</td><td><u>多台資料庫伺服器</u></td></tr>
+      <tr><td>目的</td><td>查詢效率與維護</td><td><strong>突破單機容量與吞吐上限</strong></td></tr>
+      <tr><td>跨界查詢</td><td>資料庫自動處理</td><td><u><strong>需應用層彙整，交易一致性困難</strong></u></td></tr>
+      <tr><td>複雜度</td><td>低</td><td><strong>高</strong></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 縣市政府該不該分片</span>
+      <u>絕大多數縣市政府的資料量（千萬級）<strong>用不到分片</strong>——單機加上適當索引與分割就綽綽有餘。<br>
+      分片會帶來<strong>跨片交易、跨片統計、資料重新平衡</strong>三個難題，維運能量負擔不起。<br><br>
+      <strong>申論寫法</strong>：「技術選擇須與機關維運能量相稱；本案資料量級以<strong>分割</strong>即可滿足，暫無分片必要。」</u>
+    </div>
+
+    <h3>16-3　讀寫分離：更常用的擴充方式</h3>
+    <div class="hl">
+      <u><strong>主庫負責寫入，副本負責查詢與報表。</strong><br><br>
+      優點：報表跑再久也不影響核心作業。<br>
+      <strong>必須注意的一件事</strong>：副本有<u>複寫延遲</u>——<strong>剛寫入的資料可能在副本上查不到</strong>。<br>
+      故「寫入後立即查詢」的流程<strong>必須讀主庫</strong>，否則民眾送件後查不到自己的案件。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 16 必背結論</span>
+      <strong>①</strong> 分割三效益：<u>分割裁剪、維護獨立、<strong>卸載分割取代大量 DELETE</strong></u><br>
+      <strong>②</strong> 分片是跨機器，代價是<strong>跨片交易與統計</strong>；<u>縣市政府層級通常不需要</u><br>
+      <strong>③</strong> <strong>讀寫分離要注意複寫延遲</strong>——寫後立即查須讀主庫
+    </div>
+  </div>
+
+  <!-- ============ 17 ============ -->
+  <div class="card" id="d17">
+    <h2>深化 17　資料庫加密：三層防護與各自擋得住什麼</h2>
+
+    <h3>17-1　三個層次</h3>
+    <div class="table-wrap"><table>
+      <tr><th>層次</th><th>加密對象</th><th>擋得住</th><th>擋不住</th></tr>
+      <tr><td><strong>傳輸中</strong><br>（TLS）</td><td>連線</td><td>網路竊聽、中間人</td><td><u>資料庫內部的一切</u></td></tr>
+      <tr><td><strong>靜態</strong><br>（TDE 透明加密）</td><td>整個資料檔</td><td><u><strong>硬碟或備份檔被偷走</strong></u></td><td><u>合法登入的人照樣看得到明文</u></td></tr>
+      <tr><td><strong>欄位級</strong></td><td>特定敏感欄位</td><td><strong>內部人員不當查詢</strong>、DBA 越權</td><td>應用程式本身被入侵</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 一句話判準</span>
+      <u><strong>TDE 防的是「硬碟被搬走」，欄位加密防的是「人把資料查出來」。</strong><br>
+      兩者防的威脅完全不同，<strong>不能互相取代</strong>——這是申論最容易寫錯的地方。</u>
+    </div>
+
+    <h3>17-2　欄位加密的三個實務難題</h3>
+    <div class="table-wrap"><table>
+      <tr><th>難題</th><th>說明</th><th>解法</th></tr>
+      <tr><td><strong>無法查詢</strong></td><td><u>加密後的值無法做範圍查詢或排序</u></td><td>另存一個<strong>加鹽雜湊</strong>欄位供等值比對</td></tr>
+      <tr><td><strong>索引失效</strong></td><td>加密欄位建索引沒有意義</td><td>改以其他欄位為查詢入口</td></tr>
+      <tr><td><strong>金鑰管理</strong></td><td><u><strong>金鑰跟資料放在一起 = 沒有加密</strong></u></td><td>獨立的金鑰管理系統，並規劃輪替</td></tr>
+    </table></div>
+
+    <h3>17-3　遮罩（Masking）：更常被需要的功能</h3>
+    <div class="hl">
+      <u><strong>動態資料遮罩</strong>：一般承辦查詢時看到 <code>A12****789</code>，具特定權限者才看到完整值。<br><br>
+      這比全欄位加密更符合公務實務——<strong>大多數作業其實不需要完整的身分證字號</strong>，只需要確認是同一個人。</u>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>手段</th><th>可否還原</th><th>用途</th></tr>
+      <tr><td>加密</td><td><u>可（有金鑰）</u></td><td>需要原值的作業</td></tr>
+      <tr><td>雜湊 ＋ 鹽</td><td>不可</td><td>只需比對是否相同</td></tr>
+      <tr><td><strong>遮罩</strong></td><td>顯示層處理，原值仍在</td><td><u><strong>畫面顯示、報表輸出</strong></u></td></tr>
+      <tr><td>代碼化</td><td>需查對照表</td><td>資料交換時以代碼取代真值</td></tr>
+    </table></div>
+
+    <h3>17-4　備份也要加密（最常漏掉的一項）</h3>
+    <div class="warn">
+      <span class="t">⚠️ 備份是個資外洩的常見來源</span>
+      <u>正式環境防護嚴密，但備份檔可能：<strong>存在防護較弱的儲存裝置、送到異地、由廠商保管、放在測試環境還原</strong>。<br><br>
+      <strong>要求</strong>：備份檔應加密、金鑰與備份分開保管、還原演練時使用去識別化資料。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 17 必背結論</span>
+      <strong>①</strong> <u><strong>TDE 防硬碟被偷，欄位加密防人越權查詢</strong></u>——不可互相取代<br>
+      <strong>②</strong> 欄位加密會讓<strong>查詢與索引失效</strong>；需要比對時用<u>加鹽雜湊</u><br>
+      <strong>③</strong> <strong>金鑰不可與資料同放</strong><br>
+      <strong>④</strong> 實務上<u>遮罩比全加密更實用</u>；<strong>備份也必須加密</strong>
+    </div>
+  </div>
+
+  <!-- ============ 18 ============ -->
+  <div class="card" id="d18">
+    <h2>深化 18　資料倉儲深入：ETL、ELT 與資料血緣</h2>
+
+    <h3>18-1　ETL vs ELT</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>ETL</th><th>ELT</th></tr>
+      <tr><td>順序</td><td>抽取 → <u>先轉換</u> → 載入</td><td>抽取 → 載入 → <u>在目標端轉換</u></td></tr>
+      <tr><td>轉換在哪</td><td>獨立的 ETL 伺服器</td><td><strong>資料倉儲本身（算力強）</strong></td></tr>
+      <tr><td>原始資料</td><td><u>通常不保留</u></td><td><strong>保留原始副本</strong></td></tr>
+      <tr><td>適合</td><td>轉換複雜、目標端算力有限</td><td><u>雲端資料倉儲、需要回溯原始值</u></td></tr>
+    </table></div>
+    <div class="hl">
+      <strong>公務建議</strong>：<u>優先 <strong>ELT 並保留原始層</strong>——因為<strong>「當初到底進來的是什麼」</strong>在稽核與爭議時是關鍵。<br>
+      只存轉換後的結果，等於把證據丟掉。</u>
+    </div>
+
+    <h3>18-2　分層架構</h3>
+    <div class="frame">
+      <span class="t">📐 三層（或四層）</span>
+      <strong>原始層（Raw／Bronze）</strong>：<u>原封不動的來源副本，<strong>不做任何修改</strong></u><br>
+      ↓<br>
+      <strong>整理層（Cleansed／Silver）</strong>：<u>清洗、統一代碼、去識別化、補齊</u><br>
+      ↓<br>
+      <strong>應用層（Mart／Gold）</strong>：<u>依主題彙總，供報表與儀表板直接使用</u>
+    </div>
+    <p><u><strong>為什麼要分層</strong>：出現數字爭議時，可以逐層往回追——是來源錯、清洗規則錯，還是彙總邏輯錯。<strong>沒有分層就只能重跑一次並祈禱。</strong></u></p>
+
+    <h3>18-3　資料血緣（Data Lineage）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>要回答的問題</th><th>沒有血緣時的下場</th></tr>
+      <tr><td><u>這個數字是從哪裡來的？</u></td><td>無法向議會說明</td></tr>
+      <tr><td>經過哪些加工？</td><td>爭議時無法自證</td></tr>
+      <tr><td><strong>如果來源系統要改欄位，會影響哪些報表？</strong></td><td><u>改了才發現三個儀表板壞掉</u></td></tr>
+      <tr><td>這份報表多久沒更新了？</td><td>用了過期資料做決策</td></tr>
+    </table></div>
+
+    <h3>18-4　ETL 的品質檢核點</h3>
+    <div class="frame">
+      <span class="t">📐 每一批次都應自動檢查</span>
+      <strong>①筆數勾稽</strong>：來源筆數 = 載入筆數 ＋ 拒絕筆數<br>
+      <strong>②金額合計勾稽</strong>：<u>來源合計 = 目標合計（差一元都要查）</u><br>
+      <strong>③值域檢查</strong>：日期是否合理、金額是否為負、代碼是否在對照表內<br>
+      <strong>④重複檢查</strong>：主鍵是否重複<br>
+      <strong>⑤異常告警</strong>：<u><strong>批次失敗或筆數異常變動，必須主動通知</strong></u>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 最危險的失敗模式</span>
+      <u><strong>批次沒跑成功，但儀表板照樣顯示舊資料——沒有人發現。</strong><br>
+      解法：畫面永遠顯示<strong>「資料更新時間」</strong>，並對超過預期未更新者發出告警。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 18 必背結論</span>
+      <strong>①</strong> 公務優先 <strong>ELT 並保留原始層</strong>——原始資料是稽核證據<br>
+      <strong>②</strong> 三層架構：<u>原始 → 整理 → 應用</u>，出錯時可逐層追<br>
+      <strong>③</strong> <strong>資料血緣</strong>回答「數字從哪來、改了會影響誰」<br>
+      <strong>④</strong> 每批次做<u>筆數與金額勾稽</u>；<strong>畫面顯示資料更新時間</strong>
+    </div>
+  </div>
+
+  <!-- ============ 19 ============ -->
+  <div class="card" id="d19">
+    <h2>深化 19　時態資料：公務系統的預設需求</h2>
+
+    <h3>19-1　兩種時間軸</h3>
+    <div class="table-wrap"><table>
+      <tr><th>時間</th><th>意義</th><th>公務例</th></tr>
+      <tr><td><strong>有效時間</strong><br>Valid Time</td><td><u>這筆事實在真實世界<strong>何時開始生效</strong></u></td><td>低收入戶資格自 115/1/1 起生效</td></tr>
+      <tr><td><strong>交易時間</strong><br>Transaction Time</td><td><u>這筆紀錄<strong>何時被寫進系統</strong></u></td><td>承辦於 115/2/10 才完成建檔</td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 為什麼兩個都要記</span>
+      <u>要回答兩種不同的問題：<br>
+      <strong>①</strong>「這個人在 115 年 1 月<strong>是不是</strong>低收入戶？」→ 用<strong>有效時間</strong><br>
+      <strong>②</strong>「我們在 115 年 1 月<strong>當時知道</strong>他是低收入戶嗎？」→ 用<strong>交易時間</strong></u><br><br>
+      <u><strong>第二個問題在爭訟時是關鍵</strong>——承辦當時依據的資訊是什麼，決定了處分是否合法。</u>
+    </div>
+
+    <h3>19-2　雙時態表的設計</h3>
+    <div class="table-wrap"><table>
+      <tr><th>欄位</th><th>用途</th></tr>
+      <tr><td>業務主鍵</td><td>識別是誰</td></tr>
+      <tr><td><strong>有效起日／有效迄日</strong></td><td>真實世界的生效期間</td></tr>
+      <tr><td><strong>建檔時間／失效時間</strong></td><td>系統中的版本期間</td></tr>
+      <tr><td>異動人、異動原因</td><td><u>稽核必要</u></td></tr>
+      <tr><td>資料來源</td><td>血緣追蹤</td></tr>
+    </table></div>
+    <p><u><strong>鐵則</strong>：這種表<strong>只能 INSERT，不能 UPDATE 或 DELETE</strong>。更正是「新增一筆更正紀錄並將舊版標記失效」，不是改掉舊值。</u></p>
+
+    <h3>19-3　追溯生效的處理</h3>
+    <div class="hl">
+      <strong>情境</strong>：115 年 3 月才發現某人的資格<strong>應自 115 年 1 月起生效</strong>。<br><br>
+      <u>正確處理：新增一筆<strong>有效起日 = 115/1/1、建檔時間 = 115/3/x</strong> 的紀錄。<br><br>
+      <strong>連帶效果</strong>：1、2 月已核算的補助可能需要<strong>補發</strong>——系統必須能<strong>重算過去期間</strong>，<br>
+      而重算的前提就是<strong>資料模型保留了時間軸</strong>。</u>
+    </div>
+    <div class="warn">
+      <span class="t">⚠️ 覆蓋式設計的災難</span>
+      <u>如果當初是直接 UPDATE 覆蓋：<br>
+      ①不知道原本是什麼 ②不知道何時改的 ③不知道誰改的 ④<strong>無法重算過去期間</strong> ⑤爭訟時無法自證合法。<br><br>
+      <strong>這五點就是申論的完整失分分析。</strong></u>
+    </div>
+
+    <h3>19-4　法規參數也要版本化</h3>
+    <p><u>補助金額、級距、費率會隨法規修正而改變。<strong>系統必須依「案件發生當時的法規版本」計算，而非現行版本。</strong><br>
+    做法：把法規參數存成<strong>有生效期間的參數表</strong>，計算時依案件基準日取用對應版本。</u></p>
+
+    <div class="frame">
+      <span class="t">✅ 深化 19 必背結論</span>
+      <strong>①</strong> <u><strong>有效時間</strong>（真實世界何時生效）與<strong>交易時間</strong>（何時被記錄）都要保留</u><br>
+      <strong>②</strong> 時態表<strong>只增不改</strong>；更正用新增紀錄的方式<br>
+      <strong>③</strong> 追溯生效需能<strong>重算過去期間</strong>，前提是保留了時間軸<br>
+      <strong>④</strong> <strong>法規參數也要版本化</strong>，依案件基準日取用
+    </div>
+  </div>
+
+  <!-- ============ 20 ============ -->
+  <div class="card" id="d20">
+    <h2>深化 20　主從式複寫與高可用：RPO/RTO 怎麼落地</h2>
+
+    <h3>20-1　同步 vs 非同步複寫</h3>
+    <div class="table-wrap"><table>
+      <tr><th></th><th>同步複寫</th><th>非同步複寫</th></tr>
+      <tr><td>提交條件</td><td><u>備援也寫入成功才回應</u></td><td>主庫寫入即回應</td></tr>
+      <tr><td><strong>RPO</strong></td><td><strong>0</strong>（不遺失）</td><td><u>可能遺失最後幾秒</u></td></tr>
+      <tr><td>寫入延遲</td><td><u>受兩地距離影響（光速限制）</u></td><td>不受影響</td></tr>
+      <tr><td>適合</td><td><strong>同城短距離</strong></td><td><strong>異地遠距離</strong></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 物理限制（申論可寫的硬事實）</span>
+      <u>光在光纖中約每公里 <strong>5 微秒</strong>，來回即 10 微秒。<br>
+      台北到高雄約 350 公里 → <strong>單次來回至少 3.5 毫秒</strong>。<br><br>
+      若每筆交易都要等這 3.5 毫秒，<strong>寫入吞吐量會受嚴重限制</strong>。<br>
+      這就是「異地備援通常採非同步」的物理原因——<strong>不是技術做不到，是物理限制</strong>。</u>
+    </div>
+
+    <h3>20-2　架構選擇對照</h3>
+    <div class="table-wrap"><table>
+      <tr><th>業務</th><th>RPO</th><th>RTO</th><th>架構</th></tr>
+      <tr><td><strong>災害應變、119</strong></td><td><u>0</u></td><td><u>分鐘級</u></td><td>同城同步 ＋ 自動切換</td></tr>
+      <tr><td>戶政、稅務</td><td>數分鐘</td><td>數小時</td><td>異地非同步 ＋ 手動切換</td></tr>
+      <tr><td>內部行政系統</td><td>1 日</td><td>1～3 日</td><td><u>每日備份 ＋ 還原</u></td></tr>
+      <tr><td>歷史查詢系統</td><td>1 週</td><td>1 週</td><td>定期備份即可</td></tr>
+    </table></div>
+
+    <h3>20-3　切換的三個現實問題</h3>
+    <div class="warn">
+      <span class="t">⚠️ 有備援不代表切得過去</span>
+      <u><strong>①誰有權決定切換？</strong>——沒有明定，事故當下沒人敢做決定<br>
+      <strong>②切換要多久？</strong>——包含 DNS 生效時間、應用程式連線字串更新、快取清除<br>
+      <strong>③切回來怎麼辦？</strong>——<u>備援期間產生的資料要如何同步回主庫，這一步最常被忽略</u></u>
+    </div>
+    <p><u><strong>腦裂（Split-Brain）</strong>：主備因網路中斷而互相認為對方掛了，<strong>兩邊同時接受寫入</strong> → 資料衝突且難以合併。<br>
+    防範：<strong>仲裁節點（Quorum）</strong>或明確的人工決策程序。</u></p>
+
+    <h3>20-4　演練才是重點</h3>
+    <div class="hl">
+      <u><strong>「沒有演練過的備援，等同沒有備援。」</strong><br><br>
+      年度演練應涵蓋：<strong>①實際切換 ②實際還原一份備份 ③驗證資料完整性 ④記錄實際花費時間並與 RTO 比對 ⑤切回主庫</strong>。<br><br>
+      <strong>演練紀錄要留存</strong>——這既是資安法的要求，也是爭取預算的依據。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 20 必背結論</span>
+      <strong>①</strong> <u>同步複寫 RPO=0 但受距離限制；異地通常只能非同步</u><br>
+      <strong>②</strong> 台北到高雄光速來回約 <strong>3.5 毫秒</strong>——這是物理限制<br>
+      <strong>③</strong> 切換要先定義：<strong>誰決定、多久、怎麼切回</strong><br>
+      <strong>④</strong> <strong>腦裂</strong>要靠仲裁機制防範；<u>演練紀錄必須留存</u>
+    </div>
+  </div>
+
+  <!-- ============ 21 ============ -->
+  <div class="card" id="d21">
+    <h2>深化 21　NoSQL 選型：四種類型與公務混合架構</h2>
+
+    <h3>21-1　四種類型的判準</h3>
+    <div class="table-wrap"><table>
+      <tr><th>類型</th><th>資料模型</th><th>強項</th><th>公務適用</th></tr>
+      <tr><td><strong>鍵值</strong></td><td>Key → Value</td><td><u>極快的等值查詢</u></td><td>Session、快取、驗證碼</td></tr>
+      <tr><td><strong>文件</strong></td><td>JSON 文件</td><td>結構彈性、巢狀</td><td><u>陳情內容、表單、話務摘要</u></td></tr>
+      <tr><td><strong>欄位家族</strong></td><td>寬表</td><td>大量寫入、時序</td><td>感測器數據、日誌</td></tr>
+      <tr><td><strong>圖形</strong></td><td>節點與邊</td><td><u><strong>多層關係查詢</strong></u></td><td><strong>人際關聯、金流追查、地籍相鄰</strong></td></tr>
+    </table></div>
+    <div class="frame">
+      <span class="t">📐 圖形資料庫的關鍵優勢</span>
+      <u>「找出與某人有三層以內關聯的所有人」——<br>
+      關聯式資料庫要做<strong>三次自我聯結</strong>，資料量大時效能極差；<br>
+      圖形資料庫是<strong>沿著邊走</strong>，複雜度只與<strong>結果規模</strong>有關，與總資料量無關。</u>
+    </div>
+
+    <h3>21-2　混合架構（公務的實際答案）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>資料</th><th>放哪裡</th><th>理由</th></tr>
+      <tr><td><strong>案件主檔、核定、金額</strong></td><td><u><strong>關聯式資料庫</strong></u></td><td><strong>要交易一致性、要稽核、要法遵</strong></td></tr>
+      <tr><td>陳情內容、附件描述</td><td>文件資料庫</td><td>欄位常變、結構彈性</td></tr>
+      <tr><td>Session、驗證碼</td><td>鍵值儲存</td><td>短期、高頻</td></tr>
+      <tr><td>操作日誌、感測數據</td><td>欄位家族／時序資料庫</td><td>寫入極重</td></tr>
+      <tr><td>全文檢索</td><td>搜尋引擎（倒排索引）</td><td>關鍵字與相關性排序</td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 混合架構的代價</span>
+      <u>多一套系統就多一套：<strong>備份、監控、權限、版本升級、人員技能</strong>。<br><br>
+      <strong>公務判準</strong>：「除非現有關聯式資料庫<strong>確實無法滿足</strong>，否則不引入新的資料庫類型——<br>
+      因為資訊室要養得起它。」</u>
+    </div>
+
+    <h3>21-3　最終一致性可以接受嗎</h3>
+    <div class="table-wrap"><table>
+      <tr><th>資料</th><th>可接受最終一致？</th><th>理由</th></tr>
+      <tr><td>公告、法規查詢</td><td><strong>可以</strong></td><td>晚幾秒看到沒有影響</td></tr>
+      <tr><td>案件進度查詢</td><td>視情況</td><td><u>須顯示資料基準時間</u></td></tr>
+      <tr><td><strong>繳費、核定、餘額</strong></td><td><u><strong>不可以</strong></u></td><td><strong>涉及金錢與權益，必須強一致</strong></td></tr>
+      <tr><td><strong>名額分配</strong></td><td><strong>不可以</strong></td><td>會超額核給</td></tr>
+    </table></div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 21 必背結論</span>
+      <strong>①</strong> 四型：<u>鍵值（快取）、文件（彈性）、欄位家族（重寫入）、圖形（多層關係）</u><br>
+      <strong>②</strong> <strong>核心交易資料一律留在關聯式資料庫</strong>，其餘才考慮混合<br>
+      <strong>③</strong> 混合的代價是<u>維運負擔加倍</u>——要與機關能量相稱<br>
+      <strong>④</strong> <strong>涉及金錢與名額者不可接受最終一致性</strong>
+    </div>
+  </div>
+
+  <!-- ============ 22 ============ -->
+  <div class="card" id="d22">
+    <h2>深化 22　資料品質的量化：從「感覺不準」到「準確率 97.3%」</h2>
+
+    <h3>22-1　六個構面與可計算的指標</h3>
+    <div class="table-wrap"><table>
+      <tr><th>構面</th><th>指標算法</th><th>目標值範例</th></tr>
+      <tr><td><strong>完整性</strong></td><td>非空值筆數 ÷ 應有筆數</td><td>必填欄位 100%</td></tr>
+      <tr><td><strong>正確性</strong></td><td><u>抽樣比對權威來源的相符率</u></td><td>≥ 99%</td></tr>
+      <tr><td><strong>一致性</strong></td><td>跨系統勾稽相符筆數 ÷ 總筆數</td><td>≥ 99.5%</td></tr>
+      <tr><td><strong>時效性</strong></td><td><u>資料更新時間與現在的落差</u></td><td>≤ 1 日</td></tr>
+      <tr><td><strong>唯一性</strong></td><td>1 − 重複筆數 ÷ 總筆數</td><td>≥ 99.9%</td></tr>
+      <tr><td><strong>有效性</strong></td><td>符合格式與值域的比率</td><td>≥ 99%</td></tr>
+    </table></div>
+    <p><u><strong>為什麼要量化</strong>：「資料很亂」無法編預算；<strong>「地址一致性僅 82%，導致跨局處統計誤差達 15%」</strong>才能說服長官。</u></p>
+
+    <h3>22-2　資料品質的三道防線</h3>
+    <div class="frame">
+      <span class="t">📐 由前往後，成本由低到高</span>
+      <strong>①源頭控制（最便宜）</strong>：<u>輸入即驗證、下拉選單取代自由輸入、必填欄位、格式檢查</u><br>
+      <strong>②流程檢核（中）</strong>：<u>ETL 批次的勾稽、跨系統定期比對、異常告警</u><br>
+      <strong>③事後修補（最貴）</strong>：<u>人工清洗、委外清理——而且不解決根因，明年還要再做一次</u><br><br>
+      <strong>「進來時擋，比出去時補便宜十倍。」</strong>
+    </div>
+
+    <h3>22-3　資料品質報告的呈現方式</h3>
+    <div class="table-wrap"><table>
+      <tr><th>資料集</th><th>完整性</th><th>一致性</th><th>時效性</th><th>綜合</th><th>趨勢</th></tr>
+      <tr><td>案件主檔</td><td>99.8%</td><td>98.2%</td><td>即時</td><td><strong>A</strong></td><td>持平</td></tr>
+      <tr><td><u>地址資料</u></td><td>97.1%</td><td><u><strong>82.4%</strong></u></td><td>1 日</td><td><u><strong>C</strong></u></td><td>改善中</td></tr>
+      <tr><td>聯絡電話</td><td>88.5%</td><td>95.0%</td><td>1 日</td><td>B</td><td>下降</td></tr>
+    </table></div>
+    <p><u><strong>加上「趨勢」欄</strong>是關鍵——長官要看的不只是現況，而是「有沒有在改善」。</u></p>
+
+    <h3>22-4　資料品質與行政責任的連結</h3>
+    <div class="warn">
+      <span class="t">⚠️ 申論的加分連結</span>
+      <u>資料品質不只是技術議題，它直接影響：<br>
+      <strong>①</strong> 統計數字錯誤 → 政策決策失誤、<strong>對議會與民眾說明不實</strong><br>
+      <strong>②</strong> 名冊遺漏 → <strong>應通知而未通知，屬行政疏失</strong><br>
+      <strong>③</strong> 資料錯誤導致處分違法 → <strong>撤銷、返還，甚至國家賠償</strong><br><br>
+      <strong>把技術指標連到法律後果，是高考三級與普考的分水嶺。</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 22 必背結論</span>
+      <strong>①</strong> 六構面都可以<u>算成數字</u>：完整、正確、一致、時效、唯一、有效<br>
+      <strong>②</strong> 三道防線：<strong>源頭 → 流程 → 事後</strong>，成本逐級上升十倍<br>
+      <strong>③</strong> 報告要有<u>趨勢欄</u>，不能只有現況<br>
+      <strong>④</strong> 品質問題要連到<strong>行政責任與法律後果</strong>
+    </div>
+  </div>
+
+  <!-- ============ 23 ============ -->
+  <div class="card" id="d23">
+    <h2>深化 23　資料庫維運的可觀測性：該監控哪些指標</h2>
+
+    <h3>23-1　四大類必監控指標</h3>
+    <div class="table-wrap"><table>
+      <tr><th>類別</th><th>指標</th><th>異常代表什麼</th></tr>
+      <tr><td rowspan="3"><strong>效能</strong></td><td>慢查詢數量與清單</td><td>需要調校的目標</td></tr>
+      <tr><td>快取命中率</td><td><u>偏低表示記憶體不足或查詢樣態改變</u></td></tr>
+      <tr><td>平均回應時間（P50／P95／P99）</td><td><strong>P99 惡化代表有少數人體驗極差</strong></td></tr>
+      <tr><td rowspan="3"><strong>併發</strong></td><td>連線數與連線池使用率</td><td><u>接近上限即將拒絕服務</u></td></tr>
+      <tr><td><strong>最長執行中交易時間</strong></td><td><u><strong>連線洩漏、忘了提交；會拖垮 MVCC 清理</strong></u></td></tr>
+      <tr><td>鎖等待與死結次數</td><td>設計或交易範圍有問題</td></tr>
+      <tr><td rowspan="2"><strong>容量</strong></td><td>表空間與成長率</td><td><u>要能預測「幾個月後會滿」</u></td></tr>
+      <tr><td>交易紀錄檔大小</td><td><strong>暴增通常是長交易或備份失敗</strong></td></tr>
+      <tr><td rowspan="3"><strong>可靠性</strong></td><td><strong>備份成功率與最後成功時間</strong></td><td><u>最重要卻最常沒人看</u></td></tr>
+      <tr><td>複寫延遲</td><td>副本落後多久</td></tr>
+      <tr><td>還原演練結果</td><td>備份是否真的可用</td></tr>
+    </table></div>
+
+    <h3>23-2　為什麼要看 P95 / P99 而不是平均</h3>
+    <div class="frame">
+      <span class="t">📐 平均值會騙人</span>
+      <u>100 個查詢中，95 個 0.1 秒、5 個 20 秒 → <strong>平均 1.1 秒，看起來還好</strong>。<br>
+      但那 5 個人等了 20 秒，他們就是會打 1999 抱怨的人。</u><br><br>
+      <strong>P95 = 1.9 秒、P99 = 20 秒</strong> → 一眼就看出問題。<br><br>
+      <u><strong>服務水準應以 P95 或 P99 訂定</strong>，不要用平均值。</u>
+    </div>
+
+    <h3>23-3　告警設計的三個原則</h3>
+    <div class="table-wrap"><table>
+      <tr><th>原則</th><th>說明</th></tr>
+      <tr><td><strong>可行動</strong></td><td><u>每個告警都要對應一個「收到後該做什麼」——否則只是噪音</u></td></tr>
+      <tr><td><strong>分級</strong></td><td>緊急（立即處理）／警告（上班處理）／資訊（不通知，只記錄）</td></tr>
+      <tr><td><strong>抑制重複</strong></td><td><u>同一問題不要連發 200 封信——會導致真正重要的告警被忽略</u></td></tr>
+    </table></div>
+    <div class="warn">
+      <span class="t">⚠️ 告警疲勞</span>
+      <u>每天收到 50 封告警信，第三天起就沒有人在看了。<br>
+      <strong>「告警太多」等於「沒有告警」</strong>——寧可少而準。</u>
+    </div>
+
+    <h3>23-4　容量規劃：用成長率預測</h3>
+    <div class="hl">
+      <u>目前 800 GB、每月成長 25 GB、磁碟 1 TB。<br>
+      剩餘 = 1024 − 800 = 224 GB → <strong>224 ÷ 25 ≈ 9 個月後滿</strong>。<br><br>
+      <strong>公務意義</strong>：<u>採購程序至少要 3～6 個月</u>，所以<strong>現在就要開始編列預算</strong>，不能等到剩一個月才提。<br>
+      <strong>把這個計算寫在簽呈裡，比寫「空間快不夠了」有效十倍。</strong></u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 23 必背結論</span>
+      <strong>①</strong> 四類指標：<u>效能、併發、容量、可靠性</u><br>
+      <strong>②</strong> <strong>最長執行中交易</strong>與<strong>備份成功率</strong>是最常被漏掉的兩個<br>
+      <strong>③</strong> 服務水準用 <strong>P95／P99</strong>，不要用平均值<br>
+      <strong>④</strong> 告警要<u>可行動、分級、抑制重複</u>；容量規劃要<strong>回推採購前置期</strong>
+    </div>
+  </div>
+
+  <!-- ============ 24 ============ -->
+  <div class="card" id="d24">
+    <h2>深化 24　資料庫申論的完整答題模板</h2>
+
+    <h3>24-1　「請設計某系統資料庫」的六段結構</h3>
+    <div class="frame">
+      <span class="t">🎯 六段模板（含配分建議）</span>
+      <strong>【一】需求與限制（10%）</strong><br>
+      <u>資料量級、讀寫比、查詢型態、<strong>保存年限（檔案法）</strong>、<strong>個資敏感度</strong>、可用性要求</u><br><br>
+      <strong>【二】概念與邏輯設計（25%）—— 一定要畫圖或表</strong><br>
+      <u>實體、關係、基數；主鍵選擇（<strong>不用身分證字號當主鍵</strong>）；正規化到 3NF 並說明<strong>刻意的反正規化</strong></u><br><br>
+      <strong>【三】實體設計（20%）</strong><br>
+      <u>索引策略（含選擇率理由）、<strong>分割方式</strong>、資料型別（<strong>金額不用浮點數</strong>）</u><br><br>
+      <strong>【四】完整性與交易（15%）</strong><br>
+      <u>約束條件、外鍵、<strong>唯一性約束防重複核給</strong>、隔離等級、樂觀鎖</u><br><br>
+      <strong>【五】安全與法遵（20%）—— 最能拉開差距</strong><br>
+      <u>最小權限、<strong>稽核軌跡</strong>、去識別化、加密與遮罩、<strong>時態設計保留歷程</strong>、保存與銷毀</u><br><br>
+      <strong>【六】維運與風險（10%）</strong><br>
+      <u>備份與 RPO/RTO、監控指標、容量規劃、<strong>退場與資料可攜</strong></u>
+    </div>
+
+    <h3>24-2　萬用加分句（每題挑三句用）</h3>
+    <div class="table-wrap"><table>
+      <tr><th>面向</th><th>句子</th></tr>
+      <tr><td>歷程</td><td><u>「本表採<strong>只增不改</strong>設計，更正以新增更正紀錄方式處理，以保留完整稽核軌跡。」</u></td></tr>
+      <tr><td>法規版本</td><td><u>「補助金額等法規參數採<strong>版本化參數表</strong>，計算時依案件基準日取用當時版本。」</u></td></tr>
+      <tr><td>個資</td><td><u>「依<strong>最小必要原則</strong>，分析用資料表僅保留去識別化欄位，並設最小統計單位門檻。」</u></td></tr>
+      <tr><td>重複核給</td><td><u>「以資料庫<strong>唯一性約束</strong>（申請人＋補助年度＋項目）確保不重複核給，不僅依賴程式檢查。」</u></td></tr>
+      <tr><td>金額</td><td><u>「金額欄位採<strong>十進位型別</strong>，四捨五入時機依作業要點明定，並建立自動化測試。」</u></td></tr>
+      <tr><td>可攜</td><td><u>「契約載明資料須可<strong>以標準格式完整匯出</strong>，避免供應商鎖定。」</u></td></tr>
+      <tr><td>備援</td><td><u>「依營運衝擊分析訂定 RPO／RTO，並<strong>每年辦理還原與切換演練並留存紀錄</strong>。」</u></td></tr>
+    </table></div>
+
+    <h3>24-3　快速自我檢查表（寫完對照）</h3>
+    <div class="frame">
+      <span class="t">📐 交卷前六個問號</span>
+      □ 有沒有<strong>畫至少一張表或一張圖</strong>？<br>
+      □ 主鍵有沒有<strong>避開身分證字號</strong>？<br>
+      □ 有沒有處理<strong>歷程保留</strong>與<strong>法規版本</strong>？<br>
+      □ 有沒有寫<strong>個資保護與稽核軌跡</strong>？<br>
+      □ 有沒有寫<strong>備份與可用性</strong>？<br>
+      □ 結論有沒有<strong>回到民眾服務或法遵</strong>，而不是停在技術？
+    </div>
+
+    <h3>24-4　本科的一句話總結</h3>
+    <div class="frame">
+      <span class="t">🎯 資料庫應用這一科真正在考什麼</span>
+      <strong>不是「你會不會寫 SQL」，而是——</strong><br>
+      <strong>「你能不能設計一個十年後還說得清楚、查得回來、經得起爭訟的資料模型。」</strong><br><br>
+      <u>公務資料庫與商業資料庫最大的差別：<strong>商業系統可以忘記過去，公務系統不行。</strong><br>
+      每一筆核定、每一次更正、每一個當時適用的法規版本，都可能在三年後被要求說明。</u>
+    </div>
+
+    <div class="frame">
+      <span class="t">✅ 深化 24 必背結論</span>
+      <strong>①</strong> 六段模板：<u>需求 → 邏輯 → 實體 → 完整性 → <strong>安全法遵</strong> → 維運</u><br>
+      <strong>②</strong> <strong>第五段（安全與法遵）最能拉開差距</strong>，占分建議 20%<br>
+      <strong>③</strong> 七句萬用加分句，每題挑三句<br>
+      <strong>④</strong> 交卷前六個問號逐一確認
+    </div>
+  </div>
+
 
   <div class="nav-btns">
     <a class="btn btn-prev" href="db2.html">← 資料庫應用講義（下）</a>
