@@ -5427,6 +5427,1037 @@ SSD / HDD
   </div>
 
 
+
+  <div class="card"><h3>S. 計算原理與實務進階（第 311～360 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">對應<a href="computer-deep.html">計算機概要深化教材第 13～24 章</a>：浮點數、管線、快取、虛擬記憶體、行程同步、檔案系統與容量估算。</p>
+  </div>
+
+  <div class="q" data-qno="311" data-ans="B"><span class="no">311</span><span class="tag">浮點數</span>
+    <div class="stem">IEEE 754 雙精度浮點數（double）的符號、指數、尾數位元數依序為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>1, 8, 23</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>1, 11, 52</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>1, 10, 53</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>1, 12, 51</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 1 + 11 + 52 = 64 位元</strong><br>
+      <u><strong>必背</strong>：float 是 <strong>1+8+23</strong>（32 位元）；double 是 <strong>1+11+52</strong>（64 位元）。</u><br><br>
+      <strong>這是每年必考的送分題</strong>，記住兩組數字即可。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="312" data-ans="B"><span class="no">312</span><span class="tag">浮點數</span>
+    <div class="stem">為何 0.1 在二進位無法精確表示？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>位元數不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>分母含質因數 5，只有分母為 2 的次方的小數才能精確表示</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>0.1 太小</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>硬體限制</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>0.1₍₁₀₎ = 0.0001100110011…₍₂₎（<strong>0011 無限循環</strong>）<br>
+      就像十進位無法精確表示 1/3 一樣。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>十進位</th><th>能否精確</th><th>原因</th></tr>
+        <tr><td>0.5、0.25、0.75</td><td><strong>可以</strong></td><td>分母是 2 的次方</td></tr>
+        <tr><td><u>0.1、0.2、0.3</u></td><td><u><strong>不可以</strong></u></td><td>分母含質因數 5</td></tr>
+      </table></div>
+      <u><strong>公務鐵則</strong>：<strong>金額用整數（以分為單位）或十進位型別，絕不用浮點數。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="313" data-ans="B"><span class="no">313</span><span class="tag">浮點數</span>
+    <div class="stem">大數加上極小數時，小數被完全忽略。此現象稱為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>溢位</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>大數吃小數</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>下溢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>捨入誤差</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>因為浮點數的<strong>有效位數有限</strong>——1000000.0 + 0.0000001 時，小數超出可表示的精度範圍而被丟棄。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>現象</th><th>說明</th></tr>
+        <tr><td><strong>捨入誤差</strong></td><td>無法精確表示而四捨五入</td></tr>
+        <tr><td><strong>誤差累積</strong></td><td><u>反覆運算使誤差放大（累加 0.1 一萬次）</u></td></tr>
+        <tr><td><strong>大數吃小數</strong></td><td><u><strong>小數被完全忽略</strong></u></td></tr>
+      </table></div>
+      <u><strong>實務影響</strong>：長期累加的統計（如年度總額）用浮點數會逐漸偏離正確值。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="314" data-ans="B"><span class="no">314</span><span class="tag">管線化</span>
+    <div class="stem">五階段管線中，執行 10 個指令共需幾個週期（不考慮危障）？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>10</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>14</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>50</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>5</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 14</strong><br>
+      <div class="frame"><span class="t">📐 公式</span>
+        <u><strong>總週期 = 階段數 + (指令數 − 1)</strong> = 5 + 9 = <strong>14</strong><br><br>
+        不用管線：10 × 5 = <strong>50</strong> 週期</u>
+      </div>
+      <u><strong>理論加速比</strong>接近<strong>管線階段數</strong>（本例 50/14 ≈ 3.6，指令數趨近無限大時趨近 5）。</u><br><br>
+      <strong>類比</strong>：<u>洗衣服——第一批在烘的時候，第二批已經在洗。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="315" data-ans="C"><span class="no">315</span><span class="tag">管線化</span>
+    <div class="stem">管線遇到分支指令而不知下一個指令為何，屬於哪一種危障？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>結構危障</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>資料危障</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>控制危障</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>記憶體危障</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 控制危障</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>危障</th><th>原因</th><th>解法</th></tr>
+        <tr><td><strong>結構危障</strong></td><td>兩階段搶同一硬體</td><td>增加硬體（指令與資料快取分開）</td></tr>
+        <tr><td><strong>資料危障</strong></td><td><u>後指令需要前指令還沒算完的結果</u></td><td><strong>資料前送</strong>、插入停頓</td></tr>
+        <tr><td><strong>控制危障</strong></td><td><u><strong>遇到分支，不知下一個指令</strong></u></td><td><strong>分支預測</strong></td></tr>
+      </table></div>
+      <u><strong>分支預測錯誤的代價</strong>：<strong>清空整條管線</strong>重來——現代 CPU 管線深達十幾階，<br>
+      一次預測錯誤可能損失 <strong>15～20 個週期</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="316" data-ans="B"><span class="no">316</span><span class="tag">CPU 效能</span>
+    <div class="stem">CPU 甲：3.0 GHz、CPI 2.0；CPU 乙：2.5 GHz、CPI 1.0。何者較快？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>甲，因時脈較高</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>乙，因每秒完成的指令數較多</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>兩者相同</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>無法判斷</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 乙</strong><br>
+      <div class="frame"><span class="t">📐 計算</span>
+        <u>甲：3.0 ÷ 2.0 = <strong>1.5</strong>（每秒 15 億個指令）<br>
+        乙：2.5 ÷ 1.0 = <strong>2.5</strong>（每秒 25 億個指令）→ <strong>乙較快</strong></u>
+      </div>
+      <u><strong>必背公式</strong>：<strong>執行時間 = 指令數 × CPI ÷ 時脈頻率</strong><br>
+      三個因素都會影響效能——<strong>時脈只是三分之一</strong>。</u><br><br>
+      <strong>這就是「時脈迷思」</strong>：<u>買電腦不能只看 GHz，還要看架構世代。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="317" data-ans="B"><span class="no">317</span><span class="tag">效能極限</span>
+    <div class="stem">某程式有 90% 可平行化，依阿姆達爾定律，使用無限多處理器的加速比上限為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>無限大</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>10 倍</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>90 倍</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>9 倍</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 10 倍</strong><br>
+      <div class="frame"><span class="t">📐 阿姆達爾定律</span>
+        <u><strong>加速比 = 1 ÷ [(1 − P) + P/N]</strong><br><br>
+        N → 無限大時，P/N → 0<br>
+        加速比上限 = 1 ÷ (1 − 0.9) = 1 ÷ 0.1 = <strong>10 倍</strong><br><br>
+        <strong>那 10% 的序列部分成為天花板。</strong></u>
+      </div>
+      <u><strong>公務意義</strong>：「加伺服器就會變快」是有極限的。<br>
+      若瓶頸在<strong>單一資料庫</strong>或<strong>某段必須循序執行的邏輯</strong>，加再多機器也沒用——<strong>要先找出序列瓶頸</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="318" data-ans="A"><span class="no">318</span><span class="tag">快取</span>
+    <div class="stem">「直接對映」快取相當於幾路組關聯？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>1 路</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>2 路</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>4 路</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>全部路數</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A) 1 路</strong><br>
+      <div class="frame"><span class="t">📐 記法</span>
+        <u><strong>直接對映 = 1 路組關聯</strong>（每組只有 1 格）<br>
+        <strong>全關聯 = N 路組關聯，N = 總格數</strong>（只有 1 組）<br><br>
+        實務上多為 <strong>4 路或 8 路</strong>組關聯（折衷方案）。</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>方式</th><th>優點</th><th>缺點</th></tr>
+        <tr><td>直接對映</td><td>硬體簡單、查找快</td><td><u><strong>衝突未命中多</strong></u></td></tr>
+        <tr><td>全關聯</td><td>衝突最少</td><td><u>要比對全部標籤，硬體昂貴</u></td></tr>
+        <tr><td><strong>N 路組關聯</strong></td><td><strong>折衷，實務主流</strong></td><td>—</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="319" data-ans="B"><span class="no">319</span><span class="tag">快取</span>
+    <div class="stem">「資料總量超過快取容量」所造成的未命中，屬於？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>強制未命中</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>容量未命中</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>衝突未命中</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>一致性未命中</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 容量未命中</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>3C</th><th>原因</th><th>改善方式</th></tr>
+        <tr><td><strong>強制未命中</strong></td><td><u>第一次存取，一定沒有</u></td><td>預取、加大區塊</td></tr>
+        <tr><td><strong>容量未命中</strong></td><td>資料總量 &gt; 快取容量</td><td><strong>加大快取</strong></td></tr>
+        <tr><td><strong>衝突未命中</strong></td><td><u>對映到同一格而互相踢掉</u></td><td><strong>提高關聯度</strong></td></tr>
+      </table></div>
+      <u><strong>記法</strong>：<strong>Compulsory（強制）、Capacity（容量）、Conflict（衝突）</strong>——三個 C。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="320" data-ans="B"><span class="no">320</span><span class="tag">快取</span>
+    <div class="stem">快取的「寫回（Write-Back）」策略相較「寫穿透」的取捨為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>寫回較安全但較慢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>寫回較快但斷電可能遺失資料</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>兩者完全相同</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>寫回不需要快取</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>策略</th><th>做法</th><th>特性</th></tr>
+        <tr><td><strong>寫穿透</strong></td><td>同時寫快取與主記憶體</td><td><u>資料一致但慢</u></td></tr>
+        <tr><td><strong>寫回</strong></td><td><u>只寫快取，被換出時才寫回</u></td><td><strong>快，但斷電可能遺失</strong></td></tr>
+      </table></div>
+      <div class="hl"><strong>💡 同樣的取捨出現在很多地方</strong><br>
+      <u>資料庫的「立即寫入 vs 延遲寫入」、檔案系統的「同步 vs 非同步」、<br>
+      備份的「同步 vs 非同步複寫」——<strong>都是「安全」與「速度」的同一組取捨</strong>。<br>
+      理解一個就理解全部。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="321" data-ans="B"><span class="no">321</span><span class="tag">虛擬記憶體</span>
+    <div class="stem">位址轉換時，TLB 命中、TLB 未命中但頁在記憶體、缺頁三種情況的成本比約為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>1 : 2 : 3</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>1 : 100 : 1000 萬</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>1 : 10 : 100</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>三者相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>情況</th><th>成本（約）</th><th>相對倍數</th></tr>
+        <tr><td>TLB 命中</td><td>約 1 ns</td><td>1</td></tr>
+        <tr><td>TLB 未命中、頁在記憶體</td><td><u>約 100 ns（多一次記憶體存取）</u></td><td>約 100</td></tr>
+        <tr><td><strong>缺頁（要讀磁碟）</strong></td><td><u><strong>約 10 ms</strong></u></td><td><strong>約 1000 萬</strong></td></tr>
+      </table></div>
+      <u><strong>結論</strong>：<strong>缺頁的代價高得離譜</strong>——這就是為什麼記憶體不足時系統會慢到不能用。</u><br><br>
+      <strong>轉換順序</strong>：<u>TLB → 分頁表 → <strong>缺頁中斷</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="322" data-ans="B"><span class="no">322</span><span class="tag">虛擬記憶體</span>
+    <div class="stem">增加頁框數量反而使缺頁次數增加，此現象及其發生條件為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>輾轉現象，發生於所有演算法</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>Belady 異常，只發生於 FIFO</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>內部碎片，發生於分頁</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>外部碎片，發生於分段</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>LRU 與 OPT 屬「堆疊演算法」</strong>（頁框較多時的內容是較少時的<strong>超集合</strong>），<strong>不會有此現象</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 經典序列</span>
+        <u><code>1,2,3,4,1,2,5,1,2,3,4,5</code><br>
+        3 個頁框 → <strong>9 次</strong>缺頁<br>
+        4 個頁框 → <strong>10 次</strong>缺頁（<strong>反而增加</strong>）</u>
+      </div>
+      <strong>四種置換演算法</strong>：<u>FIFO（有 Belady）、<strong>LRU</strong>（效果好但實作成本高）、OPT（理論最佳但<strong>不可實現</strong>）、時鐘演算法（LRU 近似，<strong>實務常用</strong>）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="323" data-ans="B"><span class="no">323</span><span class="tag">虛擬記憶體</span>
+    <div class="stem">系統出現「硬碟燈狂閃但 CPU 使用率很低」的症狀，最可能是？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>CPU 故障</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>輾轉現象（Thrashing），記憶體不足導致頻繁缺頁</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>網路壅塞</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>磁碟已滿</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 輾轉現象</strong><br>
+      <div class="frame"><span class="t">📐 惡性循環</span>
+        <u>記憶體不足 → 缺頁頻繁 → CPU 大部分時間在等磁碟<br>
+        → <strong>作業系統以為「CPU 太閒」而載入更多行程</strong> → 缺頁更頻繁</u>
+      </div>
+      <strong>三個解法</strong>：<u>①增加實體記憶體 ②減少同時執行的行程 ③<strong>工作集模型</strong>（依行程實際需要配置頁框）</u><br><br>
+      <u><strong>診斷關鍵</strong>：<strong>CPU 低 + 磁碟忙</strong>——這個組合幾乎只有輾轉現象會出現。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="324" data-ans="B"><span class="no">324</span><span class="tag">記憶體管理</span>
+    <div class="stem">分頁與分段所產生的碎片類型分別為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>分頁外部碎片、分段內部碎片</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>分頁內部碎片、分段外部碎片</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>兩者皆內部碎片</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者皆外部碎片</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 記法</span>
+        <u><strong>固定大小 → 內部碎片；大小不一 → 外部碎片</strong></u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>分頁</th><th>分段</th></tr>
+        <tr><td>切法</td><td><strong>固定大小</strong></td><td>依邏輯單位，<strong>大小不一</strong></td></tr>
+        <tr><td>碎片</td><td><u><strong>內部</strong>（最後一頁沒填滿）</u></td><td><u><strong>外部</strong>（空隙太小塞不下）</u></td></tr>
+        <tr><td>使用者可見</td><td>不可見</td><td><u>可見（程式碼段、資料段）</u></td></tr>
+      </table></div>
+      <strong>例</strong>：<u>頁大小 4KB、程式 10KB → 需 3 頁 = 12KB，浪費 <strong>2KB 內部碎片</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="325" data-ans="B"><span class="no">325</span><span class="tag">行程同步</span>
+    <div class="stem">多執行緒環境下 <code>count = count + 1</code> 可能導致更新遺失，主因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>記憶體不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>它實為「讀取、加一、寫回」三個動作，非原子操作</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>編譯器錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>變數型別錯誤</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>兩個執行緒可能同時讀到 5，各自算成 6 寫回 → <strong>結果是 6 而不是 7</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 最危險之處</span>
+      <u><strong>不會有任何錯誤訊息</strong>——丟失的那一次更新永遠找不回來。</u>
+      </div>
+      <strong>三種解法</strong>：<u>加鎖（簡單但可能死結）、無鎖 CAS（高吞吐但有 <strong>ABA 問題</strong>）、<strong>不可變資料</strong>（天然執行緒安全）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="326" data-ans="A"><span class="no">326</span><span class="tag">行程同步</span>
+    <div class="stem">臨界區間的三個必要條件為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>互斥、進步、有限等待</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>互斥、持有並等待、循環等待</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>原子性、一致性、隔離性</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>機密性、完整性、可用性</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>條件</th><th>意思</th><th>違反的後果</th></tr>
+        <tr><td><strong>互斥</strong></td><td>同時只有一個行程在裡面</td><td><u>資料錯亂</u></td></tr>
+        <tr><td><strong>進步</strong></td><td>沒人在裡面時，想進去的能進去</td><td>資源閒置</td></tr>
+        <tr><td><strong>有限等待</strong></td><td><u>不會有人永遠等不到</u></td><td><strong>飢餓</strong></td></tr>
+      </table></div>
+      <u>(B) 是<strong>死結</strong>的必要條件；(C) 是<strong>交易 ACID</strong>；(D) 是<strong>資安三要素</strong>——不要混淆。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="327" data-ans="B"><span class="no">327</span><span class="tag">行程同步</span>
+    <div class="stem">生產者消費者問題中，生產者的正確等待順序為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>先 wait(mutex) 再 wait(empty)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>先 wait(empty) 再 wait(mutex)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>順序不影響</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只需 wait(mutex)</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 順序顛倒會死結</span>
+      <u>若先鎖 mutex 再等 empty，<strong>緩衝區滿時會「抱著鎖睡著」</strong>——<br>
+      消費者拿不到 mutex 就無法取出資料，empty 永遠不會增加 → <strong>死結</strong>。</u>
+      </div>
+      <strong>三個號誌</strong>：<u><strong>empty</strong>（空格數，初值 = 緩衝區大小）、<strong>full</strong>（已用格數，初值 0）、<strong>mutex</strong>（互斥，初值 1）</u><br><br>
+      <u><strong>原則</strong>：<strong>先取「資源號誌」，再取「互斥鎖」</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="328" data-ans="B"><span class="no">328</span><span class="tag">死結</span>
+    <div class="stem">實務上破解死結最常用且成本最低的方式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>讓資源可共享（破壞互斥）</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>所有行程依相同順序取得資源（破壞循環等待）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>一次取得全部資源</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>停用多工</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>條件</th><th>破解方式</th><th>實務可行性</th></tr>
+        <tr><td>互斥</td><td>資源改為可共享</td><td><u>多數資源做不到</u></td></tr>
+        <tr><td>持有並等待</td><td>一次取得全部</td><td>資源利用率低</td></tr>
+        <tr><td>不可搶奪</td><td>逾時後強制釋放並重試</td><td><strong>常用</strong></td></tr>
+        <tr><td><strong>循環等待</strong></td><td><u><strong>統一資源取得順序</strong></u></td><td><u><strong>最實用</strong></u></td></tr>
+      </table></div>
+      <u><strong>資料庫的死結也用同樣思路</strong>：<strong>所有交易依相同順序鎖定資料表</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="329" data-ans="B"><span class="no">329</span><span class="tag">檔案系統</span>
+    <div class="stem">索引節點（inode）採「直接指標 + 多層間接」設計，其設計哲學為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省 CPU 運算</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>小檔案只用直接指標（快），大檔案才走多層間接</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>增加安全性</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>便於加密</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>因為絕大多數檔案都很小</strong>——這樣設計是<strong>對常見情況最佳化</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 多層結構</span>
+        <u>直接指標（約 12 個）→ 單層間接 → 雙層間接 → 三層間接</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>配置方式</th><th>優點</th><th>缺點</th></tr>
+        <tr><td>連續</td><td><u>循序讀取最快</u></td><td><strong>外部碎片；難以擴充</strong></td></tr>
+        <tr><td>鏈結</td><td>無外部碎片</td><td><u><strong>無法隨機存取；一個指標壞掉後面全失</strong></u></td></tr>
+        <tr><td><strong>索引</strong></td><td><strong>支援隨機存取</strong></td><td>索引本身占空間</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="330" data-ans="B"><span class="no">330</span><span class="tag">檔案系統</span>
+    <div class="stem">日誌式檔案系統（Journaling）的核心設計思想為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>壓縮檔案以節省空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>先記錄「要做什麼」，再實際執行，重開機時依日誌重做或撤銷</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加密所有檔案</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>自動備份</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>效益</strong>：重開機時只需<strong>檢查日誌</strong>，<strong>不必掃描整個磁碟</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 三步驟</span>
+        <strong>①</strong> 先把「我要做什麼」寫進日誌<br>
+        <strong>②</strong> 實際執行變更<br>
+        <strong>③</strong> 標記日誌完成
+      </div>
+      <div class="hl"><strong>💡 同樣的思路出現在很多地方</strong><br>
+      <u>資料庫的<strong>交易紀錄檔（WAL）</strong>、應用程式的操作日誌——<br>
+      <strong>「先記錄意圖，再執行」是可靠性設計的通用手法</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="331" data-ans="B"><span class="no">331</span><span class="tag">檔案權限</span>
+    <div class="stem">刪除某個唯讀檔案時，作業系統實際檢查的是？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>該檔案的 w 權限</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>該檔案所在目錄的 w 權限</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>該檔案的 x 權限</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>檔案擁有者的身分</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>權限</th><th>對檔案</th><th>對目錄</th></tr>
+        <tr><td><strong>r</strong></td><td>可讀內容</td><td><u>可<strong>列出</strong>裡面有什麼</u></td></tr>
+        <tr><td><strong>w</strong></td><td>可修改內容</td><td><u><strong>可新增或刪除裡面的檔案</strong></u></td></tr>
+        <tr><td><strong>x</strong></td><td>可執行</td><td><u><strong>可進入該目錄（cd）</strong></u></td></tr>
+      </table></div>
+      <u><strong>重要陷阱</strong>：<strong>一個唯讀檔案，若所在目錄可寫，還是會被刪掉。</strong></u><br><br>
+      <strong>常見權限值</strong>：<u><strong>755</strong>（程式或目錄）、<strong>644</strong>（一般檔案）、<strong>600</strong>（金鑰或含密碼的設定檔）、<u><strong>777 幾乎永遠是錯的</strong></u></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="332" data-ans="B"><span class="no">332</span><span class="tag">虛擬化</span>
+    <div class="stem">容器與虛擬機最根本的差異為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>容器較貴</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>容器虛擬化作業系統層並共用主機核心，虛擬機虛擬化硬體層</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>容器不能執行應用程式</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>虛擬機啟動較快</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>虛擬機</th><th>容器</th></tr>
+        <tr><td>虛擬化層級</td><td><u>硬體層（Hypervisor）</u></td><td><u><strong>作業系統層</strong></u></td></tr>
+        <tr><td>作業系統</td><td><strong>各有一套完整 OS</strong></td><td><u><strong>共用主機核心</strong></u></td></tr>
+        <tr><td>啟動時間</td><td>數十秒至數分鐘</td><td><strong>秒級</strong></td></tr>
+        <tr><td><strong>隔離強度</strong></td><td><u><strong>強</strong></u></td><td><u><strong>較弱</strong></u></td></tr>
+      </table></div>
+      <u><strong>最關鍵的推論</strong>：容器共用核心 → <strong>核心層漏洞可能讓容器逃逸到主機</strong> →<br>
+      <strong>不同安全等級的服務不應共用同一台主機的容器環境</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="333" data-ans="B"><span class="no">333</span><span class="tag">虛擬化</span>
+    <div class="stem">容器映像檔的資安要求中，最常被違反的一項為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>映像檔要壓縮</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>不可把密碼、金鑰寫進映像檔</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>映像檔要編號</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>映像檔要備份</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>寫進映像檔等於公開</strong>——任何拿到映像檔的人都能取出，且會留在映像檔的歷史層中。</u><br><br>
+      <div class="frame"><span class="t">📐 容器資安五要點</span>
+        <strong>①</strong> <u>只使用官方或機關自建的映像檔（<strong>來路不明的可能含惡意程式</strong>）</u><br>
+        <strong>②</strong> <strong>不以 root 執行</strong>應用程式<br>
+        <strong>③</strong> <u>建置流程中<strong>自動掃描已知漏洞</strong></u><br>
+        <strong>④</strong> 最小化映像檔，不裝用不到的工具<br>
+        <strong>⑤</strong> <u><strong>機密以外部注入</strong>，不寫進映像檔</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="334" data-ans="C"><span class="no">334</span><span class="tag">資料庫基礎</span>
+    <div class="stem">關聯 R(<u>員工編號</u>, 姓名, 部門代碼, 部門名稱)，且 部門代碼 → 部門名稱。此關聯違反？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>1NF</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>2NF</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>3NF</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>未違反</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 3NF</strong><br>
+      <u>「部門代碼」與「部門名稱」都是<strong>非鍵屬性</strong>，卻互相決定 → <strong>遞移相依</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 三步判定</span>
+        <strong>①</strong> 有沒有「一格塞多個值」→ 違反 1NF<br>
+        <strong>②</strong> <u>主鍵是複合鍵嗎？<strong>不是 → 一定符合 2NF</strong></u>（本題主鍵是單一欄位）<br>
+        <strong>③</strong> <u>有沒有「<strong>非鍵欄位決定非鍵欄位</strong>」→ 違反 3NF</u>
+      </div>
+      <strong>後果</strong>：<u>改一個部門名稱要更新數千列，且可能<strong>改到一半</strong>（更新異常）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="335" data-ans="B"><span class="no">335</span><span class="tag">資料庫基礎</span>
+    <div class="stem">為何 SQL 的 WHERE 子句中不能使用 COUNT 等彙總函數？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>語法設計缺陷</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>WHERE 比 GROUP BY 早執行，此時尚未分組</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>效能考量</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>可以使用，只是不建議</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 執行順序（可解釋所有「為什麼不能這樣寫」）</span>
+        <u><strong>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</strong></u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>常見疑問</th><th>用執行順序解釋</th></tr>
+        <tr><td>WHERE 不能用 COUNT</td><td><u>WHERE 比 GROUP BY 早，還沒分組</u></td></tr>
+        <tr><td>WHERE 不能用 SELECT 的別名</td><td><u>SELECT 比 WHERE 晚執行</u></td></tr>
+        <tr><td>ORDER BY 可以用別名</td><td><strong>ORDER BY 最後執行</strong></td></tr>
+      </table></div>
+      <u><strong>效能原則</strong>：<strong>能寫 WHERE 就寫 WHERE</strong>（先過濾，分組的資料量才小）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="336" data-ans="B"><span class="no">336</span><span class="tag">資料庫基礎</span>
+    <div class="stem">使用 LEFT JOIN 統計「含件數為 0 的單位」時，必須使用 COUNT(右表主鍵) 而非 COUNT(*)，理由為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>COUNT(*) 較慢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>COUNT(*) 會把 LEFT JOIN 補出的 NULL 列算成 1</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>COUNT(*) 語法錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者結果相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>COUNT(*) 數的是「列數」</strong>，而 LEFT JOIN 對沒有對應資料的單位仍會補出一列；<br>
+      <strong>COUNT(欄位) 會忽略 NULL</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 公務後果</span>
+      <u><strong>零件數顯示成一件</strong>——報表數字對不起來，對議會說明時無法解釋。<br>
+      這是實務上<strong>最常見的統計錯誤之一</strong>。</u>
+      </div>
+      <strong>三個聯結陷阱</strong>：<u>①保留哪一邊 ②<strong>COUNT(*)</strong> ③<strong>NOT IN 遇到 NULL 回傳空集合</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="337" data-ans="B"><span class="no">337</span><span class="tag">網路計算</span>
+    <div class="stem"><code>10.0.5.0/24</code> 欲切成 8 個子網路，每個子網路的遮罩與可用主機數為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>/26、62 台</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>/27、30 台</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>/28、14 台</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>/25、126 台</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) /27、30 台</strong><br>
+      <div class="frame"><span class="t">📐 計算</span>
+        <u>切成 8 = 2³ 個子網 → 借 <strong>3</strong> 位元 → 24 + 3 = <strong>/27</strong><br>
+        區塊大小 = 2<sup>(32−27)</sup> = <strong>32</strong><br>
+        可用主機 = 32 − 2 = <strong>30</strong> 台</u>
+      </div>
+      <strong>速算表</strong>：<u>/24→256(254)、/25→128(126)、<strong>/26→64(62)</strong>、<strong>/27→32(30)</strong>、/28→16(14)、/29→8(6)、/30→4(2)</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="338" data-ans="B"><span class="no">338</span><span class="tag">網路計算</span>
+    <div class="stem">某網段需容納 500 台主機，最節省的遮罩為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>/24</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>/23</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>/22</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>/25</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) /23</strong><br>
+      <div class="frame"><span class="t">📐 反推</span>
+        <u>可用主機 = 2<sup>主機位元</sup> − 2 ≥ 500<br><br>
+        2⁸ − 2 = 254 &lt; 500 ✗（/24 不夠）<br>
+        <strong>2⁹ − 2 = 510 ≥ 500 ✓</strong>（主機位元 9 → 遮罩 32 − 9 = <strong>/23</strong>）</u>
+      </div>
+      <u><strong>「最節省」＝ 剛好夠用的最小網段</strong>——不要選 /22（可容 1022 台，浪費一半）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="339" data-ans="D"><span class="no">339</span><span class="tag">網路協定</span>
+    <div class="stem">下列協定與埠號對應何者錯誤？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>SSH — 22</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>Telnet — 23</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>HTTPS — 443</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>SSH — 23</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br>
+      <u><strong>SSH 是 22，Telnet 是 23</strong>——這一組每年必考。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>埠</th><th>協定</th><th>安全性</th></tr>
+        <tr><td><strong>22</strong></td><td><strong>SSH</strong></td><td><strong>加密</strong></td></tr>
+        <tr><td><strong>23</strong></td><td>Telnet</td><td><u><strong>明文，應停用</strong></u></td></tr>
+        <tr><td>25 / 110 / 143</td><td>SMTP / POP3 / IMAP</td><td>明文</td></tr>
+        <tr><td>53</td><td>DNS</td><td>明文</td></tr>
+        <tr><td>80 / <strong>443</strong></td><td>HTTP / <strong>HTTPS</strong></td><td>明文 / <strong>加密</strong></td></tr>
+        <tr><td>3389 / 1433 / 3306</td><td>RDP / SQL Server / MySQL</td><td><u><strong>絕不可對外開放</strong></u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="340" data-ans="A"><span class="no">340</span><span class="tag">資安基礎</span>
+    <div class="stem">SQL 注入、XSS、CSRF 三者的受害對象依序為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>資料庫、其他使用者的瀏覽器、已登入的使用者</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>使用者、伺服器、資料庫</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>網路、資料庫、伺服器</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>三者相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      <div class="frame"><span class="t">📐 一句話區辨</span>
+        <u><strong>SQL 注入</strong>：騙<strong>資料庫</strong>執行指令<br>
+        <strong>XSS</strong>：騙<strong>別的使用者</strong>的瀏覽器執行腳本<br>
+        <strong>CSRF</strong>：騙<strong>伺服器</strong>以為是使用者本人的操作</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>攻擊</th><th>根本防禦</th></tr>
+        <tr><td>SQL 注入</td><td><strong>參數化查詢</strong></td></tr>
+        <tr><td>XSS</td><td><u><strong>輸出時依情境編碼</strong></u></td></tr>
+        <tr><td>CSRF</td><td><strong>CSRF Token</strong></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="341" data-ans="B"><span class="no">341</span><span class="tag">資安基礎</span>
+    <div class="stem">為何「過濾特殊字元」不是防範 SQL 注入的根本解？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>過濾太慢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>黑名單永遠有繞過方法，且會擋掉正常的姓名</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>過濾會破壞資料</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>過濾需要額外授權</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>過濾單引號 → 用編碼繞過；過濾關鍵字 → 用大小寫混合或註解繞過。<br>
+      而且會擋掉<strong>正常帶單引號的外國姓名</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 根本解的思維</span>
+        <u><strong>改變「資料被如何處理」，而不是猜測「攻擊者會輸入什麼」。</strong><br><br>
+        參數化查詢讓資料<strong>永遠只是資料</strong>；輸出編碼讓資料<strong>永遠只是文字</strong>。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="342" data-ans="B"><span class="no">342</span><span class="tag">密碼安全</span>
+    <div class="stem">現行資安指引為何不再建議「定期強制更換密碼」？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>更換太麻煩</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>實際結果是使用者改成 Pass01!→Pass02! 或寫在便條紙上，安全性反而下降</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>系統不支援</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>法規禁止</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>項目</th><th>過時做法</th><th>現行建議</th></tr>
+        <tr><td>長度與複雜度</td><td>8 碼含大小寫數字符號</td><td><u><strong>長度優先</strong>，鼓勵通行短句</u></td></tr>
+        <tr><td>定期更換</td><td><u>每 30/60 天強制更換</u></td><td><strong>不建議</strong>；<u>疑似外洩時才換</u></td></tr>
+        <tr><td>儲存</td><td>MD5 雜湊</td><td><u><strong>bcrypt／Argon2 ＋ 加鹽</strong></u></td></tr>
+        <tr><td>額外防護</td><td>密碼提示問題</td><td><strong>多因子驗證（MFA）</strong></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="343" data-ans="B"><span class="no">343</span><span class="tag">密碼安全</span>
+    <div class="stem">密碼儲存時採用「慢速雜湊」（如 bcrypt、Argon2）的理由為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省儲存空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>刻意增加計算成本，讓暴力破解不划算</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加快登入速度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>便於還原原始密碼</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>要素</th><th>目的</th></tr>
+        <tr><td><strong>雜湊</strong></td><td>單向、不可逆</td></tr>
+        <tr><td><strong>加鹽</strong></td><td><u>每人不同鹽值，破解一個不能通用；<strong>防彩虹表</strong></u></td></tr>
+        <tr><td><strong>慢速</strong></td><td><u><strong>刻意增加計算成本，讓暴力破解不划算</strong></u></td></tr>
+      </table></div>
+      <u><strong>MD5 不可用於密碼</strong>：已可碰撞，且<strong>計算太快</strong>（每秒可試數十億次）。</u><br><br>
+      <u><strong>密碼不應可還原</strong>——連系統管理者都不該知道使用者的密碼。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="344" data-ans="B"><span class="no">344</span><span class="tag">容量估算</span>
+    <div class="stem">16 支監視器，每支每小時產生 500 MB 影像，須保存 30 日。所需容量約為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>約 240 GB</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>約 5.8 TB</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>約 58 TB</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>約 24 GB</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 約 5.8 TB</strong><br>
+      <div class="frame"><span class="t">📐 逐步計算</span>
+        <u>每支每日：500 MB × 24 = <strong>12,000 MB = 12 GB</strong><br>
+        16 支每日：12 × 16 = <strong>192 GB</strong><br>
+        30 日：192 × 30 = <strong>5,760 GB ≈ 5.8 TB</strong></u>
+      </div>
+      <strong>三個實務提醒</strong>：<u>①應保留<strong>1.3～1.5 倍</strong>成長與備援空間 ②<strong>保存期限須依規定訂定</strong>（影像屬個資，逾期應刪除） ③須用<strong>監控專用硬碟</strong>（一般硬碟不耐 24 小時連續寫入）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="345" data-ans="B"><span class="no">345</span><span class="tag">容量估算</span>
+    <div class="stem">資料庫目前 800 GB、每月成長 25 GB、磁碟 1 TB。何時應開始編列擴充預算？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>剩餘 10% 時</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>現在，因約 9 個月後會滿而採購程序需 3～6 個月</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>滿了再說</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>由廠商決定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 計算</span>
+        <u>剩餘 = 1024 − 800 = <strong>224 GB</strong><br>
+        224 ÷ 25 ≈ <strong>9 個月後滿</strong><br>
+        採購程序 3～6 個月 → <strong>現在就要提</strong></u>
+      </div>
+      <u><strong>把這個計算寫在簽呈裡，比寫「空間快不夠了」有效十倍。</strong></u><br><br>
+      <u><strong>公務提醒</strong>：年度預算須<strong>提前一年編列</strong>——發現需求時才想編預算，那至少是一年半後的事。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="346" data-ans="B"><span class="no">346</span><span class="tag">容量估算</span>
+    <div class="stem">可用率 99.9% 換算成每年可容忍的停機時間約為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>約 52 分鐘</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>約 8.8 小時</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>約 3.65 天</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>約 36 小時</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 約 8.8 小時</strong><br>
+      <u>一年 365 × 24 = 8,760 小時；停機比例 0.1% → 8,760 × 0.001 = <strong>8.76 小時</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>可用率</th><th>每年停機</th><th>每月停機</th></tr>
+        <tr><td>99%</td><td>約 3.65 天</td><td>約 7.2 小時</td></tr>
+        <tr><td><strong>99.9%</strong></td><td><strong>約 8.8 小時</strong></td><td>約 43 分鐘</td></tr>
+        <tr><td>99.99%</td><td>約 52 分鐘</td><td>約 4.3 分鐘</td></tr>
+      </table></div>
+      <u><strong>契約重點</strong>：務必定義<strong>服務時間</strong>——若只算上班時間，週末掛掉不算違約。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="347" data-ans="B"><span class="no">347</span><span class="tag">容量估算</span>
+    <div class="stem">批次程式處理 50 萬筆資料，每筆需 0.4 毫秒，總執行時間約為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>約 20 秒</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>約 3.3 分鐘</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>約 33 分鐘</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>約 2 小時</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 約 3.3 分鐘</strong><br>
+      <div class="frame"><span class="t">📐 計算</span>
+        <u>500,000 × 0.4 ms = <strong>200,000 ms</strong> = <strong>200 秒</strong> ≈ <strong>3.3 分鐘</strong></u>
+      </div>
+      <u><strong>單位換算</strong>：1 秒 = 1,000 毫秒；<strong>看清楚題目要的單位</strong>（秒還是分鐘）。</u><br><br>
+      <strong>實務加分</strong>：<u>批次應安排在<strong>離峰時段</strong>執行，並設定<strong>執行失敗的告警</strong>——<br>
+      <strong>沒跑成功卻沒人知道，比跑得慢更危險。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="348" data-ans="B"><span class="no">348</span><span class="tag">單位換算</span>
+    <div class="stem">在 200 Mbps 網路下傳輸 500 MB 檔案，理論上約需？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>2.5 秒</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>20 秒</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>40 秒</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>5 秒</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 20 秒</strong><br>
+      <div class="frame"><span class="t">📐 關鍵：B 與 b 差 8 倍</span>
+        <u>500 <strong>MB</strong> = 500 × 8 = <strong>4000 Mb</strong><br>
+        4000 ÷ 200 = <strong>20 秒</strong></u>
+      </div>
+      <u><strong>這是計概最愛考也最常錯的一題。</strong><br>
+      大寫 B = Byte（位元組），小寫 b = bit（位元）；<strong>網路速率一律用 bit</strong>。</u><br><br>
+      <u>(A) 2.5 秒是<strong>忘了乘 8</strong> 的答案。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="349" data-ans="B"><span class="no">349</span><span class="tag">單位換算</span>
+    <div class="stem">為何 1 TB 硬碟在作業系統中只顯示約 931 GB？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>廠商偷工減料</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>廠商以 10 的次方計算，作業系統以 2 的次方計算</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>硬碟有壞軌</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>系統檔案占用</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 計算</span>
+        <u>廠商：1 TB = <strong>10¹²</strong> bytes<br>
+        系統：1 TiB = <strong>2⁴⁰</strong> bytes<br><br>
+        10¹² ÷ 2⁴⁰ ≈ <strong>0.909</strong> → 顯示約 <strong>931 GB</strong></u>
+      </div>
+      <u><strong>不是廠商偷工減料</strong>，而是兩種計算基準不同。</u><br><br>
+      <strong>實務影響</strong>：<u>4.5 GB 的檔案不一定放得進標示 4.7 GB 的光碟（實際約 4.38 GiB）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="350" data-ans="B"><span class="no">350</span><span class="tag">補數運算</span>
+    <div class="stem">以 8 位元 2 的補數表示 −45，其二進位為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>11010010</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>11010011</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>10101101</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>11010100</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 11010011</strong><br>
+      <div class="frame"><span class="t">📐 三步驟</span>
+        <u><strong>①</strong> +45 = 0010 1101<br>
+        <strong>②</strong> 逐位反轉（1 的補數）= 1101 0010<br>
+        <strong>③</strong> 加 1 = <strong>1101 0011</strong></u>
+      </div>
+      <u>(A) 是 <strong>1 的補數</strong>，是最常見的誤選。</u><br><br>
+      <strong>驗算</strong>：<u>1101 0011 = 211；211 − 256 = <strong>−45</strong> ✓</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="351" data-ans="B"><span class="no">351</span><span class="tag">補數運算</span>
+    <div class="stem">32 位元 2 的補數可表示的整數範圍為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>−2³² ～ 2³²</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>−2³¹ ～ 2³¹−1</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>0 ～ 2³²−1</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>−2³¹+1 ～ 2³¹</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) −2³¹ ～ 2³¹−1</strong>（約 ±21 億）<br>
+      <div class="frame"><span class="t">📐 公式</span>
+        <u><strong>−2<sup>n−1</sup> ～ 2<sup>n−1</sup>−1</strong><br><br>
+        <strong>為什麼負數多一個？</strong>因為 2 的補數<strong>只有一個零</strong>——<br>
+        1 的補數有 +0 與 −0，浪費了一個編碼。</u>
+      </div>
+      <strong>必背三組</strong>：<u>8 位元 −128～127；16 位元 −32768～32767；<strong>32 位元約 ±21 億</strong></u><br><br>
+      <u><strong>公務提醒</strong>：金額以「分」為單位時，32 位元可能不夠——<strong>建議用 64 位元</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="352" data-ans="B"><span class="no">352</span><span class="tag">邏輯閘</span>
+    <div class="stem">依笛摩根定律，<code>(A + B)'</code> 等於？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>A' + B'</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>A' · B'</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>A · B</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>A + B</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) A' · B'</strong><br>
+      <div class="frame"><span class="t">📐 口訣：斷線、變號</span>
+        <u><strong>(A + B)' = A' · B'</strong>（+ 變成 ·）<br>
+        <strong>(A · B)' = A' + B'</strong>（· 變成 +）</u>
+      </div>
+      <u><strong>白話</strong>：「不是（A 或 B）」＝「不是 A <strong>而且</strong> 不是 B」。</u><br><br>
+      <strong>另一組常考的化簡</strong>：<u>吸收律 <strong>A + A·B = A</strong>；<strong>A + A'·B = A + B</strong>——<br>
+      <u>區辨關鍵是<strong>中間那個變數有沒有加撇</strong></u>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="353" data-ans="B"><span class="no">353</span><span class="tag">RAID</span>
+    <div class="stem">使用 6 顆 4TB 硬碟建立 RAID 6，可用容量與可容忍故障顆數為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>24 TB、0 顆</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>16 TB、2 顆</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>20 TB、1 顆</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>12 TB、3 顆</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 16 TB、2 顆</strong><br>
+      <div class="frame"><span class="t">📐 公式與記法</span>
+        <u><strong>RAID 6 = (n − 2) × S</strong> = (6−2) × 4 = <strong>16 TB</strong><br><br>
+        <strong>記法：「減幾顆，就能壞幾顆」</strong>——RAID 5 減 1 能壞 1，RAID 6 減 2 能壞 2。</u>
+      </div>
+      <div class="warn"><span class="t">⚠️ RAID ≠ 備份</span>
+      <u><strong>RAID 防的是「硬碟壞掉」，不防「資料被改壞」。</strong><br>
+      誤刪檔案時 RAID 會在每顆硬碟上都刪掉；勒索軟體加密時 RAID 也照樣同步加密。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="354" data-ans="B"><span class="no">354</span><span class="tag">I/O</span>
+    <div class="stem">DMA 相較於中斷驅動 I/O，CPU 負擔較低的原因為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>DMA 不需要中斷</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>裝置直接與記憶體傳輸，整批完成才中斷通知 CPU 一次</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>DMA 速度較慢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>DMA 不使用匯流排</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>方式</th><th>CPU 負擔</th><th>說明</th></tr>
+        <tr><td>輪詢</td><td><strong>最高</strong></td><td>CPU 不斷詢問「好了沒」</td></tr>
+        <tr><td>中斷</td><td>中</td><td><u>裝置好了才通知，但<strong>每個位元組仍由 CPU 搬</strong></u></td></tr>
+        <tr><td><strong>DMA</strong></td><td><strong>最低</strong></td><td><u><strong>整批完成才中斷一次</strong></u></td></tr>
+      </table></div>
+      <u><strong>比喻</strong>：輪詢＝一直去看信箱；中斷＝郵差按門鈴；<br>
+      <strong>DMA＝郵差直接把包裹放進倉庫，放完才告訴你</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="355" data-ans="B"><span class="no">355</span><span class="tag">作業系統</span>
+    <div class="stem">同一行程的多個執行緒中，何者為各執行緒私有？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>程式碼區與全域變數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>堆疊與程式計數器</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>已開啟的檔案</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>堆積（Heap）</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>共享（整個行程一份）</th><th>私有（每個執行緒一份）</th></tr>
+        <tr><td>程式碼、全域資料、堆積、開啟的檔案</td><td><u><strong>堆疊、程式計數器、暫存器組</strong></u></td></tr>
+      </table></div>
+      <u><strong>道理</strong>：每個執行緒<strong>執行到哪裡</strong>與<strong>自己的區域變數</strong>必須各自獨立，否則會互相踩到。</u><br><br>
+      <strong>延伸考點</strong>：<u>共享全域變數正是<strong>競爭條件</strong>的來源，需用鎖或號誌保護。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="356" data-ans="A"><span class="no">356</span><span class="tag">排程</span>
+    <div class="stem">四個行程同時抵達，執行時間 6、3、8、1，採 SJF 之平均等待時間為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>3.75</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>4.50</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>5.25</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>8.25</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A) 3.75</strong><br>
+      <div class="frame"><span class="t">📐 SJF 由短到長排：1 → 3 → 6 → 8</span>
+        <u><strong>等待時間 = 排在你前面的人的執行時間總和</strong><br><br>
+        1 的等待 = <strong>0</strong>｜3 的等待 = <strong>1</strong>｜6 的等待 = 1+3 = <strong>4</strong>｜8 的等待 = 1+3+6 = <strong>10</strong><br>
+        平均 = (0+1+4+10) ÷ 4 = <strong>3.75</strong></u>
+      </div>
+      <u><strong>別選成 (D)</strong>：8.25 是<strong>平均完成（周轉）時間</strong> = (1+4+10+18) ÷ 4。<br>
+      <strong>完成時間 = 等待時間 ＋ 自己的執行時間</strong>——考題問哪一個要看清楚。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="357" data-ans="B"><span class="no">357</span><span class="tag">資料結構</span>
+    <div class="stem">高度為 6 的二元樹（根為第 1 層），最多可有幾個節點？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>32</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>63</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>64</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>127</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 63</strong><br>
+      <div class="frame"><span class="t">📐 兩個必背公式</span>
+        <u>高度 h 的二元樹<strong>最多節點數 = 2<sup>h</sup> − 1</strong> = 2⁶ − 1 = <strong>63</strong><br>
+        第 i 層<strong>最多節點數 = 2<sup>i−1</sup></strong></u>
+      </div>
+      <u><strong>陷阱</strong>：(C) 64 = 2⁶，<strong>忘了減 1</strong>。驗算：1+2+4+8+16+32 = 63 ✓</u><br><br>
+      <u><strong>另注意</strong>：若題目定義「根為第 <strong>0</strong> 層」，公式變為 <strong>2<sup>h+1</sup> − 1</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="358" data-ans="C"><span class="no">358</span><span class="tag">複雜度</span>
+    <div class="stem">下列排序演算法中，何者最壞情況為 O(n²)？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>合併排序</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>堆積排序</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>快速排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>基數排序</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 快速排序</strong><br>
+      <u>快排<strong>平均</strong> O(n log n)，但<strong>最壞</strong> O(n²)——發生在每次都選到極端的樞紐值<br>
+      （如對已排序資料選首元素為樞紐）。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>演算法</th><th>平均</th><th>最壞</th><th>穩定</th></tr>
+        <tr><td>合併</td><td>n log n</td><td><strong>n log n</strong></td><td><strong>是</strong></td></tr>
+        <tr><td>堆積</td><td>n log n</td><td><strong>n log n</strong></td><td>否</td></tr>
+        <tr><td>快速</td><td>n log n</td><td><u><strong>n²</strong></u></td><td>否</td></tr>
+      </table></div>
+      <u><strong>改善</strong>：隨機樞紐或三數取中，可使最壞情況極不可能發生。<br>
+      <strong>不穩定的四個：快、堆、選、希。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="359" data-ans="B"><span class="no">359</span><span class="tag">應考策略</span>
+    <div class="stem">計算機概要中，投報率最高的準備方向為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>記憶冷門的硬體規格細節</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>練熟進位轉換、補數、邏輯閘、CPU 效能、RAID、子網路六大計算題型</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>比較各家廠商產品</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>背誦資訊發展史</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>題型</th><th>核心公式</th><th>年約題數</th></tr>
+        <tr><td>進位轉換</td><td>位權相加；十六進位每 4 位元一組</td><td>3～5</td></tr>
+        <tr><td>2 的補數</td><td><u>反轉 + 1；−2<sup>n−1</sup> ～ 2<sup>n−1</sup>−1</u></td><td>2～3</td></tr>
+        <tr><td>邏輯閘與布林代數</td><td>真值表；笛摩根「斷線變號」</td><td>3～4</td></tr>
+        <tr><td>CPU 效能與快取</td><td><u>指令數 × CPI ÷ 時脈</u></td><td>2～3</td></tr>
+        <tr><td>RAID 容量</td><td><u>RAID 5 = (n−1)×S；RAID 6 = (n−2)×S</u></td><td>1～2</td></tr>
+        <tr><td>子網路計算</td><td>區塊大小 = 2<sup>(32−遮罩)</sup></td><td>2～3</td></tr>
+      </table></div>
+      <u><strong>合計約 15～20 題（30～40 分）</strong>，且全部是「練了就會、不會忘」的類型。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="360" data-ans="B"><span class="no">360</span><span class="tag">應考策略</span>
+    <div class="stem">計概採單選、不倒扣，作答時最適當的策略為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>不會的留白以免猜錯</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>三輪作答法，最後確認一格都不空</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>依題號順序逐題攻克</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只寫有把握的題目</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 三輪作答法</span>
+        <strong>第一輪（前 60% 時間）</strong>：<u>會的直接寫；猶豫的標「?」；完全不會的標「×」——<strong>絕不停留</strong></u><br>
+        <strong>第二輪</strong>：回頭處理「?」，用<strong>刪去法</strong><br>
+        <strong>第三輪</strong>：<u>處理「×」，刪去明顯錯誤後再猜；沒頭緒就統一猜同一個選項</u><br>
+        <strong>最後 3 分鐘</strong>：<u><strong>逐格確認沒有空白，並檢查劃記有無跳行</strong></u>
+      </div>
+      <u><strong>刪去法能刪掉 2 個選項，命中率就從 25% 升到 50%</strong>——這比多背十個名詞有效。</u>
+    </div></details>
+  </div>
     <div class="q" data-qno="進階 1" data-ans="C">
       <div class="t">
         <span class="no">進階 1</span><span class="tag">進階擴充</span>

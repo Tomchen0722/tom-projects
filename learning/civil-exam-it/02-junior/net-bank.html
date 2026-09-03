@@ -5054,6 +5054,1034 @@ FIN → ACK ← FIN ← ACK →</pre>
   </div>
 
 
+
+  <div class="card"><h3>N. 網路運作與排查進階（第 266～315 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">對應<a href="net-deep.html">資通網路概要深化教材第 13～24 章</a>：封包的一生、TCP 機制、交換與路由、無線、防火牆、VPN 與故障排查。</p>
+  </div>
+
+  <div class="q" data-qno="266" data-ans="B"><span class="no">266</span><span class="tag">封包流程</span>
+    <div class="stem">封包在網路中傳送時，IP 位址與 MAC 位址的變化情形為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩者都不變</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>IP 位址不變，MAC 位址每一跳都會換</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>MAC 位址不變，IP 位址每跳都換</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者每跳都換</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 最重要的一個觀念</span>
+        <u><strong>IP 是「最終要去哪」，MAC 是「下一步交給誰」。</strong></u>
+      </div>
+      <u>這解釋了為什麼<strong>交換器（第 2 層）不能跨網段</strong>，而<strong>路由器（第 3 層）可以</strong>——<br>
+      每台路由器都會拆掉舊的 MAC 標頭、換上新的。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="267" data-ans="B"><span class="no">267</span><span class="tag">封包流程</span>
+    <div class="stem">封裝過程中，傳輸層、網路層、資料連結層的資料單位名稱依序為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>封包、訊框、區段</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>區段、封包、訊框</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>訊框、區段、封包</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>三者同名</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>層</th><th>加上什麼</th><th>單位名稱</th></tr>
+        <tr><td>應用層</td><td>資料本身</td><td>訊息</td></tr>
+        <tr><td>傳輸層</td><td><u>TCP／UDP 標頭（含<strong>埠號</strong>）</u></td><td><strong>區段</strong></td></tr>
+        <tr><td>網路層</td><td><u>IP 標頭（含<strong>來源與目的 IP</strong>）</u></td><td><strong>封包</strong></td></tr>
+        <tr><td>資料連結層</td><td><u>MAC 標頭</u></td><td><strong>訊框</strong></td></tr>
+        <tr><td>實體層</td><td>電或光訊號</td><td>位元</td></tr>
+      </table></div>
+      <u><strong>記法</strong>：訊息 → 區段 → 封包 → 訊框 → 位元。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="268" data-ans="B"><span class="no">268</span><span class="tag">封包流程</span>
+    <div class="stem">VPN 連得上、小網頁開得開，但下載大檔案會卡住。最可能的原因為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>頻寬不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>MTU 設定問題，VPN 額外標頭使實際可用 MTU 變小</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>DNS 錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>憑證過期</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>MTU</strong>：單一訊框可承載的最大資料量（乙太網路通常 <strong>1500</strong> 位元組）。<br>
+      VPN 加上額外標頭後，實際可用 MTU 變小 → 大封包被分割或丟棄。</u><br><br>
+      <div class="hl"><strong>💡 這個症狀值得記起來</strong><br>
+      <u>「VPN 連得上、網頁開得開，但傳大檔案就卡」——<strong>典型的 MTU 問題</strong>，<br>
+      調降 MTU 即可解決。這種故障不查對方向會浪費很多時間。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="269" data-ans="B"><span class="no">269</span><span class="tag">TCP</span>
+    <div class="stem">流量控制與壅塞控制分別在保護什麼？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩者都保護接收端</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>流量控制保護接收端，壅塞控制保護網路</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>流量控制保護網路，壅塞控制保護接收端</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者都保護發送端</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 每年必考的區辨</span>
+        <u><strong>流量控制</strong>：保護<strong>接收端</strong>（對方處理不過來）→ 由<strong>接收視窗</strong>決定<br>
+        <strong>壅塞控制</strong>：保護<strong>網路</strong>（中間路由器塞車）→ 由<strong>壅塞視窗</strong>決定<br><br>
+        <strong>實際送出量 = min(接收視窗, 壅塞視窗)</strong>——取兩者較小值。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="270" data-ans="B"><span class="no">270</span><span class="tag">TCP</span>
+    <div class="stem">TCP 壅塞控制的「慢啟動」階段，其視窗成長方式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>線性成長</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>指數成長</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>固定不變</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>遞減</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 指數成長</strong><br>
+      <div class="warn"><span class="t">⚠️ 「慢啟動」其實一點都不慢</span>
+      <u>它是<strong>指數成長</strong>（每個 RTT 加倍）——<br>
+      名字取「慢」是因為<strong>起點很小</strong>，不是成長速度慢。<strong>這是考試常設計的陷阱。</strong></u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>階段</th><th>成長方式</th></tr>
+        <tr><td><strong>慢啟動</strong></td><td><u><strong>指數成長</strong></u></td></tr>
+        <tr><td><strong>壅塞避免</strong></td><td><u>超過門檻後<strong>線性成長</strong></u></td></tr>
+        <tr><td><strong>快速重傳</strong></td><td>收到三個重複 ACK 就立刻重傳，不等逾時</td></tr>
+        <tr><td><strong>快速恢復</strong></td><td>重傳後減半繼續，不回到最小</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="271" data-ans="B"><span class="no">271</span><span class="tag">TCP</span>
+    <div class="stem">視窗 64 KB、RTT 從 10 ms 增為 100 ms，最大吞吐量的變化為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>不變</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>約降為十分之一（約 51 Mbps 降為約 5.1 Mbps）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>提升十倍</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>無法計算</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 頻寬延遲乘積</span>
+        <u><strong>最大吞吐量 ≈ 視窗大小 ÷ RTT</strong><br><br>
+        64 KB ÷ 0.01 s ≈ <strong>51 Mbps</strong><br>
+        64 KB ÷ 0.1 s ≈ <strong>5.1 Mbps</strong></u>
+      </div>
+      <u><strong>結論</strong>：跨國或衛星連線的瓶頸<strong>不是頻寬，是延遲</strong>——<br>
+      <strong>加頻寬完全沒用</strong>；解法是<strong>加大視窗</strong>或<strong>減少來回次數</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="272" data-ans="B"><span class="no">272</span><span class="tag">TCP</span>
+    <div class="stem">攻擊者只送出 SYN 卻不完成第三次交握，使伺服器保留大量半開連線。此攻擊與防禦為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>DDoS；上游清洗</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>SYN Flood；SYN Cookie、縮短逾時、限制來源速率</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>中間人攻擊；使用 HTTPS</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>ARP 欺騙；埠安全</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) SYN Flood</strong><br>
+      <u><strong>原理</strong>：TCP 三向交握是 <strong>SYN → SYN/ACK → ACK</strong>；<br>
+      攻擊者只送第一步，伺服器保留半開連線等待第三步，直到資源耗盡。</u><br><br>
+      <strong>防禦</strong>：<u><strong>SYN Cookie</strong>（不預先配置資源）、縮短半開連線逾時、限制單一來源速率。</u><br><br>
+      <u><strong>對照</strong>：斷線是<strong>四向揮手</strong>（FIN → ACK → FIN → ACK）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="273" data-ans="B"><span class="no">273</span><span class="tag">交換器</span>
+    <div class="stem">攻擊者送出大量偽造來源 MAC 塞爆交換器的 MAC 表，導致交換器對所有流量氾濫。此攻擊與防禦為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>廣播風暴；生成樹</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>MAC 表溢位；埠安全（限制每埠可學習的 MAC 數）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>ARP 欺騙；靜態 ARP</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>VLAN 跳躍；關閉未使用埠</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>後果</strong>：交換器只好對所有流量進行氾濫，<strong>等於變成集線器，攻擊者就能竊聽整個網段</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>交換器三個動作</th><th>做什麼</th></tr>
+        <tr><td><strong>學習</strong></td><td><u>記下「來源 MAC ↔ 進來的埠」</u></td></tr>
+        <tr><td><strong>轉送</strong></td><td>目的 MAC 在表中 → 只送到那個埠</td></tr>
+        <tr><td><strong>氾濫</strong></td><td><u>目的 MAC 不在表中或為廣播 → <strong>送到除來源外的所有埠</strong></u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="274" data-ans="B"><span class="no">274</span><span class="tag">交換器</span>
+    <div class="stem">第二層網路發生迴圈時會造成廣播風暴，根本原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>頻寬不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>第二層沒有 TTL，廣播訊框會永遠繞下去並不斷複製</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>交換器效能不足</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>IP 位址衝突</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>第三層的 IP 有 TTL</strong>（每跳減 1，到 0 就丟棄）；<strong>第二層沒有</strong>——<br>
+      所以廣播訊框在迴圈中會<strong>永遠繞下去</strong>，幾秒內癱瘓整個網段。</u><br><br>
+      <strong>最常見的成因</strong>：<u>同仁把兩條網路線插進同一台小型交換器，或私接的無線基地台形成迴圈。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>防護</th><th>做法</th></tr>
+        <tr><td><strong>生成樹（STP）</strong></td><td><u>自動偵測迴圈並阻斷冗餘路徑</u></td></tr>
+        <tr><td><strong>BPDU 保護</strong></td><td><u>存取埠收到 BPDU 就關閉——防私接</u></td></tr>
+        <tr><td><strong>停用未使用的埠</strong></td><td><u><strong>零成本、立即見效</strong></u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="275" data-ans="B"><span class="no">275</span><span class="tag">VLAN</span>
+    <div class="stem">交換器之間的連線埠，若誤設為存取埠（Access）而非幹道埠（Trunk），後果為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>完全無法連線</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>只有一個 VLAN 通得過，其他 VLAN 全斷</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>速度變慢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>沒有影響</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>埠類型</th><th>用途</th><th>特性</th></tr>
+        <tr><td><strong>存取埠</strong></td><td>接終端設備</td><td><u>只屬於一個 VLAN，不帶標籤</u></td></tr>
+        <tr><td><strong>幹道埠</strong></td><td><u>交換器之間的連線</u></td><td><strong>可承載多個 VLAN，訊框帶標籤</strong></td></tr>
+      </table></div>
+      <strong>另兩個常見設定錯誤</strong>：<u>①兩端<strong>原生 VLAN 不一致</strong>（可能造成 VLAN 跳躍的安全問題） ②<strong>幹道未限制允許的 VLAN</strong>（不必要的 VLAN 也流過去，擴大攻擊面）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="276" data-ans="C"><span class="no">276</span><span class="tag">路由</span>
+    <div class="stem">路由表中有 10.0.0.0/8、10.1.0.0/16、10.1.2.0/24 三筆，目的地 10.1.2.5 會走哪一筆？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>10.0.0.0/8</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>10.1.0.0/16</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>10.1.2.0/24</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>隨機選擇</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 10.1.2.0/24</strong><br>
+      <div class="frame"><span class="t">📐 最長前綴匹配</span>
+        <u>當多筆路由都符合時，<strong>選遮罩最長（最精確）的那一筆</strong>。</u>
+      </div>
+      <u><strong>推論</strong>：預設路由 <code>0.0.0.0/0</code> 是<strong>最短前綴</strong>，所以<strong>永遠是最後才被選中</strong>——<br>
+      「都不符合時就走這裡」。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="277" data-ans="B"><span class="no">277</span><span class="tag">路由</span>
+    <div class="stem">A 可以連到 B，但 B 連不到 A。最可能的原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>A 的網路卡故障</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>回程路由或防火牆規則不對稱</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>IP 位址衝突</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>DNS 設定錯誤</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 最容易誤判的問題</span>
+      <u><strong>「單向通」不是「A 沒問題」</strong>，而是<strong>回程路由或防火牆規則不對稱</strong>。<br>
+      排查時<strong>兩端都要測</strong>，不能只從一邊看 tracert。</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>症狀</th><th>可能原因</th></tr>
+        <tr><td>單向通、反向不通</td><td><u><strong>回程路由沒設（非對稱路由）</strong></u></td></tr>
+        <tr><td>可以 ping 但服務連不上</td><td>防火牆擋該埠（用 telnet 測）</td></tr>
+        <tr><td>時通時不通</td><td><u>路由迴圈或兩條路徑不對稱</u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="278" data-ans="B"><span class="no">278</span><span class="tag">NAT</span>
+    <div class="stem">機關發生資安事件時，若無 NAT 轉換紀錄會產生什麼問題？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>無法連線</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>無法追查是內部哪一台電腦，因外部只看到同一個公有 IP</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>速度變慢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>無法備份</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>經過 NAT 後，外部看到的都是<strong>同一個公有 IP</strong>。<br>
+      沒有轉換紀錄（哪個時間、哪個內部 IP、對應到哪個對外埠），<strong>就無法追查</strong>。</u><br><br>
+      <strong>因此</strong>：<u><strong>NAT 轉換紀錄必須保存，且要與其他日誌時間同步（NTP）</strong>。</u><br><br>
+      <div class="hl"><strong>💡 NAT 的觀念釐清</strong><br>
+      <u>NAT 解決的是<strong>IPv4 位址不足</strong>；<strong>DHCP</strong> 才是分配 IP 的協定。<br>
+      NAT 的「外部無法主動連入」是<strong>副作用</strong>，<strong>NAT 不是防火牆</strong>，不能取代存取控制。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="279" data-ans="B"><span class="no">279</span><span class="tag">IPv6</span>
+    <div class="stem">關於 IPv4 與 IPv6 的關係，下列敘述何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩者可直接互通</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>兩者不能直接互通，須以雙堆疊、通道或轉譯技術過渡</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>IPv6 位址為 64 位元</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>IPv6 不支援自動組態</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>IPv4</th><th>IPv6</th></tr>
+        <tr><td>長度</td><td>32 位元</td><td><strong>128 位元</strong></td></tr>
+        <tr><td>位址數</td><td>約 43 億</td><td>約 3.4×10³⁸</td></tr>
+        <tr><td>自動組態</td><td>需 DHCP</td><td><u>支援 SLAAC 自動設定</u></td></tr>
+        <tr><td>NAT</td><td>必需</td><td><u>不需要</u></td></tr>
+      </table></div>
+      <u><strong>政府政策</strong>：機關網站與服務已要求逐步支援 IPv6，屬<strong>網站評鑑檢核項目</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="280" data-ans="C"><span class="no">280</span><span class="tag">DNS</span>
+    <div class="stem">DNS 記錄類型中，指定郵件伺服器的是？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>A</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>CNAME</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>MX</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>TXT</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) MX</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>用途</th></tr>
+        <tr><td><strong>A</strong></td><td>網域 → IPv4</td></tr>
+        <tr><td>AAAA</td><td>網域 → IPv6</td></tr>
+        <tr><td>CNAME</td><td>別名</td></tr>
+        <tr><td><strong>MX</strong></td><td><u><strong>郵件伺服器</strong></u></td></tr>
+        <tr><td><strong>TXT</strong></td><td><u>SPF、DKIM、DMARC 等驗證用</u></td></tr>
+      </table></div>
+      <u><strong>資安觀點</strong>：DNS 是<strong>信任鏈的起點</strong>——被劫持後，所有防護都在保護錯誤的目的地。<br>
+      應啟用 <strong>DNSSEC</strong> 並監控 DNS 查詢日誌（可及早發現受害主機連往惡意中繼站）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="281" data-ans="B"><span class="no">281</span><span class="tag">DHCP</span>
+    <div class="stem">電腦顯示 IP 為 169.254.x.x，代表？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>已成功取得 IP</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>找不到 DHCP 伺服器，自行指派了 APIPA 位址</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>IP 位址衝突</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>網路卡故障</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>169.254.x.x 是 APIPA</strong>（自動私有 IP 位址）——<br>
+      作業系統取不到 DHCP 時自己給的，<strong>看到它通常代表 DHCP 有問題</strong>。</u><br><br>
+      <strong>DHCP 四步驟（DORA）</strong>：<u><strong>D</strong>iscover（我要 IP）→ <strong>O</strong>ffer（給你這個）→ <strong>R</strong>equest（我要這個）→ <strong>A</strong>ck（確認）</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>協定</th><th>做什麼</th></tr>
+        <tr><td><strong>DHCP</strong></td><td>自動配發 IP 組態</td></tr>
+        <tr><td><strong>ARP</strong></td><td><u>IP → MAC 的查詢（同網段內）</u></td></tr>
+        <tr><td><strong>ICMP</strong></td><td>診斷與錯誤回報（ping、tracert）</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="282" data-ans="B"><span class="no">282</span><span class="tag">無線網路</span>
+    <div class="stem">2.4 GHz 頻段中，完全不重疊的頻道為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>1～13 全部</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>1、6、11</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>1、2、3</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只有 1 個</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 1、6、11</strong><br>
+      <u><strong>原因</strong>：雖然有 1～13 個頻道，但<strong>每個頻道的訊號寬度會佔用相鄰頻道</strong>；<br>
+      要完全不重疊，必須間隔 5 個頻道。</u><br><br>
+      <div class="hl"><strong>💡 實務意義</strong><br>
+      <u>相鄰的 AP 要<strong>交錯使用 1／6／11</strong>；<br>
+      若全部設成同一頻道，<strong>彼此干擾會讓速度變成三分之一</strong>。</u></div>
+      <strong>2.4 vs 5 GHz</strong>：<u>2.4 穿透力強、範圍大，但<strong>干擾嚴重</strong>（藍牙、微波爐）；5 GHz 頻寬高、干擾少，但穿透力弱。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="283" data-ans="B"><span class="no">283</span><span class="tag">無線網路</span>
+    <div class="stem">WPA3 相較 WPA2 的主要改進為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>速度更快</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>採 SAE 交握，可防離線字典攻擊，且開放網路亦加密</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>涵蓋範圍更大</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>支援更多裝置</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>標準</th><th>安全性</th><th>說明</th></tr>
+        <tr><td><strong>WEP</strong></td><td><u><strong>已破解，絕不可用</strong></u></td><td>幾分鐘即可破密</td></tr>
+        <tr><td>WPA</td><td>已不足</td><td>TKIP</td></tr>
+        <tr><td>WPA2</td><td>目前普遍</td><td>AES-CCMP</td></tr>
+        <tr><td><strong>WPA3</strong></td><td><strong>最高</strong></td><td><u>SAE 交握、<strong>防離線字典攻擊</strong>、開放網路亦加密</u></td></tr>
+      </table></div>
+      <u><strong>機關實務</strong>：公務無線網路應採 <strong>WPA2-Enterprise 以上</strong>（以帳號驗證而非共用密碼）——<br>共用密碼一旦外流，<strong>全機關要一起改</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="284" data-ans="B"><span class="no">284</span><span class="tag">無線網路</span>
+    <div class="stem">公用 Wi-Fi 中，除網段隔離外還須啟用「用戶端隔離」，理由為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>提升速度</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>避免同一 AP 下的裝置互相連線與攻擊</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>節省 IP 位址</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>便於計費</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>光是「與公務網隔離」還不夠——<strong>同一個公用 Wi-Fi 上的陌生裝置之間也不應互通</strong>，<br>否則攻擊者可掃描並攻擊其他使用 Wi-Fi 的民眾。</u><br><br>
+      <div class="frame"><span class="t">📐 公用 Wi-Fi 四要件</span>
+        <strong>①隔離</strong>：<u>獨立 VLAN、對內全拒、<strong>並啟用用戶端隔離</strong></u><br>
+        <strong>②身分</strong>：<u>簡訊或其他認證，留存連線紀錄以備調閱</u><br>
+        <strong>③內容</strong>：惡意網站過濾、頻寬與時段限制<br>
+        <strong>④告知</strong>：<u><strong>明確揭露蒐集項目與目的（個資法告知義務）</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="285" data-ans="B"><span class="no">285</span><span class="tag">防火牆</span>
+    <div class="stem">「狀態檢視防火牆」相較「封包過濾防火牆」的主要能力為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>可檢查應用層內容</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>可依連線狀態判斷是否為已建立連線的合法回應</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>可阻擋病毒</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>可加密流量</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>判斷依據</th><th>擋得住</th><th>擋不住</th></tr>
+        <tr><td><strong>封包過濾</strong></td><td>IP、埠、協定</td><td>簡單存取控制</td><td><u>合法埠上的惡意內容</u></td></tr>
+        <tr><td><strong>狀態檢視</strong></td><td><u>連線狀態</u></td><td><strong>偽造的回應封包</strong></td><td>應用層攻擊</td></tr>
+        <tr><td><strong>應用層／次世代</strong></td><td><u>應用程式辨識、使用者身分</u></td><td>特定應用、惡意內容</td><td><u>加密流量（除非解密檢查）</u></td></tr>
+        <tr><td><strong>WAF</strong></td><td>HTTP 請求內容</td><td><u><strong>SQL 注入、XSS</strong></u></td><td>非網頁的攻擊</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="286" data-ans="B"><span class="no">286</span><span class="tag">防火牆</span>
+    <div class="stem">防火牆規則設計中「順序重要」的意思為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>規則越多越好</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>由上而下比對，第一條符合就套用，寬鬆規則放前面會讓後面規則失效</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>順序不影響結果</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>規則須依字母排序</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>四原則</th><th>說明</th></tr>
+        <tr><td><strong>預設拒絕</strong></td><td><u>最後一條是「全部拒絕」，明確允許才通過</u></td></tr>
+        <tr><td><strong>最小開放</strong></td><td>指定來源、目的、埠，<u>不要用 any</u></td></tr>
+        <tr><td><strong>順序重要</strong></td><td><u><strong>第一條符合就套用</strong></u></td></tr>
+        <tr><td><strong>定期清理</strong></td><td><u><strong>下架的系統要把規則一起刪掉</strong></u></td></tr>
+      </table></div>
+      <div class="warn"><span class="t">⚠️ 規則庫的熵增</span>
+      <u>防火牆規則會<strong>只增不減</strong>：新系統上線就加，系統下架卻沒人記得刪。<br>
+      三年後有 500 條規則，沒人知道哪些還在用。<br>
+      <strong>對策</strong>：每條規則記錄<strong>申請單位、用途、申請日期</strong>，並定期複審。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="287" data-ans="B"><span class="no">287</span><span class="tag">DMZ</span>
+    <div class="stem">DMZ 架構的核心設計思維為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>讓對外服務效能最佳</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>假設 DMZ 的主機一定會被攻陷，設計上讓它攻陷了也走不進內網</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>節省 IP 位址</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>方便維運管理</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 三區架構與規則</span>
+        <u><strong>外部網路</strong> ←→ 邊界防火牆 ←→ <strong>DMZ</strong>（網站、郵件）←→ 內部防火牆 ←→ <strong>內部網路</strong><br><br>
+        外部 → DMZ：<strong>只開 80/443</strong><br>
+        <strong>DMZ → 內部：原則全部拒絕</strong>，僅開放必要的資料庫埠且指定來源與目的<br>
+        內部 → DMZ：允許管理</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="288" data-ans="B"><span class="no">288</span><span class="tag">防護設備</span>
+    <div class="stem">IDS 與 IPS 的差異為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩者相同</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>IDS 旁路監聽只告警，IPS 在流量路徑上會主動阻擋</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>IDS 會阻擋，IPS 只告警</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>IDS 只能用於無線網路</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>設備</th><th>位置</th><th>動作</th><th>強項</th></tr>
+        <tr><td><strong>IDS</strong></td><td>旁路監聽</td><td><u>只偵測、只告警</u></td><td>不影響流量</td></tr>
+        <tr><td><strong>IPS</strong></td><td>流量路徑上</td><td><strong>偵測並阻擋</strong></td><td>即時阻斷</td></tr>
+        <tr><td><strong>WAF</strong></td><td>網站前方</td><td>過濾 HTTP</td><td>網頁應用層攻擊</td></tr>
+        <tr><td><strong>SIEM</strong></td><td>日誌集中</td><td>關聯分析</td><td><u><strong>把分散的線索串起來</strong></u></td></tr>
+      </table></div>
+      <u><strong>導入建議</strong>：IPS 上線初期應先以<strong>偵測模式</strong>運行一段時間調校規則——<br>
+      否則<strong>誤擋正常民眾，第一天就會被投訴</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="289" data-ans="B"><span class="no">289</span><span class="tag">VPN</span>
+    <div class="stem">VPN 的主要風險通常在於？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>加密強度不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>端點本身不安全（家用電腦可能中毒、沒更新、共用）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>頻寬不足</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>協定過時</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 最關鍵的一句</span>
+        <u><strong>VPN 的風險通常不在加密本身，而在「端點」。</strong><br><br>
+        加密再強，如果連進來的那台家用電腦已經中毒、沒更新、全家共用，<br>
+        <strong>等於把惡意程式接進機關內網</strong>——VPN 反而成了攻擊通道。</u>
+      </div>
+      <strong>遠距四層防護</strong>：<u><strong>①MFA（必要）</strong> ②<strong>端點檢查</strong>（更新、防毒、加密） ③<strong>只開放必要系統</strong>而非整個內網 ④資料控制（遠端桌面取代直接存取）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="290" data-ans="B"><span class="no">290</span><span class="tag">VPN</span>
+    <div class="stem">傳統 VPN 相較零信任架構的主要弱點為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>不加密</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>一連上就等於「人在辦公室」，整個內網都看得到</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>需要特殊硬體</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>不支援行動裝置</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>正確做法</strong>：<strong>依角色只開放需要的系統</strong>——這也是零信任的核心概念之一。</u><br><br>
+      <div class="frame"><span class="t">📐 零信任的務實三步（預算有限時）</span>
+        <strong>①</strong> <u><strong>全面 MFA</strong>（尤其特權帳號）</u><br>
+        <strong>②</strong> <u><strong>特權帳號集中管理</strong>（不共用、可稽核、限時授權）</u><br>
+        <strong>③</strong> <u><strong>關鍵系統微分段</strong>（限制橫向移動）</u>
+      </div>
+      <u><strong>零信任是方向不是產品</strong>——不必也不可能一次全面改造。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="291" data-ans="B"><span class="no">291</span><span class="tag">可用性</span>
+    <div class="stem">機關單點失效清單中，最常被忽略的兩項為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>核心交換器與防火牆</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>機房空調與 DNS</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>對外線路與電力</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>伺服器與儲存設備</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 為什麼這兩項最容易被漏</span>
+      <u><strong>①空調</strong>：機房空調壞掉，<strong>半小時內設備就會因過熱自動關機</strong>——比斷網更常見。<br>
+      <strong>②DNS</strong>：DNS 掛掉時使用者的症狀是<strong>「什麼都連不上」</strong>，很容易被誤判為線路問題。</u>
+      </div>
+      <strong>完整清單</strong>：<u>對外線路、核心交換器、防火牆、電力（UPS＋發電機）、<strong>空調</strong>、<strong>DNS</strong></u><br><br>
+      <u>並須配套<strong>溫濕度監控與漏水偵測告警</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="292" data-ans="B"><span class="no">292</span><span class="tag">可用性</span>
+    <div class="stem">備援切換前必須先明確定義的三件事為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>廠牌、價格、保固</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>誰有權決定切換、切換要多久、怎麼切回來</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>頻寬、延遲、封包遺失率</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>機房位置、電力、空調</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>問題</th><th>沒事先想好的後果</th></tr>
+        <tr><td><strong>誰有權決定切換</strong></td><td><u>事故當下沒人敢做決定</u></td></tr>
+        <tr><td><strong>切換要多久</strong></td><td>含 DNS 生效、連線設定更新、快取清除</td></tr>
+        <tr><td><strong>怎麼切回來</strong></td><td><u><strong>備援期間的資料如何同步回主系統——最常被忽略</strong></u></td></tr>
+      </table></div>
+      <u><strong>「沒有演練過的備援，等同沒有備援。」</strong><br>
+      年度演練應涵蓋：<strong>實際切換、實際還原、記錄實際時間並與 RTO 比對、切回主系統</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="293" data-ans="B"><span class="no">293</span><span class="tag">郵件安全</span>
+    <div class="stem">機關已設定 SPF 與 DKIM 但未設 DMARC，其問題為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>完全沒有防護效果</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>檢查了但沒有處置，收件方仍可能放行偽冒信</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>會導致正常信件被退</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>沒有問題</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>機制</th><th>作用</th></tr>
+        <tr><td><strong>SPF</strong></td><td><u>宣告哪些伺服器有權以本網域名義寄信</u></td></tr>
+        <tr><td><strong>DKIM</strong></td><td><u>以數位簽章證明郵件確由本網域發出且未遭竄改</u></td></tr>
+        <tr><td><strong>DMARC</strong></td><td><u><strong>宣告驗證失敗時如何處置</strong>（放行／隔離／拒收）並回報</u></td></tr>
+      </table></div>
+      <u><strong>一句話</strong>：<strong>SPF 查誰寄的、DKIM 查有沒有被改、DMARC 決定不合格時怎麼辦。</strong></u><br><br>
+      <strong>價值</strong>：<u>保護的是<strong>機關信譽與民眾</strong>（防詐騙集團冒用機關名義），不只是自己的信箱。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="294" data-ans="B"><span class="no">294</span><span class="tag">郵件安全</span>
+    <div class="stem">辨識釣魚郵件時，下列哪一個判準已不再可靠？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>檢查寄件者網域</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>中文寫得爛或有錯字就是假的</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>滑鼠移上去看連結實際位址</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>用既有分機另行查證</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>已失效的判準</th><th>仍然可靠的判準</th></tr>
+        <tr><td><u>「中文寫得爛就是假的」</u></td><td><strong>寄件者網域</strong>（細看有無替換字元）</td></tr>
+        <tr><td><u>「有機關 Logo 就可信」</u></td><td><strong>連結的實際位址</strong>（滑鼠移上去<u>不要點</u>）</td></tr>
+        <tr><td>—</td><td><u>製造<strong>急迫感</strong>是典型話術</u></td></tr>
+        <tr><td>—</td><td><u><strong>正當機關不會用郵件連結要你輸入密碼</strong></u></td></tr>
+      </table></div>
+      <u><strong>唯一可靠的判準是「寄件網域」與「連結實際位址」。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="295" data-ans="B"><span class="no">295</span><span class="tag">郵件安全</span>
+    <div class="stem">郵件安全五層縱深防禦中，最後也最有效的一層為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>郵件閘道過濾</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>多因子驗證（MFA）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>附件沙箱</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>連結改寫</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) MFA</strong><br>
+      <u><strong>釣魚的目的多半是取得帳密；MFA 讓這個目的落空</strong>——即使密碼被騙走，攻擊者仍登不進去。</u><br><br>
+      <div class="frame"><span class="t">📐 五層</span>
+        <strong>①</strong> SPF／DKIM／DMARC　<strong>②</strong> 郵件閘道過濾<br>
+        <strong>③</strong> <u>附件沙箱（未知檔案先在隔離環境開一次看行為）</u><br>
+        <strong>④</strong> 連結改寫（點擊時即時檢查）　<strong>⑤</strong> <u><strong>MFA</strong></u>
+      </div>
+      <u><strong>公務現實</strong>：第一線<strong>本來就必須打開民眾寄來的附件</strong>（陳情、申請文件），<br>純粹要求「不要點」不切實際——<strong>必須靠技術控制補足</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="296" data-ans="B"><span class="no">296</span><span class="tag">監控</span>
+    <div class="stem">下列監控指標中，何者最能顯示「資料已經被外傳」？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>進向流量異常</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>出向流量異常</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>CPU 使用率</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>磁碟使用率</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 出向流量異常</strong><br>
+      <u>內部主機突然對外傳送大量資料，通常代表<strong>資料正在被外傳</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 多數機關的盲點</span>
+      <u>只監控<strong>進來</strong>的流量（防入侵），<br>
+      <strong>卻是出去的流量才代表「已經出事了」。</strong></u>
+      </div>
+      <strong>四個監控層次</strong>：<u>線路（頻寬使用率<strong>長期 &gt; 70% 就該規劃擴充</strong>）、設備（CPU、溫度、風扇）、服務（可用性與回應時間）、<strong>安全（異常連線、登入失敗、出向流量）</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="297" data-ans="B"><span class="no">297</span><span class="tag">日誌管理</span>
+    <div class="stem">日誌管理的三個必要條件為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>加密、壓縮、備份</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>集中、時間同步、防竄改</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>分類、編號、歸檔</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>即時、完整、公開</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 三個條件的理由</span>
+        <strong>①集中</strong>：<u>存在獨立主機——<strong>留在被入侵的機器上，攻擊者第一件事就是刪掉它</strong></u><br>
+        <strong>②時間同步</strong>：<u><strong>全機關 NTP 校時</strong>。時間差三分鐘，跨系統事件時序就對不起來</u><br>
+        <strong>③防竄改</strong>：<u>唯寫媒體或雜湊，確保<strong>連管理者也不能改</strong></u>
+      </div>
+      <u><strong>最常被忽略的一層</strong>：<strong>日誌本身含個資</strong>（IP、帳號、查詢內容）——<br>
+      其<strong>存取權限、保存期限與查詢紀錄也須依個資法管理</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="298" data-ans="B"><span class="no">298</span><span class="tag">故障排查</span>
+    <div class="stem">網路故障排查的兩個大原則為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>先重開機、再叫廠商</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>先確認影響範圍，再由下而上分層檢查</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>先換設備、再查設定</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>先查應用層、再查實體層</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 兩個原則</span>
+        <strong>①先確認影響範圍</strong><br>
+        <u>一台 → 端點問題｜一個區域 → 該區線路或設備｜<strong>全機關 → 對外線路、DNS 或核心設備</strong></u><br><br>
+        <strong>②由下而上分層</strong><br>
+        <u>實體（線、燈號）→ 網路層（IP、路由）→ <strong>名稱解析（DNS）</strong> → 傳輸層（埠、防火牆）→ 應用層</u>
+      </div>
+      <u>「先重開機」「先叫廠商」都是<strong>在還沒判斷問題前就消耗資源</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="299" data-ans="B"><span class="no">299</span><span class="tag">故障排查</span>
+    <div class="stem">接到報修時，最有價值的一個問題為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>你用什麼作業系統</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>之前正常嗎？中間有沒有換過什麼</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>你的姓名與分機</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>你希望多久修好</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>多數故障都有觸發點</strong>：搬了位子、換了線、裝了新軟體、機房昨天施工。</u><br><br>
+      <div class="frame"><span class="t">📐 報修必問五題</span>
+        <strong>①</strong> 什麼時候開始的？<br>
+        <strong>②</strong> <u><strong>只有你，還是旁邊的人也一樣？</strong>（確認範圍）</u><br>
+        <strong>③</strong> <u><strong>之前正常嗎？中間有沒有換過什麼？</strong>（找觸發點——最有價值）</u><br>
+        <strong>④</strong> 完全不能用，還是有時候可以？<br>
+        <strong>⑤</strong> <u>錯誤訊息是什麼？（請對方拍照或截圖）</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="300" data-ans="B"><span class="no">300</span><span class="tag">故障排查</span>
+    <div class="stem">「可以 ping 通 IP 但無法以網址開啟網頁」的原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>網路線鬆脫</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>DNS 設定錯誤或 DNS 伺服器異常</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>IP 位址衝突</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>網路卡損壞</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>邏輯推理</strong>：ping 得通 IP → 第 1～3 層都正常；打不開網址 → <strong>卡在名稱解析</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 三段判斷法（務必背熟）</span>
+        <strong>① ping 127.0.0.1</strong> 不通 → 網路卡或驅動問題<br>
+        <strong>② ping 預設閘道</strong> 不通 → 網路線、交換器或 IP 設定<br>
+        <strong>③ ping 外部 IP 通、ping 網址不通</strong> → <u><strong>DNS 問題</strong></u>
+      </div>
+      <strong>驗證工具</strong>：<u><code>nslookup</code> 或 <code>dig</code> 測名稱解析。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="301" data-ans="B"><span class="no">301</span><span class="tag">故障排查</span>
+    <div class="stem">處理完網路故障後，最能減少未來重複工作的動作為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>通知使用者已修好</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>記錄症狀、原因與處理方式，建立知識庫並追問根因</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>更換設備</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>提高預算</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>階段</th><th>要做的事</th></tr>
+        <tr><td><strong>止血</strong></td><td><u>先讓民眾與同仁的工作能繼續（替代管道、暫時方案）</u></td></tr>
+        <tr><td><strong>修復</strong></td><td>找出並排除原因</td></tr>
+        <tr><td><strong>記錄</strong></td><td><u><strong>症狀、原因、處理方式——建立知識庫，下次不用重查</strong></u></td></tr>
+        <tr><td><strong>預防</strong></td><td><u>問到根因：為什麼會發生？<strong>制度上要改什麼？</strong></u></td></tr>
+      </table></div>
+      <u><strong>「記錄」這一步是新人與老手的分野</strong>——<br>
+      同一個問題查第二次，代表第一次沒有留下紀錄。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="302" data-ans="B"><span class="no">302</span><span class="tag">網路量化</span>
+    <div class="stem">機關網路頻寬 100 Mbps，20 位同仁同時使用視訊會議（每人 4 Mbps）。正確的判斷為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>完全足夠</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>視訊需求 80 Mbps 已占八成，其他公務應用將受影響，應實施 QoS</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>完全不足無法使用</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>與頻寬無關</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>20 × 4 = <strong>80 Mbps</strong>，占 100 Mbps 的 <strong>80%</strong>；<br>
+      剩下 20 Mbps 要應付公文系統、郵件、網頁與其他業務——<strong>會明顯變慢</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 三個改善方向（依順序）</span>
+        <strong>①頻寬管理（QoS）</strong>：<u>保障公文與核心系統的頻寬</u><br>
+        <strong>②降低需求</strong>：<u>非必要時關閉視訊只用語音；多人共用一個會議室連線</u><br>
+        <strong>③擴充頻寬</strong>：<u>成本較高，且<strong>用量會膨脹到填滿新頻寬</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="303" data-ans="B"><span class="no">303</span><span class="tag">網路量化</span>
+    <div class="stem">頻寬需求估算的正確做法為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>單人需求 × 總人數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>單人需求 × 尖峰同時使用人數 × 1.3～1.5 倍餘裕</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>取最大值即可</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>由廠商報價決定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>關鍵是「尖峰同時在線」而非總人數</strong>——不是每個人都同時在用。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>應用</th><th>單人／單支需求</th><th>特性</th></tr>
+        <tr><td>公文系統、網頁作業</td><td>約 0.5 Mbps</td><td><u>突發性，可共享</u></td></tr>
+        <tr><td>視訊會議</td><td><strong>2～4 Mbps</strong></td><td><u>雙向都要算</u></td></tr>
+        <tr><td><strong>監視器 1080p</strong></td><td><strong>4～8 Mbps</strong></td><td><u><strong>24 小時持續占用，最容易被低估</strong></u></td></tr>
+      </table></div>
+      <u><strong>監視器的解法</strong>：<strong>影像存在本地，僅在調閱時才傳輸</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="304" data-ans="B"><span class="no">304</span><span class="tag">延遲</span>
+    <div class="stem">下列延遲類型中，哪一種無法透過增加頻寬改善？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>傳輸延遲</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>傳播延遲</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>佇列延遲</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>處理延遲</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 傳播延遲</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>延遲類型</th><th>來源</th><th>能否改善</th></tr>
+        <tr><td><strong>傳播延遲</strong></td><td><u>距離 ÷ 光速</u></td><td><u><strong>不能（物理限制）</strong></u></td></tr>
+        <tr><td>傳輸延遲</td><td>封包大小 ÷ 頻寬</td><td>加頻寬可改善</td></tr>
+        <tr><td><strong>佇列延遲</strong></td><td><u>路由器排隊</u></td><td><strong>QoS、擴充可改善</strong></td></tr>
+        <tr><td>處理延遲</td><td>設備處理封包</td><td>換設備可改善</td></tr>
+      </table></div>
+      <u><strong>關鍵觀念</strong>：「線路升級到 1G 了為什麼還是慢」——<br>
+      因為慢的原因是<strong>來回次數太多</strong>（每次都要等傳播延遲）。<br>
+      <strong>解法是減少來回次數（合併請求、快取），不是加頻寬。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="305" data-ans="B"><span class="no">305</span><span class="tag">網路架構</span>
+    <div class="stem">中大型機關的三層網路架構中，「核心層」的設計原則為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>執行複雜的存取控制</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>高速轉送、不做複雜處理，追求穩定與冗餘</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>提供 PoE 供電</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>終端接入</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 三層架構</span>
+        <u><strong>核心層</strong>：<strong>高速轉送，不做複雜處理</strong>，追求穩定與冗餘<br>
+        <strong>匯聚層</strong>：<u>路由、存取控制、VLAN 間繞送</u><br>
+        <strong>存取層</strong>：<u>終端接入、埠安全、PoE 供電</u></u>
+      </div>
+      <u><strong>小型機關可簡化為兩層</strong>（核心＋存取）——<strong>架構要與規模相稱</strong>。</u><br><br>
+      <strong>理由</strong>：<u>核心層若做複雜處理，會成為全網的效能瓶頸與單點失效。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="306" data-ans="B"><span class="no">306</span><span class="tag">埠安全</span>
+    <div class="stem">機關埠安全基線中，成本最低而立即見效的措施為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>導入 802.1X 埠認證</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>停用未使用的網路埠</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>更換所有交換器</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>增聘網管人員</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>會議室、走廊的網路孔不應直接可用</strong>——任何人插上線就進了機關內網。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>措施</th><th>成本</th><th>效果</th></tr>
+        <tr><td><strong>停用未使用的埠</strong></td><td><u><strong>零</strong></u></td><td><strong>立即</strong></td></tr>
+        <tr><td>埠安全限制 MAC 數</td><td>低</td><td>防私接與 MAC 溢位</td></tr>
+        <tr><td>BPDU 保護</td><td>低</td><td>防私接造成迴圈</td></tr>
+        <tr><td><strong>802.1X 埠認證</strong></td><td><u>中（需 RADIUS）</u></td><td><u><strong>效果最好</strong></u></td></tr>
+      </table></div>
+      <u><strong>優先順序建議</strong>：先做零成本的，802.1X 效果最好但需較多建置與維運。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="307" data-ans="B"><span class="no">307</span><span class="tag">網管協定</span>
+    <div class="stem">使用 SNMP 監控網路設備時，最重要的資安注意事項為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>需要額外授權</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>v1/v2c 社群字串為明文且預設值常未變更，應改用 v3 並限制來源 IP</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>SNMP 會降低設備效能</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>SNMP 無法監控溫度</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>SNMP v1/v2c 的社群字串是明文傳輸</strong>，且預設值常為 <code>public</code>／<code>private</code>——<br>
+      <strong>沒改就等於把設備資訊公開</strong>。</u><br><br>
+      <strong>正確做法</strong>：<u>改用 <strong>SNMP v3</strong>（支援驗證與加密），並<strong>限制可查詢的來源 IP</strong>。</u><br><br>
+      <div class="hl"><strong>💡 名稱易混</strong><br>
+      <u><strong>SMTP</strong> 是寄信（Simple Mail Transfer Protocol）；<br>
+      <strong>SNMP</strong> 是網管（Simple Network Management Protocol）——<strong>差一個字母</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="308" data-ans="B"><span class="no">308</span><span class="tag">DDoS</span>
+    <div class="stem">機關網站遭 DDoS 攻擊時，為何在機關端加裝防火牆無效？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>防火牆效能不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>頻寬在上游就被塞滿，必須靠電信業者或雲端清洗服務在上游過濾</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>防火牆不支援該協定</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>需要更新規則</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 關鍵觀念</span>
+        <u><strong>DDoS 的頻寬在「上游」就被塞滿了</strong>——<br>
+        機關端無論怎麼加防火牆都無效，因為封包根本進不到機關。</u>
+      </div>
+      <strong>四項配套</strong>：<u>①與 ISP 事先簽定<strong>清洗服務</strong> ②靜態內容上 CDN ③<strong>準備降載版首頁</strong> ④演練切換程序</u><br><br>
+      <u><strong>機關高風險時點</strong>：<strong>選舉、重大政策、災害期間</strong>——應於這些時點前提高戒備等級。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="309" data-ans="B"><span class="no">309</span><span class="tag">應用層攻擊</span>
+    <div class="stem">攻擊者在留言板輸入惡意腳本，其他使用者瀏覽時於自己的瀏覽器執行。此攻擊的根本防禦為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>過濾輸入的特殊字元</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>輸出時依情境編碼，並搭配 CSP 與 HttpOnly Cookie</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>安裝防毒軟體</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>使用 HTTPS</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 為何是「輸出編碼」而非「輸入過濾」</span>
+        <u>同一段文字放在<strong>不同位置</strong>要用<strong>不同的編碼方式</strong>：<br>
+        HTML 內文、標籤屬性、JavaScript 裡、網址裡——<strong>四種編碼都不一樣</strong>。<br><br>
+        <strong>輸入時不知道這段文字未來會被放到哪裡，所以只能在輸出時依當下情境編碼。</strong></u>
+      </div>
+      <u><strong>機關高風險頁面</strong>：<strong>留言板、陳情、線上報名</strong>——凡是「把民眾輸入顯示給別人看」的地方。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="310" data-ans="B"><span class="no">310</span><span class="tag">應用層攻擊</span>
+    <div class="stem">使用者修改網址中的案件編號即可看到他人案件。此弱點的根本防禦為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>加密網址參數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>每一次資料存取都在伺服器端驗證該使用者是否有權讀取該筆</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>隱藏網址列</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>縮短連結</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>根本錯誤</strong>：把「畫面上沒有連結」或「參數不外洩」誤當成「使用者沒有權限」。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 公務後果</span>
+      <u>一旦有此弱點，等同<strong>全體申辦民眾的個資可被逐號下載</strong>——<br>
+      屬<strong>重大個資事故</strong>，須依個資法通知全體當事人。</u>
+      </div>
+      <u><strong>(A) 加密參數不是根本解</strong>——攻擊者仍可能重放或猜測，<br>
+      <strong>唯一的根本解是「伺服器端逐次授權檢查」</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="311" data-ans="D"><span class="no">311</span><span class="tag">綜合判斷</span>
+    <div class="stem">HTTPS 能提供的保障不包括下列何者？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>傳輸過程的機密性</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>傳輸過程的完整性</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>伺服器身分驗證</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>防止伺服器被入侵</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D)</strong><br>
+      <div class="frame"><span class="t">📐 一句話</span>
+        <u><strong>HTTPS 保護的是「路上」，不保護「兩端」。</strong></u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>HTTPS 能做到</th><th>HTTPS 做不到</th></tr>
+        <tr><td>防竊聽、防中途竄改、驗證伺服器身分</td><td><u><strong>防 SQL 注入、防 XSS、防伺服器被入侵、加密資料庫</strong></u></td></tr>
+      </table></div>
+      <strong>實務提醒</strong>：<u>應同時設定 <strong>HSTS</strong>、停用舊版 TLS、<strong>憑證自動更新與到期監控</strong>——<br>
+      政府網站憑證過期上新聞，幾乎年年發生。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="312" data-ans="B"><span class="no">312</span><span class="tag">綜合判斷</span>
+    <div class="stem">交換器與路由器的判別，一句話的區辨為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>交換器較快、路由器較慢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>交換器看 MAC（第 2 層），路由器看 IP（第 3 層）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>交換器用於無線、路由器用於有線</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者功能相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>層</th><th>名稱</th><th>設備</th><th>定址</th></tr>
+        <tr><td>1</td><td>實體層</td><td>集線器、中繼器、網路線</td><td>無</td></tr>
+        <tr><td><strong>2</strong></td><td>資料連結層</td><td><strong>交換器、網路卡</strong></td><td><u><strong>MAC 位址</strong></u></td></tr>
+        <tr><td><strong>3</strong></td><td>網路層</td><td><strong>路由器</strong>、三層交換器</td><td><u><strong>IP 位址</strong></u></td></tr>
+        <tr><td>4</td><td>傳輸層</td><td>防火牆（部分）</td><td>埠號</td></tr>
+      </table></div>
+      <u><strong>OSI 七層口訣（由下而上）</strong>：<strong>實 → 資 → 網 → 傳 → 會 → 表 → 應</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="313" data-ans="B"><span class="no">313</span><span class="tag">綜合判斷</span>
+    <div class="stem">TCP 與 UDP 的選擇判準為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>資料量大用 TCP、小用 UDP</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>完整性優先用 TCP、延遲優先用 UDP</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>內網用 TCP、外網用 UDP</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>UDP 較安全</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>需求特徵</th><th>選擇</th><th>公務例</th></tr>
+        <tr><td><u>一個位元都不能錯</u></td><td><strong>TCP</strong></td><td>公文傳輸、資料庫、網頁</td></tr>
+        <tr><td><u>延遲比完整更重要</u></td><td><strong>UDP</strong></td><td><u>視訊會議、監視器串流、語音</u></td></tr>
+        <tr><td>單次短查詢</td><td>UDP</td><td>DNS、DHCP</td></tr>
+      </table></div>
+      <u><strong>為什麼視訊用 UDP</strong>：<strong>寧可掉一格畫面，也不要為了重傳而卡住 0.5 秒</strong>——<br>
+      掉一格沒人發現，卡住半秒所有人都會抱怨。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="314" data-ans="B"><span class="no">314</span><span class="tag">應考策略</span>
+    <div class="stem">資通網路概要中，投報率最高的三個準備區塊為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>冷門協定細節、廠商產品、網路史</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>子網路計算、OSI 與設備對應、協定與埠號</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>只讀常見攻擊</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只背名詞定義</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>區塊</th><th>核心內容</th><th>年約題數</th><th>難度</th></tr>
+        <tr><td><strong>子網路計算</strong></td><td><u>區塊大小、網段、廣播、可用主機、反推遮罩</u></td><td>2～4</td><td><strong>低（練就會）</strong></td></tr>
+        <tr><td><strong>OSI 與設備對應</strong></td><td>七層順序、交換器/路由器層級</td><td>2～3</td><td>低</td></tr>
+        <tr><td><strong>協定與埠號</strong></td><td><u>22/23/25/53/80/443</u></td><td>2～3</td><td>低</td></tr>
+        <tr><td>常見攻擊與防禦</td><td>SQL 注入、XSS、CSRF、DDoS、MITM</td><td>3～5</td><td>中</td></tr>
+      </table></div>
+      <u><strong>前三塊幾乎都是「背了就有分」的類型</strong>，合計約 10～15 題。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="315" data-ans="D"><span class="no">315</span><span class="tag">應考策略</span>
+    <div class="stem">下列陷阱關鍵字的判斷，何者錯誤？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>SSH 是 22、Telnet 是 23</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>私有位址 172 段到 172.31</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>可用主機數 = 區塊大小減 2</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>「慢啟動」是線性成長</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(D) 錯誤</strong><br>
+      <u><strong>「慢啟動」其實是指數成長</strong>——名字取「慢」是因為起點很小。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>陷阱</th><th>正確答案</th></tr>
+        <tr><td>「錯誤」「不是」「不包括」</td><td><u>找<strong>相反</strong>的那一個——每年都有人看漏</u></td></tr>
+        <tr><td>SSH 與 Telnet</td><td><strong>SSH 22、Telnet 23</strong></td></tr>
+        <tr><td>私有位址 172 段</td><td><u><strong>只到 172.31</strong></u>（不是 172.35）</td></tr>
+        <tr><td>可用主機數</td><td><strong>區塊大小減 2</strong></td></tr>
+        <tr><td>MB 與 Mbps</td><td><u><strong>差 8 倍</strong></u></td></tr>
+        <tr><td>「慢啟動」</td><td><u><strong>指數成長</strong></u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
     <div class="q" data-qno="進階 1" data-ans="C">
       <div class="t">
         <span class="no">進階 1</span><span class="tag">進階擴充</span>
