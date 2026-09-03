@@ -8733,6 +8733,1042 @@
   </div>
 
 
+
+  <div class="card"><h3>M. 進階攻防與治理實務（第 271～320 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">對應<a href="net-deep.html">資通網路與安全深化教材第 13～24 章</a>：TLS、攻擊鏈、風險評鑑、身分協定、供應鏈與 AI 時代威脅。</p>
+  </div>
+
+  <div class="q" data-qno="271" data-ans="B"><span class="no">271</span><span class="tag">TLS</span>
+    <div class="stem">TLS 連線中，防範中間人攻擊的關鍵機制為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>對稱加密</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>伺服器憑證與簽章驗證</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>壓縮演算法</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>訊息驗證碼</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 一句話區辨</span>
+        <u><strong>憑證防中間人，加密防竊聽</strong>——兩者不可互相取代。</u>
+      </div>
+      <u><strong>為什麼只有加密不夠</strong>：中間人可以與你建立一條加密連線、再與真正的伺服器建立另一條——<br>
+      兩條都加密，但他在中間全部看得到。<strong>唯有憑證能證明「對方確實是那個網域的持有者」。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="272" data-ans="B"><span class="no">272</span><span class="tag">TLS</span>
+    <div class="stem">若攻擊者今日錄下加密流量，五年後取得伺服器私鑰仍無法解密，是因為採用了？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>更長的金鑰</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>具前向保密的臨時金鑰交換（ECDHE）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>更強的雜湊演算法</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>憑證釘選</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 前向保密（Forward Secrecy）</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>金鑰交換方式</th><th>私鑰外洩後能否解開歷史流量</th></tr>
+        <tr><td>舊式 RSA 金鑰交換</td><td><u><strong>可以</strong></u>（對稱金鑰是用伺服器公鑰加密送過去的）</td></tr>
+        <tr><td><strong>ECDHE（臨時金鑰）</strong></td><td><u><strong>不可以</strong></u>（每次連線產生臨時金鑰對，用完即丟）</td></tr>
+      </table></div>
+      <u><strong>公務意義</strong>：政府網站應停用不具前向保密的加密套件——<br>因為<strong>「先蒐集、後解密」是國家級攻擊者的常見手法</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="273" data-ans="B"><span class="no">273</span><span class="tag">憑證管理</span>
+    <div class="stem">政府網站憑證過期上新聞的事故，最有效之預防為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>購買更長效期的憑證</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>建立自動更新機制並設到期前告警</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>由承辦每月手動檢查</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>改用自簽憑證</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>根本原因不是技術，是「沒人負責續約，或負責的人離職了」。</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>事故</th><th>預防</th></tr>
+        <tr><td><strong>憑證過期</strong></td><td><u>自動更新 ＋ 到期前 30 日告警</u></td></tr>
+        <tr><td>中繼憑證未安裝</td><td>部署後用外部工具驗證完整鏈</td></tr>
+        <tr><td>網域名稱不符</td><td>使用萬用或多網域憑證</td></tr>
+        <tr><td><strong>私鑰外洩</strong></td><td><u><strong>私鑰不進版本控制</strong>；備份須加密；立即撤銷重簽</u></td></tr>
+      </table></div>
+      <u>(D) 自簽憑證會讓瀏覽器警告，反而訓練使用者忽略憑證錯誤——<strong>更危險</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="274" data-ans="B"><span class="no">274</span><span class="tag">攻擊鏈</span>
+    <div class="stem">阻斷攻擊者「橫向移動」最有效的一層防護為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>加強郵件過濾</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>網段隔離與微分段</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>提高密碼複雜度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>增加防毒軟體</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>攻擊鏈階段</th><th>我方可以做什麼</th></tr>
+        <tr><td>初始入侵</td><td>修補、郵件過濾、<strong>MFA</strong></td></tr>
+        <tr><td>建立立足點</td><td>端點偵測、異常程序告警</td></tr>
+        <tr><td>權限提升</td><td>最小權限、特權帳號管理</td></tr>
+        <tr><td><strong>橫向移動</strong></td><td><u><strong>網段隔離（微分段）——最有效的一層</strong></u></td></tr>
+        <tr><td>資料外傳</td><td><u>出向流量監控、DLP</u></td></tr>
+      </table></div>
+      <u><strong>縱深防禦的意義</strong>：攻擊者必須<strong>每一關都成功</strong>，防守方<strong>只要有一關擋下就贏</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="275" data-ans="B"><span class="no">275</span><span class="tag">資安指標</span>
+    <div class="stem">MTTD 與 MTTR 分別衡量什麼？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>平均修補時間與平均演練時間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>平均偵測時間與平均回應時間</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>平均通報時間與平均復原時間</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>平均當機時間與平均重啟時間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>指標</th><th>意義</th><th>為什麼重要</th></tr>
+        <tr><td><strong>MTTD</strong></td><td><u>從入侵到「發現」有多久</u></td><td><strong>潛伏越久，損害越大</strong></td></tr>
+        <tr><td><strong>MTTR</strong></td><td>從發現到「處理完」有多久</td><td>決定影響範圍</td></tr>
+      </table></div>
+      <div class="warn"><span class="t">⚠️ 殘酷的現實</span>
+      <u>許多機關的入侵<strong>不是自己發現的</strong>，是被上級通報、被外部單位告知、或看到新聞才知道——<br>
+      那代表 MTTD 是以<strong>「月」</strong>計算的。</u>
+      </div>
+      <u><strong>為什麼「事件件數為零」不可靠</strong>：可能是防護良好，<strong>也可能是根本沒偵測到</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="276" data-ans="B"><span class="no">276</span><span class="tag">事故應變</span>
+    <div class="stem">資安事故應變的正確階段順序為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>偵測 → 根除 → 復原 → 通報 → 檢討</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>準備 → 偵測 → 遏止 → 根除 → 復原 → 檢討</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>復原 → 通報 → 偵測 → 檢討</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>通報 → 復原 → 偵測 → 遏止</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 六階段</span>
+        <strong>①準備</strong>：<u>應變計畫、聯絡名單、演練、工具備妥（<strong>只能事前做</strong>）</u><br>
+        <strong>②偵測與分析</strong>：確認是否為真、判斷影響範圍與等級<br>
+        <strong>③遏止</strong>：<u><strong>隔離受害主機（拔網路但不關機）</strong></u><br>
+        <strong>④根除</strong>：<u>清除後門、<strong>修補被利用的漏洞</strong>、<strong>重設遭竊憑證</strong></u><br>
+        <strong>⑤復原</strong>：由<strong>乾淨備份</strong>還原並持續監控<br>
+        <strong>⑥檢討</strong>：根因分析與改善
+      </div>
+      <u><strong>三個最常見的錯誤</strong>：①先關機或重灌（證據全滅） ②只清病毒不修漏洞（下週再中） ③<strong>沒有重設憑證</strong>（攻擊者手上還有帳密）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="277" data-ans="B"><span class="no">277</span><span class="tag">風險評鑑</span>
+    <div class="stem">風險的三要素為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>成本、時間、品質</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>威脅、弱點、衝擊</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>機密性、完整性、可用性</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>人員、流程、技術</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 風險 = 威脅 × 弱點 × 衝擊</span>
+        <u><strong>威脅</strong>：有沒有人想攻擊、有沒有能力<br>
+        <strong>弱點</strong>：我方有沒有可被利用的缺口<br>
+        <strong>衝擊</strong>：真的發生了損失多大</u><br><br>
+        <u><strong>三者缺一，風險就不成立</strong>——有威脅但沒弱點，或有弱點但衝擊為零，都不需優先處理。</u>
+      </div>
+      <strong>量化方式</strong>：<u>可能性（1-5）× 衝擊（1-5）＝ 風險值，據以<strong>排序</strong>並簽陳。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="278" data-ans="B"><span class="no">278</span><span class="tag">風險評鑑</span>
+    <div class="stem">某風險經評估後決定不採取額外控制措施，正確的處理方式為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>默默略過即可</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>以書面記錄「風險接受」、敘明理由、經權責主管核可並定期複審</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>從風險登錄表中刪除</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>交由廠商決定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 「接受」不等於「忽略」</span>
+      <u><strong>默默略過與正式接受的差別，在事故發生後就是「失職」與「已知風險的判斷」的差別。</strong></u>
+      </div>
+      <strong>四種處理方式</strong>：<u><strong>降低</strong>（加控制）、<strong>轉移</strong>（契約或保險）、<strong>規避</strong>（不做那件事）、<strong>接受</strong>（記錄並核可）</u><br><br>
+      <u><strong>殘餘風險永遠存在</strong>——資安的目標不是消除風險，而是<strong>「把風險降到組織可承受且已知的水準」</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="279" data-ans="B"><span class="no">279</span><span class="tag">身分協定</span>
+    <div class="stem">關於 OAuth 2.0 與 OIDC，下列敘述何者正確？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩者都是驗證協定</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>OAuth 2.0 是授權協定，OIDC 才是驗證協定</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>OIDC 是授權協定</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者功能完全相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 授權 vs 驗證</span>
+        <u><strong>OAuth 2.0</strong>（授權）→ 回答「這個應用程式<strong>可以做什麼</strong>」<br>
+        <strong>OIDC</strong>（驗證，建在 OAuth 之上）→ 回答「這個人<strong>是誰</strong>」</u>
+      </div>
+      <u><strong>常見錯誤</strong>：直接拿 OAuth 當登入用——<br>
+      OAuth 只告訴你「有人授權了這個 token」，<strong>不保證那個人是誰</strong>。</u><br><br>
+      <strong>SAML 2.0</strong>：<u>XML 斷言格式，複雜度高，常見於政府與企業的<strong>既有系統</strong>單一登入。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="280" data-ans="B"><span class="no">280</span><span class="tag">JWT</span>
+    <div class="stem">關於 JWT（JSON Web Token），下列敘述何者正確？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>Payload 是加密的，可安全存放敏感資料</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>Payload 僅為編碼，任何人都能解讀，不可放敏感資料</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>JWT 可隨時即時撤銷</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>有簽章就不需驗證</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ JWT 的三個致命誤解</span>
+      <u><strong>①「JWT 是加密的」</strong> → 錯，只是 Base64 編碼，<strong>任何人都能看到內容</strong><br>
+      <strong>②「有簽章就安全」</strong> → 必須真的<strong>在伺服器端驗證簽章</strong>，且<strong>拒絕 alg 為 none</strong> 的 token<br>
+      <strong>③「JWT 可隨時撤銷」</strong> → 錯，<u>JWT 本質無狀態，<strong>簽發後到期前都有效</strong></u></u>
+      </div>
+      <u><strong>需要即時撤銷</strong>（離職、權限異動）就必須<strong>縮短有效期</strong>或另建<strong>撤銷清單</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="281" data-ans="B"><span class="no">281</span><span class="tag">單一登入</span>
+    <div class="stem">導入全府單一登入（SSO）後，下列敘述何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>各系統不必再判斷權限</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>SSO 只解決「你是誰」，授權仍須各系統各自判斷</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>SSO 故障不影響任何系統</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>SSO 可取代 MFA</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>SSO 是「把所有門的鑰匙合成一把」</strong>——方便，但那把鑰匙掉了就全開。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>必要配套</th><th>理由</th></tr>
+        <tr><td><strong>MFA（一定要）</strong></td><td>降低單一憑證失竊的衝擊</td></tr>
+        <tr><td><strong>高可用架構</strong></td><td><u>SSO 掛掉全府無法登入</u></td></tr>
+        <tr><td><strong>降級登入機制</strong></td><td>明確的緊急處理程序</td></tr>
+        <tr><td><strong>單一登出（SLO）</strong></td><td><u>要能真的讓所有系統登出，否則公用電腦上很危險</u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="282" data-ans="B"><span class="no">282</span><span class="tag">安全設計</span>
+    <div class="stem">驗證服務故障時，資料查詢系統應如何反應？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>全部放行以維持服務</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>拒絕存取（Fail-Secure）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>隨機決定</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>由使用者選擇</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>安全失效原則</strong>：出錯時要往<strong>安全的方向</strong>倒。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 但方向要看情境判斷</span>
+      <u><strong>一般情況</strong>（資料保密優先）→ <strong>Fail-Secure</strong>（拒絕存取）<br>
+      <strong>但是</strong>：<u>消防門禁、災害應變系統失效時應<strong>開放</strong>（Fail-Safe）——<strong>人命優先於資料保密</strong>。</u></u>
+      </div>
+      <u><strong>申論寫法</strong>：「安全失效的方向應依<strong>該系統失效的後果</strong>決定：<br>
+      資料保密性優先者採 Fail-Secure，<strong>人身安全優先者採 Fail-Safe</strong>，並於設計文件明確記載。」</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="283" data-ans="B"><span class="no">283</span><span class="tag">安全設計</span>
+    <div class="stem">系統以「畫面不顯示連結」作為權限控制手段，違反了哪一項安全設計原則？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>機制經濟</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>不靠隱藏與完全仲裁</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>權責分離</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>安全預設</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 兩項被違反的原則</span>
+        <u><strong>不靠隱藏</strong>：安全不能建立在「別人不知道」上<br>
+        <strong>完全仲裁</strong>：<strong>每一次存取都要在伺服器端檢查授權</strong></u>
+      </div>
+      <strong>根本錯誤</strong>：<u>把「畫面上沒有連結」誤當成「使用者沒有權限」。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 公務後果</span>
+      <u>一旦有此弱點，等同<strong>全體申辦民眾的個資可被逐號下載</strong>——<br>屬重大個資事故，須依個資法通知全體當事人。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="284" data-ans="B"><span class="no">284</span><span class="tag">網路量化</span>
+    <div class="stem">16 支 1080p 監視器持續串流（每支約 6 Mbps），與一條 100 Mbps 線路的關係為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>頻寬充裕</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>需求約 96 Mbps，幾乎占滿線路，應改為影像本地儲存、調閱時才傳輸</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>監視器不占頻寬</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只需升級交換器</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>16 × 6 = <strong>96 Mbps</strong>，且<strong>24 小時持續占用</strong>——公務系統與同仁作業幾乎沒有頻寬可用。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>應用</th><th>單人／單支需求</th><th>特性</th></tr>
+        <tr><td>網頁作業、公文</td><td>約 0.5 Mbps</td><td>突發性，可共享</td></tr>
+        <tr><td>視訊會議</td><td>2～4 Mbps</td><td>雙向</td></tr>
+        <tr><td><strong>監視器 1080p</strong></td><td><strong>4～8 Mbps</strong></td><td><u><strong>持續占用，最容易被低估</strong></u></td></tr>
+      </table></div>
+      <strong>頻寬估算公式</strong>：<u>單人需求 × <strong>尖峰同時人數</strong> × <strong>1.3～1.5 倍餘裕</strong></u>。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="285" data-ans="B"><span class="no">285</span><span class="tag">網路量化</span>
+    <div class="stem">線路已升級為 1 Gbps 但跨國連線仍然很慢。最可能的原因與解法為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>頻寬不足；再升級</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>瓶頸在傳播延遲與來回次數；應減少來回次數並加大視窗</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>交換器故障；更換設備</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>DNS 問題；更換 DNS</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 頻寬延遲乘積</span>
+        <u><strong>最大吞吐量 ≈ 視窗大小 ÷ RTT</strong><br><br>
+        視窗 64 KB、RTT 10 ms → 約 <strong>51 Mbps</strong><br>
+        同樣視窗、RTT 100 ms → 約 <strong>5.1 Mbps</strong>——<strong>頻寬再大也沒用</strong></u>
+      </div>
+      <u><strong>關鍵觀念：加頻寬不能降低傳播延遲</strong>（那是距離 ÷ 光速的物理限制）。<br>
+      解法是<strong>加大視窗</strong>或<strong>減少來回次數</strong>（合併請求、快取），不是加頻寬。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="286" data-ans="B"><span class="no">286</span><span class="tag">網路架構</span>
+    <div class="stem">機關 VLAN 規劃中，監視器與公用 Wi-Fi 這兩個網段對內部網路的存取原則應為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>允許存取業務系統</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>原則全部拒絕</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>僅限上班時間允許</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>由各單位自行決定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>VLAN</th><th>對外</th><th>對內</th></tr>
+        <tr><td>辦公用電腦</td><td>允許（經過濾）</td><td>允許存取業務系統</td></tr>
+        <tr><td>伺服器</td><td>限制</td><td>依需求開放</td></tr>
+        <tr><td><strong>監視器與 IoT</strong></td><td><u>僅允許連往指定平台</u></td><td><u><strong>全部拒絕</strong></u></td></tr>
+        <tr><td><strong>公用 Wi-Fi</strong></td><td>允許</td><td><u><strong>全部拒絕</strong></u></td></tr>
+        <tr><td>管理網段</td><td>拒絕</td><td>僅限管理人員來源</td></tr>
+      </table></div>
+      <u><strong>理由</strong>：這兩類是機關最常見的破口——<strong>更新最慢、預設密碼最多、裝置不受控</strong>，<br>
+      而它們<strong>不需要也不應該能連進內網</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="287" data-ans="B"><span class="no">287</span><span class="tag">密碼學</span>
+    <div class="stem">產生驗證碼、Session ID 或重設密碼連結時，必須使用？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>一般隨機函式</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>密碼學安全的亂數產生器</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>時間戳記</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>流水號加雜湊</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>一般亂數函式是可預測的</strong>——攻擊者知道大概時間或看到幾個樣本，就能推算出下一個值。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>做法</th><th>風險</th></tr>
+        <tr><td><u>時間戳記</u></td><td><u><strong>完全可預測</strong>——知道大概時間就能窮舉</u></td></tr>
+        <tr><td><u>雜湊(流水號)</u></td><td><u><strong>完全可預測</strong>——攻擊者自己算就好</u></td></tr>
+        <tr><td>一般 <code>random()</code></td><td>種子可推算</td></tr>
+        <tr><td><strong>密碼學安全亂數</strong></td><td>不可預測</td></tr>
+      </table></div>
+      <u><strong>三個「不要自己做」</strong>：不自己設計加密演算法、不自己實作已知演算法、<strong>不用一般亂數</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="288" data-ans="B"><span class="no">288</span><span class="tag">金鑰管理</span>
+    <div class="stem">規劃金鑰輪替時，最常被忽略的問題為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>新金鑰的長度</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>已用舊金鑰加密的既有資料如何處理</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>輪替的頻率</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>金鑰的命名規則</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>「我們要定期換金鑰」聽起來很好，但<strong>已經用舊金鑰加密的一千萬筆資料怎麼辦？</strong></u><br><br>
+      <div class="frame"><span class="t">📐 設計時就要決定</span>
+        <u><strong>方案一</strong>：保留舊金鑰供解密，並在資料上<strong>標記金鑰版本</strong><br>
+        <strong>方案二</strong>：<strong>批次重新加密</strong>（須規劃執行時間與空間）</u>
+      </div>
+      <strong>金鑰生命週期六階段</strong>：<u>產生 → 分發 → <strong>儲存（與資料分開）</strong> → 使用 → <strong>輪替</strong> → 銷毀</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="289" data-ans="B"><span class="no">289</span><span class="tag">後量子密碼</span>
+    <div class="stem">面對量子運算對現行公鑰演算法的威脅，公務機關現階段最合理的作為為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>立即全面更換為後量子演算法</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>盤點須長期保密的資料，並確保系統具備密碼敏捷性</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>完全不必處理</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>停用所有加密</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 現階段三件事</span>
+        <strong>①</strong> <u>盤點<strong>需保密超過十年</strong>的資料（國安、長期個資）——這些面臨「先蒐集、後解密」風險</u><br>
+        <strong>②</strong> <u>確保系統具<strong>密碼敏捷性</strong>（演算法可替換，<strong>不要寫死</strong>）</u><br>
+        <strong>③</strong> 關注標準機關公告，於設備汰換時逐步採用
+      </div>
+      <u><strong>不需要做的</strong>：現在就恐慌性全面更換——標準尚在推動，<strong>貿然採用未成熟方案風險更高</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="290" data-ans="B"><span class="no">290</span><span class="tag">供應鏈安全</span>
+    <div class="stem">供應鏈安全三個入口中，控制成本最低而效益最高的關卡為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>事後稽核</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>採購規格</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>資安演練</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>教育訓練</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 採購規格</strong><br>
+      <u><strong>設備買進來之後才想管理，選項只剩「換掉」（很貴）或「接受風險」（很危險）。</strong><br>
+      在需求書裡寫一行規格，成本是零。</u><br><br>
+      <div class="frame"><span class="t">📐 應納入採購規格的五項資安條款</span>
+        <strong>①</strong> 禁限用產品之排除<br>
+        <strong>②</strong> <u>韌體更新機制與<strong>支援年限</strong></u><br>
+        <strong>③</strong> <u><strong>預設密碼須可變更</strong></u><br>
+        <strong>④</strong> <u>提供<strong>SBOM</strong>（軟體元件清單）</u><br>
+        <strong>⑤</strong> 資料可攜與退場機制
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="291" data-ans="B"><span class="no">291</span><span class="tag">SBOM</span>
+    <div class="stem">重大開源漏洞公布時，具備 SBOM 的機關最大的優勢為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>可自動修補</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>能在短時間內查出哪些系統受影響，含間接相依的套件</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>可免除通報義務</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>可要求廠商賠償</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>應變的第一個問題永遠是：<strong>「我們有沒有用到？用在哪裡？」</strong>——答不出來，就什麼都做不了。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>沒有 SBOM</th><th>有 SBOM</th></tr>
+        <tr><td><u>不知道自己有沒有用到</u></td><td><strong>幾分鐘內查出受影響系統</strong></td></tr>
+        <tr><td>只能一家一家問廠商</td><td>自己就能盤點</td></tr>
+        <tr><td><u>可能漏掉間接相依的套件</u></td><td><u>連相依的相依都列出</u></td></tr>
+      </table></div>
+      <strong>契約要求</strong>：<u>「廠商應於交付時提供 SBOM，並於重大漏洞公布後 X 個工作日內<strong>主動評估影響並回報</strong>。」</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="292" data-ans="B"><span class="no">292</span><span class="tag">開源風險</span>
+    <div class="stem">下列開源套件風險中，「名稱搶註」指的是？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>套件版本過舊</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>攻擊者發布名稱與熱門套件相似的惡意套件</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>授權條款不符</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>作者停止維護</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>風險</th><th>對策</th></tr>
+        <tr><td>已知漏洞</td><td><u>自動化相依性掃描，納入建置流程</u></td></tr>
+        <tr><td><strong>套件投毒</strong></td><td>鎖定版本、使用內部套件鏡像</td></tr>
+        <tr><td><strong>名稱搶註</strong></td><td><u><strong>核對套件來源與維護者</strong></u></td></tr>
+        <tr><td><strong>授權合規</strong></td><td><u>某些授權要求衍生作品也須開源 → 建立授權白名單</u></td></tr>
+        <tr><td>維護中斷</td><td>評估社群活躍度、準備替代方案</td></tr>
+      </table></div>
+      <u><strong>公務特別注意「授權合規」</strong>：委外開發的系統若誤用特定授權的元件，<br>可能產生<strong>必須公開原始碼</strong>的義務。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="293" data-ans="B"><span class="no">293</span><span class="tag">日誌鑑識</span>
+    <div class="stem">資安鑑識取證時，「先揮發後持久」原則的正確順序為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>磁碟 → 記憶體 → 網路連線</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>記憶體 → 網路連線 → 執行中程序 → 磁碟</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>磁碟 → 執行中程序 → 記憶體</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>順序不重要</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>越容易消失的越先取</strong>——記憶體一關機就沒了，磁碟還在。</u><br><br>
+      <div class="frame"><span class="t">📐 四個保全原則</span>
+        <strong>①先揮發後持久</strong>：記憶體 → 網路連線 → 程序 → 磁碟<br>
+        <strong>②不在原機操作</strong>：<u>取得映像檔後在副本上分析</u><br>
+        <strong>③保管鏈</strong>：<u>誰在何時取得、如何保管、交給誰——全程記錄</u><br>
+        <strong>④雜湊驗證</strong>：取證時計算雜湊值，證明分析未變更證據
+      </div>
+      <u><strong>公務現實</strong>：多數機關沒有鑑識能力，這很正常。<strong>重點是「不要把證據破壞掉」</strong>——<br>保持現狀、拔網路線、通報，等待具備能力的單位支援。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="294" data-ans="B"><span class="no">294</span><span class="tag">日誌管理</span>
+    <div class="stem">跨系統資安事件無法勾稽時序，最可能的原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>日誌格式不同</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>各系統未做 NTP 時間同步</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>日誌保存期限太短</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>日誌未加密</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>時間差三分鐘，跨系統的事件時序就對不起來</strong>——無法判斷是「A 先被入侵再打 B」還是相反。</u><br><br>
+      <div class="frame"><span class="t">📐 日誌的三個必要條件</span>
+        <strong>①集中</strong>：<u>存在獨立主機——<strong>留在被入侵的機器上，攻擊者第一件事就是刪掉它</strong></u><br>
+        <strong>②時間同步</strong>：<u><strong>全機關 NTP 校時</strong></u><br>
+        <strong>③防竄改</strong>：<u>唯寫媒體或雜湊鏈，<strong>連管理者也不能改</strong></u>
+      </div>
+      <strong>記錄五要素</strong>：<u>誰（Who）、何時（When）、做什麼（What）、<strong>對哪一筆（Which）</strong>、成功或失敗（Result）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="295" data-ans="B"><span class="no">295</span><span class="tag">資安治理</span>
+    <div class="stem">資安制度「文件化的資安」失敗模式，其根因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>文件寫得不夠多</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>制定規範時沒有讓實際執行的人參與，寫出做不到的規定</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>罰則不夠重</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>缺乏工具</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>失敗模式</th><th>症狀</th><th>根因</th></tr>
+        <tr><td><strong>文件化的資安</strong></td><td>規範完整但沒人照做</td><td><u>制定時沒讓執行的人參與</u></td></tr>
+        <tr><td><strong>資訊室的資安</strong></td><td>業務單位認為與己無關</td><td><u><strong>推動層級太低</strong></u></td></tr>
+        <tr><td><strong>稽核前的資安</strong></td><td>稽核前一週衝業績</td><td>指標只看有沒有做</td></tr>
+        <tr><td><strong>阻礙業務的資安</strong></td><td>同仁想辦法繞過</td><td><u>只封鎖不提供替代方案</u></td></tr>
+      </table></div>
+      <strong>落地四條件</strong>：<u><strong>層級</strong>（副首長主持）、<strong>參與</strong>、<strong>配套</strong>、<strong>驗證</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="296" data-ans="B"><span class="no">296</span><span class="tag">資安指標</span>
+    <div class="stem">社交工程演練中，比「點擊率低」更有價值的指標為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>演練次數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>主動回報率</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>教育訓練時數</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>郵件開啟率</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 回報率</strong><br>
+      <u><strong>回報率高代表同仁「知道該怎麼做」而且「敢做」</strong>——這比點擊率低更有價值。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 懲罰導向的副作用</span>
+      <u>公布名單並議處 → <strong>同仁不敢通報</strong> → 真的中招時反而隱匿，事件擴散更快、發現更晚。</u>
+      </div>
+      <strong>有效作法</strong>：<u>①演練後立即說明「哪裡看得出是假的」 ②<strong>一鍵回報按鈕</strong> ③<strong>獎勵回報者</strong> ④搭配郵件過濾與附件沙箱</u><br><br>
+      <u><strong>公務現實</strong>：第一線<strong>本來就必須打開民眾寄來的附件</strong>，純粹要求「不要點」不切實際。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="297" data-ans="B"><span class="no">297</span><span class="tag">新興威脅</span>
+    <div class="stem">生成式 AI 普及後，下列哪一個傳統判準已完全失效？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>檢查寄件者網域</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>「中文寫得好、沒有錯字就是真的」</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>檢查連結實際位址</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>用既有分機另行查證</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>已失效的判準</th><th>仍然可靠的判準</th></tr>
+        <tr><td><u>「中文寫得爛就是假的」</u></td><td><strong>寄件者網域</strong></td></tr>
+        <tr><td><u>「有機關 Logo 就可信」</u></td><td><strong>連結的實際位址</strong></td></tr>
+        <tr><td>—</td><td><u>以<strong>既有管道</strong>另行查證</u></td></tr>
+      </table></div>
+      <div class="warn"><span class="t">⚠️ 深偽對公務流程的衝擊</span>
+      <u>「接到長官電話要求緊急匯款或提供資料」——<strong>聲音與影像都可以偽造</strong>。<br><br>
+      <strong>對策是流程而非技術</strong>：涉及金流、個資或權限異動的指示，<br>
+      一律以<strong>自己原本就知道的聯絡方式</strong>複核，不是對方提供的號碼。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="298" data-ans="B"><span class="no">298</span><span class="tag">AI 安全</span>
+    <div class="stem">使用者輸入中夾帶指令，讓 AI 忽略原本設定的規則。此攻擊稱為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>SQL 注入</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>提示注入</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>跨站腳本</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>緩衝區溢位</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 提示注入（Prompt Injection）</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>威脅</th><th>說明</th><th>防護</th></tr>
+        <tr><td><strong>提示注入</strong></td><td><u>輸入中夾帶指令，覆寫原本規則</u></td><td>輸入過濾、輸出檢查、<strong>權限隔離</strong></td></tr>
+        <tr><td>訓練資料投毒</td><td>汙染訓練資料使模型偏差</td><td>資料來源控管</td></tr>
+        <tr><td>模型逆推</td><td><u>從輸出反推訓練資料中的個資</u></td><td>訓練前去識別化</td></tr>
+        <tr><td><strong>過度授權</strong></td><td><u><strong>AI 代理被賦予過大權限，一旦被操縱危害極大</strong></u></td><td><strong>最小權限、關鍵動作需人工確認</strong></td></tr>
+      </table></div>
+      <u><strong>核心原則</strong>：<strong>把「模型的輸出」當成不可信的使用者輸入來處理</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="299" data-ans="B"><span class="no">299</span><span class="tag">AI 治理</span>
+    <div class="stem">機關訂定生成式 AI 使用指引時，下列何者為必須明定的「資料紅線」？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>每日使用次數上限</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>不得輸入個資、機敏資料與未公開的內部資訊</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>只能在上班時間使用</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>僅限主管使用</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 使用指引應明定五件事</span>
+        <strong>①可用情境</strong>：<u>草擬初稿、摘要、翻譯、格式轉換、程式碼輔助</u><br>
+        <strong>②禁用情境</strong>：<u><strong>處分書撰擬、涉個資之判斷、機密資料處理</strong></u><br>
+        <strong>③資料紅線</strong>：<u><strong>不得輸入個資、機敏資料、未公開內部資訊</strong></u><br>
+        <strong>④查證義務</strong>：<u><strong>凡引用法規、判例、數據，一律回原始來源核對</strong></u><br>
+        <strong>⑤責任歸屬</strong>：<u><strong>署名的承辦人負完全責任，AI 不是免責事由</strong></u>
+      </div>
+      <u><strong>幻覺的具體危害</strong>：AI 可能生成<strong>不存在的法條或函釋</strong>，而且語氣非常肯定。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="300" data-ans="B"><span class="no">300</span><span class="tag">AI 治理</span>
+    <div class="stem">以模型分數決定稽查對象並直接作成裁罰，其法律上的問題為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>沒有問題</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>行政處分須附記理由並可救濟，「模型算出來的」不是理由</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>只是效率問題</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只需事後通知即可</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 這是 AI 應用於公務的天花板</span>
+        <u>行政程序法要求行政處分<strong>附記理由</strong>並<strong>教示救濟方法</strong>。<br>
+        <strong>說不出依據的模型，不能單獨作成處分</strong>——不論技術多先進都不能突破。</u>
+      </div>
+      <strong>分級管理</strong>：<u><strong>高風險</strong>（資格核定、裁罰、稽查對象）須<strong>可解釋 ＋ 人工複核 ＋ 可救濟 ＋ 定期公平性檢視</strong>；<br>
+      <strong>禁止</strong>：單獨作成不利處分而無人工介入。</u><br><br>
+      <u>模型分數可作為<strong>發現線索</strong>之工具，但<strong>舉發仍須由有權人員依法認定</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="301" data-ans="B"><span class="no">301</span><span class="tag">演算法偏誤</span>
+    <div class="stem">「回饋循環」造成的演算法偏誤，最有效的檢驗方式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>提高模型準確率</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>保留一定比例的隨機抽查作為對照組，比較兩者查獲率</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>增加訓練資料量</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>換一個演算法</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 回饋循環的機制</span>
+        <u>過去某區稽查較多 → 該區違規紀錄多 → 模型判定該區高風險 → 派更多人去 → 紀錄更多<br><br>
+        <strong>模型學到的是「過去官員都去哪裡」，不是「哪裡真的有違規」。</strong></u>
+      </div>
+      <u><strong>為什麼隨機抽查有效</strong>：它是<strong>對照組</strong>——沒有對照組，就無法區分<br>
+      「模型真的準」與「模型只是在重複過去的巡查習慣」。</u><br><br>
+      <strong>偏誤三來源</strong>：<u>資料偏誤、標記偏誤、<strong>回饋循環</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="302" data-ans="B"><span class="no">302</span><span class="tag">零信任</span>
+    <div class="stem">預算有限的機關導入零信任，最務實的三步順序為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>採購零信任產品 → 全面改造網路 → 教育訓練</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>全面 MFA → 特權帳號集中管理 → 關鍵系統微分段</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>汰換所有設備 → 建置雙中心 → 取得驗證</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>停用所有內網存取</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>零信任是「方向」不是「產品」</strong>——不必也不可能一次全面改造。</u><br><br>
+      <div class="frame"><span class="t">📐 三原則與務實三步</span>
+        <strong>三原則</strong>：<u>永不信任始終驗證、最小權限、假設已遭入侵</u><br><br>
+        <strong>①</strong> <u><strong>全面 MFA</strong>（尤其特權帳號）</u><br>
+        <strong>②</strong> <u><strong>特權帳號集中管理</strong>（不共用、可稽核、限時授權）</u><br>
+        <strong>③</strong> <u><strong>關鍵系統微分段</strong>（限制橫向移動）</u>
+      </div>
+      <u>傳統 VPN 一連上就等於「人在辦公室」，<strong>整個內網都看得到</strong>——這正是零信任要改變的。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="303" data-ans="B"><span class="no">303</span><span class="tag">遠距辦公</span>
+    <div class="stem">涉及個資的作業採遠距辦理時，優先建議的存取方式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>VPN 加直接存取檔案</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>遠端桌面或虛擬桌面，資料留在機關內</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>以電子郵件傳送檔案</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>使用個人雲端硬碟同步</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>VPN ＋ 直接存取</th><th>遠端桌面</th></tr>
+        <tr><td>資料位置</td><td><u><strong>會下載到個人電腦</strong></u></td><td><strong>資料留在機關內</strong></td></tr>
+        <tr><td>端點風險</td><td>高</td><td><u>較低（只傳畫面）</u></td></tr>
+        <tr><td>使用體驗</td><td>較順</td><td>受延遲影響</td></tr>
+      </table></div>
+      <u><strong>理由</strong>：即使個人電腦遭入侵，<strong>也拿不到檔案</strong>。</u><br><br>
+      <u><strong>VPN 的風險通常不在加密，而在端點</strong>——那台家用電腦可能已中毒、沒更新、全家共用。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="304" data-ans="B"><span class="no">304</span><span class="tag">網路可用性</span>
+    <div class="stem">機關採購「雙線路」備援時，最關鍵而常被忽略的確認事項為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩條線的頻寬是否相同</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>兩條線的實體路徑是否重疊</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>兩條線的價格</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩條線的合約年限</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 「雙線路」的三個層次</span>
+        <u><strong>假備援</strong>：同一家電信、同一條實體管線 → <strong>挖斷一次全斷</strong><br>
+        <strong>半備援</strong>：不同電信但同一條管線進大樓 → 仍有共同風險<br>
+        <strong>真備援</strong>：<strong>不同電信、不同實體路由、不同機房進線點</strong></u>
+      </div>
+      <u><strong>採購時要問的問題</strong>：「這兩條線的實體路徑有沒有重疊？」——<br>很多機關買了兩條線，才發現走的是<strong>同一條管溝</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="305" data-ans="B"><span class="no">305</span><span class="tag">網路可用性</span>
+    <div class="stem">機關單點失效清單中，最常被忽略的兩項為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>核心交換器與防火牆</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>機房空調與 DNS</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>對外線路與電力</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>伺服器與儲存設備</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 為什麼這兩項最容易被漏</span>
+      <u><strong>①空調</strong>：機房空調壞掉，<strong>半小時內設備就會因過熱而自動關機</strong>——比斷網更常見。<br>
+      <strong>②DNS</strong>：DNS 掛掉時，使用者的症狀是<strong>「什麼都連不上」</strong>，很容易被誤判為線路問題。</u>
+      </div>
+      <strong>完整清單</strong>：<u>對外線路、核心交換器、防火牆、電力（UPS ＋ 發電機）、<strong>空調</strong>、<strong>DNS</strong>、SSO</u><br><br>
+      <u>並須配套<strong>溫濕度監控與漏水偵測告警</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="306" data-ans="B"><span class="no">306</span><span class="tag">郵件安全</span>
+    <div class="stem">SPF、DKIM 與 DMARC 三者的關係為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>三者功能相同</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>SPF 查誰寄的、DKIM 查有沒有被改、DMARC 決定不合格時怎麼辦</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>只需設定 SPF 即可</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>DMARC 可取代前兩者</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>機制</th><th>作用</th></tr>
+        <tr><td><strong>SPF</strong></td><td><u>宣告哪些伺服器有權以本網域名義寄信</u></td></tr>
+        <tr><td><strong>DKIM</strong></td><td><u>以數位簽章證明郵件確由本網域發出且未遭竄改</u></td></tr>
+        <tr><td><strong>DMARC</strong></td><td><u><strong>宣告驗證失敗時如何處置</strong>（放行／隔離／拒收）並回報</u></td></tr>
+      </table></div>
+      <u><strong>只設 SPF 與 DKIM 而沒設 DMARC，等於「檢查了但沒有處置」</strong>——收件方仍可能放行偽冒信。</u><br><br>
+      <strong>對機關的價值</strong>：<u>保護的是<strong>機關信譽與民眾</strong>（防詐騙集團冒用機關名義），不只是自己的信箱。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="307" data-ans="B"><span class="no">307</span><span class="tag">郵件安全</span>
+    <div class="stem">郵件安全的五層縱深防禦中，最後也最有效的一層為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>郵件閘道過濾</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>多因子驗證（MFA）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>附件沙箱</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>連結改寫</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) MFA</strong><br>
+      <u><strong>釣魚的目的多半是取得帳密；MFA 讓這個目的落空</strong>——即使密碼被騙走，攻擊者仍登不進去。</u><br><br>
+      <div class="frame"><span class="t">📐 五層</span>
+        <strong>①</strong> SPF／DKIM／DMARC（防別人冒用我們）<br>
+        <strong>②</strong> 郵件閘道過濾（垃圾信、惡意連結、已知惡意檔）<br>
+        <strong>③</strong> <u>附件沙箱檢查（未知檔案先在隔離環境開一次看行為）</u><br>
+        <strong>④</strong> 連結改寫（點擊時即時檢查該網址）<br>
+        <strong>⑤</strong> <u><strong>MFA——最後也最有效</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="308" data-ans="B"><span class="no">308</span><span class="tag">監控</span>
+    <div class="stem">下列資安監控指標中，何者最能顯示「資料已經被外傳」？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>進向流量異常</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>出向流量異常</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>CPU 使用率</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>磁碟使用率</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 出向流量異常</strong><br>
+      <u>內部主機突然對外傳送大量資料，通常代表<strong>資料正在被外傳</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 多數機關的盲點</span>
+      <u>只監控<strong>進來</strong>的流量（防入侵），<br>
+      <strong>卻是出去的流量才代表「已經出事了」。</strong></u>
+      </div>
+      <strong>其他高價值的安全指標</strong>：<u>連續登入失敗次數、非上班時間的存取、<strong>短時間大量個資查詢</strong>、連往已知惡意中繼站的 DNS 查詢</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="309" data-ans="B"><span class="no">309</span><span class="tag">告警設計</span>
+    <div class="stem">機關每天收到 50 封資安告警信，第三天起就沒有人在看。此現象與對策為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>人員態度問題；加強考核</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>告警疲勞；告警應可行動、分級並抑制重複，寧可少而準</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>系統故障；更換系統</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>應增加告警數量以提高警覺</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「告警太多」等於「沒有告警」。</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>原則</th><th>說明</th></tr>
+        <tr><td><strong>可行動</strong></td><td><u>每個告警都要對應一個「收到後該做什麼」——否則只是噪音</u></td></tr>
+        <tr><td><strong>分級</strong></td><td>緊急（立即）／警告（上班處理）／資訊（只記錄不通知）</td></tr>
+        <tr><td><strong>抑制重複</strong></td><td><u>同一問題不要連發兩百封</u></td></tr>
+        <tr><td><strong>定期檢討</strong></td><td><u>沒有人在處理的告警，要嘛修好它，要嘛關掉它</u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="310" data-ans="B"><span class="no">310</span><span class="tag">故障排查</span>
+    <div class="stem">同仁反映「可以 ping 通伺服器，但服務連不上」。最可能的原因與驗證方式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>DNS 問題；用 nslookup 測試</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>防火牆擋住該埠；用 telnet 測該埠</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>網路線鬆脫；檢查燈號</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>IP 衝突；檢查 ARP 表</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>邏輯推理</strong>：ping 通 → 第 1～3 層正常；服務連不上 → 卡在<strong>傳輸層（埠）</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>症狀</th><th>最可能原因</th><th>驗證</th></tr>
+        <tr><td>內部通、外部不通</td><td>對外閘道或 DNS</td><td>ping 外部 IP</td></tr>
+        <tr><td><strong>能 ping 但網頁開不了</strong></td><td><u><strong>DNS</strong></u></td><td>nslookup</td></tr>
+        <tr><td><strong>能 ping 但服務連不上</strong></td><td><u><strong>防火牆擋該埠</strong></u></td><td><strong>telnet 主機 埠</strong></td></tr>
+        <tr><td>單向通、反向不通</td><td><u>回程路由或規則不對稱</u></td><td><strong>兩端都要測</strong></td></tr>
+        <tr><td>大檔傳不完但網頁正常</td><td>MTU（常見於 VPN）</td><td>調降 MTU 測試</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="311" data-ans="B"><span class="no">311</span><span class="tag">故障排查</span>
+    <div class="stem">整個網段突然全部斷線，交換器 CPU 飆高。最可能的原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>對外線路中斷</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>廣播風暴，通常因私接設備形成迴圈</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>DNS 伺服器故障</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>防火牆規則錯誤</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>第二層沒有 TTL</strong>——廣播訊框在迴圈中會<strong>永遠繞下去並不斷複製</strong>，幾秒內就能讓整個網段癱瘓。</u><br><br>
+      <strong>最常見的成因</strong>：<u>同仁把兩條網路線插進同一台小型交換器，或私接的無線基地台形成迴圈。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>防護</th><th>做法</th></tr>
+        <tr><td><strong>生成樹（STP）</strong></td><td><u>自動偵測迴圈並阻斷冗餘路徑</u></td></tr>
+        <tr><td><strong>BPDU 保護</strong></td><td><u>存取埠收到 BPDU 就關閉——防私接交換器</u></td></tr>
+        <tr><td>風暴控制</td><td>限制廣播流量比例</td></tr>
+        <tr><td><strong>停用未使用的埠</strong></td><td><u>零成本、立即見效</u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="312" data-ans="B"><span class="no">312</span><span class="tag">無線網路</span>
+    <div class="stem">公務無線網路應採 WPA2/3-Enterprise 而非 Personal，主要理由為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>Enterprise 加密強度較高</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>人員離職只需停用該帳號，且可稽核誰在何時連線</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>Enterprise 速度較快</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>Personal 已被淘汰</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>Personal（PSK）</th><th>Enterprise（802.1X）</th></tr>
+        <tr><td>認證</td><td>共用密碼</td><td><strong>個人帳號</strong></td></tr>
+        <tr><td>人員離職</td><td><u><strong>全機關要一起換密碼</strong></u></td><td><strong>停用該帳號即可</strong></td></tr>
+        <tr><td>稽核</td><td>無法辨識是誰</td><td><u>可記錄誰在何時連線</u></td></tr>
+      </table></div>
+      <u><strong>關鍵不是加密強度，是可管理性</strong>——<br>
+      共用密碼一旦外流（寫在便條紙上、離職員工帶走），<strong>全機關要一起改，實務上根本改不動</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="313" data-ans="B"><span class="no">313</span><span class="tag">無線網路</span>
+    <div class="stem">同仁反映 Wi-Fi 訊號滿格但速度很慢。最可能的原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>訊號強度不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>同頻干擾或連線裝置過多（無線是共享媒介）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>網路卡故障</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>密碼錯誤</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「訊號滿格」只代表訊號強度，不代表可用頻寬</strong>——這是使用者最常見的誤解。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>原因</th><th>解法</th></tr>
+        <tr><td><strong>同頻干擾</strong></td><td><u>2.4 GHz <strong>只有 1、6、11</strong> 三個不重疊頻道，相鄰 AP 要交錯規劃</u></td></tr>
+        <tr><td><strong>連線裝置太多</strong></td><td>增加 AP、限制每 AP 連線數</td></tr>
+        <tr><td><strong>慢速裝置拖累</strong></td><td><u>舊裝置佔用較長傳輸時間，拖慢整個 AP → 停用過舊速率</u></td></tr>
+        <tr><td>回程頻寬不足</td><td>檢查上游線路</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="314" data-ans="B"><span class="no">314</span><span class="tag">防護設備</span>
+    <div class="stem">IPS 上線初期應先以偵測模式運行一段時間，理由為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省授權費用</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>調校規則以避免誤擋正常民眾</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>偵測模式效能較好</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>法規要求</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>誤判會擋掉正常民眾</strong>——直接切阻擋模式，第一天就會被投訴。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>設備</th><th>動作</th><th>位置</th><th>強項</th></tr>
+        <tr><td><strong>IDS</strong></td><td><u>只偵測、只告警</u></td><td>旁路監聽</td><td>不影響流量</td></tr>
+        <tr><td><strong>IPS</strong></td><td><strong>偵測並阻擋</strong></td><td>流量路徑上</td><td>即時阻斷</td></tr>
+        <tr><td><strong>WAF</strong></td><td>過濾 HTTP</td><td>網站前方</td><td><u>網頁應用層攻擊</u></td></tr>
+        <tr><td><strong>SIEM</strong></td><td>關聯分析</td><td>日誌集中</td><td><u><strong>把分散的線索串起來</strong></u></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="315" data-ans="B"><span class="no">315</span><span class="tag">DMZ</span>
+    <div class="stem">DMZ 到內部網路的防火牆規則，原則上應設為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>全部允許以便維運</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>原則全部拒絕，僅開放必要的資料庫連線並指定來源與目的</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>僅在上班時間允許</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>依廠商建議設定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 核心思維</span>
+        <u><strong>假設 DMZ 的主機一定會被攻陷</strong>，設計上要讓它<strong>「攻陷了也走不進來」</strong>。</u>
+      </div>
+      <strong>三區規則設計</strong>：<u>外部 → DMZ：只開 80/443｜<strong>DMZ → 內部：原則全拒</strong>｜內部 → DMZ：允許管理</u><br><br>
+      <strong>規則四原則</strong>：<u><strong>預設拒絕</strong>、最小開放、<strong>順序重要</strong>（由上而下，第一條符合就套用）、<strong>定期清理</strong>（下架系統要刪規則）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="316" data-ans="B"><span class="no">316</span><span class="tag">委外安全</span>
+    <div class="stem">廠商工程師連入正式環境維護，最常被忽略卻最危險的疏漏為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>未簽保密協議</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>作業結束後未立即停用帳號</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>未提供教育訓練</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>未記錄工時</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>離場後仍能存取正式環境</strong>——這不只是資安問題，出事時<strong>責任歸屬也會極為複雜</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 五步驟</span>
+        <strong>①</strong> 書面申請，載明事由、範圍、時段<br>
+        <strong>②</strong> 核准後開通<u><strong>個人化</strong>臨時帳號（絕不共用）</u><br>
+        <strong>③</strong> 作業全程監看或側錄<br>
+        <strong>④</strong> <u><strong>結束後立即停用</strong></u><br>
+        <strong>⑤</strong> 事後檢視操作紀錄
+      </div>
+      <u><strong>契約另須載明</strong>：廠商<strong>人員異動時應主動通知機關</strong>——否則離職的工程師帳號可能還開著。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="317" data-ans="B"><span class="no">317</span><span class="tag">資安法</span>
+    <div class="stem">資安事件通報的三個原則為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>先修好再報、影響輕微免報、僅報上級</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>先通報再處理、不確定也要報、涉個資另須通知當事人</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>由廠商代為通報</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>僅需向媒體說明</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 三個原則</span>
+        <strong>①先通報、再處理</strong>：<u><strong>延遲通報本身即為缺失</strong>，且會錯失上級的支援資源</u><br>
+        <strong>②不確定也要報</strong>：<u>寧可誤報，不可漏報或遲報</u><br>
+        <strong>③涉個資另須通知當事人</strong>：<u>依個資法第 12 條，<strong>不以損害已發生為要件</strong>，且應早於媒體</u>
+      </div>
+      <u><strong>申論加分句</strong>：「應於知悉後依資安法規定時限完成通報，<strong>不得以待查明或待修復為由延遲</strong>。」</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="318" data-ans="B"><span class="no">318</span><span class="tag">綜合判斷</span>
+    <div class="stem">下列弱點與「根本解」之配對，何者錯誤？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>SQL 注入 → 參數化查詢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>XSS → 安裝 WAF</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>權限控制失效 → 伺服器端逐次授權檢查</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>勒索軟體 → 離線備份</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>WAF 是 XSS 的<strong>補償控制</strong>，不是根本解；XSS 的根本解是<strong>輸出時依情境編碼</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>弱點</th><th>根本解</th><th>補償控制</th></tr>
+        <tr><td>SQL 注入</td><td><strong>參數化查詢</strong></td><td>WAF、DB 最小權限、錯誤訊息不外洩</td></tr>
+        <tr><td>XSS</td><td><u><strong>輸出編碼</strong></u></td><td><u>CSP、HttpOnly Cookie</u></td></tr>
+        <tr><td>權限控制失效</td><td><strong>伺服器端逐次授權檢查</strong></td><td>稽核軌跡、異常存取告警</td></tr>
+        <tr><td>釣魚郵件</td><td><u>MFA（讓密碼被騙也沒用）</u></td><td>郵件過濾、教育訓練</td></tr>
+        <tr><td>勒索軟體</td><td><u><strong>離線備份</strong></u></td><td>端點防護、網段隔離</td></tr>
+      </table></div>
+      <u><strong>能區分「根本解」與「補償控制」，代表你知道每個措施的極限在哪裡</strong>——這張表本身就是分數。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="319" data-ans="B"><span class="no">319</span><span class="tag">綜合判斷</span>
+    <div class="stem">資源有限時，資安投入的優先三項為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>最新防火牆、全面換電腦、辦研討會</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>可還原的離線備份、特權帳號 MFA、對外服務修補與縮小暴露面</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>導入 AI 資安、雙中心、國際驗證</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>增設監視器、加長密碼、每月改密碼</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 為什麼是這三件</span>
+        <strong>①離線備份</strong>：<u>勒索軟體的唯一有效解——<strong>沒有它，其他都白做</strong></u><br>
+        <strong>②特權帳號 MFA</strong>：<u>阻斷「密碼被釣 → 直接拿到管理權」的最短攻擊路徑</u><br>
+        <strong>③修補對外服務</strong>：<u><strong>實際被入侵的入口，八成在這裡</strong></u>
+      </div>
+      <u><strong>(D) 的「每月改密碼」現行指引已不建議</strong>——會導致弱密碼與寫在便條紙上；<br>
+      應改為<strong>長密碼 ＋ MFA ＋ 外洩比對</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="320" data-ans="B"><span class="no">320</span><span class="tag">綜合判斷</span>
+    <div class="stem">機關資安最常見的三個真實破口為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>防火牆規格太舊、頻寬不足、伺服器太少</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>未修補的對外服務、過寬未清理的權限、人員判斷失誤</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>沒有取得國際驗證、沒有 AI 資安、沒有雙中心</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>密碼太短、沒有監視器、沒有門禁</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">🎯 三個面向的破口（也是申論的三段結構）</span>
+        <strong>①技術面</strong>：<u>未修補的對外系統、預設密碼未改、不必要的服務對外開放</u><br>
+        <strong>②管理面</strong>：<u>權限沒清理、<strong>離職帳號還在</strong>、共用帳號、<strong>日誌沒人看</strong></u><br>
+        <strong>③人員面</strong>：<u>釣魚郵件、隨身碟、把公務資料放私人雲端</u>
+      </div>
+      <u><strong>一句話總結</strong>：<strong>資安不是買設備買得到的</strong>——三面向都要有對策，答題才完整。<br><br>
+      這科真正在考的是：「在預算有限、人力兼辦、據點分散的真實機關裡，<strong>你會先做哪三件事，而且說得出為什麼</strong>。」</u>
+    </div></details>
+  </div>
     <div class="q" data-qno="進階 1" data-ans="A">
       <div class="t">
         <span class="no">進階 1</span><span class="tag">進階擴充</span>
