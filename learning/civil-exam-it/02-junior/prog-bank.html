@@ -5459,6 +5459,1058 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
   </div>
 
 
+
+  <div class="card"><h3>P. 程式邏輯與實務進階（第 261～310 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">對應<a href="prog-deep.html">程式設計概要深化教材第 13～24 章</a>：追蹤程式、遞迴、陣列與字串、例外處理、測試、SQL 與版本控制。</p>
+  </div>
+
+  <div class="q" data-qno="261" data-ans="B"><span class="no">261</span><span class="tag">迴圈追蹤</span>
+    <div class="stem">執行 <code>for (i=1; i&lt;=5; i++) sum += i;</code> 後，sum 的值為（sum 初值 0）？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>10</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>15</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>21</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>5</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 15</strong><br>
+      <div class="frame"><span class="t">📐 追蹤表（考試時務必畫出來）</span>
+        <u>i=1 → sum=1｜i=2 → sum=3｜i=3 → sum=6｜i=4 → sum=10｜i=5 → <strong>sum=15</strong><br>
+        i=6 → 條件不成立，離開迴圈</u>
+      </div>
+      <u><strong>公式驗算</strong>：1 到 n 的和 = <strong>n(n+1)/2</strong> = 5×6÷2 = <strong>15</strong> ✓</u><br><br>
+      <u><strong>追蹤題的鐵則</strong>：<strong>不要用想的，一定要畫表格</strong>——每一列寫下所有變數的值。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="262" data-ans="A"><span class="no">262</span><span class="tag">迴圈追蹤</span>
+    <div class="stem"><code>for (i=0; i&lt;10; i++)</code> 與 <code>for (i=1; i&lt;=10; i++)</code> 的執行次數分別為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>10 次、10 次</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>9 次、10 次</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>10 次、9 次</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>9 次、9 次</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A) 都是 10 次</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>寫法</th><th>執行次數</th><th>i 的範圍</th></tr>
+        <tr><td><code>i=0; i&lt;10</code></td><td><strong>10</strong></td><td>0～9</td></tr>
+        <tr><td><code>i=1; i&lt;=10</code></td><td><strong>10</strong></td><td>1～10</td></tr>
+        <tr><td><u><code>i=0; i&lt;=10</code></u></td><td><u><strong>11</strong>（多一次）</u></td><td>0～10</td></tr>
+        <tr><td><u><code>i=1; i&lt;10</code></u></td><td><u><strong>9</strong>（少一次）</u></td><td>1～9</td></tr>
+      </table></div>
+      <u><strong>差一錯誤是最常見的邏輯錯誤</strong>：<code>&lt;</code> 與 <code>&lt;=</code> 差一個字，執行次數就差一次。<br>
+      <strong>陣列越界幾乎都是這個原因。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="263" data-ans="B"><span class="no">263</span><span class="tag">迴圈追蹤</span>
+    <div class="stem">巢狀迴圈外層跑 4 次、內層每次跑 5 次，內層敘述共執行幾次？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>9 次</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>20 次</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>5 次</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>4 次</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 20 次</strong><br>
+      <u><strong>巢狀迴圈是相乘不是相加</strong>：4 × 5 = <strong>20</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 實務警訊</span>
+      <u>兩層迴圈是 <strong>O(n²)</strong>——n = 1,000 時就是<strong>一百萬次</strong>。<br>
+      「在迴圈裡面查資料庫」是效能殺手：<strong>1,000 筆資料 = 1,000 次查詢</strong>，<br>
+      <strong>正確做法是一次撈出來再處理。</strong></u>
+      </div>
+      <strong>另一種常考</strong>：<u>內層條件依賴外層（如 <code>j&lt;i</code>）時，總次數 = 1+2+…+n = <strong>n(n+1)/2</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="264" data-ans="B"><span class="no">264</span><span class="tag">條件判斷</span>
+    <div class="stem">判斷成績等第時，<code>if (s&gt;=60) 及格; else if (s&gt;=80) 優等;</code> 的問題為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>語法錯誤</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>順序錯誤，90 分會落入「及格」而永遠到不了「優等」</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>缺少 else</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>沒有問題</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>if-else if 是「第一個成立就結束」</strong>——90 分先符合 <code>s&gt;=60</code>，就不會再往下比。</u><br><br>
+      <div class="frame"><span class="t">📐 正確寫法：由嚴格到寬鬆</span>
+        <u><code>if (s&gt;=90) 優等;<br>
+        else if (s&gt;=80) 甲等;<br>
+        else if (s&gt;=60) 及格;<br>
+        else 不及格;</code></u>
+      </div>
+      <u><strong>邊界值務必自己測</strong>：59、60、79、80、89、90——<strong>錯誤幾乎都發生在邊界。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="265" data-ans="B"><span class="no">265</span><span class="tag">運算子</span>
+    <div class="stem">C 語言中 <code>i++</code> 與 <code>++i</code> 作為運算式的值有何差異？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>完全相同</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>i++ 先取原值再加一，++i 先加一再取值</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>i++ 只能用於迴圈</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>++i 較快</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 設 i = 5</span>
+        <u><code>j = i++;</code> → <strong>j = 5</strong>，i = 6（<strong>後置：先給值，再加</strong>）<br>
+        <code>j = ++i;</code> → <strong>j = 6</strong>，i = 6（<strong>前置：先加，再給值</strong>）</u>
+      </div>
+      <u><strong>兩者作為獨立敘述</strong>（<code>i++;</code> 或 <code>++i;</code>）<strong>效果相同</strong>——差異只在「當成運算式取值」時。</u><br><br>
+      <strong>另一組必考</strong>：<u><code>=</code> 是指派、<code>==</code> 是比較——<strong>if (x = 5) 是永遠成立的臭蟲。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="266" data-ans="B"><span class="no">266</span><span class="tag">運算子</span>
+    <div class="stem">C 語言中 <code>7 / 2</code> 與 <code>7 % 2</code> 的值分別為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>3.5、1</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>3、1</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>3、3</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>3.5、3.5</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 3、1</strong><br>
+      <u><strong>整數除以整數 = 整數</strong>（小數被截掉，不是四捨五入）；<code>%</code> 是<strong>取餘數</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>運算</th><th>結果</th><th>說明</th></tr>
+        <tr><td><code>7 / 2</code></td><td><strong>3</strong></td><td><u>整數除法，<strong>截斷</strong>不四捨五入</u></td></tr>
+        <tr><td><code>7 % 2</code></td><td><strong>1</strong></td><td>餘數</td></tr>
+        <tr><td><code>7.0 / 2</code></td><td>3.5</td><td><u>只要有一邊是浮點數就變浮點除法</u></td></tr>
+      </table></div>
+      <u><strong>%2 的用途</strong>：<strong>判斷奇偶</strong>（餘 0 為偶數）——每年必考。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="267" data-ans="B"><span class="no">267</span><span class="tag">遞迴</span>
+    <div class="stem">遞迴函式的兩個必要組成為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>迴圈與陣列</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>終止條件與往終止條件靠近的遞迴呼叫</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>全域變數與指標</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>例外處理與回傳值</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 兩個必要條件</span>
+        <u><strong>①終止條件</strong>：什麼時候停（<strong>缺少 → 無限遞迴 → 堆疊溢位</strong>）<br>
+        <strong>②遞迴呼叫</strong>：每次都要<strong>更靠近終止條件</strong>（<u>沒靠近也會無限下去</u>）</u>
+      </div>
+      <strong>例</strong>：<u><code>factorial(n) = n==0 ? 1 : n * factorial(n-1)</code><br>
+      終止條件 <code>n==0</code>；每次 n 減 1 → <strong>確實在靠近</strong>。</u><br><br>
+      <u><strong>考試技巧</strong>：<strong>從終止條件往回推</strong>，不要從最大的往下想。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="268" data-ans="B"><span class="no">268</span><span class="tag">遞迴</span>
+    <div class="stem">計算 <code>fib(5)</code>（fib(1)=fib(2)=1）的值為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>3</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>5</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>8</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>13</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 5</strong><br>
+      <div class="frame"><span class="t">📐 由小往大推（不要展開遞迴樹）</span>
+        <u>fib(1) = 1｜fib(2) = 1｜fib(3) = 2｜fib(4) = 3｜<strong>fib(5) = 5</strong><br>
+        數列：<strong>1, 1, 2, 3, 5, 8, 13, 21…</strong></u>
+      </div>
+      <div class="warn"><span class="t">⚠️ 定義有兩種版本</span>
+      <u>有些教材從 <strong>fib(0)=0</strong> 開始——<strong>看清楚題目給的起始定義</strong>，答案會差一項。</u>
+      </div>
+      <u><strong>效能陷阱</strong>：單純遞迴的費氏是 <strong>O(2ⁿ)</strong>（大量重複計算），<br>
+      改用<strong>迴圈或記憶化</strong>可降為 <strong>O(n)</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="269" data-ans="C"><span class="no">269</span><span class="tag">遞迴</span>
+    <div class="stem">河內塔問題移動 n 個盤子所需的最少次數為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>n</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>n²</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>2ⁿ − 1</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>n log n</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 2ⁿ − 1</strong><br>
+      <div class="frame"><span class="t">📐 驗算</span>
+        <u>n=1 → 2¹−1 = <strong>1</strong> 次<br>
+        n=3 → 2³−1 = <strong>7</strong> 次<br>
+        n=10 → 2¹⁰−1 = <strong>1,023</strong> 次<br>
+        n=64 → 約 <strong>1.8×10¹⁹</strong> 次（<strong>指數成長的可怕之處</strong>）</u>
+      </div>
+      <u><strong>遞迴關係</strong>：T(n) = 2·T(n−1) + 1<br>
+      （先把 n−1 個搬到中間、最大的搬過去、再把 n−1 個搬回來）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="270" data-ans="B"><span class="no">270</span><span class="tag">遞迴</span>
+    <div class="stem">遞迴改寫為迴圈的主要理由為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>迴圈語法較簡單</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>避免呼叫堆疊過深造成堆疊溢位，且省去呼叫開銷</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>迴圈才能處理陣列</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>遞迴無法回傳值</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>遞迴</th><th>迴圈</th></tr>
+        <tr><td>可讀性</td><td><u><strong>樹狀問題較直覺</strong></u></td><td>樹狀問題較繁瑣</td></tr>
+        <tr><td>記憶體</td><td><u><strong>每層都佔呼叫堆疊</strong></u></td><td>固定</td></tr>
+        <tr><td>深度限制</td><td><u><strong>太深會堆疊溢位</strong></u></td><td>無</td></tr>
+      </table></div>
+      <u><strong>適用判斷</strong>：<strong>樹狀或分治問題用遞迴</strong>（如目錄走訪、二元樹）；<br>
+      <strong>單純累加或走訪用迴圈</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="271" data-ans="B"><span class="no">271</span><span class="tag">陣列</span>
+    <div class="stem">宣告 <code>int a[10];</code> 後，合法的索引範圍為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>1～10</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>0～9</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>0～10</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>1～9</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 0～9</strong><br>
+      <u><strong>多數語言的陣列索引從 0 開始</strong>，所以最後一個是 <code>a[9]</code>，不是 <code>a[10]</code>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 越界的危險</span>
+      <u>C 語言<strong>不檢查越界</strong>——<code>a[10]</code> 會讀寫到別人的記憶體，<br>
+      可能<strong>當下沒事，之後才莫名其妙出錯</strong>，也是<strong>緩衝區溢位攻擊</strong>的根源。</u>
+      </div>
+      <u><strong>寫迴圈的正確條件</strong>：<code>i &lt; 陣列長度</code>（不是 <code>i &lt;= 長度</code>）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="272" data-ans="B"><span class="no">272</span><span class="tag">陣列</span>
+    <div class="stem">在陣列中間插入一個元素，時間複雜度為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>O(1)</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>O(n)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>O(log n)</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>O(n²)</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) O(n)</strong><br>
+      <u><strong>因為後面的元素都要往後挪一格。</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>操作</th><th>陣列</th><th>鏈結串列</th></tr>
+        <tr><td><strong>依索引存取</strong></td><td><u><strong>O(1)</strong></u></td><td><u>O(n)（要一個一個走）</u></td></tr>
+        <tr><td><strong>中間插入或刪除</strong></td><td><u>O(n)（要搬移）</u></td><td><u><strong>O(1)</strong>（改指標即可，前提是已在該位置）</u></td></tr>
+        <tr><td>記憶體</td><td>連續、有上限</td><td><u>不連續、可動態成長</u></td></tr>
+      </table></div>
+      <u><strong>選擇原則</strong>：<strong>常查詢用陣列，常插刪用鏈結串列。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="273" data-ans="B"><span class="no">273</span><span class="tag">陣列</span>
+    <div class="stem">二維陣列 <code>a[3][4]</code> 共有幾個元素？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>7</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>12</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>3</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>4</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 12</strong><br>
+      <u><strong>3 × 4 = 12</strong>（3 列 4 行，是相乘不是相加）。</u><br><br>
+      <div class="frame"><span class="t">📐 走訪的標準寫法</span>
+        <u><code>for (i=0; i&lt;3; i++)<br>
+        &nbsp;&nbsp;for (j=0; j&lt;4; j++)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;處理 a[i][j];</code><br><br>
+        <strong>外層是列、內層是行</strong>——這個順序在 C 語言中<strong>存取局部性較佳</strong>（列優先儲存）。</u>
+      </div>
+      <strong>常見應用</strong>：<u>成績表（列＝學生、行＝科目）、九九乘法表、矩陣運算。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="274" data-ans="C"><span class="no">274</span><span class="tag">字串</span>
+    <div class="stem">C 語言中儲存字串 "HELLO" 至少需要幾個位元組？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>4</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>5</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>6</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>10</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 6</strong><br>
+      <u><strong>C 字串以 <code>'\0'</code>（空字元）結尾</strong>——5 個字元 + 1 個結束符號 = <strong>6 個位元組</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 忘了 +1 的後果</span>
+      <u>宣告 <code>char s[5]</code> 卻放 "HELLO"，<strong>結束符號會蓋掉隔壁的記憶體</strong>——<br>
+      這就是<strong>緩衝區溢位</strong>，是 C 語言最經典的資安漏洞來源。</u>
+      </div>
+      <u><strong>對照</strong>：<strong>字元</strong> <code>'A'</code> 用單引號、<strong>字串</strong> <code>"A"</code> 用雙引號——<br>
+      <code>"A"</code> 其實佔 <strong>2</strong> 個位元組。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="275" data-ans="B"><span class="no">275</span><span class="tag">字串</span>
+    <div class="stem">為何多數語言的字串是「不可變」的？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省記憶體</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>安全與可共享——不可變物件天然執行緒安全，且可被多處共用而不擔心被改</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>語法限制</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>便於加密</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>推論</strong>：字串「修改」實際上是<strong>產生新字串</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 效能陷阱</span>
+      <u>在迴圈中用 <code>s = s + x</code> 串接字串，<strong>每次都建立一個新字串</strong>——<br>
+      <strong>一萬次串接就建立一萬個字串物件</strong>，效能極差。<br><br>
+      <strong>正確做法</strong>：用 <strong>StringBuilder</strong>（Java/C#）或 <strong>join</strong>（Python）。</u>
+      </div>
+      <u>這是<strong>實務上最常見的效能問題之一</strong>，也常出現在申論題的優化建議中。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="276" data-ans="B"><span class="no">276</span><span class="tag">函式</span>
+    <div class="stem">傳值呼叫與傳參考呼叫的差異為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>傳值較快</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>傳值傳複本，函式內的修改不影響外部；傳參考傳位址，修改會影響外部</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>傳參考只能用於陣列</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>傳值</th><th>傳參考</th></tr>
+        <tr><td>傳什麼</td><td>值的<strong>複本</strong></td><td><u><strong>位址</strong></u></td></tr>
+        <tr><td>函式內修改</td><td><u><strong>不影響外部</strong></u></td><td><u><strong>會影響外部</strong></u></td></tr>
+      </table></div>
+      <u><strong>C 語言的特殊性</strong>：C <strong>只有傳值</strong>——所謂「傳參考」是<strong>傳指標的值</strong>。<br>
+      而<strong>陣列名稱本身就是位址</strong>，所以陣列傳入函式後，函式內的修改<strong>會</strong>影響外部。</u><br><br>
+      <u><strong>設計原則</strong>：<strong>能不改外部就不改</strong>——副作用是臭蟲的溫床。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="277" data-ans="B"><span class="no">277</span><span class="tag">變數範圍</span>
+    <div class="stem">全域變數的主要問題為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>佔用較多記憶體</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>任何地方都能改，出錯時無法定位是誰改的</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>執行速度較慢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>不能用於函式</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>程式有一萬行時，<strong>「這個值為什麼變了？」變成無法回答的問題。</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>範圍</th><th>存活期間</th><th>建議</th></tr>
+        <tr><td>區域變數</td><td>函式執行期間</td><td><u><strong>優先使用</strong></u></td></tr>
+        <tr><td>全域變數</td><td>整個程式</td><td><u><strong>盡量避免</strong></u></td></tr>
+        <tr><td>靜態區域變數</td><td><u>整個程式，但只有該函式看得到</u></td><td>需保留狀態時</td></tr>
+      </table></div>
+      <u><strong>原則</strong>：<strong>變數範圍越小越好</strong>——要傳資料就用參數與回傳值。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="278" data-ans="C"><span class="no">278</span><span class="tag">例外處理</span>
+    <div class="stem">下列例外處理寫法中，最應避免的是？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>只捕捉預期得到的例外</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>捕捉後記錄詳細日誌</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>捕捉所有例外後留空不處理</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>使用 finally 釋放資源</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C)</strong><br>
+      <div class="warn"><span class="t">⚠️ 最糟糕的例外處理</span>
+      <u><code>try { … } catch (Exception e) { }</code><br><br>
+      <strong>錯誤被吞掉了</strong>——程式看起來正常，但資料其實沒存進去。<br>
+      這比直接當掉更危險，因為<strong>沒有人會發現</strong>。</u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>原則</th><th>做法</th></tr>
+        <tr><td>只捕捉處理得了的</td><td><u>不要一律 catch(Exception)</u></td></tr>
+        <tr><td>一定要記錄</td><td><strong>時間、位置、輸入、堆疊追蹤</strong></td></tr>
+        <tr><td><strong>對外訊息不洩漏細節</strong></td><td><u>民眾看到「系統忙碌」，工程師看日誌</u></td></tr>
+        <tr><td>釋放資源</td><td><strong>finally 或自動關閉語法</strong></td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="279" data-ans="B"><span class="no">279</span><span class="tag">例外處理</span>
+    <div class="stem">錯誤訊息直接顯示資料庫連線字串與 SQL 語法給民眾，其風險為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>版面不美觀</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>洩漏系統內部結構，成為攻擊者的偵察情報</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>影響效能</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>沒有風險</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>攻擊者最喜歡的就是詳細的錯誤訊息</strong>——<br>
+      資料表名稱、欄位名稱、資料庫版本、程式路徑，全部免費提供。</u><br><br>
+      <div class="frame"><span class="t">📐 正確做法</span>
+        <u><strong>對民眾</strong>：「系統忙碌中，請稍後再試」＋<strong>錯誤代碼</strong>（供客服追查）<br>
+        <strong>對日誌</strong>：完整的堆疊追蹤與輸入內容</u>
+      </div>
+      <u><strong>正式環境必檢查</strong>：<strong>關閉除錯模式</strong>——這是機關網站上線前的必檢項目。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="280" data-ans="B"><span class="no">280</span><span class="tag">輸入驗證</span>
+    <div class="stem">輸入驗證必須在伺服器端執行的理由為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>前端驗證太慢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>前端驗證可被繞過，攻擊者可直接送出請求</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>前端不支援驗證</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>伺服器端較省資源</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 兩者的分工</span>
+        <u><strong>前端驗證</strong>：提升<strong>使用體驗</strong>（即時提示，不用等送出）<br>
+        <strong>後端驗證</strong>：確保<strong>安全</strong>——<strong>這一層絕不能省</strong></u>
+      </div>
+      <u><strong>關鍵</strong>：攻擊者可以用工具<strong>直接對後端送請求</strong>，完全不經過你的網頁。<br>
+      「畫面上限制只能輸入數字」對他毫無作用。</u><br><br>
+      <strong>驗證五項</strong>：<u>型別、長度、範圍、格式、<strong>白名單（列出允許的，而非禁止的）</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="281" data-ans="B"><span class="no">281</span><span class="tag">SQL</span>
+    <div class="stem">參數化查詢能防範 SQL 注入的原理為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>過濾特殊字元</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>SQL 語法結構先送出並固定，參數之後才送，永遠只被當成資料</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加密查詢內容</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>限制查詢次數</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 為什麼有效</span>
+        <u><strong>語法結構與資料分開傳送</strong>——<br>
+        資料庫先收到「這是一個查詢的骨架」，再收到「這是要填進去的值」。<br><br>
+        <strong>即使值裡面有 <code>' OR '1'='1</code>，它也只會被當成一個字串來比對，不會變成語法。</strong></u>
+      </div>
+      <u><strong>常見誤解</strong>：以為「有用 ORM 就安全」——<br>
+      <strong>ORM 若用字串串接組出原生 SQL，一樣會中招。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="282" data-ans="B"><span class="no">282</span><span class="tag">SQL</span>
+    <div class="stem">下列 SQL 中，何者能查出「沒有任何申請案的單位」？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>INNER JOIN</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>LEFT JOIN 後篩選右表為 NULL</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>UNION</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>CROSS JOIN</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>聯結</th><th>保留</th><th>典型用途</th></tr>
+        <tr><td><strong>INNER JOIN</strong></td><td>兩邊都有的</td><td><u>會<strong>漏掉</strong>沒有申請案的單位</u></td></tr>
+        <tr><td><strong>LEFT JOIN</strong></td><td><u>左表全部</u></td><td><u><strong>要列出所有單位（含 0 件）</strong></u></td></tr>
+      </table></div>
+      <u><strong>寫法</strong>：<code>LEFT JOIN … WHERE 申請案.編號 IS NULL</code></u><br><br>
+      <div class="hl"><strong>💡 公務判斷關鍵</strong><br>
+      <u>「所有單位都要出現，即使是 0 件」→ <strong>LEFT JOIN</strong><br>
+      這正是<strong>統計報表最常出錯的地方</strong>：用 INNER JOIN 會讓零件數的單位<strong>整列消失</strong>。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="283" data-ans="B"><span class="no">283</span><span class="tag">SQL</span>
+    <div class="stem">為何 <code>WHERE YEAR(申請日期) = 2025</code> 無法使用索引？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>YEAR 函式不存在</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>欄位被函式包住後，索引就用不上，必須逐列計算</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>日期型別不支援索引</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>語法錯誤</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 改寫方式</span>
+        <u>❌ <code>WHERE YEAR(申請日期) = 2025</code><br>
+        ✅ <code>WHERE 申請日期 &gt;= '2025-01-01' AND 申請日期 &lt; '2026-01-01'</code></u>
+      </div>
+      <strong>四個索引失效情境</strong>：<u>①<strong>欄位被函式包住</strong> ②<strong>LIKE '%關鍵字'</strong>（前面有萬用字元） ③<strong>OR 連接不同欄位</strong> ④<strong>型別不一致</strong>（字串欄位卻用數字比對）</u><br><br>
+      <u><strong>診斷工具</strong>：<strong>EXPLAIN</strong>——看查詢是走索引還是全表掃描。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="284" data-ans="B"><span class="no">284</span><span class="tag">SQL</span>
+    <div class="stem">「N+1 查詢問題」是指？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>查詢語法多寫一行</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>先查出 N 筆主資料，再對每一筆各查一次明細，共 N+1 次查詢</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>索引數量過多</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>資料表欄位過多</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>症狀</strong>：測試環境 10 筆資料很快，正式環境 10,000 筆就慢到不能用。</u><br><br>
+      <div class="frame"><span class="t">📐 解法</span>
+        <u><strong>用 JOIN 一次撈完</strong>，或使用 ORM 的<strong>預先載入</strong>功能——<br>
+        把 <strong>N+1 次查詢變成 1～2 次</strong>。</u>
+      </div>
+      <u><strong>這是實務上最常見的效能地雷</strong>，也是申論題「系統上線後變慢的原因與改善」的標準答案之一。</u><br><br>
+      <strong>其他三個效能地雷</strong>：<u><code>SELECT *</code>、<strong>在迴圈裡查資料庫</strong>、<strong>沒有分頁</strong>（一次撈十萬筆）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="285" data-ans="B"><span class="no">285</span><span class="tag">交易</span>
+    <div class="stem">交易的 ACID 中，「A」代表？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>可用性</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>原子性：全部成功或全部失敗，不會做一半</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>稽核性</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>授權</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 原子性（Atomicity）</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>字母</th><th>意思</th><th>公務例</th></tr>
+        <tr><td><strong>A 原子性</strong></td><td><u>全部成功或全部失敗</u></td><td><u><strong>扣款成功但發票沒開 = 災難</strong></u></td></tr>
+        <tr><td><strong>C 一致性</strong></td><td>交易前後資料都符合規則</td><td>總額必須平衡</td></tr>
+        <tr><td><strong>I 隔離性</strong></td><td><u>並行交易互不干擾</u></td><td>兩人同時報名最後一個名額</td></tr>
+        <tr><td><strong>D 持久性</strong></td><td><u>提交後即使斷電也不會遺失</u></td><td>已核定的案件不能消失</td></tr>
+      </table></div>
+      <u><strong>不要與資安三要素（機密性、完整性、可用性）混淆。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="286" data-ans="B"><span class="no">286</span><span class="tag">測試</span>
+    <div class="stem">測試案例設計時，最應優先涵蓋的是？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>中間的正常值</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>邊界值與異常輸入</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>最大的值</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>隨機值</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>臭蟲幾乎都躲在邊界與異常。</strong></u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>例（年齡 18～65）</th></tr>
+        <tr><td>正常值</td><td>30</td></tr>
+        <tr><td><strong>邊界值</strong></td><td><u><strong>17、18、65、66</strong></u></td></tr>
+        <tr><td><strong>異常值</strong></td><td><u><strong>−1、0、空白、文字、超長字串</strong></u></td></tr>
+      </table></div>
+      <strong>測試三層次</strong>：<u><strong>單元測試</strong>（單一函式）→ <strong>整合測試</strong>（模組之間）→ <strong>驗收測試</strong>（使用者實際操作）</u><br><br>
+      <u><strong>公務關鍵</strong>：<strong>驗收測試必須由業務單位參與</strong>——工程師測不出「業務流程不合規定」。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="287" data-ans="B"><span class="no">287</span><span class="tag">測試</span>
+    <div class="stem">「測試環境正常、正式環境出錯」最常見的原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>程式版本不同</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>環境差異：資料量、設定、權限、真實資料的特殊情況</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>使用者操作錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>硬體規格不同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>差異來源</th><th>典型狀況</th></tr>
+        <tr><td><strong>資料量</strong></td><td><u>測試 10 筆、正式 10 萬筆 → <strong>N+1 問題浮現</strong></u></td></tr>
+        <tr><td><strong>真實資料</strong></td><td><u><strong>姓名有罕用字、地址超長、日期是民國前</strong></u></td></tr>
+        <tr><td>設定</td><td>連線字串、路徑、時區</td></tr>
+        <tr><td>權限</td><td>正式環境的帳號權限較嚴</td></tr>
+      </table></div>
+      <u><strong>對策</strong>：<strong>測試環境應盡量與正式一致</strong>，並使用<strong>去識別化的真實資料</strong>做測試——<br>
+      自己造的假資料<strong>永遠測不出真實資料的怪異情況</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="288" data-ans="B"><span class="no">288</span><span class="tag">除錯</span>
+    <div class="stem">除錯時最有效的第一步為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>逐行檢查程式碼</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>先做出「穩定重現」的步驟</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>重新啟動系統</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>詢問廠商</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 除錯五步驟</span>
+        <u><strong>①重現</strong>：<strong>不能穩定重現的問題無法確認修好了沒</strong><br>
+        <strong>②縮小範圍</strong>：二分法——把程式砍一半，看問題在哪一半<br>
+        <strong>③假設與驗證</strong>：<u>一次只改一個地方</u><br>
+        <strong>④修正</strong>：<u><strong>找到根因再改，不要「改到不會錯就好」</strong></u><br>
+        <strong>⑤回歸測試</strong>：確認沒有改壞其他功能</u>
+      </div>
+      <u><strong>「改到不會錯就好」的下場</strong>：問題會在三個月後以更奇怪的形式回來。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="289" data-ans="B"><span class="no">289</span><span class="tag">版本控制</span>
+    <div class="stem">機關使用版本控制最重要的效益為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省磁碟空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>可追溯每一行程式是誰在何時為何修改，並能還原到任一版本</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>提升執行速度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>自動修正錯誤</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 沒有版本控制的機關現況</span>
+      <u><code>系統_最終版.zip</code>、<code>系統_最終版_修正.zip</code>、<code>系統_真的最終版.zip</code>——<br>
+      <strong>沒有人知道正式環境跑的是哪一版</strong>，也<strong>無法還原</strong>。</u>
+      </div>
+      <strong>三個核心概念</strong>：<u><strong>提交</strong>（記錄一次變更）、<strong>分支</strong>（平行開發互不干擾）、<strong>合併</strong>（把分支的成果併回主線）</u><br><br>
+      <u><strong>提交訊息要寫「為什麼改」而不是「改了什麼」</strong>——<br>
+      改了什麼看差異就知道，<strong>為什麼改只有當下的你知道</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="290" data-ans="B"><span class="no">290</span><span class="tag">版本控制</span>
+    <div class="stem">下列何者絕不應提交進版本庫？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>原始程式碼</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>資料庫密碼、API 金鑰</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>說明文件</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>設定檔範本</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 為什麼「刪掉再提交」沒有用</span>
+      <u><strong>版本控制會保留完整歷史</strong>——密碼即使後來刪掉了，<br>
+      <strong>翻歷史紀錄還是找得到</strong>。</u>
+      </div>
+      <u><strong>正確做法</strong>：機密放在<strong>環境變數</strong>或<strong>機密管理服務</strong>，<br>
+      版本庫裡只放<strong>設定檔範本</strong>（不含實際值），並用 <code>.gitignore</code> 排除。</u><br><br>
+      <u><strong>已經提交過的補救</strong>：必須<strong>立即更換該密碼或金鑰</strong>——刪紀錄不等於沒外洩。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="291" data-ans="B"><span class="no">291</span><span class="tag">物件導向</span>
+    <div class="stem">封裝、繼承、多型的用途，下列何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>封裝是重複使用程式碼</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>封裝是把資料與方法包在一起並隱藏內部細節</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>繼承是隱藏細節</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>多型是複製物件</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>特性</th><th>意思</th><th>好處</th></tr>
+        <tr><td><strong>封裝</strong></td><td><u>資料與方法包在一起，隱藏內部細節</u></td><td><strong>改內部不影響外部</strong></td></tr>
+        <tr><td><strong>繼承</strong></td><td>子類別取得父類別的特性</td><td><u>重複使用</u></td></tr>
+        <tr><td><strong>多型</strong></td><td><u>同一個呼叫，不同類別有不同行為</u></td><td><u><strong>擴充時不用改原有程式</strong></u></td></tr>
+      </table></div>
+      <u><strong>實務提醒</strong>：<strong>繼承層數不宜過深</strong>（超過三層就很難維護），<br>現代設計偏好<strong>組合優於繼承</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="292" data-ans="B"><span class="no">292</span><span class="tag">程式品質</span>
+    <div class="stem">下列註解中，何者最有價值？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span><code>i++; // i 加一</code></span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span><code>// 依 114 年函釋，未滿 18 歲不計入</code></span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span><code>// 迴圈開始</code></span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span><code>// 宣告變數</code></span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 註解原則</span>
+        <u><strong>寫「為什麼」，不要寫「做什麼」。</strong><br><br>
+        「做什麼」看程式碼就知道；<br>
+        <strong>「為什麼」只有當下的你知道——尤其是法規依據。</strong></u>
+      </div>
+      <div class="hl"><strong>💡 公務程式的特殊性</strong><br>
+      <u>機關系統的邏輯常源自<strong>法規或函釋</strong>。<br>
+      三年後接手的人看到「未滿 18 歲不計入」會想「這是不是臭蟲？」——<br>
+      <strong>註明法規依據，可省下後人數天的查證時間。</strong></u></div>
+      <u><strong>更好的做法</strong>：把 <code>if (age &lt; 18)</code> 改成有意義的常數名稱，<strong>讓程式自己說明自己</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="293" data-ans="B"><span class="no">293</span><span class="tag">程式品質</span>
+    <div class="stem">「魔術數字」是指？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>隨機產生的數字</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>程式中直接寫死、沒有名稱說明其意義的數值</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加密用的數字</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>亂數種子</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>問題</strong>：<code>if (status == 3)</code> ——三年後沒人知道 3 是什麼。<br>
+      而且同一個數字散落在十幾個檔案裡，<strong>要改的時候會漏掉</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 改善</span>
+        <u><code>const int STATUS_APPROVED = 3;</code><br>
+        <code>if (status == STATUS_APPROVED)</code><br><br>
+        <strong>意義清楚，而且要改時只改一個地方。</strong></u>
+      </div>
+      <strong>其他程式碼壞味道</strong>：<u>函式過長（<strong>超過一個螢幕就該拆</strong>）、重複的程式碼、<strong>過深的巢狀縮排</strong>（超過三層就該重構）</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="294" data-ans="B"><span class="no">294</span><span class="tag">效能</span>
+    <div class="stem">程式效能最佳化的正確順序為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>先猜哪裡慢再改</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>先測量找出真正的瓶頸，再針對瓶頸最佳化</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>全面重寫</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>直接升級硬體</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 名言</span>
+        <u><strong>「不要猜，要量。」</strong><br><br>
+        工程師憑直覺猜的瓶頸<strong>經常是錯的</strong>——<br>
+        花三天優化了一個只佔 2% 執行時間的函式，整體只快 2%。</u>
+      </div>
+      <strong>公務系統常見的真正瓶頸</strong>：<u>①<strong>資料庫查詢</strong>（缺索引、N+1） ②<strong>大量資料一次載入</strong>（沒有分頁） ③<strong>同步等待外部系統</strong>（應改非同步）</u><br><br>
+      <u><strong>八成的效能問題出在資料庫</strong>——先查那裡通常最快見效。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="295" data-ans="C"><span class="no">295</span><span class="tag">複雜度</span>
+    <div class="stem">n = 1,000,000 時，O(n) 與 O(log n) 的運算次數差距約為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>2 倍</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>1000 倍</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>約 5 萬倍</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 約 5 萬倍</strong><br>
+      <div class="frame"><span class="t">📐 計算</span>
+        <u>O(n) = <strong>1,000,000</strong> 次<br>
+        O(log n) ≈ log₂(1,000,000) ≈ <strong>20</strong> 次<br><br>
+        1,000,000 ÷ 20 = <strong>50,000 倍</strong></u>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>複雜度</th><th>n=1,000,000 時</th></tr>
+        <tr><td><strong>O(log n)</strong></td><td><u><strong>約 20</strong></u></td></tr>
+        <tr><td>O(n)</td><td>100 萬</td></tr>
+        <tr><td>O(n log n)</td><td>約 2,000 萬</td></tr>
+        <tr><td><strong>O(n²)</strong></td><td><u><strong>1 兆（實務上不可行）</strong></u></td></tr>
+      </table></div>
+      <u><strong>這就是索引的價值</strong>：全表掃描是 O(n)，走索引是 O(log n)。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="296" data-ans="B"><span class="no">296</span><span class="tag">搜尋演算法</span>
+    <div class="stem">二分搜尋法可使用的前提為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>資料量夠大</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>資料必須已排序</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>資料必須為數字</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>無前提</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 必須已排序</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>循序搜尋</th><th>二分搜尋</th></tr>
+        <tr><td>複雜度</td><td>O(n)</td><td><strong>O(log n)</strong></td></tr>
+        <tr><td>前提</td><td>無</td><td><u><strong>必須已排序</strong></u></td></tr>
+        <tr><td>1000 筆最壞</td><td>1000 次</td><td><u><strong>約 10 次</strong></u></td></tr>
+      </table></div>
+      <u><strong>取捨判斷</strong>：<strong>只找一次</strong>用循序（排序反而更花時間）；<br>
+      <strong>要找很多次</strong>就先排序再二分（排序成本可攤提）。</u><br><br>
+      <u><strong>常見錯誤</strong>：對未排序的資料用二分搜尋——<strong>不會報錯，但會找不到明明存在的資料。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="297" data-ans="B"><span class="no">297</span><span class="tag">排序演算法</span>
+    <div class="stem">「穩定排序」的意義為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>執行時間穩定</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>相同鍵值的資料，排序後仍維持原有的相對順序</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>不會當掉</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>記憶體用量固定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="hl"><strong>💡 為什麼公務報表在意穩定性</strong><br>
+      <u>先依「姓名」排序，再依「科室」排序——<br>
+      <strong>若第二次排序不穩定，同一科室內的姓名順序就會被打亂</strong>，<br>
+      使用者會覺得「怎麼每次列印順序都不一樣」。</u></div>
+      <div class="table-wrap"><table>
+        <tr><th>穩定</th><th>不穩定</th></tr>
+        <tr><td><u>氣泡、插入、<strong>合併</strong>、計數</u></td><td><u><strong>快速、堆積、選擇、希爾</strong></u></td></tr>
+      </table></div>
+      <u><strong>記法</strong>：<strong>不穩定的四個是「快、堆、選、希」。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="298" data-ans="B"><span class="no">298</span><span class="tag">資料結構</span>
+    <div class="stem">堆疊與佇列的存取順序分別為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>堆疊 FIFO、佇列 LIFO</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>堆疊 LIFO、佇列 FIFO</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>兩者皆 FIFO</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者皆 LIFO</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>堆疊</th><th>佇列</th></tr>
+        <tr><td>順序</td><td><strong>LIFO 後進先出</strong></td><td><strong>FIFO 先進先出</strong></td></tr>
+        <tr><td>比喻</td><td><u>疊盤子</u></td><td><u>排隊</u></td></tr>
+        <tr><td>應用</td><td><u><strong>函式呼叫、復原（Undo）、括號配對</strong></u></td><td><u><strong>列印工作、訊息佇列、廣度優先走訪</strong></u></td></tr>
+      </table></div>
+      <u><strong>公務應用</strong>：<strong>案件處理應用佇列</strong>（先申請先處理，符合程序正義）——<br>
+      若用堆疊，後申請的反而先辦，<strong>會有行政爭議</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="299" data-ans="A"><span class="no">299</span><span class="tag">資料結構</span>
+    <div class="stem">雜湊表的平均查詢複雜度與其代價為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>O(1)，但無順序性且可能有碰撞</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>O(n)，但有順序性</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>O(log n)，但佔記憶體</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>O(n²)，但實作簡單</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>特性</th><th>說明</th></tr>
+        <tr><td>平均查詢</td><td><strong>O(1)</strong>——直接算出位置</td></tr>
+        <tr><td><strong>最壞查詢</strong></td><td><u><strong>O(n)</strong>（碰撞嚴重時退化成串列）</u></td></tr>
+        <tr><td>缺點</td><td><u><strong>沒有順序</strong>（不能做範圍查詢）</u></td></tr>
+      </table></div>
+      <u><strong>碰撞處理</strong>：<strong>鏈結法</strong>（同位置串成串列）、<strong>開放定址法</strong>（往後找空位）。</u><br><br>
+      <u><strong>對照</strong>：需要<strong>範圍查詢或排序</strong>時要用<strong>樹狀結構</strong>（如 B+ 樹，資料庫索引即用此）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="300" data-ans="B"><span class="no">300</span><span class="tag">系統設計</span>
+    <div class="stem">處理民眾線上申辦的「重複送出」問題，最正確的做法為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>提示「請勿重複點擊」</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>伺服器端以唯一識別碼判斷重複請求（冪等性設計）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>送出後禁用按鈕</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>縮短處理時間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「禁用按鈕」只擋得住手滑，擋不住重新整理、按上一頁、網路逾時後重送。</strong></u><br><br>
+      <div class="frame"><span class="t">📐 冪等性設計</span>
+        <u>每次送出附帶一個<strong>唯一的請求識別碼</strong>；<br>
+        伺服器記錄已處理過的識別碼，<strong>重複的直接回傳前次結果</strong>，不再處理一次。<br><br>
+        <strong>執行一次與執行多次，結果相同。</strong></u>
+      </div>
+      <u><strong>公務後果</strong>：沒有冪等性設計 → <strong>同一件申請案出現三筆</strong>，或<strong>重複扣款</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="301" data-ans="A"><span class="no">301</span><span class="tag">系統設計</span>
+    <div class="stem">處理民國年與西元年轉換時，最常出錯的地方為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>加減 1911 的方向弄反，以及民國前年份</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>字串長度</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>資料型別</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>時區</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(A)</strong><br>
+      <div class="frame"><span class="t">📐 換算</span>
+        <u><strong>西元 = 民國 + 1911</strong>（114 + 1911 = 2025）<br>
+        <strong>民國 = 西元 − 1911</strong></u>
+      </div>
+      <strong>四個實務陷阱</strong>：<u>①<strong>民國前年份</strong>（如民國前 5 年 = 西元 1906）②<strong>民國 100 年前後的位數變化</strong>（2 碼變 3 碼，欄位長度要夠）③<strong>日期以字串排序會錯</strong>（"99" &gt; "100"）④<strong>閏年判斷</strong></u><br><br>
+      <u><strong>建議</strong>：<strong>資料庫一律存西元日期型別</strong>，只在<strong>顯示時</strong>轉民國——<br>
+      存民國字串會造成排序與計算的長期麻煩。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="302" data-ans="B"><span class="no">302</span><span class="tag">系統設計</span>
+    <div class="stem">閏年的正確判斷規則為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>能被 4 整除即為閏年</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>能被 4 整除但不能被 100 整除，或能被 400 整除</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>能被 100 整除即為閏年</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>每 4 年固定一次，無例外</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 驗算</span>
+        <u>2024：能被 4 整除、不能被 100 整除 → <strong>閏年</strong> ✓<br>
+        1900：能被 4 也能被 100，但<strong>不能被 400</strong> → <strong>平年</strong><br>
+        2000：能被 400 整除 → <strong>閏年</strong> ✓</u>
+      </div>
+      <u><strong>1900 與 2000 是最經典的兩個測試案例</strong>——只寫「能被 4 整除」的程式，1900 年會判錯。</u><br><br>
+      <u><strong>實務建議</strong>：<strong>用語言內建的日期函式庫，不要自己算</strong>——日期的例外情況遠比想像多。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="303" data-ans="B"><span class="no">303</span><span class="tag">編碼</span>
+    <div class="stem">機關系統出現亂碼，最常見的根本原因為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>字型未安裝</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>編碼不一致——資料庫、程式、網頁、檔案未統一使用 UTF-8</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>螢幕解析度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>瀏覽器版本</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>環節</th><th>要設定</th></tr>
+        <tr><td>資料庫</td><td><u>資料表與欄位的字元集</u></td></tr>
+        <tr><td>連線</td><td><u><strong>連線字串的編碼設定（最常被漏）</strong></u></td></tr>
+        <tr><td>程式</td><td>原始碼檔案的儲存編碼</td></tr>
+        <tr><td>網頁</td><td><code>&lt;meta charset="utf-8"&gt;</code></td></tr>
+        <tr><td>匯出檔案</td><td><u><strong>CSV 給 Excel 開要加 BOM</strong>，否則中文變亂碼</u></td></tr>
+      </table></div>
+      <u><strong>原則</strong>：<strong>從頭到尾統一 UTF-8</strong>。<br>
+      機關常見的 Big5 舊系統，<strong>轉換時要留意罕用字（如「堃」「喆」）可能遺失</strong>——<br>
+      這在戶政、地政系統是<strong>真實會發生的事故</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="304" data-ans="B"><span class="no">304</span><span class="tag">API</span>
+    <div class="stem">RESTful API 中，HTTP 狀態碼 404 與 500 分別代表？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>成功、重新導向</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>找不到資源（用戶端問題）、伺服器內部錯誤</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>未授權、逾時</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者皆為成功</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>範圍</th><th>意義</th><th>常見</th></tr>
+        <tr><td>2xx</td><td>成功</td><td>200 OK、201 已建立</td></tr>
+        <tr><td>3xx</td><td>重新導向</td><td>301、302</td></tr>
+        <tr><td><strong>4xx</strong></td><td><u><strong>用戶端問題</strong></u></td><td><u><strong>400 請求格式錯、401 未驗證、403 已驗證但無權限、404 找不到</strong></u></td></tr>
+        <tr><td><strong>5xx</strong></td><td><u><strong>伺服器問題</strong></u></td><td>500 內部錯誤、503 服務不可用</td></tr>
+      </table></div>
+      <u><strong>401 vs 403 的區辨</strong>：<strong>401 是「你是誰？」；403 是「我知道你是誰，但你不能看」。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="305" data-ans="B"><span class="no">305</span><span class="tag">API</span>
+    <div class="stem">機關對外開放 API 時，最基本的兩項控制為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>美觀與速度</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>身分驗證與流量限制</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>壓縮與快取</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>記錄與備份</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>控制</th><th>目的</th></tr>
+        <tr><td><strong>身分驗證</strong></td><td><u>知道誰在呼叫（API 金鑰或權杖）</u></td></tr>
+        <tr><td><strong>流量限制</strong></td><td><u><strong>防止單一來源把服務打掛，也防止被大量爬取資料</strong></u></td></tr>
+        <tr><td>逐次授權</td><td>驗證該呼叫者是否有權讀取該筆資料</td></tr>
+        <tr><td>日誌</td><td><u>誰、何時、查了什麼——<strong>個資查詢必須留存</strong></u></td></tr>
+      </table></div>
+      <u><strong>開放資料的個資風險</strong>：即使單筆去識別化，<strong>大量取得後可能透過交叉比對重新識別個人</strong>——<br>
+      這正是流量限制的另一個理由。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="306" data-ans="B"><span class="no">306</span><span class="tag">部署</span>
+    <div class="stem">系統上線前的最後檢查中，最常被忽略的一項為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>功能測試</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>回復計畫——出問題時如何在時限內退回舊版</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>使用手冊</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>教育訓練</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 沒有回復計畫的上線</span>
+      <u>出問題時<strong>只能硬著頭皮修</strong>，而民眾與長官正在看著。<br>
+      <strong>「能退回去」比「一定不會出錯」更務實。</strong></u>
+      </div>
+      <strong>上線檢查清單</strong>：<u>①<strong>資料備份已完成且驗證可還原</strong> ②<strong>回復計畫與時限</strong> ③關閉除錯模式 ④正式環境的密碼與金鑰已更換 ⑤<strong>選在低使用時段</strong>（避開申辦尖峰） ⑥<strong>通知客服與業務單位</strong></u><br><br>
+      <u><strong>公務特殊考量</strong>：報稅、報名、補助申請等有<strong>法定期限</strong>的期間<strong>絕不上線改版</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="307" data-ans="B"><span class="no">307</span><span class="tag">委外管理</span>
+    <div class="stem">委外開發的系統，機關最應在契約中確保的一項為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>最低價格</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>原始碼與相關文件的交付與智慧財產權歸屬</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>廠商知名度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>開發語言</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 涉及法律與預算，務必於招標前確認</span>
+      <u>沒有原始碼 → <strong>只能永遠找同一家廠商維護</strong>（技術鎖定），<br>
+      後續每一次小修改都無議價空間，<strong>長期成本遠高於當初省下的價差</strong>。</u>
+      </div>
+      <strong>契約應載明</strong>：<u>①<strong>原始碼與建置說明的交付</strong> ②<strong>著作權歸屬或授權範圍</strong> ③<strong>保固期與回應時限</strong> ④<strong>資安要求與個資保護義務</strong> ⑤<strong>驗收標準（可量測）</strong> ⑥人員異動時的交接</u><br><br>
+      <u><strong>提醒</strong>：智慧財產權與契約條款屬法律事項，<strong>應會同政風、法制單位審閱</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="308" data-ans="B"><span class="no">308</span><span class="tag">綜合判斷</span>
+    <div class="stem">下列敘述何者錯誤？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>前端驗證可被繞過，後端驗證不可省</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>過濾特殊字元是防 SQL 注入的根本解</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>密碼應以加鹽的慢速雜湊儲存</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>錯誤訊息不應對外洩漏系統細節</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 錯誤</strong><br>
+      <u><strong>根本解是參數化查詢</strong>，不是過濾字元——<br>
+      黑名單永遠有繞過方法，且會擋掉合法的資料。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>問題</th><th>治標</th><th>治本</th></tr>
+        <tr><td>SQL 注入</td><td>過濾字元</td><td><u><strong>參數化查詢</strong></u></td></tr>
+        <tr><td>XSS</td><td>移除 script 標籤</td><td><u><strong>輸出時依情境編碼</strong></u></td></tr>
+        <tr><td>重複送出</td><td>禁用按鈕</td><td><u><strong>伺服器端冪等性</strong></u></td></tr>
+        <tr><td>越權存取</td><td>隱藏連結</td><td><u><strong>伺服器端逐次授權檢查</strong></u></td></tr>
+      </table></div>
+      <u><strong>共同思路</strong>：<strong>治本一律在伺服器端；前端的任何限制都可被繞過。</strong></u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="309" data-ans="B"><span class="no">309</span><span class="tag">應考策略</span>
+    <div class="stem">程式設計概要中，投報率最高的準備方向為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>背誦各語言的完整語法</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>練熟迴圈追蹤、遞迴、陣列索引、複雜度、SQL 五大題型</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>研究最新框架</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>比較各語言優劣</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>題型</th><th>準備方式</th><th>年約題數</th></tr>
+        <tr><td><strong>迴圈追蹤</strong></td><td><u><strong>畫追蹤表，一列一列寫</strong></u></td><td>3～5</td></tr>
+        <tr><td><strong>遞迴</strong></td><td><u>從終止條件往回推</u></td><td>2～3</td></tr>
+        <tr><td>陣列與字串</td><td><u><strong>索引從 0、C 字串要 +1</strong></u></td><td>2～3</td></tr>
+        <tr><td><strong>複雜度</strong></td><td>看迴圈層數；記住常見演算法</td><td>2～3</td></tr>
+        <tr><td><strong>SQL</strong></td><td><u>執行順序、JOIN、GROUP BY</u></td><td>2～4</td></tr>
+      </table></div>
+      <u><strong>合計約 11～18 題</strong>，且都是<strong>可靠練習穩定得分</strong>的類型。<br>
+      <strong>不必精通任何一種語言</strong>——考的是邏輯，不是實作能力。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="310" data-ans="B"><span class="no">310</span><span class="tag">應考策略</span>
+    <div class="stem">作答追蹤題時，最容易失分的原因為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>計算能力不足</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>用想的不畫表格，以及看漏 &lt; 與 &lt;= 的差異</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>時間不夠</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>題目太難</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 追蹤題三步驟</span>
+        <u><strong>①</strong> 在題目旁畫一個表格，欄位是<strong>所有會變的變數</strong><br>
+        <strong>②</strong> <strong>一列一列寫</strong>，每跑一次迴圈寫一列<br>
+        <strong>③</strong> <u><strong>特別確認迴圈的進入與離開條件</strong>（<code>&lt;</code> 還是 <code>&lt;=</code>）</u></u>
+      </div>
+      <strong>五個高頻陷阱</strong>：<u>①<code>&lt;</code> 與 <code>&lt;=</code> ②<code>=</code> 與 <code>==</code> ③<strong>陣列索引從 0</strong> ④<strong>整數除法會截斷</strong> ⑤<code>i++</code> 與 <code>++i</code> 作為運算式的差異</u><br><br>
+      <u><strong>畫表格看似慢，實際上比反覆重算快得多，而且不會錯。</strong></u>
+    </div></details>
+  </div>
     <div class="q" data-qno="進階 1" data-ans="D">
       <div class="t">
         <span class="no">進階 1</span><span class="tag">進階擴充</span>
