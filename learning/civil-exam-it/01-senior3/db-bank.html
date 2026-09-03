@@ -8699,6 +8699,996 @@ stmt.setString(1, input);</pre>
   </div>
 
 
+
+  <div class="card"><h3>L. 交易、效能與治理進階（第 271～320 題）</h3>
+    <p style="font-size:.9rem;color:#64748b">對應<a href="db-deep.html">資料庫深化教材第 13～24 章</a>：隔離等級、MVCC、執行計畫、時態設計與資料治理。</p>
+  </div>
+
+  <div class="q" data-qno="271" data-ans="C"><span class="no">271</span><span class="tag">隔離等級</span>
+    <div class="stem">同一交易內以相同條件查詢兩次，第二次多出幾列。此異常稱為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>髒讀</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>不可重複讀</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>幻讀</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>遺失更新</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C) 幻讀（Phantom Read）</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>異常</th><th>變的是什麼</th></tr>
+        <tr><td>髒讀</td><td><u>讀到別人<strong>還沒提交</strong>的資料</u></td></tr>
+        <tr><td>不可重複讀</td><td><u>同一列的<strong>值</strong>變了</u></td></tr>
+        <tr><td><strong>幻讀</strong></td><td><u><strong>列數</strong>變了</u></td></tr>
+      </table></div>
+      <u><strong>記法</strong>：值變是「不可重複讀」，<strong>列數變是「幻讀」</strong>。</u><br><br>
+      <strong>公務意義</strong>：<u>名額分配、抽籤作業<strong>必須防幻讀</strong>，否則會超額核給。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="272" data-ans="B"><span class="no">272</span><span class="tag">隔離等級</span>
+    <div class="stem">下列何種隔離等級可防止髒讀但仍可能發生不可重複讀？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>Read Uncommitted</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>Read Committed</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>Repeatable Read</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>Serializable</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) Read Committed</strong>（多數資料庫的預設值）<br>
+      <div class="table-wrap"><table>
+        <tr><th>等級</th><th>髒讀</th><th>不可重複讀</th><th>幻讀</th></tr>
+        <tr><td>Read Uncommitted</td><td>可能</td><td>可能</td><td>可能</td></tr>
+        <tr><td><strong>Read Committed</strong></td><td>不會</td><td><u>可能</u></td><td>可能</td></tr>
+        <tr><td>Repeatable Read</td><td>不會</td><td>不會</td><td><u>可能</u></td></tr>
+        <tr><td>Serializable</td><td>不會</td><td>不會</td><td>不會</td></tr>
+      </table></div>
+      <u><strong>記法</strong>：由上而下每降一階多擋一種異常，代價是併發度下降。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="273" data-ans="B"><span class="no">273</span><span class="tag">隔離等級</span>
+    <div class="stem">兩位承辦同時編輯同一份公文，後存檔者覆蓋前者。提高交易隔離等級能否解決？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>可以，改為 Serializable 即可</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>不能，這是應用層問題，須用樂觀鎖（版本號）解決</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>可以，改為 Repeatable Read 即可</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>不能，只能禁止兩人同時開啟</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>提高隔離等級不能解決「遺失更新」</strong>——因為兩次編輯分屬<strong>不同交易</strong>，中間隔著使用者思考的數十分鐘。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 為什麼 Serializable 也不可行</span>
+      <u>那會把資料鎖住數十分鐘（承辦可能中途去開會），其他人全部卡住。</u>
+      </div>
+      <strong>正解</strong>：<u><strong>樂觀鎖</strong>——讀取時取版本號，存檔時比對；不符即提示「本文件已被 OOO 於 X 時修改」並顯示差異。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="274" data-ans="B"><span class="no">274</span><span class="tag">MVCC</span>
+    <div class="stem">多版本並行控制（MVCC）的主要效益為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省磁碟空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>讀取不會擋住寫入、寫入也不會擋住讀取</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>自動修正資料錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>免除備份需求</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>原理</strong>：更新<strong>不覆蓋舊值</strong>，而是產生新版本並標記交易編號；每個交易依自己的快照讀取「當時應該看到的版本」。</u><br><br>
+      <strong>公務意義</strong>：<u>報表查詢跑十分鐘也不會鎖住核心作業</u>——這在公務系統極為重要。<br><br>
+      <strong>代價</strong>：<u>舊版本會堆積，須定期清理（如 VACUUM）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="275" data-ans="B"><span class="no">275</span><span class="tag">MVCC</span>
+    <div class="stem">資料庫空間暴增且效能崩潰，但資料筆數並未大幅增加。最可能之原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>索引太多</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>有長時間未提交的交易，使舊版本無法被清理</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>硬碟老化</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>備份檔佔用空間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>在 MVCC 架構下，<strong>一個開了三小時沒結束的交易，會讓這三小時的所有舊版本都不能清</strong>。</u><br><br>
+      <strong>常見成因</strong>：<u>程式連線洩漏、忘了提交或回滾、例外流程未關閉連線。</u><br><br>
+      <div class="frame"><span class="t">📐 必監控指標</span>
+        <u><strong>最長執行中交易時間</strong>、未提交交易數、交易紀錄檔大小</u>
+      </div>
+      <strong>對策</strong>：設定交易逾時；報表改讀副本。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="276" data-ans="B"><span class="no">276</span><span class="tag">執行計畫</span>
+    <div class="stem">兩張大表以等值條件聯結，資料庫最可能選用之聯結演算法為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>巢狀迴圈聯結</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>雜湊聯結</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>合併聯結</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>交叉聯結</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 雜湊聯結</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>演算法</th><th>適合</th><th>複雜度</th></tr>
+        <tr><td>巢狀迴圈</td><td><u>外表很小、內表有索引</u></td><td>O(n × log m)</td></tr>
+        <tr><td><strong>雜湊聯結</strong></td><td><u><strong>等值聯結、兩表都大</strong></u></td><td>O(n + m)</td></tr>
+        <tr><td>合併聯結</td><td>兩表已依聯結鍵排序</td><td>O(n log n + m log m)</td></tr>
+      </table></div>
+      <u><strong>重要限制</strong>：<strong>非等值聯結（如 &gt; 或 BETWEEN）不能用雜湊聯結</strong>——雜湊只能做等值比對。這是常考的判斷點。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="277" data-ans="B"><span class="no">277</span><span class="tag">執行計畫</span>
+    <div class="stem">執行計畫顯示預估列數 1 萬、實際列數 500 萬。最可能之原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>索引損壞</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>統計資訊過期</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>記憶體不足</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>資料庫版本太舊</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 統計資訊過期</strong><br>
+      <u>資料庫靠<strong>統計資訊</strong>（相異值數、資料分布）估算「這個條件會篩出幾列」，再決定要不要用索引、用哪種聯結。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 典型事故</span>
+      <u>年初匯入 500 萬筆，但統計還停在去年的 10 萬筆 → 資料庫誤選巢狀迴圈 → <strong>查詢從 2 秒變成 40 分鐘</strong>。</u>
+      </div>
+      <strong>維運作為</strong>：<u>大量匯入或刪除後<strong>主動更新統計資訊</strong>；並排定定期維護。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="278" data-ans="B"><span class="no">278</span><span class="tag">執行計畫</span>
+    <div class="stem">執行計畫中出現「使用暫存檔進行排序」，代表？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>查詢已最佳化</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>排序所需記憶體不足，落到磁碟執行</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>資料已排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>索引正在重建</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>磁碟比記憶體慢數萬倍，<strong>落磁碟排序是效能殺手</strong>。</u><br><br>
+      <strong>三個改善方向</strong>：<br>
+      <strong>①</strong> <u>建立能同時滿足過濾與排序的<strong>複合索引</strong>（等值條件在前、排序欄位在後）→ 完全避免排序</u><br>
+      <strong>②</strong> 減少回傳欄位與列數（強制分頁）<br>
+      <strong>③</strong> 調高排序工作區記憶體（有上限，非根本解）
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="279" data-ans="B"><span class="no">279</span><span class="tag">索引</span>
+    <div class="stem">查詢 <code>WHERE 區碼 = ? AND 收件日 &gt;= ?</code> 並依 <code>案號</code> 回傳，建立索引 (區碼, 收件日, 案號) 之最大效益為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省磁碟空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>成為覆蓋索引，完全省去回表</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加快寫入速度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>自動更新統計資訊</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 覆蓋索引</strong><br>
+      <u>查詢所需的所有欄位都在索引中 → 資料庫<strong>不必回表</strong>，直接從索引取值。</u><br><br>
+      <strong>複合索引的順序原則</strong>：<u><strong>等值條件在前、範圍條件次之、排序或回傳欄位在後</strong>（最左前綴原則）。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 代價</span>
+      <u>索引欄位越多，索引越大、<strong>每次寫入都要維護</strong>——不能把所有欄位都塞進索引。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="280" data-ans="B"><span class="no">280</span><span class="tag">索引</span>
+    <div class="stem">某欄位僅有「男、女」兩種值，為該欄位單獨建立索引之效益為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>效益極高</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>幾乎無效益，因選擇率約 50%，全表掃描通常更快</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>可加快寫入</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>可節省空間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 選擇率判準</span>
+        <u>選擇率 <strong>&lt; 5%</strong> → 索引有效｜<strong>&gt; 20%</strong> → 全表掃描可能更快</u><br><br>
+        原因：<u>透過索引找到列後還要<strong>回表</strong>（隨機 I/O）；要回表數十萬次時，不如整表<strong>循序讀一遍</strong>。</u>
+      </div>
+      <u><strong>重要例外</strong>：選擇率要看「<strong>這個查詢</strong>」不是只看「這個欄位」——<br>
+      「狀態」只有 5 種值，但若查的是只占 0.5% 的「待補件」，索引仍然有效。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="281" data-ans="B"><span class="no">281</span><span class="tag">分割</span>
+    <div class="stem">案件表依年度做範圍分割，最大的維運效益為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>索引不必再建立</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>資料下線時可直接卸載該分割，不需執行大量 DELETE</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>自動壓縮資料</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>免除備份需求</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>做法</th><th>代價</th></tr>
+        <tr><td><u>DELETE 500 萬筆</u></td><td><u><strong>巨量交易紀錄、鎖表、空間不會馬上釋放</strong></u></td></tr>
+        <tr><td><strong>卸載分割</strong></td><td><u><strong>瞬間完成</strong></u></td></tr>
+      </table></div>
+      <strong>分割的三大效益</strong>：<u>①<strong>分割裁剪</strong>（只掃該年度那一塊） ②維護獨立（可單獨重建索引或壓縮） ③<strong>快速歸檔</strong></u><br><br>
+      <div class="warn"><span class="t">⚠️ 法律先行</span>
+      <u>政府資料<strong>不得任意刪除</strong>，須依檔案法保存年限辦理——<strong>分割是「歸檔」的技術手段，不是刪除的藉口</strong>。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="282" data-ans="B"><span class="no">282</span><span class="tag">分片</span>
+    <div class="stem">縣市政府層級的資料量（千萬級）是否適合導入分片（Sharding）？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>適合，可提升效能</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>通常不需要，單機加索引與分割即可；分片會帶來跨片交易與統計的難題</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>必須導入以符合資安要求</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只有分片才能備份</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th></th><th>分割</th><th>分片</th></tr>
+        <tr><td>範圍</td><td>單一資料庫內</td><td><u>多台伺服器</u></td></tr>
+        <tr><td>跨界查詢</td><td>資料庫自動處理</td><td><u><strong>需應用層彙整，交易一致性困難</strong></u></td></tr>
+        <tr><td>複雜度</td><td>低</td><td><strong>高</strong></td></tr>
+      </table></div>
+      <u><strong>申論寫法</strong>：「技術選擇須與機關<strong>維運能量</strong>相稱；本案資料量級以<strong>分割</strong>即可滿足，暫無分片必要。」</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="283" data-ans="B"><span class="no">283</span><span class="tag">讀寫分離</span>
+    <div class="stem">系統採讀寫分離（主庫寫入、副本查詢），民眾送件後立即查詢卻查不到自己的案件。原因與對策為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>索引未建立；建立索引</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>複寫延遲；寫入後立即查詢的流程須讀主庫</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>快取未清除；停用快取</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>權限不足；開放權限</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>副本有<strong>複寫延遲</strong>（通常毫秒到秒級，但負載高時可能更久）——剛寫入的資料可能在副本上還查不到。</u><br><br>
+      <div class="frame"><span class="t">📐 設計原則</span>
+        <u><strong>「寫後立即讀」的流程必須導向主庫</strong>；報表與歷史查詢才走副本。</u>
+      </div>
+      <strong>公務意義</strong>：<u>民眾送件後查不到自己的案件，會直接打 1999 —— 這不是小問題。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="284" data-ans="B"><span class="no">284</span><span class="tag">加密</span>
+    <div class="stem">資料庫已啟用透明資料加密（TDE），下列敘述何者正確？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>內部人員以合法帳號查詢時看到的是密文</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>可防止硬碟或備份檔被竊取後讀取，但合法登入者仍看到明文</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>可防止 SQL 注入</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>可取代欄位級加密</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 一句話判準</span>
+        <u><strong>TDE 防的是「硬碟被搬走」，欄位加密防的是「人把資料查出來」。</strong><br>
+        兩者防的威脅完全不同，<strong>不能互相取代</strong>——這是申論最容易寫錯的地方。</u>
+      </div>
+      <strong>防內部不當查詢的正解</strong>：<u>最小權限 ＋ <strong>稽核軌跡</strong> ＋ 異常告警 ＋ 動態遮罩</u>。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="285" data-ans="B"><span class="no">285</span><span class="tag">加密</span>
+    <div class="stem">將身分證字號欄位加密後，最直接產生的技術問題為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>資料會遺失</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>該欄位無法做範圍查詢與排序，索引也失去意義</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>備份無法執行</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>交易無法提交</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>加密後的值與原值無序關係 → <strong>範圍查詢、排序、模糊查詢全部失效</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>需求</th><th>解法</th></tr>
+        <tr><td>只需<strong>等值比對</strong></td><td><u>另存一個<strong>加鹽雜湊</strong>欄位供比對</u></td></tr>
+        <tr><td>畫面顯示</td><td><u><strong>動態遮罩</strong>（A12****789），實務上比全加密更實用</u></td></tr>
+        <tr><td>需要原值的作業</td><td>加密並嚴格控管解密權限</td></tr>
+      </table></div>
+      <u><strong>金鑰鐵則</strong>：<strong>金鑰與資料分開存放</strong>——放在一起等於沒有加密。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="286" data-ans="B"><span class="no">286</span><span class="tag">ETL</span>
+    <div class="stem">公務資料倉儲宜採 ELT 並保留原始層，主要理由為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省儲存空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>原始資料是稽核與爭議時的證據，只存轉換後結果等於把證據丟掉</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>ELT 執行較快</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>法規強制要求</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 三層架構</span>
+        <u><strong>原始層</strong>（原封不動的來源副本，<strong>不做任何修改</strong>）<br>
+        → <strong>整理層</strong>（清洗、統一代碼、去識別化）<br>
+        → <strong>應用層</strong>（依主題彙總，供報表使用）</u>
+      </div>
+      <u><strong>分層的價值</strong>：數字有爭議時可<strong>逐層往回追</strong>——是來源錯、清洗規則錯，還是彙總邏輯錯。<br>
+      沒有分層就只能重跑一次並祈禱。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="287" data-ans="B"><span class="no">287</span><span class="tag">ETL</span>
+    <div class="stem">ETL 批次最危險的失敗模式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>執行時間過長</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>批次失敗但儀表板照樣顯示舊資料，沒有人發現</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>佔用過多磁碟</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>產生過多日誌</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「沒跑成功卻沒人知道」比「跑得慢」危險得多</strong>——決策者會用過期資料做決定。</u><br><br>
+      <div class="frame"><span class="t">📐 兩個防呆設計</span>
+        <strong>①</strong> <u>畫面永遠顯示<strong>「資料更新時間」</strong></u><br>
+        <strong>②</strong> <u>對<strong>超過預期未更新</strong>者發出告警</u>
+      </div>
+      <strong>每批次應自動檢查</strong>：<u>筆數勾稽、<strong>金額合計勾稽</strong>、值域檢查、重複檢查。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="288" data-ans="B"><span class="no">288</span><span class="tag">資料血緣</span>
+    <div class="stem">建立資料血緣（Data Lineage）最實際的效益為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>加快查詢速度</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>能回答「這個數字從哪來」與「來源系統改欄位會影響哪些報表」</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>自動修正資料錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>減少儲存空間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>要回答的問題</th><th>沒有血緣時</th></tr>
+        <tr><td>這個數字從哪裡來？</td><td><u>無法向議會說明</u></td></tr>
+        <tr><td>經過哪些加工？</td><td>爭議時無法自證</td></tr>
+        <tr><td><strong>來源系統要改欄位，會影響哪些報表？</strong></td><td><u><strong>改了才發現三個儀表板壞掉</strong></u></td></tr>
+        <tr><td>這份報表多久沒更新了？</td><td>用過期資料做決策</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="289" data-ans="B"><span class="no">289</span><span class="tag">時態設計</span>
+    <div class="stem">雙時態表中「有效時間」與「交易時間」分別記錄什麼？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>兩者相同</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>有效時間是真實世界何時生效，交易時間是何時被寫進系統</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>有效時間是建檔時間，交易時間是刪除時間</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>兩者都是系統時間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 為什麼兩個都要記</span>
+        <u><strong>①</strong>「這個人在 115 年 1 月<strong>是不是</strong>低收入戶？」→ 用<strong>有效時間</strong><br>
+        <strong>②</strong>「我們在 115 年 1 月<strong>當時知道</strong>他是低收入戶嗎？」→ 用<strong>交易時間</strong></u>
+      </div>
+      <u><strong>第二個問題在爭訟時是關鍵</strong>——承辦當時依據的資訊是什麼，決定了處分是否合法。</u><br><br>
+      <strong>鐵則</strong>：<u>這種表<strong>只能 INSERT，不能 UPDATE 或 DELETE</strong>；更正是「新增一筆更正紀錄並將舊版標記失效」。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="290" data-ans="B"><span class="no">290</span><span class="tag">時態設計</span>
+    <div class="stem">法規修正後補助金額改變，系統計算舊案件時應依據何者？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>一律依現行法規</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>依案件發生當時適用的法規版本，故參數表須版本化</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>由承辦自行判斷</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>依廠商設定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>補助金額、級距、費率會隨法規修正而改變。<strong>系統必須依「案件發生當時的法規版本」計算，而非現行版本。</strong></u><br><br>
+      <strong>做法</strong>：<u>把法規參數存成<strong>有生效期間的參數表</strong>，計算時依案件基準日取用對應版本。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 寫死參數的後果</span>
+      <u>法規一改就要改程式；而且<strong>舊案件重算時會用到新參數，結果全錯</strong>——追溯補發或追繳時必然出事。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="291" data-ans="B"><span class="no">291</span><span class="tag">高可用</span>
+    <div class="stem">異地備援通常採非同步複寫，主要原因為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>非同步較安全</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>距離造成的傳播延遲是物理限制，同步複寫會嚴重限制寫入吞吐量</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>非同步較省成本</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>同步複寫不支援異地</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 物理事實（申論可寫的硬數據）</span>
+        <u>光在光纖中約每公里 <strong>5 微秒</strong>，來回 10 微秒。<br>
+        台北到高雄約 350 公里 → <strong>單次來回至少 3.5 毫秒</strong>。<br><br>
+        若每筆交易都要等這 3.5 毫秒，寫入吞吐量會受嚴重限制。</u>
+      </div>
+      <u><strong>取捨</strong>：同步複寫 RPO = 0 但受距離限制（適合同城）；異地只能非同步，<strong>可能遺失最後幾秒</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="292" data-ans="B"><span class="no">292</span><span class="tag">高可用</span>
+    <div class="stem">主備資料庫因網路中斷而互相認為對方已故障，兩邊同時接受寫入。此現象與防範為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>死結；加鎖</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>腦裂；設仲裁節點或明確的人工決策程序</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>幻讀；提高隔離等級</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>複寫延遲；改為同步</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 腦裂（Split-Brain）</strong><br>
+      <u>後果：<strong>兩邊資料各自變動且互相衝突，事後極難合併</strong>。</u><br><br>
+      <strong>防範</strong>：<u><strong>仲裁節點（Quorum）</strong>——只有取得多數票的一方才能繼續接受寫入；或明定人工決策程序。</u><br><br>
+      <div class="frame"><span class="t">📐 切換必須先回答的三個問題</span>
+        <strong>①誰有權決定切換？</strong>（沒明定，事故當下沒人敢做決定）<br>
+        <strong>②切換要多久？</strong>（含 DNS 生效、連線設定更新、快取清除）<br>
+        <strong>③</strong> <u><strong>怎麼切回來？備援期間的資料如何同步回主庫</strong>——最常被忽略</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="293" data-ans="B"><span class="no">293</span><span class="tag">NoSQL</span>
+    <div class="stem">欲查詢「與某人有三層以內關聯的所有人」，最適合之資料庫類型為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>關聯式資料庫</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>圖形資料庫</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>鍵值儲存</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>欄位家族資料庫</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 圖形資料庫</strong><br>
+      <u>關聯式資料庫要做<strong>三次自我聯結</strong>，資料量大時效能極差；<br>
+      圖形資料庫是<strong>沿著邊走</strong>，複雜度只與<strong>結果規模</strong>有關，與總資料量無關。</u><br><br>
+      <strong>公務應用</strong>：<u>人際關聯、金流追查、地籍相鄰關係、社福個案的家戶網絡。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 個資紅線</span>
+      <u>關聯分析極易觸及個資的<strong>目的外利用</strong>——須有法律依據，且不得作為處分的唯一依據。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="294" data-ans="C"><span class="no">294</span><span class="tag">NoSQL</span>
+    <div class="stem">下列哪一類資料<strong>不可</strong>接受最終一致性？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>公告與法規查詢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>網站瀏覽統計</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>繳費、核定與名額分配</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>歷史資料查詢</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(C)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>資料</th><th>可接受最終一致？</th><th>理由</th></tr>
+        <tr><td>公告、法規</td><td><strong>可以</strong></td><td>晚幾秒看到無影響</td></tr>
+        <tr><td>案件進度</td><td>視情況</td><td><u>須顯示資料基準時間</u></td></tr>
+        <tr><td><strong>繳費、核定、餘額</strong></td><td><u><strong>不可以</strong></u></td><td><strong>涉及金錢與權益，必須強一致</strong></td></tr>
+        <tr><td><strong>名額分配</strong></td><td><strong>不可以</strong></td><td>會超額核給</td></tr>
+      </table></div>
+      <u>依 CAP 理論，這類作業應選 <strong>CP</strong>（寧可暫停服務，不可帳目錯誤），<br>並<strong>同時設計暫停服務時的對民眾說明與替代管道</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="295" data-ans="B"><span class="no">295</span><span class="tag">資料品質</span>
+    <div class="stem">地址欄位存在「台北市／臺北市」「1 樓／一樓／1F」等寫法，屬於哪一個資料品質構面之問題？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>完整性</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>一致性</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>時效性</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>唯一性</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 一致性</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>構面</th><th>指標算法</th></tr>
+        <tr><td>完整性</td><td>非空值筆數 ÷ 應有筆數</td></tr>
+        <tr><td><strong>一致性</strong></td><td><u>跨系統勾稽相符筆數 ÷ 總筆數</u></td></tr>
+        <tr><td>正確性</td><td>抽樣比對權威來源的相符率</td></tr>
+        <tr><td>時效性</td><td>資料更新時間與現在的落差</td></tr>
+        <tr><td>唯一性</td><td>1 − 重複筆數 ÷ 總筆數</td></tr>
+        <tr><td>有效性</td><td>符合格式與值域的比率</td></tr>
+      </table></div>
+      <u><strong>量化的價值</strong>：「資料很亂」無法編預算；<strong>「地址一致性僅 82%，導致跨局處統計誤差達 15%」</strong>才能說服長官。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="296" data-ans="B"><span class="no">296</span><span class="tag">資料品質</span>
+    <div class="stem">資料品質的三道防線中，成本效益最高者為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>事後人工清洗</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>源頭控制：輸入即驗證、下拉選單取代自由輸入</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>委外定期清理</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>只在報表產出時修正</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 三道防線（成本由低到高）</span>
+        <strong>①源頭控制（最便宜）</strong>：<u>輸入驗證、選單、必填、格式檢查、地址正規化服務</u><br>
+        <strong>②流程檢核（中）</strong>：ETL 勾稽、跨系統定期比對、異常告警<br>
+        <strong>③事後修補（最貴）</strong>：<u>人工清洗或委外——<strong>而且不解決根因，明年還要再做一次</strong></u><br><br>
+        <strong>「進來時擋，比出去時補便宜十倍。」</strong>
+      </div>
+      <u><strong>配套</strong>：源頭控制須配合<strong>作業流程與教育訓練</strong>，否則第一線會找到繞過驗證的方法（統一填「無」或「0」）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="297" data-ans="B"><span class="no">297</span><span class="tag">資料治理</span>
+    <div class="stem">關於資料治理的三種角色，下列敘述何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>資訊單位是資料所有人</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>資訊單位是資料保管人，資料定義與品質屬業務單位權責</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>資料管理人由資訊人員擔任</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>三種角色都由資訊單位承擔</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>角色</th><th>誰擔任</th><th>負責什麼</th></tr>
+        <tr><td><strong>資料所有人</strong></td><td><u>業務單位主管</u></td><td><strong>定義、品質、開放與否、授權核准</strong></td></tr>
+        <tr><td><strong>資料管理人</strong></td><td>業務單位承辦</td><td>日常維護、品質檢核</td></tr>
+        <tr><td><strong>資料保管人</strong></td><td>資訊單位</td><td><u>技術保管、備份、存取控制、可用性</u></td></tr>
+      </table></div>
+      <u><strong>關鍵分界</strong>：<strong>資訊單位不能決定資料的定義、不能決定要不要開放、不能自行核准他人查詢</strong>；<br>但要負責資料的安全、備份與可用性。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="298" data-ans="B"><span class="no">298</span><span class="tag">資料治理</span>
+    <div class="stem">推動資料治理時，下列何者為正確的第一步？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>採購資料治理平台</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>盤點資料資產並指定各資料集的所有人與管理人</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>訂定違規罰則</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>導入 AI 分析</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「不知道有什麼資料，就不可能治理它。」</strong></u><br><br>
+      <strong>正確四步</strong>：<u><strong>①盤點 → ②定權責 → ③訂規則 → ④上工具</strong></u><br><br>
+      <div class="warn"><span class="t">⚠️ 最常見的失敗</span>
+      <u><strong>先買工具再想制度</strong>——最後買回來的是一個沒人維護的資料目錄。<br>
+      沒有指定資料所有人，資料目錄裡的每一筆都會是空白的。<br><br>
+      <strong>工具是制度的載體，不是制度的替代品。</strong></u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="299" data-ans="B"><span class="no">299</span><span class="tag">主資料</span>
+    <div class="stem">縣市政府推動主資料管理時，第一順位通常是？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>人員與職務主檔</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>地址（門牌）主檔</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>案件類別代碼</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>財產設備主檔</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 地址（門牌）主檔</strong><br>
+      <u><strong>理由</strong>：稅務、戶政、社政、環保、消防、教育<strong>全部依賴地址</strong>；<br>而地方政府的統計幾乎都是<strong>以區域為單位</strong>——地址不統一，所有區域統計都會錯。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>順位</th><th>主資料</th><th>特別注意</th></tr>
+        <tr><td><strong>1</strong></td><td><strong>地址主檔</strong></td><td>比對內政部門牌資料庫</td></tr>
+        <tr><td>2</td><td>行政區與里鄰代碼</td><td><u>會調整，須 <strong>SCD Type 2</strong> 保留歷史</u></td></tr>
+        <tr><td>3</td><td>局處與單位代碼</td><td>跨局處統計基礎</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="300" data-ans="B"><span class="no">300</span><span class="tag">維運監控</span>
+    <div class="stem">下列資料庫監控指標中，何者最常被忽略卻最關鍵？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>磁碟使用率</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>備份成功率與最後成功時間</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>CPU 使用率</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>連線數</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「沒有驗證過的備份，等於沒有備份。」</strong>而備份失敗最常見的情況是——<strong>失敗了但沒有人在看</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 四類必監控指標</span>
+        <strong>效能</strong>：慢查詢、快取命中率、<u><strong>P95／P99 回應時間</strong></u><br>
+        <strong>併發</strong>：連線池使用率、<u><strong>最長執行中交易</strong></u>、鎖等待與死結<br>
+        <strong>容量</strong>：表空間成長率（要能預測幾個月後會滿）、交易紀錄檔大小<br>
+        <strong>可靠性</strong>：<u><strong>備份成功率</strong></u>、複寫延遲、還原演練結果
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="301" data-ans="B"><span class="no">301</span><span class="tag">維運監控</span>
+    <div class="stem">服務水準指標為何應採 P95 或 P99 而非平均值？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>平均值計算太複雜</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>平均值會被多數快速查詢稀釋，掩蓋少數極慢的使用者體驗</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>P95 數字比較好看</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>法規要求</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 平均值會騙人</span>
+        <u>100 個查詢中，95 個 0.1 秒、5 個 20 秒 → <strong>平均 1.1 秒，看起來還好</strong>。<br>
+        但那 5 個人等了 20 秒，<strong>他們就是會打 1999 抱怨的人</strong>。<br><br>
+        <strong>P95 = 1.9 秒、P99 = 20 秒</strong> → 一眼就看出問題。</u>
+      </div>
+      <u>對議會與民眾說明處理天數時，同樣道理：<strong>用中位數與第 90 百分位，比平均數更誠實</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="302" data-ans="B"><span class="no">302</span><span class="tag">容量規劃</span>
+    <div class="stem">資料庫目前 800 GB、每月成長 25 GB、磁碟 1 TB。承辦應何時開始編列擴充預算？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>剩餘空間低於 10% 時</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>現在就要開始，因採購程序需 3～6 個月而預估 9 個月後會滿</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>磁碟滿了再說</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>由廠商決定</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 計算</span>
+        <u>剩餘 = 1024 − 800 = <strong>224 GB</strong><br>
+        224 ÷ 25 ≈ <strong>9 個月後滿</strong><br>
+        採購程序 3～6 個月 → <strong>現在就要提</strong></u>
+      </div>
+      <u><strong>把這個計算寫在簽呈裡，比寫「空間快不夠了」有效十倍。</strong></u><br><br>
+      <strong>公務提醒</strong>：<u>年度預算須<strong>提前一年編列</strong>——發現需求時才想編預算，那至少是一年半後的事。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="303" data-ans="B"><span class="no">303</span><span class="tag">SQL</span>
+    <div class="stem">查詢 <code>WHERE 收件日 &gt;= '2026-01-01'</code> 可用索引，改寫為 <code>WHERE YEAR(收件日) = 2026</code> 後索引失效，原因為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>年份格式錯誤</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>欄位被函數包住，成為非可索引搜尋條件</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>索引已損壞</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>統計資訊過期</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>欄位被函數包住後，資料庫必須<strong>把每一列都算一次 YEAR()</strong> 才能比對——索引的排序結構完全用不上。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>同類陷阱</th></tr>
+        <tr><td>前置萬用字元的模糊查詢（開頭就是萬用字元）</td></tr>
+        <tr><td><code>WHERE 金額 + 0 = 100</code>（欄位參與運算）</td></tr>
+        <tr><td><u>欄位型別與參數型別不一致，造成隱式轉換</u></td></tr>
+        <tr><td><code>WHERE UPPER(姓名) = ?</code>（改用不分大小寫的定序）</td></tr>
+      </table></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="304" data-ans="B"><span class="no">304</span><span class="tag">SQL</span>
+    <div class="stem">欲統計「各局處案件數，含件數為 0 之局處」，除使用以局處為左表之 LEFT JOIN 外，還必須注意？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>需加 DISTINCT</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>應以案件表主鍵計數，不可用 COUNT(*)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>需先排序</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>需使用子查詢</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 實務上最常見的統計錯誤</span>
+      <u>LEFT JOIN 對沒有案件的局處會補出一列 NULL；<br>
+      <strong><code>COUNT(*)</code> 會把它算成 1 件</strong> → <strong>零件數顯示成一件</strong>。</u>
+      </div>
+      <u><strong>正解</strong>：<code>COUNT(案件表.主鍵)</code>——COUNT 會忽略 NULL。</u><br><br>
+      <strong>公務後果</strong>：<u>報表數字對不起來，對議會說明時無法解釋。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="305" data-ans="B"><span class="no">305</span><span class="tag">SQL</span>
+    <div class="stem">欲查出「本年度未曾申請任何補助之低收入戶」，使用 <code>NOT IN</code> 子查詢的風險為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>效能較差</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>子查詢結果若含 NULL，將回傳空集合</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>語法錯誤</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>無法使用索引</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>原理</strong>：與 NULL 比較的結果是 <strong>UNKNOWN</strong>，不是 TRUE 也不是 FALSE；<br>
+      <code>NOT IN</code> 需要「全部都不等於」為真，遇到 UNKNOWN 就永遠無法成立 → <strong>回傳空集合</strong>。</u><br><br>
+      <strong>正解</strong>：<u>改用 <code>NOT EXISTS</code>——對 NULL 免疫，語意也最貼近「不存在符合條件之列」。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 公務後果</span>
+      <u>補助清查時查出「零筆未申請」，造成<strong>應通知而未通知</strong>——這是行政疏失，不只是技術錯誤。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="306" data-ans="B"><span class="no">306</span><span class="tag">SQL</span>
+    <div class="stem">欲取得「每個局處案件金額前三高的案件」，最適合之語法為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>直接加上筆數限制</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>視窗函數 ROW_NUMBER() OVER (PARTITION BY 局處 ORDER BY 金額 DESC)</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>逐局處跑迴圈查詢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>匯出後以試算表處理</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><code>PARTITION BY</code> ＝「分組但不合併列」，正是「每組前 N 名」的標準解法。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>函數</th><th>同分時</th></tr>
+        <tr><td><strong>ROW_NUMBER</strong></td><td>給不同名次（1,2,3,4）</td></tr>
+        <tr><td><strong>RANK</strong></td><td><u>同名次並<strong>跳號</strong>（1,2,2,4）</u></td></tr>
+        <tr><td><strong>DENSE_RANK</strong></td><td><u>同名次<strong>不跳號</strong>（1,2,2,3）</u></td></tr>
+      </table></div>
+      <strong>公務提醒</strong>：<u>涉及排序核給時，<strong>同分處理規則應於作業要點明定</strong>，不能由程式任意決定。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="307" data-ans="B"><span class="no">307</span><span class="tag">正規化</span>
+    <div class="stem">關聯 R(<u>學號, 課號</u>, 成績, 學生姓名)，主鍵為 (學號, 課號)，且 學號 → 學生姓名。此關聯違反？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>1NF</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>2NF</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>3NF</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>未違反</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) 2NF</strong><br>
+      <u>「學生姓名」只由主鍵的<strong>一部分</strong>（學號）決定 → <strong>部分相依</strong> → 違反 2NF。</u><br><br>
+      <div class="frame"><span class="t">📐 三步判定</span>
+        <strong>①</strong> 有沒有「一格塞多個值」→ 違反 1NF<br>
+        <strong>②</strong> 主鍵是複合鍵嗎？<u>不是 → 一定符合 2NF</u>；是 → 檢查有無<strong>部分相依</strong><br>
+        <strong>③</strong> 有沒有「非鍵欄位決定非鍵欄位」→ 違反 3NF（遞移相依）
+      </div>
+      <strong>解法</strong>：拆成 學生(學號, 姓名) 與 選課(學號, 課號, 成績)。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="308" data-ans="B"><span class="no">308</span><span class="tag">正規化</span>
+    <div class="stem">資料倉儲的星狀綱要刻意採用反正規化，主要理由為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省儲存空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>分析型系統重讀取效能，適度反正規化可大幅減少 JOIN</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>反正規化較安全</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>正規化不適用於資料庫</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>系統類型</th><th>設計取向</th><th>理由</th></tr>
+        <tr><td><strong>交易型（OLTP）</strong></td><td>正規化到 3NF</td><td><u>避免更新異常，寫入為主</u></td></tr>
+        <tr><td><strong>分析型（OLAP）</strong></td><td><u>星狀綱要、反正規化</u></td><td><strong>讀取為主，減少 JOIN</strong></td></tr>
+      </table></div>
+      <u><strong>申論加分</strong>：反正規化必須是<strong>「刻意的設計決定」並說明理由</strong>，不是「懶得正規化」——<br>寫出「因本表為分析用途、讀多寫少，故刻意反正規化」才是完整答案。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="309" data-ans="B"><span class="no">309</span><span class="tag">緩慢變動維度</span>
+    <div class="stem">某里因行政區調整改隸他區，若須同時保留調整前後之統計正確性，應採？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>Type 1（直接覆蓋）</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>Type 2（新增一列並記生效／失效日）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>Type 3（多開一欄存前值）</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>刪除舊資料</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B) SCD Type 2</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>型別</th><th>做法</th><th>後果</th></tr>
+        <tr><td>Type 1</td><td>直接覆蓋</td><td><u><strong>歷史統計被追溯竄改</strong></u></td></tr>
+        <tr><td><strong>Type 2</strong></td><td>新增一列並記生效／失效日</td><td>歷史正確，表會變大</td></tr>
+        <tr><td>Type 3</td><td>多開一欄存前值</td><td><u>只能回溯一代</u></td></tr>
+      </table></div>
+      <u><strong>地方政府為什麼特別需要</strong>：行政區、里鄰、學區調整是<strong>常態</strong>——<br>維度設計沒做 Type 2，三年後所有趨勢圖都不能看。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="310" data-ans="B"><span class="no">310</span><span class="tag">交易控制</span>
+    <div class="stem">規費繳納系統偶發「已扣款但未銷帳」，最根本之設計對策為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>增加網路頻寬</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>設冪等鍵並建立每日自動對帳與補償交易機制</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>提高交易隔離等級</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>改為人工銷帳</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>扣款在<strong>金流機構</strong>、銷帳在<strong>本府系統</strong>，屬跨系統交易，<strong>無法用單一 DB 交易保證</strong>。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>手段</th><th>作用</th></tr>
+        <tr><td><strong>冪等鍵</strong></td><td>同一筆交易重送不會重複扣款</td></tr>
+        <tr><td><strong>對帳批次</strong></td><td><u>每日與金流機構逐筆勾稽</u></td></tr>
+        <tr><td><strong>補償交易</strong></td><td>對不上者自動退款或自動銷帳</td></tr>
+      </table></div>
+      <strong>公務加分</strong>：<u>務必寫「應設每日自動對帳與人工複核之雙軌機制，並<strong>明定民眾申訴之處理期限</strong>」。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="311" data-ans="B"><span class="no">311</span><span class="tag">交易控制</span>
+    <div class="stem">兩個交易互相等待對方釋放資料表鎖定。最實用之防範方式為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>提高隔離等級</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>所有交易依相同順序鎖定資料表</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>停用交易功能</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>增加記憶體</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>死結的四個必要條件中，<strong>「循環等待」最容易破壞</strong>——統一資源取得順序即可。</u><br><br>
+      <div class="table-wrap"><table>
+        <tr><th>對策</th><th>破壞的條件</th><th>實用性</th></tr>
+        <tr><td><strong>統一鎖定順序</strong></td><td>循環等待</td><td><u><strong>最實用</strong></u></td></tr>
+        <tr><td>鎖定逾時後回滾重試</td><td>不可搶奪</td><td>常用</td></tr>
+        <tr><td>一次取得所有資源</td><td>持有並等待</td><td>資源利用率低</td></tr>
+      </table></div>
+      <strong>另一個關鍵</strong>：<u><strong>縮短交易長度</strong>——交易裡不要夾人工操作或外部 API 呼叫，那是死結的溫床。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="312" data-ans="B"><span class="no">312</span><span class="tag">備份還原</span>
+    <div class="stem">每日 02:00 完整備份，某日 15:00 硬碟毀損，欲復原至 15:00，最關鍵的要素為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>完整備份檔</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>交易紀錄檔之連續備份</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>索引重建腳本</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>資料庫版本相同</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">📐 復原公式</span>
+        <u><strong>完整備份 ＋ 差異備份 ＋ 交易紀錄 = 時間點復原（PITR）</strong></u><br><br>
+        只有完整備份 → 最多回到 02:00，<strong>13 小時的資料全失</strong>。
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>指標</th><th>決定什麼</th></tr>
+        <tr><td><strong>RPO</strong>（可容忍資料遺失量）</td><td><u>備份頻率</u></td></tr>
+        <tr><td><strong>RTO</strong>（可容忍停機時間）</td><td><u>備援架構</u></td></tr>
+      </table></div>
+      <u><strong>記法</strong>：P 是 Point（資料回到哪個時間點）；T 是 Time（多久修好）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="313" data-ans="B"><span class="no">313</span><span class="tag">備份還原</span>
+    <div class="stem">關於資料庫備份，下列作法何者最重要卻最常被忽略？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>增加備份份數</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>定期執行還原演練並驗證資料完整性</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>使用更快的儲存媒體</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>縮短備份時間</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>「沒有驗證過的備份，等於沒有備份。」</strong></u><br><br>
+      <strong>常見失敗</strong>：<u>備份檔損毀無人知、範圍漏了某個資料庫、還原程序無人會操作、<strong>還原金鑰遺失</strong>。</u><br><br>
+      <strong>3-2-1 原則</strong>：<u>3 份副本、2 種媒體、1 份異地；防勒索軟體再加<strong>離線或不可竄改（WORM）副本</strong>。</u><br><br>
+      <div class="warn"><span class="t">⚠️ 演練要注意</span>
+      <u>還原演練<strong>應使用去識別化資料</strong>，且演練紀錄須留存——這既是資安法要求，也是<strong>爭取預算最有力的依據</strong>。</u>
+      </div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="314" data-ans="B"><span class="no">314</span><span class="tag">備份還原</span>
+    <div class="stem">為何備份檔本身也必須加密？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節省空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>備份檔可能存於防護較弱處、送異地、由廠商保管或用於測試環境還原</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加快還原速度</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>法規未要求，僅為習慣</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>備份是個資外洩的常見來源</strong>——正式環境防護嚴密，但備份檔往往：<br>
+      存在防護較弱的儲存裝置、送到異地、由廠商保管、被拿去測試環境還原。</u><br><br>
+      <strong>要求</strong>：<u>備份檔應加密、<strong>金鑰與備份分開保管</strong>、還原演練使用去識別化資料。</u><br><br>
+      <div class="hl"><strong>💡 委外契約要點</strong>：<u>應載明廠商<strong>不得將備份或正式資料攜出或存於自有設備</strong>，並於契約終止後返還或銷毀並提出證明。</u></div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="315" data-ans="B"><span class="no">315</span><span class="tag">資料庫安全</span>
+    <div class="stem">為降低內部人員不當查詢個資之風險，下列措施何者最直接有效？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>加長密碼長度</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>依職務最小權限授權，對敏感欄位查詢留存稽核軌跡並設異常告警</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>禁止使用資料庫</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>每月更換帳號</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u><strong>內部威脅的特徵：使用的是合法帳號</strong>——所以防火牆與防毒都攔不到。</u><br><br>
+      <div class="frame"><span class="t">📐 三層防護</span>
+        <strong>①最小權限</strong>：依職務授權（RBAC）＋ 定期複核<br>
+        <strong>②稽核軌跡</strong>：<u><strong>誰、何時、查了誰</strong></u><br>
+        <strong>③異常偵測</strong>：<u>短時間大量查詢、查詢與業務無關之對象</u>
+      </div>
+      <u><strong>實務關鍵</strong>：須<strong>定期抽查稽核軌跡並簽核</strong>——<strong>只記錄不檢視，等於沒有稽核</strong>。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="316" data-ans="B"><span class="no">316</span><span class="tag">資料庫安全</span>
+    <div class="stem">日誌與稽核軌跡本身的管理，最常被忽略的一點為？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>佔用磁碟空間</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>日誌本身含個資，其存取權限與保存期限也須依個資法管理</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>日誌會降低效能</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>日誌無法查詢</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <u>稽核軌跡裡通常有：<strong>IP、帳號、被查詢的身分證字號、查詢內容</strong>。</u><br><br>
+      <div class="frame"><span class="t">📐 因此日誌也必須</span>
+        <strong>①</strong> 設定<u>存取權限</u>（不是所有資訊人員都能看）<br>
+        <strong>②</strong> 訂定<u>保存期限並屆期刪除</u><br>
+        <strong>③</strong> <u><strong>對日誌的查詢也要留紀錄</strong></u>（誰查了日誌）<br>
+        <strong>④</strong> 避免記錄<u>密碼、完整卡號等不必要的敏感資料</u>
+      </div>
+      <strong>三個必要條件</strong>：<u><strong>集中</strong>（攻擊者刪不到）、<strong>NTP 時間同步</strong>（跨系統可勾稽）、<strong>防竄改</strong></u>。
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="317" data-ans="B"><span class="no">317</span><span class="tag">去識別化</span>
+    <div class="stem">將低收入戶資料提供學術研究，下列處理何者最符合去識別化要求？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>刪除姓名即可</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>刪除直接識別欄位、對準識別欄位概化或抑制，並評估重識別風險</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>將身分證字號加密後保留</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>僅提供部分欄位</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>類型</th><th>例</th><th>處理</th></tr>
+        <tr><td>直接識別</td><td>姓名、身分證字號</td><td>刪除</td></tr>
+        <tr><td><strong>準識別</strong></td><td>生日、里別、職業</td><td><u><strong>概化</strong>（生日→年齡層、里→區）或抑制</u></td></tr>
+        <tr><td>敏感</td><td>病歷、犯罪紀錄</td><td>原則不提供</td></tr>
+      </table></div>
+      <u><strong>(C) 錯</strong>：加密<strong>可還原</strong>，屬<strong>假名化</strong>而非去識別化，<strong>仍是個資</strong>。</u><br><br>
+      <strong>判準工具</strong>：<u><strong>k-匿名</strong>（每組至少 k 筆相同）、<strong>l-多樣性</strong>；並設<strong>最小統計單位門檻</strong>（未滿 5 戶不揭露）。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="318" data-ans="B"><span class="no">318</span><span class="tag">資料生命週期</span>
+    <div class="stem">系統累積 15 年資料致查詢緩慢，最適當之處理為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>直接刪除舊資料</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>依檔案保存年限辦理歸檔，線上僅保留常用區間並提供歷史查詢管道</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>全部搬到光碟不再查詢</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>加大伺服器規格</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="warn"><span class="t">⚠️ 法律先行於技術</span>
+      <u>政府資料<strong>不得任意刪除</strong>——須依《檔案法》與各機關檔案保存年限區分表辦理，<strong>部分屬永久保存</strong>。<br>
+      技術方案不能違反保存義務。</u>
+      </div>
+      <strong>技術手段</strong>：<u>資料分割、冷熱資料分層、歷史區另建唯讀查詢介面。</u><br><br>
+      <strong>權責</strong>：<u>歸檔計畫應會同<strong>檔案管理單位與業務單位</strong>共同核定，資訊單位不能自行決定。</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="319" data-ans="B"><span class="no">319</span><span class="tag">綜合判斷</span>
+    <div class="stem">資料庫效能調校的正確順序為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>升級硬體 → 加快取 → 建索引 → 改查詢</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>改查詢 → 建索引 → 更新統計 → 加快取 → 升級硬體</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>加快取 → 升級硬體 → 改查詢 → 建索引</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>順序無關</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="table-wrap"><table>
+        <tr><th>順序</th><th>做什麼</th><th>效益／成本</th></tr>
+        <tr><td>1</td><td><u>改寫查詢（消除函數包欄位、消除 N+1）</u></td><td><strong>最高／零</strong></td></tr>
+        <tr><td>2</td><td>建立或調整索引</td><td>高／低</td></tr>
+        <tr><td>3</td><td>更新統計資訊、調整參數</td><td>中／低</td></tr>
+        <tr><td>4</td><td>加彙總表或快取</td><td>高／中（<u>要處理一致性</u>）</td></tr>
+        <tr><td>5</td><td><u>升級硬體</u></td><td><strong>最低／最高</strong></td></tr>
+      </table></div>
+      <u><strong>申論結論句</strong>：「應先從查詢與索引著手，硬體升級為最後手段——<br>因前者常有<strong>數十倍</strong>改善，後者通常只有<strong>數倍</strong>。」</u>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="320" data-ans="B"><span class="no">320</span><span class="tag">綜合判斷</span>
+    <div class="stem">公務資料庫設計與商業資料庫設計最根本的差異為？</div>
+    <div class="choices">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>公務資料量較大</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>公務系統須保留完整歷程與當時適用的法規版本，經得起數年後的爭訟檢視</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>公務系統效能要求較低</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>公務系統不需備份</span></button>
+    </div>
+    <details><summary>看詳解</summary><div class="ans">
+      <strong>答案：(B)</strong><br>
+      <div class="frame"><span class="t">🎯 一句話總結</span>
+        <u><strong>商業系統可以忘記過去，公務系統不行。</strong><br><br>
+        每一筆核定、每一次更正、每一個當時適用的法規版本，<br>都可能在三年後被要求說明。</u>
+      </div>
+      <strong>申論六段模板</strong>：<u>需求與限制 → 邏輯設計 → 實體設計 → 完整性與交易 → <strong>安全與法遵（占分最重）</strong> → 維運與風險</u><br><br>
+      <strong>交卷前六個問號</strong>：<u>有沒有畫表？主鍵有沒有避開身分證字號？有沒有處理歷程與法規版本？有沒有寫個資與稽核？有沒有寫備份與可用性？結論有沒有回到民眾服務或法遵？</u>
+    </div></details>
+  </div>
     <div class="q" data-qno="進階 1" data-ans="A">
       <div class="t">
         <span class="no">進階 1</span><span class="tag">進階擴充</span>
