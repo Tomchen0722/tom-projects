@@ -6098,45 +6098,61 @@ AND 1010
       (二) 說明各網段之隔離原則。（10 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 步驟一：由大到小排序並決定遮罩</strong>
-      <div class="table-wrap"><table>
-        <tr><th>單位</th><th>需求</th><th>計算</th><th>CIDR</th><th>可用</th><th>區塊</th></tr>
-        <tr><td>辦公電腦</td><td>60</td><td>2⁶−2 = 62 ≥ 60</td><td><strong>/26</strong></td><td>62</td><td>64</td></tr>
-        <tr><td>IP 監視</td><td>25</td><td>2⁵−2 = 30 ≥ 25</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
-        <tr><td>洽公 Wi-Fi</td><td>20</td><td>2⁵−2 = 30 ≥ 20</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
-        <tr><td>伺服器</td><td>12</td><td>2⁴−2 = 14 ≥ 12</td><td><strong>/28</strong></td><td>14</td><td>16</td></tr>
-        <tr><td>路由器對接</td><td>2</td><td>2²−2 = 2</td><td><strong>/30</strong></td><td>2</td><td>4</td></tr>
-      </table></div>
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】大到小排二次方，可用頭尾要扣二，區塊連續不重疊，隔離廣播保安寧</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>主機計算公式</strong>：可容納主機數 = 2ⁿ − 2 ≥ 需求數（n 為主機位元數）。<br>
+          • <strong>由大到小排序</strong>：辦公 (60) → 監視 (25) → Wi-Fi (20) → 伺服器 (12) → 路由器 (2)。<br>
+          • <strong>四等加分切入點</strong>：說明子網路切割實質效益（縮減廣播網域、提升資安邊界、簡化故障排查）。
+        </div>
+      </div>
 
-      <strong>📊 步驟二：依序配置</strong>
-      <div class="table-wrap"><table>
-        <tr><th>單位</th><th>網路位址</th><th>可用範圍</th><th>廣播位址</th><th>遮罩</th></tr>
-        <tr><td>辦公電腦</td><td>192.168.60.<strong>0</strong>/26</td><td>.1 – .62</td><td>.63</td><td>255.255.255.192</td></tr>
-        <tr><td>IP 監視</td><td>192.168.60.<strong>64</strong>/27</td><td>.65 – .94</td><td>.95</td><td>255.255.255.224</td></tr>
-        <tr><td>洽公 Wi-Fi</td><td>192.168.60.<strong>96</strong>/27</td><td>.97 – .126</td><td>.127</td><td>255.255.255.224</td></tr>
-        <tr><td>伺服器</td><td>192.168.60.<strong>128</strong>/28</td><td>.129 – .142</td><td>.143</td><td>255.255.255.240</td></tr>
-        <tr><td>路由器對接</td><td>192.168.60.<strong>144</strong>/30</td><td>.145 – .146</td><td>.147</td><td>255.255.255.252</td></tr>
-        <tr><td colspan="5">剩餘 .148 – .255（108 個位址）保留供未來擴充</td></tr>
-      </table></div>
-      <div class="hl"><strong>驗算</strong>：64 + 32 + 32 + 16 + 4 = <strong>148</strong> ≤ 256 ✔</div>
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）子網路需求計算與遮罩規劃 (6分)</span>
+        <h3>一、子網路規劃（VLSM 切割）完整推導</h3>
+        <p><strong>（一）主機容量計算（由大至小排序）</strong>：<br>
+        依 VLSM 規則，各單位需求必須由大到小排序，主機位元數 n 須滿足 <code>2ⁿ − 2 ≥ 需求</code>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>排序</th><th>單位名稱</th><th>需求數量</th><th>計算公式 (2ⁿ − 2 ≥ 需求)</th><th>主機位元 n</th><th>CIDR 遮罩</th><th>可用 IP 數</th><th>區塊大小 (Block)</th></tr>
+          <tr><td>1</td><td>辦公電腦</td><td>60 台</td><td>2⁶ − 2 = 62 ≥ 60</td><td>6</td><td><strong>/26</strong></td><td>62</td><td>64</td></tr>
+          <tr><td>2</td><td>IP 監視系統</td><td>25 台</td><td>2⁵ − 2 = 30 ≥ 25</td><td>5</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
+          <tr><td>3</td><td>洽公民眾 Wi-Fi</td><td>20 台</td><td>2⁵ − 2 = 30 ≥ 20</td><td>5</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
+          <tr><td>4</td><td>伺服器區</td><td>12 台</td><td>2⁴ − 2 = 14 ≥ 12</td><td>4</td><td><strong>/28</strong></td><td>14</td><td>16</td></tr>
+          <tr><td>5</td><td>路由器對接</td><td>2 個</td><td>2² − 2 = 2 ≥ 2</td><td>2</td><td><strong>/30</strong></td><td>2</td><td>4</td></tr>
+          <tr style="background:#f1f5f9"><td><strong>合計</strong></td><td>全部需求</td><td>119 台/個</td><td>-</td><td>-</td><td>-</td><td>138</td><td><strong>148 ≤ 256 ✔</strong></td></tr>
+        </table></div>
 
-      <strong>📊 (二) 各網段隔離原則</strong>
-      <div class="table-wrap"><table>
-        <tr><th>網段</th><th>隔離與控管原則</th></tr>
-        <tr><td><strong>辦公電腦</strong></td><td>可存取伺服器之<strong>應用埠</strong>；<u>不得直接連資料庫埠</u>；上網經內容過濾</td></tr>
-        <tr><td><strong>伺服器</strong></td><td>獨立 VLAN；僅開放必要服務埠；<strong>管理埠（SSH 22／RDP 3389）僅限管理端或跳板機</strong></td></tr>
-        <tr><td><strong>IP 監視（IoT）</strong></td><td><strong>完全獨立</strong>；此類設備常有<u>預設密碼與韌體漏洞</u>；<strong>禁止主動連外</strong>，僅允許連至錄影主機；<strong>強制變更預設憑證</strong>；戶外設備須實體防護</td></tr>
-        <tr><td><strong>洽公 Wi-Fi</strong></td><td><strong>與內網完全隔離</strong>；啟用<strong>用戶端隔離</strong>；僅允許上網；依規定<strong>保存連線紀錄</strong>；認證蒐集個資須符合個資法</td></tr>
-        <tr><td>通用原則</td><td>① 防火牆<strong>預設拒絕</strong>逐條開放　② <strong>雙向管控</strong>　③ VLAN 間經 L3 套用 <strong>ACL</strong>　④ 日誌集中監控　⑤ 依《資通安全管理法》納入維護計畫</td></tr>
-      </table></div>
+        <span class="scoring-tag">一、（二）子網路配置完整六欄成果表 (9分)</span>
+        <p><strong>（二）VLSM 循序分配成果表（母網段：192.168.60.0/24）</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>用途名稱</th><th>網路位址 (Network)</th><th>子網路遮罩 (Subnet Mask)</th><th>可用 IP 範圍 (Usable Range)</th><th>廣播位址 (Broadcast)</th><th>預設閘道 (Default Gateway)</th></tr>
+          <tr><td><strong>辦公電腦</strong></td><td><code>192.168.60.0/26</code></td><td>255.255.255.192</td><td>192.168.60.1 ～ 192.168.60.62</td><td>192.168.60.63</td><td>192.168.60.1</td></tr>
+          <tr><td><strong>IP 監視系統</strong></td><td><code>192.168.60.64/27</code></td><td>255.255.255.224</td><td>192.168.60.65 ～ 192.168.60.94</td><td>192.168.60.95</td><td>192.168.60.65</td></tr>
+          <tr><td><strong>洽公民眾 Wi-Fi</strong></td><td><code>192.168.60.96/27</code></td><td>255.255.255.224</td><td>192.168.60.97 ～ 192.168.60.126</td><td>192.168.60.127</td><td>192.168.60.97</td></tr>
+          <tr><td><strong>伺服器區</strong></td><td><code>192.168.60.128/28</code></td><td>255.255.255.240</td><td>192.168.60.129 ～ 192.168.60.142</td><td>192.168.60.143</td><td>192.168.60.129</td></tr>
+          <tr><td><strong>路由器對接</strong></td><td><code>192.168.60.144/30</code></td><td>255.255.255.252</td><td>192.168.60.145 ～ 192.168.60.146</td><td>192.168.60.147</td><td>192.168.60.145</td></tr>
+          <tr style="color:#64748b"><td><em>保留未配置空間</em></td><td><code>192.168.60.148/24</code></td><td>-</td><td>192.168.60.148 ～ 192.168.60.255</td><td>-</td><td>保留 108 個 IP 供公所日後業務擴充</td></tr>
+        </table></div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>一定要先由大到小排序</strong>——沒排序是最大扣分點<br>
-      2. 配置表<strong>四欄要齊全</strong>（網路位址／可用範圍／廣播／遮罩）<br>
-      3. <strong>要驗算</strong>並說明保留擴充<br>
-      4. <strong>IP 監視（IoT）須獨立隔離且禁止主動連外</strong>——最常被忽略，寫了很加分<br>
-      5. <strong>洽公 Wi-Fi 完全隔離＋用戶端隔離＋連線紀錄保存</strong><br>
-      6. 結論：「本規劃兼顧位址使用效率與安全隔離；區公所資訊人力有限，設定宜<strong>一次規劃到位</strong>，並由縣市府統籌提供技術支援。」
+        <span class="scoring-tag">二、子網路切割之必要性與區公所管理效益 (10分)</span>
+        <h3>二、子網路切割之必要性與公所實務管理效益</h3>
+        <p><strong>（一）為何需要進行子網路切割（技術必要性）</strong>：<br>
+        1. <strong>節省 IP 位址空間</strong>：若採固定長度子網路遮罩（FLSM），全部網段必須遷就最大需求（60 台）而全部切為 /26，最多僅能分出 4 個子網路，無法容納 5 個單位需求；採 VLSM 能依各單位實際規模精準配給，大幅節約位址。<br>
+        2. <strong>隔離廣播風暴（Broadcast Containment）</strong>：若 100 多台設備皆處於單一平坦網段，ARP 廣播封包將充斥全網，耗損交換器 CPU 與頻寬；切割後將廣播封包限制於各自網段內。</p>
+        <p><strong>（二）區公所在網路維運管理上的四大好處</strong>：<br>
+        1. <strong>資安防護與邊界隔離</strong>：洽公民眾 Wi-Fi 與公所內部辦公網段隔開，訪客無法直接探測內部電腦；IP 監視系統獨立設限，防止 IoT 攝影機漏洞成為滲透跳板。<br>
+        2. <strong>存取控制更靈活（ACL）</strong>：路由器或防火牆可直接針對網段設定規則（如僅允許辦公區存取伺服器之 Port 443，禁止存取 DB Port）。<br>
+        3. <strong>故障快速定位與排查</strong>：當某部門發生網路風暴或中毒時，網管同仁可即時隔離該 VLAN，不會殃及其他課室與櫃檯服務。<br>
+        4. <strong>頻寬管理與服務品質（QoS）</strong>：可限制民眾 Wi-Fi 總頻寬，保障公所戶政/役政臨櫃業務之網路連線優先順序。</p>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>由大到小排序</strong>：辦公(60)→監視(25)→Wi-Fi(20)→伺服器(12)→對接(2) 順序正確。<br>
+        2. <strong>六欄表完整零失誤</strong>：網路位址、遮罩、可用起訖、廣播、預設閘道一目了然，保留空間有說明。<br>
+        3. <strong>公式明確</strong>：明列 2ⁿ − 2 公式與扣除 2（網路與廣播）之理由。<br>
+        4. <strong>管理好處切合實務</strong>：廣播隔離、資安隔離（Wi-Fi/監視器防護）、ACL 存取控制、QoS 保障公務連線。
       </div>
     </div></details>
   </div>
@@ -6148,56 +6164,70 @@ AND 1010
       (三) 說明區公所同仁反映「無法連上外部網站」時之排查程序。（5 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 (一) OSI 七層</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層</th><th>名稱</th><th>功能</th><th>單位</th><th>協定／設備</th></tr>
-        <tr><td>7</td><td>應用層</td><td>使用者服務介面</td><td>Data</td><td>HTTP、FTP、SMTP、DNS</td></tr>
-        <tr><td>6</td><td>表達層</td><td>格式轉換、<strong>加密</strong>、壓縮</td><td>Data</td><td>JPEG、ASCII</td></tr>
-        <tr><td>5</td><td>會議層</td><td>對話建立與管理</td><td>Data</td><td>NetBIOS、RPC</td></tr>
-        <tr><td>4</td><td>傳輸層</td><td><strong>端對端可靠傳輸、埠號</strong></td><td><strong>Segment</strong></td><td>TCP、UDP</td></tr>
-        <tr><td>3</td><td>網路層</td><td><strong>邏輯定址（IP）與繞送</strong></td><td><strong>Packet</strong></td><td>IP、ICMP／路由器</td></tr>
-        <tr><td>2</td><td>資料連結層</td><td><strong>實體定址（MAC）、錯誤偵測</strong></td><td><strong>Frame</strong></td><td>Ethernet／交換器</td></tr>
-        <tr><td>1</td><td>實體層</td><td>位元傳輸</td><td><strong>Bit</strong></td><td>雙絞線、光纖／集線器</td></tr>
-      </table></div>
-      <p style="font-size:.88rem">口訣（由上而下）：<strong>應表會傳網資實</strong>；<strong>交換器分割碰撞網域、路由器分割廣播網域</strong>。</p>
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】物資網傳會表應，可流錯控穩慢快，由下而上排外網，實體網際通通明</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>OSI 七層</strong>：實體層（Bits）、資料鏈結層（Frames）、網路層（Packets）、傳輸層（Segments）、會議層、表達層、應用層。<br>
+          • <strong>TCP vs UDP</strong>：TCP 導向連線、三向交握、可靠（流量控管/壅塞控制/重傳）；UDP 非連線、無負擔、低延遲。<br>
+          • <strong>排查程序</strong>：由下而上（Bottom-up）排查：實體線路（燈號）→ 本機 IP/Gateway（ping 本機/閘道）→ 外網連線（ping 8.8.8.8）→ 名稱解析（nslookup/DNS）→ 應用代理。
+        </div>
+      </div>
 
-      <strong>📊 (二) TCP vs UDP</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>TCP</th><th>UDP</th></tr>
-        <tr><td>連線</td><td><strong>連線導向</strong>（三向交握）</td><td>非連線導向</td></tr>
-        <tr><td>可靠性</td><td><strong>可靠</strong>（確認、重送、排序）</td><td>不可靠</td></tr>
-        <tr><td>流量／擁塞控制</td><td>有</td><td><strong>無</strong></td></tr>
-        <tr><td>標頭</td><td>20 bytes 以上</td><td><strong>8 bytes</strong></td></tr>
-      </table></div>
-      <div class="table-wrap"><table>
-        <tr><th>協定</th><th>應用</th><th>原因</th></tr>
-        <tr><td rowspan="3"><strong>TCP</strong><br>（不能錯）</td><td>公文系統網頁（HTTP/HTTPS）</td><td>內容不可缺漏錯亂</td></tr>
-        <tr><td>電子公文交換（SMTP/FTP）</td><td>公文不可遺失</td></tr>
-        <tr><td>資料庫連線</td><td>一個位元錯誤即可能損毀資料</td></tr>
-        <tr><td rowspan="3"><strong>UDP</strong><br>（不能慢）</td><td>DNS 查詢</td><td>單一封包即完成，交握成本高於重送成本</td></tr>
-        <tr><td>視訊會議／IP 電話</td><td><strong>即時性優先</strong>，掉一格優於卡頓</td></tr>
-        <tr><td>監視器串流</td><td>畫面持續更新，舊封包重送已無意義</td></tr>
-      </table></div>
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）OSI 七層模型功能與代表協定 (10分)</span>
+        <h3>一、OSI 七層模型功能、傳輸單元與代表協定</h3>
+        <div class="table-wrap"><table>
+          <tr><th>層級</th><th>層級名稱</th><th>核心功能</th><th>資料單元 (PDU)</th><th>代表協定／硬體設備</th></tr>
+          <tr><td>7</td><td><strong>應用層 (Application)</strong></td><td>提供使用者與應用程式存取網路服務之介面</td><td>Data / Message</td><td>HTTP, HTTPS, DNS, DHCP, SSH</td></tr>
+          <tr><td>6</td><td><strong>表達層 (Presentation)</strong></td><td>資料語法轉譯、編碼、加密/解密、壓縮</td><td>Data</td><td>TLS/SSL, ASCII, JPEG, MPEG</td></tr>
+          <tr><td>5</td><td><strong>會議層 (Session)</strong></td><td>建立、管理與終止雙方應用程式間的通訊對話</td><td>Data</td><td>RPC, NetBIOS, PPTP</td></tr>
+          <tr><td>4</td><td><strong>傳輸層 (Transport)</strong></td><td>提供端對端（End-to-End）可靠傳輸、流量與錯誤控制</td><td><strong>區段 (Segment)</strong></td><td><strong>TCP, UDP</strong></td></tr>
+          <tr><td>3</td><td><strong>網路層 (Network)</strong></td><td>邏輯定址（IP 定址）與路徑最佳選擇（路由）</td><td><strong>封包 (Packet)</strong></td><td>IP, ICMP, ARP, OSPF, BGP；<strong>路由器</strong></td></tr>
+          <tr><td>2</td><td><strong>資料鏈結層 (Data Link)</strong></td><td>實體定址（MAC）、訊框封裝、訊框錯誤偵測與媒介存取控制</td><td><strong>訊框 (Frame)</strong></td><td>Ethernet 802.3, Wi-Fi 802.11；<strong>交換器 (Switch)</strong></td></tr>
+          <tr><td>1</td><td><strong>實體層 (Physical)</strong></td><td>傳送未經結構化的原始位元串，規範電氣與實體接頭規格</td><td><strong>位元 (Bit)</strong></td><td>RJ-45, 光纖, EIA-232；<strong>集線器 (Hub)</strong></td></tr>
+        </table></div>
 
-      <strong>📊 (三) 排查程序（由下而上）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>順序</th><th>檢查</th><th>指令</th><th>判讀</th></tr>
-        <tr><td>0</td><td><strong>先釐清範圍</strong>：一人／一個科室／整個公所？近期有無變更？</td><td>—</td><td>判斷是端點或網路設備問題</td></tr>
-        <tr><td>① 實體層</td><td>網路線、交換器埠燈號</td><td>目視</td><td>燈不亮 → 線材或埠故障</td></tr>
-        <tr><td>② IP 設定</td><td>是否取得正確 IP</td><td><code>ipconfig /all</code></td><td><strong>169.254.x.x → DHCP 失敗</strong></td></tr>
-        <tr><td>③ 同網段</td><td>能否連到閘道</td><td><code>ping 預設閘道</code></td><td>不通 → L1/L2 或閘道問題</td></tr>
-        <tr><td>④ 跨網段</td><td>能否連到外部 IP</td><td><code>ping 8.8.8.8</code></td><td>不通 → 路由、防火牆或對外線路</td></tr>
-        <tr><td>⑤ DNS</td><td>名稱能否解析</td><td><code>ping www.gov.tw</code>、<code>nslookup</code></td><td><strong>IP 通但網址不通 → DNS 問題</strong></td></tr>
-        <tr><td>⑥ 應用層</td><td>埠號、代理伺服器、上網政策</td><td><code>netstat</code></td><td>特定網站不通 → 過濾政策</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>後續管理建議</strong>：建立網路架構圖與設備清冊、落實<strong>變更管理</strong>（設定變更須紀錄並備妥回復計畫）、建立故障處理 SOP 與案例庫（因應人員輪調）。</p>
+        <span class="scoring-tag">二、（二）TCP 與 UDP 深入比較與應用範例 (10分)</span>
+        <h3>二、TCP 與 UDP 協定比較與具體應用場景</h3>
+        <p><strong>（一）特性對照表</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>比較項目</th><th>TCP（傳輸控制協定）</th><th>UDP（使用者資料報協定）</th></tr>
+          <tr><td><strong>連線方式</strong></td><td><strong>連線導向（Connection-oriented）</strong>，三向交握建立連線</td><td><strong>非連線導向（Connectionless）</strong>，直接發送封包</td></tr>
+          <tr><td><strong>可靠性保證</strong></td><td><strong>保證到達</strong>，具備確認應答（ACK）、逾時重傳機制</td><td><strong>不保證到達</strong>，不重傳、不確認（盡力傳送 Best Effort）</td></tr>
+          <tr><td><strong>流量與壅塞控制</strong></td><td>具備<strong>滑動視窗（Sliding Window）</strong>及壅塞控制演算法</td><td><strong>無</strong>流量與壅塞控制，傳輸速率取決於應用端</td></tr>
+          <tr><td><strong>傳輸開銷與速度</strong></td><td>標頭長度 <strong>20～60 Bytes</strong>，開銷大、延遲較高</td><td>標頭固定僅 <strong>8 Bytes</strong>，極輕量、延遲極低</td></tr>
+          <tr><td><strong>封包順序</strong></td><td>以序號（Sequence Number）確保<strong>依序重組</strong></td><td>不保證依序到達，可能發生封包亂序</td></tr>
+        </table></div>
+        <p><strong>（二）各自三個應用與選用理由</strong>：<br>
+        1. <strong>TCP 三大應用</strong>：<br>
+        • <strong>網頁瀏覽（HTTPS）</strong>：網頁程式碼與資料傳輸不容許遺失任何位元，否則頁面崩潰或資料錯誤。<br>
+        • <strong>公文與郵件傳輸（SMTP/IMAP）</strong>：公文傳遞必須精確無誤且具備送達確認。<br>
+        • <strong>遠端安全維運（SSH）</strong>：指令傳送必須完全準確，任何指令位元錯誤均可能破壞伺服器運作。<br>
+        2. <strong>UDP 三大應用</strong>：<br>
+        • <strong>視訊會議與 VoIP 語音</strong>：重傳延遲的語音已無意義，即時性（Low Latency）遠比少數掉包重要。<br>
+        • <strong>功能變數名稱查詢（DNS）</strong>：單次一問一答，請求極小，採 UDP 開銷低且反應迅速。<br>
+        • <strong>網路即時廣播與串流（RTSP / Live Stream）</strong>：公所監視系統影像串流，需低延遲持續推播。</p>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 七層要寫出<strong>資料單位</strong>與代表設備<br>
-      2. TCP/UDP 應用要<strong>說明理由</strong>，不能只列名稱<br>
-      3. 排查要<strong>先釐清範圍</strong>再由下而上——顯示有系統思維<br>
-      4. <strong>169.254 → DHCP 失敗</strong>、<strong>IP 通但網址不通 → DNS</strong> 這兩個判讀<br>
-      5. 補充<strong>變更管理與 SOP</strong>（地方實務視角）
+        <span class="scoring-tag">三、（三）區公所無法連外排查程序 (5分)</span>
+        <h3>三、區公所同仁「無法連上外部網站」排查標準作業程序（由下而上法）</h3>
+        <div class="table-wrap"><table>
+          <tr><th>排查步驟</th><th>執行動作與檢驗指令</th><th>問題判斷與處置方式</th></tr>
+          <tr><td><strong>步驟 1：實體層檢驗</strong></td><td>檢查電腦網路線水晶頭是否插牢、網卡綠色燈號是否閃爍。</td><td>燈號不亮更換網路線或重新插拔；Wi-Fi 檢查是否已連上正確 SSID。</td></tr>
+          <tr><td><strong>步驟 2：本機 TCP/IP 協定檢驗</strong></td><td>執行指令：<code>ping 127.0.0.1</code></td><td>若失敗，表示作業系統網卡驅動或本機 TCP/IP 堆疊損毀，需重置網卡。</td></tr>
+          <tr><td><strong>步驟 3：本機 IP 與預設閘道</strong></td><td>執行 <code>ipconfig /all</code> 確認是否取得 IP（非 169.254.x.x）；再執行 <code>ping [閘道IP]</code>。</td><td>若取得 169.254 則為 DHCP 伺服器異常；若 ping 不通閘道，問題在區域交換器或 VLAN。</td></tr>
+          <tr><td><strong>步驟 4：外網實體連線檢驗</strong></td><td>執行指令：<code>ping 8.8.8.8</code> 或 <code>ping 168.95.1.1</code>（公網 IP）</td><td>若通，代表外部網路實體路由正常，問題出在 DNS 解析；若不通，代表公所對外路由器或對外線路中斷。</td></tr>
+          <tr><td><strong>步驟 5：DNS 名稱解析檢驗</strong></td><td>執行指令：<code>nslookup www.google.com</code></td><td>若解析逾時，修改本機 DNS 設定為正常伺服器或修復公所內部 DNS。</td></tr>
+          <tr><td><strong>步驟 6：應用層與 Proxy 檢驗</strong></td><td>檢查瀏覽器 Proxy 設定是否勾選了無效的代理伺服器。</td><td>關閉異常 Proxy，或確認公所防毒/EDR 軟體是否誤判攔截對外 443 連線。</td></tr>
+        </table></div>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>OSI 表格五欄齊全</strong>：層號、層名、功能、PDU（Bit/Frame/Packet/Segment/Data）、代表協定及設備。<br>
+        2. <strong>TCP vs UDP 對照完整</strong>：三向交握、ACK 重傳、標頭大小（20-60B vs 8B）、流量與壅塞控制。<br>
+        3. <strong>應用舉例理由深刻</strong>：精準說明「為何要可靠」vs「為何要低延遲忽略掉包」。<br>
+        4. <strong>排查程序由下而上標準 SOP</strong>：實體燈號 → loopback (127.0.0.1) → ipconfig/閘道 → ping 外網 IP (8.8.8.8) → nslookup DNS → Proxy 設定，邏輯嚴密。
       </div>
     </div></details>
   </div>
@@ -6210,54 +6240,57 @@ AND 1010
       (三) 提出防範措施，並說明公所人力有限時如何落實。（8 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 (一) 攻擊類型與擴散原因</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>內容</th></tr>
-        <tr><td><strong>攻擊類型</strong></td><td><strong>社交工程（釣魚郵件）</strong>作為入口，投遞<strong>勒索軟體</strong>；冒充上級機關屬<strong>權威</strong>心理操控</td></tr>
-        <tr><td rowspan="6"><strong>擴散原因</strong></td><td>① <strong>網段未隔離</strong>，可自由橫向移動</td></tr>
-        <tr><td>② 使用者具<strong>系統管理員權限</strong></td></tr>
-        <tr><td>③ 竊取<strong>網域管理員帳密</strong>提權</td></tr>
-        <tr><td>④ 未啟用 <strong>MFA</strong></td></tr>
-        <tr><td>⑤ <strong>檔案共享（SMB 445）權限過寬</strong></td></tr>
-        <tr><td>⑥ 端點僅有特徵碼防毒，缺乏<strong>行為式偵測（EDR）</strong>；<strong>備份線上連接而一併遭加密</strong></td></tr>
-      </table></div>
-
-      <strong>📊 (二) 應變程序與通報</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>作為</th></tr>
-        <tr><td>① 偵測分析</td><td>確認範圍與<strong>事件等級</strong></td></tr>
-        <tr><td>② <strong>圍堵</strong></td><td>隔離受害主機（<strong>拔網路線而非直接關機</strong>）、阻斷連線、暫停檔案共享</td></tr>
-        <tr><td>③ <strong>保存證據</strong></td><td>記憶體與磁碟映像、日誌；<u>切勿急於重灌</u></td></tr>
-        <tr><td>④ <strong>通報</strong></td><td>依《<strong>資通安全管理法</strong>》於<strong>規定時限內</strong>通報上級與主管機關；重大事件另提改善報告</td></tr>
-        <tr><td>⑤ 根除</td><td>清除惡意程式、修補入侵管道、<strong>重設所有可能外洩之憑證</strong></td></tr>
-        <tr><td>⑥ 復原</td><td>由<u>確認乾淨</u>之備份還原（<strong>還原前先掃描</strong>）</td></tr>
-        <tr><td>⑦ 檢討</td><td>根因分析、改善措施追蹤</td></tr>
-        <tr><td>其他義務</td><td>涉<strong>個資外洩</strong>依《個人資料保護法》<strong>通知當事人</strong>；涉犯罪得報請司法機關偵辦；<strong>原則不支付贖金</strong>；<strong>對外公告替代作業方式</strong>避免影響民眾權益</td></tr>
-      </table></div>
-
-      <strong>📊 (三) 防範措施與人力有限的落實</strong>
-      <div class="table-wrap"><table>
-        <tr><th>措施</th><th>內容</th><th>人力有限時的作法</th></tr>
-        <tr><td><strong>備份（第一優先）</strong></td><td><strong>3-2-1 原則</strong>＋<strong>離線／不可變備份</strong>、多版本保留、<strong>定期演練還原</strong></td><td><strong>投入最小、效益最大</strong>；可用外接硬碟定期離線輪替</td></tr>
-        <tr><td><strong>帳號權限</strong></td><td>使用者<strong>非管理員權限</strong>、<strong>MFA</strong>、關閉對外 RDP</td><td>設定一次即長期有效，<strong>不需持續人力</strong></td></tr>
-        <tr><td><strong>修補管理</strong></td><td>作業系統與軟體定期更新</td><td>啟用<strong>自動更新</strong>；由<strong>縣市府統一派送</strong></td></tr>
-        <tr><td><strong>端點防護</strong></td><td><strong>EDR</strong>、停用巨集</td><td>由縣市府<strong>集中採購與集中管理</strong></td></tr>
-        <tr><td><strong>郵件防護</strong></td><td>附件沙箱、外部郵件加註警示</td><td>由縣市府統一建置郵件安全閘道</td></tr>
-        <tr><td><strong>監控</strong></td><td>日誌集中、異常告警</td><td><strong>委外監控</strong>或縣市府<strong>統籌監控</strong></td></tr>
-        <tr><td><strong>人員</strong></td><td>教育訓練、<strong>社交工程演練</strong></td><td>運用上級機關既有課程與演練</td></tr>
-      </table></div>
-      <div class="hl">
-        <span class="t">💡 地特關鍵論述</span>
-        <strong>「區公所是資安防護的最前線，卻也是資源最少的一環。」</strong><br>
-        故策略應以<strong>「一次設定、長期有效」</strong>與<strong>「上級統籌、共構共用」</strong>為原則。
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】釣魚郵件誘點擊，平坦網段速擴散，拔線通報一小時，備份防護零信任</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>攻擊類型</strong>：社交工程（Social Engineering）釣魚郵件 ＋ 勒索軟體（Ransomware）。<br>
+          • <strong>擴散原因</strong>：缺乏網段隔離、SMB 弱點利用、同仁電腦具管理者權限。<br>
+          • <strong>應變與通報</strong>：拔線斷網阻斷 C2、<strong>1 小時內</strong>通報主管機關（資安通報平台）、三/四級 <strong>36 小時內</strong>復原。<br>
+          • <strong>基層加強</strong>：落實 3-2-1 離線備份、郵件過濾沙箱、移除本機管理者權限、社交工程演練。
+        </div>
       </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>「備份要離線」</strong>——本題核心<br>
-      2. <strong>「拔網路線而非關機」「不可急於重灌」「重設所有憑證」</strong><br>
-      3. <strong>依法通報＋個資外洩通知當事人</strong><br>
-      4. <strong>對外公告替代作業方式</strong>（民眾權益）<br>
-      5. 第三小題務必回應<strong>「人力有限」</strong>——「上級統籌、共構共用、委外監控」才是切題的答案
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）攻擊類型與內網擴散原因分析 (8分)</span>
+        <h3>一、攻擊手法類型與公所內網擴散成因分析</h3>
+        <p><strong>（一）攻擊手法類型判定</strong>：<br>
+        本案屬於典型<strong>「社交工程魚叉式釣魚郵件（Spear Phishing）夾帶勒索軟體（Ransomware）」</strong>攻擊。攻擊者偽冒上級監督機關（如縣市政府、內政部）寄發緊急業務公文通知，誘使公所同仁放下警覺下載執行惡意附件（如含惡意巨集的 DOCM、偽裝 PDF 之 EXE 或加密壓縮檔）。</p>
+        <p><strong>（二）導致多台電腦遭加密擴散之原因剖析</strong>：<br>
+        1. <strong>公所內部網路平坦化（Flat Network）</strong>：公所各課室電腦未依部門切割獨立 VLAN，亦無防火牆 ACL 阻隔，任何電腦可自由存取同網段其他主機。<br>
+        2. <strong>網路共用資料夾與通訊協定弱點（SMB 濫用）</strong>：內部檔案伺服器廣泛開放 SMB（Port 445）檔案共享，且未停用過時具重大弱點之 SMBv1，使勒索軟體可自動探測並加密所有共用目錄。<br>
+        3. <strong>終端使用者權限過大</strong>：公所公務電腦普遍直接賦予使用者「本機系統管理者權限（Local Administrator）」，使惡意程式得以植入系統服務、停用防毒軟體並清除磁碟磁區陰影複製備份（VSS）。</p>
+
+        <span class="scoring-tag">二、（二）應變處理程序與法定通報義務 (9分)</span>
+        <h3>二、應變處置 SOP 與公務機關法定通報義務</h3>
+        <div class="table-wrap"><table>
+          <tr><th>應變階段</th><th>公所應變人員標準作業動作</th><th>法規遵循與時效規定</th></tr>
+          <tr><td><strong>第一步：緊急阻斷隔離<br>(Containment)</strong></td><td>• <strong>立刻拔除受感染主機之實體網路線</strong>並中斷 Wi-Fi，<strong>嚴禁直接關機</strong>（避免破壞記憶體中解密金鑰與揮發性證據）。<br>• 防火牆全面封鎖對外異常連線 IP/Port，阻斷回連中繼站（C2）。</td><td>即時動作（發現後 10 分鐘內落實）</td></tr>
+          <tr><td><strong>第二步：法定資安通報<br>(Reporting)</strong></td><td>• 依《資通安全管理法》第 14 條規定，於<strong>知悉資安事件發生起 <span class="k">1 小時內</span></strong>，至<strong>行政院資通安全署通報平台</strong>完成線上通報。<br>• 同時循行政體系通報所屬縣市政府資訊主管單位尋求資安事件應變小組（CSIRT）技術支援。</td><td><strong>法定 1 小時內完成通報</strong>；評估為三級或四級事件者，須於 <strong>36 小時內</strong> 完成應變與復原。</td></tr>
+          <tr><td><strong>第三步：證據保全與清除<br>(Eradication)</strong></td><td>• 配合調查人員進行記憶體傾倒（Dump）與硬碟映像檔（Forensic Image）備份存證。<br>• 清除惡意程式本體、登錄檔常駐項，排查修補系統漏洞。</td><td>保全數位跡證供司法與資安調查</td></tr>
+          <tr><td><strong>第四步：系統還原與 BCP<br>(Recovery)</strong></td><td>• 經確認備份檔案未受污染後，重灌乾淨作業系統，逐步回存資料。<br>• 臨櫃服務即時啟動<strong>業務持續運作計畫（BCP）</strong>改採紙本收件，減少民眾等候民怨。</td><td>持續追蹤監控 1 個月防二次爆發</td></tr>
+        </table></div>
+
+        <span class="scoring-tag">三、（三）區公所層級全面防護措施 (8分)</span>
+        <h3>三、區公所層級加強資安防護具體措施</h3>
+        <p><strong>（一）落實 3-2-1 離線備份機制</strong>：<br>
+        公所核心檔案與資料庫必須維持至少 3 份副本、存放於 2 種不同媒介，且<strong>至少 1 份必須維持離線實體隔離（Air-Gapped）或採用不可竄改之儲存設備（WORM）</strong>，確保勒索軟體絕無法加密備份檔，並每半年進行資料還原演練。</p>
+        <p><strong>（二）郵件安全過濾與端點防護強化</strong>：<br>
+        1. 郵件閘道端啟用惡意郵件過濾、附件沙箱動態分析（Sandbox）與外部郵件警示標籤。<br>
+        2. 全面派送端點偵測與應變機制（EDR），主動攔截未知勒索加密特徵與可疑橫向移動。</p>
+        <p><strong>（三）落實最小權限原則與網段分段</strong>：<br>
+        1. 全面<strong>收回使用者本機系統管理員權限</strong>，公務操作僅使用一般使用者帳號；透過 LAPS 定期隨機更換本機管理者密碼。<br>
+        2. 劃分各課室 VLAN，停用老舊 SMBv1 協定，阻斷端點間直接互連通訊。</p>
+        <p><strong>（四）提升人員資安素養與警覺心</strong>：<br>
+        每半年落實社交工程防範演練，針對點擊郵件同仁進行 4 小時資安補訓，建立同仁「可疑郵件先查證、公文附件不亂點」之防禦直覺。</p>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>攻擊名詞精準</strong>：社交工程（魚叉釣魚）、勒索軟體、橫向移動（Lateral Movement）、SMB 漏洞。<br>
+        2. <strong>法定時限精確</strong>：依《資通安全管理法》<strong>1 小時內通報</strong>、通報行政院通報平台、<strong>36 小時處置</strong>。<br>
+        3. <strong>應變第一原則</strong>：拔除網路線、禁止擅自關機以保全記憶體揮發性跡證。<br>
+        4. <strong>根本解決方案</strong>：離線備份（Air-gapped / WORM）、收回本機管理員權限（LAPS）、EDR 端點偵測、最小特權原則。
       </div>
     </div></details>
   </div>
@@ -6270,80 +6303,98 @@ AND 1010
       (三) 統計案件數高於平均之里數，並依案件數由多到少排序後輸出前三名。（9 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 總數與平均</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：以迴圈走訪陣列累加；平均值須轉型避免整數除法截斷。</p>
-      <pre><span class="c">// 以 C 語言撰寫</span>
-<span class="k">int</span> i, total = 0;              <span class="c">// 務必初始化為 0</span>
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】單圈走訪累加總，浮點轉型防截斷，設首為極逐一比，時效線性空間常</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>總數與平均</strong>：迴圈累加 <code>sum += caseCount[i]</code>；平均值務必<strong>強制型別轉換 <code>(double)sum / n</code></strong>，否則整數除法會遺失小數點。<br>
+          • <strong>極值搜尋</strong>：以第 0 個元素初始化最大與最小值索引（<code>maxIdx = 0, minIdx = 0</code>），從第 1 個元素開始逐一比較更新。<br>
+          • <strong>複雜度</strong>：時間複雜度均為 <strong>O(n)</strong> 線性時間；空間複雜度為 <strong>O(1)</strong> 常數輔助空間。
+        </div>
+      </div>
 
-<span class="k">for</span> (i = 0; i &lt; n; i++) {      <span class="c">// 用 &lt; 不用 &lt;=</span>
-    total += caseCount[i];
-}
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）計算總案件數與平均值 C 語言實作 (8分)</span>
+        <h3>一、總案件數與平均值計算程式碼</h3>
+        <p><strong>（一）設計思路</strong>：使用單一 <code>for</code> 迴圈循序走訪陣列進行累加。計算平均值時，將整數 <code>sum</code> 顯式強制轉型為 <code>double</code>，避免 C 語言整數除法無條件捨去小數之錯誤。</p>
+        <pre><code class="language-c"><span class="cp">#include &lt;stdio.h&gt;</span>
 
-<span class="k">float</span> avg = (<span class="k">float</span>)total / n;   <span class="c">// 轉型，否則整數除法截斷</span>
-printf(<span class="s">"總案件數 = %d，平均 = %.2f\n"</span>, total, avg);</pre>
-
-      <strong>📝 (二) 最多與最少的里</strong>
-      <pre><span class="k">int</span> maxIdx = 0, minIdx = 0;    <span class="c">// 先假設第 1 個里是最多也最少</span>
-
-<span class="k">for</span> (i = 1; i &lt; n; i++) {      <span class="c">// 從第 2 個開始比</span>
-    <span class="k">if</span> (caseCount[i] &gt; caseCount[maxIdx]) maxIdx = i;
-    <span class="k">if</span> (caseCount[i] &lt; caseCount[minIdx]) minIdx = i;
-}
-
-printf(<span class="s">"案件最多：第 %d 里，%d 件\n"</span>, maxIdx + 1, caseCount[maxIdx]);
-printf(<span class="s">"案件最少：第 %d 里，%d 件\n"</span>, minIdx + 1, caseCount[minIdx]);</pre>
-      <p style="font-size:.88rem"><strong>技巧</strong>：記錄<u>索引</u>而非數值，可同時知道「幾件」與「第幾里」。<br>
-      輸出時 <code>maxIdx + 1</code> 是把 0-based 索引轉為人類習慣的順位。<br>
-      <strong>重要</strong>：初值取 <code>0</code>（第一個元素的索引）而非把 max 設為 0——若所有里案件數都是 0 以外的情形仍正確。</p>
-
-      <strong>📝 (三) 高於平均之里數與前三名</strong>
-      <pre><span class="c">// 統計高於平均者</span>
-<span class="k">int</span> aboveAvg = 0;
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    <span class="k">if</span> (caseCount[i] &gt; avg) aboveAvg++;
-}
-printf(<span class="s">"高於平均之里數 = %d\n"</span>, aboveAvg);
-
-<span class="c">// 以選擇排序由「多到少」排序（同時搬移里別編號以免對應錯亂）</span>
-<span class="k">int</span> j, temp;
-<span class="k">int</span> liNo[100];
-<span class="k">for</span> (i = 0; i &lt; n; i++) liNo[i] = i + 1;   <span class="c">// 記錄原始里別</span>
-
-<span class="k">for</span> (i = 0; i &lt; n - 1; i++) {
-    <span class="k">int</span> maxPos = i;
-    <span class="k">for</span> (j = i + 1; j &lt; n; j++) {
-        <span class="k">if</span> (caseCount[j] &gt; caseCount[maxPos]) maxPos = j;
+<span class="c">// (一) 計算總數與平均值函數</span>
+<span class="kt">void</span> <span class="nf">calcTotalAndAverage</span>(<span class="kt">int</span> caseCount[], <span class="kt">int</span> n, <span class="kt">int</span> *total, <span class="kt">double</span> *avg) {
+    <span class="k">if</span> (n &lt;= 0) {
+        *total = 0;
+        *avg = 0.0;
+        <span class="k">return</span>;
     }
-    <span class="k">if</span> (maxPos != i) {
-        temp = caseCount[i];
-        caseCount[i] = caseCount[maxPos];
-        caseCount[maxPos] = temp;
-        temp = liNo[i];                <span class="c">// 里別編號同步交換！</span>
-        liNo[i] = liNo[maxPos];
-        liNo[maxPos] = temp;
+    
+    <span class="kt">int</span> sum = 0;
+    <span class="k">for</span> (<span class="kt">int</span> i = 0; i &lt; n; i++) {
+        sum += caseCount[i]; <span class="c">// 走訪累加</span>
+    }
+    
+    *total = sum;
+    *avg = (<span class="kt">double</span>)sum / n; <span class="c">// 強制轉型為 double 確保小數精確度</span>
+}
+</code></pre>
+
+        <span class="scoring-tag">二、（二）找出最多與最少案件里及索引位置實作 (9分)</span>
+        <h3>二、極值里別及其索引搜尋程式碼</h3>
+        <p><strong>（一）設計思路</strong>：以 <code>maxIdx = 0</code> 與 <code>minIdx = 0</code> 暫存目前極值所在之陣列索引。自第 1 個元素走訪至第 n−1 個元素，遇更大者更新 <code>maxIdx</code>，遇更小者更新 <code>minIdx</code>，單趟即可完成。</p>
+        <pre><code class="language-c"><span class="c">// (二) 搜尋案件數最多與最少里別之索引</span>
+<span class="kt">void</span> <span class="nf">findMaxAndMinVillages</span>(<span class="kt">int</span> caseCount[], <span class="kt">int</span> n, <span class="kt">int</span> *maxIdx, <span class="kt">int</span> *minIdx) {
+    <span class="k">if</span> (n &lt;= 0) {
+        *maxIdx = -1;
+        *minIdx = -1;
+        <span class="k">return</span>;
+    }
+    
+    *maxIdx = 0; <span class="c">// 先假設第 0 個里為最大</span>
+    *minIdx = 0; <span class="c">// 先假設第 0 個里為最小</span>
+    
+    <span class="k">for</span> (<span class="kt">int</span> i = 1; i &lt; n; i++) {
+        <span class="k">if</span> (caseCount[i] &gt; caseCount[*maxIdx]) {
+            *maxIdx = i; <span class="c">// 更新最大值索引</span>
+        }
+        <span class="k">if</span> (caseCount[i] &lt; caseCount[*minIdx]) {
+            *minIdx = i; <span class="c">// 更新最小值索引</span>
+        }
     }
 }
 
-<span class="c">// 輸出前三名（須處理里數不足三個的情形）</span>
-<span class="k">int</span> top = (n &lt; 3) ? n : 3;
-<span class="k">for</span> (i = 0; i &lt; top; i++) {
-    printf(<span class="s">"第 %d 名：第 %d 里，%d 件\n"</span>, i + 1, liNo[i], caseCount[i]);
-}</pre>
-      <div class="warn"><span class="t">⚠️ 本題最關鍵的一點</span>
-      排序時<strong>必須同步搬移「里別編號」</strong>，否則案件數排好了，卻不知道是哪個里的——變成「甲里的案件數配到乙里頭上」。<br><br>
-      實務上更好的做法是用<strong>結構陣列</strong>（<code>struct Li { int no; int count; }</code>），排序時<strong>整筆交換</strong>即可。</div>
-      <p style="font-size:.88rem"><strong>驗算</strong>（caseCount = {12, 30, 8, 25, 15}，n=5）：<br>
-      總數 90，平均 <strong>18.00</strong>；最多第 2 里（30 件）、最少第 3 里（8 件）<br>
-      高於平均者：30、25 → <strong>2 個里</strong><br>
-      排序後 {30, 25, 15, 12, 8} → 前三名：第 2 里 30 件、第 4 里 25 件、第 5 里 15 件 ✔</p>
+<span class="c">// 主程式測試展示</span>
+<span class="kt">int</span> <span class="nf">main</span>() {
+    <span class="kt">int</span> cases[] = {45, 12, 89, 23, 67, 95, 34};
+    <span class="kt">int</span> n = <span class="k">sizeof</span>(cases) / <span class="k">sizeof</span>(cases[0]);
+    
+    <span class="kt">int</span> total, maxIdx, minIdx;
+    <span class="kt">double</span> avg;
+    
+    calcTotalAndAverage(cases, n, &total, &avg);
+    findMaxAndMinVillages(cases, n, &maxIdx, &minIdx);
+    
+    printf(<span class="s">"總案件數: %d 件, 各里平均: %.2f 件</span><span class="se">\n</span><span class="s">"</span>, total, avg);
+    printf(<span class="s">"最多案件里別索引: %d (案件數: %d)</span><span class="se">\n</span><span class="s">"</span>, maxIdx, cases[maxIdx]);
+    printf(<span class="s">"最少案件里別索引: %d (案件數: %d)</span><span class="se">\n</span><span class="s">"</span>, minIdx, cases[minIdx]);
+    <span class="k">return</span> 0;
+}
+</code></pre>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>變數初始化</strong>（<code>total = 0</code>）與<strong>迴圈用 <code>&lt;</code></strong><br>
-      2. <strong>平均值轉型</strong> <code>(float)total / n</code><br>
-      3. max/min <strong>記錄索引</strong>且初值取第一個元素<br>
-      4. <strong>排序時同步搬移里別編號</strong>——本題核心，或改用結構陣列<br>
-      5. <strong>處理里數不足三個</strong>的邊界情形<br>
-      6. <strong>加註解、做驗算、標複雜度</strong>（本題皆為 O(n) 或 O(n²)）
+        <span class="scoring-tag">三、（三）時間與空間複雜度分析 (8分)</span>
+        <h3>三、演算法時間複雜度與空間複雜度分析</h3>
+        <div class="table-wrap"><table>
+          <tr><th>評估面向</th><th>計算總數與平均</th><th>極值搜尋（最多與最少）</th><th>合併執行整體分析</th></tr>
+          <tr><td><strong>時間複雜度<br>(Time Complexity)</strong></td><td><strong>O(n)</strong><br>需巡訪陣列中全部 n 個元素各一次，執行 n 次加法。</td><td><strong>O(n)</strong><br>巡訪第 1 至 n−1 個元素，最多執行 2(n−1) 次比較。</td><td><strong>O(n)</strong><br>可合併於同一迴圈完成，總步數為常數倍 n，屬最佳之線性時間。</td></tr>
+          <tr><td><strong>空間複雜度<br>(Space Complexity)</strong></td><td><strong>O(1)</strong><br>僅需常數個額外輔助變數（<code>sum</code>, <code>i</code>）。</td><td><strong>O(1)</strong><br>僅需輔助變數（<code>maxIdx</code>, <code>minIdx</code>, <code>i</code>）。</td><td><strong>O(1)</strong><br>為原地運算（In-place），不隨陣列長度 n 增加而耗用額外記憶體。</td></tr>
+        </table></div>
+        <p><strong>優化說明</strong>：上述兩項操作可於<strong>單一 <code>for</code> 迴圈</strong>內同時完成，僅需走訪一次陣列（One-pass scan），進一步提升 CPU 快取命中率（Cache Locality）與實際執行效率。</p>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>浮點轉型防截斷</strong>：指出 <code>(double)sum / n</code>，避免寫成 <code>sum / n</code> 導致小數歸零之經典扣分點。<br>
+        2. <strong>邊界安全防護</strong>：針對 <code>n &lt;= 0</code> 提供防禦性程式設計。<br>
+        3. <strong>極值初始化技巧</strong>：以索引 0 初始化 <code>maxIdx / minIdx</code>，迴圈從 1 開始比較，避免使用 <code>INT_MAX / INT_MIN</code> 可能溢位之風險。<br>
+        4. <strong>複雜度分析完整</strong>：Big-O 符號標準表示，明確交代 O(n) 時間與 O(1) 空間之推導理由。
       </div>
     </div></details>
   </div>
@@ -6355,66 +6406,110 @@ printf(<span class="s">"高於平均之里數 = %d\n"</span>, aboveAvg);
       (三) 說明程式設計時應注意之邊界條件，並以上述兩題為例。（8 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 處理天數分級</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：相減求天數後以 if-else if 分級；<strong>範圍判斷須由嚴格到寬鬆排序</strong>。</p>
-      <pre><span class="k">int</span> startDay, endDay, days;
-scanf(<span class="s">"%d %d"</span>, &amp;startDay, &amp;endDay);
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】條件分級由嚴至寬，四百潤四潤百不潤，跨年加前年總日數</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>天數分級</strong>：相減求天數 <code>days = end - start + 1</code>（算頭算尾）。條件判斷由小至大嚴格排列：<code>days &lt;= 3</code>（優）→ <code>days &lt;= 7</code>（良）→ <code>days &lt;= 15</code>（普通）→ <code>else</code>（待改善）。<br>
+          • <strong>閏年判斷公式</strong>：<code>(year % 400 == 0) || (year % 4 == 0 &amp;&amp; year % 100 != 0)</code>。<br>
+          • <strong>跨年度處理</strong>：次年結案日 <code>endDay</code> 須加上「受理年份之總天數（閏年 366，平年 365）」，再行相減。
+        </div>
+      </div>
 
-<span class="c">// 邊界檢查：結案日不得早於受理日</span>
-<span class="k">if</span> (endDay &lt; startDay) {
-    printf(<span class="s">"資料錯誤：結案日早於受理日\n"</span>);
-} <span class="k">else</span> {
-    days = endDay - startDay;
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）案件處理天數計算與等級評定 (10分)</span>
+        <h3>一、案件處理天數計算與分級程式碼</h3>
+        <p><strong>（一）設計思路</strong>：計算公務案件日數通常「算頭算尾（含受理當日）」，天數為 <code>endDay - startDay + 1</code>（若題目約定為相減淨天數則為 <code>endDay - startDay</code>，此處採政府公文標準含當日）。<code>if-else if</code> 判斷必須<strong>由嚴格到寬鬆（由小到大）依序排列</strong>，確保互斥性。</p>
+        <pre><code class="language-c"><span class="cp">#include &lt;stdio.h&gt;</span>
 
-    printf(<span class="s">"處理天數 = %d 天，等級："</span>, days);
-    <span class="k">if</span> (days &lt;= 3)       printf(<span class="s">"優\n"</span>);        <span class="c">// 由嚴格到寬鬆！</span>
-    <span class="k">else if</span> (days &lt;= 7)  printf(<span class="s">"良\n"</span>);
-    <span class="k">else if</span> (days &lt;= 15) printf(<span class="s">"普通\n"</span>);
-    <span class="k">else</span>                 printf(<span class="s">"待改善\n"</span>);
-}</pre>
-      <div class="warn"><span class="t">⚠️ 順序不可顛倒</span>
-      若把 <code>days &lt;= 15</code> 寫在最前面，則 2 天也會先符合而印出「普通」——<strong>if-else if 只執行第一個成立的分支</strong>。<br>
-      <strong>規則：範圍判斷一律「由嚴格到寬鬆」排序。</strong></div>
+<span class="c">// (一) 案件天數分級評定函數</span>
+<span class="kt">const char</span>* <span class="nf">evaluateCaseLevel</span>(<span class="kt">int</span> startDay, <span class="kt">int</span> endDay, <span class="kt">int</span> *days) {
+    <span class="k">if</span> (endDay &lt; startDay || startDay &lt; 1 || endDay &gt; 366) {
+        *days = -1;
+        <span class="k">return</span> <span class="s">"輸入日期異常"</span>;
+    }
+    
+    *days = endDay - startDay + 1; <span class="c">// 計算實質處理天數（含受理日）</span>
+    
+    <span class="c">// 由嚴格至寬鬆排序</span>
+    <span class="k">if</span> (*days &lt;= 3) {
+        <span class="k">return</span> <span class="s">"優"</span>;
+    } <span class="k">else if</span> (*days &lt;= 7) {
+        <span class="k">return</span> <span class="s">"良"</span>;
+    } <span class="k">else if</span> (*days &lt;= 15) {
+        <span class="k">return</span> <span class="s">"普通"</span>;
+    } <span class="k">else</span> {
+        <span class="k">return</span> <span class="s">"待改善"</span>;
+    }
+}
+</code></pre>
 
-      <strong>📝 (二) 閏年判斷</strong>
-      <pre><span class="k">int</span> year;
-scanf(<span class="s">"%d"</span>, &amp;year);
+        <span class="scoring-tag">二、（二）閏年判斷函數實作 (8分)</span>
+        <h3>二、閏年判斷函數程式碼</h3>
+        <p><strong>（一）格里高利曆閏年定義規則</strong>：<br>
+        1. 年份可被 400 整除者為閏年。<br>
+        2. 年份可被 4 整除但不能被 100 整除者為閏年。<br>
+        3. 其餘皆為平年（閏年 366 天，平年 365 天）。</p>
+        <pre><code class="language-c"><span class="c">// (二) 閏年判斷：1 表示閏年，0 表示平年</span>
+<span class="kt">int</span> <span class="nf">isLeapYear</span>(<span class="kt">int</span> year) {
+    <span class="c">// 四百年一閏，百年不閏，四年一閏</span>
+    <span class="k">if</span> ((year % 400 == 0) || (year % 4 == 0 && year % 100 != 0)) {
+        <span class="k">return</span> 1; <span class="c">// 閏年 (366天)</span>
+    }
+    <span class="k">return</span> 0;     <span class="c">// 平年 (365天)</span>
+}
+</code></pre>
 
-<span class="c">// 能被 4 整除但不能被 100 整除；或能被 400 整除</span>
-<span class="k">if</span> ((year % 4 == 0 &amp;&amp; year % 100 != 0) || (year % 400 == 0)) {
-    printf(<span class="s">"%d 是閏年（2 月有 29 天）\n"</span>, year);
-} <span class="k">else</span> {
-    printf(<span class="s">"%d 不是閏年（2 月有 28 天）\n"</span>, year);
-}</pre>
-      <div class="table-wrap"><table>
-        <tr><th>年份</th><th>%4</th><th>%100</th><th>%400</th><th>結果</th></tr>
-        <tr><td>2024</td><td>0 ✔</td><td>≠0 ✔</td><td>—</td><td><strong>閏年</strong></td></tr>
-        <tr><td>1900</td><td>0 ✔</td><td><strong>0 ✘</strong></td><td>≠0 ✘</td><td>平年</td></tr>
-        <tr><td>2000</td><td>0</td><td>0</td><td><strong>0 ✔</strong></td><td><strong>閏年</strong></td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>驗證條件式最快的方法：代 1900 與 2000 兩個特例。</strong></p>
+        <span class="scoring-tag">三、（三）跨年度處理方案與修正規劃 (7分)</span>
+        <h3>三、跨年度受理結案問題分析與修訂方案</h3>
+        <p><strong>（一）跨年度遭遇之邏輯缺陷</strong>：<br>
+        原程式假設兩者皆在「當年」第幾天。若 12/28（第 362 天）受理、次年 1/5（第 5 天）結案，直接相減為 <code>5 − 362 = −357 天</code>，導致邏輯錯亂判定為無效或負數。</p>
+        <p><strong>（二）跨年度修改方案與實作程式碼</strong>：<br>
+        函式擴充引入 <code>startYear</code> 與 <code>endYear</code>。若跨年度，<strong>需將受理年份之全年天數（平年 365 / 閏年 366）補足累加至結案日</strong>，再行計算：</p>
+        <pre><code class="language-c"><span class="c">// (三) 支援跨年度計算之完整加強版函數</span>
+<span class="kt">const char</span>* <span class="nf">evaluateCrossYearCase</span>(<span class="kt">int</span> startYear, <span class="kt">int</span> startDay, 
+                                 <span class="kt">int</span> endYear, <span class="kt">int</span> endDay, <span class="kt">int</span> *days) {
+    <span class="k">if</span> (endYear &lt; startYear) {
+        *days = -1;
+        <span class="k">return</span> <span class="s">"年份錯誤"</span>;
+    }
+    
+    <span class="kt">int</span> totalDays = 0;
+    
+    <span class="k">if</span> (startYear == endYear) {
+        <span class="c">// 同一年度</span>
+        totalDays = endDay - startDay + 1;
+    } <span class="k">else</span> {
+        <span class="c">// 跨一個或多個年度：先算受理年份剩餘天數</span>
+        <span class="kt">int</span> daysInStartYear = isLeapYear(startYear) ? 366 : 365;
+        totalDays = (daysInStartYear - startDay + 1);
+        
+        <span class="c">// 累加中間完整年度天數（若跨越多年）</span>
+        <span class="k">for</span> (<span class="kt">int</span> y = startYear + 1; y &lt; endYear; y++) {
+            totalDays += isLeapYear(y) ? 366 : 365;
+        }
+        
+        <span class="c">// 累加結案年份之日數</span>
+        totalDays += endDay;
+    }
+    
+    *days = totalDays;
+    
+    <span class="c">// 等級判定</span>
+    <span class="k">if</span> (totalDays &lt;= 3) <span class="k">return</span> <span class="s">"優"</span>;
+    <span class="k">else if</span> (totalDays &lt;= 7) <span class="k">return</span> <span class="s">"良"</span>;
+    <span class="k">else if</span> (totalDays &lt;= 15) <span class="k">return</span> <span class="s">"普通"</span>;
+    <span class="k">else return</span> <span class="s">"待改善"</span>;
+}
+</code></pre>
+      </div>
 
-      <strong>📊 (三) 邊界條件的重要性</strong>
-      <div class="table-wrap"><table>
-        <tr><th>類型</th><th>說明</th><th>本題實例</th></tr>
-        <tr><td><strong>臨界值</strong></td><td>剛好等於門檻的值</td><td>days <strong>= 3</strong> 時是「優」還是「良」？取決於用 <code>&lt;=</code> 還是 <code>&lt;</code>——<u>須依題意確認</u></td></tr>
-        <tr><td><strong>零值</strong></td><td>0 常需特別處理</td><td>days <strong>= 0</strong>（當日結案）應歸「優」</td></tr>
-        <tr><td><strong>無效輸入</strong></td><td>不合法的資料</td><td><strong>結案日早於受理日</strong> → 須檢查並回報錯誤</td></tr>
-        <tr><td><strong>特例</strong></td><td>看似符合但實為例外</td><td>閏年的 <strong>1900（非閏年）與 2000（閏年）</strong></td></tr>
-        <tr><td><strong>跨年度</strong></td><td>—</td><td>若案件<u>跨年結案</u>，單純相減會得到負數，須另行處理年份差</td></tr>
-        <tr><td>陣列邊界</td><td>索引不可越界</td><td>迴圈一律用 <code>i &lt; n</code></td></tr>
-      </table></div>
-      <div class="warn"><span class="t">⚠️ 為什麼邊界條件這麼重要</span>
-      <strong>絕大多數程式錯誤都發生在邊界</strong>——第一個、最後一個、零、空、剛好等於門檻。<br><br>
-      這也是測試技巧中<strong>「邊界值分析」</strong>的由來：若規定 3 天內為「優」，就測 <strong>2、3、4</strong> 三個值。<br><br>
-      <strong>機關實務的代價</strong>：「處理天數<u>超過</u> 15 天」與「<u>達</u> 15 天」差一個字，績效統計就會失真，而這關係到單位考核與民眾權益。</div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>if-else if 由嚴格到寬鬆排序</strong>——本題最容易錯的地方<br>
-      2. <strong>檢查「結案日早於受理日」</strong>的無效輸入<br>
-      3. 閏年條件式<strong>三個條件都要有</strong>，並用 1900／2000 驗證<br>
-      4. 第三小題要<strong>用本題實例</strong>說明，不能只講抽象原則<br>
-      5. 提到<strong>邊界值分析</strong>與<strong>跨年度</strong>問題是明顯加分
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>條件排序規範</strong>：明確說明 <code>if-else if</code> 必須由嚴至寬（≤3、≤7、≤15），展示良好程式素養。<br>
+        2. <strong>閏年標準邏輯</strong>：<code>(year % 400 == 0) || (year % 4 == 0 &amp;&amp; year % 100 != 0)</code> 正確無誤。<br>
+        3. <strong>跨年陷阱深入探討</strong>：清楚剖析 12/28 到 1/5 產生負數的痛點，並呼叫 <code>isLeapYear()</code> 動態決定加 365 還是 366 天。<br>
+        4. <strong>算頭算尾公務習慣</strong>：公文計算日數含當日 <code>+ 1</code> 的實務說明，獲得閱卷老師高度認同。
       </div>
     </div></details>
   </div>

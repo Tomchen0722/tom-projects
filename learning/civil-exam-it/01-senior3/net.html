@@ -293,6 +293,36 @@
     </div>
 
     <h3>3-3　CIDR 與子網路切割（核心）</h3>
+
+    <!-- VLSM 子網路切割步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：可變長度子網路遮罩（VLSM）三步神算流程</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>由大到小排序需求主機數</strong><br>
+          將所有子網路需求按主機數量<strong>從大到小嚴格排列</strong>（如 70台 &rarr; 40台 &rarr; 20台 &rarr; 2台）。若未由大到小排序，將導致 IP 碎裂與遮罩邊界對不齊！
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>計算主機位元數 n 與 CIDR 遮罩</strong><br>
+          針對每一組需求，尋找最小的整數 n 滿足公式：<code>2ⁿ − 2 &ge; 需求數</code>。<br>
+          ‧ 遮罩 CIDR 前綴 = <code>32 − n</code><br>
+          ‧ 區塊大小（Block Size，即每個子網路佔用之 IP 總數）= <code>2ⁿ</code>
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>循序劃分位址區塊（填寫六欄標準表）</strong><br>
+          從母網段起始位址開始分配，每個子網路的起始 IP 必須為其<strong>區塊大小的整數倍</strong>：<br>
+          ‧ 網路位址（Network IP）：區塊的第一個位址（如 <code>.0</code>）<br>
+          ‧ 第一個可用 IP：<code>網路位址 + 1</code><br>
+          ‧ 最後一個可用 IP：<code>廣播位址 − 1</code><br>
+          ‧ 廣播位址（Broadcast IP）：<code>網路位址 + 區塊大小 − 1</code>
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>總空間累計核算防溢位</strong><br>
+          加總所有子網路的區塊大小（<code>&sum; 2ⁿ</code>），必須 <code>&le; 母網段總 IP 數</code>（如 /24 為 256）。若超出，須主動標註空間不足並提出外網隔離或擴充申請對策。
+        </li>
+      </ul>
+    </div>
+
     <div class="frame">
       <span class="t">📐 四個關鍵公式（背下來）</span>
       設 <strong>n = 網路位元數（/n）</strong>、<strong>h = 主機位元數 = 32 − n</strong>：<br><br>

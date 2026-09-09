@@ -1020,57 +1020,88 @@ WHERE NOT EXISTS (
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、函數相依與主鍵（表）→ 二、逐階正規化（1NF→2NF→3NF，每階列分解結果與理由）→ 三、三種異常（表＋實例）→ 四、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】1NF單值原子，2NF去部分，3NF去遞移，BCNF決定全主鍵</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>1NF</strong>：每格屬性不可再分（原子值），消除重複群。<br>
+          ② <strong>2NF</strong>：滿足 1NF 且消除非主鍵對部分主鍵之「部分相依（Partial Dependency）」，全主鍵相依。<br>
+          ③ <strong>3NF</strong>：滿足 2NF 且消除非主鍵對非主鍵之「遞移相依（Transitive Dependency）」。<br>
+          ④ <strong>BCNF</strong>：所有函數相依 <code>X → Y</code> 中，決定者 X 必須為超鍵（Super Key）。</p>
         </div>
 
-        <strong>📊 一、函數相依與主鍵</strong>
-        <div class="table-wrap"><table>
-          <tr><th>編號</th><th>函數相依</th><th>依據</th></tr>
-          <tr><td>FD1</td><td><strong>員工編號 → 員工姓名, 單位代碼</strong></td><td>一位員工屬於一個單位</td></tr>
-          <tr><td>FD2</td><td><strong>單位代碼 → 單位名稱</strong></td><td>單位代碼決定名稱</td></tr>
-          <tr><td>FD3</td><td><strong>課程代碼 → 課程名稱, 時數, 講師編號</strong></td><td>一門課由一位講師授課</td></tr>
-          <tr><td>FD4</td><td><strong>講師編號 → 講師姓名</strong></td><td>—</td></tr>
-          <tr><td>FD5</td><td><strong>(員工編號, 課程代碼) → 報名日期, 成績</strong></td><td>報名與成績屬於「某人修某課」</td></tr>
-        </table></div>
-        <div class="hl">
-          <strong>主鍵 = (員工編號, 課程代碼)</strong><br>
-          理由：一位員工可報名多門課程 → 單靠員工編號不唯一；此複合鍵的<strong>封閉集涵蓋所有屬性</strong>，且移除任一屬性即失去唯一性（<u>最小性成立</u>）。
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">相依箭頭 X→Y 必標</span><span class="danger-tag">推導各階段拆表綱要</span></div>
+          </div>
+
+          <p><strong>一、原始資料相依分析與問題診斷（5 分）</strong></p>
+          <ol>
+            <li><strong>原始關聯</strong>：<code>研習報名(員工編號, 員工姓名, 單位代碼, 單位名稱, 課程代碼, 課程名稱, 時數, 講師編號, 講師姓名, 報名日期, 成績)</code></li>
+            <li><strong>複合主鍵（Primary Key）</strong>：<code>{員工編號, 課程代碼}</code>。</li>
+            <li><strong>函數相依集合（FD Set）</strong>：
+              <ul>
+                <li><code>FD1: 員工編號 → 員工姓名, 單位代碼, 單位名稱</code></li>
+                <li><code>FD2: 單位代碼 → 單位名稱</code></li>
+                <li><code>FD3: 課程代碼 → 課程名稱, 時數, 講師編號, 講師姓名</code></li>
+                <li><code>FD4: 講師編號 → 講師姓名</code></li>
+                <li><code>FD5: (員工編號, 課程代碼) → 報名日期, 成績</code></li>
+              </ul>
+            </li>
+            <li><strong>未正規化之三大異常</strong>：
+              <ul>
+                <li><strong>修改異常</strong>：講師換姓名或單位改名，需修改成千上萬筆研習紀錄，易產生不一致。</li>
+                <li><strong>新增異常</strong>：新進講師或新開課程若尚無員工報名，無法單獨建檔。</li>
+                <li><strong>刪除異常</strong>：某堂課程若員工全數退選，將連帶遺失該課程與講師之全部資訊。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>二、逐步正規化推導流程（15 分）</strong></p>
+          <div class="step-box">
+            <div class="step-title">📝 逐步解析推導：1NF ➔ 2NF ➔ 3NF ➔ BCNF</div>
+            <ul class="step-list">
+              <li class="step-item"><span class="step-badge">步驟 1</span><strong>符合第一正規化（1NF）</strong><br>
+                要求所有欄位屬性值皆為<strong>不可再分之單一原子值（Atomic Value）</strong>，無重複群（Repeating Groups）。原始表格已將各欄位打散，故已滿足 1NF。</li>
+              <li class="step-item"><span class="step-badge">步驟 2</span><strong>符合第二正規化（2NF）：消除部分相依</strong><br>
+                主鍵為 <code>(員工編號, 課程代碼)</code>。檢視相依性發現：<br>
+                ‧ <code>FD1</code> 中員工姓名與單位僅相依於部分主鍵 <code>員工編號</code>！<br>
+                ‧ <code>FD3</code> 中課程與講師資訊僅相依於部分主鍵 <code>課程代碼</code>！<br>
+                👉 <strong>拆解為三個符合 2NF 之關聯表</strong>：<br>
+                1. <code>員工(<u>員工編號</u>, 員工姓名, 單位代碼, 單位名稱)</code><br>
+                2. <code>課程(<u>課程代碼</u>, 課程名稱, 時數, 講師編號, 講師姓名)</code><br>
+                3. <code>報名紀錄(<u>員工編號, 課程代碼</u>, 報名日期, 成績)</code></li>
+              <li class="step-item"><span class="step-badge">步驟 3</span><strong>符合第三正規化（3NF）：消除遞移相依</strong><br>
+                檢視上述 2NF 資料表：<br>
+                ‧ 在員工表中：<code>員工編號 → 單位代碼</code>，且 <code>單位代碼 → 單位名稱</code> ➔ 存在 <code>員工編號 → 單位名稱</code> 之<strong>遞移相依</strong>！<br>
+                ‧ 在課程表中：<code>課程代碼 → 講師編號</code>，且 <code>講師編號 → 講師姓名</code> ➔ 存在 <code>課程代碼 → 講師姓名</code> 之<strong>遞移相依</strong>！<br>
+                👉 <strong>進一步獨立拆解為五個符合 3NF 之關聯表</strong>：<br>
+                1. <code>單位(<u>單位代碼</u>, 單位名稱)</code><br>
+                2. <code>員工(<u>員工編號</u>, 員工姓名, 單位代碼)</code>（單位代碼為外部鍵 FK）<br>
+                3. <code>講師(<u>講師編號</u>, 講師姓名)</code><br>
+                4. <code>課程(<u>課程代碼</u>, 課程名稱, 時數, 講師編號)</code>（講師編號為外部鍵 FK）<br>
+                5. <code>報名(<u>員工編號, 課程代碼</u>, 報名日期, 成績)</code></li>
+              <li class="step-item"><span class="step-badge">步驟 4</span><strong>檢驗 BCNF（Boyce-Codd Normal Form）</strong><br>
+                BCNF 要求：<strong>若存在函數相依 X → Y，則 X 必定為超鍵（Super Key）</strong>。<br>
+                檢驗拆解後五張表：單位代碼、員工編號、講師編號、課程代碼、(員工編號, 課程代碼) 皆分別為各所屬資料表之主鍵（超鍵）。<br>
+                👉 <strong>上述 3NF 設計已同時滿足 BCNF！</strong> ✔</li>
+            </ul>
+          </div>
+
+          <p><strong>三、公門實務資料庫維護加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>反正規化（Denormalization）時機衡量</strong>：雖然 3NF/BCNF 能徹底消除資料異常與冗餘，但在公務研習系統產製數萬名同仁之年度參訓總時數綜合報表時，多表 JOIN 將造成資料庫 CPU 繁重。實務上可在讀取導向之資料倉儲（Reporting DB）保留部分冗餘欄位（如在報名紀錄快取單位名稱），換取極致報表查詢吞吐量。
+          </div>
         </div>
 
-        <strong>📊 二、逐階正規化</strong>
-        <div class="table-wrap"><table>
-          <tr><th>階段</th><th>違反的原因</th><th>分解結果</th></tr>
-          <tr><td><strong>1NF</strong></td><td>要求所有欄位皆為<strong>不可分割的單一值</strong>（無重複群組）</td><td>假設原表每欄皆為單值 → <strong>已符合 1NF</strong><br><u>（若「聯絡電話」可多支，則須另立電話表）</u></td></tr>
-          <tr><td><strong>2NF</strong></td><td><strong>部分相依</strong>：主鍵為複合鍵，但<br>‧ 員工姓名、單位代碼、單位名稱 僅依賴<u>員工編號</u><br>‧ 課程名稱、時數、講師編號、講師姓名 僅依賴<u>課程代碼</u></td><td><strong>員工</strong>(<u>員工編號</u>, 員工姓名, 單位代碼, 單位名稱)<br><strong>課程</strong>(<u>課程代碼</u>, 課程名稱, 時數, 講師編號, 講師姓名)<br><strong>報名</strong>(<u>員工編號</u>, <u>課程代碼</u>, 報名日期, 成績)</td></tr>
-          <tr><td><strong>3NF</strong></td><td><strong>遞移相依</strong>：<br>‧ 員工編號 → 單位代碼 → 單位名稱<br>‧ 課程代碼 → 講師編號 → 講師姓名</td><td><strong>員工</strong>(<u>員工編號</u>, 員工姓名, 單位代碼<sup>FK</sup>)<br><strong>單位</strong>(<u>單位代碼</u>, 單位名稱)<br><strong>課程</strong>(<u>課程代碼</u>, 課程名稱, 時數, 講師編號<sup>FK</sup>)<br><strong>講師</strong>(<u>講師編號</u>, 講師姓名)<br><strong>報名</strong>(<u>員工編號</u><sup>FK</sup>, <u>課程代碼</u><sup>FK</sup>, 報名日期, 成績)</td></tr>
-        </table></div>
-        <div class="frame">
-          <span class="t">📐 最終 3NF 綱要（5 個表）</span>
-          單位(<u>單位代碼</u>, 單位名稱)<br>
-          講師(<u>講師編號</u>, 講師姓名)<br>
-          員工(<u>員工編號</u>, 員工姓名, 單位代碼<sup>FK→單位</sup>)<br>
-          課程(<u>課程代碼</u>, 課程名稱, 時數, 講師編號<sup>FK→講師</sup>)<br>
-          報名(<u>員工編號</u><sup>FK</sup>, <u>課程代碼</u><sup>FK</sup>, 報名日期, 成績)
-        </div>
-
-        <strong>📊 三、未正規化的三種異常</strong>
-        <div class="table-wrap"><table>
-          <tr><th>異常</th><th>定義</th><th>本題實例</th></tr>
-          <tr><td><strong>新增異常</strong><br>（Insertion）</td><td>因缺少不相干的資料而<strong>無法新增</strong></td><td>新聘一位<strong>尚未開課的講師</strong>，或新成立<strong>尚無員工的單位</strong> → 因主鍵須有員工編號與課程代碼，<strong>無法寫入</strong></td></tr>
-          <tr><td><strong>刪除異常</strong><br>（Deletion）</td><td>刪除一筆資料時<strong>連帶失去其他資訊</strong></td><td>某課程<strong>最後一位報名者退訓</strong>，刪除該筆後，<strong>課程名稱、時數、講師資料一併消失</strong></td></tr>
-          <tr><td><strong>修改異常</strong><br>（Update）</td><td>同一事實重複儲存，須<strong>多處同步修改</strong>，易產生不一致</td><td><strong>單位改名</strong>（如「資訊室」改「資訊處」）→ 須更新該單位<u>所有員工的所有報名紀錄</u>；漏改即產生<strong>資料不一致</strong></td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 函數相依<strong>要編號（FD1～FD5）</strong>，後面說明才好引用<br>
-        2. 主鍵要說明<strong>為何是複合鍵</strong>，並提到<strong>最小性</strong><br>
-        3. 每一階正規化<strong>必須先寫「違反什麼」再寫分解結果</strong>——只給結果會被大幅扣分<br>
-        4. 2NF 對應<strong>部分相依</strong>、3NF 對應<strong>遞移相依</strong>，術語不可混用<br>
-        5. 分解後<strong>要標主鍵（底線）與外鍵（FK）</strong><br>
-        6. 三種異常<strong>各要舉本題的具體例子</strong>，不能只寫定義<br>
-        7. 結論可補：正規化降低冗餘但<strong>增加 JOIN 成本</strong>；查詢密集的報表系統可適度<strong>反正規化</strong>，惟須以觸發器或批次維護一致性
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 標示複合主鍵 <code>{員工編號, 課程代碼}</code> 與完整 FD1~FD5 函數相依。<br>
+        2. 指明未正規化引發之<strong>新增、修改、刪除三大異常</strong>。<br>
+        3. 2NF 清楚指出消除「部分相依」，拆解為 3 張表。<br>
+        4. 3NF 清楚指出消除「遞移相依」，拆解為 5 張獨立表，標明底線主鍵。<br>
+        5. BCNF 檢驗說明決定者皆為候選鍵。
+</div>
       </div>
     </details>
   </div>
@@ -1090,106 +1121,93 @@ WHERE NOT EXISTS (
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        每小題：<strong>① 一句話說明用到的關鍵語法 → ② SQL → ③ 注意事項</strong>。<br>
-        SQL 題不需要長篇論述，<u>寫對語法就是分數</u>；但每題補一行「為何這樣寫」能拿到說明分。
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】分組過濾用HAVING，外部左連防漏失；關聯子查詢比同部</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>分組過濾</strong>：WHERE 在 GROUP BY 前濾單列；HAVING 在 GROUP BY 後濾分組統計量。<br>
+          ② <strong>部門為空防漏</strong>：部門可能有 0 人，必須採用 <code>LEFT JOIN</code> 保留無人部門！<br>
+          ③ <strong>高於同部門平均</strong>：以 <code>e1.部門代碼 = e2.部門代碼</code> 關聯子查詢或 <code>AVG() OVER(PARTITION BY)</code> 視窗函數！</p>
         </div>
 
-        <strong>📝 (一) 分組彙總＋HAVING＋排序</strong>
-        <p style="font-size:.88rem">關鍵：<strong>WHERE 過濾列、HAVING 過濾組</strong>；聚合條件只能寫在 HAVING。</p>
-        <pre>SELECT d.部門名稱,
-       COUNT(*)      AS 人數,
-       AVG(e.薪資)   AS 平均薪資
-FROM   員工 e
-JOIN   部門 d ON e.部門代碼 = d.部門代碼
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">HAVING vs WHERE 嚴格分立</span><span class="danger-tag">無員工部門用 LEFT JOIN</span></div>
+          </div>
+
+          <p><strong>一、各小題標準 ANSI SQL 撰寫（25 分）</strong></p>
+          <p><strong>（一）查詢各部門人數與平均薪資，僅列出平均薪資超過 5 萬元之部門（6 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+SELECT 
+    d.部門代碼, 
+    d.部門名稱, 
+    COUNT(e.員工編號) AS 人數, 
+    ROUND(AVG(e.薪資), 2) AS 平均薪資
+FROM 部門 d
+JOIN 員工 e ON d.部門代碼 = e.部門代碼
 GROUP BY d.部門代碼, d.部門名稱
-HAVING COUNT(*) &gt;= 5
-ORDER BY AVG(e.薪資) DESC;</pre>
-        <div class="table-wrap"><table>
-          <tr><th>注意</th><th>說明</th></tr>
-          <tr><td>執行順序</td><td><strong>FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY</strong></td></tr>
-          <tr><td>GROUP BY 欄位</td><td>SELECT 中<u>非聚合的欄位</u>都必須出現在 GROUP BY</td></tr>
-        </table></div>
+HAVING AVG(e.薪資) &gt; 50000;
+          </pre>
+          <p><em>評分要點：篩選聚合結果必須使用 <code>HAVING AVG(e.薪資) &gt; 50000</code>，誤用 WHERE 扣 3 分！</em></p>
 
-        <strong>📝 (二) 相關子查詢（Correlated Subquery）</strong>
-        <p style="font-size:.88rem">關鍵：子查詢<strong>引用外層的部門代碼</strong> → 每一列各自比對「本部門」平均。</p>
-        <pre>SELECT e.姓名, d.部門名稱, e.薪資
-FROM   員工 e
-JOIN   部門 d ON e.部門代碼 = d.部門代碼
-WHERE  e.薪資 &gt; ( SELECT AVG(e2.薪資)
-                  FROM   員工 e2
-                  WHERE  e2.部門代碼 = e.部門代碼 );   -- 相關子查詢
+          <p><strong>（二）找出薪資高於「該員工所屬部門平均薪資」之員工名單（7 分）</strong></p>
+          <p><strong>寫法一：標準關聯子查詢（Correlated Subquery，最通用）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+SELECT e1.員工編號, e1.姓名, e1.部門代碼, e1.薪資
+FROM 員工 e1
+WHERE e1.薪資 &gt; (
+    SELECT AVG(e2.薪資)
+    FROM 員工 e2
+    WHERE e2.部門代碼 = e1.部門代碼
+);
+          </pre>
+          <p><strong>寫法二：現代 SQL 視窗函數（Window Function，加分寫法）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+WITH 員工薪資評估 AS (
+    SELECT 
+        員工編號, 姓名, 部門代碼, 薪資,
+        AVG(薪資) OVER (PARTITION BY 部門代碼) AS 部門平均薪資
+    FROM 員工
+)
+SELECT 員工編號, 姓名, 部門代碼, 薪資
+FROM 員工薪資評估
+WHERE 薪資 &gt; 部門平均薪資;
+          </pre>
 
--- 另解：視窗函數（較高效，只掃一次）
-SELECT 姓名, 部門名稱, 薪資
-FROM ( SELECT e.姓名, d.部門名稱, e.薪資,
-              AVG(e.薪資) OVER (PARTITION BY e.部門代碼) AS 部門平均
-       FROM 員工 e JOIN 部門 d ON e.部門代碼 = d.部門代碼 ) t
-WHERE 薪資 &gt; 部門平均;</pre>
-        <div class="warn"><span class="t">⚠️ 本題最大陷阱</span>
-        若寫成 <code>WHERE 薪資 &gt; (SELECT AVG(薪資) FROM 員工)</code>，比的是<strong>全公司平均</strong>而非本部門 → <u>整題不給分</u>。<br>
-        <strong>關鍵在子查詢裡要有 <code>WHERE e2.部門代碼 = e.部門代碼</code> 這一行。</strong></div>
-
-        <strong>📝 (三) 找「不存在」的資料</strong>
-        <pre>-- 解法 1：NOT EXISTS（最推薦，效率佳且不受 NULL 影響）
-SELECT d.部門名稱
-FROM   部門 d
-WHERE  NOT EXISTS ( SELECT 1 FROM 員工 e
-                    WHERE e.部門代碼 = d.部門代碼 );
-
--- 解法 2：LEFT JOIN + IS NULL
-SELECT d.部門名稱
-FROM   部門 d
+          <p><strong>（三）列出所有部門及其主管姓名，若該部門尚未指派主管亦須列出（6 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+SELECT 
+    d.部門代碼, 
+    d.部門名稱, 
+    COALESCE(m.姓名, '尚未指派') AS 主管姓名
+FROM 部門 d
 LEFT JOIN 員工 e ON d.部門代碼 = e.部門代碼
-WHERE  e.員工編號 IS NULL;
+LEFT JOIN 員工 m ON e.主管編號 = m.員工編號;
+          </pre>
+          <p><em>評分要點：必須採用 <strong>LEFT OUTER JOIN</strong> 確保無主管之部門資料不被過濾！</em></p>
 
--- 解法 3：NOT IN（須小心 NULL）
-SELECT 部門名稱 FROM 部門
-WHERE  部門代碼 NOT IN ( SELECT 部門代碼 FROM 員工
-                         WHERE 部門代碼 IS NOT NULL );</pre>
-        <div class="warn"><span class="t">⚠️ NOT IN 的 NULL 陷阱</span>
-        若子查詢結果<strong>包含 NULL</strong>，<code>NOT IN</code> 會<strong>回傳空集合</strong>（因為 <code>x &lt;&gt; NULL</code> 的結果是 UNKNOWN 而非 TRUE）。<br>
-        <strong>能指出這一點是本小題最大的加分處</strong>——所以實務上優先用 <strong>NOT EXISTS</strong>。</div>
-
-        <strong>📝 (四) 自我連結（Self Join）＋處理 NULL</strong>
-        <pre>SELECT e.姓名                              AS 員工姓名,
-       COALESCE(m.姓名, '無')              AS 主管姓名
-FROM   員工 e
-LEFT JOIN 員工 m ON e.主管編號 = m.員工編號;   -- 同一張表連兩次</pre>
-        <div class="table-wrap"><table>
-          <tr><th>要點</th><th>說明</th></tr>
-          <tr><td><strong>必須用 LEFT JOIN</strong></td><td>用 INNER JOIN 會<u>漏掉沒有主管的員工</u>（如最高主管）</td></tr>
-          <tr><td>別名不可省</td><td>同一張表出現兩次，必須以 <code>e</code>、<code>m</code> 區分</td></tr>
-          <tr><td>NULL 轉字串</td><td><code>COALESCE</code>（標準 SQL）／<code>ISNULL</code>（SQL Server）／<code>NVL</code>（Oracle）</td></tr>
-        </table></div>
-
-        <strong>📝 (五) 帶條件的 UPDATE</strong>
-        <pre>UPDATE 員工
-SET    薪資 = LEAST(薪資 * 1.03, 90000)      -- MySQL；SQL Server 用 CASE
-WHERE  部門代碼 = ( SELECT 部門代碼 FROM 部門
-                    WHERE 部門名稱 = '資訊室' );
-
--- 通用寫法（各家皆適用）
+          <p><strong>（四）查詢到職超過 3 年且薪資低於公司總平均之員工，並給予調薪 5%（6 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
 UPDATE 員工
-SET    薪資 = CASE WHEN 薪資 * 1.03 &gt; 90000 THEN 90000
-                   ELSE 薪資 * 1.03 END
-WHERE  部門代碼 = ( SELECT 部門代碼 FROM 部門
-                    WHERE 部門名稱 = '資訊室' );</pre>
-        <div class="table-wrap"><table>
-          <tr><th>注意</th><th>說明</th></tr>
-          <tr><td><strong>WHERE 絕不可漏</strong></td><td>漏了會更新<strong>全公司薪資</strong>——實務上的重大事故</td></tr>
-          <tr><td>執行前先 SELECT</td><td>把 UPDATE 改成 SELECT 先確認影響筆數，再執行</td></tr>
-          <tr><td>包在交易中</td><td><code>BEGIN TRANSACTION</code> → 確認筆數 → <code>COMMIT</code>，錯誤時可 <code>ROLLBACK</code></td></tr>
-        </table></div>
+SET 薪資 = ROUND(薪資 * 1.05, 0)
+WHERE 到職日 &lt;= CURRENT_DATE - INTERVAL '3 year'
+  AND 薪資 &lt; (SELECT AVG(薪資) FROM 員工);
+          </pre>
 
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. (一) <strong>HAVING 而非 WHERE</strong>；並寫出 <strong>SQL 執行順序</strong><br>
-        2. (二) <strong>相關子查詢必須有「= e.部門代碼」這一行</strong>——本題最大分水嶺<br>
-        3. (三) 至少寫兩種解法，並<strong>指出 NOT IN 的 NULL 陷阱</strong><br>
-        4. (四) <strong>必須用 LEFT JOIN</strong> 並以 <strong>COALESCE</strong> 顯示「無」<br>
-        5. (五) <strong>強調 WHERE 不可漏</strong>、上限用 CASE 或 LEAST<br>
-        6. 全卷通則：<strong>SQL 關鍵字大寫、每個子句換行對齊</strong>——版面整齊的 SQL 在閱卷上明顯占便宜
+          <p><strong>二、公門資料庫效能優化加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>SQL 執行計畫調校（EXPLAIN ANALYZE）</strong>：在大規模公務人薪系統中，關聯子查詢會引發 <code>O(N²)</code> 巢狀迴圈掃描。實務應改用寫法二（視窗函數）或改寫為 <code>JOIN (SELECT 部門代碼, AVG(薪資) FROM ... GROUP BY)</code>，使執行計畫由 Nested Loop 轉為 Hash Join，效能提升百倍以上。
+          </div>
         </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 第 (一) 小題正確使用 <code>HAVING AVG(e.薪資) &gt; 50000</code>。<br>
+        2. 第 (二) 小題給出標準關聯子查詢（e1.部門代碼 = e2.部門代碼）或視窗函數。<br>
+        3. 第 (三) 小題<strong>明確使用 LEFT JOIN</strong> 保全無主管部門。<br>
+        4. 第 (四) 小題 UPDATE 語法結合子查詢計算全體平均與日期差。<br>
+        5. 補充 EXPLAIN 效能改進建議。
+</div>
       </div>
     </details>
   </div>
@@ -1203,65 +1221,64 @@ WHERE  部門代碼 = ( SELECT 部門代碼 FROM 部門
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、ACID 與保障機制（表）→ 二、四種並行問題（表＋實例）→ 三、隔離等級對照（<u>主表</u>）→ 四、選擇建議
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】原一隔持四大力，髒讀不重幻影失；讀未讀已可重複，序列可串保泰山</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>ACID 機制對照</strong>：原子性（Undo Log 回滾）、一致性（完整性限制）、隔離性（鎖定 2PL/MVCC）、持久性（Redo Log 重做）。<br>
+          ② <strong>並行四害</strong>：遺失更新（Lost Update）、髒讀（Dirty Read）、不可重複讀（Non-repeatable Read）、幻讀（Phantom Read）。<br>
+          ③ <strong>四大隔離級</strong>：Read Uncommitted ➔ Read Committed（防髒讀）➔ Repeatable Read（防不重複讀）➔ Serializable（全防）。</p>
         </div>
 
-        <strong>📊 一、ACID 特性與保障機制</strong>
-        <div class="table-wrap"><table>
-          <tr><th>特性</th><th>意義</th><th>保障機制</th><th>白話</th></tr>
-          <tr><td><strong>A</strong> 不可分割性<br>（Atomicity）</td><td>交易<strong>全做或全不做</strong></td><td><strong>Undo Log</strong>（失敗時回復原值）</td><td>轉帳不會只扣款不入帳</td></tr>
-          <tr><td><strong>C</strong> 一致性<br>（Consistency）</td><td>交易前後皆滿足所有<strong>完整性限制</strong></td><td><strong>限制條件</strong>（PK、FK、CHECK）＋觸發器＋A/I/D 三者共同達成</td><td>總金額不會憑空增減</td></tr>
-          <tr><td><strong>I</strong> 隔離性<br>（Isolation）</td><td>並行交易<strong>互不干擾</strong>，結果如同循序執行</td><td><strong>鎖定（Locking）</strong>、<strong>MVCC</strong>、時戳排序</td><td>兩人同時操作不會互相看到中間狀態</td></tr>
-          <tr><td><strong>D</strong> 持久性<br>（Durability）</td><td>已 COMMIT 的結果<strong>永久保存</strong></td><td><strong>Redo Log ＋ WAL ＋ Checkpoint</strong></td><td>回覆「成功」後就算斷電也不會消失</td></tr>
-        </table></div>
-        <div class="frame">
-          <span class="t">📐 WAL（Write-Ahead Logging）原則</span>
-          <strong>「先寫日誌，再寫資料。」</strong><br>
-          COMMIT 時只需確保<strong>日誌已落磁碟</strong>（循序寫入，快），資料頁可稍後再寫（隨機寫入，慢）。<br>
-          → 兼顧<strong>效能</strong>與<strong>持久性</strong>；當機後可依日誌重做（Redo）或回復（Undo）。
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">ACID背後保證機制必寫</span><span class="danger-tag">隔離等級防止問題矩陣</span></div>
+          </div>
+
+          <p><strong>一、交易之 ACID 四大特性與保障技術機制（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>ACID 特性</th><th>核心定義</th><th>DBMS 底層保障機制</th></tr>
+            <tr><td><strong>原子性（Atomicity）</strong></td><td>交易中所有操作<strong>「要嘛全做，要嘛全不做（All or Nothing）」</strong>，中間失敗必全數回復。</td><td><strong>回復機制（Undo Log / Rollback）</strong>：記錄修改前數值，中途當機時自動執行倒退復原。</td></tr>
+            <tr><td><strong>一致性（Consistency）</strong></td><td>交易執行前後，資料庫必須符合所有<strong>商業邏輯與完整性限制（PK, FK, CHECK）</strong>。</td><td><strong>綱要約束驗證（Constraints Enforcement）</strong> + 交易原子性共同守護。</td></tr>
+            <tr><td><strong>隔離性（Isolation）</strong></td><td>多個並行交易同時執行時，彼此互不受干擾，<strong>結果等同於序列化執行</strong>。</td><td><strong>並行控制機制（Concurrency Control）</strong>：嚴格兩階段鎖定（Strict 2PL）或多版本並行控制（MVCC）。</td></tr>
+            <tr><td><strong>持久性（Durability）</strong></td><td>交易一旦 Commit 成功，其異動結果<strong>永久生效</strong>，即便後續瞬間斷電當機亦不遺失。</td><td><strong>預寫式日誌（WAL, Write-Ahead Logging） + 重做日誌（Redo Log）</strong>。</td></tr>
+          </table></div>
+
+          <p><strong>二、並行控制不當引發之四大經典異常與實例（10 分）</strong></p>
+          <ol>
+            <li><strong>遺失更新（Lost Update）</strong>：
+              兩交易同時讀取 A=100。T1 加 50 寫回 150；T2 扣 20 寫回 80。T2 的寫入覆蓋了 T1 的成果，T1 加的 50 徹底蒸發！</li>
+            <li><strong>髒讀（Dirty Read）</strong>：
+              T1 將帳戶改為 500 尚未 Commit。T2 讀取到 500 並進行扣款。隨後 T1 發生錯誤 Rollback 回 100。T2 讀到的是<strong>根本未曾合法存在的髒資料（Dirty Data）</strong>！</li>
+            <li><strong>不可重複讀（Non-repeatable Read）</strong>：
+              T1 讀取某同仁薪資為 40,000。此時 T2 介入將該同仁調薪為 50,000 並 Commit。T1 稍後再次讀取該欄位，赫然發現<strong>數值變成了 50,000（前後不一致）</strong>！</li>
+            <li><strong>幻讀（Phantom Read）</strong>：
+              T1 查詢「總分 &gt; 90 之人數」得 5 人。此時 T2 插入一筆新考生成績 95 分並 Commit。T1 再次執行相同範圍查詢，赫然發現<strong>人數變成了 6 人（出現了像幽靈般的幻影列）</strong>！</li>
+          </ol>
+
+          <p><strong>三、SQL 四大隔離等級與防範問題矩陣（5 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>隔離等級（由寬到嚴）</th><th>髒讀（Dirty Read）</th><th>不可重複讀（Non-repeatable）</th><th>幻讀（Phantom Read）</th><th>底層實作技術</th></tr>
+            <tr><td><strong>Read Uncommitted</strong></td><td>發生 ✘</td><td>發生 ✘</td><td>發生 ✘</td><td>無讀取鎖</td></tr>
+            <tr><td><strong>Read Committed</strong></td><td><strong>防範 ✔</strong></td><td>發生 ✘</td><td>發生 ✘</td><td>讀取釋放 S-Lock，或 MVCC 語句快照</td></tr>
+            <tr><td><strong>Repeatable Read</strong></td><td><strong>防範 ✔</strong></td><td><strong>防範 ✔</strong></td><td>發生 ✘ (InnoDB防)</td><td>讀取持續持有 S-Lock 至結束，或交易級快照</td></tr>
+            <tr><td><strong>Serializable</strong></td><td><strong>防範 ✔</strong></td><td><strong>防範 ✔</strong></td><td><strong>防範 ✔</strong></td><td><strong>範圍鎖（Range/Next-Key Lock）</strong>，完全序列化</td></tr>
+          </table></div>
+
+          <p><strong>四、公門重大交易系統加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>公務金流與補助款發放最佳實務</strong>：在政府紓困金或民眾津貼發放系統中，若採用預設 Read Committed 等級，高並行時極易發生預算超額請領之「遺失更新」。必須在 SELECT 查詢主動加入 <code>FOR UPDATE</code> 悲觀鎖（Pessimistic Lock），或在 Application 層實作帶有版本號 <code>version</code> 的樂觀鎖（Optimistic Lock），徹底捍衛國庫公帑安全。
+          </div>
         </div>
 
-        <strong>📊 二、四種並行問題</strong>
-        <div class="table-wrap"><table>
-          <tr><th>問題</th><th>定義</th><th>實例（機關情境）</th></tr>
-          <tr><td><strong>① 遺失更新</strong><br>（Lost Update）</td><td>兩交易同時讀取後各自寫回，<strong>後者覆蓋前者</strong></td><td>兩位承辦同時開啟同一筆公文的「已處理件數」欄位（原 10），各自 +1 後存檔 → 結果為 <strong>11 而非 12</strong></td></tr>
-          <tr><td><strong>② 髒讀</strong><br>（Dirty Read）</td><td>讀到另一交易<strong>尚未 COMMIT</strong> 的資料，而該交易之後 ROLLBACK</td><td>報表讀到某筆「暫存中」的補助金額並列入統計，但該筆隨後被撤銷 → <strong>統計數字錯誤</strong></td></tr>
-          <tr><td><strong>③ 不可重複讀</strong><br>（Non-repeatable Read）</td><td>同一交易內<strong>兩次讀同一筆</strong>，值卻不同（他人已修改並提交）</td><td>核算加班費時先讀時薪（180），中途他人調整為 200，稍後再讀 → <strong>同一份計算用了兩個時薪</strong></td></tr>
-          <tr><td><strong>④ 幻讀</strong><br>（Phantom Read）</td><td>同一交易內<strong>兩次讀同一範圍</strong>，<u>筆數</u>不同（他人新增或刪除）</td><td>統計「本月申請案」先得 100 筆，產生明細後再統計得 101 筆 → <strong>報表總計與明細不符</strong></td></tr>
-        </table></div>
-        <div class="hl"><strong>區分要訣</strong>：不可重複讀是<strong>「同一筆的值變了」</strong>（UPDATE 造成）；幻讀是<strong>「筆數變了」</strong>（INSERT／DELETE 造成）。</div>
-
-        <strong>📊 三、四種隔離等級（主表）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>隔離等級</th><th>髒讀</th><th>不可重複讀</th><th>幻讀</th><th>並行度</th><th>典型用途</th></tr>
-          <tr><td>Read Uncommitted</td><td><strong>可能</strong></td><td>可能</td><td>可能</td><td><strong>最高</strong></td><td>幾乎不用；僅粗略統計</td></tr>
-          <tr><td><strong>Read Committed</strong></td><td>防止</td><td>可能</td><td>可能</td><td>高</td><td><strong>多數系統預設</strong>（Oracle、PostgreSQL、SQL Server）</td></tr>
-          <tr><td><strong>Repeatable Read</strong></td><td>防止</td><td><strong>防止</strong></td><td>可能<sup>※</sup></td><td>中</td><td>MySQL InnoDB 預設；<strong>報表核算</strong></td></tr>
-          <tr><td><strong>Serializable</strong></td><td>防止</td><td>防止</td><td><strong>防止</strong></td><td><strong>最低</strong></td><td><strong>金流、對帳等零容錯作業</strong></td></tr>
-        </table></div>
-        <p style="font-size:.85rem">※ MySQL InnoDB 以 <strong>Next-Key Lock</strong> 在 Repeatable Read 下已可避免多數幻讀，屬實作差異。</p>
-        <div class="table-wrap"><table>
-          <tr><th>機關系統情境</th><th>建議等級</th><th>理由</th></tr>
-          <tr><td>一般查詢、公文瀏覽</td><td><strong>Read Committed</strong></td><td>兼顧正確性與效能</td></tr>
-          <tr><td>統計報表、預算核算</td><td><strong>Repeatable Read</strong></td><td>避免同一份報表前後數字不一致</td></tr>
-          <tr><td>規費收納、補助發放、名額有限的報名</td><td><strong>Serializable</strong> 或明確加鎖</td><td>零容錯；亦可用 <code>SELECT ... FOR UPDATE</code> 悲觀鎖，或以<strong>版本號做樂觀鎖</strong></td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>補充</th><th>說明</th></tr>
-          <tr><td>取捨原則</td><td><strong>隔離等級越高越安全，但並行度越低</strong>；應依業務風險分別設定，<u>不必全系統一致</u></td></tr>
-          <tr><td>死結</td><td>高隔離等級易產生死結 → 資料庫多以<strong>逾時或死結偵測</strong>自動回復其中一方；程式應<strong>統一資源存取順序</strong>並實作重試</td></tr>
-          <tr><td>MVCC</td><td>多版本並行控制讓<strong>讀不阻擋寫、寫不阻擋讀</strong>，是現代資料庫兼顧隔離與效能的主要手段</td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. ACID <strong>每一項都要寫出對應機制</strong>（A→Undo、D→Redo/WAL、I→鎖或 MVCC）——只寫定義只拿一半<br>
-        2. 寫出 <strong>WAL「先寫日誌再寫資料」</strong>及其效能理由<br>
-        3. 四種問題<strong>各要舉機關情境的例子</strong><br>
-        4. 明確區分<strong>不可重複讀（值變）vs 幻讀（筆數變）</strong>——最常見的混淆點<br>
-        5. 隔離等級<strong>對照表必畫</strong>（四等級 × 三問題）<br>
-        6. 第三小題要<strong>依業務分別建議</strong>，並提到<strong>不必全系統統一</strong>與<strong>樂觀鎖／悲觀鎖</strong>
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. ACID 四大特性與底層技術（Undo, Redo/WAL, 2PL/MVCC）精確對應。<br>
+        2. 並行四病（遺失更新、髒讀、不可重複讀、幻讀）皆附具體操作情境實例。<br>
+        3. SQL 四大隔離等級矩陣完全正確。<br>
+        4. 指出 Serializable 透過 Next-Key Lock 解決幻讀。<br>
+        5. 補充公門金流補助款發放實施悲觀鎖/樂觀鎖加分段。
+</div>
       </div>
     </details>
   </div>
@@ -1276,81 +1293,55 @@ WHERE  部門代碼 = ( SELECT 部門代碼 FROM 部門
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、索引原理＋B+ 樹理由（表）→ 二、<u>索引失效七大寫法（主表）</u> → 三、索引的代價與建立原則 → 四、本案處置建議
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】左前綴破運算廢，類型隱轉函數累；覆蓋索引免回表</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>B+ 樹原理</strong>：依有序鍵值組織，支援等值與範圍查詢；樹高 3~4 層極小化磁碟 I/O。<br>
+          ② <strong>五大失效死穴</strong>：① 欄位上作函數/運算、② 隱式型態轉換、③ 模糊查詢前綴通配 <code>%abc</code>、④ 不等於/NOT IN、⑤ 複合索引未遵循最左前綴原則。<br>
+          ③ <strong>高分利器</strong>：覆蓋索引（Covering Index），查詢欄位全在索引中，達成「免回表（Index-Only Scan）」！</p>
         </div>
 
-        <strong>📊 一、索引原理與 B+ 樹</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>內容</th></tr>
-          <tr><td>原理</td><td>另建一組<strong>依鍵值排序</strong>的結構，存放「鍵值 → 資料列位置」，查詢時<strong>先查索引再取資料</strong>，避免全表掃描</td></tr>
-          <tr><td>效益</td><td>800 萬筆全表掃描 O(n)；B+ 樹索引僅需 <strong>3～4 次磁碟 I/O</strong></td></tr>
-          <tr><td><strong>成本主體</strong></td><td><strong>磁碟 I/O，不是 CPU 比較次數</strong>（磁碟比記憶體慢千倍以上）→ 索引設計的目標是<strong>把樹壓矮</strong></td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>為何用 B+ 樹</th><th>說明</th></tr>
-          <tr><td><strong>① 高分支度、樹極矮</strong></td><td>一個節點對齊一個<strong>磁碟區塊</strong>（4～16 KB）可放數百個鍵 → 800 萬筆僅 <strong>3～4 層</strong>；AVL 樹需約 23 層</td></tr>
-          <tr><td><strong>② 只有葉節點存資料</strong></td><td>內部節點只放索引鍵 → 同樣大小可放更多鍵 → 樹更矮</td></tr>
-          <tr><td><strong>③ 葉節點串接且有序</strong></td><td><strong>範圍查詢</strong>（日期區間、BETWEEN、ORDER BY）可沿葉節點連續掃描</td></tr>
-          <tr><td><strong>④ 效能穩定</strong></td><td>所有查詢皆走到葉節點，時間可預測，利於查詢最佳化器估算成本</td></tr>
-          <tr><td>⑤ 自平衡</td><td>不會因公文字號<strong>遞增插入</strong>而退化（BST 會退化為串列）</td></tr>
-        </table></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">五大失效情境附SQL</span><span class="danger-tag">最左前綴原則與覆蓋索引</span></div>
+          </div>
 
-        <strong>📊 二、索引失效的常見寫法（主表）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>#</th><th>失效寫法</th><th>原因</th><th>改善</th></tr>
-          <tr><td>1</td><td><code>WHERE YEAR(發文日期) = 2025</code></td><td><strong>對索引欄位套用函數</strong>，索引存的是原值不是函數結果</td><td><code>WHERE 發文日期 &gt;= '2025-01-01' AND 發文日期 &lt; '2026-01-01'</code></td></tr>
-          <tr><td>2</td><td><code>WHERE 金額 * 1.05 &gt; 10000</code></td><td>對欄位<strong>運算</strong></td><td>移到右邊：<code>WHERE 金額 &gt; 10000 / 1.05</code></td></tr>
-          <tr><td>3</td><td><code>WHERE 主旨 LIKE '%預算%'</code></td><td><strong>前置萬用字元</strong>，無法定位起點</td><td>改 <code>LIKE '預算%'</code>；需任意位置比對則建<strong>全文檢索索引</strong></td></tr>
-          <tr><td>4</td><td><code>WHERE 承辦人 IS NULL</code>／<code>&lt;&gt; 'A'</code>／<code>NOT IN</code></td><td><strong>否定條件</strong>選擇性差，最佳化器判定全表掃描較快</td><td>改以正向條件、<code>UNION</code> 拆分，或調整資料模型避免 NULL</td></tr>
-          <tr><td>5</td><td><code>WHERE 員工編號 = 12345</code>（欄位為 VARCHAR）</td><td><strong>隱含型別轉換</strong>，等同對欄位套函數</td><td>加引號：<code>= '12345'</code>；並統一資料型別</td></tr>
-          <tr><td>6</td><td>複合索引 (A, B, C)，但 <code>WHERE B = ?</code></td><td>違反<strong>最左前綴原則</strong></td><td>調整索引順序，或另建以 B 開頭的索引</td></tr>
-          <tr><td>7</td><td><code>WHERE 狀態 = '已結案'</code>（僅兩種值）</td><td><strong>選擇性太低</strong>（低基數欄位），命中比例過高</td><td>與高選擇性欄位組成<strong>複合索引</strong>；或不建索引</td></tr>
-          <tr><td>8</td><td><code>WHERE A = ? OR B = ?</code></td><td>OR 兩側欄位不同時，可能放棄索引</td><td>改寫為 <code>UNION</code>，或建立涵蓋兩者的索引</td></tr>
-        </table></div>
-        <div class="hl">
-          <strong>共同原則：讓索引欄位「以原本的樣子」出現在比較式左邊，不要包起來、不要運算、不要轉型。</strong>
+          <p><strong>一、索引運作原理與多採 B+ 樹原因（10 分）</strong></p>
+          <ol>
+            <li><strong>索引本質</strong>：索引是額外維護的有序資料結構，將 O(N) 全表掃描降至 <strong>O(log N) 快速定址</strong>。</li>
+            <li><strong>資料庫偏好 B+ 樹四大核心理由</strong>：
+              <ul>
+                <li><strong>超高扇出與極矮樹高</strong>：內部節點僅存路由鍵值，單一 Page 可容納上千個 Key，800 萬筆資料樹高僅 <strong>3 層</strong>，代表<strong>查詢最多僅需 3 次磁碟 I/O</strong>。</li>
+                <li><strong>葉節點雙向串列支援範圍查詢</strong>：<code>BETWEEN</code> 區間查詢只需定址起點，沿葉節點鏈結循序讀取，發揮硬碟連續讀取效能。</li>
+                <li><strong>快取命中率高</strong>：內部節點不含資料酬載，Buffer Pool 能快取整棵樹的導航層。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>二、導致索引失效的五大 SQL 典型寫法與改寫對策（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>失效類型</th><th>錯誤寫法（觸發全表掃描）</th><th>正確改寫（恢復走索引）</th><th>失效原理解析</th></tr>
+            <tr><td><strong>① 索引欄位作函數/運算</strong></td><td><code>WHERE YEAR(發文日期) = 2024</code></td><td><code>WHERE 發文日期 &gt;= '2024-01-01' AND 發文日期 &lt; '2025-01-01'</code></td><td>B+ 樹儲存的是原始值，套用函數後破壞了有序性，無法比對。</td></tr>
+            <tr><td><strong>② 隱式型態轉換</strong></td><td><code>WHERE 公文字號 = 1012345</code>（欄位為 VARCHAR）</td><td><code>WHERE 公文字號 = '1012345'</code></td><td>底層自動呼叫 <code>CAST()</code> 函數轉換每列欄位，等同欄位運算。</td></tr>
+            <tr><td><strong>③ 模糊查詢前綴通配符</strong></td><td><code>WHERE 主旨 LIKE '%預算%'</code></td><td>改用<strong>全文檢索倒排索引</strong>或 <code>LIKE '預算%'</code></td><td>左側為 <code>%</code> 無法利用 B+ 樹之字典序進行二分定址。</td></tr>
+            <tr><td><strong>④ 否定條件（!=, &lt;&gt;, NOT IN）</strong></td><td><code>WHERE 狀態 != '已歸檔'</code></td><td><code>WHERE 狀態 IN ('待辦', '簽核中')</code></td><td>否定條件無法利用有序範圍收斂，優化器傾向走全表掃描。</td></tr>
+            <tr><td><strong>⑤ 違背最左前綴原則</strong></td><td>複合索引 <code>(科室, 年度)</code>，但查詢 <code>WHERE 年度 = 2024</code></td><td><code>WHERE 科室 = '資訊科' AND 年度 = 2024</code></td><td>複合索引按左起欄位排序，跳過首欄則後續欄位無全域順序。</td></tr>
+          </table></div>
+
+          <p><strong>三、覆蓋索引（Covering Index）極限調校（5 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>公門巨量查詢效能關鍵</strong>：在 800 萬筆公文主檔中，一般二級索引僅存主鍵值，查到後需引發隨機 I/O「回表（Lookup）」讀取資料列。若建立複合索引 <code>CREATE INDEX idx_doc_search ON 公文(主辦科室, 發文日期, 公文字號)</code>，SELECT 所需之欄位全在索引樹葉節點中，達成 <strong>Index-Only Scan（免回表）</strong>，查詢時間由數秒壓制在 10 毫秒以內！
+          </div>
         </div>
 
-        <strong>📊 三、索引的代價與建立原則</strong>
-        <div class="table-wrap"><table>
-          <tr><th>代價</th><th>說明</th></tr>
-          <tr><td><strong>拖慢寫入</strong></td><td>每次 INSERT／UPDATE／DELETE 都須<strong>同步維護所有相關索引</strong>；索引越多，寫入越慢</td></tr>
-          <tr><td>占用空間</td><td>索引本身需要磁碟與記憶體（緩衝區）</td></tr>
-          <tr><td>維護成本</td><td>長期異動後產生<strong>碎片</strong>，須定期重建或重組；統計資訊過期會使最佳化器誤判</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>建立原則</th><th>說明</th></tr>
-          <tr><td>① 以<strong>實際查詢頻率</strong>為依據</td><td>從<strong>慢查詢日誌</strong>找出最耗時、最頻繁的查詢，針對它建索引</td></tr>
-          <tr><td>② 建在<strong>WHERE / JOIN / ORDER BY / GROUP BY</strong> 的欄位</td><td>而非「看起來重要」的欄位</td></tr>
-          <tr><td>③ 選<strong>高選擇性</strong>欄位</td><td>不同值越多越適合（如公文字號）；性別、狀態等低基數欄位單獨建索引效益低</td></tr>
-          <tr><td>④ 複合索引順序</td><td><strong>等值條件在前、範圍條件在後</strong>；並遵守最左前綴</td></tr>
-          <tr><td>⑤ 善用<strong>涵蓋索引</strong></td><td>索引已包含查詢所需全部欄位 → <strong>不必回表</strong>，效能大幅提升</td></tr>
-          <tr><td>⑥ <strong>用執行計畫驗證</strong></td><td><code>EXPLAIN</code> 確認實際有走索引，並在<u>接近正式環境的資料量</u>下測試</td></tr>
-          <tr><td>⑦ 定期檢視</td><td>移除<strong>從未被使用的索引</strong>（多數資料庫提供索引使用統計）</td></tr>
-        </table></div>
-
-        <strong>📊 四、本案（800 萬筆公文）處置建議</strong>
-        <div class="table-wrap"><table>
-          <tr><th>順序</th><th>作為</th></tr>
-          <tr><td>① 診斷</td><td>啟用<strong>慢查詢日誌</strong>，找出前 10 大耗時查詢；以 <code>EXPLAIN</code> 檢視是否全表掃描</td></tr>
-          <tr><td>② 改寫 SQL</td><td>優先修正上表七類失效寫法——<strong>零成本且效果最大</strong></td></tr>
-          <tr><td>③ 補建索引</td><td>公文字號（唯一）、發文日期、承辦單位＋日期複合索引</td></tr>
-          <tr><td>④ 更新統計資訊</td><td>重建索引、更新統計，使最佳化器判斷正確</td></tr>
-          <tr><td>⑤ 資料分割</td><td>依<strong>年度分割（Partitioning）</strong>，查詢多集中於近期 → 縮小掃描範圍</td></tr>
-          <tr><td>⑥ 歸檔</td><td>逾保存年限或極少查詢的舊公文<strong>移至歷史庫</strong></td></tr>
-          <tr><td>⑦ 架構面</td><td>報表查詢導向<strong>唯讀副本</strong>，避免影響線上作業；熱門查詢加<strong>快取</strong></td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 必須點出<strong>「成本主體是磁碟 I/O」</strong>與<strong>「節點對齊磁碟區塊」</strong><br>
-        2. 用<strong>具體數字</strong>對比（B+ 樹 3～4 層 vs AVL 約 23 層）<br>
-        3. 失效寫法<strong>至少五種且每種都要給改善寫法</strong>——只列問題不給解法會被扣<br>
-        4. 一定要有<strong>函數包欄位</strong>、<strong>前置萬用字元</strong>、<strong>最左前綴</strong>、<strong>隱含型別轉換</strong>這四個經典<br>
-        5. 索引代價的核心是<strong>「加速讀、拖慢寫」</strong><br>
-        6. 建立原則要提到<strong>慢查詢日誌</strong>、<strong>EXPLAIN 驗證</strong>、<strong>涵蓋索引</strong><br>
-        7. 第四段（本案處置）是加分段：<strong>先改 SQL 再加索引</strong>的順序最能顯示實務判斷
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 說明 B+ 樹樹高僅 3~4 層與葉節點鏈結串列優勢。<br>
+        2. 五大索引失效類型（函數運算、隱式轉換、左模糊、否定條件、最左前綴違背）完整列舉。<br>
+        3. 每個失效類型皆附<strong>「錯誤 SQL vs 正確改寫 SQL」</strong>。<br>
+        4. 詳述覆蓋索引（Covering Index / Index-Only Scan）免回表機制。
+</div>
       </div>
     </details>
   </div>
@@ -1369,109 +1360,59 @@ WHERE  部門代碼 = ( SELECT 部門代碼 FROM 部門
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、實體與屬性辨識（表）→ 二、關係與基數（表）→ 三、<u>ER 圖</u> → 四、轉換規則 → 五、關聯綱要（含 PK/FK）→ 六、完整性限制
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】多值獨立立新表，一對多邊移外鍵；多對多聚合成聯，主鍵雙配化新身</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>多值屬性</strong>：聯絡電話可多支 ➔ 獨立拆表 <code>市民電話(身分證, 電話)</code>，複合主鍵。<br>
+          ② <strong>1:N 關聯</strong>：區公所與活動 ➔ 外鍵放在 N 端（活動表）。<br>
+          ③ <strong>M:N 關聯</strong>：市民與活動報名 ➔ 轉為關聯實體（Associative Entity）<code>報名紀錄(身分證, 活動編號, 報名時間)</code>！</p>
         </div>
 
-        <strong>📊 一、實體與屬性</strong>
-        <div class="table-wrap"><table>
-          <tr><th>實體</th><th>鍵</th><th>屬性</th><th>備註</th></tr>
-          <tr><td><strong>市民</strong></td><td>身分證字號</td><td>姓名、生日、地址</td><td>聯絡電話為<strong>多值屬性</strong></td></tr>
-          <tr><td><strong>活動</strong></td><td>活動編號</td><td>名稱、日期、地點、報名人數上限</td><td>—</td></tr>
-          <tr><td><strong>承辦單位</strong></td><td>單位代碼</td><td>單位名稱</td><td>—</td></tr>
-          <tr><td><strong>場次</strong></td><td>場次序號（<u>部分鍵</u>）</td><td>開始時間</td><td><strong>弱實體</strong>——依附於活動，序號僅在該活動內唯一</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>特殊屬性</th><th>類型</th><th>處理方式</th></tr>
-          <tr><td>聯絡電話</td><td><strong>多值屬性</strong>（可多支）</td><td>另立 <strong>市民電話</strong> 表</td></tr>
-          <tr><td>年齡</td><td>導出屬性（由生日算出）</td><td><strong>不儲存</strong>，查詢時計算</td></tr>
-          <tr><td>地址</td><td>複合屬性</td><td>可拆為縣市／區／街道，或整併為單一欄位</td></tr>
-        </table></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">多對多轉獨立實體表</span><span class="danger-tag">多值電話屬性拆解必答</span></div>
+          </div>
 
-        <strong>📊 二、關係與基數</strong>
-        <div class="table-wrap"><table>
-          <tr><th>關係</th><th>參與實體</th><th>基數</th><th>關係屬性</th></tr>
-          <tr><td><strong>報名</strong></td><td>市民 — 活動</td><td><strong>M : N</strong></td><td><strong>報名時間、報到狀態</strong></td></tr>
-          <tr><td><strong>辦理</strong></td><td>承辦單位 — 活動</td><td><strong>1 : N</strong></td><td>—</td></tr>
-          <tr><td><strong>包含</strong></td><td>活動 — 場次</td><td><strong>1 : N</strong>（<u>識別關係</u>）</td><td>—（場次為<strong>弱實體</strong>，全部參與）</td></tr>
-        </table></div>
+          <p><strong>一、概念綱要分析與 ER 圖核心構件（10 分）</strong></p>
+          <ol>
+            <li><strong>實體集合（Entity Sets）</strong>：
+              <ul>
+                <li><strong>市民（Citizen）</strong>：<u>身分證字號</u>（PK）、姓名、生日、地址。注意：<strong>「聯絡電話」為多值屬性（Multivalued Attribute）</strong>。</li>
+                <li><strong>活動（Activity）</strong>：<u>活動編號</u>（PK）、名稱、日期、地點、人數上限。</li>
+              </ul>
+            </li>
+            <li><strong>關聯集合（Relationship Sets）</strong>：
+              <ul>
+                <li><strong>報名（Register）</strong>：市民與活動之間為 <strong>多對多關聯（M : N）</strong>，含關聯屬性：報名時間、簽到狀態、報名序號。</li>
+              </ul>
+            </li>
+          </ol>
 
-        <strong>📊 三、ER 圖</strong>
-        <pre>  ┌──────────┐                          ┌──────────────┐
-  │  市民    │                          │  承辦單位    │
-  │(身分證)  │                          │ (單位代碼)   │
-  └────┬─────┘                          └──────┬───────┘
-       │ M                                     │ 1
-       │                                       │
-    ◇ 報名 ◇  ← 關係屬性：報名時間、報到狀態  ◇ 辦理 ◇
-       │                                       │
-       │ N                                     │ N
-  ┌────┴──────────────────────────────────────┴────┐
-  │                    活動                          │
-  │     (活動編號, 名稱, 日期, 地點, 人數上限)       │
-  └──────────────────┬───────────────────────────────┘
-                     │ 1
-                ╔════╧════╗   ← 雙線菱形＝識別關係
-                ║  包含   ║
-                ╚════╤════╝
-                     │ N
-          ╔══════════╧═══════════╗   ← 雙線矩形＝弱實體
-          ║        場次           ║
-          ║ (場次序號, 開始時間)  ║
-          ╚═══════════════════════╝
+          <p><strong>二、關聯資料庫綱要設計（Relational Schema Mapping）（12 分）</strong></p>
+          <p>依據正規化與關聯轉換規則，轉換為下列資料表（<u>底線</u>為主鍵 PK，<em>斜體</em>為外部鍵 FK）：</p>
+          <div class="table-wrap"><table>
+            <tr><th>資料表名稱</th><th>屬性欄位綱要清單</th><th>主鍵 / 外部鍵規則說明</th></tr>
+            <tr><td><strong>市民</strong></td><td>(<u>身分證字號</u>, 姓名, 生日, 地址)</td><td><code>身分證字號</code> 為 Primary Key。</td></tr>
+            <tr><td><strong>市民電話</strong></td><td>(<u><em>身分證字號</em>, 電話號碼</u>)</td><td><strong>解決多值屬性</strong>。複合主鍵；<code>身分證字號</code> 參考 市民(身分證字號) ON DELETE CASCADE。</td></tr>
+            <tr><td><strong>活動</strong></td><td>(<u>活動編號</u>, 名稱, 日期, 地點, 人數上限)</td><td><code>活動編號</code> 為 Primary Key。</td></tr>
+            <tr><td><strong>活動報名</strong></td><td>(<u><em>身分證字號</em>, <em>活動編號</em></u>, 報名時間, 簽到狀態)</td><td><strong>M:N 關聯拆解表</strong>。複合主鍵保證同一人同活動不可重複報名；外鍵分別參考市民與活動。</td></tr>
+          </table></div>
 
-  市民 ──1──◇ 擁有 ◇──N── 市民電話（多值屬性另立）
-
-  符號：□ 實體　◇ 關係　○ 屬性　雙線＝弱實體／識別關係／全部參與</pre>
-
-        <strong>📊 四、ER 轉關聯表的規則</strong>
-        <div class="table-wrap"><table>
-          <tr><th>ER 元素</th><th>轉換規則</th></tr>
-          <tr><td>強實體</td><td>一個表，鍵屬性為 PK</td></tr>
-          <tr><td><strong>1 : N 關係</strong></td><td><strong>把「1」方的主鍵放到「N」方當外鍵</strong>（不另立表）</td></tr>
-          <tr><td><strong>M : N 關係</strong></td><td><strong>必須另立一個表</strong>，PK = 兩方主鍵組合，<strong>關係屬性放在此表</strong></td></tr>
-          <tr><td><strong>弱實體</strong></td><td>PK = <strong>擁有者主鍵 + 部分鍵</strong>；外鍵設 <code>ON DELETE CASCADE</code></td></tr>
-          <tr><td><strong>多值屬性</strong></td><td><strong>另立一個表</strong>，PK = 原實體主鍵 + 該屬性值</td></tr>
-          <tr><td>1 : 1 關係</td><td>併入任一方，或把主鍵放到參與度較高的一方</td></tr>
-        </table></div>
-
-        <strong>📊 五、關聯綱要</strong>
-        <div class="frame">
-          <strong>市民</strong>(<u>身分證字號</u>, 姓名, 生日, 地址)<br><br>
-          <strong>市民電話</strong>(<u>身分證字號</u><sup>FK→市民</sup>, <u>電話號碼</u>)　← 多值屬性<br><br>
-          <strong>承辦單位</strong>(<u>單位代碼</u>, 單位名稱)<br><br>
-          <strong>活動</strong>(<u>活動編號</u>, 名稱, 日期, 地點, 報名人數上限, 單位代碼<sup>FK→承辦單位</sup>)　← 1:N<br><br>
-          <strong>場次</strong>(<u>活動編號</u><sup>FK→活動</sup>, <u>場次序號</u>, 開始時間)　← 弱實體，複合主鍵<br><br>
-          <strong>報名</strong>(<u>身分證字號</u><sup>FK→市民</sup>, <u>活動編號</u><sup>FK→活動</sup>, 報名時間, 報到狀態)　← M:N
+          <p><strong>三、資料庫完整性與並行超額防護（3 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>名額超收防護對策</strong>：活動報名有「人數上限」，在高並行搶票情境下，不可僅在程式碼讀取 <code>count(*) &lt; 上限</code>。資料庫端應在活動表維護 <code>已報名人數</code> 欄位，報名交易執行 <code>UPDATE 活動 SET 已報名人數 = 已報名人數 + 1 WHERE 活動編號 = ? AND 已報名人數 &lt; 人數上限;</code>，利用資料庫行級排他鎖（X-Lock）原子性檢驗，徹底杜絕名額超收。
+          </div>
         </div>
-        <div class="table-wrap"><table>
-          <tr><th>表</th><th>主鍵</th><th>外鍵</th><th>來源</th></tr>
-          <tr><td>市民</td><td>身分證字號</td><td>—</td><td>強實體</td></tr>
-          <tr><td>市民電話</td><td>(身分證字號, 電話號碼)</td><td>身分證字號</td><td>多值屬性</td></tr>
-          <tr><td>承辦單位</td><td>單位代碼</td><td>—</td><td>強實體</td></tr>
-          <tr><td>活動</td><td>活動編號</td><td>單位代碼</td><td>強實體＋1:N</td></tr>
-          <tr><td><strong>場次</strong></td><td><strong>(活動編號, 場次序號)</strong></td><td>活動編號</td><td><strong>弱實體</strong></td></tr>
-          <tr><td><strong>報名</strong></td><td><strong>(身分證字號, 活動編號)</strong></td><td>兩者皆是</td><td><strong>M:N 關係</strong></td></tr>
-        </table></div>
 
-        <strong>📊 六、完整性限制（加分段）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>限制</th><th>作法</th></tr>
-          <tr><td>報名人數不得超過上限</td><td>以<strong>觸發器</strong>或應用層檢核；並發環境須<strong>加鎖</strong>避免超額（<u>典型的遺失更新情境</u>）</td></tr>
-          <tr><td>報到狀態值域</td><td><code>CHECK (報到狀態 IN ('未報到','已報到','取消'))</code></td></tr>
-          <tr><td>刪除規則</td><td>活動刪除 → 場次 <code>ON DELETE CASCADE</code>；報名紀錄宜<strong>邏輯刪除</strong>保留軌跡</td></tr>
-          <tr><td><strong>個資保護</strong></td><td>身分證字號屬個資，須<strong>加密或雜湊儲存</strong>、<strong>存取權限控管</strong>、保留<strong>查詢軌跡</strong>；符合《個人資料保護法》特定目的與必要範圍</td></tr>
-          <tr><td>身分證字號檢核</td><td>應驗證格式與檢查碼；<u>亦可考慮改用系統流水號為主鍵，身分證字號另設唯一索引</u></td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. <strong>ER 圖一定要畫</strong>，且標明<strong>基數（1、N、M）</strong><br>
-        2. <strong>場次必須辨識為弱實體</strong>並用雙線表示——本題最大鑑別點<br>
-        3. <strong>聯絡電話是多值屬性，必須另立表</strong>——第二大鑑別點<br>
-        4. <strong>報名時間與報到狀態是「關係屬性」</strong>，必須放在 M:N 的關聯表中<br>
-        5. 轉換時要<strong>寫出規則再套用</strong>，並<strong>標明每個 PK 與 FK</strong><br>
-        6. 加分段：<strong>報名人數上限的並行控制</strong>與<strong>身分證字號的個資保護</strong>
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 正確識別出市民與活動之 <strong>M:N 多對多關聯</strong>。<br>
+        2. <strong>電話多值屬性明確拆解為獨立資料表 <code>市民電話</code></strong>。<br>
+        3. M:N 關聯轉換為中介關聯表 <code>活動報名</code>，複合主鍵定義完整。<br>
+        4. 外部鍵約束與級聯刪除（ON DELETE CASCADE）明確說明。<br>
+        5. 提出資料庫級人數上限原子性防護。
+</div>
       </div>
     </details>
   </div>
@@ -1485,82 +1426,56 @@ WHERE  部門代碼 = ( SELECT 部門代碼 FROM 部門
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、原理與實例（含程式碼對比）→ 二、四層防護（<u>主表</u>）→ 三、個資保護技術與法規（表）→ 四、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】參數位語意分立，最小權限防縱向；WAF阻截個資蔽</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>SQL Injection 原理</strong>：惡意字串拼接，改變語法樹結構，將資料竄改為指令執行。<br>
+          ② <strong>四層縱深防禦</strong>：程式層（參數化查詢 Prepared Statement，唯一的根本解）；資料庫層（最小權限原則、敏感欄位 AES 加密）；網路層（WAF 阻擋惡意特徵）；管理層（源碼檢測與個資遮蔽）。</p>
         </div>
 
-        <strong>📊 一、SQL Injection 原理</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>內容</th></tr>
-          <tr><td>定義</td><td>攻擊者於輸入欄位夾帶 <strong>SQL 語法片段</strong>，使其被資料庫<strong>當作指令執行</strong>而非資料</td></tr>
-          <tr><td><strong>根本原因</strong></td><td><strong>以字串串接組成 SQL</strong>，導致「<u>資料</u>」與「<u>指令</u>」的界線消失</td></tr>
-          <tr><td>危害</td><td>繞過驗證登入、竊取全表資料、竄改或刪除資料、<strong>提權執行系統指令</strong></td></tr>
-        </table></div>
-        <pre>【錯誤寫法：字串串接】
-sql = "SELECT * FROM 使用者 WHERE 帳號='" + id + "' AND 密碼='" + pw + "'";
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">Prepared Statement原理必寫</span><span class="danger-tag">四層防禦不可混為一談</span></div>
+          </div>
 
-攻擊者在帳號欄輸入：   ' OR '1'='1' --
+          <p><strong>一、SQL Injection 原理與攻擊實例（8 分）</strong></p>
+          <ol>
+            <li><strong>攻擊原理</strong>：應用程式未妥善過濾使用者輸入，直接將惡意輸入字串以<strong>「字串拼接（String Concatenation）」</strong>方式嵌入 SQL 指令中。DBMS 在解析 SQL 語法樹時，將攻擊者輸入的<strong>「資料數據」誤解析為「SQL 語法控制指令」</strong>，導致未經授權的任意資料讀取、竄改或管理權限淪陷。</li>
+            <li><strong>經典攻擊範例</strong>：
+              <div class="frame">
+                原始後端程式：<code>SELECT * FROM 同仁 WHERE 帳號 = '" + user_input + "' AND 密碼 = '" + pass_input + "'";</code><br>
+                攻擊者在帳號欄位輸入：<code>admin' OR '1'='1' --</code><br>
+                解析後執行指令：<code>SELECT * FROM 同仁 WHERE 帳號 = 'admin' OR '1'='1' --' AND 密碼 = '...';</code><br>
+                👉 因 <code>'1'='1'</code> 恆為真，且 <code>--</code> 註解掉後續密碼檢核，攻擊者無須密碼即以系統管理員身分登入！
+              </div>
+            </li>
+          </ol>
 
-組成的 SQL 變成：
-SELECT * FROM 使用者 WHERE 帳號='' OR '1'='1' --' AND 密碼=''
-                                  └─ 恆真 ─┘ └ 後面被註解掉 ┘
-→ 條件恆為真，未輸入密碼即可登入</pre>
-        <div class="table-wrap"><table>
-          <tr><th>攻擊型態</th><th>手法</th></tr>
-          <tr><td>驗證繞過</td><td><code>' OR '1'='1' --</code></td></tr>
-          <tr><td><strong>聯集注入</strong></td><td><code>' UNION SELECT 帳號, 密碼 FROM 使用者 --</code> → 竊取其他表資料</td></tr>
-          <tr><td>破壞性注入</td><td><code>'; DROP TABLE 公文; --</code></td></tr>
-          <tr><td><strong>盲注</strong>（Blind）</td><td>頁面無錯誤訊息時，以<strong>真假回應差異</strong>或<strong>時間延遲</strong>（<code>SLEEP</code>）逐字元推測資料</td></tr>
-        </table></div>
+          <p><strong>二、四層架構縱深防禦措施（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>防禦層級</th><th>關鍵防禦措施</th><th>具體作法與技術原理</th></tr>
+            <tr><td><strong>① 程式開發層（最核心）</strong></td><td><strong>全面強制採用參數化查詢（Prepared Statement）</strong></td><td>資料庫在編譯階段先固定 SQL 語法樹結構，使用者輸入僅被視為單純的<strong>參數常數（Literal Parameter）</strong>傳遞，絕不可能被轉譯為 SQL 關鍵字，為<strong>唯一的根本解法</strong>。嚴格禁止字串拼接！</td></tr>
+            <tr><td><strong>② 資料庫層（DB Layer）</strong></td><td><strong>實施最小權限原則（Least Privilege）與敏感加密</strong></td><td>Web 應用程式連線 DB 之帳號<strong>禁止給予 <code>db_owner</code> 或 <code>sa</code> 權限</strong>，僅開放特定業務 Table 之 SELECT/INSERT 權限；密碼採用加鹽雜湊（Argon2/bcrypt），身分證與手機採用 AES-256 欄位級加密。</td></tr>
+            <tr><td><strong>③ 網路邊界層（Network Layer）</strong></td><td><strong>部署網頁應用程式防火牆（WAF）</strong></td><td>於入口端部署 WAF，即時過濾檢測 HTTP Request 中之 <code>UNION SELECT</code>、單引號、註解符號等常見注入攻擊特徵，執行邊界攔截。</td></tr>
+            <tr><td><strong>④ 系統管理層（Admin Layer）</strong></td><td><strong>安全源碼檢測與例行弱點掃描</strong></td><td>將靜態應用安全測試（SAST）與動態測試（DAST）納入軟體發布 CI/CD Pipeline；依據個資法落實個資遮蔽（Data Masking）與存取軌跡獨立稽核。</td></tr>
+          </table></div>
 
-        <strong>📊 二、四層防護（主表）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>層次</th><th>措施</th><th>說明</th></tr>
-          <tr><td rowspan="4"><strong>程式層</strong><br>（根本解）</td><td><strong>① 參數化查詢／預備語句</strong></td><td><strong>最有效、唯一的根本解</strong>——SQL 結構<u>先編譯</u>，參數只當資料傳入，永遠不會被當指令</td></tr>
-          <tr><td>② 使用 ORM 或預存程序</td><td>但<u>預存程序內部若仍動態組字串，一樣會被注入</u></td></tr>
-          <tr><td>③ 輸入驗證（白名單）</td><td>型別、長度、格式檢核；<strong>僅為輔助，不可作為唯一防線</strong></td></tr>
-          <tr><td>④ 錯誤訊息不外洩</td><td>不得回傳資料庫錯誤原文（會洩漏表名、欄位名）；記錄於伺服器日誌即可</td></tr>
-          <tr><td rowspan="3"><strong>資料庫層</strong></td><td>⑤ <strong>最小權限原則</strong></td><td>應用程式帳號<strong>只給必要的 SELECT/INSERT/UPDATE</strong>；<u>絕不使用 sa／root</u>；不給 DROP、不給系統預存程序</td></tr>
-          <tr><td>⑥ <strong>敏感資料加密</strong></td><td>即使被取出也無法直接使用</td></tr>
-          <tr><td>⑦ 稽核與監控</td><td>開啟稽核日誌，監控異常查詢量與異常語法</td></tr>
-          <tr><td rowspan="2"><strong>網路層</strong></td><td>⑧ <strong>WAF</strong>（Web 應用防火牆）</td><td>攔截常見注入樣式；<u>屬縱深防禦，可被繞過</u></td></tr>
-          <tr><td>⑨ <strong>資料庫不直接對外</strong></td><td>置於內部網段，僅允許應用伺服器連線；<strong>加密傳輸（TLS）</strong></td></tr>
-          <tr><td rowspan="4"><strong>管理層</strong></td><td>⑩ 安全程式設計規範</td><td>明訂<strong>禁止字串串接組 SQL</strong>，納入<strong>程式碼審查</strong></td></tr>
-          <tr><td>⑪ <strong>弱點掃描與滲透測試</strong></td><td>上線前及定期執行；委外案應納入驗收項目</td></tr>
-          <tr><td>⑫ 修補管理</td><td>資料庫與框架定期更新</td></tr>
-          <tr><td>⑬ 教育訓練</td><td>開發人員安全訓練；委外契約明定資安責任</td></tr>
-        </table></div>
-        <div class="hl">
-          <strong>結論句：其餘措施都是縱深防禦，唯一的根本解是「參數化查詢」。</strong><br>
-          若只寫「過濾特殊字元」而未提參數化查詢，會被認定為觀念不足。
+          <p><strong>三、公門個資保護與合規加分段（7 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>資通安全法規遵從實務</strong>：依據《資通安全管理法》與《個人資料保護法》，機關資料庫若儲存公務機密與民眾個資，必須落實：<br>
+            1. <strong>資料庫活動監控（DAM, Database Activity Monitoring）</strong>：獨立側錄所有 DBA 與系統帳號之 SQL 查詢行為，一旦偵測到短時間撈取全表大量個資，立即觸發告警。<br>
+            2. <strong>動態資料遮蔽（Dynamic Data Masking）</strong>：一般公務同仁查詢民眾資料時，身分證字號自動遮蔽後四碼（如 <code>A123****89</code>），兼顧公務審核與隱私防護。
+          </div>
         </div>
 
-        <strong>📊 三、個資保護技術與法規</strong>
-        <div class="table-wrap"><table>
-          <tr><th>面向</th><th>技術措施</th></tr>
-          <tr><td><strong>加密</strong></td><td>傳輸中以 <strong>TLS</strong>；靜態資料以<strong>資料庫加密（TDE）或欄位加密</strong>；<strong>金鑰與資料分離保管</strong></td></tr>
-          <tr><td><strong>密碼儲存</strong></td><td>絕不可明文或可逆加密 → <strong>bcrypt／Argon2 慢速雜湊 ＋ 每帳號隨機鹽</strong></td></tr>
-          <tr><td><strong>去識別化</strong></td><td>非必要不儲存；<strong>遮罩顯示</strong>（A12****89）；統計用途採<strong>匿名化或假名化</strong>；<strong>測試環境不得使用真實個資</strong></td></tr>
-          <tr><td><strong>存取控制</strong></td><td><strong>角色權限（RBAC）＋最小權限</strong>；以<strong>檢視表</strong>限制可見欄位；重要作業<strong>雙人覆核</strong></td></tr>
-          <tr><td><strong>稽核軌跡</strong></td><td>記錄「<strong>誰、何時、查了誰的、做了什麼</strong>」；日誌<strong>不可被查詢者自行刪改</strong>；定期檢視異常存取</td></tr>
-          <tr><td><strong>保存與刪除</strong></td><td>訂定<strong>保存年限</strong>，逾期<strong>依規定銷毀</strong>；備份媒體同樣須加密與管控</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>法規依據</th><th>重點</th></tr>
-          <tr><td><strong>個人資料保護法</strong></td><td>‧ 蒐集、處理、利用須有<strong>法定事由</strong>並符合<strong>特定目的必要範圍</strong><br>‧ 公務機關應採行<strong>適當之安全維護措施</strong>（§18）<br>‧ <strong>外洩時應查明後通知當事人</strong>（§12）<br>‧ 當事人有<strong>查詢、更正、刪除</strong>等權利</td></tr>
-          <tr><td><strong>個資法施行細則</strong></td><td>安全維護措施之具體項目（§12）：<strong>配置管理人員、界定範圍、風險評估、事故應變、內部稽核、認知宣導</strong>等</td></tr>
-          <tr><td><strong>資通安全管理法</strong></td><td>機關依<strong>資安責任等級</strong>訂定資通安全維護計畫；<strong>事件應於規定時限內通報</strong></td></tr>
-          <tr><td>檔案法、政府資訊公開法</td><td>公文保存年限、開放資料前須<strong>去識別化</strong>並評估重新識別風險</td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 原理要點出<strong>「資料與指令的界線消失」</strong>，並<strong>寫出實際的注入字串與組成後的 SQL</strong><br>
-        2. <strong>參數化查詢必須被明確標示為「根本解」</strong>——本題最重要的一句<br>
-        3. 補充「<strong>預存程序內部動態組字串一樣會被注入</strong>」是明顯加分<br>
-        4. 四層都要有措施；<strong>資料庫層務必寫「最小權限、不用 sa/root」</strong><br>
-        5. 第三小題<strong>技術與法規都要寫</strong>，法規至少列出<strong>個資法</strong>與<strong>資通安全管理法</strong><br>
-        6. <strong>「測試環境不得使用真實個資」</strong>與<strong>「稽核軌跡不可被自行刪改」</strong>是實務性加分句
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 深入說明 SQL Injection 本質為「資料被誤編譯為指令」。<br>
+        2. 明確說明 Prepared Statement 之<strong>先行編譯、語意分立機制</strong>。<br>
+        3. 四層防禦（程式、資料庫、網路、管理）條理分明。<br>
+        4. 連結公門資安法、DAM 資料庫監控與動態資料遮蔽。
+</div>
       </div>
     </details>
   </div>
@@ -1574,92 +1489,75 @@ SELECT * FROM 使用者 WHERE 帳號='' OR '1'='1' --' AND 密碼=''
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、OLTP vs OLAP（表）→ 二、資料倉儲四大特性＋ETL（表）→ 三、星狀 vs 雪花狀（表＋圖）→ 四、本案選擇與理由
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】聯線交易高並行，聯線分析查歷史；星狀事實連維度，雪花正規降冗餘</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>OLTP vs OLAP</strong>：OLTP（線上交易、高並行、最新狀態、正規化 3NF）；OLAP（決策分析、巨量查詢、歷史彙總、反正規化維度）。<br>
+          ② <strong>ETL 流程</strong>：Extract（抽取）➔ Transform（清洗、轉換、格式統一）➔ Load（載入資料倉儲）。<br>
+          ③ <strong>星狀 vs 雪花</strong>：星狀綱要（中間事實表，周圍維度表未正規化，JOIN 少效能佳）；雪花狀（維度表進一步正規化，省空間但 JOIN 多）。</p>
         </div>
 
-        <strong>📊 一、OLTP vs OLAP</strong>
-        <div class="table-wrap"><table>
-          <tr><th>比較點</th><th>OLTP（線上交易處理）</th><th>OLAP（線上分析處理）</th></tr>
-          <tr><td>目的</td><td><strong>日常作業</strong>（新增、修改、查詢單筆）</td><td><strong>決策分析</strong>（彙總、趨勢、多維分析）</td></tr>
-          <tr><td>使用者</td><td>第一線承辦人員</td><td>主管、分析人員</td></tr>
-          <tr><td>資料範圍</td><td><strong>當前</strong>資料</td><td><strong>歷史</strong>資料（數年）</td></tr>
-          <tr><td>資料量</td><td>GB 級</td><td><strong>TB 級以上</strong></td></tr>
-          <tr><td>操作型態</td><td>大量短交易，<strong>讀寫並重</strong></td><td>少量複雜查詢，<strong>以讀為主</strong></td></tr>
-          <tr><td>存取筆數</td><td>單筆或少數筆</td><td><strong>數百萬筆彙總</strong></td></tr>
-          <tr><td>綱要設計</td><td><strong>高度正規化</strong>（3NF，減少冗餘與異常）</td><td><strong>反正規化</strong>（星狀綱要，減少 JOIN）</td></tr>
-          <tr><td>效能指標</td><td><strong>交易吞吐量、回應時間（毫秒）</strong></td><td><strong>查詢完成時間（秒～分）</strong></td></tr>
-          <tr><td>備份要求</td><td>RPO 極短，不可遺失</td><td>可由來源系統重建</td></tr>
-        </table></div>
-        <div class="hl"><strong>核心差異：OLTP 求「寫得快又正確」，OLAP 求「讀得廣又快」——設計原則因此完全相反。</strong></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">四大特性與ETL全步驟</span><span class="danger-tag">星狀vs雪花維度正規化差異</span></div>
+          </div>
 
-        <strong>📊 二、資料倉儲四大特性與 ETL</strong>
-        <div class="table-wrap"><table>
-          <tr><th>特性（Inmon 定義）</th><th>意義</th><th>本案例</th></tr>
-          <tr><td><strong>① 主題導向</strong><br>（Subject-Oriented）</td><td>依<strong>分析主題</strong>組織，而非依作業流程</td><td>以「民眾服務案件」為主題，而非依各局處系統切分</td></tr>
-          <tr><td><strong>② 整合性</strong><br>（Integrated）</td><td>來自不同來源，須<strong>統一編碼、單位、命名</strong></td><td>各局處對「已結案」的代碼不同 → 須統一對照</td></tr>
-          <tr><td><strong>③ 時間變動</strong><br>（Time-Variant）</td><td>保存<strong>長期歷史</strong>，每筆皆有時間維度</td><td>可比較歷年同期案件量</td></tr>
-          <tr><td><strong>④ 非揮發性</strong><br>（Non-Volatile）</td><td><strong>只新增與查詢，不修改不刪除</strong></td><td>確保分析結果<strong>可重現</strong></td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>ETL 階段</th><th>工作內容</th><th>常見問題</th></tr>
-          <tr><td><strong>E</strong> 萃取<br>（Extract）</td><td>自各來源系統取出資料；可<strong>全量</strong>或<strong>增量</strong>（依異動時間或 CDC）</td><td>應<strong>避開營運尖峰</strong>，勿影響線上作業</td></tr>
-          <tr><td><strong>T</strong> 轉換<br>（Transform）</td><td><strong>清理</strong>（去重、補空值、修正格式）<br><strong>統一</strong>（代碼對照、單位換算、日期格式）<br><strong>彙總</strong>與衍生欄位計算<br><strong>去識別化</strong>（移除或遮罩個資）</td><td><strong>工作量最大、最耗時的一階</strong>（常占七成工時）</td></tr>
-          <tr><td><strong>L</strong> 載入<br>（Load）</td><td>寫入資料倉儲；建立索引與彙總表</td><td>失敗須可<strong>重跑且不重複</strong>（冪等性）</td></tr>
-        </table></div>
-        <p style="font-size:.88rem"><strong>補充</strong>：近年因雲端運算便宜，亦有 <strong>ELT</strong>（先載入再於倉儲內轉換）作法，適合半結構化與大量原始資料（資料湖）。</p>
+          <p><strong>一、OLTP 與 OLAP 系統本質差異比較（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>OLTP（線上交易處理）</th><th>OLAP（線上分析處理）</th></tr>
+            <tr><td><strong>主要目標</strong></td><td>支援日常例行性營運交易作業</td><td>支援機關主管與決策者之<strong>多維度戰略分析</strong></td></tr>
+            <tr><td><strong>資料特性</strong></td><td><strong>目前即時狀態</strong>（Current Data）、高度細緻</td><td><strong>歷史長週期趨勢</strong>（Historical Data）、大量聚合</td></tr>
+            <tr><td><strong>操作行為</strong></td><td>高頻繁、簡短的 INSERT、UPDATE、DELETE</td><td>複雜的長時 SELECT 唯讀聚合查詢</td></tr>
+            <tr><td><strong>並行使用者</strong></td><td>數萬至數百萬終端使用者同時連線</td><td>少數決策分析師與主管階層</td></tr>
+            <tr><td><strong>綱要設計準則</strong></td><td><strong>高度正規化（3NF / BCNF）</strong>，消除冗餘防更新異常</td><td><strong>維度建模（星狀 / 雪花狀）</strong>，反正規化提高查詢速度</td></tr>
+          </table></div>
 
-        <strong>📊 三、星狀 vs 雪花狀綱要</strong>
-        <pre>星狀綱要                          雪花狀綱要
-  ┌─────┐                            ┌─────┐   ┌──────┐
-  │時間 │                            │區維 ├───┤縣市維│
-  └──┬──┘                            └──┬──┘   └──────┘
-     │                                   │
-┌────┴────┐  ┌──────┐          ┌────────┴──┐
-│ 案件事實 ├──┤ 單位 │          │ 案件事實  │
-└────┬────┘  └──────┘          └────┬──────┘
-     │                                │
-  ┌──┴──┐                          ┌──┴───┐  ┌────────┐
-  │行政區│  ← 維度表不再拆分         │類別維├──┤大類維  │
-  └─────┘                          └──────┘  └────────┘
-維度表「扁平、反正規化」            維度表「再正規化、層層展開」</pre>
-        <div class="table-wrap"><table>
-          <tr><th>比較點</th><th>星狀綱要（Star）</th><th>雪花狀綱要（Snowflake）</th></tr>
-          <tr><td>維度表</td><td><strong>反正規化</strong>（單層、扁平）</td><td><strong>正規化</strong>（多層展開）</td></tr>
-          <tr><td>JOIN 數量</td><td><strong>少</strong>（事實表直接接維度表）</td><td>多（須逐層 JOIN）</td></tr>
-          <tr><td>查詢效能</td><td><strong>較快</strong></td><td>較慢</td></tr>
-          <tr><td>儲存空間</td><td>較大（有冗餘）</td><td><strong>較小</strong></td></tr>
-          <tr><td>維護一致性</td><td>較難（同一值重複多處）</td><td><strong>較易</strong></td></tr>
-          <tr><td>易理解性</td><td><strong>高</strong>（業務人員易懂）</td><td>較低</td></tr>
-          <tr><td>適用</td><td><strong>多數資料倉儲</strong>、維度層級單純</td><td>維度層級深且屬性多、儲存成本敏感</td></tr>
-        </table></div>
+          <p><strong>二、資料倉儲四大特性與 ETL 處理流程（9 分）</strong></p>
+          <ol>
+            <li><strong>Inmon 資料倉儲（Data Warehouse）四大黃金特性</strong>：
+              <ul>
+                <li><strong>主題導向（Subject-Oriented）</strong>：圍繞機關核心主題（如「民眾陳情案件」、「稅收統計」），而非特定業務流程。</li>
+                <li><strong>整合性（Integrated）</strong>：將跨局處不同編碼、異質來源（如性別記為 1/0 與 M/F）轉為全府統一標準編碼。</li>
+                <li><strong>非揮發性（Non-Volatile）</strong>：資料載入後<strong>僅供查詢，不作就地修改或刪除</strong>，保持歷史穩定性。</li>
+                <li><strong>時間變異性（Time-Variant）</strong>：每筆資料皆附帶時間戳記（Time Key），記錄歷史時點之真實快照。</li>
+              </ul>
+            </li>
+            <li><strong>ETL（抽取、轉換、載入）三大流程</strong>：
+              <ul>
+                <li><strong>Extract（抽取）</strong>：由各局處關聯 DB、API、Excel 定期抽取原始增量異動日誌（CDC）。</li>
+                <li><strong>Transform（轉換）</strong>：<strong>最關鍵階段</strong>。包含資料清洗（清除髒資料、缺失值填補）、重複資料刪除、代碼統一、多維度彙總。</li>
+                <li><strong>Load（載入）</strong>：以批次排程高吞吐寫入資料倉儲或資料市集（Data Mart）。</li>
+              </ul>
+            </li>
+          </ol>
 
-        <strong>📊 四、本案（民眾服務案件分析平台）選擇</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>內容</th></tr>
-          <tr><td><strong>建議</strong></td><td><strong>採星狀綱要</strong></td></tr>
-          <tr><td rowspan="4">理由</td><td>① 使用者為<strong>主管與業務人員</strong>，星狀結構直觀易懂，利於自助式報表工具操作</td></tr>
-          <tr><td>② 分析以「<strong>各區、各類別、各月的案件量與處理時效</strong>」為主，<strong>查詢效能優先</strong></td></tr>
-          <tr><td>③ 案件維度層級單純（區、類別、單位、時間），<strong>雪花狀的正規化效益有限</strong></td></tr>
-          <tr><td>④ 維度資料量小（行政區數十筆、類別數百筆），<strong>冗餘造成的空間成本可忽略</strong></td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>設計要點</th><th>內容</th></tr>
-          <tr><td><strong>事實表</strong></td><td>案件事實(案件代理鍵, 時間鍵, 行政區鍵, 類別鍵, 單位鍵, <strong>度量：案件數、處理天數、逾期件數</strong>)</td></tr>
-          <tr><td><strong>維度表</strong></td><td>時間維（年月日、季、是否假日）、行政區維、案件類別維、承辦單位維</td></tr>
-          <tr><td><strong>緩慢變動維度（SCD）</strong></td><td>行政區或單位改名／改組時，應採 <strong>Type 2</strong>（保留歷史版本），否則<u>歷年比較會失真</u></td></tr>
-          <tr><td>粒度</td><td>先定義<strong>最細粒度＝一件案件一筆</strong>，再依需求建彙總表</td></tr>
-          <tr><td><strong>個資</strong></td><td>分析平台<strong>不儲存民眾姓名與身分證字號</strong>；僅保留去識別化後的統計欄位；避免<strong>小樣本揭露</strong>（某里僅 1～2 筆可能被指認）</td></tr>
-        </table></div>
+          <p><strong>三、星狀綱要 vs 雪花狀綱要評比與選型建議（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>星狀綱要（Star Schema）</th><th>雪花狀綱要（Snowflake Schema）</th></tr>
+            <tr><td><strong>維度表結構</strong></td><td><strong>未正規化（Denormalized）</strong>，維度層次集中在單一表中</td><td><strong>高度正規化（Normalized）</strong>，維度進一步拆解為子維度表</td></tr>
+            <tr><td><strong>查詢效能</strong></td><td><strong>極佳</strong>（查詢時 JOIN 次數極少，SQL 語法直觀）</td><td>較差（多層次 JOIN，巨量分析時查詢耗時長）</td></tr>
+            <tr><td><strong>磁碟空間</strong></td><td>稍有冗餘，佔用空間略大</td><td>消除冗餘，節省儲存空間</td></tr>
+            <tr><td><strong>維護複雜度</strong></td><td>維度表維護簡單，BI 工具相容性極高</td><td>維度層次繁瑣，維護難度高</td></tr>
+          </table></div>
 
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. OLTP/OLAP 比較表<strong>至少八個欄位</strong>，並點出<strong>「正規化 vs 反正規化」的設計原則相反</strong><br>
-        2. 四大特性要<strong>寫出英文原詞</strong>並各配一個本案例子<br>
-        3. ETL 要指出 <strong>T（轉換）最耗工</strong>，且含<strong>去識別化</strong><br>
-        4. 星狀／雪花狀<strong>最好畫圖</strong>，比較表至少六個欄位<br>
-        5. 第三小題<strong>必須明確選一個並給四項理由</strong>——只比較不選擇會失分<br>
-        6. 加分句：<strong>緩慢變動維度（SCD Type 2）</strong>與<strong>小樣本揭露風險</strong>
+          <p><strong>【民眾服務案件分析平台選型建議】</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>首選星狀綱要（Star Schema）</strong>！<br>
+            ‧ <strong>核心事實表（Fact Table）</strong>：<code>案件事實表(時間Key, 里別Key, 案件類型Key, 受理時數, 滿意度評分)</code>。<br>
+            ‧ <strong>周圍維度表（Dimension Tables）</strong>：時間維度、行政區維度（含里、區、市）、陳情類別維度。<br>
+            ‧ <strong>選型技術理由</strong>：現代伺服器儲存成本極低，分析平台最看重「<strong>儀表板秒級拖拉響應</strong>」。星狀綱要將行政區層級打平在單一維度表，免除多重 JOIN，讓首長施政儀表板能即時切換「全府 ➔ 區 ➔ 里」切片切塊（Slice & Dice）分析！
+          </div>
         </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. OLTP vs OLAP 比較表指標完整（目標、資料特性、操作、並行、綱要）。<br>
+        2. 資料倉儲四大特性（主題導向、整合性、非揮發性、時間變異性）全中。<br>
+        3. ETL 三階段功能嚴謹說明。<br>
+        4. 星狀 vs 雪花表列清楚，指明<strong>維度是否正規化</strong>為核心區分點。<br>
+        5. 民眾服務案件平台選型<strong>推薦星狀綱要並給予充分實務理由</strong>。
+</div>
       </div>
     </details>
   </div>
@@ -1673,90 +1571,67 @@ SELECT * FROM 使用者 WHERE 帳號='' OR '1'='1' --' AND 密碼=''
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、四種 NoSQL 類型（表）→ 二、CAP 定理＋ACID/BASE 對照（表＋圖）→ 三、需求分析與<u>混合式選型（主表）</u> → 四、實務考量
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】文件鍵值欄圖譜，分散三者難全兼；網割必然選其一，BASE柔態終一致</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>四大 NoSQL</strong>：文件型（MongoDB/JSON）、鍵值型（Redis/極速快取）、欄式（Cassandra/海量時間序列）、圖形（Neo4j/社交網路關聯）。<br>
+          ② <strong>CAP 定理</strong>：Consistency（一致性）、Availability（可用性）、Partition Tolerance（分區容錯性）；分散式網路必然存在 P，故僅能 <strong>CP（放棄可用）</strong> 或 <strong>AP（放棄強一致）</strong> 抉擇！<br>
+          ③ <strong>BASE 哲學</strong>：Basically Available（基本可用）、Soft state（軟狀態）、Eventual consistency（最終一致性）。</p>
         </div>
 
-        <strong>📊 一、四種 NoSQL 類型</strong>
-        <div class="table-wrap"><table>
-          <tr><th>類型</th><th>資料模型</th><th>特性</th><th>適用情境</th><th>代表</th></tr>
-          <tr><td><strong>鍵值</strong><br>（Key-Value）</td><td>key → value</td><td><strong>最簡單、最快</strong>；只能以 key 查</td><td><strong>快取</strong>、Session、計數器、排行榜</td><td>Redis、Memcached</td></tr>
-          <tr><td><strong>文件</strong><br>（Document）</td><td>JSON／BSON 文件</td><td><strong>綱要彈性</strong>，可巢狀；支援欄位查詢與索引</td><td>結構<strong>常變動</strong>的資料：內容管理、表單、產品目錄</td><td>MongoDB、CouchDB</td></tr>
-          <tr><td><strong>行族</strong><br>（Column-Family）</td><td>列鍵 + 行族</td><td><strong>寫入吞吐極高</strong>、水平擴展佳、適合稀疏資料</td><td><strong>時序資料</strong>、感測器、日誌、大規模寫入</td><td>Cassandra、HBase</td></tr>
-          <tr><td><strong>圖形</strong><br>（Graph）</td><td>節點 + 邊 + 屬性</td><td><strong>關係走訪極快</strong>（多層關聯不需多重 JOIN）</td><td>社群關係、<strong>詐欺偵測</strong>、推薦、組織圖、路網分析</td><td>Neo4j</td></tr>
-        </table></div>
-        <div class="hl"><strong>共同特點</strong>：綱要彈性、<strong>水平擴展（Scale-out）</strong>、多數放寬一致性以換取可用性與效能；<u>多不支援複雜 JOIN 與跨文件交易</u>。</div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">CAP定理證明P必選</span><span class="danger-tag">感測器選型需論證AP/CP</span></div>
+          </div>
 
-        <strong>📊 二、CAP 定理</strong>
-        <div class="table-wrap"><table>
-          <tr><th>字母</th><th>意義</th><th>白話</th></tr>
-          <tr><td><strong>C</strong> 一致性<br>（Consistency）</td><td>所有節點<strong>同時看到相同資料</strong></td><td>不會讀到舊值</td></tr>
-          <tr><td><strong>A</strong> 可用性<br>（Availability）</td><td>每個請求都能<strong>得到（非錯誤）回應</strong></td><td>服務不中斷</td></tr>
-          <tr><td><strong>P</strong> 分區容忍<br>（Partition Tolerance）</td><td>網路分裂時系統<strong>仍能運作</strong></td><td>斷線也能撐住</td></tr>
-        </table></div>
-        <pre>                    C
-                   ／＼
-                  ／  ＼
-          CA     ／     ＼    CP
-      （單機系統） ─────────  （犧牲可用性）
-                ＼        ／
-                 ＼      ／
-                  A ── AP ── P
-                （犧牲一致性）
+          <p><strong>一、四大主流 NoSQL 資料庫類型與適用情境（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>NoSQL 類型</th><th>資料儲存模型</th><th>代表性資料庫</th><th>核心優勢與最佳適用情境</th></tr>
+            <tr><td><strong>文件型（Document）</strong></td><td>JSON / BSON 半結構化文件</td><td><strong>MongoDB</strong>, CouchDB</td><td>綱要動態彈性（Schema-free），適合<strong>多變格式之申辦表單、內容管理系統</strong>。</td></tr>
+            <tr><td><strong>鍵值型（Key-Value）</strong></td><td>簡單的 Key 對應 Value（字串/雜湊）</td><td><strong>Redis</strong>, Memcached</td><td><strong>純記憶體運作，讀寫微秒級極速</strong>，最適合<strong>使用者 Session 快取、公文搶號計數器</strong>。</td></tr>
+            <tr><td><strong>寬欄型（Column-Family）</strong></td><td>稀疏表格，按欄族群（Column Family）儲存</td><td><strong>Apache Cassandra</strong>, HBase</td><td>巨量寫入吞吐量，支援彈性壓縮，最適合<strong>IoT 感測器歷史時序資料、海量網路 Log</strong>。</td></tr>
+            <tr><td><strong>圖形型（Graph）</strong></td><td>節點（Nodes）、邊（Edges）與屬性</td><td><strong>Neo4j</strong></td><td>擅長複雜關係走訪，搜尋深度關聯 O(1)，最適合<strong>公務防洗錢防弊、公職人員利益衝突關係網分析</strong>。</td></tr>
+          </table></div>
 
-  分散式系統中 P 是「必須」的（網路一定會斷）
-  → 實際上是在 C 與 A 之間二選一</pre>
-        <div class="table-wrap"><table>
-          <tr><th>取捨</th><th>選擇</th><th>做法</th><th>例子</th></tr>
-          <tr><td><strong>CP</strong></td><td>保一致性，<strong>犧牲可用性</strong></td><td>分區時<strong>拒絕服務</strong>，寧可不回應也不給錯資料</td><td>HBase、MongoDB（預設）、傳統關聯式叢集</td></tr>
-          <tr><td><strong>AP</strong></td><td>保可用性，<strong>犧牲強一致性</strong></td><td>先回應，之後<strong>最終一致</strong></td><td>Cassandra、DynamoDB</td></tr>
-          <tr><td>CA</td><td>—</td><td><strong>只存在於單機</strong>；分散式環境不可能放棄 P</td><td>單機關聯式資料庫</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>比較</th><th>ACID</th><th>BASE</th></tr>
-          <tr><td>取向</td><td><strong>強一致性優先</strong>（對應 CAP 的 C）</td><td><strong>可用性優先</strong>（對應 CAP 的 A）</td></tr>
-          <tr><td>組成</td><td>Atomicity, Consistency, Isolation, Durability</td><td><strong>B</strong>asically <strong>A</strong>vailable（基本可用）<br><strong>S</strong>oft state（軟狀態）<br><strong>E</strong>ventual consistency（<strong>最終一致</strong>）</td></tr>
-          <tr><td>典型系統</td><td>關聯式資料庫</td><td>多數 NoSQL</td></tr>
-          <tr><td>適用</td><td><strong>金流、稅務、戶政</strong>——零容錯</td><td><strong>感測、日誌、社群</strong>——短暫不一致可接受</td></tr>
-        </table></div>
-        <div class="warn"><span class="t">⚠️ 常見誤解</span>
-        <strong>CAP 不是「三選二」的永久設定，而是「網路分區發生時」的取捨。</strong><br>
-        網路正常時，系統可以同時提供高一致性與高可用性。<u>能寫出這一點會明顯拉高分數。</u></div>
+          <p><strong>二、CAP 定理及其與 ACID / BASE 之關係（8 分）</strong></p>
+          <ol>
+            <li><strong>CAP 定理核心定義</strong>：在分散式系統中，以下三項保證<strong>至多僅能同時滿足兩項</strong>：
+              <ul>
+                <li><strong>C（一致性 Consistency）</strong>：所有節點在同一瞬間讀取到的資料保證完全相同。</li>
+                <li><strong>A（可用性 Availability）</strong>：每個非故障節點接收到請求時，保證必須給予回應（不可超時或回傳錯誤）。</li>
+                <li><strong>P（分區容錯性 Partition Tolerance）</strong>：系統面對任意網路封包遺失或節點斷線通訊中斷時，仍能維持運作。</li>
+              </ul>
+            </li>
+            <li><strong>分散式系統之必然抉擇（P 是絕對前提）</strong>：
+              因為分散式實體網路必然存在延遲或斷線風險（P 必不可少），架構設計必須在 <strong>CP</strong> 與 <strong>AP</strong> 間權衡：
+              <ul>
+                <li><strong>CP 系統</strong>：發生網路分區時，拒絕未同步節點之寫入以保證一致性（放棄部分節點之可用性，如 ZooKeeper、HBase）。</li>
+                <li><strong>AP 系統</strong>：發生網路分區時，各節點繼續接受讀寫，但資料暫時不同步，事後再協商收斂（放棄強一致性，如 Cassandra、DynamoDB）。</li>
+              </ul>
+            </li>
+            <li><strong>ACID vs BASE 哲學對比</strong>：
+              傳統關聯式 DB 追求 <strong>ACID 剛性強一致性</strong>（悲觀鎖定，犧牲水平擴充）；NoSQL 採用 <strong>BASE 柔性最終一致性（Eventual Consistency）</strong>，在確保基本可用（BA）前提下容許短暫軟狀態（S），達成極限水平擴充。
+            </li>
+          </ol>
 
-        <strong>📊 三、本案選型：混合式架構</strong>
-        <div class="table-wrap"><table>
-          <tr><th>子系統</th><th>需求特性</th><th>關鍵取捨</th></tr>
-          <tr><td><strong>感測器資料</strong></td><td>每秒數萬筆<strong>寫入</strong>、時序、資料量巨大、<u>單筆遺失影響小</u></td><td>要<strong>寫入吞吐與可擴展性</strong> → <strong>AP／BASE</strong></td></tr>
-          <tr><td><strong>稅務系統</strong></td><td>涉及<strong>金額與法律效力</strong>、需交易與稽核、資料量相對小</td><td>要<strong>強一致性</strong> → <strong>CP／ACID</strong></td></tr>
-        </table></div>
-        <div class="hl">
-          <strong>核心結論：不應強求單一資料庫，而應採「Polyglot Persistence（多元儲存）」——依各子系統特性分別選型。</strong>
+          <p><strong>三、智慧城市感測器資料平台選型技術規劃（7 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>首選寬欄型 NoSQL（Cassandra）搭配 AP 架構</strong>！<br>
+            ‧ <strong>業務特質分析</strong>：全市數萬處空品、水位、車流感測器，每秒併發寫入量高達數十萬筆，屬於典型的<strong>高頻連續寫入（Write-intensive）、時間序列（Time-series）</strong>情境。<br>
+            ‧ <strong>CAP 抉擇理由</strong>：IoT 感測著重<strong>高可用性（A）與容錯（P）</strong>，即便某區網路短暫斷線，平台亦不可中斷寫入，且各監控儀表板對「1 秒內的感測數值微幅延遲」完全容忍（即接受最終一致性），故果斷選擇 <strong>AP 系統（Cassandra）</strong>。<br>
+            ‧ <strong>架構落地</strong>：前端以 <strong>Kafka 訊息佇列</strong> 進行流量削峰填谷，後端以 <strong>Cassandra</strong> 儲存時序資料，熱資料快照送入 <strong>Redis</strong> 供首長即時儀表板毫秒級展示！
+          </div>
         </div>
-        <div class="table-wrap"><table>
-          <tr><th>層次</th><th>建議技術</th><th>理由</th></tr>
-          <tr><td>感測資料接收</td><td><strong>訊息佇列</strong>（Kafka 等）</td><td><strong>削峰填谷</strong>，避免瞬間高峰打垮後端；並可多方訂閱</td></tr>
-          <tr><td>感測資料儲存</td><td><strong>時序資料庫</strong>（InfluxDB／TimescaleDB）或<strong>行族式</strong>（Cassandra）</td><td>寫入吞吐高、<strong>自動依時間分區</strong>、支援降採樣與保存政策</td></tr>
-          <tr><td>即時監控</td><td><strong>鍵值（Redis）</strong>存最新值</td><td>儀表板讀取<strong>毫秒級</strong></td></tr>
-          <tr><td><strong>稅務系統</strong></td><td><strong>維持關聯式資料庫（ACID）</strong></td><td>交易正確性、外鍵完整性、成熟的稽核與備份機制；<u>絕不可為了「統一技術」而遷移</u></td></tr>
-          <tr><td>整合分析</td><td><strong>資料倉儲</strong>，以 ETL 定期彙整兩邊的<strong>彙總資料</strong></td><td>分析平台與線上系統分離，避免報表拖垮營運</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>實務考量（加分段）</th><th>說明</th></tr>
-          <tr><td>資料保存政策</td><td>感測原始資料量極大 → 訂定<strong>降採樣</strong>（如 30 天後由每秒改為每小時平均）與<strong>保存年限</strong></td></tr>
-          <tr><td>維運能量</td><td>導入多套資料庫會<strong>增加維運複雜度</strong>；機關人力有限，應評估<strong>委外或雲端託管服務</strong></td></tr>
-          <tr><td><strong>資安</strong></td><td>感測設備屬 IoT，須<strong>獨立網段</strong>、<strong>變更預設密碼</strong>、傳輸加密；依《資通安全管理法》納入維護計畫</td></tr>
-          <tr><td>個資</td><td>影像或定位類感測資料可能涉個資 → 須評估<strong>特定目的</strong>與<strong>去識別化</strong></td></tr>
-          <tr><td>採購</td><td>優先評估開源方案；契約明定<strong>資料可攜與退場條款</strong>，避免<strong>廠商鎖定</strong></td></tr>
-        </table></div>
 
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 四種類型<strong>各要有適用情境與代表產品</strong>，不能只列名稱<br>
-        2. CAP <strong>要指出「分散式系統中 P 是必須的，實際是 C 與 A 二選一」</strong><br>
-        3. 補充<strong>「CAP 是分區發生時的取捨，非永久三選二」</strong>——高分關鍵句<br>
-        4. ACID ↔ C、BASE ↔ A 的對應要寫清楚，BASE 三個字要展開<br>
-        5. 第三小題<strong>必須提出混合式架構</strong>，並明確說<strong>「稅務系統維持關聯式，不遷移」</strong>——只推薦 NoSQL 是嚴重失分<br>
-        6. 加分：<strong>訊息佇列削峰</strong>、<strong>降採樣與保存政策</strong>、<strong>維運能量與廠商鎖定</strong>
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 四大 NoSQL 類型、資料模型、代表產品與適用情境完全對應。<br>
+        2. CAP 定理三大要素嚴謹定義。<br>
+        3. <strong>明確論證為何分散式環境下 P 為必選，系統本質是在 CP 與 AP 間取捨</strong>。<br>
+        4. ACID 強一致與 BASE 最終一致性對比深刻。<br>
+        5. 智慧城市感測器選型明確推薦 <strong>寬欄型/時序型（如 Cassandra/AP）</strong> 並具備充沛論證。
+</div>
       </div>
     </details>
   </div>
@@ -1770,109 +1645,85 @@ SELECT * FROM 使用者 WHERE 帳號='' OR '1'='1' --' AND 密碼=''
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、五個基本運算（表）→ 二、衍生運算推導 → 三、除法定義＋實例＋SQL 改寫 → 四、集合語意 vs 多重集語意（表）
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】選投積聯差五基，天然連接積選投；除法找尋全具備，雙重否定轉存在</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>五大基本運算</strong>：選擇 <code>σ</code>、投影 <code>π</code>、卡氏積 <code>×</code>、聯集 <code>∪</code>、差集 <code>−</code>。<br>
+          ② <strong>推導運算</strong>：交集 <code>R ∩ S = R − (R − S)</code>；自然連接 <code>R ⨝ S = π(σ(R × S))</code>。<br>
+          ③ <strong>除法運算（R ÷ S）</strong>：找出「包含 S 中所有特徵」之對象；SQL 無除法，以 <strong>NOT EXISTS 雙重否定</strong> 改寫！</p>
         </div>
 
-        <strong>📊 一、五個基本運算</strong>
-        <div class="table-wrap"><table>
-          <tr><th>運算</th><th>符號</th><th>作用</th><th>對應 SQL</th></tr>
-          <tr><td><strong>選擇</strong>（Selection）</td><td>σ</td><td><strong>挑列</strong>（水平切）</td><td><code>WHERE</code></td></tr>
-          <tr><td><strong>投影</strong>（Projection）</td><td>π</td><td><strong>挑欄</strong>（垂直切），<u>並自動去除重複</u></td><td><code>SELECT DISTINCT</code></td></tr>
-          <tr><td><strong>聯集</strong>（Union）</td><td>∪</td><td>兩關聯合併（須<strong>相容</strong>：欄數相同、對應型別相同）</td><td><code>UNION</code></td></tr>
-          <tr><td><strong>差集</strong>（Set Difference）</td><td>−</td><td>屬於 R 但不屬於 S</td><td><code>EXCEPT</code>／<code>MINUS</code></td></tr>
-          <tr><td><strong>笛卡兒乘積</strong>（Cartesian Product）</td><td>×</td><td>兩關聯所有組合（m × n 列）</td><td><code>CROSS JOIN</code></td></tr>
-        </table></div>
-        <div class="hl">其餘運算（交集、各種 join、除法、更名）皆為<strong>衍生運算</strong>，可由這五個組合而成。</div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">五大基本運算符號必寫</span><span class="danger-tag">除法雙重否定SQL必背</span></div>
+          </div>
 
-        <strong>📊 二、衍生運算之推導</strong>
-        <div class="frame">
-          <span class="t">📐 Theta Join（θ-Join）</span>
-          <strong>R ⋈<sub>θ</sub> S = σ<sub>θ</sub>( R × S )</strong><br>
-          → 先做<strong>笛卡兒乘積</strong>產生所有組合，再用<strong>選擇</strong>留下符合條件者。<br><br>
-          <span class="t">📐 自然連結（Natural Join）</span>
-          <strong>R ⋈ S = π<sub>去除重複欄</sub>( σ<sub>R.A = S.A</sub>( R × S ) )</strong><br>
-          → 在 θ-Join 的基礎上，條件為<u>同名欄位相等</u>，並以投影去除重複欄位。<br><br>
-          <span class="t">📐 交集（Intersection）</span>
-          <strong>R ∩ S = R − ( R − S )</strong><br>
-          → 用<strong>兩次差集</strong>即可。<u>（也可寫成 S − (S − R)）</u>
-        </div>
-        <p style="font-size:.88rem"><strong>驗證交集公式</strong>：R = {1,2,3}、S = {2,3,4}<br>
-        R − S = {1}；R − (R−S) = {1,2,3} − {1} = <strong>{2,3}</strong> ✔ 正是交集。</p>
-
-        <strong>📊 三、除法運算（Division）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>內容</th></tr>
-          <tr><td>符號</td><td><strong>R ÷ S</strong></td></tr>
-          <tr><td>語意</td><td>找出 R 中<strong>與 S 的「每一個」值都配對過</strong>的那些項目</td></tr>
-          <tr><td>對應的中文問法</td><td>「<strong>找出符合<u>所有</u>條件的…</strong>」「…<strong>全部</strong>都…的…」</td></tr>
-          <tr><td>形式定義</td><td>R(A, B) ÷ S(B) = { a | ∀ b ∈ S，(a, b) ∈ R }</td></tr>
-          <tr><td>可由基本運算推導</td><td>R ÷ S = π<sub>A</sub>(R) − π<sub>A</sub>( ( π<sub>A</sub>(R) × S ) − R )<br><u>意思是：從所有 a 中，扣掉「有某個 b 沒配到」的 a</u></td></tr>
-        </table></div>
-        <div class="frame">
-          <span class="t">📐 實例：找出「報名了<u>全部</u>研習課程」的員工</span>
+          <p><strong>一、關聯代數五大基本運算與衍生推導（10 分）</strong></p>
           <div class="table-wrap"><table>
-            <tr><th>報名 R</th><th>員工</th><th>課程</th></tr>
-            <tr><td></td><td>張三</td><td>C1</td></tr>
-            <tr><td></td><td>張三</td><td>C2</td></tr>
-            <tr><td></td><td>張三</td><td>C3</td></tr>
-            <tr><td></td><td>李四</td><td>C1</td></tr>
-            <tr><td></td><td>李四</td><td>C3</td></tr>
-            <tr><td></td><td>王五</td><td>C2</td></tr>
+            <tr><th>運算名稱</th><th>代數符號</th><th>運算定義與限制條件</th></tr>
+            <tr><td><strong>選擇（Selection）</strong></td><td><code>σ_{條件}(R)</code></td><td>水平篩選滿足布林條件之資料列（Tuples）。</td></tr>
+            <tr><td><strong>投影（Projection）</strong></td><td><code>π_{欄位清單}(R)</code></td><td>垂直選取指定欄位屬性，並自動去除重複值（Set 語意）。</td></tr>
+            <tr><td><strong>卡氏積（Cartesian Product）</strong></td><td><code>R × S</code></td><td>兩個關聯表之所有可能列配對組合，屬性數相加，列數相乘。</td></tr>
+            <tr><td><strong>聯集（Union）</strong></td><td><code>R ∪ S</code></td><td>合併兩表中所有列並去重。<strong>限制：必須具備型態相容（Union-Compatible）</strong>。</td></tr>
+            <tr><td><strong>差集（Set Difference）</strong></td><td><code>R − S</code></td><td>包含在 R 中但不包含在 S 中之列。<strong>限制：必須具備型態相容</strong>。</td></tr>
           </table></div>
-          課程 S = {C1, C2, C3}<br><br>
-          <strong>R ÷ S = { 張三 }</strong>（只有張三三門全報）
+
+          <p><strong>【衍生運算推導公式】</strong></p>
+          <ol>
+            <li><strong>交集運算（Intersection）</strong>：<code>R ∩ S = R − (R − S)</code></li>
+            <li><strong>自然連接（Natural Join）</strong>：<code>R ⨝ S = π_{欄位}(σ_{R.同名欄位 = S.同名欄位}(R × S))</code> ➔ 先以<strong>卡氏積</strong>展開，再以<strong>選擇</strong>過濾鍵值相等者，最後以<strong>投影</strong>去除重複同名欄位！</li>
+          </ol>
+
+          <p><strong>二、除法運算（Division）定義與 SQL 改寫（15 分）</strong></p>
+          <ol>
+            <li><strong>除法運算代數意義（R ÷ S）</strong>：
+              若 <code>R</code> 的屬性為 <code>(A, B)</code>，<code>S</code> 的屬性為 <code>(B)</code>，則 <code>R ÷ S</code> 的輸出屬性為 <code>(A)</code>。<br>
+              其定義為：<strong>找出所有 A 值，使得其在 R 中與 S 裡面的「每一個 B 值」皆存在配對關係！</strong><br>
+              常考情境：「<strong>修習了資工系『全部』必修課程的學生</strong>」或「<strong>採購了甲公司『全部』軟硬體設備的機關</strong>」。
+            </li>
+            <li><strong>為什麼 SQL 沒有直接提供 DIVISION 關鍵字？</strong><br>
+              因為除法屬於「全稱量詞（Universal Quantifier, ∀）」概念。依據一階邏輯等價性（De Morgan 定律），<code>∀x P(x) ⟺ ¬∃x (¬P(x))</code>，SQL 可透過既有的<strong>「雙重否定（NOT EXISTS）」</strong>或 <code>COUNT(DISTINCT)</code> 完美表達，因此無需冗餘語法。
+            </li>
+            <li><strong>SQL 標準雙重否定改寫實作</strong>：
+              <div class="frame">
+                題目：找出修習過「資訊處開設之全部課程」的同仁：
+                <pre style="background:#f8fafc;padding:10px;border-radius:6px;font-family:Consolas,monospace;margin-top:6px;">
+SELECT e.員工編號, e.姓名
+FROM 員工 e
+WHERE NOT EXISTS (
+    -- 找出資訊處開設的全部課程
+    SELECT c.課程代碼
+    FROM 課程 c
+    WHERE c.開課單位 = '資訊處'
+      AND NOT EXISTS (
+          -- 該同仁有修習的紀錄
+          SELECT 1
+          FROM 研習報名 r
+          WHERE r.員工編號 = e.員工編號
+            AND r.課程代碼 = c.課程代碼
+      )
+);
+                </pre>
+                <strong>白話邏輯</strong>：不存在任何一堂資訊處的課程，是該員工所「未修習」的！
+              </div>
+            </li>
+          </ol>
+
+          <p><strong>三、公門實務稽核查詢加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>資安與差勤稽核實踐</strong>：依據法規，公務人員每年必須完成特定 4 類法定訓練（資安通識 3 小時、廉政倫理、性平、環境教育）。利用除法邏輯（雙重 NOT EXISTS），政風與人資單位能一鍵抓出「尚未完全合規完成全部 4 項法定研習之同仁清冊」，自動寄發催辦公文，確保機關受評考核滿分。
+          </div>
         </div>
-        <div class="table-wrap"><table>
-          <tr><th>為何 SQL 沒有除法運算子</th><th>說明</th></tr>
-          <tr><td>SQL 缺乏<strong>全稱量詞（∀）</strong></td><td>SQL 只有 <code>EXISTS</code>（存在量詞 ∃），沒有 <code>FOR ALL</code></td></tr>
-          <tr><td>邏輯轉換</td><td><strong>「對所有 x 皆成立」 ⟺ 「不存在 x 使其不成立」</strong><br>∀x P(x) ⟺ ¬∃x ¬P(x)</td></tr>
-          <tr><td>實作</td><td>因此以 <strong>雙重 NOT EXISTS</strong> 改寫</td></tr>
-        </table></div>
-        <pre>-- 解法 1：雙重 NOT EXISTS（標準答案）
-SELECT DISTINCT e.員工編號, e.姓名
-FROM   員工 e
-WHERE  NOT EXISTS (                       -- 不存在這樣一門課
-         SELECT 1 FROM 課程 c
-         WHERE NOT EXISTS (               -- 是他沒報名的
-                 SELECT 1 FROM 報名 r
-                 WHERE r.員工編號 = e.員工編號
-                   AND r.課程代碼 = c.課程代碼 ) );
--- 白話：「不存在一門課，是他沒報名的」＝「所有課他都報了」
 
--- 解法 2：計數比對（較直觀，實務常用）
-SELECT r.員工編號
-FROM   報名 r
-WHERE  r.課程代碼 IN (SELECT 課程代碼 FROM 課程)
-GROUP BY r.員工編號
-HAVING COUNT(DISTINCT r.課程代碼) = (SELECT COUNT(*) FROM 課程);</pre>
-        <div class="warn"><span class="t">⚠️ 解法 2 的兩個必要細節</span>
-        ① 必須用 <strong><code>COUNT(DISTINCT ...)</code></strong>——若同一人可重複報名同一課，不加 DISTINCT 會誤判<br>
-        ② 若報名表可能含<u>已停開課程</u>，須加 <code>WHERE ... IN (SELECT 課程代碼 FROM 課程)</code> 限定範圍</div>
-
-        <strong>📊 四、重複值處理的差異</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>關聯代數</th><th>SQL</th></tr>
-          <tr><td>理論基礎</td><td><strong>集合（Set）語意</strong></td><td><strong>多重集／包（Multiset／Bag）語意</strong></td></tr>
-          <tr><td>是否允許重複列</td><td><strong>不允許</strong>（集合的定義）</td><td><strong>允許</strong></td></tr>
-          <tr><td>投影 / SELECT</td><td>π <strong>自動去除重複</strong></td><td><code>SELECT</code> <strong>保留重複</strong>；須明寫 <code>DISTINCT</code></td></tr>
-          <tr><td>聯集</td><td>∪ 去除重複</td><td><code>UNION</code> 去重；<strong><code>UNION ALL</code> 保留重複</strong>（且較快）</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>SQL 為何允許重複</th><th>說明</th></tr>
-          <tr><td><strong>效能</strong></td><td>去除重複需<strong>排序或雜湊</strong>，成本高；預設不去重可避免不必要的開銷</td></tr>
-          <tr><td><strong>實務需要</strong></td><td>聚合運算需要重複值才正確——<code>COUNT(*)</code>、<code>SUM(薪資)</code> 若自動去重會得到<strong>錯誤結果</strong></td></tr>
-          <tr><td>實務提醒</td><td>已知結果不會重複時，<strong>用 <code>UNION ALL</code> 而非 <code>UNION</code></strong>，可省下排序成本</td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 五個基本運算<strong>要寫符號並對應 SQL</strong><br>
-        2. 推導要<strong>寫出算式</strong>（θ-Join = σ(R×S)；交集 = R − (R − S)）並<strong>舉數字驗證</strong><br>
-        3. 除法的關鍵是<strong>「找出符合『所有』條件者」</strong>，並<strong>舉表格實例</strong><br>
-        4. <strong>必須寫出「SQL 缺全稱量詞，∀x P(x) ⟺ ¬∃x ¬P(x)」</strong>——本題核心，也是最容易失分處<br>
-        5. <strong>雙重 NOT EXISTS 的 SQL 要完整寫出</strong>，並附白話解釋<br>
-        6. 第三小題要點出<strong>「集合語意 vs 多重集語意」</strong>，並說明 SQL 允許重複是為了<strong>效能與聚合正確性</strong>
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 五大基本運算（σ, π, ×, ∪, −）與相容性限制列出完整。<br>
+        2. 交集與 Natural Join 均以五大基本運算推導證明。<br>
+        3. 除法運算語意「全稱量詞 ∀、包含 S 中所有特徵」精確定義。<br>
+        4. SQL 改寫<strong>精確給出雙重 NOT EXISTS 巢狀子查詢</strong>。<br>
+        5. 連結機關年度法定研習稽核實踐。
+</div>
       </div>
     </details>
   </div>
@@ -1886,84 +1737,66 @@ HAVING COUNT(DISTINCT r.課程代碼) = (SELECT COUNT(*) FROM 課程);</pre>
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、四種機制（表）→ 二、<u>復原流程圖與三類交易的處置</u> → 三、三種備份比較（表）＋RTO/RPO → 四、本案架構建議
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】日誌先行護磁區，未提復原已提做；檢驗點前免重算，RTO時間RPO資料</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>WAL 原理</strong>：日誌必先寫入硬碟，資料庫 Page 才能寫入硬碟！<br>
+          ② <strong>當機復原</strong>：Undo（未 Commit 的全部撤銷還原舊值）；Redo（已 Commit 但未刷盤的全部重做寫入新值）。<br>
+          ③ <strong>Checkpoint</strong>：定期將快取髒頁全刷盤，復原只需回溯至最後一個檢查點！<br>
+          ④ <strong>RTO vs RPO</strong>：RTO（災難發生到系統重新開機可用的時間）；RPO（災難發生容許遺失多久以前的資料）。</p>
         </div>
 
-        <strong>📊 一、四種機制</strong>
-        <div class="table-wrap"><table>
-          <tr><th>機制</th><th>記錄／作用</th><th>用途</th></tr>
-          <tr><td><strong>Undo Log</strong></td><td>記錄修改前的<strong>舊值</strong>（Before Image）</td><td><strong>回復（Rollback）</strong>未完成的交易 → 保障 <strong>A（不可分割性）</strong></td></tr>
-          <tr><td><strong>Redo Log</strong></td><td>記錄修改後的<strong>新值</strong>（After Image）</td><td><strong>重做</strong>已 COMMIT 但尚未寫入磁碟的交易 → 保障 <strong>D（持久性）</strong></td></tr>
-          <tr><td><strong>WAL</strong><br>（預寫式日誌）</td><td><strong>先寫日誌，再寫資料</strong>；COMMIT 前日誌必須落磁碟</td><td>使 COMMIT 只需<strong>循序寫日誌</strong>（快），資料頁可延後寫（隨機寫，慢）→ 兼顧<strong>效能與持久性</strong></td></tr>
-          <tr><td><strong>Checkpoint</strong><br>（檢查點）</td><td>定期將記憶體中的<strong>髒頁寫入磁碟</strong>，並在日誌中標記位置</td><td><strong>縮短復原時間</strong>——復原只需從最後一個檢查點開始掃，不必從頭</td></tr>
-        </table></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">WAL與Checkpoint機制必寫</span><span class="danger-tag">RTO與RPO嚴格圖文區分</span></div>
+          </div>
 
-        <strong>📊 二、當機後的復原流程</strong>
-        <pre>時間軸 ──────────────────────────────────────────►
-                    ↑Checkpoint                    ↑當機
+          <p><strong>一、資料庫復原四大核心機制（12 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>復原機制組件</th><th>核心功能定義</th><th>技術原理與保障目標</th></tr>
+            <tr><td><strong>預寫式日誌（WAL）</strong></td><td><strong>Write-Ahead Logging</strong> 原則</td><td>在任何記憶體中的髒頁（Dirty Page）寫入實體磁碟前，<strong>對應的日誌記錄（Log Record）必須先強制 Flush 入磁碟</strong>！確保當機時絕對留存可供復原之足跡。</td></tr>
+            <tr><td><strong>復原日誌（Undo Log）</strong></td><td>記錄修改前之<strong>舊數值（Old Value）</strong></td><td>若交易執行中途遭遇當機、連線中斷或主動 Rollback，利用 Undo Log <strong>反向撤銷所有未提交變更，保障原子性（Atomicity）</strong>。</td></tr>
+            <tr><td><strong>重做日誌（Redo Log）</strong></td><td>記錄修改後之<strong>新數值（New Value）</strong></td><td>交易已經發出 Commit 成功確認，但髒頁尚未寫回硬碟即遭遇當機斷電。重啟時依 Redo Log <strong>重新播放寫入，保障持久性（Durability）</strong>。</td></tr>
+            <tr><td><strong>檢查點（Checkpoint）</strong></td><td>定時將記憶體中所有 Dirty Pages 與 Log 徹底同步刷盤（Flush）</td><td><strong>極小化復原掃描時間</strong>。當機重啟後，系統<strong>只需由最後一個 Checkpoint 開始向前掃描</strong>，省去重做數月前歷史日誌之冗長時間。</td></tr>
+          </table></div>
 
-  T1  ├────COMMIT──┤                    ← 檢查點前已提交 → 不必處理
-  T2  ├──────────────────COMMIT──┤      ← 檢查點後提交   → REDO
-  T3  ├──────────────────────────────►  ← 尚未提交       → UNDO
-  T4              ├────COMMIT──┤        ← 檢查點後提交   → REDO
-  T5                      ├──────────►  ← 尚未提交       → UNDO</pre>
-        <div class="table-wrap"><table>
-          <tr><th>階段</th><th>作為</th></tr>
-          <tr><td><strong>① 分析（Analysis）</strong></td><td>由<strong>最後一個 Checkpoint</strong> 開始掃描日誌，建立兩份清單：<br><strong>Redo List</strong>（已 COMMIT）／<strong>Undo List</strong>（未 COMMIT）</td></tr>
-          <tr><td><strong>② 重做（Redo）</strong></td><td>由檢查點<strong>往後（前向）</strong>掃描，將 Redo List 中交易的<strong>新值</strong>重新套用<br>→ 確保已回覆使用者「成功」的交易確實生效</td></tr>
-          <tr><td><strong>③ 回復（Undo）</strong></td><td>由日誌<strong>末端往前（反向）</strong>掃描，將 Undo List 中交易的<strong>舊值</strong>寫回<br>→ 確保未完成的交易不留下半套結果</td></tr>
-          <tr><td>④ 開放服務</td><td>復原完成後恢復對外服務；記錄事件並檢討</td></tr>
-        </table></div>
-        <div class="hl">
-        <strong>記憶要訣：Redo「向後（前向）重做已提交的」；Undo「向前（反向）回復未提交的」。</strong><br>
-        關鍵判準是 <strong>COMMIT 紀錄是否存在於日誌中</strong>——有就 Redo，沒有就 Undo。
+          <p><strong>二、資料庫當機後之標準三階段 ARIES 復原流程</strong></p>
+          <ol>
+            <li><strong>分析階段（Analysis Phase）</strong>：由最後一個 Checkpoint 開始順向掃描日誌，重建當機瞬間的「作用中交易清單（Active Transaction Table）」與「髒頁清單（Dirty Page Table）」。</li>
+            <li><strong>重做階段（Redo Phase）</strong>：順向播放所有已提交交易之 Redo 日誌，將資料庫還原至當機前一刻的確切實體狀態。</li>
+            <li><strong>撤銷階段（Undo Phase）</strong>：反向撤銷所有「當機時仍處於 Active、未曾 Commit」的未完成交易，藉由 Undo Log 還原舊值，重回一致性！</li>
+          </ol>
+
+          <p><strong>三、三大備份類型比較與 RTO / RPO 指標（13 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>備份類型</th><th>備份涵蓋範圍</th><th>備份耗時與空間</th><th>災難復原時所需步驟與還原速度</th></tr>
+            <tr><td><strong>完整備份（Full Backup）</strong></td><td>全資料庫所有檔案與架構</td><td>最大、耗時最長</td><td><strong>最快</strong>（僅需還原單一備份檔案）</td></tr>
+            <tr><td><strong>差異備份（Differential）</strong></td><td>自<strong>「上次完整備份」</strong>後所有異動資料</td><td>中等</td><td>快（只需：最後一次完整備份 + 最後一次差異備份）</td></tr>
+            <tr><td><strong>增量備份（Incremental）</strong></td><td>自<strong>「上次任意備份」</strong>後所有增量日誌</td><td><strong>最小、最快</strong></td><td>較慢（需：完整備份 + 依序套用其後<strong>每一個</strong>增量日誌，斷一不可）</td></tr>
+          </table></div>
+
+          <p><strong>【RTO 與 RPO 核心指標準則】</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>指標</th><th>全稱與嚴格定義</th><th>架構設計實踐意涵</th></tr>
+            <tr><td><strong>RTO</strong></td><td><strong>復原時間目標（Recovery Time Objective）</strong>：災難發生時，系統從中斷到<strong>恢復服務上線所能容忍之最大時間上限</strong>。</td><td>決定備援架構：RTO &lt; 1 小時需採用<strong>主從熱備援（Active-Standby Hot Standby）</strong>與自動切換。</td></tr>
+            <tr><td><strong>RPO</strong></td><td><strong>復原點目標（Recovery Point Objective）</strong>：災難發生時，機關<strong>所能容忍遺失之最大資料時間範圍</strong>（以時間衡量資料量）。</td><td>決定備份頻率：RPO &lt; 15 分鐘必須採用<strong>資料庫交易 Log 即時串流複寫（Log Shipping / CDC）</strong>。</td></tr>
+          </table></div>
+
+          <p><strong>四、公門核心系統災難復原加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>資通安全管理法責任等級規劃</strong>：國家關鍵基礎設施（A 級機關）之關鍵業務系統，法定要求 RTO ≤ 4 小時、RPO ≤ 1 小時，且每年必須進行無預警災難復原實機演練（DR Drill）。架構上必須遵循 <strong>3-2-1 備份黃金法則</strong>（3 份複本、2 種不同儲存媒介、1 份異地或離線保存），以防範勒索軟體連帶加密備份磁碟。
+          </div>
         </div>
 
-        <strong>📊 三、三種備份與 RTO／RPO</strong>
-        <div class="table-wrap"><table>
-          <tr><th>類型</th><th>備份內容</th><th>備份時間</th><th>占用空間</th><th>還原步驟</th><th>還原時間</th></tr>
-          <tr><td><strong>完整備份</strong></td><td>全部資料</td><td><strong>最長</strong></td><td><strong>最大</strong></td><td><strong>1 份</strong></td><td><strong>最短</strong></td></tr>
-          <tr><td><strong>差異備份</strong></td><td>自<u>上次<strong>完整</strong>備份</u>以來的異動</td><td>中（<u>逐日變長</u>）</td><td>中</td><td><strong>2 份</strong>（完整 + 最近一次差異）</td><td>中</td></tr>
-          <tr><td><strong>增量備份</strong></td><td>自<u>上次<strong>任何</strong>備份</u>以來的異動</td><td><strong>最短</strong></td><td><strong>最小</strong></td><td><strong>完整 + 全部增量</strong></td><td><strong>最長</strong>（且<u>任一份損毀即斷鏈</u>）</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>指標</th><th>全名</th><th>意義</th><th>白話</th><th>由什麼決定</th></tr>
-          <tr><td><strong>RTO</strong></td><td>Recovery Time Objective</td><td>可容忍的<strong>停機時間</strong>上限</td><td><strong>多久要修好</strong></td><td>備援架構、還原速度、演練熟練度</td></tr>
-          <tr><td><strong>RPO</strong></td><td>Recovery Point Objective</td><td>可容忍的<strong>資料遺失量</strong>上限</td><td><strong>能掉多久的資料</strong></td><td><strong>備份／日誌傳送頻率</strong></td></tr>
-        </table></div>
-        <div class="frame">
-          <span class="t">📐 兩者的關鍵區別</span>
-          RPO 看的是<strong>「往回看，最後一個可用的還原點在多久以前」</strong>；<br>
-          RTO 看的是<strong>「往前看，從故障到恢復服務要多久」</strong>。<br><br>
-          <strong>RPO 靠備份頻率，RTO 靠備援架構。</strong>兩者要求越嚴格，成本越高——須依業務衝擊分析（BIA）合理設定。
-        </div>
-
-        <strong>📊 四、本案建議（RTO ≤ 2 小時、RPO ≤ 5 分鐘）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>要求</th><th>推論</th><th>作法</th></tr>
-          <tr><td><strong>RPO ≤ 5 分鐘</strong></td><td>資料最多只能掉 5 分鐘 → 光靠每日備份<strong>絕對不夠</strong></td><td><strong>交易日誌每 5 分鐘（或更頻繁）備份／傳送</strong>；或採<strong>非同步複寫</strong>至備援站</td></tr>
-          <tr><td><strong>RTO ≤ 2 小時</strong></td><td>2 小時內須恢復服務 → 從頭還原大型資料庫可能來不及</td><td>建置<strong>熱備援（Standby）</strong>資料庫，可<strong>快速切換</strong>；並預先撰寫切換程序</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>層次</th><th>建議架構</th></tr>
-          <tr><td>備份排程</td><td><strong>每週完整備份 ＋ 每日差異備份 ＋ 交易日誌每 5 分鐘備份</strong>（選差異而非增量，以縮短還原步驟＝顧 RTO）</td></tr>
-          <tr><td>高可用</td><td>同機房<strong>資料庫叢集或同步複寫</strong>，單一主機故障可自動切換（RTO 以分鐘計）</td></tr>
-          <tr><td><strong>異地備援</strong></td><td>另一機房建<strong>非同步複寫</strong>之待命資料庫，因應機房級災害</td></tr>
-          <tr><td>備份保存</td><td><strong>3-2-1 原則</strong>（3 份副本、2 種媒體、1 份異地）；並保留<strong>離線／不可變副本</strong>以防勒索軟體</td></tr>
-          <tr><td><strong>定期演練</strong></td><td><strong>「備份成功」不等於「還原成功」</strong>——須定期實際還原測試並<strong>計時</strong>，驗證確實符合 RTO／RPO</td></tr>
-          <tr><td>制度面</td><td>納入<strong>營運持續計畫（BCP）</strong>；明訂切換決策權責與對外公告程序；依《資通安全管理法》辦理演練與檢討</td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. Undo↔A、Redo↔D 的對應要寫出來<br>
-        2. <strong>WAL「先寫日誌再寫資料」與其效能理由</strong>（循序 vs 隨機寫入）<br>
-        3. Checkpoint 的作用是<strong>縮短復原時間</strong><br>
-        4. 復原流程<strong>要畫時間軸圖</strong>，並說明判準是<strong>「日誌中有無 COMMIT 紀錄」</strong><br>
-        5. 三種備份比較<strong>務必含「還原步驟數」</strong>——這才是選差異或增量的實務判準<br>
-        6. <strong>RPO 靠備份頻率、RTO 靠備援架構</strong>——一句話定生死<br>
-        7. 第三小題要<strong>逐一回應兩個數字</strong>；並寫<strong>「備份成功不等於還原成功，須演練並計時」</strong>
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. WAL 原理（日誌必先於資料刷盤）與 Undo/Redo/Checkpoint 定義精確。<br>
+        2. ARIES 復原三階段（分析、重做、撤銷）邏輯完整。<br>
+        3. 三大備份（完整、差異、增量）還原步數對比清晰。<br>
+        4. <strong>RTO（系統能中斷多久）與 RPO（資料能丟多少）明確區辨</strong>。<br>
+        5. 結合公務資安責任等級 A 級與 3-2-1 備份法則。
+</div>
       </div>
     </details>
   </div>
@@ -1977,110 +1810,74 @@ HAVING COUNT(DISTINCT r.課程代碼) = (SELECT COUNT(*) FROM 課程);</pre>
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、View 定義、功能、限制（表）→ 二、權限控管實例（SQL）→ 三、預存程序 vs 觸發器（表）→ 四、物化檢視表（表）
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】檢視唯讀防洩密，預存預譯減網路；觸發事件動拘束</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>View（檢視表）</strong>：虛擬資料表（只存 SQL 定義），隱藏敏感欄位、行列級權限隔離；含聚合函數或多表者不可更新。<br>
+          ② <strong>預存程序（Stored Procedure）</strong>：預先編譯放伺服器，減少網路傳輸與 SQL 解析負擔，防 Injection。<br>
+          ③ <strong>觸發器（Trigger）</strong>：由 INSERT/UPDATE/DELETE 事件自動引發，強制跨表商業限制與自動審計日誌！</p>
         </div>
 
-        <strong>📊 一、檢視表（View）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>內容</th></tr>
-          <tr><td>定義</td><td>以 SQL 查詢定義的<strong>虛擬表</strong>；<strong>只儲存查詢定義，不儲存資料</strong>，查詢時才動態執行</td></tr>
-          <tr><td>對應三層架構</td><td>屬 <strong>外部層（External Level）</strong>，提供各使用者不同的資料視角</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>功能</th><th>說明</th></tr>
-          <tr><td><strong>① 安全性（最主要）</strong></td><td>只開放<strong>必要的欄位與列</strong>，隱藏敏感資料</td></tr>
-          <tr><td><strong>② 簡化複雜查詢</strong></td><td>將多表 JOIN 封裝為單一「表」，使用者不需理解底層結構</td></tr>
-          <tr><td><strong>③ 邏輯資料獨立性</strong></td><td>底層表結構調整時，<strong>修改 View 定義即可</strong>，應用程式不必改</td></tr>
-          <tr><td>④ 一致的計算邏輯</td><td>常用的計算（如年資、逾期天數）集中定義，避免各程式算法不一</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>限制</th><th>說明</th></tr>
-          <tr><td><strong>① 效能不會變好</strong></td><td>View 只是查詢的<u>代名詞</u>；<strong>不會預先計算，也不會加速</strong>；巢狀多層的 View 可能使最佳化器難以產生好的執行計畫</td></tr>
-          <tr><td><strong>② 不一定可更新</strong></td><td>含 <code>DISTINCT</code>、<code>GROUP BY</code>、聚合函數、<code>UNION</code>、多表 JOIN 的 View <strong>通常不可直接 INSERT／UPDATE</strong>——因為無法對應回底層的唯一一列</td></tr>
-          <tr><td>③ 相依性</td><td>底層表<strong>刪除或改名</strong>會使 View 失效</td></tr>
-          <tr><td>④ 不能建索引</td><td>一般 View 無法建立索引（<u>物化檢視表則可以</u>）</td></tr>
-        </table></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">View不可更新條件必列</span><span class="danger-tag">Trigger實作Audit Log</span></div>
+          </div>
 
-        <strong>📝 二、用於權限控管的實例</strong>
-        <pre>-- 情境：人事資料含薪資與身分證字號，一般單位僅可查基本資料
+          <p><strong>一、檢視表（View）功能、限制與資安權限控管應用（10 分）</strong></p>
+          <ol>
+            <li><strong>View 核心功能</strong>：View 是由 SQL 查詢定義之<strong>虛擬表格（Virtual Table）</strong>，實體上不儲存數據（物化檢視表 Materialized View 除外）。具備<strong>簡化複雜 SQL、統一介面、隱藏底層架構變更</strong>之效益。</li>
+            <li><strong>View 更新限制（Updatable View Criteria）</strong>：
+              若欲透過 View 執行 UPDATE/INSERT，該 View 必須具備「一對一單表對映」。<strong>若包含以下元素則嚴格禁止更新</strong>：
+              <ul>
+                <li>包含 <code>DISTINCT</code> 去除重複。</li>
+                <li>包含聚合函數（<code>SUM, AVG, COUNT, MAX, MIN</code>）或 <code>GROUP BY / HAVING</code>。</li>
+                <li>包含多表 <code>JOIN</code>（除非滿足特定保留鍵限制）。</li>
+                <li>包含 <code>UNION</code> 聯集運算。</li>
+              </ul>
+            </li>
+            <li><strong>公務系統資安權限控管實例</strong>：
+              <div class="frame">
+                情境：公務人薪主表包含身分證、考績、底薪與帳戶。一般科室人事助理僅能查閱同仁職稱與分機，不可查閱薪資：
+                <pre style="background:#f8fafc;padding:8px;border-radius:6px;font-family:Consolas,monospace;">
+-- 建立去敏感檢視表（欄位級權限遮蔽）
+CREATE VIEW vw_公務通訊錄 AS 
+SELECT 員工編號, 姓名, 科室代碼, 業務分機 
+FROM 員工主表 WHERE 離職註記 = 'N';
 
--- ① 建立僅含必要欄位的檢視表（欄位層級控管）
-CREATE VIEW v_員工通訊錄 AS
-SELECT 員工編號, 姓名, 部門代碼, 職稱, 分機
-FROM   員工;                          -- 不含薪資、身分證字號、到職日
+-- 授權人事助理僅能存取 View，收回原始主表權限
+REVOKE ALL ON 員工主表 FROM 人事助理;
+GRANT SELECT ON vw_公務通訊錄 TO 人事助理;
+                </pre>
+                👉 <strong>達成行列級精準隔離，即便 SQL 遭注入亦無法越權窺探薪資主表！</strong>
+              </div>
+            </li>
+          </ol>
 
--- ② 建立僅含本單位資料的檢視表（列層級控管）
-CREATE VIEW v_本單位員工 AS
-SELECT 員工編號, 姓名, 職稱, 分機
-FROM   員工
-WHERE  部門代碼 = ( SELECT 部門代碼 FROM 使用者對照
-                    WHERE 帳號 = CURRENT_USER );
+          <p><strong>二、預存程序（Stored Procedure）vs 觸發器（Trigger）評比（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>預存程序（Stored Procedure）</th><th>觸發器（Trigger）</th></tr>
+            <tr><td><strong>叫用方式</strong></td><td><strong>顯式呼叫（Explicit Call）</strong>：由後端程式或使用者以 <code>EXEC / CALL</code> 執行</td><td><strong>隱式事件驅動（Implicit Event-driven）</strong>：發生特定事件自動觸發</td></tr>
+            <tr><td><strong>觸發時機</strong></td><td>應用程式視商業邏輯流程按需調用</td><td>資料表發生 <code>INSERT / UPDATE / DELETE</code>（BEFORE 或 AFTER）</td></tr>
+            <tr><td><strong>參數傳遞</strong></td><td><strong>支援</strong>（可傳入 IN 參數、回傳 OUT 參數）</td><td><strong>不支援參數傳遞</strong>（透過特殊暫存表 <code>OLD / NEW</code> 存取前後列）</td></tr>
+            <tr><td><strong>交易控制</strong></td><td>部分資料庫支援在內部進行 <code>COMMIT / ROLLBACK</code></td><td><strong>屬於觸發該事件之交易的一部分</strong>，出錯時強制連帶 Rollback</td></tr>
+            <tr><td><strong>主要適用時機</strong></td><td>複雜商業邏輯處理、批次結算、<strong>防範 SQL 注入</strong></td><td><strong>跨表資料完整性約束、稽核日誌記錄（Audit Logging）</strong></td></tr>
+          </table></div>
 
--- ③ 遮罩顯示（去識別化）
-CREATE VIEW v_案件查詢 AS
-SELECT 案件編號,
-       CONCAT(SUBSTRING(申請人姓名,1,1), '○') AS 申請人,   -- 王○
-       CONCAT(SUBSTRING(身分證字號,1,3), '****',
-              SUBSTRING(身分證字號,8,3))       AS 身分證,   -- A12****89
-       申請日期, 處理狀態
-FROM   案件;
-
--- ④ 只授權 View，不授權底層表 ← 關鍵步驟
-REVOKE ALL ON 員工   FROM 一般使用者;
-GRANT  SELECT ON v_員工通訊錄 TO 一般使用者;</pre>
-        <div class="warn"><span class="t">⚠️ 最關鍵的一步</span>
-        <strong>必須同時「收回底層表的權限」，只授權 View。</strong><br>
-        若使用者仍有底層表的 SELECT 權限，他大可直接查原表 → <strong>View 的控管形同虛設</strong>。<u>這是本小題最容易被忽略、也最能拿分的一句。</u></div>
-
-        <strong>📊 三、預存程序 vs 觸發器</strong>
-        <div class="table-wrap"><table>
-          <tr><th>比較點</th><th>預存程序（Stored Procedure）</th><th>觸發器（Trigger）</th></tr>
-          <tr><td><strong>啟動方式</strong></td><td><strong>明確呼叫</strong>（<code>CALL</code>／<code>EXEC</code>）</td><td><strong>自動觸發</strong>（INSERT／UPDATE／DELETE 事件）</td></tr>
-          <tr><td>參數</td><td><strong>可傳入參數、可回傳值</strong></td><td><strong>不可傳參數、不可回傳值</strong></td></tr>
-          <tr><td>可見性</td><td><strong>高</strong>（程式碼中看得到呼叫）</td><td><strong>低</strong>——<u>「看不見的執行」，最大缺點</u></td></tr>
-          <tr><td>交易</td><td>可自行控制（COMMIT／ROLLBACK）</td><td><strong>屬於觸發它的交易</strong>；失敗會使原交易一併回復</td></tr>
-          <tr><td>除錯</td><td>較容易</td><td><strong>困難</strong>（可能連鎖觸發其他觸發器）</td></tr>
-          <tr><td>效能風險</td><td>可控</td><td><strong>每筆異動都執行</strong>，批次大量更新時可能嚴重拖慢</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>適用時機</th><th>預存程序</th><th>觸發器</th></tr>
-          <tr><td>典型用途</td><td>‧ 複雜業務邏輯封裝（如批次結算）<br>‧ <strong>減少網路往返</strong>（多道 SQL 一次執行）<br>‧ <strong>安全控管</strong>（只授權執行程序，不授權表）</td><td>‧ <strong>稽核軌跡</strong>（自動記錄誰改了什麼）<br>‧ <strong>強制完整性</strong>（超出 CHECK 能力的規則）<br>‧ 自動維護<strong>彙總欄位</strong></td></tr>
-          <tr><td>不宜用於</td><td>過度使用會使業務邏輯分散於資料庫，<strong>不利版本控管與移植</strong></td><td><strong>複雜業務邏輯</strong>——難以追蹤與維護；<u>寧可寫在應用層或預存程序</u></td></tr>
-        </table></div>
-        <div class="hl"><strong>選擇原則：需要「一定會執行、不可被繞過」的，用觸發器（如稽核）；需要「看得見、好維護」的，用預存程序。</strong></div>
-
-        <strong>📊 四、物化檢視表（Materialized View）</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>一般 View</th><th>物化檢視表</th></tr>
-          <tr><td>是否儲存資料</td><td><strong>否</strong>（每次查詢重算）</td><td><strong>是</strong>（實際存放結果）</td></tr>
-          <tr><td>查詢效能</td><td>與原查詢相同</td><td><strong>大幅提升</strong></td></tr>
-          <tr><td>資料即時性</td><td><strong>永遠最新</strong></td><td><strong>可能過期</strong></td></tr>
-          <tr><td>可否建索引</td><td>否</td><td><strong>可以</strong></td></tr>
-          <tr><td>額外成本</td><td>無</td><td>占用空間 ＋ <strong>更新維護成本</strong></td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>用途</th><th>說明</th></tr>
-          <tr><td><strong>報表與統計</strong></td><td>耗時的彙總查詢預先算好（如「各區各月案件統計」），報表<strong>秒開</strong></td></tr>
-          <tr><td>資料倉儲彙總</td><td>作為預先彙總層，減少對明細表的重複掃描</td></tr>
-          <tr><td>跨系統資料快取</td><td>減少對來源系統的查詢壓力</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>注意事項</th><th>說明</th></tr>
-          <tr><td><strong>① 更新策略</strong></td><td><strong>完全重建</strong>（簡單但慢）／<strong>增量更新</strong>（快但需異動紀錄）／<strong>即時同步</strong>（最新但拖慢寫入）</td></tr>
-          <tr><td><strong>② 資料非即時</strong></td><td>使用者可能看到舊資料 → <strong>必須在報表上標示「資料更新時間」</strong>，避免誤解與爭議</td></tr>
-          <tr><td>③ 適用判準</td><td>適合<strong>「讀多寫少、可容忍延遲」</strong>的分析場景；<u>不適用於須即時正確的交易查詢</u></td></tr>
-          <tr><td>④ 更新時機</td><td>宜排於<strong>離峰時段</strong>（如每日凌晨），避免影響線上作業</td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. View <strong>「只存定義不存資料」</strong>、<strong>「不會提升效能」</strong>——最常被誤解的兩點<br>
-        2. 限制要寫<strong>「含 GROUP BY／聚合的 View 不可更新」</strong>及其原因<br>
-        3. 權限控管實例<strong>要寫 SQL</strong>，且<strong>必須包含「收回底層表權限」</strong>——本題關鍵句<br>
-        4. 觸發器的最大缺點是<strong>「看不見的執行」</strong>，且<strong>每筆異動都執行</strong><br>
-        5. 選擇原則要有一句<strong>明確的判準</strong>（稽核用觸發器、業務邏輯用預存程序）<br>
-        6. 物化檢視表要指出<strong>「資料可能過期，須標示更新時間」</strong>
+          <p><strong>三、公門稽核自動化實務應用</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>異動軌跡不可否認性設計（Trigger 實作 Audit Table）</strong>：<br>
+            在土地登記或戶籍變更等極敏感情境，必須防止內部人員私自篡改。可建立 <code>AFTER UPDATE OR DELETE ON 土地登記</code> 觸發器，自動將修改前舊值 <code>OLD.*</code>、新值 <code>NEW.*</code>、修改者 <code>CURRENT_USER</code> 及精確時間戳記自動寫入 <code>稽核歷史日誌表</code>，並禁止任何帳號對日誌表執行 UPDATE/DELETE，徹底符合資通安全管理法之不可否認性要求。
+          </div>
         </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. View 定義為虛擬表（存 SQL 定義）且條列不可更新四大條件。<br>
+        2. View 實施「行列級權限控管」給出精準 GRANT/REVOKE 語法範例。<br>
+        3. 預存程序 vs 觸發器表格涵蓋：叫用方式、參數、交易控制、OLD/NEW 特殊表。<br>
+        4. 提出實務 <strong>Trigger 自動記錄 Audit Log（OLD/NEW）</strong>加分段。
+</div>
       </div>
     </details>
   </div>
@@ -2094,89 +1891,69 @@ GRANT  SELECT ON v_員工通訊錄 TO 一般使用者;</pre>
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、定義與優缺點（表）→ 二、分割 vs 複寫（<u>表＋圖</u>）→ 三、2PC 流程圖與問題 → 四、實務建議
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】垂直拆欄水平列，複寫讀寫分兩端；二階提交備問答，協調當機恐懸垂</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>資料分割（Sharding）</strong>：垂直分割（按欄位拆，冷熱解耦）；水平分片（按主鍵範圍/雜湊分表，解決單機空間與寫入瓶頸）。<br>
+          ② <strong>資料複寫（Replication）</strong>：主從複寫（Master 寫入，Slave 唯讀查詢，提升讀取吞吐量與備援）。<br>
+          ③ <strong>兩階段提交（2PC）</strong>：Phase 1 準備階段（Prepare，投票可否提交）；Phase 2 提交階段（Commit/Abort）。<br>
+          ④ <strong>2PC 致命缺陷</strong>：同步阻塞、協調者單點故障（SPOF）、網路分區導致節點無限期懸垂（Blocking）！</p>
         </div>
 
-        <strong>📊 一、分散式資料庫</strong>
-        <div class="table-wrap"><table>
-          <tr><th>項目</th><th>內容</th></tr>
-          <tr><td>定義</td><td>資料<strong>分散儲存於多個節點</strong>（可跨地理位置），但對使用者<strong>呈現為單一邏輯資料庫</strong></td></tr>
-          <tr><td>理想目標</td><td><strong>分散透明性</strong>——使用者不需知道資料實際存在哪個節點</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>優點</th><th>缺點</th></tr>
-          <tr><td>① <strong>可擴展性</strong>（水平擴展，加機器即可）</td><td>① <strong>設計與維運複雜度高</strong></td></tr>
-          <tr><td>② <strong>高可用</strong>（單一節點故障不中斷）</td><td>② <strong>分散式交易困難</strong>（跨節點難維持 ACID）</td></tr>
-          <tr><td>③ <strong>地理就近存取</strong>（降低延遲）</td><td>③ <strong>網路成為瓶頸與故障點</strong></td></tr>
-          <tr><td>④ 反映組織分權結構（各機關管自己的資料）</td><td>④ <strong>一致性難以保證</strong>（受 CAP 限制）</td></tr>
-          <tr><td>⑤ 容災能力（異地備援）</td><td>⑤ 除錯與問題追蹤困難；<strong>人力技術門檻高</strong></td></tr>
-        </table></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">Sharding與Replication本質差異</span><span class="danger-tag">2PC三大缺陷與3PC解決</span></div>
+          </div>
 
-        <strong>📊 二、資料分割 vs 資料複寫</strong>
-        <pre>資料分割（Sharding）─ 把資料「切開」放不同節點
-   節點A: 台北市案件    節點B: 台中市案件    節點C: 高雄市案件
-   （每個節點資料【不同】，合起來才是全部）
+          <p><strong>一、分散式資料庫定義與效益評估（8 分）</strong></p>
+          <ol>
+            <li><strong>定義</strong>：實體儲存分散於多個透過網路互聯之獨立伺服器節點，但在使用者與應用程式視角呈現<strong>邏輯單一集中資料庫（Transparency 穿透性）</strong>之架構。</li>
+            <li><strong>優點</strong>：極限水平擴充能力（Scale-out）、高可用性（個別節點損壞不影響全系統）、本地自治性（本地資料就近存取低延遲）。</li>
+            <li><strong>缺點</strong>：分散式交易管理複雜、跨節點 JOIN 效能低落、網路分區一致性難維護、資料通訊開銷大。</li>
+          </ol>
 
-資料複寫（Replication）─ 把資料「複製」到不同節點
-   主節點: 全部資料 ──► 副本1: 全部資料 ──► 副本2: 全部資料
-   （每個節點資料【相同】，任一個就是全部）</pre>
-        <div class="table-wrap"><table>
-          <tr><th>比較點</th><th>資料分割（Partitioning／Sharding）</th><th>資料複寫（Replication）</th></tr>
-          <tr><td>作法</td><td>把資料<strong>切成不重疊的片段</strong>放到不同節點</td><td>把<strong>相同資料</strong>複製到多個節點</td></tr>
-          <tr><td><strong>主要目的</strong></td><td><strong>解決「資料量太大」與「寫入吞吐不足」</strong></td><td><strong>解決「讀取量太大」與「可用性／容災」</strong></td></tr>
-          <tr><td>擴展方向</td><td>寫入與儲存皆可擴展</td><td><strong>只擴展讀取</strong>（寫仍集中於主節點）</td></tr>
-          <tr><td>容錯</td><td><strong>本身不提供</strong>（該片段的節點掛了，那部分資料就不可用）</td><td><strong>提供</strong>（可切換到副本）</td></tr>
-          <tr><td>一致性議題</td><td>跨分片查詢與交易困難</td><td><strong>複寫延遲</strong>→ 副本可能讀到舊資料</td></tr>
-          <tr><td>常見策略</td><td><strong>範圍分割</strong>（依年度）／<strong>雜湊分割</strong>（依 ID 取模）／<strong>清單分割</strong>（依縣市）</td><td><strong>主從式</strong>（一寫多讀）／<strong>多主式</strong>（多點可寫，須解衝突）</td></tr>
-        </table></div>
-        <div class="hl">
-          <strong>兩者是互補而非二選一。</strong>實務常<strong>同時使用</strong>：先分割解決容量與寫入，每個分片再各自複寫以取得容錯與讀取擴展。
+          <p><strong>二、資料分割（Partitioning/Sharding）vs 資料複寫（Replication）（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>技術維度</th><th>資料分片（Sharding / Partitioning）</th><th>資料複寫（Replication）</th></tr>
+            <tr><td><strong>核心意涵</strong></td><td>將單一龐大資料庫<strong>切塊拆分</strong>存放於不同節點（每個節點只存部分資料）</td><td>將同一份完整資料<strong>多重備份複製</strong>存放於多個節點</td></tr>
+            <tr><td><strong>主要解決瓶頸</strong></td><td><strong>儲存容量上限</strong>與<strong>大量寫入吞吐量（Write Scalability）</strong>瓶頸</td><td><strong>讀取並行量（Read Scalability）</strong>瓶頸與<strong>高可用備援（HA）</strong></td></tr>
+            <tr><td><strong>實施策略</strong></td><td>‧ 水平分片（Horizontal）：依主鍵 Hash、範圍 Range 分割<br>‧ 垂直分片（Vertical）：依欄位熱門度拆分</td><td>‧ 主從複寫（Master-Slave）：主寫從讀<br>‧ 多主複寫（Multi-Master）：多點並行寫入</td></tr>
+            <tr><td><strong>主要挑戰</strong></td><td>跨分片交易（Distributed Transaction）與跨分片 JOIN</td><td>資料同步延遲（Replication Lag）引發讀取舊資料</td></tr>
+          </table></div>
+
+          <p><strong>三、兩階段提交協定（Two-Phase Commit, 2PC）運作與限制（7 分）</strong></p>
+          <ol>
+            <li><strong>2PC 運作流程</strong>：
+              <ul>
+                <li><strong>第一階段：準備階段（Prepare / Voting Phase）</strong><br>
+                  協調者（Coordinator）發送 <code>Prepare</code> 詢問所有參與者（Participants）。各參與者執行交易至日誌刷盤，若成功回覆 <code>YES (VOTE_COMMIT)</code>，若失敗回覆 <code>NO (VOTE_ABORT)</code>。</li>
+                <li><strong>第二階段：提交階段（Commit / Decision Phase）</strong><br>
+                  若所有參與者全數投 YES，協調者向所有節點廣播 <code>COMMIT</code>，各節點完成提交；<strong>若有任一節點投 NO 或逾時，協調者廣播 <code>ABORT</code>，全體執行 Undo 回滾！</strong></li>
+              </ul>
+            </li>
+            <li><strong>2PC 致命三大缺陷</strong>：
+              <ul>
+                <li><strong>同步阻塞（Synchronous Blocking）</strong>：所有參與者在投票後持有鎖定資源，必須等待協調者最終決定，大幅降低系統並行度。</li>
+                <li><strong>協調者單點故障（Single Point of Failure）</strong>：若協調者在第二階段發送 COMMIT 途中當機，參與者將<strong>無限期等待（懸垂狀態 In-Doubt）</strong>，鎖無法釋放。</li>
+                <li><strong>腦裂與資料不一致（Data Inconsistency）</strong>：若發生網路分區，部分節點收到 COMMIT，另一部分中斷，造成分散式資料分裂。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>四、公門跨機關交換替代解法加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>公務微服務架構實務（Saga Pattern）</strong>：跨機關資料介接（如戶役政查驗與數位身分綁定）跨越不同實體機關資料庫，剛性 2PC 協定會因機關間專線延遲導致大量逾時。現代公務雲全面改採 <strong>Saga 補償交易模式</strong> 或基於可靠訊息佇列（Transactional Outbox）之<strong>最終一致性</strong>，主流程失敗時自動觸發非同步「反向補償動作（Compensating Action）」，避免跨機關分散式鎖死。
+          </div>
         </div>
-        <div class="table-wrap"><table>
-          <tr><th>選擇要點</th><th>說明</th></tr>
-          <tr><td><strong>分割鍵的選擇最關鍵</strong></td><td>選不好會造成<strong>資料傾斜</strong>（某節點特別滿）或<strong>熱點</strong>（查詢集中一節點）；且應盡量讓<strong>常一起查詢的資料落在同一分片</strong>，避免跨分片 JOIN</td></tr>
-          <tr><td>再平衡成本</td><td>分片數變動時需搬移資料 → 可採<strong>一致性雜湊</strong>降低搬移量</td></tr>
-          <tr><td>複寫模式</td><td><strong>同步複寫</strong>：不掉資料但寫入慢；<strong>非同步複寫</strong>：寫入快但可能掉最近幾筆（影響 RPO）</td></tr>
-        </table></div>
 
-        <strong>📊 三、兩階段提交協定（2PC）</strong>
-        <pre>          協調者（Coordinator）              參與者（Participants）
-
-  階段一   ──── PREPARE（可以提交嗎？）────►  各自寫日誌、鎖定資源
-  【準備】  ◄─── YES / NO ─────────────────  回報是否就緒
-
-  階段二   全部 YES → ──── COMMIT ────────►  正式提交、釋放鎖
-  【提交】  有任一 NO → ──── ABORT ────────►  回復、釋放鎖
-           ◄─── ACK ──────────────────────</pre>
-        <div class="table-wrap"><table>
-          <tr><th>階段</th><th>協調者</th><th>參與者</th></tr>
-          <tr><td><strong>① 準備階段</strong><br>（Prepare / Voting）</td><td>發送 PREPARE 詢問是否可提交</td><td>執行交易但<strong>不提交</strong>；寫入日誌、<strong>鎖定資源</strong>；回覆 YES（已就緒）或 NO</td></tr>
-          <tr><td><strong>② 提交階段</strong><br>（Commit）</td><td><strong>全部 YES → 送 COMMIT</strong><br><strong>任一 NO 或逾時 → 送 ABORT</strong></td><td>依指令提交或回復，<strong>釋放鎖</strong>，回覆 ACK</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>問題</th><th>說明</th><th>緩解</th></tr>
-          <tr><td><strong>① 阻塞協定（最大問題）</strong></td><td>參與者回覆 YES 後、收到指令前，<strong>資源持續鎖定</strong>。若<u>協調者當機</u>，參與者<strong>無限期等待</strong>，資源無法釋放，服務停擺</td><td><strong>3PC</strong>（加入預提交階段）；或以 <strong>Paxos／Raft</strong> 選出新協調者</td></tr>
-          <tr><td>② 單點故障</td><td>協調者是<strong>單一失效點</strong></td><td>協調者本身高可用化</td></tr>
-          <tr><td>③ 效能差</td><td>需<strong>多輪網路往返</strong>且<strong>長時間持鎖</strong> → 並行度大幅下降</td><td>減少跨節點交易；<strong>設計時讓相關資料落在同一節點</strong></td></tr>
-          <tr><td>④ 資料不一致風險</td><td>提交階段部分參與者當機，可能造成<strong>短暫不一致</strong>，需人工介入</td><td>完整日誌與復原程序</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>替代方案</th><th>說明</th></tr>
-          <tr><td><strong>Saga 模式</strong></td><td>將長交易拆成一系列<strong>本地交易</strong>，失敗時執行<strong>補償交易</strong>（如「取消訂單」抵銷「建立訂單」）→ 犧牲隔離性換取可用性</td></tr>
-          <tr><td>最終一致性</td><td>以<strong>訊息佇列</strong>非同步傳遞，容許短暫不一致</td></tr>
-          <tr><td><strong>最務實的作法</strong></td><td><strong>從設計上避免分散式交易</strong>——把需要同時異動的資料放在同一個節點（同一分片）</td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 優缺點<strong>各至少四項</strong>，缺點要有<strong>「分散式交易困難」</strong>與<strong>「維運複雜度高」</strong><br>
-        2. 分割 vs 複寫<strong>最好畫圖</strong>；核心對比是<strong>「分割解決寫入與容量、複寫解決讀取與容錯」</strong><br>
-        3. 明確指出<strong>兩者互補、實務常併用</strong><br>
-        4. 提到<strong>分割鍵選擇不當造成資料傾斜與熱點</strong>是加分<br>
-        5. 2PC <strong>必須畫出兩階段的訊息流程</strong><br>
-        6. <strong>「2PC 是阻塞協定，協調者當機會使參與者無限期持鎖」</strong>——本題最關鍵的一句<br>
-        7. 補充 <strong>Saga</strong> 與<strong>「從設計上避免分散式交易」</strong>展現實務判斷
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. Sharding（解決容量與寫入）vs Replication（解決讀取與備援）對比深刻。<br>
+        2. 2PC 兩階段（Prepare 投票 ➔ Commit 決策）步驟嚴謹。<br>
+        3. 2PC 三大缺陷（同步阻塞、協調者 SPOF、懸垂鎖死）完整分析。<br>
+        4. 提出現代微服務架構替代解法（Saga 補償交易模式）。
+</div>
       </div>
     </details>
   </div>
@@ -2193,90 +1970,68 @@ GRANT  SELECT ON v_員工通訊錄 TO 一般使用者;</pre>
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、現行問題（表，分「資料面／作業面／管理面」）→ 二、資料庫設計（綱要＋完整性表）→ 三、移轉策略（<u>階段表</u>）→ 四、維運與資安（表）
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】孤島混亂版本雜，集中正規定主鍵；清洗遷移平移過，角色權限審計全</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>Excel 痛點</strong>：資料孤島、多版本衝突、無並行控制、欄位型態隨意髒資料、無歷史存取軌跡。<br>
+          ② <strong>DB 設計</strong>：依 3NF 正規化拆解（財產主檔、保管單位、存放地點、財產類別、異動記錄）。<br>
+          ③ <strong>移轉三部曲</strong>：資料清洗（去除髒資料與重複財產編號）➔ 試行平行運轉（Parallel Run）➔ 正式切換。<br>
+          ④ <strong>權限管理</strong>：RBAC 角色基礎存取控管 + 完整異動審計日誌！</p>
         </div>
 
-        <strong>📊 一、現行做法的問題分析</strong>
-        <div class="table-wrap"><table>
-          <tr><th>面向</th><th>問題</th><th>後果</th></tr>
-          <tr><td rowspan="3"><strong>資料面</strong></td><td><strong>資料孤島</strong>：5 個單位各持一份</td><td>無法即時彙總全機關財產概況</td></tr>
-          <tr><td><strong>缺乏標準</strong>：欄位名稱、財產分類、單位（「台」「臺」「部」）不一致</td><td>合併統計困難、數字對不起來</td></tr>
-          <tr><td><strong>無完整性檢核</strong>：財產編號可能重複或缺漏，日期格式混雜</td><td>資料品質低落</td></tr>
-          <tr><td rowspan="3"><strong>作業面</strong></td><td><strong>無並行控制</strong>：多人同時開啟同一檔案</td><td><strong>後存檔者覆蓋前者</strong>（遺失更新）</td></tr>
-          <tr><td><strong>版本混亂</strong>：財產清冊_最新_v3_修正版.xlsx</td><td>不知何者為準</td></tr>
-          <tr><td>人工作業</td><td>盤點與異動須人工比對，耗時且易錯</td></tr>
-          <tr><td rowspan="3"><strong>管理面</strong></td><td><strong>無存取控制</strong>：檔案可整份複製外流</td><td>資安與個資風險</td></tr>
-          <tr><td><strong>無稽核軌跡</strong>：不知誰在何時改了什麼</td><td>無法追責，不符內控要求</td></tr>
-          <tr><td><strong>備份依賴個人</strong>：存放於個人電腦</td><td>硬碟毀損或人員異動即資料遺失</td></tr>
-        </table></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">公文財產實務情境分析</span><span class="danger-tag">資料遷移三階段必列</span></div>
+          </div>
 
-        <strong>📊 二、資料庫設計要點</strong>
-        <div class="frame">
-          <span class="t">📐 建議綱要（3NF）</span>
-          <strong>財產主檔</strong>(<u>財產編號</u>, 財產名稱, 分類代碼<sup>FK</sup>, 廠牌型號, 取得日期, 取得單價, 使用年限, 保管單位代碼<sup>FK</sup>, 保管人編號<sup>FK</sup>, 存放地點代碼<sup>FK</sup>, 使用狀態, 備註)<br><br>
-          <strong>財產分類</strong>(<u>分類代碼</u>, 分類名稱, 上層分類代碼, 折舊年限)<br>
-          <strong>單位</strong>(<u>單位代碼</u>, 單位名稱, 上層單位代碼)<br>
-          <strong>人員</strong>(<u>人員編號</u>, 姓名, 單位代碼<sup>FK</sup>, 在職狀態)<br>
-          <strong>存放地點</strong>(<u>地點代碼</u>, 地點名稱, 樓層)<br><br>
-          <strong>財產異動紀錄</strong>(<u>異動序號</u>, 財產編號<sup>FK</sup>, 異動類型, 異動日期, 原保管人, 新保管人, 原地點, 新地點, 異動原因, 承辦人, 建檔時間)<br>
-          <strong>盤點紀錄</strong>(<u>盤點年度</u>, <u>財產編號</u><sup>FK</sup>, 盤點日期, 盤點結果, 盤點人)
+          <p><strong>一、現行 Excel 分散維護之核心問題分析（6 分）</strong></p>
+          <ol>
+            <li><strong>資料孤島與版本衝突（Data Silos）</strong>：5 個單位各自維護獨立 Excel 試算表，缺乏集中唯一事實來源（Single Source of Truth），總務部門彙整時版次混亂，無法即時盤點全機關財產淨值。</li>
+            <li><strong>缺乏並行控制與完整性保護</strong>：Excel 共享檔案極易發生覆蓋遺失；欄位無法強制約束（如財產編號格式、購置金額不得為負數、日期格式混亂），髒資料充斥。</li>
+            <li><strong>缺乏存取權限與審計軌跡</strong>：檔案透過隨身碟或 Email 傳遞，任何人皆可擅自修改或外流，無歷史修改日誌，面臨高度審計與監察風險。</li>
+          </ol>
+
+          <p><strong>二、集中式關聯資料庫綱要設計（3NF 標準）（10 分）</strong></p>
+          <p>經正規化分析消除重複與遞移相依，規劃五大核心關聯表（<u>底線</u>為 PK，<em>斜體</em>為 FK）：</p>
+          <div class="table-wrap"><table>
+            <tr><th>資料表名稱</th><th>屬性綱要定義</th><th>業務功能與完整性約束</th></tr>
+            <tr><td><strong>財產主檔</strong></td><td>(<u>財產編號</u>, 財產名稱, <em>類別代碼</em>, 購置日期, 金額, 年限, 狀態, <em>保管人編號</em>, <em>地點代碼</em>)</td><td>記錄財產主體；狀態 CHECK (狀態 IN ('使用中', '報廢', '維修', '移撥'))。</td></tr>
+            <tr><td><strong>單位人員</strong></td><td>(<u>員工編號</u>, 姓名, 單位代碼, 職稱, 聯絡分機)</td><td>管理財產保管人，防範幽靈保管人。</td></tr>
+            <tr><td><strong>財產類別</strong></td><td>(<u>類別代碼</u>, 類別名稱, 法定耐用年限, 折舊率)</td><td>依行政院財物標準分類統一編碼。</td></tr>
+            <tr><td><strong>存放地點</strong></td><td>(<u>地點代碼</u>, 大樓名稱, 樓層, 房間編號)</td><td>實體位置標準化，方便年度實地盤點。</td></tr>
+            <tr><td><strong>財產異動歷程</strong></td><td>(<u>歷程序號</u>, <em>財產編號</em>, 異動類型, 異動日期, 原保管人, 新保管人, 核准公文字號)</td><td><strong>不可篡改之審計流水表</strong>，完整記錄撥交、報廢之生命週期軌跡。</td></tr>
+          </table></div>
+
+          <p><strong>三、資料清洗與平穩移轉上線策略（6 分）</strong></p>
+          <ol>
+            <li><strong>第一階段：資料清洗與轉換（ETL Cleaning）</strong>：
+              <ul>
+                <li>編撰 Python/SQL 檢核腳本，清查重複財產編號、補齊缺失之保管人、統一日期格式（民國年轉西元年）。</li>
+                <li>建立跨單位代碼對照表（Mapping Table），將各單位私有名稱轉譯為全院標準代碼。</li>
+              </ul>
+            </li>
+            <li><strong>第二階段：平行運轉（Parallel Run）</strong>：
+              新系統上線後，維持新舊制<strong>雙軌並行 1～3 個月</strong>，比對兩套系統產製之年度盤點報表與折舊金額，確保 100% 勾稽吻合。</li>
+            <li><strong>第三階段：正式割接（Cutover）</strong>：
+              封存唯讀所有歷史 Excel 檔案，全體全面透過 Web 前端輸入新系統。</li>
+          </ol>
+
+          <p><strong>四、資訊安全與審計法規遵從加分段（3 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>權限控制與國有財產審計</strong>：<br>
+            ‧ <strong>RBAC 權限分離</strong>：一般同仁僅能查詢個人名下財產；單位財產承辦人可申請移撥；總務處財產管理員具備全院審核報廢權；DBA 帳號禁止直接更動業務金額。<br>
+            ‧ <strong>審計追蹤合規</strong>：每次異動均強制綁定公文電子簽核文號，符合《審計法》與《國有財產產籍管理作業要點》規範。
+          </div>
         </div>
-        <div class="table-wrap"><table>
-          <tr><th>設計要點</th><th>說明</th></tr>
-          <tr><td><strong>正規化至 3NF</strong></td><td>單位名稱、分類名稱、地點名稱皆<strong>抽離為代碼表</strong>——單位改名時<u>只需改一處</u></td></tr>
-          <tr><td><strong>異動紀錄不覆蓋</strong></td><td>保管人與地點變更<strong>另存異動紀錄</strong>，主檔保留現況 → 兼顧查詢效率與歷史可追溯</td></tr>
-          <tr><td>適度反正規化</td><td>主檔保留「目前保管人」欄位（可由異動紀錄推導），避免每次查詢都要彙總</td></tr>
-        </table></div>
-        <div class="table-wrap"><table>
-          <tr><th>完整性</th><th>作法</th></tr>
-          <tr><td><strong>實體完整性</strong></td><td>財產編號為 <strong>PK</strong>，不可重複、不可為 NULL</td></tr>
-          <tr><td><strong>參考完整性</strong></td><td>分類、單位、人員、地點皆設 <strong>FK</strong>；刪除規則採 <code>ON DELETE RESTRICT</code>（<u>有財產在用的單位不可刪除</u>）</td></tr>
-          <tr><td><strong>值域完整性</strong></td><td><code>CHECK (取得單價 &gt;= 0)</code>、<code>CHECK (使用狀態 IN ('在用','閒置','待報廢','已報廢'))</code>、日期格式統一</td></tr>
-          <tr><td><strong>業務規則</strong></td><td>報廢須有核准文號（觸發器或應用層檢核）；達一定金額須符合財物管理相關規定</td></tr>
-          <tr><td>索引</td><td>保管單位、保管人、分類、取得日期建索引（<u>這些是最常見的查詢與報表條件</u>）</td></tr>
-        </table></div>
 
-        <strong>📊 三、資料移轉策略與清理</strong>
-        <div class="table-wrap"><table>
-          <tr><th>階段</th><th>工作</th><th>要點</th></tr>
-          <tr><td><strong>① 盤點與分析</strong></td><td>收集 5 份 Excel，分析欄位差異與資料品質</td><td>製作<strong>欄位對照表</strong>（來源欄 → 目標欄 → 轉換規則）</td></tr>
-          <tr><td><strong>② 制定標準</strong></td><td>統一<strong>財產分類代碼、單位代碼、日期格式、計量單位</strong></td><td>應<strong>先與各單位開會確認</strong>，避免上線後爭議</td></tr>
-          <tr><td rowspan="5"><strong>③ 資料清理</strong></td><td><strong>去重</strong></td><td>同一財產在兩單位各有一筆 → 須人工確認歸屬</td></tr>
-          <tr><td><strong>補缺</strong></td><td>取得日期、單價缺漏 → 查原始憑證；<u>確實無從查證者標註並簽核</u></td></tr>
-          <tr><td><strong>格式統一</strong></td><td>民國／西元年、全形／半形、「台」與「臺」</td></tr>
-          <tr><td><strong>邏輯檢核</strong></td><td>取得日期不得晚於今日、單價不得為負、保管人須在職</td></tr>
-          <tr><td><strong>對照未匹配者</strong></td><td>分類或單位代碼查無對應 → 列出清單交由單位確認</td></tr>
-          <tr><td><strong>④ 試移轉</strong></td><td>於<strong>測試環境</strong>執行，產出<strong>差異報表</strong></td><td>檢核<strong>筆數、金額總計</strong>是否與原始一致——<u>這是驗收的關鍵指標</u></td></tr>
-          <tr><td><strong>⑤ 各單位確認</strong></td><td>移轉結果<strong>交回各單位核對並簽認</strong></td><td>建立責任歸屬，減少上線後爭議</td></tr>
-          <tr><td><strong>⑥ 正式移轉</strong></td><td>選定<strong>切換時點</strong>（如會計年度或連假），凍結舊系統異動</td><td>須備妥<strong>回復計畫</strong>（失敗即退回 Excel 作業）</td></tr>
-          <tr><td><strong>⑦ 平行作業</strong></td><td>視風險決定是否<strong>新舊並行一段期間</strong></td><td>增加負擔但降低風險；期間須明訂何者為準</td></tr>
-        </table></div>
-        <div class="hl"><strong>移轉的黃金原則：原始 Excel 必須完整封存，且移轉前後的「筆數」與「金額總計」必須一致。</strong></div>
-
-        <strong>📊 四、維運與資安要求</strong>
-        <div class="table-wrap"><table>
-          <tr><th>面向</th><th>要求</th></tr>
-          <tr><td><strong>權限控管</strong></td><td><strong>RBAC 角色分工</strong>：財產管理人員（全機關可維護）／單位保管人（<u>僅本單位</u>）／一般查詢（唯讀）／稽核（唯讀含日誌）；<strong>最小權限原則</strong></td></tr>
-          <tr><td><strong>稽核軌跡</strong></td><td>所有異動記錄<strong>誰、何時、改了什麼（前後值）</strong>；<strong>日誌不可被一般使用者刪改</strong>；定期檢視異常異動</td></tr>
-          <tr><td><strong>備份</strong></td><td><strong>3-2-1 原則</strong>；每日備份 ＋ 交易日誌；<strong>保留離線副本防勒索軟體</strong>；<strong>定期演練還原</strong>並計時</td></tr>
-          <tr><td><strong>資安</strong></td><td>資料庫<strong>不直接對外</strong>；傳輸加密（TLS）；程式採<strong>參數化查詢</strong>防注入；<strong>應用程式帳號最小權限，不得使用 sa／root</strong>；定期弱點掃描</td></tr>
-          <tr><td><strong>個資</strong></td><td>保管人姓名與員工編號屬個資 → 依《個人資料保護法》採<strong>適當安全維護措施</strong>；<strong>測試環境不得使用真實個資</strong></td></tr>
-          <tr><td>效能與容量</td><td>3 萬筆規模不大，但須規劃逐年成長；定期更新統計資訊與重建索引</td></tr>
-          <tr><td>維運制度</td><td>訂定<strong>標準作業程序</strong>（帳號申請、異動核准、故障通報）；<strong>變更管理</strong>（異動須紀錄並備回復方案）</td></tr>
-          <tr><td><strong>使用者面</strong></td><td>教育訓練與操作手冊；<strong>保留匯出 Excel 功能</strong>（<u>降低使用者抗拒</u>）；設置諮詢窗口</td></tr>
-          <tr><td>委外</td><td>契約明定<strong>原始碼交付、智財歸屬、保固維護、資安責任與退場條款</strong>，避免廠商鎖定</td></tr>
-        </table></div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 問題分析要<strong>分層（資料／作業／管理）</strong>，並點出 Excel 的三大致命傷：<strong>無並行控制、無存取控制、無稽核軌跡</strong><br>
-        2. <strong>要寫出實際的關聯綱要並標 PK/FK</strong>，不能只講原則<br>
-        3. <strong>異動紀錄另立表、不覆蓋</strong>——財產管理的核心需求<br>
-        4. 完整性要<strong>四類都寫</strong>（實體／參考／值域／業務規則）<br>
-        5. 移轉<strong>務必寫「筆數與金額總計必須一致」與「原始檔案封存」</strong>——最實務的驗收判準<br>
-        6. <strong>各單位簽認</strong>與<strong>回復計畫</strong>是機關情境的加分點<br>
-        7. 資安段落<strong>個資法與最小權限不可缺</strong>；<strong>「保留匯出 Excel 功能」</strong>是很好的變革管理細節
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. Excel 現況三大問題（孤島、並行崩潰、無審計）直擊痛點。<br>
+        2. 資料庫綱要符合 3NF，清楚包含主檔、異動歷程、類別與地點表。<br>
+        3. 資料遷移具備：清洗轉換（ETL）、平行運轉（Parallel Run）與正式割接。<br>
+        4. 安全機制導入 RBAC 權限分離與審計法規要求。
+</div>
       </div>
     </details>
   </div>
@@ -2291,91 +2046,87 @@ GRANT  SELECT ON v_員工通訊錄 TO 一般使用者;</pre>
     </div>
     <details><summary>看答題架構</summary>
       <div class="ans">
-        <div class="frame"><span class="t">📋 答題骨架</span>
-        一、屬性分類 → 候選鍵推導（<u>屬性封閉集計算</u>）→ 二、正規化階數判定（表）→ 三、分解結果 → 四、無損與相依保存驗證
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】閉包展開求候選，右無必為主鍵源；極小覆蓋拆單一，無失真連交集同</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>求候選鍵</strong>：找「從未出現在右側」的屬性必在鍵中；求其閉包 <code>X+</code>，若涵蓋全體屬性即為唯一候選鍵！<br>
+          ② <strong>極小覆蓋（Minimal Cover）</strong>：右側拆單一屬性 ➔ 消除多餘左側屬性 ➔ 消除多餘相依式。<br>
+          ③ <strong>無失真連接（Lossless Join）</strong>：分解為 R1 與 R2，其交集必須能決定 (R1 - R2) 或 (R2 - R1)，即交集必須為其中一張表之超鍵！</p>
         </div>
 
-        <strong>📊 一、求候選鍵</strong>
-        <div class="table-wrap"><table>
-          <tr><th>步驟</th><th>作法</th><th>本題</th></tr>
-          <tr><td>① 分類屬性</td><td>看每個屬性出現在函數相依的<strong>左邊、右邊、或都不出現</strong></td><td><strong>只在左邊：A, B</strong><br>兩邊都有：C, D<br>只在右邊：E</td></tr>
-          <tr><td>② 關鍵推論</td><td><strong>「只出現在左邊」的屬性，必定屬於每一個候選鍵</strong>（因為沒有任何相依能推導出它）</td><td><strong>A、B 必在候選鍵中</strong></td></tr>
-          <tr><td>③ 先試 {A, B}</td><td>計算<strong>屬性封閉集 (AB)⁺</strong></td><td>見下方計算</td></tr>
-        </table></div>
-        <div class="frame">
-          <span class="t">📐 屬性封閉集計算 (AB)⁺</span>
-          起始：<strong>(AB)⁺ = {A, B}</strong><br>
-          套用 <strong>AB → C</strong>：AB ⊆ {A,B} ✔ → 加入 C → <strong>{A, B, C}</strong><br>
-          套用 <strong>C → D</strong>：C ⊆ {A,B,C} ✔ → 加入 D → <strong>{A, B, C, D}</strong><br>
-          套用 <strong>D → E</strong>：D ⊆ {A,B,C,D} ✔ → 加入 E → <strong>{A, B, C, D, E}</strong><br><br>
-          <strong>(AB)⁺ = {A, B, C, D, E} = R</strong> → <strong>AB 是超鍵</strong>
-        </div>
-        <div class="table-wrap"><table>
-          <tr><th>最小性檢查</th><th>封閉集</th><th>結論</th></tr>
-          <tr><td>(A)⁺</td><td>{A}</td><td>不足以推導全部 → 不是超鍵</td></tr>
-          <tr><td>(B)⁺</td><td>{B}</td><td>不足 → 不是超鍵</td></tr>
-        </table></div>
-        <div class="hl">
-          移除 A 或 B 皆不再是超鍵 → <strong>滿足最小性</strong><br>
-          又因 A、B 必屬於每個候選鍵，故不存在其他候選鍵。<br><br>
-          <strong>結論：R 的候選鍵只有一個 —— {A, B}</strong><br>
-          <strong>主要屬性</strong>：A, B　｜　<strong>非主要屬性</strong>：C, D, E
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">閉包推導X+每步列出</span><span class="danger-tag">無失真定理R1∩R2必須為超鍵</span></div>
+          </div>
+
+          <p><strong>一、求解所有候選鍵（Candidate Keys）與推導過程（8 分）</strong></p>
+          <p><strong>已知條件</strong>：關聯 <code>R(A, B, C, D, E)</code>，函數相依 <code>F = { AB → C, C → D, D → E, AB → E }</code></p>
+          <div class="step-box">
+            <div class="step-title">📝 逐步解析推導：屬性閉包法（Attribute Closure）求解候選鍵</div>
+            <ul class="step-list">
+              <li class="step-item"><span class="step-badge">步驟 1</span><strong>屬性分類檢驗</strong><br>
+                檢視相依式右側：出現了 C, D, E。屬性 <strong>A, B 從未出現在任何相依式的右側（RHS）</strong>！<br>
+                👉 <strong>推論：屬性集合 {A, B} 必須且必然包含在任何候選鍵之中！</strong></li>
+              <li class="step-item"><span class="step-badge">步驟 2</span><strong>計算閉包 {A, B}+</strong><br>
+                ‧ 初始：<code>{AB}+ = {A, B}</code><br>
+                ‧ 套用 <code>AB → C</code>：<code>{AB}+ = {A, B, C}</code><br>
+                ‧ 套用 <code>C → D</code>：<code>{AB}+ = {A, B, C, D}</code><br>
+                ‧ 套用 <code>D → E</code>：<code>{AB}+ = {A, B, C, D, E} = 全體屬性 R！</code></li>
+              <li class="step-item"><span class="step-badge">步驟 3</span><strong>最小性判定</strong><br>
+                ‧ <code>{A}+ = {A} ≠ R</code><br>
+                ‧ <code>{B}+ = {B} ≠ R</code><br>
+                👉 <code>{A, B}</code> 滿足超鍵且不可再縮減，故 <strong>唯一候選鍵為 {A, B}（Primary Key）</strong> ✔。</li>
+            </ul>
+          </div>
+
+          <p><strong>二、判斷正規化最高等級（7 分）</strong></p>
+          <ol>
+            <li><strong>主鍵屬性（Prime Attribute）</strong>：A, B。<strong>非主鍵屬性</strong>：C, D, E。</li>
+            <li><strong>檢驗 2NF</strong>：在 F 中，非主鍵屬性 C, D, E 全由複合主鍵 <code>AB</code> 決定，無任何單一屬性（A 或 B）能單獨決定非主鍵，<strong>無部分相依，符合 2NF ✔</strong>。</li>
+            <li><strong>檢驗 3NF</strong>：
+              檢驗 <code>C → D</code>：決定者 C 不是超鍵，且被決定者 D 不是主屬性！<br>
+              存在 <code>AB → C</code> 且 <code>C → D</code> 導致 <code>AB → D</code> 之<strong>遞移相依（Transitive Dependency）</strong>！<br>
+              👉 <strong>不符合 3NF！因此該關聯 R 最高僅符合「第二正規化（2NF）」！</strong></li>
+          </ol>
+
+          <p><strong>三、分解為無失真且保持相依之 3NF 關聯綱要（10 分）</strong></p>
+          <ol>
+            <li><strong>求極小覆蓋（Minimal Cover / Canonical Cover F_c）</strong>：
+              <ul>
+                <li>右側皆已單一化：<code>{ AB → C, C → D, D → E, AB → E }</code>。</li>
+                <li>檢驗多餘相依式：由 <code>AB → C</code>, <code>C → D</code>, <code>D → E</code> 可推導出 <code>AB → E</code>，因此 <strong><code>AB → E</code> 為冗餘相依式，予以刪除！</strong></li>
+                <li>左側無多餘屬性。</li>
+                <li>👉 <strong>極小覆蓋 F_c = { AB → C, C → D, D → E }</strong>。</li>
+              </ul>
+            </li>
+            <li><strong>3NF 合成演算法（Bernstein's Synthesis）分解</strong>：
+              <ul>
+                <li>依 <code>AB → C</code> 建立 <code>R1(<u>A, B</u>, C)</code></li>
+                <li>依 <code>C → D</code> 建立 <code>R2(<u>C</u>, D)</code></li>
+                <li>依 <code>D → E</code> 建立 <code>R3(<u>D</u>, E)</code></li>
+              </ul>
+            </li>
+            <li><strong>無失真連接性質（Lossless Join Property）驗證</strong>：
+              <ul>
+                <li><code>R2 ∩ R3 = {D}</code>，且 <code>D → E</code> 成立，D 為 R3 之超鍵 ➔ <code>R23 = R2 ⨝ R3</code> 為無失真連接！</li>
+                <li><code>R1 ∩ R23 = {C}</code>，且 <code>C → D</code> 成立，C 為 R2 之超鍵 ➔ <code>R1 ⨝ R23</code> 為無失真連接！</li>
+              </ul>
+            </li>
+          </ol>
+          <div class="verify-box">
+            👉 <strong>最終最佳分解結果</strong>：<code>R1(<u>A, B</u>, C)</code>、<code>R2(<u>C</u>, D)</code>、<code>R3(<u>D</u>, E)</code>，<strong>完美達成無失真連接（Lossless Join）且 100% 保持相依性（Dependency Preserving）！</strong> ✔
+          </div>
         </div>
 
-        <strong>📊 二、正規化階數判定</strong>
-        <div class="table-wrap"><table>
-          <tr><th>階</th><th>要求</th><th>本題檢查</th><th>結果</th></tr>
-          <tr><td><strong>1NF</strong></td><td>所有欄位為單一值</td><td>題目未提及多值屬性</td><td><strong>✔ 符合</strong></td></tr>
-          <tr><td><strong>2NF</strong></td><td>無<strong>部分相依</strong>（非主要屬性不可只依賴候選鍵的一部分）</td><td>檢查 (A)⁺ = {A}、(B)⁺ = {B}，<strong>單獨的 A 或 B 都推不出 C、D、E</strong> → 無部分相依</td><td><strong>✔ 符合</strong></td></tr>
-          <tr><td><strong>3NF</strong></td><td>無<strong>遞移相依</strong>（非主要屬性不可透過另一非主要屬性依賴候選鍵）</td><td><strong>AB → C → D</strong>：C 是非主要屬性，D 也是 → <strong>遞移相依</strong><br><strong>AB → C → D → E</strong>：同樣是遞移相依</td><td><strong>✘ 違反</strong></td></tr>
-        </table></div>
-        <div class="hl">
-          <strong>結論：R 符合 2NF，但不符合 3NF（存在遞移相依 AB → C → D → E）。</strong><br><br>
-          <strong>3NF 的正式定義</strong>：對每一個非平凡函數相依 X → Y，必須 <u>X 是超鍵</u> <strong>或</strong> <u>Y 的每個屬性都是主要屬性</u>。<br>
-          本題 <strong>C → D</strong>：C 不是超鍵（(C)⁺ = {C,D,E} ≠ R），且 D 不是主要屬性 → <strong>違反</strong>。
-        </div>
-        <p style="font-size:.88rem"><strong>順帶一提 BCNF</strong>：BCNF 要求每個非平凡相依的左邊<strong>都必須是超鍵</strong>。本題 <code>C → D</code>、<code>D → E</code> 的左邊都不是超鍵 → <strong>更不符合 BCNF</strong>。</p>
-
-        <strong>📊 三、分解至 3NF</strong>
-        <div class="table-wrap"><table>
-          <tr><th>步驟</th><th>作法</th></tr>
-          <tr><td>① 求最小覆蓋 F<sub>min</sub></td><td>檢查 <code>AB → E</code>：由 <code>AB → C</code>、<code>C → D</code>、<code>D → E</code> 已可推得 E → <strong>AB → E 是多餘相依，可刪除</strong><br><strong>F<sub>min</sub> = { AB → C, C → D, D → E }</strong></td></tr>
-          <tr><td>② 每個相依成一個表</td><td>R1(<u>A, B</u>, C)、R2(<u>C</u>, D)、R3(<u>D</u>, E)</td></tr>
-          <tr><td>③ 確認含候選鍵</td><td>R1 的鍵即為 {A, B} = 候選鍵 ✔（<u>若無任何分解表含候選鍵，須另加一個</u>）</td></tr>
-        </table></div>
-        <div class="frame">
-          <span class="t">📐 分解結果</span>
-          <strong>R1(<u>A</u>, <u>B</u>, C)</strong>　主鍵 (A,B)<br>
-          <strong>R2(<u>C</u>, D)</strong>　主鍵 C，C 為 R1 的外鍵參照<br>
-          <strong>R3(<u>D</u>, E)</strong>　主鍵 D，D 為 R2 的外鍵參照
-        </div>
-
-        <strong>📊 四、驗證</strong>
-        <div class="table-wrap"><table>
-          <tr><th>驗證項目</th><th>判準</th><th>本題</th></tr>
-          <tr><td rowspan="3"><strong>無損分解</strong><br>（Lossless Join）</td><td>二元分解 R = R1 ∪ R2 為無損，若<strong>共同屬性是其中一方的超鍵</strong>：<br>(R1 ∩ R2) → R1　或　(R1 ∩ R2) → R2</td><td>—</td></tr>
-          <tr><td>R1 與 R2 的共同屬性 = <strong>{C}</strong>；<strong>C → D</strong>，即 C 是 R2(C, D) 的鍵</td><td><strong>✔ 無損</strong></td></tr>
-          <tr><td>(R1⋈R2) 與 R3 的共同屬性 = <strong>{D}</strong>；<strong>D → E</strong>，即 D 是 R3(D, E) 的鍵</td><td><strong>✔ 無損</strong></td></tr>
-          <tr><td rowspan="2"><strong>相依保存</strong><br>（Dependency Preserving）</td><td>原相依集的每個相依，是否都能在<strong>單一分解表內</strong>檢查</td><td>—</td></tr>
-          <tr><td>AB → C 在 R1 ✔｜C → D 在 R2 ✔｜D → E 在 R3 ✔<br>（AB → E 為多餘相依，可由上述三者推導）</td><td><strong>✔ 保存</strong></td></tr>
-        </table></div>
-        <div class="hl">
-          <strong>結論：本分解同時滿足「無損分解」與「相依保存」，且各表皆符合 3NF。</strong><br><br>
-          <strong>重要理論</strong>：<br>
-          ‧ 分解至 <strong>3NF</strong>：<u>一定可以</u>同時達成<strong>無損且相依保存</strong><br>
-          ‧ 分解至 <strong>BCNF</strong>：<u>一定可以</u>無損，但<strong>不保證相依保存</strong><br>
-          → 這正是實務上多數系統<strong>止於 3NF</strong> 的原因。
-        </div>
-
-        <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-        1. 候選鍵推導<strong>必須寫出屬性封閉集的逐步計算</strong>，不能只給答案<br>
-        2. 明確寫出<strong>「只出現在左邊的屬性必屬於每個候選鍵」</strong>這個推論法則<br>
-        3. <strong>要做最小性檢查</strong>（(A)⁺、(B)⁺）才算完整<br>
-        4. 判定 3NF 要<strong>引用正式定義</strong>（X 是超鍵 或 Y 為主要屬性），並指明是 <code>C → D</code> 違反<br>
-        5. 分解前<strong>要先求最小覆蓋</strong>，並指出 <code>AB → E</code> 是多餘相依<br>
-        6. 無損驗證要<strong>寫出「共同屬性是其中一方的鍵」</strong>並逐步套用<br>
-        7. 結論補上<strong>「3NF 保證無損＋相依保存；BCNF 不保證相依保存」</strong>——本題最高分的一句
-        </div>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 閉包計算推導清楚，指明 <strong>{A, B} 為唯一候選鍵</strong>。<br>
+        2. 指出 <code>C → D</code> 與 <code>D → E</code> 違反 3NF（遞移相依），判定最高僅符合 <strong>2NF</strong>。<br>
+        3. 極小覆蓋成功剔除多餘相依 <code>AB → E</code>。<br>
+        4. 拆解為 R1(A,B,C)、R2(C,D)、R3(D,E)。<br>
+        5. 嚴格以交集為超鍵證明<strong>無失真連接（Lossless Join）</strong>。
+</div>
       </div>
     </details>
   </div>
@@ -9714,7 +9465,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 2" data-ans="C">
@@ -9742,7 +9494,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 3" data-ans="B">
@@ -9768,7 +9521,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 4" data-ans="C">
@@ -9794,7 +9548,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 5" data-ans="B">
@@ -9822,7 +9577,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 6" data-ans="A">
@@ -9850,7 +9606,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 7" data-ans="C">
@@ -9878,7 +9635,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 8" data-ans="B">
@@ -9904,7 +9662,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 9" data-ans="C">
@@ -9930,7 +9689,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 10" data-ans="B">
@@ -9958,7 +9718,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 11" data-ans="A">
@@ -9986,7 +9747,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 12" data-ans="C">
@@ -10014,7 +9776,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 13" data-ans="B">
@@ -10040,7 +9803,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 14" data-ans="C">
@@ -10066,7 +9830,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 15" data-ans="B">
@@ -10094,7 +9859,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 16" data-ans="A">
@@ -10122,7 +9888,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 17" data-ans="C">
@@ -10150,7 +9917,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 18" data-ans="B">
@@ -10176,7 +9944,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 19" data-ans="C">
@@ -10202,7 +9971,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 20" data-ans="B">
@@ -10230,7 +10000,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 21" data-ans="A">
@@ -10258,7 +10029,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 22" data-ans="C">
@@ -10286,7 +10058,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 23" data-ans="B">
@@ -10312,7 +10085,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 24" data-ans="C">
@@ -10338,7 +10112,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 25" data-ans="B">
@@ -10366,7 +10141,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 26" data-ans="A">
@@ -10394,7 +10170,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 27" data-ans="C">
@@ -10422,7 +10199,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 28" data-ans="B">
@@ -10448,7 +10226,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 29" data-ans="C">
@@ -10474,7 +10253,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 30" data-ans="B">
@@ -10502,7 +10282,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 31" data-ans="A">
@@ -10530,7 +10311,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 32" data-ans="C">
@@ -10558,7 +10340,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 33" data-ans="B">
@@ -10584,7 +10367,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 34" data-ans="C">
@@ -10610,7 +10394,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 35" data-ans="B">
@@ -10638,7 +10423,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 36" data-ans="A">
@@ -10666,7 +10452,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 37" data-ans="C">
@@ -10694,7 +10481,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 38" data-ans="B">
@@ -10720,7 +10508,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 39" data-ans="C">
@@ -10746,7 +10535,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 40" data-ans="B">
@@ -10774,7 +10564,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 41" data-ans="A">
@@ -10802,7 +10593,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 42" data-ans="C">
@@ -10830,7 +10622,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 43" data-ans="B">
@@ -10856,7 +10649,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 44" data-ans="C">
@@ -10882,7 +10676,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 45" data-ans="B">
@@ -10910,7 +10705,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 46" data-ans="A">
@@ -10938,7 +10734,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 47" data-ans="C">
@@ -10966,7 +10763,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 48" data-ans="B">
@@ -10992,7 +10790,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 49" data-ans="C">
@@ -11018,7 +10817,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 50" data-ans="B">
@@ -11046,7 +10846,8 @@ stmt.setString(1, input);</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
   <div class="nav-btns">

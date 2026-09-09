@@ -362,6 +362,34 @@ WHERE <span class="k">NOT EXISTS</span> (
     </div>
 
     <h3>4-2　正規化各階段（核心考點）</h3>
+
+    <!-- 正規化逐階推導步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：關聯模式 1NF 至 BCNF 逐階檢驗與拆解流程</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>確認 1NF（原子性檢驗）</strong><br>
+          檢查資料表是否有欄位存放多個值（如一人多支電話）或重複群。若是，將多值欄位拆開成獨立資料列，使每個欄位值皆為<strong>單元值（Atomic Value）</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>檢驗與達成 2NF（消除部分函數相依）</strong><br>
+          ‧ 找出候選鍵與主鍵。<strong>若主鍵為單一屬性，直接自動符合 2NF</strong>！<br>
+          ‧ 若主鍵為複合鍵（如 <code>{A, B}</code>），檢視是否有非鍵屬性 C 僅相依於部分主鍵（如 <code>A &rarr; C</code>）。<br>
+          ‧ 拆解：將部分相依屬性獨立移出成新表 <code>(<u>A</u>, C)</code>，原表保留 <code>(<u>A, B</u>, 其他完全相依屬性)</code>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>檢驗與達成 3NF（消除遞移函數相依）</strong><br>
+          ‧ 檢視非鍵屬性間是否存在推導關係（如 <code>X &rarr; Y &rarr; Z</code>，其中 X 為主鍵，Y 非超鍵）。<br>
+          ‧ 拆解：將遞移相依部分獨立建表 <code>(<u>Y</u>, Z)</code>，原表保留 <code>(<u>X</u>, Y)</code>，藉由外鍵 Y 關聯。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 4</span><strong>檢驗與達成 BCNF（決定因素皆為超鍵）</strong><br>
+          ‧ 檢查所有 FD <code>X &rarr; Y</code>，其決定因素 X <strong>是否皆為候選鍵/超鍵</strong>。<br>
+          ‧ 若存在 <code>X &rarr; Y</code> 且 X 非超鍵（常發生於複合重疊候選鍵），拆分為 <code>(<u>X</u>, Y)</code> 與原表減去 Y，此時可能犧牲相依性保留（Dependency Preservation）。
+        </li>
+      </ul>
+    </div>
+
     <div class="table-wrap">
       <table>
         <tr><th>正規化</th><th>要求</th><th>消除的問題</th></tr>

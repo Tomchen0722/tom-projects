@@ -5625,53 +5625,60 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       (三) 說明本方案於實務推動時之限制與建議。（7 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、Kruskal 原理（貪婪法、以邊為主、並查集判環、需 V−1 條邊）→ 二、逐步求解（<u>主表①</u>）→ 三、Kruskal vs Prim（<u>主表②</u>）→ 四、實務限制與建議（<u>主表③</u>）→ 五、結論
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】邊小先挑防成環，稀疏庫卡稠密普，公門骨幹兼副環</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>Kruskal</strong>：以「邊」為主（Edge-centric），小邊優先選，並查集（Union-Find）判斷成環，需 V−1 條邊即止，適合稀疏圖（E log E）。<br>
+          • <strong>Prim</strong>：以「點」為主（Vertex-centric），從點逐步向外擴展割邊，適合稠密圖（V² 或 E + V log V）。<br>
+          • <strong>地方實務</strong>：樹狀無備援，重大節點應保留副環（Ring Topology）與避開管線開挖風險。
+        </div>
       </div>
 
-      <strong>📊 主表①　Kruskal 逐步過程（V=7，需 6 條邊）</strong>
-      <p style="font-size:.88rem">邊由小到大排序：D-E(3)、B-C(4)、F-G(4)、A-B(5)、E-F(5)、C-D(6)、C-E(7)、A-C(8)、D-F(8)、B-D(9)、E-G(9)</p>
-      <div class="table-wrap"><table>
-        <tr><th>步驟</th><th>邊</th><th>成環？</th><th>動作</th><th>連通集合</th></tr>
-        <tr><td>1</td><td>D-E(3)</td><td>否</td><td><strong>加入</strong></td><td>{D,E}</td></tr>
-        <tr><td>2</td><td>B-C(4)</td><td>否</td><td><strong>加入</strong></td><td>{D,E} {B,C}</td></tr>
-        <tr><td>3</td><td>F-G(4)</td><td>否</td><td><strong>加入</strong></td><td>{D,E} {B,C} {F,G}</td></tr>
-        <tr><td>4</td><td>A-B(5)</td><td>否</td><td><strong>加入</strong></td><td>{D,E} {A,B,C} {F,G}</td></tr>
-        <tr><td>5</td><td>E-F(5)</td><td>否</td><td><strong>加入</strong></td><td>{D,E,F,G} {A,B,C}</td></tr>
-        <tr><td>6</td><td>C-D(6)</td><td>否</td><td><strong>加入</strong></td><td>{A,B,C,D,E,F,G} ← 完成</td></tr>
-      </table></div>
-      <div class="hl">
-        <strong>MST 邊集 = {D-E, B-C, F-G, A-B, E-F, C-D}，共 6 條（＝V−1 ✔）</strong><br>
-        <strong>總成本 = 3 + 4 + 4 + 5 + 5 + 6 = 27（百萬元）</strong>
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）Kruskal 核心原理與終止條件 (4分)</span>
+        <h3>一、Kruskal 演算法求解最小生成樹（MST）之推導</h3>
+        <p><strong>（一）演算法核心原理</strong>：採<strong>貪婪策略（Greedy Algorithm）</strong>。將圖中所有邊依權重由小至大遞增排序，依序挑選最小權重邊加入生成樹；若加入會與已選邊形成封閉迴圈（Cycle，透過並查集 Disjoint Set / Union-Find 檢查兩端點是否同屬一集合），則予以<strong>捨棄</strong>。當已成功挑選 <strong>V − 1 = 7 − 1 = 6 條邊</strong>時，演算法終止。</p>
+
+        <span class="scoring-tag">一、（二）逐邊挑選判定與累計成本推導 (6分)</span>
+        <p><strong>（二）逐邊挑選推導歷程表</strong></p>
+        <div class="table-wrap"><table>
+          <tr><th>步驟</th><th>候選邊</th><th>權重</th><th>兩端點所屬集合</th><th>判定結果</th><th>納入後連通狀態</th><th>累計成本</th></tr>
+          <tr><td>1</td><td><strong>(F, G)</strong></td><td>1</td><td>{F}, {G}</td><td><strong><span class="k">納入 (1)</span></strong></td><td>{F, G}</td><td>1</td></tr>
+          <tr><td>2</td><td><strong>(D, F)</strong></td><td>2</td><td>{D}, {F, G}</td><td><strong><span class="k">納入 (2)</span></strong></td><td>{D, F, G}</td><td>3</td></tr>
+          <tr><td>3</td><td><strong>(D, E)</strong></td><td>3</td><td>{D, F, G}, {E}</td><td><strong><span class="k">納入 (3)</span></strong></td><td>{D, E, F, G}</td><td>6</td></tr>
+          <tr><td>4</td><td><strong>(B, C)</strong></td><td>4</td><td>{B}, {C}</td><td><strong><span class="k">納入 (4)</span></strong></td><td>{B, C}, {D, E, F, G}</td><td>10</td></tr>
+          <tr><td>5</td><td>(E, G)</td><td>4</td><td>{D, E, F, G}, {D, E, F, G}</td><td><span class="danger-tag">捨棄（成環 D-E-G-F）</span></td><td>不變</td><td>10</td></tr>
+          <tr><td>6</td><td><strong>(A, B)</strong></td><td>5</td><td>{A}, {B, C}</td><td><strong><span class="k">納入 (5)</span></strong></td><td>{A, B, C}, {D, E, F, G}</td><td>15</td></tr>
+          <tr><td>7</td><td>(E, F)</td><td>5</td><td>{D, E, F, G}, {D, E, F, G}</td><td><span class="danger-tag">捨棄（成環 E-F-D）</span></td><td>不變</td><td>15</td></tr>
+          <tr><td>8</td><td><strong>(C, D)</strong></td><td>6</td><td>{A, B, C}, {D, E, F, G}</td><td><strong><span class="k">納入 (6)</span></strong></td><td>{A, B, C, D, E, F, G} 全連通</td><td><strong>21</strong></td></tr>
+        </table></div>
+        <p><strong>最小總成本</strong>：1 + 2 + 3 + 4 + 5 + 6 = <strong>21（百萬元）</strong>。所選邊集合為 <code>{(F, G), (D, F), (D, E), (B, C), (A, B), (C, D)}</code>。</p>
+
+        <span class="scoring-tag">二、Kruskal vs Prim 深度比較 (10分)</span>
+        <h3>二、Kruskal 與 Prim 演算法比較與適用時機</h3>
+        <div class="table-wrap"><table>
+          <tr><th>比較項目</th><th>Kruskal 演算法</th><th>Prim 演算法</th></tr>
+          <tr><td><strong>核心策略</strong></td><td>以<strong>邊</strong>為主（Edge-centric），全局排序</td><td>以<strong>點</strong>為主（Vertex-centric），由起點向外生長</td></tr>
+          <tr><td><strong>關鍵資料結構</strong></td><td>邊清單（排序）＋ <strong>並查集（Disjoint Set / Union-Find）</strong></td><td>鄰接表／矩陣 ＋ <strong>最小堆積（Min-Heap / Priority Queue）</strong></td></tr>
+          <tr><td><strong>時間複雜度</strong></td><td><strong>O(E log E)</strong>（排序主導）或 O(E log V)</td><td>矩陣：O(V²)；Min-Heap：<strong>O(E log V)</strong>；Fib-Heap：O(E + V log V)</td></tr>
+          <tr><td><strong>圖型適用性</strong></td><td>適合<strong>稀疏圖（Sparse Graph, E ≪ V²）</strong></td><td>適合<strong>稠密圖（Dense Graph, E ≈ V²）</strong></td></tr>
+          <tr><td><strong>中間連通性</strong></td><td>中間過程形成<strong>森林（多個不連通分量）</strong></td><td>中間過程<strong>永遠維持單一連通樹</strong></td></tr>
+        </table></div>
+
+        <span class="scoring-tag">三、地方政府光纖骨幹網路實務限制 (5分)</span>
+        <h3>三、地方政府光纖網路建置實務考量</h3>
+        <p><strong>（一）單點失效（SPOF）與備援機制</strong>：最小生成樹（MST）結構完全無迴路，任一段光纖挖斷即導致後半部鄉鎮公所斷網。地方骨幹網路應以 MST 為基礎，另於關鍵節點間增設<strong>備援副環（Ring Topology）</strong>，配合 STP/ERPS 自動切換。</p>
+        <p><strong>（二）路權挖掘許可與既有管道附掛</strong>：公所間光纖常須穿越省道、水利防汛道路或跨橋，受限於路面禁挖期與管線申挖法規，實務上優先租用既有共同管道、有線電視 CABLE 管道或台電桿線附掛，成本不純以直線距離為準。</p>
+        <p><strong>（三）天災地質風險（韌性設計）</strong>：山區鄉鎮公所易受颱風土石流沖毀實體線路，應評估微波（Microwave）或低軌衛星（LEO）作為離線應變替代路徑，避免單一實體依賴。</p>
       </div>
 
-      <strong>📊 主表②　Kruskal vs Prim</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>Kruskal</th><th>Prim</th></tr>
-        <tr><td>核心</td><td>以<strong>邊</strong>為主：邊由小到大，不成環就加</td><td>以<strong>點</strong>為主：每次加入連到樹外最便宜的邊</td></tr>
-        <tr><td>資料結構</td><td><strong>並查集</strong>（Union-Find）判環</td><td><strong>最小堆積</strong></td></tr>
-        <tr><td>複雜度</td><td>O(E log E)</td><td>矩陣 O(V²)；堆積+串列 O(E log V)</td></tr>
-        <tr><td>過程形態</td><td>可能是<strong>多個森林</strong>，最後才連成一棵</td><td><strong>始終一棵連通樹</strong>，逐漸長大</td></tr>
-        <tr><td>適用</td><td><strong>稀疏圖</strong></td><td><strong>稠密圖</strong></td></tr>
-      </table></div>
-
-      <strong>📊 主表③　實務限制與建議（本題鑑別點）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>限制</th><th>說明</th><th>建議</th></tr>
-        <tr><td><strong>無備援</strong></td><td>MST 為樹狀結構，<strong>任一段中斷即造成部分公所斷網</strong></td><td>關鍵節點增設<strong>環狀備援（Ring）或雙路由</strong></td></tr>
-        <tr><td>未考量效能需求</td><td>僅最小化建置成本，未納入頻寬與延遲</td><td>依各所業務量規劃頻寬等級</td></tr>
-        <tr><td>未考量維運成本</td><td>建置最省 ≠ <strong>總持有成本（TCO）</strong>最省</td><td>納入年度維護費與汰換預算評估</td></tr>
-        <tr><td>現地限制</td><td>路權、地形、既有管線、跨轄區協調</td><td>先辦理現地會勘與管線調查</td></tr>
-        <tr><td>法制程序</td><td>—</td><td>依《<strong>政府採購法</strong>》辦理招標與履約管理；規格書明定驗收標準</td></tr>
-        <tr><td>資安</td><td>專網仍須防護</td><td>納入<strong>資通安全維護計畫</strong>，各所網段適當隔離</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>逐步列出並標明「被跳過的邊」</strong>——證明有做成環判斷<br>
-      2. <strong>驗算邊數 = V−1</strong><br>
-      3. <strong>指出 MST 無備援</strong>——本題最大鑑別點<br>
-      4. 提到<strong>TCO</strong>、<strong>政府採購法</strong>與<strong>資安</strong>（地特視角）<br>
-      5. 結論：「本案理論最低建置成本為 27 百萬元；惟關鍵基礎設施不宜採無迴圈之樹狀結構，建議於主要節點保留備援路徑，並依成本效益分析評估追加預算。」
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>Kruskal 貪婪步驟</strong>：嚴格按權重列出檢查過程，點名「並查集 Union-Find」與成環捨棄理由。<br>
+        2. <strong>精準數值</strong>：邊數恰為 V−1 = 6 條，總成本精確算出 21 百萬元。<br>
+        3. <strong>演算法對照</strong>：Prim（點/稠密圖）vs Kruskal（邊/稀疏圖）複雜度與中間狀態（連通樹 vs 森林）。<br>
+        4. <strong>公門情境加分</strong>：點出 MST「無備援、單點失效」致命缺點，提出「環狀備援（Ring Topology）」與「路權管線法規」。
       </div>
     </div></details>
   </div>
@@ -5685,55 +5692,76 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       (三) 說明本系統於個資保護上應注意事項。（7 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 (一) 函數相依與主鍵</strong>
-      <div class="table-wrap"><table>
-        <tr><th>編號</th><th>函數相依</th></tr>
-        <tr><td>FD1</td><td>報名序號 → 身分證字號, 活動代碼, 報名時間</td></tr>
-        <tr><td>FD2</td><td>身分證字號 → 姓名, 聯絡電話, 里別代碼</td></tr>
-        <tr><td>FD3</td><td>里別代碼 → 里別名稱, 所屬區代碼</td></tr>
-        <tr><td>FD4</td><td>所屬區代碼 → 所屬區名稱</td></tr>
-        <tr><td>FD5</td><td>活動代碼 → 活動名稱, 活動日期, 主辦局處代碼</td></tr>
-        <tr><td>FD6</td><td>主辦局處代碼 → 主辦局處名稱</td></tr>
-      </table></div>
-      <strong>主鍵 ＝ {報名序號}</strong>（其閉包可涵蓋全部屬性）
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】單值原子為一階，消去部分成二階，消去遞移達三階，查詢效能適度反</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>1NF</strong>：屬性均為單一值（原子性）。<br>
+          • <strong>2NF</strong>：滿足 1NF，消除「部分函數相依」（所有非主鍵屬性完全相依於候選鍵）。<br>
+          • <strong>3NF</strong>：滿足 2NF，消除「遞移函數相依」（非主鍵屬性不得由非主鍵推導）。<br>
+          • <strong>實務</strong>：避免新增/刪除/修改異常（Anomalies），高併發讀取時可適度反正規化（Denormalization）加欄位或快取。
+        </div>
+      </div>
 
-      <strong>📊 (二) 逐階正規化</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>檢查</th><th>結果</th></tr>
-        <tr><td><strong>1NF</strong></td><td>所有屬性皆為單元值、無重複群組</td><td>✅ 符合</td></tr>
-        <tr><td><strong>2NF</strong></td><td>主鍵為<strong>單一屬性</strong> → 不可能有部分相依</td><td>✅ <strong>自動符合</strong></td></tr>
-        <tr><td><strong>3NF</strong></td><td>存在多層遞移相依：<br>報名序號→身分證字號→姓名/電話/里別 ❌<br>里別代碼→所屬區代碼→所屬區名稱 ❌<br>報名序號→活動代碼→活動名稱/日期/主辦局處 ❌<br>活動代碼→主辦局處代碼→主辦局處名稱 ❌</td><td>❌ 需分解</td></tr>
-      </table></div>
-      <strong>3NF 分解結果（六張表）</strong>
-      <pre>市民(<span class="s">身分證字號</span>, 姓名, 聯絡電話, 里別代碼<sup>FK</sup>)
-里別(<span class="s">里別代碼</span>, 里別名稱, 所屬區代碼<sup>FK</sup>)
-行政區(<span class="s">所屬區代碼</span>, 所屬區名稱)
-局處(<span class="s">主辦局處代碼</span>, 主辦局處名稱)
-活動(<span class="s">活動代碼</span>, 活動名稱, 活動日期, 主辦局處代碼<sup>FK</sup>)
-報名(<span class="s">報名序號</span>, 身分證字號<sup>FK</sup>, 活動代碼<sup>FK</sup>, 報名時間)</pre>
-      <p style="font-size:.88rem"><strong>BCNF 檢查</strong>：各表 FD 之決定因素均為該表主鍵 → <strong>已符合 BCNF</strong>。</p>
+      <div class="score-template">
+        <span class="scoring-tag">一、候選鍵與函數相依 (FD) 判定 (6分)</span>
+        <h3>一、主鍵判定與函數相依（Functional Dependency, FD）分析</h3>
+        <p><strong>（一）主鍵判定</strong>：本原始資料表之主鍵為 <strong><u>報名序號</u></strong>（若無自增序號，則為複合鍵 <strong>(<u>身分證字號, 活動代碼</u>)</strong>）。以下以複合鍵 <code>(身分證字號, 活動代碼)</code> 示範標準推導以突顯 2NF 部分相依。</p>
+        <p><strong>（二）完整函數相依清單（FD）</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>FD 編號</th><th>決定項（Determinant）</th><th>被相依項（Dependent）</th><th>相依型態說明</th></tr>
+          <tr><td>FD1</td><td><strong>(身分證字號, 活動代碼)</strong></td><td>報名時間, 報名狀態</td><td>完全函數相依（決定單筆報名）</td></tr>
+          <tr><td>FD2</td><td><strong>身分證字號</strong></td><td>姓名, 聯絡電話, 里別代碼</td><td><strong>部分函數相依</strong>（僅相依於複合鍵之一部分）</td></tr>
+          <tr><td>FD3</td><td>里別代碼</td><td>里別名稱, 所屬區代碼</td><td>遞移函數相依（非主鍵決定非主鍵）</td></tr>
+          <tr><td>FD4</td><td>所屬區代碼</td><td>所屬區名稱</td><td>遞移函數相依</td></tr>
+          <tr><td>FD5</td><td><strong>活動代碼</strong></td><td>活動名稱, 活動日期, 場地代碼</td><td><strong>部分函數相依</strong></td></tr>
+          <tr><td>FD6</td><td>場地代碼</td><td>場地名稱, 場地容納人數</td><td>遞移函數相依</td></tr>
+        </table></div>
 
-      <strong>📊 (三) 個資保護注意事項</strong>
-      <div class="table-wrap"><table>
-        <tr><th>面向</th><th>措施</th></tr>
-        <tr><td><strong>蒐集範圍</strong></td><td>依《個人資料保護法》<strong>特定目的、必要範圍</strong>——活動報名是否真需身分證字號？可否改用手機號碼或內部流水號</td></tr>
-        <tr><td><strong>識別欄位處理</strong></td><td>身分證字號宜<strong>代碼化</strong>或另設內部主鍵，降低曝險；顯示時<strong>遮罩</strong>（A12345****）</td></tr>
-        <tr><td><strong>告知義務</strong></td><td>報名頁面應告知蒐集機關、目的、利用範圍與當事人權利</td></tr>
-        <tr><td><strong>存取控制</strong></td><td><strong>RBAC</strong>；以<strong>檢視表</strong>限制承辦人僅能看到本局處活動之報名資料</td></tr>
-        <tr><td><strong>稽核軌跡</strong></td><td>記錄「誰、何時、查了誰的資料」，並偵測<strong>異常大量查詢</strong></td></tr>
-        <tr><td><strong>加密</strong></td><td>傳輸採 TLS；敏感欄位靜態加密</td></tr>
-        <tr><td><strong>保存與銷毀</strong></td><td>訂定保存期限，活動結束後屆期<strong>安全銷毀</strong>（含備份媒體）</td></tr>
-        <tr><td><strong>測試環境</strong></td><td><strong>不得使用真實個資</strong>，應以去識別化或合成資料取代</td></tr>
-        <tr><td><strong>委外管理</strong></td><td>委外開發須簽<strong>保密切結</strong>、契約載明監督義務與契約終止後之<strong>刪除證明</strong></td></tr>
-        <tr><td><strong>外洩應變</strong></td><td>發生外洩應查明後<strong>通知當事人</strong>，並依資安法通報</td></tr>
-      </table></div>
+        <span class="scoring-tag">二、1NF 至 3NF 逐階推導 (14分)</span>
+        <h3>二、逐步正規化推導歷程</h3>
+        <p><strong>（一）第一正規化（1NF）</strong>：<br>
+        • <strong>規則</strong>：各欄位均為不可分割之<strong>原子值（Atomic Value）</strong>，無重複群（Repeating Groups）。<br>
+        • <strong>檢驗</strong>：題目中所有屬性皆已為單一純量值，<strong>已符合 1NF</strong>。</p>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>指出單一屬性主鍵自動符合 2NF</strong><br>
-      2. 找出<strong>四組遞移相依</strong>（里別→區、活動→局處是容易漏的）<br>
-      3. 分解結果<strong>標明主鍵與外鍵</strong><br>
-      4. 個資部分要質疑<strong>「是否真需要身分證字號」</strong>——這是必要性原則的具體展現<br>
-      5. <strong>測試環境不得用真實個資</strong>（極少人寫）
+        <p><strong>（二）第二正規化（2NF）</strong>：<br>
+        • <strong>規則</strong>：符合 1NF，且<strong>消除部分函數相依（Partial Dependency）</strong>，所有非主鍵屬性必須完全函數相依於複合主鍵。<br>
+        • <strong>推導</strong>：因 <code>身分證字號 → 姓名...</code> 及 <code>活動代碼 → 活動名稱...</code> 僅依賴部分主鍵，須拆分為三表：<br>
+        1. <code>報名(<u>身分證字號</u>, <u>活動代碼</u>, 報名時間, 報名狀態)</code><br>
+        2. <code>市民(<u>身分證字號</u>, 姓名, 聯絡電話, 里別代碼, 里別名稱, 所屬區代碼, 所屬區名稱)</code><br>
+        3. <code>活動(<u>活動代碼</u>, 活動名稱, 活動日期, 場地代碼, 場地名稱, 場地容納人數)</code></p>
+
+        <p><strong>（三）第三正規化（3NF）</strong>：<br>
+        • <strong>規則</strong>：符合 2NF，且<strong>消除遞移函數相依（Transitive Dependency）</strong>，非主鍵屬性不得依賴另一個非主鍵屬性。<br>
+        • <strong>推導</strong>：市民表中 <code>身分證字號 → 里別代碼 → 里別名稱 → 所屬區代碼 → 所屬區名稱</code> 存在遞移；活動表中 <code>活動代碼 → 場地代碼 → 場地名稱</code> 存在遞移，分解後產生最終 6 個資料表：<br>
+        1. <strong>報名紀錄表</strong>：<code>報名(<u>報名序號</u>, <span class="k">身分證字號</span>, <span class="k">活動代碼</span>, 報名時間, 報名狀態)</code><br>
+        2. <strong>市民資料表</strong>：<code>市民(<u>身分證字號</u>, 姓名, 聯絡電話, <span class="k">里別代碼</span>)</code><br>
+        3. <strong>里別資料表</strong>：<code>里別(<u>里別代碼</u>, 里別名稱, <span class="k">所屬區代碼</span>)</code><br>
+        4. <strong>行政區表</strong>：<code>行政區(<u>所屬區代碼</u>, 所屬區名稱)</code><br>
+        5. <strong>活動主檔表</strong>：<code>活動(<u>活動代碼</u>, 活動名稱, 活動日期, <span class="k">場地代碼</span>)</code><br>
+        6. <strong>活動場地表</strong>：<code>場地(<u>場地代碼</u>, 場地名稱, 場地容納人數)</code><br>
+        <em>（註：底線標記為 Primary Key；粉底標記為 Foreign Key 外部鍵）</em></p>
+
+        <span class="scoring-tag">三、政府系統正規化效益與反正規化對策 (5分)</span>
+        <h3>三、地方政府系統實務效益與過度正規化對策</h3>
+        <p><strong>（一）正規化之關鍵效益</strong>：<br>
+        1. <strong>消除更新異常（Update Anomaly）</strong>：市民變更電話僅需更新市民表 1 筆，無須修改歷史報名資料。<br>
+        2. <strong>消除新增異常（Insert Anomaly）</strong>：活動未有人報名即可先建立活動主檔與場地資料。<br>
+        3. <strong>消除刪除異常（Delete Anomaly）</strong>：刪除某筆報名紀錄不會連帶誤刪市民基本資料或里別資訊。</p>
+        <p><strong>（二）過度正規化衍生問題與解方（反正規化 Denormalization）</strong>：<br>
+        • <strong>問題</strong>：表數過多導致高併發查詢時須執行大量多表關聯（Multi-table JOIN），加重 DB 負載與查詢延遲。<br>
+        • <strong>實務對策</strong>：<br>
+        1. <strong>適度反正規化</strong>：在「活動報名表」中直接冗餘儲存「活動名稱」與「市民姓名」，避免每次列表均需 JOIN。<br>
+        2. <strong>快取架構（Cache）</strong>：以 Redis 快取熱門活動資訊與場地剩餘名額，讀寫分離減輕主資料庫負擔。</p>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>FD 完整列出</strong>：清楚指出決定項與被決定項，標示部分相依與遞移相依。<br>
+        2. <strong>定義嚴謹</strong>：1NF 原子性、2NF 消除部分相依、3NF 消除遞移相依，並給出拆解後的六個關聯 Schema。<br>
+        3. <strong>主鍵外鍵標記</strong>：Primary Key 與 Foreign Key 標示清晰無遺漏。<br>
+        4. <strong>三大異常對應實例</strong>：新增/刪除/更新異常以市民報名為例說明。<br>
+        5. <strong>反正規化與快取</strong>：提出 JOIN 成本痛點與 Redis/唯讀副檔之折衷策略。
       </div>
     </div></details>
   </div>
@@ -5747,68 +5775,70 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       (二) 說明各網段之隔離與存取控制原則。（11 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 步驟一：由大到小排序並決定遮罩</strong>
-      <div class="table-wrap"><table>
-        <tr><th>用途</th><th>需求</th><th>計算</th><th>CIDR</th><th>可用</th><th>區塊</th></tr>
-        <tr><td>辦公電腦</td><td>70</td><td>2⁷−2 = 126 ≥ 70</td><td><strong>/25</strong></td><td>126</td><td>128</td></tr>
-        <tr><td>IP 監視</td><td>40</td><td>2⁶−2 = 62 ≥ 40</td><td><strong>/26</strong></td><td>62</td><td>64</td></tr>
-        <tr><td>洽公 Wi-Fi</td><td>25</td><td>2⁵−2 = 30 ≥ 25</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
-        <tr><td>伺服器與設備</td><td>20</td><td>2⁵−2 = 30 ≥ 20</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
-        <tr><td>管理網段</td><td>10</td><td>2⁴−2 = 14 ≥ 10</td><td><strong>/28</strong></td><td>14</td><td>16</td></tr>
-        <tr><td>路由器對接</td><td>2</td><td>2²−2 = 2</td><td><strong>/30</strong></td><td>2</td><td>4</td></tr>
-      </table></div>
-
-      <strong>📊 步驟二：依序配置</strong>
-      <div class="table-wrap"><table>
-        <tr><th>用途</th><th>網路位址</th><th>可用範圍</th><th>廣播位址</th><th>遮罩</th></tr>
-        <tr><td>辦公電腦</td><td>10.50.10.<strong>0</strong>/25</td><td>.1 – .126</td><td>.127</td><td>255.255.255.128</td></tr>
-        <tr><td>IP 監視</td><td>10.50.10.<strong>128</strong>/26</td><td>.129 – .190</td><td>.191</td><td>255.255.255.192</td></tr>
-        <tr><td>洽公 Wi-Fi</td><td>10.50.10.<strong>192</strong>/27</td><td>.193 – .222</td><td>.223</td><td>255.255.255.224</td></tr>
-        <tr><td>伺服器與設備</td><td>10.50.10.<strong>224</strong>/27</td><td>.225 – .254</td><td>.255</td><td>255.255.255.224</td></tr>
-        <tr><td colspan="5" style="color:#b45309"><strong>⚠️ 空間已用盡：128+64+32+32 = 256</strong>，管理網段與路由器對接<strong>無位址可配</strong></td></tr>
-      </table></div>
-      <div class="warn">
-        <span class="t">⚠️ 本題的關鍵陷阱與正確處理</span>
-        總需求 128+64+32+32+16+4 = <strong>276 &gt; 256</strong>，<strong>單一 /24 不足以容納所有需求</strong>。<br><br>
-        <strong>作答時必須指出此點並提出解決方案</strong>（能發現才是真的會）：<br>
-        <strong>方案一（建議）</strong>：向上級或網管單位<strong>申請擴充為 /23</strong>（10.50.10.0/23，共 512 個位址）<br>
-        <strong>方案二</strong>：<strong>洽公 Wi-Fi 改用獨立私有網段</strong>（如 172.16.0.0/24）——訪客網路本就與內網完全隔離，<u>使用不同網段反而更符合安全設計</u><br>
-        <strong>方案三</strong>：檢討 IP 監視是否需 40 個位址（可分批建置），或改用較小區塊<br><br>
-        <strong>採方案二後的配置</strong>：
-        <div class="table-wrap"><table>
-          <tr><th>用途</th><th>網路位址</th><th>可用範圍</th><th>廣播</th><th>遮罩</th></tr>
-          <tr><td>辦公電腦</td><td>10.50.10.0/25</td><td>.1 – .126</td><td>.127</td><td>255.255.255.128</td></tr>
-          <tr><td>IP 監視</td><td>10.50.10.128/26</td><td>.129 – .190</td><td>.191</td><td>255.255.255.192</td></tr>
-          <tr><td>伺服器與設備</td><td>10.50.10.192/27</td><td>.193 – .222</td><td>.223</td><td>255.255.255.224</td></tr>
-          <tr><td>管理網段</td><td>10.50.10.224/28</td><td>.225 – .238</td><td>.239</td><td>255.255.255.240</td></tr>
-          <tr><td>路由器對接</td><td>10.50.10.240/30</td><td>.241 – .242</td><td>.243</td><td>255.255.255.252</td></tr>
-          <tr><td>洽公 Wi-Fi</td><td colspan="4">另用 172.16.0.0/27（獨立網段，完全隔離）</td></tr>
-        </table></div>
-        驗算：128+64+32+16+4 = <strong>244</strong> ≤ 256 ✔，剩餘 .244–.255 保留擴充
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】大需先切取二次，前綴遞增查總和，空間溢位申擴充，隔離切網禁直穿</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>VLSM 核心公式</strong>：主機數 ≤ 2ⁿ − 2（扣除網路位址與廣播位址）。<br>
+          • <strong>考題關鍵陷阱</strong>：總空間需 128+64+32+32+16+4 = 276 > 256！單一 /24 不足容納，<strong>必須主動指出並提出解法（洽公 Wi-Fi 移至獨立網段或申請 /23）</strong>，此為拉開與其他考生差距之核心鑑別點！<br>
+          • <strong>網段隔離</strong>：VLAN 切割、IoT 監視禁止連外、Wi-Fi 用戶端隔離、資料庫不置於 DMZ。
+        </div>
       </div>
 
-      <strong>📊 (二) 隔離與存取控制</strong>
-      <div class="table-wrap"><table>
-        <tr><th>網段</th><th>隔離與控管原則</th></tr>
-        <tr><td><strong>辦公電腦</strong></td><td>可存取伺服器區之<strong>應用埠</strong>（如 443）；<u>不得直接連資料庫埠</u>；上網經代理與內容過濾</td></tr>
-        <tr><td><strong>伺服器與設備</strong></td><td>獨立 VLAN；僅開放必要服務埠；<strong>管理埠（SSH 22／RDP 3389）僅限管理網段</strong>；對外服務另置 DMZ（<strong>資料庫不得置於 DMZ</strong>）</td></tr>
-        <tr><td><strong>IP 監視（IoT）</strong></td><td><strong>完全獨立</strong>；此類設備常有<u>預設密碼與韌體漏洞</u>；<strong>禁止主動連外</strong>，僅允許連至錄影主機；<strong>強制變更預設憑證</strong>；納入資產清冊與韌體更新機制</td></tr>
-        <tr><td><strong>洽公 Wi-Fi</strong></td><td><strong>與內網完全隔離</strong>；啟用<strong>用戶端隔離</strong>；僅允許上網；依規定<strong>保存連線紀錄</strong>；認證蒐集個資須符合個資法</td></tr>
-        <tr><td><strong>管理網段</strong></td><td><strong>頻外管理（Out-of-band）</strong>，不與業務流量混用；限特定人員與跳板機；<strong>全程稽核</strong></td></tr>
-      </table></div>
-      <div class="table-wrap"><table>
-        <tr><th>通用原則</th></tr>
-        <tr><td>① 防火牆採<strong>預設拒絕</strong>，逐條開放　② <strong>雙向管控</strong>（出向可阻斷 C2 與資料竊出）<br>
-        ③ VLAN 間經 L3 設備套用 <strong>ACL</strong>　④ 啟用 <strong>DHCP Snooping ＋ DAI</strong> 防 ARP 欺騙、Port Security 限制每埠 MAC<br>
-        ⑤ 日誌集中至 SIEM，設備時間以 NTP 同步　⑥ 依《資通安全管理法》納入本府資通安全維護計畫</td></tr>
-      </table></div>
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）需求分析與空間超額陷阱判定 (4分)</span>
+        <h3>一、子網路規劃（VLSM 切割）與空間不足因應</h3>
+        <p><strong>（一）主機需求分析與遮罩計算（由大至小排序）</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>序號</th><th>子網路用途</th><th>需求主機數</th><th>計算公式（2ⁿ − 2 ≥ 需求）</th><th>主機位元 n</th><th>CIDR 遮罩</th><th>可用 IP 數</th><th>區塊大小 (Block)</th></tr>
+          <tr><td>1</td><td>辦公電腦</td><td>70 台</td><td>2⁷ − 2 = 126 ≥ 70</td><td>7</td><td><strong>/25</strong></td><td>126</td><td>128</td></tr>
+          <tr><td>2</td><td>IP 監視系統</td><td>40 台</td><td>2⁶ − 2 = 62 ≥ 40</td><td>6</td><td><strong>/26</strong></td><td>62</td><td>64</td></tr>
+          <tr><td>3</td><td>洽公民眾 Wi-Fi</td><td>25 台</td><td>2⁵ − 2 = 30 ≥ 25</td><td>5</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
+          <tr><td>4</td><td>伺服器與設備</td><td>20 台</td><td>2⁵ − 2 = 30 ≥ 20</td><td>5</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
+          <tr><td>5</td><td>管理網段</td><td>10 台</td><td>2⁴ − 2 = 14 ≥ 10</td><td>4</td><td><strong>/28</strong></td><td>14</td><td>16</td></tr>
+          <tr><td>6</td><td>路由器對接</td><td>2 個</td><td>2² − 2 = 2 ≥ 2</td><td>2</td><td><strong>/30</strong></td><td>2</td><td>4</td></tr>
+          <tr style="background:#fee2e2;color:#991b1b"><td><strong>總計</strong></td><td colspan="6"><strong>所需空間總和：128 + 64 + 32 + 32 + 16 + 4 = 276 個 IP</strong></td><td><strong>&gt; 256（超額！）</strong></td></tr>
+        </table></div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>發現位址不足並提出解決方案</strong>——本題最大鑑別點（多數考生會硬配而算錯）<br>
-      2. <strong>由大到小排序</strong>與四欄齊全的配置表<br>
-      3. <strong>IoT／監視設備須獨立隔離且禁止主動連外</strong><br>
-      4. <strong>管理網段頻外管理</strong><br>
-      5. <strong>訪客網路完全隔離＋用戶端隔離＋連線紀錄保存</strong>
+        <span class="scoring-tag">一、（二）空間不足應變對策與配置成果表 (10分)</span>
+        <p><strong>（二）關鍵陷阱剖析與地方實務配置規劃</strong>：<br>
+        • <strong>問題發現</strong>：配發之 <code>10.50.10.0/24</code> 僅能提供 256 個 IP，<strong>不足以容納全部 276 個 IP 需求</strong>。<br>
+        • <strong>高分實務解法</strong>：<strong>洽公民眾 Wi-Fi 移至獨立私有網段（如 172.16.1.0/24）</strong>。洽公訪客網路本質上必須與內部公務網路實體或邏輯完全隔離，改用專用私有網段上網，更符合政府資安縱深防禦規範。<br>
+        • <strong>調整後之 VLSM 最佳配置表</strong>（10.50.10.0/24 內配置其餘五組，合計 128+64+32+16+4 = 244 ≤ 256）：</p>
+        <div class="table-wrap"><table>
+          <tr><th>子網路名稱</th><th>網路位址 (Network)</th><th>子網路遮罩</th><th>可用 IP 範圍 (Usable Range)</th><th>廣播位址 (Broadcast)</th><th>閘道預設 IP (Gateway)</th></tr>
+          <tr><td><strong>辦公電腦網段</strong></td><td><code>10.50.10.0/25</code></td><td>255.255.255.128</td><td>10.50.10.1 ～ 10.50.10.126</td><td>10.50.10.127</td><td>10.50.10.1</td></tr>
+          <tr><td><strong>IP 監視系統網段</strong></td><td><code>10.50.10.128/26</code></td><td>255.255.255.192</td><td>10.50.10.129 ～ 10.50.10.190</td><td>10.50.10.191</td><td>10.50.10.129</td></tr>
+          <tr><td><strong>伺服器設備網段</strong></td><td><code>10.50.10.192/27</code></td><td>255.255.255.224</td><td>10.50.10.193 ～ 10.50.10.222</td><td>10.50.10.223</td><td>10.50.10.193</td></tr>
+          <tr><td><strong>設備管理網段</strong></td><td><code>10.50.10.224/28</code></td><td>255.255.255.240</td><td>10.50.10.225 ～ 10.50.10.238</td><td>10.50.10.239</td><td>10.50.10.225</td></tr>
+          <tr><td><strong>公所-市府路由</strong></td><td><code>10.50.10.240/30</code></td><td>255.255.255.252</td><td>10.50.10.241 ～ 10.50.10.242</td><td>10.50.10.243</td><td>10.50.10.241</td></tr>
+          <tr><td><em>保留未分配空間</em></td><td><code>10.50.10.244/30+</code></td><td>-</td><td>10.50.10.244 ～ 10.50.10.255</td><td>-</td><td>供日後應急擴充</td></tr>
+          <tr style="background:#ecfdf5"><td><strong>洽公民眾 Wi-Fi</strong></td><td><code>172.16.1.0/27</code></td><td>255.255.255.224</td><td>172.16.1.1 ～ 172.16.1.30</td><td>172.16.1.31</td><td>172.16.1.1（獨立直連外網）</td></tr>
+        </table></div>
+
+        <span class="scoring-tag">二、各網段隔離與存取控制原則 (11分)</span>
+        <h3>二、各網段隔離與存取控制架構規劃</h3>
+        <p><strong>（一）VLAN 切割與預設安全原則</strong>：<br>
+        各網段指派獨立 VLAN，各 VLAN 間通訊必須經過第 3 層核心交換器（L3 Switch）或次世代防火牆（NGFW），貫徹<strong>「預設拒絕（Default Deny）」</strong>原則，僅開啟經核准之通訊埠與協定。</p>
+        <p><strong>（二）各專屬網段安全控管矩陣</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>網段名稱</th><th>隔離作法與存取權限控管規則</th></tr>
+          <tr><td><strong>辦公電腦區</strong></td><td>僅能存取伺服器之業務 Port（如 HTTPS 443）；<strong>嚴禁直接連線資料庫 Port（1433/3306/1521）</strong>；對外上網強制導向 Web 代理伺服器過濾惡意網站。</td></tr>
+          <tr><td><strong>IP 監視系統（IoT）</strong></td><td><strong>實施嚴格網路微隔離（Micro-segmentation）</strong>；<strong>全面阻斷主動出向連網連線</strong>（防止攝影機被植入殭屍網路回連 C2）；僅允許錄影主機（NVR）向攝影機拉取影像串流（RTSP）；強制更換預設管理帳密並定期更新韌體。</td></tr>
+          <tr><td><strong>伺服器與設備區</strong></td><td>對外提供服務之主機置於 DMZ；<strong>內部資料庫置於內網受保護網段，絕不得暴露於 DMZ</strong>；對外連線全面實施雙向流量檢測（IPS/IDS）。</td></tr>
+          <tr><td><strong>設備管理網段</strong></td><td>實施<strong>頻外管理（Out-of-band, OOB）</strong>；僅允許 IT 管理人員透過跳板機以 MFA 驗證連線 SSH/RDP，連線過程全程錄影並留存日誌。</td></tr>
+          <tr><td><strong>洽公民眾 Wi-Fi</strong></td><td><strong>與公所內部所有網段實體或邏輯完全隔離</strong>；啟用<strong>「用戶端隔離（Client Isolation）」</strong>防止民眾終端彼此探測；限速限流並依通傳會與個資法規範保存連線稽核日誌至少 6 個月。</td></tr>
+        </table></div>
+        <p><strong>（三）區域網路層防護（L2 Security）</strong>：<br>
+        交換器全面啟用 <strong>DHCP Snooping</strong> 與 <strong>動態 ARP 檢驗（DAI）</strong>防止惡意 DHCP 伺服器與 ARP 欺騙；啟用 <strong>Port Security</strong> 限制單一連接埠 MAC 數量，防止私接未授權 Hub 或 AP。</p>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>陷阱精準破譯</strong>：主動點出 276 > 256 單一 /24 不足，提出民眾 Wi-Fi 移至專屬私有網段或申請 /23 之實務解法。<br>
+        2. <strong>VLSM 六欄標準表</strong>：網路位址、可用範圍、廣播位址、遮罩、閘道完備標示，無任何重疊或算錯。<br>
+        3. <strong>IoT 監視網段關鍵字</strong>：點名「禁止連外網」、「更換預設帳密」、「微隔離」。<br>
+        4. <strong>安全控制規範</strong>：辦公網段禁連 DB Port、管理網段頻外管理 + 跳板機、Wi-Fi 用戶端隔離、L2 防護（DHCP Snooping / DAI）。
       </div>
     </div></details>
   </div>
@@ -5821,60 +5851,57 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       (三) 提出防範措施，並說明區公所人力有限之情形下如何落實。（8 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 (一) 入侵管道與擴散原因</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>可能情形</th></tr>
-        <tr><td><strong>入侵管道</strong></td><td>① <strong>釣魚郵件附件</strong>（含惡意巨集或利用未修補漏洞）<br>② <strong>暴露在外的 RDP（3389）</strong>遭暴力破解<br>③ VPN 設備未修補之漏洞<br>④ 承辦人使用<strong>來路不明的 USB</strong><br>⑤ 委外廠商電腦連入內網時帶入</td></tr>
-        <tr><td><strong>擴散原因</strong></td><td>① <strong>網段未隔離</strong>，可自由橫向移動<br>② 使用者具<strong>系統管理員權限</strong><br>③ 竊取<strong>網域管理員帳密</strong>提權<br>④ 未啟用 <strong>MFA</strong><br>⑤ <strong>SMB（445）檔案共享權限過寬</strong><br>⑥ 端點僅有特徵碼防毒，缺乏<strong>行為式偵測（EDR）</strong></td></tr>
-        <tr><td><strong>災情擴大</strong></td><td><strong>備份線上連接且與正式環境同網域 → 一併遭加密</strong></td></tr>
-      </table></div>
-
-      <strong>📊 (二) 應變程序與通報</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>作為</th></tr>
-        <tr><td>① 偵測分析</td><td>確認事件真偽、判定影響範圍與<strong>事件等級</strong>（涉戶役政個資，屬影響重大）</td></tr>
-        <tr><td>② <strong>圍堵</strong></td><td>隔離受害主機（<strong>拔網路線而非直接關機</strong>）、阻斷 C2 連線、暫停檔案共享</td></tr>
-        <tr><td>③ <strong>證據保存</strong></td><td>取得記憶體與磁碟映像、保存日誌，維持<strong>證據監管鏈</strong>；<u>切勿急於重灌</u></td></tr>
-        <tr><td>④ <strong>通報</strong></td><td>依《<strong>資通安全管理法</strong>》及《資通安全事件通報及應變辦法》於<strong>規定時限內</strong>通報上級與主管機關；重大事件另提<strong>調查、處理及改善報告</strong></td></tr>
-        <tr><td>⑤ 根除</td><td>清除惡意程式、修補入侵管道、<strong>重設所有可能外洩之憑證</strong>（尤其網域管理員）</td></tr>
-        <tr><td>⑥ 復原</td><td>由<u>經確認乾淨</u>之備份還原；<strong>還原前先掃描</strong>避免二次感染；分階段恢復服務</td></tr>
-        <tr><td>⑦ 檢討</td><td>根因分析、改善措施列管追蹤</td></tr>
-      </table></div>
-      <div class="table-wrap"><table>
-        <tr><th>其他義務與對外處置</th></tr>
-        <tr><td>‧ 若涉<strong>個資外洩</strong>（戶役政資料），依《<strong>個人資料保護法</strong>》查明後<strong>通知當事人</strong><br>
-        ‧ 涉及犯罪得<strong>報請司法機關偵辦</strong><br>
-        ‧ <strong>原則上不支付贖金</strong>——不保證能解、助長犯罪，公務機關支付另涉預算與法律問題<br>
-        ‧ <strong>對外溝通</strong>：統一發言窗口，於臨櫃與網站公告替代作業方式（如改採人工作業、引導至他所辦理），避免民眾權益受損</td></tr>
-      </table></div>
-
-      <strong>📊 (三) 防範措施與人力有限的落實方式</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層次</th><th>措施</th><th>人力有限時的作法</th></tr>
-        <tr><td><strong>備份（最關鍵）</strong></td><td><strong>3-2-1 原則</strong>＋<strong>離線／不可變備份</strong>、多版本保留、備份帳號與網域分離</td><td>此項<strong>投入最小、效益最大</strong>，應列為第一優先；可用外接硬碟定期離線輪替</td></tr>
-        <tr><td><strong>帳號權限</strong></td><td>使用者<strong>非管理員權限</strong>、<strong>全面 MFA</strong>、關閉對外 RDP</td><td>設定一次即長期有效，<strong>不需持續人力</strong></td></tr>
-        <tr><td><strong>修補管理</strong></td><td>作業系統與應用軟體定期更新</td><td>啟用<strong>自動更新</strong>；由縣市府<strong>統一派送</strong>修補</td></tr>
-        <tr><td><strong>端點防護</strong></td><td><strong>EDR</strong> 行為式偵測、停用巨集</td><td>由<strong>縣市府集中採購與集中管理</strong>，公所不需自行維運</td></tr>
-        <tr><td><strong>網路隔離</strong></td><td>VLAN 分段、出向流量管控</td><td>建置時一次規劃到位，後續變動少</td></tr>
-        <tr><td><strong>監控</strong></td><td>日誌集中、異常告警</td><td><strong>委外監控（MSSP）</strong>或由縣市府<strong>SOC 統籌</strong>，補足 24 小時監控能量</td></tr>
-        <tr><td><strong>人員</strong></td><td>教育訓練、<strong>社交工程演練</strong></td><td>運用上級機關既有課程與演練，不需自行開發</td></tr>
-      </table></div>
-      <div class="hl">
-        <span class="t">💡 地特特有的關鍵論述</span>
-        <strong>「區公所是資安防護的最前線，卻也是資源最少的一環。」</strong><br><br>
-        因此防護策略應以<strong>「一次設定、長期有效」</strong>與<strong>「上級統籌、共構共用」</strong>為原則：<br>
-        ‧ 由<strong>縣市政府統籌</strong>集中採購資安設備與服務，提高議價能力與一致性<br>
-        ‧ 建立<strong>縣市層級 SOC 或委外監控</strong>，補足各所無專責人力之缺口<br>
-        ‧ 運用<strong>政府資安聯防機制</strong>與技服中心之協助<br>
-        ‧ 資安預算宜<strong>集中編列</strong>，避免各所各自為政、水準不一
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】斷網拔線封擴散，一小法定二四復，三二一備離線存，多層防禦零信任</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>入侵與擴散</strong>：釣魚郵件/RDP 弱密碼入侵，透過 SMB 漏洞（EternalBlue）、AD 網域管理者雜湊傳遞（Pass-the-Hash）橫向移動。<br>
+          • <strong>法定通報</strong>：依《資通安全管理法》，公務機關知悉資安事件 <strong>1 小時內</strong>至通報應變平台通報，<strong>36 小時內</strong>（三/四級）完成應變處置並復原。<br>
+          • <strong>備份金律</strong>：3-2-1 備份（3 份副本、2 種媒介、1 份<strong>離線/異地/不可竄改 WORM 備份</strong>）。
+        </div>
       </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>「備份要離線」</strong>——本題核心<br>
-      2. <strong>「拔網路線而非關機」「先保存證據不可急於重灌」「重設所有憑證」</strong><br>
-      3. <strong>依法通報＋個資外洩通知當事人</strong><br>
-      4. <strong>對外公告替代作業方式</strong>（民眾權益，地特特有視角）<br>
-      5. 第三小題務必回應<strong>「人力有限」</strong>——提出「上級統籌、共構共用、委外監控」才是切題的答案
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）入侵管道與橫向擴散原因剖析 (8分)</span>
+        <h3>一、勒索軟體入侵管道與內網橫向擴散原因分析</h3>
+        <p><strong>（一）初期入侵管道（Initial Access）</strong>：<br>
+        1. <strong>社交工程與釣魚郵件（Phishing）</strong>：偽造上級機關或公文通知夾帶惡意巨集 Office 檔、壓縮檔或偽裝副檔名執行檔。<br>
+        2. <strong>遠端管理介面暴露與弱密碼</strong>：公所 RDP（3389）、VPN 服務暴露於公網，未啟用 MFA 且遭暴力密碼猜測或憑證撞庫。<br>
+        3. <strong>周邊設備與未修補漏洞</strong>：防火牆、SSL-VPN 設備或 Web 伺服器未更新重大 CVE 安全弱點。</p>
+        <p><strong>（二）內網橫向移動與大規模擴散原因（Lateral Movement）</strong>：<br>
+        1. <strong>網路平坦化缺乏分段</strong>：公所內部電腦、檔案伺服器與印表機均處於同一網段，缺乏 VLAN 隔離與 ACL 存取限制。<br>
+        2. <strong>內部通訊協定濫用</strong>：駭客利用 <strong>SMB（Port 445）</strong> 弱點或 PsExec 工具，在各電腦間派送惡意指令。<br>
+        3. <strong>網域管理權限失竊（Pass-the-Hash / Mimikatz）</strong>：本機管理者密碼共通或 AD 網域帳號過度授權，攻擊者傾倒記憶體竊取 Hash 後取得 Domain Admin 權限，透過 GPO 群組原則派送勒索軟體。</p>
+
+        <span class="scoring-tag">二、（二）應變處置流程與法定通報責任 (9分)</span>
+        <h3>二、資安事件應變處置流程與法定通報義務</h3>
+        <div class="table-wrap"><table>
+          <tr><th>應變階段</th><th>公門實務執行重點與處置 SOP</th></tr>
+          <tr><td><strong>1. 圍堵階段 (Containment)</strong></td><td>• <strong>實體拔除受感染主機網路線</strong>或關閉 Wi-Fi，切斷網路通訊。<br>• <strong>封鎖防火牆外部連線</strong>（阻斷 C2 連線中繼站及資料外洩通道）。<br>• <strong>停用受駭帳號與金鑰</strong>，暫停 AD 網域同步，阻止擴散。</td></tr>
+          <tr><td><strong>2. 通報階段 (Reporting)</strong></td><td>• <strong>法定時效</strong>：依《資通安全管理法》第 14 條及施行細則，於知悉資通安全事件起 <strong><span class="k">1 小時內</span></strong> 完成法定通報。<br>• <strong>通報路徑</strong>：登入<strong>行政院資通安全署「資通安全通報應變平台（APNIC/NICST）」</strong>進行通報，並同步向所屬縣市政府資訊局/處報備。<br>• <strong>級別判定</strong>：戶役政與地政涉及大量民眾敏感個資與核心服務中斷，通常列為<strong>三級資通安全事件</strong>（須於 <strong>36 小時內</strong> 完成應變處置或復原）。</td></tr>
+          <tr><td><strong>3. 調查與根除 (Eradication)</strong></td><td>• <strong>保全數位證據</strong>：禁止擅自重開機或覆蓋日誌，保留記憶體傾倒（Memory Dump）與系統 Event Log。<br>• 分析惡意程式特徵與入侵指標（IoC），全面掃毒並修補漏洞。</td></tr>
+          <tr><td><strong>4. 復原與業務持續 (Recovery)</strong></td><td>• <strong>乾淨重建環境</strong>：重新安裝乾淨作業系統與安全性更新。<br>• <strong>離線備份復原</strong>：驗證離線備份檔未受感染後依序回算還原資料。<br>• 臨櫃服務啟動<strong>紙本/單機離線業務持續運作計畫（BCP）</strong>，降低民怨。</td></tr>
+        </table></div>
+
+        <span class="scoring-tag">三、（三）預防再次發生之全面防護措施 (8分)</span>
+        <h3>三、全面預防防護措施（縱深防禦與法規遵循）</h3>
+        <p><strong>（一）備份架構現代化（3-2-1-1-0 備份原則）</strong>：<br>
+        落實 3 份資料副本、2 種儲存媒介、1 份異地保存、<strong>1 份離線（Air-gapped）或不可竄改儲存（WORM / Immutable Backup）</strong>，且定期辦理 0 錯誤還原演練。</p>
+        <p><strong>（二）落實網路微分段與端點偵測應變（EDR/MDR）</strong>：<br>
+        辦公網段與關鍵伺服器網段實體/邏輯隔離，阻斷端點間直接 SMB/RDP 橫向互連；全機關個人電腦與伺服器強制派送 EDR 代理程式，即時偵測可疑加密行為並自動隔離端點。</p>
+        <p><strong>（三）特權帳號管理與零信任架構（ZTA）</strong>：<br>
+        淘汰共通管理者帳密，導入 LAPS（Local Administrator Password Solution）；遠端管理全面實施多因素身分驗證（MFA）與跳板機稽核；日常公務嚴禁以本機管理者權限操作。</p>
+        <p><strong>（四）社交工程演練與資安教育訓練</strong>：<br>
+        每半年實施社交工程郵件防偽演練，未達標同仁強制參加 4 小時資安補訓；郵件閘道器啟用沙箱動態分析（Sandbox）與惡意連結改寫過濾。</p>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>法規標準</strong>：《資通安全管理法》知悉後 <strong>1 小時內通報</strong>、三級事件 <strong>36 小時內完成處置</strong>、行政院資安通報平台。<br>
+        2. <strong>橫向擴散機制</strong>：SMB（Port 445）、Pass-the-Hash、AD GPO 濫用等專業技術名詞。<br>
+        3. <strong>應變四步驟</strong>：圍堵（拔線/阻斷 C2）、通報（法定時限）、根除（留存證據/清除 IoC）、復原（驗證備份/啟動 BCP）。<br>
+        4. <strong>離線與不可竄改備份</strong>：Air-gapped、WORM（Write Once Read Many）為防禦勒索軟體的唯一根本保險。<br>
+        5. <strong>零信任與 EDR</strong>：EDR 端點偵測、MFA、LAPS 避免單一端點失陷引發全局崩潰。
       </div>
     </div></details>
   </div>
@@ -5885,72 +5912,62 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       請以資訊主管立場提出整體改善規劃。（25 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、問題診斷（<u>主表①</u>）→ 二、目標與原則 → 三、技術面規劃（<u>主表② ＋ 架構圖</u>）→ 四、管理面規劃（<u>主表③</u>）→ 五、分期推動（<u>主表④</u>）→ 六、結論
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】API微服破孤島，單一入口單簽入，主檔治理統一典，三階段推分期成</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>孤島痛點</strong>：資料不一致、重複登打、系統難介接、維護成本高。<br>
+          • <strong>技術架構</strong>：API Gateway + Enterprise Service Bus (ESB) / 服務導向架構 (SOA) + 單一簽入 (SSO) + 跨機關資料共享 (T-Road 機制)。<br>
+          • <strong>資料治理</strong>：建立主資料管理（MDM）與市府統一資料字典（Data Dictionary）。<br>
+          • <strong>推動策略</strong>：短（入口整合/SSO）、中（資料交換 API/MDM）、長（老舊核心微服務化汰換）。
+        </div>
       </div>
 
-      <strong>📊 主表①　問題診斷</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層面</th><th>問題</th><th>對民眾／機關的影響</th></tr>
-        <tr><td>服務面</td><td>民眾<strong>重複填寫</strong>、須跑多個入口與窗口</td><td>洽公負擔重、滿意度低</td></tr>
-        <tr><td>資料面</td><td>資料重複、<strong>定義不一致</strong>、無單一真實來源</td><td>統計無法勾稽、決策依據不可信</td></tr>
-        <tr><td>系統面</td><td><strong>孤島系統</strong>、無標準介接、技術世代差異大</td><td>無法整合、維護成本高</td></tr>
-        <tr><td>管理面</td><td>各系統廠商不同、<strong>缺乏整體架構規劃</strong></td><td><strong>供應商鎖定</strong>、無人綜觀全局</td></tr>
-        <tr><td>成本面</td><td>12 套系統各自維護</td><td>維護費疊加、資訊人力分散</td></tr>
-      </table></div>
+      <div class="score-template">
+        <span class="scoring-tag">一、現況問題診斷與核心目標 (5分)</span>
+        <h3>一、現況架構問題診斷與整頓核心目標</h3>
+        <p><strong>（一）現存「資訊孤島（Information Silos）」核心痛點分析</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>痛點面向</th><th>現象剖析</th><th>對公務運作與民眾之具體衝擊</th></tr>
+          <tr><td><strong>民眾端體驗</strong></td><td>系統各自為政，無整合入口</td><td>申辦不同局處業務須重複填寫姓名、戶籍等，滿意度低落。</td></tr>
+          <tr><td><strong>內部行政效率</strong></td><td>資料未介接，跨系統人工登打</td><td>重複輸入耗損行政工時，人工轉檔易發生謄寫錯誤與延遲。</td></tr>
+          <tr><td><strong>資料治理層面</strong></td><td>缺乏統一主資料標準（MDM）</td><td>各系統對同一市民之代碼或欄位定義不一，決策報表難以彙整。</td></tr>
+          <tr><td><strong>資安與維運成本</strong></td><td>多套系統分屬不同廠商且技術架構老舊</td><td>維護合約分散、弱點修補步調不一，累積龐大技術債與資安曝險。</td></tr>
+        </table></div>
+        <p><strong>（二）改善核心目標</strong>：秉持電子化政府<strong>「以市民為中心（Citizen-Centric）」</strong>與<strong>「資料多跑路、民眾少跑腿（Once-Only Principle）」</strong>原則，透過架構整合建立高效整合平台。</p>
 
-      <strong>📐 目標架構（畫圖）</strong>
-      <pre>          [市民單一入口 / 單一簽入 SSO]
-                       │
-          ┌────────────┴────────────┐
-          │   服務整合層（API 閘道）   │  ← 標準化介接，取代點對點
-          └────────────┬────────────┘
-     ┌────┬────┬───────┼───────┬────┬────┐
-   系統1 系統2 系統3   …      系統12   （逐步汰換／改造）
-          └────────────┬────────────┘
-          │  共用資料平台 / 資料倉儲   │ ← 主檔管理、統計分析、儀表板
-          └─────────────────────────┘</pre>
+        <span class="scoring-tag">二、技術架構整體規劃設計 (10分)</span>
+        <h3>二、技術架構整體規劃（API、單一簽入與中台整合）</h3>
+        <p><strong>（一）整體技術架構四層規劃</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>架構階層</th><th>整合規劃方案與關鍵技術</th></tr>
+          <tr><td><strong>1. 使用者介面層 (UI/Portal)</strong></td><td>• <strong>市民端「市政單一服務入口網（One-Stop Portal）」</strong>：整合 12 套業務申辦介面，響應式設計（RWD）。<br>• <strong>同仁端整合行政工作台</strong>：一次登入即可經手各局處分辦公文與案件。</td></tr>
+          <tr><td><strong>2. 身分識別與存取層 (IAM)</strong></td><td>• 導入<strong>單一簽入（SSO, Single Sign-On）</strong>機制，支援 SAML 2.0 / OIDC。<br>• 市民端整合<strong>行動自然人憑證（TW FidO）</strong>與健保卡驗證；公務端落實多因素驗證（MFA）。</td></tr>
+          <tr><td><strong>3. API 閘道與整合中台 (Integration)</strong></td><td>• 建置<strong>企業服務匯流排（ESB）與 API Gateway</strong>，統一管理 12 套系統之對外與跨機關 API。<br>• 實施 API 流量控管、身分鑑別、金鑰管理與防禦 OWASP API Top 10 威脅。<br>• 串接國家級跨機關資料傳輸通道（<strong>T-Road</strong>）以安全交換戶役政等中央主管資料。</td></tr>
+          <tr><td><strong>4. 主資料治理層 (Master Data Management)</strong></td><td>• 建立<strong>主資料庫（MDM）</strong>，針對市民、機關、規費等共用實體建立全府唯一「黃金紀錄（Golden Record）」。<br>• 定義標準「資料字典（Data Dictionary）」與交換格式（JSON/RESTful）。</td></tr>
+        </table></div>
 
-      <strong>📊 主表②　技術面規劃</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>作法</th></tr>
-        <tr><td><strong>① 資產盤點</strong></td><td>盤點 12 套系統之功能、資料、技術、廠商、維護費、生命週期與剩餘年限</td></tr>
-        <tr><td><strong>② 資料標準化</strong></td><td>建立<strong>共同資料標準與代碼表</strong>；訂定<strong>主資料（Master Data）</strong>之單一真實來源（如市民基本資料以戶政為準）</td></tr>
-        <tr><td><strong>③ 介接標準化</strong></td><td>建立 <strong>API 閘道／服務整合平台</strong>，取代點對點客製介接（避免 N×N 複雜度）</td></tr>
-        <tr><td><strong>④ 單一入口與簽入</strong></td><td>整合對外入口、<strong>SSO 單一簽入</strong>，實現「一次登入、跨局處辦理」</td></tr>
-        <tr><td><strong>⑤ 免重複填寫</strong></td><td>以既有資料<strong>自動帶入</strong>；跨機關者依法辦理資料交換（<strong>免書證免謄本</strong>）</td></tr>
-        <tr><td><strong>⑥ 資料倉儲</strong></td><td>以 ETL 彙整各系統資料，供統計與市政儀表板使用，取代人工彙整</td></tr>
-        <tr><td><strong>⑦ 汰換策略</strong></td><td>依<u>業務重要性 × 技術債</u>排序：高價值者優先改造；低價值者維持或退場</td></tr>
-        <tr><td><strong>⑧ 資安</strong></td><td>整合後<strong>攻擊面擴大</strong>，須同步強化 API 安全、權限控管與稽核軌跡</td></tr>
-      </table></div>
+        <span class="scoring-tag">三、管理制度與分期推動策略 (10分)</span>
+        <h3>三、管理制度配套與三階段分期推動策略</h3>
+        <p><strong>（一）跨局處資料治理與管理配套</strong>：<br>
+        1. <strong>成立市府級「資料治理推動小組」</strong>：由副市長或秘書長擔任召集人，資訊局為執行秘書，統籌跨局處欄位標準協調與業務流程再造（BPR）。<br>
+        2. <strong>採購規範標準化</strong>：修訂往後全府資訊委外採購契約範本，<strong>強制納入「開放 API 介接介面」及「智財權與原始碼歸市府所有」</strong>條款，杜絕廠商技術綁標（Vendor Lock-in）。<br>
+        3. <strong>落實隱私與個資保護法規</strong>：跨系統資料介接遵循《個人資料保護法》特定目的與最小必要原則，建立「資料調閱日誌」並提供民眾線上查詢個資調閱紀錄。</p>
+        <p><strong>（二）三階段分期推動時程規劃（循序漸進）</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>推動重點與里程碑產出</th><th>預期效益</th></tr>
+          <tr><td><strong>短期 (1～6月) 外層整合</strong></td><td>建置單一入口網、導入同仁與市民 SSO（TW FidO）；盤點 12 系統資料字典。</td><td>民眾體驗率先改善，建立統一登入管道。</td></tr>
+          <tr><td><strong>中期 (7～18月) 中台介接</strong></td><td>建置 API Gateway / ESB 中台；先期試辦 3 套高頻業務系統 API 雙向串接；建立市民主資料 MDM。</td><td>高頻業務消除民眾重複填表，落實基本資料免謄謄本。</td></tr>
+          <tr><td><strong>長期 (19～36月) 核心重構</strong></td><td>其餘 9 套老舊系統分批以微服務（Microservices）重構上雲，老舊系統退場。</td><td>全面消除技術債，達到敏捷擴展與彈性維運。</td></tr>
+        </table></div>
+      </div>
 
-      <strong>📊 主表③　管理面規劃</strong>
-      <div class="table-wrap"><table>
-        <tr><th>面向</th><th>作法</th></tr>
-        <tr><td><strong>治理組織</strong></td><td>成立<strong>跨局處推動小組</strong>，由<strong>副首長主持</strong>（<u>資料定義是業務問題，資訊室無權決定</u>）</td></tr>
-        <tr><td><strong>架構治理</strong></td><td>建立本府<strong>整體資訊架構藍圖</strong>；新系統須符合架構標準始得建置</td></tr>
-        <tr><td><strong>採購策略</strong></td><td>新案契約<strong>強制要求開放 API、原始碼交付、資料可攜、退場條款</strong>，避免再度鎖定</td></tr>
-        <tr><td><strong>預算</strong></td><td>分年編列；以<strong>維護費節省</strong>與人力效益佐證；注意年度預算執行率壓力</td></tr>
-        <tr><td><strong>變革管理</strong></td><td>使用者參與需求確認與 UAT、分層教育訓練、各局處設<strong>種子人員</strong></td></tr>
-        <tr><td><strong>能力保留</strong></td><td>本府須保留<strong>架構規劃與驗收判斷能力</strong>，不可全數委外</td></tr>
-      </table></div>
-
-      <strong>📊 主表④　分期推動（避免大爆炸）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>期程</th><th>重點</th><th>成果</th></tr>
-        <tr><td><strong>第一期</strong>（6 個月）</td><td>資產盤點、共同資料標準與代碼表、架構藍圖、選定試辦系統</td><td>建立共識與規劃基礎</td></tr>
-        <tr><td><strong>第二期</strong>（12 個月）</td><td>建置 API 平台＋SSO；<strong>選 2～3 個民眾最有感的系統先介接</strong></td><td><strong>快速見效</strong>，建立支持</td></tr>
-        <tr><td><strong>第三期</strong>（12 個月）</td><td>建置資料倉儲與市政儀表板；擴大介接</td><td>人工彙整大幅減少</td></tr>
-        <tr><td><strong>第四期</strong></td><td>老舊系統依排序逐步汰換改造</td><td>整體現代化</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>不要主張「全部打掉重做」</strong>——風險與成本過高，應採<strong>整合層 + 分期汰換</strong><br>
-      2. <strong>API 閘道取代點對點介接</strong>（N×N → N）<br>
-      3. <strong>資料定義是業務問題，須由副首長層級主持跨局處小組</strong><br>
-      4. <strong>契約強制開放 API 與資料可攜</strong>，防止再度供應商鎖定<br>
-      5. <strong>整合後攻擊面擴大，資安須同步強化</strong><br>
-      6. 結論：「系統整合之難點不在技術，而在<strong>資料標準的跨局處共識</strong>與<strong>採購策略的長期紀律</strong>；若無架構治理，今日整合完成，數年後仍會再度形成新的孤島。」
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>資訊名詞齊全</strong>：API Gateway、ESB、SOA、SSO、TW FidO、MDM（主資料管理）、T-Road。<br>
+        2. <strong>公共治理視角</strong>：Once-Only 原則、BPR 流程再造、跨局處小組（秘書長召集打破本位主義）。<br>
+        3. <strong>防止廠商綁標</strong>：合約強制納入 API 介接規範與原始碼交付條款。<br>
+        4. <strong>分期推動務實</strong>：短（SSO/入口）、中（API/中台）、長（微服務重構）階段清晰具體。
       </div>
     </div></details>
   </div>
@@ -5961,71 +5978,45 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       請就<strong>應用規劃、資料治理、資安防護、法制與倫理、推動策略</strong>五個面向提出建議。（25 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、前言：智慧城市之核心不在技術堆疊，而在<strong>以資料改善公共服務</strong> → 二～六、五面向各一表 → 七、分期推動 → 八、結論<br><br>
-      <strong>⚠️ 五個面向必須全部回答</strong>——各 5 分，寫滿五個各拿 4 分（20 分）遠勝只寫兩個寫到滿分（10 分）。
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】五維並行推智慧：應資安法推，治理品質安防禦，隱私倫理分期成</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>五大面向</strong>：<strong>應用規劃</strong>（智慧交通/防災/醫療）、<strong>資料治理</strong>（資料字典/品質清整/開放資料）、<strong>資安防護</strong>（IoT 零信任/端點隔離）、<strong>法制倫理</strong>（個資最小化/演算法可解釋性）、<strong>推動策略</strong>（公私協力 PPP/場域試辦 POC）。<br>
+          • <strong>核心精神</strong>：以數據驅動城市治理（Data-driven Urban Governance），以人為本，科技為用。
+        </div>
       </div>
 
-      <strong>📊 面向一：應用規劃</strong>
-      <div class="table-wrap"><table>
-        <tr><th>領域</th><th>應用</th><th>效益</th></tr>
-        <tr><td>交通</td><td>路口流量感測、號誌動態調整、停車位即時查詢</td><td>減少壅塞與繞行</td></tr>
-        <tr><td>環境</td><td>空品／水質／噪音監測</td><td>即時預警與稽查佐證</td></tr>
-        <tr><td>防災</td><td>淹水感測、河川水位、坡地監測</td><td>提升應變速度</td></tr>
-        <tr><td>公共設施</td><td>智慧路燈、水電表、垃圾桶滿溢感測</td><td>降低維運成本</td></tr>
-        <tr><td>社福長照</td><td>獨居長者關懷感測</td><td>主動關懷</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>選案原則</strong>：以<u>民眾有感、效益可量化、風險可控</u>者優先；避免<strong>技術導向而非需求導向</strong>的建設。</p>
+      <div class="score-template">
+        <span class="scoring-tag">一、五大面向深度規劃 (15分)</span>
+        <h3>一、智慧城市推動之五大關鍵面向規劃</h3>
+        <div class="table-wrap"><table>
+          <tr><th>構面</th><th>具體規劃策略</th><th>落實措施與指標技術</th></tr>
+          <tr><td><strong>一、應用規劃 (Application)</strong></td><td>以<strong>解決民眾痛點與城市永續</strong>為導向，避免盲目堆疊技術</td><td>• <strong>智慧交通</strong>：路口 AI 影像辨識自適應號誌控制，緩解尖峰壅塞。<br>• <strong>智慧防救災</strong>：水情感測器搭配 AI 降雨淹水預測，即時自動示警與抽水調度。<br>• <strong>智慧治理</strong>：建置市政戰情中心（Dashboard），即時視覺化決策輔助。</td></tr>
+          <tr><td><strong>二、資料治理 (Governance)</strong></td><td>建立高品質、可互通、標準化之城市數據中台</td><td>• <strong>資料標準化</strong>：建立市府統一資料字典與地理資訊系統（GIS）圖資標準。<br>• <strong>品質管理</strong>：制定資料清洗機制，確保感測數據精確性與即時性。<br>• <strong>開放資料（Open Data）</strong>：除機敏資料外，全面釋出無償開放資料促進民間加值創新。</td></tr>
+          <tr><td><strong>三、資安防護 (Security)</strong></td><td>嚴格管控 IoT 邊緣端點與大數據平台，貫徹縱深防禦</td><td>• <strong>IoT 設備硬化</strong>：嚴格禁用預設帳密，通過經濟部智慧聯網安控規範驗證。<br>• <strong>邊緣隔離</strong>：感測器網段與市政公務核心網段嚴格隔離（Micro-segmentation）。<br>• <strong>大數據平台安全</strong>：儲存資料全面去識別化（De-identification），存取日誌不可竄改。</td></tr>
+          <tr><td><strong>四、法制與倫理 (Legal & Ethics)</strong></td><td>保障市民隱私權，避免演算法黑箱與偏見歧視</td><td>• <strong>個資最小化原則</strong>：嚴格遵守《個人資料保護法》，僅蒐集推動服務所必需之數據。<br>• <strong>AI 倫理指引</strong>：遵循行政院《公務機關使用生成式 AI 指引》，確保可解釋性（Explainability）與人機協作責任歸屬。<br>• <strong>隱私增強技術（PETs）</strong>：導入差分隱私（Differential Privacy）或遮蔽技術。</td></tr>
+          <tr><td><strong>五、推動策略 (Strategy)</strong></td><td>循序漸進，公私協力，由點而面擴散成果</td><td>• <strong>公私協力（PPP / Living Lab）</strong>：開放市政場域提供民間業者進行 POC（概念驗證）。<br>• <strong>沙盒試驗</strong>：小規模試辦成功後方編列大額預算全區推廣。<br>• <strong>跨局處專案辦公室（PMO）</strong>：成立智慧城市專案辦公室，統籌各局處跨域需求。</td></tr>
+        </table></div>
 
-      <strong>📊 面向二：資料治理</strong>
-      <div class="table-wrap"><table>
-        <tr><th>要素</th><th>作法</th></tr>
-        <tr><td><strong>組織與權責</strong></td><td>成立<strong>跨局處推動小組</strong>（副首長主持）；指定各資料集之<strong>資料管理者</strong></td></tr>
-        <tr><td><strong>資料標準</strong></td><td>統一資料定義、編碼、時間戳與座標系統；訂定 <strong>IoT 資料格式標準</strong></td></tr>
-        <tr><td><strong>資料品質</strong></td><td>感測器<strong>定期校正</strong>與異常值檢核（<u>感測器失準的資料比沒有資料更危險</u>）</td></tr>
-        <tr><td><strong>共用平台</strong></td><td>建立<strong>共用資料平台</strong>＋<strong>API 交換標準</strong>，避免各局處再建孤島</td></tr>
-        <tr><td><strong>生命週期</strong></td><td>訂定保存年限；原始高頻資料逾期<strong>降頻彙總</strong>以控制儲存成本</td></tr>
-      </table></div>
+        <span class="scoring-tag">二、分期推動策略與成效評估 (10分)</span>
+        <h3>二、三階段推動藍圖與關鍵績效指標（KPI）</h3>
+        <p><strong>（一）三階段推動時程</strong>：<br>
+        1. <strong>基礎奠定階段（第 1 年）</strong>：建置 IoT 共通通訊基礎架構（如 LoRaWAN/NB-IoT）、訂定資料交換格式標準與資安規範。<br>
+        2. <strong>重點試辦階段（第 2 年）</strong>：選定 2 個核心痛點場域（如易淹水區智慧防汛、易壅塞路段號誌）辦理 POC，驗收實績後修正技術。<br>
+        3. <strong>全域普及階段（第 3 年起）</strong>：推展至全智慧行政區，對接市府大數據戰情中心，落實跨領域綜合預警與輔助決策。</p>
+        <p><strong>（二）具體可衡量之 KPI 指標設計</strong>：<br>
+        • <strong>治理成效</strong>：防汛通報反應時間縮短 50%、主要幹道尖峰車流延滯時間減少 20%。<br>
+        • <strong>資安合規</strong>：IoT 連網設備資安稽核通過率 100%、無重大個資外洩事件。<br>
+        • <strong>市民有感</strong>：數位市民服務滿意度達 85% 以上、開放資料民間利用下載量提升 30%。</p>
+      </div>
 
-      <strong>📊 面向三：資安防護</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層面</th><th>措施</th></tr>
-        <tr><td><strong>IoT 裝置</strong></td><td>納入<strong>資產清冊</strong>；<strong>強制變更預設密碼</strong>；建立<strong>韌體更新機制</strong>；裝置身分認證；<strong>實體防護</strong>（戶外設備易遭破壞或竊取）</td></tr>
-        <tr><td><strong>網路</strong></td><td>IoT <strong>獨立網段</strong>與內部網路隔離；限制裝置僅能連往指定平台；傳輸加密</td></tr>
-        <tr><td><strong>平台</strong></td><td>API 安全（驗證、授權、流量限制）；最小權限；<strong>邊緣運算</strong>降低敏感資料回傳</td></tr>
-        <tr><td><strong>監控</strong></td><td>日誌集中至 <strong>SIEM</strong>；偵測異常行為（避免遭組成<strong>殭屍網路</strong>發動 DDoS）</td></tr>
-        <tr><td><strong>治理</strong></td><td>依《<strong>資通安全管理法</strong>》納入本府資通安全維護計畫；委外契約明定資安要求</td></tr>
-      </table></div>
-
-      <strong>📊 面向四：法制與倫理</strong>
-      <div class="table-wrap"><table>
-        <tr><th>議題</th><th>因應</th></tr>
-        <tr><td><strong>個人資料</strong></td><td>影像、車牌、人流軌跡可<strong>間接識別特定個人</strong>，仍屬個資 → 依《個人資料保護法》特定目的與必要範圍蒐集；<strong>去識別化</strong>後始得分析與開放</td></tr>
-        <tr><td><strong>隱私衝擊</strong></td><td>導入前辦理<strong>隱私衝擊評估</strong>；監視區域<strong>明確告示</strong></td></tr>
-        <tr><td><strong>比例原則</strong></td><td>蒐集範圍與監控密度須與目的相當，<strong>避免過度監控</strong></td></tr>
-        <tr><td><strong>AI 公平性</strong></td><td>模型不得因訓練資料偏見形成差別待遇（違反<strong>平等原則</strong>）；<strong>不得作為行政處分之唯一依據</strong>，須可解釋且經人工複核</td></tr>
-        <tr><td><strong>資料開放</strong></td><td>去識別化＋<strong>小樣本揭露門檻</strong>；評估交叉比對<strong>重新識別</strong>風險</td></tr>
-        <tr><td>法規調適</td><td>檢視現行法規對感測資料蒐集、無人載具等之限制，必要時研議修法</td></tr>
-      </table></div>
-
-      <strong>📊 面向五：推動策略</strong>
-      <div class="table-wrap"><table>
-        <tr><th>策略</th><th>作法</th></tr>
-        <tr><td><strong>分期推動</strong></td><td>第一期：資料平台與標準、擇 1～2 項<strong>先導試辦</strong>；第二期：擴大應用；第三期：跨域整合與 AI 分析</td></tr>
-        <tr><td><strong>快速見效</strong></td><td>優先選<strong>民眾最有感</strong>之應用（如停車位查詢），建立支持基礎</td></tr>
-        <tr><td><strong>避免鎖定</strong></td><td>契約要求<strong>開放 API、資料可攜、原始碼交付</strong>；採標準通訊協定</td></tr>
-        <tr><td><strong>維運能量</strong></td><td>評估人力技能落差並及早培訓；考量委外監控；<strong>設備生命週期與汰換預算須一併編列</strong></td></tr>
-        <tr><td><strong>公民參與</strong></td><td>公開規劃資訊、辦理說明會；建立回饋管道</td></tr>
-        <tr><td><strong>效益衡量</strong></td><td>訂定可量化 KPI（如平均車程縮短、稽查命中率），定期檢討；<strong>避免淪為只建不用的蚊子建設</strong></td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>五個面向全部回答</strong>（缺一即扣 5 分）<br>
-      2. 應用規劃要提出<strong>選案原則</strong>（民眾有感、效益可量化）<br>
-      3. <strong>「感測器失準的資料比沒有資料更危險」</strong><br>
-      4. <strong>「不得作為行政處分之唯一依據」</strong><br>
-      5. <strong>「設備汰換預算須一併編列」</strong>——避免蚊子建設<br>
-      6. 結論：「智慧城市之成敗不在技術，而在<strong>資料治理基礎</strong>與<strong>跨局處協調機制</strong>；應以民眾有感之應用先行試辦，並將維運與汰換成本一併納入規劃。」
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>題目五面向完整作答</strong>：應用、資料治理、資安防護、法制倫理、推動策略無一遺漏。<br>
+        2. <strong>公門法規與倫理</strong>：行政院生成式 AI 指引、個人資料保護法最小化原則、去識別化/差分隱私。<br>
+        3. <strong>務實推動手法</strong>：POC（概念驗證）、PPP（公私協力）、智慧城市專案辦公室（PMO）。<br>
+        4. <strong>量化 KPI 與成效</strong>：提供可驗證之量化指標而非純口號，展現公務行政主管深度。
       </div>
     </div></details>
   </div>
@@ -6038,50 +6029,74 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       (三) 說明如何以指標衡量改善成效。（5 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 (一) 超收原因與解決方案</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>內容</th></tr>
-        <tr><td><strong>問題本質</strong></td><td><strong>遺失更新（Lost Update）</strong>：多筆交易同時讀到「剩餘名額 1」，各自判斷可報名並各自寫回 0</td></tr>
-        <tr><td><strong>錯誤做法</strong></td><td>僅在應用程式層「先 SELECT 判斷、再 INSERT」——兩步驟間存在<strong>競態條件（Race Condition）</strong></td></tr>
-      </table></div>
-      <div class="table-wrap"><table>
-        <tr><th>解決方案</th><th>做法</th><th>優缺點</th></tr>
-        <tr><td><strong>原子更新＋限制條件</strong><br>（建議）</td><td><code>UPDATE 活動 SET 餘額=餘額-1 WHERE id=? AND 餘額&gt;0;</code><br>並加 <code>CHECK(餘額&gt;=0)</code></td><td><strong>最簡潔可靠</strong>；一句 SQL 完成判斷與更新，<strong>資料庫限制為最後防線</strong></td></tr>
-        <tr><td><strong>悲觀鎖定</strong></td><td><code>SELECT ... FOR UPDATE</code> 後更新，全程置於同一交易</td><td>確實可靠；高並行時等待較久</td></tr>
-        <tr><td><strong>樂觀鎖定</strong></td><td>加版本欄位，更新時比對版本，失敗則重試</td><td>並行度高；衝突多時重試頻繁</td></tr>
-        <tr><td><strong>佇列化</strong></td><td>報名請求進<strong>訊息佇列</strong>循序處理</td><td>適合<strong>熱門活動搶位</strong>之極高流量</td></tr>
-        <tr><td>提高隔離等級</td><td>該交易採 Serializable</td><td>可行但影響整體效能</td></tr>
-      </table></div>
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】超收因並發無鎖，解以交易樂悲觀；慢查因鎖塞慢搜，解以索引快讀寫</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>超額原因</strong>：競爭條件（Race Condition）與更新遺失（Lost Update）；查詢剩餘名額與扣減名額非不可分割（Non-atomic）。<br>
+          • <strong>超額解法</strong>：悲觀鎖（<code>SELECT FOR UPDATE</code>）、原子更新（<code>UPDATE ... WHERE quota &gt; 0</code>）或分散式鎖/Redis 隊列。<br>
+          • <strong>慢查原因</strong>：資料庫鎖定等待（Lock Contention）、缺乏適當索引（Full Table Scan）、連線池（Connection Pool）耗盡。<br>
+          • <strong>慢查解法</strong>：建立複合索引、讀寫分離（CQRS / Read Replica）、Redis 快取靜態活動資訊。
+        </div>
+      </div>
 
-      <strong>📊 (二) 回應緩慢之原因與改善</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層面</th><th>可能原因</th><th>改善方式</th></tr>
-        <tr><td><strong>資料庫</strong></td><td>缺乏索引導致全表掃描；<strong>鎖定競爭</strong>；長交易；統計資訊過期</td><td>為查詢條件建<strong>適當索引</strong>；縮短交易；定期<strong>更新統計資訊</strong>；避免在交易中呼叫外部服務</td></tr>
-        <tr><td><strong>應用程式</strong></td><td>N+1 查詢；未使用連線池；同步等待</td><td>批次查詢、使用<strong>連線池</strong>、非同步處理非關鍵作業（如發信）</td></tr>
-        <tr><td><strong>架構</strong></td><td>單一伺服器承載尖峰流量</td><td><strong>負載平衡＋水平擴充</strong>；靜態資源用 <strong>CDN</strong>；查詢結果<strong>快取</strong>（Redis）</td></tr>
-        <tr><td><strong>流量特性</strong></td><td>開放瞬間<strong>尖峰集中</strong></td><td><strong>分流</strong>（分梯次開放、依身分證尾數分時段）、<strong>排隊機制</strong>、限流（Rate Limiting）</td></tr>
-        <tr><td><strong>資安</strong></td><td>機器人程式（Bot）大量搶位</td><td>驗證機制、行為偵測、限制同一 IP 請求頻率</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>診斷順序</strong>：先以<strong>監控數據</strong>定位瓶頸（CPU／記憶體／磁碟 I/O／資料庫等待事件），再對症下藥——<u>不要憑猜測調校</u>。</p>
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）名額超收之原因分析與資料庫解法 (10分)</span>
+        <h3>一、名額超收問題本質與資料庫交易解決方案</h3>
+        <p><strong>（一）超收之根本原因分析（Race Condition 與 Lost Update）</strong>：<br>
+        當數百名市民於同一秒點擊報名時，多個並行交易（Concurrent Transactions）同時執行 <code>SELECT quota FROM event</code>，皆讀到尚有名額（例如 quota = 1）；隨後皆判斷可報名並各自執行 <code>UPDATE event SET quota = quota - 1</code> 與 <code>INSERT INTO registration</code>，導致名額被扣成負數，發生<strong>「更新遺失（Lost Update）」</strong>與<strong>「競爭條件（Race Condition）」</strong>。</p>
+        <p><strong>（二）資料庫層面解決方案</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>方案項目</th><th>SQL 語法與運作機制</th><th>優缺點分析與適用情境</th></tr>
+          <tr><td><strong>方案 1：原子條件更新<br>(最佳推薦)</strong></td><td>
+<pre><code class="language-sql"><span class="k">UPDATE</span> Activity 
+<span class="k">SET</span> RemainingQuota = RemainingQuota - 1 
+<span class="k">WHERE</span> ActivityID = @id <span class="k">AND</span> RemainingQuota > 0;
+<span class="c">-- 檢查 Rows Affected，若 = 1 則報名成功，否則額滿</span></code></pre>
+          </td><td><strong>效能最佳</strong>，依賴 DB 單列行級鎖之原子性，無需維持長交易，徹底根絕超收。</td></tr>
+          <tr><td><strong>方案 2：悲觀鎖<br>(Pessimistic Lock)</strong></td><td>
+<pre><code class="language-sql"><span class="k">BEGIN TRANSACTION</span>;
+<span class="k">SELECT</span> RemainingQuota <span class="k">FROM</span> Activity 
+<span class="k">WHERE</span> ActivityID = @id <span class="k">FOR UPDATE</span>;
+<span class="c">-- 程式判斷餘額 > 0 後執行 UPDATE 與 INSERT</span>
+<span class="k">COMMIT</span>;</code></pre>
+          </td><td>強烈保證一致性；但在極高併發下會導致後續請求排隊等待，交易鎖定競爭嚴重。</td></tr>
+          <tr><td><strong>方案 3：樂觀鎖<br>(Optimistic Lock)</strong></td><td>
+<pre><code class="language-sql"><span class="k">UPDATE</span> Activity 
+<span class="k">SET</span> RemainingQuota = RemainingQuota - 1, Version = Version + 1
+<span class="k">WHERE</span> ActivityID = @id <span class="k">AND</span> Version = @old_version;</code></pre>
+          </td><td>適用於寫入衝突少的場景；在秒殺爆量時會產生大量重試或失敗，不適合公門高搶購活動。</td></tr>
+          <tr><td><strong>方案 4：資料庫約束</strong></td><td><code>ALTER TABLE Activity ADD CONSTRAINT CK_Quota CHECK (RemainingQuota >= 0);</code></td><td>作為底層防護底線，即使程式有邏輯漏洞，資料庫直接 Rollback 阻止負數產生。</td></tr>
+        </table></div>
 
-      <strong>📊 (三) 成效衡量指標</strong>
-      <div class="table-wrap"><table>
-        <tr><th>類別</th><th>指標</th><th>目標範例</th></tr>
-        <tr><td><strong>正確性</strong></td><td><strong>超收件數</strong></td><td><strong>0 件</strong>（絕對指標）</td></tr>
-        <tr><td rowspan="2"><strong>效能</strong></td><td>平均回應時間、<strong>95 百分位回應時間</strong></td><td>&lt; 3 秒</td></tr>
-        <tr><td>尖峰同時上線人數、<strong>錯誤率</strong></td><td>錯誤率 &lt; 1%</td></tr>
-        <tr><td><strong>可用性</strong></td><td>系統可用率</td><td>報名期間 ≥ 99.9%</td></tr>
-        <tr><td><strong>服務面</strong></td><td>報名成功率、<strong>客訴件數</strong>、滿意度</td><td>客訴較前次下降 50%</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>重要</strong>：指標須<strong>可量化、可稽核</strong>，並<u>訂定量測方式與資料來源</u>；委外時應納入<strong>SLA</strong>與驗收標準。<br>
-      並建議於下次活動前辦理<strong>壓力測試</strong>，以實測數據驗證改善成效。</p>
+        <span class="scoring-tag">二、（二）系統回應緩慢之成因剖析與效能優化對策 (10分)</span>
+        <h3>二、系統回應緩慢成因與整體架構優化對策</h3>
+        <p><strong>（一）回應緩慢之根本原因</strong>：<br>
+        1. <strong>資料庫鎖定競爭（Lock Contention）</strong>：大量並行請求同時爭搶同一筆活動紀錄的排他鎖（X-Lock），造成巨量交易阻塞排隊。<br>
+        2. <strong>缺乏適當索引引發全表掃描（Full Table Scan）</strong>：報名記錄表資料暴增，查詢活動或身分證字號時因無索引而大量消耗 I/O。<br>
+        3. <strong>資料庫連線池耗盡（Connection Pool Exhaustion）</strong>：大量連線長久等待鎖釋放，塞滿連線集區，使新連線直接逾時報錯。</p>
+        <p><strong>（二）效能優化對策（資料庫與系統面）</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>構面</th><th>具體優化作法</th></tr>
+          <tr><td><strong>索引優化</strong></td><td>• 報名表建立<strong>複合索引</strong>：<code>CREATE INDEX idx_act_user ON Reg(ActivityID, UserID);</code> 提升排重速度。<br>• 活動表以 <code>ActivityID</code> 為叢集索引（Clustered Index），加速主鍵讀取。</td></tr>
+          <tr><td><strong>架構分流<br>(讀寫分離)</strong></td><td>• 導入<strong>讀寫分離架構</strong>：主庫（Master）專責處理報名寫入，從庫（Replica）負責查詢活動資訊與名單列表。<br>• <strong>Redis 記憶體快取</strong>：活動簡介、地點、剩餘人數等靜態資料放入 Redis 快取，90% 讀取流量不穿透至資料庫。</td></tr>
+          <tr><td><strong>流量削峰<br>(隊列緩衝)</strong></td><td>• 導入<strong>訊息佇列（Message Queue, 如 RabbitMQ / Kafka）</strong>排隊機制：民眾點選報名後先進入排隊佇列，後端 Worker 依序消化寫入 DB，避免瞬間暴量擊垮資料庫。</td></tr>
+        </table></div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>正確指出超收＝遺失更新</strong><br>
-      2. <strong>資料庫層的 CHECK 限制是最後防線</strong>（不可只靠程式判斷）<br>
-      3. 效能問題要<strong>分層診斷</strong>，且強調「先監控定位、不憑猜測」<br>
-      4. <strong>分流與排隊機制</strong>是地特情境（熱門活動搶位）的實用解<br>
-      5. 指標要<strong>可量化</strong>並可納入 SLA
+        <span class="scoring-tag">三、（三）公門特定公平性與防弊機制 (5分)</span>
+        <h3>三、公務系統特定公平性與防弊設計</h3>
+        <p><strong>（一）防堵機器人搶票（Anti-Bot）</strong>：於報名送出前導入 Google reCAPTCHA v3 或行為驗證碼，防止黃牛撰寫自動化腳本搶佔公共資源。</p>
+        <p><strong>（二）虛擬等候室（Virtual Waiting Room）</strong>：流量超出承載上限時，自動將使用者導流至排隊頁面顯示預估等候時間，避免前端瘋狂 F5 重新整理加劇系統雪崩。</p>
+        <p><strong>（三）身分證重複報名檢驗（Unique Constraint）</strong>：資料表建立 <code>UNIQUE (ActivityID, UserID)</code> 約束，確保同一市民無法透過並行漏洞重複卡位。</p>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>並行痛點核心詞</strong>：Race Condition、Lost Update、非原子操作（Non-atomic）。<br>
+        2. <strong>語法示範精確</strong>：提供 <code>UPDATE ... WHERE quota &gt; 0</code> 與 <code>SELECT FOR UPDATE</code> 完整 SQL 片段。<br>
+        3. <strong>慢查原因深刻</strong>：Lock Contention（鎖爭用）、全表掃描、連線池耗盡。<br>
+        4. <strong>系統架構層次</strong>：Redis 快取讀取、Message Queue 削峰、讀寫分離。<br>
+        5. <strong>公共行政加分</strong>：防機器人驗證碼、虛擬等候室、唯一性防重複報名約束。
       </div>
     </div></details>
   </div>
@@ -6094,48 +6109,57 @@ REVOKE ALL ON 個案 FROM 業務單位;</pre>
       (三) 說明驗收與後續維運管理重點。（7 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 (一) 需求規格書應涵蓋之重點</strong>
-      <div class="table-wrap"><table>
-        <tr><th>類別</th><th>內容</th></tr>
-        <tr><td><strong>功能性需求</strong></td><td>服務項目（查詢、申辦、繳費、進度追蹤、推播通知）、使用者角色與權限、與既有系統之<strong>介接需求</strong></td></tr>
-        <tr><td><strong>非功能性需求</strong><br>（<u>最常被漏寫</u>）</td><td>‧ <strong>效能</strong>：查詢回應 &lt; 3 秒、支援同時上線 N 人<br>‧ <strong>可用性</strong>：99.9%<br>‧ <strong>資安</strong>：遵循 OWASP 等規範<br>‧ <strong>相容性</strong>：支援 iOS／Android 版本範圍<br>‧ <strong>無障礙</strong>：符合行動化網頁無障礙規範<br>‧ 可維護性、可擴充性</td></tr>
-        <tr><td><strong>介面與體驗</strong></td><td>介面設計原則、<strong>操作步驟數上限</strong>、多語化（含新住民語）</td></tr>
-        <tr><td><strong>資料需求</strong></td><td>資料項目與格式、與各局處系統之資料交換方式（<strong>API 規格</strong>）</td></tr>
-        <tr><td><strong>交付項目</strong></td><td>程式碼、系統文件、資料庫綱要、<strong>部署程序</strong>、操作手冊、教育訓練</td></tr>
-        <tr><td><strong>驗收標準</strong></td><td><strong>可量化</strong>之效能指標、缺陷數上限、資安檢測通過標準</td></tr>
-        <tr><td>期程與里程碑</td><td>分期交付項目與付款條件</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>關鍵</strong>：<u>需求須可驗證、可量化</u>——「介面要好用」無法驗收，「主要功能操作不超過 3 步」才可以。</p>
+<div class="memo-card">
+        <div class="title">⚡ 考前 30 秒秒殺速記口訣卡</div>
+        <span class="formula">【口訣】委外履約四步走：規格完備重非功，智財原碼歸公府，雙模敏捷分里程，驗收保固資安穩</span>
+        <div class="desc">
+          <strong>心智記憶錨點</strong>：
+          • <strong>需求規格（RFP）</strong>：兼顧功能性（核心市民業務）與非功能性需求（資安、效能、跨平台、無障礙規範）。<br>
+          • <strong>智財權與原始碼</strong>：依《政府採購法》，<strong>著作財產權與專案原始碼（Source Code）完全歸市府所有</strong>，杜絕廠商綁標。<br>
+          • <strong>專案開發模式</strong>：前端採敏捷（Agile/Scrum）快速迭代原型，外層合約採里程碑（Milestone）階段檢核（混合雙模模式）。<br>
+          • <strong>驗收與保固</strong>：黑箱/白箱檢測、弱點掃描無中高風險、壓力測試、至少 1 年保固與 SLA。
+        </div>
+      </div>
 
-      <strong>📊 (二) 契約應載明事項</strong>
-      <div class="table-wrap"><table>
-        <tr><th>類別</th><th>應載明內容</th></tr>
-        <tr><td><strong>智慧財產權</strong></td><td>① <strong>原始碼著作權歸本府</strong>或取得永久、可再授權之使用權<br>② 本府得<strong>自行或另委他人</strong>修改維護之權利<br>③ 第三方元件之授權合法性與清單（<strong>SBOM</strong>）<br>④ <strong>原始碼、文件、建置腳本、部署程序</strong>之交付</td></tr>
-        <tr><td><strong>資通安全</strong></td><td>① 遵循<strong>安全開發規範</strong>（OWASP 等）<br>② 上線前<strong>源碼檢測（SAST）與滲透測試</strong>，高風險弱點修補<strong>複測</strong>通過始得驗收<br>③ <strong>保固期內漏洞修補義務與回應時限</strong><br>④ 依《<strong>資通安全管理法</strong>》受託者應辦事項與<strong>接受稽核</strong><br>⑤ 資安事件<strong>通報義務</strong>與配合調查責任</td></tr>
-        <tr><td><strong>個人資料</strong></td><td>① 依《<strong>個人資料保護法</strong>》委託處理之<strong>監督義務</strong><br>② 人員<strong>保密切結</strong>與背景查核<br>③ <strong>禁止複製攜出</strong>真實個資；<strong>測試環境須使用去識別化資料</strong><br>④ 契約終止後之<strong>資料刪除證明</strong><br>⑤ 外洩時之<strong>通報義務與賠償責任</strong></td></tr>
-        <tr><td><strong>退場與移轉</strong></td><td>① <strong>資料可攜</strong>（標準格式完整匯出）<br>② 系統移轉配合義務與<strong>知識移轉</strong><br>③ 維護費<strong>計價方式與上限</strong></td></tr>
-        <tr><td>履約管理</td><td>分期付款里程碑、逾期違約金、<strong>需求變更管制程序</strong>、關鍵人力異動之通知與替補</td></tr>
-      </table></div>
+      <div class="score-template">
+        <span class="scoring-tag">一、（一）需求規格書 (RFP) 必備重點 (8分)</span>
+        <h3>一、需求規格書（RFP）應涵蓋之重點規劃</h3>
+        <div class="table-wrap"><table>
+          <tr><th>需求類別</th><th>具體規劃項目與標準規範</th></tr>
+          <tr><td><strong>功能性需求<br>(Functional)</strong></td><td>• <strong>核心便民功能</strong>：整合市府 1999 陳情、活動報名、市政繳費、公車動態與停班停課即時推播。<br>• <strong>數位身分與單簽</strong>：整合行動自然人憑證（TW FidO）與虛擬市民卡。<br>• <strong>推播通知（Push Notification）</strong>：支援依行政區或分眾標籤精準推播。</td></tr>
+          <tr><td><strong>非功能性需求<br>(Non-functional)</strong></td><td>• <strong>跨平台支援</strong>：同時支援 iOS 與 Android 最新及前兩代版本，採原生或 Flutter 跨平台技術。<br>• <strong>效能指標（SLA）</strong>：首頁載入 ≤ 1.5 秒，支援至少 10,000 人同時在線並行。<br>• <strong>行動 App 資安標準</strong>：通過數位發展部「行動應用 App 基本資安標章」檢測。<br>• <strong>無障礙規範</strong>：符合國家通訊傳播委員會（NCC）行動應用 App 無障礙開發指引標章。</td></tr>
+        </table></div>
 
-      <strong>📊 (三) 驗收與維運管理</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>重點</th></tr>
-        <tr><td><strong>驗收測試</strong></td><td>功能測試＋<strong>UAT（由業務單位執行）</strong>＋效能／壓力測試＋<strong>第三方資安檢測</strong>＋無障礙檢測</td></tr>
-        <tr><td><strong>文件與程式碼查核</strong></td><td>確認可由<u>第三方依交付文件重新建置成功</u>——這是防止供應商鎖定的實質查核</td></tr>
-        <tr><td><strong>組態檢查</strong></td><td><strong>測試資料已清除</strong>、<strong>預設帳號已停用或變更</strong>、關閉詳細錯誤訊息與目錄列表</td></tr>
-        <tr><td><strong>上線策略</strong></td><td>不宜直接全面上線；宜採<strong>試辦（Pilot）</strong>或<strong>分階段上線</strong>，並保留原有管道並行一段期間</td></tr>
-        <tr><td><strong>維運</strong></td><td>訂定 <strong>SLA</strong>（可用率、回應時間、解決時間與罰則）；建立<strong>事件管理與問題管理</strong>流程；定期弱點掃描</td></tr>
-        <tr><td><strong>持續改善</strong></td><td>蒐集使用者回饋與使用數據；訂定<strong>可量化 KPI</strong>（下載數、活躍使用者、申辦完成率、客訴件數）定期檢討</td></tr>
-        <tr><td><strong>數位落差</strong></td><td>App 上線<strong>不得取代</strong>臨櫃與電話管道；須同步提供無障礙版本</td></tr>
-      </table></div>
+        <span class="scoring-tag">二、（二）智財權歸屬與避免廠商綁標之契約條款 (8分)</span>
+        <h3>二、智慧財產權歸屬與防綁標契約要點</h3>
+        <p><strong>（一）智慧財產權與著作權約定</strong>：<br>
+        依《政府採購法》相關子法，契約應明定本專案所開發之一切成果，其<strong>「著作財產權完全歸機關（本府）所有」</strong>，廠商僅享有著作人格權，且承諾對本府不行使著作人格權。廠商保證其交付成果未侵害任何第三方之專利、版權或營業秘密。</p>
+        <p><strong>（二）防止廠商技術綁標（Vendor Lock-in）之四大條款</strong>：<br>
+        1. <strong>原始碼交付（Source Code Escrow / Delivery）</strong>：於各里程碑檢驗時，廠商<strong>必須完整交付所有原始程式碼、註解、編譯腳本（CI/CD Scripts）與相依套件清單</strong>，交付內容須能在本府獨立環境編譯部署成功。<br>
+        2. <strong>系統文件完整性</strong>：交付詳細系統架構設計書（SAD）、資料庫 Schema、API 介接規格書與維運手冊。<br>
+        3. <strong>開放標準與非專利技術</strong>：資料庫與通訊協定強制採用開放標準（RESTful/JSON），禁止廠商刻意使用其私有閉源加密函式庫。<br>
+        4. <strong>移轉與交接培訓義務</strong>：合約明定保固期滿後，廠商負有至少 40 小時無償教育訓練與完整交接至接手廠商或本府同仁之法定義務。</p>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>非功能性需求＝驗收依據</strong>，須可量化<br>
-      2. <strong>智財歸屬與原始碼交付</strong>——防供應商鎖定的核心<br>
-      3. <strong>測試環境不得使用真實個資</strong>、契約終止後<strong>刪除證明</strong><br>
-      4. <strong>第三方資安檢測＋複測通過才驗收</strong><br>
-      5. <strong>「可由第三方依文件重新建置」</strong>作為交付完整性的實質查核（極少人寫）<br>
-      6. <strong>App 不得取代傳統管道</strong>（數位落差，地特必寫）
+        <span class="scoring-tag">三、（三）專案模式與驗收保固機制 (9分)</span>
+        <h3>三、專案開發方法選用與驗收保固機制</h3>
+        <p><strong>（一）專案開發模式：推薦「混合雙模模式（Hybrid Agile/Waterfall）」</strong>：<br>
+        • <strong>緣由</strong>：政府採購法受限於法定預算與期程（18 個月），需要明確之里程碑（瀑布式）；但市民 App 介面體驗與需求多變，極需使用者回饋（敏捷式）。<br>
+        • <strong>實作方式</strong>：外部合約以<strong>四大里程碑（規劃、設計審查、試營運、全功能驗收）</strong>作為付款進度；內部開發則採 <strong>Scrum 敏捷衝刺（2 週一 Sprint）</strong>，每兩週交付可運作原型進行局處同仁與焦點民眾易用性測試（Usability Testing），及早調整產品待辦清單（Backlog）。</p>
+        <p><strong>（二）嚴謹之驗收與保固機制設計</strong>：</p>
+        <div class="table-wrap"><table>
+          <tr><th>階段</th><th>具體檢驗與維運標準</th></tr>
+          <tr><td><strong>資安檢測<br>(驗收前置)</strong></td><td>委託第三方獨立機構進行<strong>原始碼弱點掃描（SAST）</strong>、<strong>動態應用安全測試（DAST）</strong>與<strong>滲透測試（Penetration Test）</strong>，中高風險漏洞必須全數修補歸零。</td></tr>
+          <tr><td><strong>壓力測試</strong></td><td>模擬 1.5 倍尖峰流量（如停班停課瞬間 20,000 人上線）實施負載測試，確認伺服器未崩潰。</td></tr>
+          <tr><td><strong>試辦營運</strong></td><td>正式上線前規劃 1 個月<strong>封閉試營運（Beta Testing）</strong>，蒐集實際問題修整後始辦理正式驗收結算。</td></tr>
+          <tr><td><strong>保固服務</strong></td><td>提供<strong>至少 1 年原廠保固</strong>；明定服務水準協議（SLA）：重大故障（服務中斷）須於 2 小時內響應、4 小時內排除；一般錯誤 24 小時內修復；iOS/Android 作業系統版本更新時無償配合相容性調整。</td></tr>
+        </table></div>
+      </div>
+
+      <div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. <strong>需求規格雙維度</strong>：功能性需求（1999/繳費/TW FidO）與非功能性（SLA/App 資安標章/無障礙 NCC 標章）。<br>
+        2. <strong>防綁標四大鐵律</strong>：原始碼交付（Source Code）、著作財產權歸本府、開放 API 標準、交接轉移義務。<br>
+        3. <strong>政府敏捷最佳實踐</strong>：外部契約里程碑（Waterfall 控管採購風險）＋ 內部 Scrum Sprint（Agile 控管體驗風險）之「混合雙模」。<br>
+        4. <strong>驗收資安標配</strong>：第三方滲透測試、源碼掃描中高風險歸零、1.5 倍壓力測試與 1 年 SLA 保固。
       </div>
     </div></details>
   </div>

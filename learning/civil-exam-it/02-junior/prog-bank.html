@@ -867,61 +867,73 @@ f(&amp;a);   // 現在 a 變成 100</pre>
       (三) 說明 (二) 之時間複雜度，並說明如何改善。（5 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 奇數和</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：以迴圈由 1 走到 n，若該數除以 2 餘 1 即為奇數，累加之。</p>
-      <pre><span class="c">// 以 C 語言撰寫</span>
-<span class="k">int</span> n, i, sum = 0;
-scanf(<span class="s">"%d"</span>, &amp;n);
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】累加步進二跳躍，質數根號折半尋；邊界二一零防漏</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>奇數和</strong>：迴圈 <code>for (i = 1; i <= n; i += 2) sum += i;</code> 或等差公式 <code>k² (k = (n+1)/2)</code>。<br>
+          ② <strong>質數檢驗</strong>：排除 ≤1；迴圈上限為 <code>i * i <= n</code>（只需測至 <code>√n</code>），時間複雜度大幅由 O(n) 壓至 <strong>O(√n)</strong>！</p>
+        </div>
 
-<span class="k">for</span> (i = 1; i &lt;= n; i++) {
-    <span class="k">if</span> (i % 2 == 1)     <span class="c">// 判斷是否為奇數</span>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">根號 n 改良必寫</span><span class="danger-tag">n ≤ 1 邊界條件處理</span></div>
+          </div>
+
+          <p><strong>一、計算 1 到 n 之間所有奇數和程式（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdio.h&gt;
+
+int sum_of_odds(int n) {
+    if (n &lt; 1) return 0; // 邊界保護
+    int sum = 0;
+    for (int i = 1; i &lt;= n; i += 2) {
         sum += i;
+    }
+    return sum;
 }
-printf(<span class="s">"1 到 %d 的奇數和 = %d\n"</span>, n, sum);
+          </pre>
 
-<span class="c">// 更有效率的寫法：直接每次加 2，省去判斷</span>
-<span class="k">for</span> (i = 1; i &lt;= n; i += 2) sum += i;</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>：n = 10 → 1+3+5+7+9 = <strong>25</strong> ✔<br>
-      <strong>複雜度</strong>：O(n)</p>
+          <p><strong>二、判斷整數 n 是否為質數程式（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdio.h&gt;
+#include &lt;stdbool.h&gt;
 
-      <strong>📝 (二) 判斷質數</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：質數定義為<u>大於 1 且只能被 1 與自己整除</u>。以迴圈檢查 2 到 √n 之間是否存在因數。</p>
-      <pre><span class="k">int</span> n, i, isPrime = 1;    <span class="c">// 先假設是質數</span>
-scanf(<span class="s">"%d"</span>, &amp;n);
-
-<span class="k">if</span> (n &lt;= 1) {
-    isPrime = 0;           <span class="c">// 0、1 與負數皆非質數（邊界條件）</span>
-} <span class="k">else</span> {
-    <span class="k">for</span> (i = 2; i * i &lt;= n; i++) {   <span class="c">// 只需檢查到 √n</span>
-        <span class="k">if</span> (n % i == 0) {
-            isPrime = 0;   <span class="c">// 找到因數，不是質數</span>
-            <span class="k">break</span>;         <span class="c">// 提早結束，不必再找</span>
+bool is_prime(int n) {
+    // 邊界防禦：小於等於 1 之整數皆非質數
+    if (n &lt;= 1) return false;
+    if (n == 2) return true;
+    if (n % 2 == 0) return false; // 偶數直接排除
+    
+    // 核心優化：迴圈僅需檢測至根號 n
+    for (int i = 3; i * i &lt;= n; i += 2) {
+        if (n % i == 0) {
+            return false; // 能整除代表非質數
         }
     }
+    return true; // 無法整除必為質數
 }
+          </pre>
 
-<span class="k">if</span> (isPrime) printf(<span class="s">"%d 是質數\n"</span>, n);
-<span class="k">else</span>         printf(<span class="s">"%d 不是質數\n"</span>, n);</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>：<br>
-      n = 17 → i = 2,3,4（4×4=16 ≤ 17），皆不整除 → i=5 時 25 &gt; 17 結束 → <strong>是質數</strong> ✔<br>
-      n = 1 → 走 <code>n &lt;= 1</code> 分支 → <strong>不是質數</strong> ✔（<u>邊界條件</u>）</p>
+          <p><strong>三、時間複雜度分析與根號 n 優化原理（5 分）</strong></p>
+          <ol>
+            <li><strong>天真版時間複雜度</strong>：若迴圈由 <code>2</code> 循序測到 <code>n - 1</code>，最壞情況（n 為質數）需執行 <code>n - 2</code> 次除法，時間複雜度為 <strong>O(n)</strong>。</li>
+            <li><strong>根號 n 改良原理（數學因數成對性）</strong>：<br>
+              若 <code>n = a × b</code> 為合數，則 <code>a</code> 與 <code>b</code> 之中<strong>必定至少有一個因數小於或等於 <code>√n</code></strong>（若 a, b 皆大於 √n，則 a × b 必大於 n，產生矛盾）。<br>
+              因此，若在 <code>2</code> 到 <code>⌊√n⌋</code> 的範圍內找不到任何因數，則大於 <code>√n</code> 的部分亦絕不可能存在因數！<br>
+              👉 迴圈條件設定為 <code>i * i &lt;= n</code>，執行次數驟降至 <code>√n</code> 次，<strong>時間複雜度成功優化為 O(√n)</strong>！</li>
+          </ol>
+        </div>
 
-      <strong>📊 (三) 複雜度與改善</strong>
-      <div class="table-wrap"><table>
-        <tr><th>作法</th><th>複雜度</th><th>說明</th></tr>
-        <tr><td>檢查 2 ~ n−1</td><td>O(n)</td><td>最直觀但最慢</td></tr>
-        <tr><td><strong>檢查 2 ~ √n</strong></td><td><strong>O(√n)</strong></td><td>若 n=a×b 且 a≤b，則 <strong>a ≤ √n</strong>，故超過 √n 不會有新因數</td></tr>
-        <tr><td>再排除偶數</td><td>約 O(√n / 2)</td><td>先判斷 n 是否為 2 的倍數，之後 i 每次 +2</td></tr>
-        <tr><td>大量查詢時</td><td>建表 O(n log log n)</td><td>採<strong>埃拉托斯特尼篩法</strong>一次建好質數表</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>處理邊界條件</strong>（n ≤ 1 不是質數）——最常被漏掉<br>
-      2. <strong>只檢查到 √n 並說明理由</strong><br>
-      3. <strong>用 <code>i*i &lt;= n</code> 而非 <code>i &lt;= sqrt(n)</code></strong>（避免浮點誤差且較快）<br>
-      4. <strong>加註解＋驗算＋複雜度分析</strong>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 奇數和程式邏輯精確，含 n < 1 防禦。<br>
+        2. 質數判斷<strong>嚴格防禦 n ≤ 1 判定為 false</strong>。<br>
+        3. 迴圈設定 <code>i * i &lt;= n</code> 達成優化。<br>
+        4. 數學論證因數成對性（a × b = n）推導為何只需算至 <strong>O(√n)</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 2</span><span class="tag">陣列 · 25 分</span>
@@ -932,54 +944,74 @@ scanf(<span class="s">"%d"</span>, &amp;n);
       (三) 找出所有大於平均值的元素並輸出。（7 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 最大、最小、平均</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：先以第一個元素作為最大與最小的初值，再逐一比較；同時累加求總和。<u>不可將 max 初值設為 0</u>，否則全負數陣列會出錯。</p>
-      <pre><span class="k">int</span> max = a[0], min = a[0];   <span class="c">// 以第一個元素為初值（重要！）</span>
-<span class="k">int</span> sum = 0;
-<span class="k">int</span> i;
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】首位設極免空誤，雙指對調原地翻；浮點轉型防截斷</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>極值初值</strong>：<code>max = min = a[0]</code>（不可設 0，防全負數陣列出錯）。<br>
+          ② <strong>平均值轉型</strong>：<code>(double)sum / n</code>，防止整數除法無條件捨去小數點！<br>
+          ③ <strong>原地反轉</strong>：雙指標 <code>left=0, right=n-1</code> 向中對調，空間 O(1)。</p>
+        </div>
 
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    <span class="k">if</span> (a[i] &gt; max) max = a[i];
-    <span class="k">if</span> (a[i] &lt; min) min = a[i];
-    sum += a[i];
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">浮點除法強制型別轉換</span><span class="danger-tag">原地反轉空間O(1)</span></div>
+          </div>
+
+          <p><strong>一、求陣列最大值、最小值與平均值（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void calc_stats(int a[], int n, int *max, int *min, double *avg) {
+    if (n &lt;= 0) return;
+    *max = a[0];
+    *min = a[0];
+    long long sum = 0; // 防整數溢位
+    for (int i = 0; i &lt; n; i++) {
+        if (a[i] &gt; *max) *max = a[i];
+        if (a[i] &lt; *min) *min = a[i];
+        sum += a[i];
+    }
+    *avg = (double)sum / n; // 強制轉為浮點數，保留小數點
 }
-<span class="k">float</span> avg = (<span class="k">float</span>)sum / n;   <span class="c">// 必須轉型，否則整數除法會截斷</span>
+          </pre>
 
-printf(<span class="s">"最大 = %d, 最小 = %d, 平均 = %.2f\n"</span>, max, min, avg);</pre>
-
-      <strong>📝 (二) 反轉陣列</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：首尾對應交換，迴圈<u>只跑一半</u>；跑完全部會又轉回原狀。</p>
-      <pre><span class="k">for</span> (i = 0; i &lt; n / 2; i++) {      <span class="c">// 只跑 n/2 次</span>
-    <span class="k">int</span> temp = a[i];               <span class="c">// 交換必須用暫存變數</span>
-    a[i] = a[n - 1 - i];
-    a[n - 1 - i] = temp;
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>：{1,2,3,4,5}，n=5，迴圈跑 2 次<br>
-      i=0：交換 a[0] 與 a[4] → {5,2,3,4,1}<br>
-      i=1：交換 a[1] 與 a[3] → {5,4,3,2,1} ✔（中間的 a[2] 不需動）</p>
-
-      <strong>📝 (三) 找出大於平均值的元素</strong>
-      <pre>printf(<span class="s">"大於平均值 %.2f 的元素："</span>, avg);
-<span class="k">int</span> count = 0;
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    <span class="k">if</span> (a[i] &gt; avg) {
-        printf(<span class="s">"%d "</span>, a[i]);
-        count++;
+          <p><strong>二、陣列原地反轉（In-Place Reverse）（8 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void reverse_array(int a[], int n) {
+    int left = 0, right = n - 1;
+    while (left &lt; right) {
+        int temp = a[left];
+        a[left] = a[right];
+        a[right] = temp;
+        left++;
+        right--;
     }
 }
-<span class="k">if</span> (count == 0) printf(<span class="s">"（無）"</span>);   <span class="c">// 邊界情形處理</span>
-printf(<span class="s">"\n共 %d 個\n"</span>, count);</pre>
-      <p style="font-size:.88rem"><strong>注意</strong>：因 (二) 已反轉陣列，若三小題需獨立執行，應先<u>複製一份原陣列</u>或調整執行順序。作答時可註明此點，展現嚴謹度。</p>
+          </pre>
+          <p><em>評分特點：雙指標向中央靠攏交換，時間 O(n)，<strong>額外空間複雜度僅 O(1)</strong>，完全無需配置第二個陣列！</em></p>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>max/min 初值取 a[0] 而非 0</strong>（全負數的邊界情形）<br>
-      2. <strong>平均值要轉型</strong> <code>(float)sum / n</code><br>
-      3. <strong>反轉只跑 n/2</strong>、交換用 temp<br>
-      4. <strong>索引用 n-1-i</strong>（不是 n-i）<br>
-      5. 處理「無符合元素」的情形<br>
-      6. 複雜度：三小題皆為 <strong>O(n)</strong>
+          <p><strong>三、找出並輸出大於平均值之元素（7 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void print_above_average(int a[], int n, double avg) {
+    printf("大於平均值 (%.2f) 之元素: ", avg);
+    for (int i = 0; i &lt; n; i++) {
+        if (a[i] &gt; avg) {
+            printf("%d ", a[i]);
+        }
+    }
+    printf("\n");
+}
+          </pre>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 最大最小值初值設為 <code>a[0]</code>（防全負數失真）。<br>
+        2. 平均值計算精確使用 <code>(double)sum / n</code>。<br>
+        3. 原地反轉（In-place）採用雙指標對調，空間複雜度 O(1)。<br>
+        4. 走訪輸出大於平均之元素無邏輯瑕疵。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 3</span><span class="tag">排序 · 25 分</span>
@@ -989,58 +1021,65 @@ printf(<span class="s">"\n共 %d 個\n"</span>, count);</pre>
       (三) 比較氣泡、選擇、插入三種排序之複雜度與穩定性。（8 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 氣泡排序</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：相鄰兩元素比較，若前者大於後者即交換。每一回合結束後，最大值會「浮」到最後並固定，故內層迴圈可逐次縮短。</p>
-      <pre><span class="k">int</span> i, j, temp;
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】相鄰兩兩比交換，旗標無動提早停；泡插合穩選快堆，近乎排序插入先</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>氣泡排序</strong>：雙層迴圈，內層 <code>j &lt; n-1-i</code>，若 <code>a[j] &gt; a[j+1]</code> 則交換。<br>
+          ② <strong>旗標改良（Flag）</strong>：設 <code>swapped = false</code>，一整輪都沒發生任何交換 ➔ <strong>直接 break 提早結束，已排序數列達成 O(n)</strong>！<br>
+          ③ <strong>三排序比較</strong>：氣泡（穩定、交換頻繁）、選擇（不穩定、交換次數最少 O(n)）、插入（穩定、近乎排序好時極快 O(n)）。</p>
+        </div>
 
-<span class="k">for</span> (i = 0; i &lt; n - 1; i++) {              <span class="c">// 共需 n-1 回合</span>
-    <span class="k">for</span> (j = 0; j &lt; n - 1 - i; j++) {      <span class="c">// -i：後面已排好不必再比</span>
-        <span class="k">if</span> (a[j] &gt; a[j + 1]) {             <span class="c">// 前大於後即交換</span>
-            temp   = a[j];
-            a[j]   = a[j + 1];
-            a[j+1] = temp;
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">旗標改良版核心程式碼</span><span class="danger-tag">三大基礎排序複雜度表</span></div>
+          </div>
+
+          <p><strong>一、氣泡排序標準與改良版 C 語言程式碼（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdbool.h&gt;
+
+void bubble_sort(int a[], int n) {
+    for (int i = 0; i &lt; n - 1; i++) {
+        bool swapped = false; // 旗標：追蹤本輪是否發生交換
+        for (int j = 0; j &lt; n - 1 - i; j++) {
+            if (a[j] &gt; a[j + 1]) {
+                int temp = a[j];
+                a[j] = a[j + 1];
+                a[j + 1] = temp;
+                swapped = true;
+            }
         }
+        // 若本輪無任何元素交換，代表陣列已完全排序好，直接提早中斷！
+        if (!swapped) break;
     }
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>（{5,2,8,1}）：<br>
-      第 1 回合：5&gt;2 換 → 5&gt;8 不換 → 8&gt;1 換 → <strong>2,5,1,8</strong><br>
-      第 2 回合：2&gt;5 不換 → 5&gt;1 換 → <strong>2,1,5,8</strong><br>
-      第 3 回合：2&gt;1 換 → <strong>1,2,5,8</strong> ✔</p>
+}
+          </pre>
 
-      <strong>📝 (二) 改良：提早結束</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：若某一回合<u>完全沒有發生交換</u>，代表資料已排序完成，可提早跳出。</p>
-      <pre><span class="k">for</span> (i = 0; i &lt; n - 1; i++) {
-    <span class="k">int</span> swapped = 0;                       <span class="c">// 旗標：本回合是否有交換</span>
-    <span class="k">for</span> (j = 0; j &lt; n - 1 - i; j++) {
-        <span class="k">if</span> (a[j] &gt; a[j + 1]) {
-            temp = a[j]; a[j] = a[j+1]; a[j+1] = temp;
-            swapped = 1;
-        }
-    }
-    <span class="k">if</span> (swapped == 0) <span class="k">break</span>;               <span class="c">// 沒交換 → 已排序完成</span>
-}</pre>
-      <p style="font-size:.88rem"><strong>效果</strong>：資料已排序時，第一回合掃描完即發現無交換而跳出 → 僅需 n−1 次比較 → <strong>最佳情況 O(n)</strong>。</p>
+          <p><strong>二、改良版在「已排序」資料之 O(n) 效能分析（7 分）</strong></p>
+          <ol>
+            <li><strong>未加旗標之傳統氣泡</strong>：無論輸入資料是否已排序，固定強制執行雙層迴圈，比較次數為 <code>n(n-1)/2</code>，時間永遠為 <strong>O(n²)</strong>。</li>
+            <li><strong>加旗標後之改良效益</strong>：當輸入資料為「已排序」數列時，第一輪外層迴圈（i=0）執行 <code>n-1</code> 次比較，<strong>因未觸發任何交換，<code>swapped</code> 維持 false，程式立即 break 結束</strong>！總比較次數僅 <code>n-1</code> 次，<strong>最佳時間複雜度成功提升至 O(n)！</strong></li>
+          </ol>
 
-      <strong>📊 (三) 三種排序比較</strong>
-      <div class="table-wrap"><table>
-        <tr><th>演算法</th><th>最佳</th><th>平均</th><th>最壞</th><th>空間</th><th>穩定</th><th>核心概念</th></tr>
-        <tr><td><strong>氣泡</strong></td><td>O(n)*</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td><strong>✅</strong></td><td>相鄰比較交換，大的往後浮</td></tr>
-        <tr><td><strong>選擇</strong></td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td><strong>❌</strong></td><td>每回合找最小值，與第 i 個交換</td></tr>
-        <tr><td><strong>插入</strong></td><td><strong>O(n)</strong></td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td><strong>✅</strong></td><td>像整理撲克牌，插入已排好的部分</td></tr>
-      </table></div>
-      <p style="font-size:.88rem">* 需加入「無交換即提早結束」的改良。<br>
-      <strong>穩定排序</strong>＝鍵值相同的元素排序後<u>相對順序不變</u>。<br>
-      <strong>實務價值</strong>：多欄位排序時（先依到職日排、再依部門排），第二次須用穩定排序，否則第一次的結果會被破壞。<br><br>
-      <strong>選擇排序為何不穩定</strong>：交換時可能把相同鍵值的元素跨距離調換順序。</p>
+          <p><strong>三、氣泡、選擇、插入三大基礎排序綜合評比（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>排序法</th><th>最佳時間</th><th>平均時間</th><th>最壞時間</th><th>空間複雜度</th><th>穩定性</th><th>核心優點與適用時機</th></tr>
+            <tr><td><strong>氣泡排序（Bubble）</strong></td><td><strong>O(n)</strong>（加旗標）</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td><strong>穩定 ✔</strong></td><td>概念最單純；但元素交換次數過多，實務少用。</td></tr>
+            <tr><td><strong>選擇排序（Selection）</strong></td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td>不穩定 ✘</td><td><strong>資料搬移次數最少（固定 O(n) 次交換）</strong>，適合寫入成本極高之 Flash 記憶體。</td></tr>
+            <tr><td><strong>插入排序（Insertion）</strong></td><td><strong>O(n)</strong></td><td>O(n²)</td><td>O(n²)</td><td>O(1)</td><td><strong>穩定 ✔</strong></td><td><strong>近乎已排序時速度極快</strong>；常數小，為進階排序（快排、Timsort）之子程序。</td></tr>
+          </table></div>
+        </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 內層迴圈的 <strong><code>n-1-i</code></strong> 並說明理由<br>
-      2. 交換<strong>用 temp 變數</strong><br>
-      3. 改良版的 <strong>swapped 旗標</strong>與 O(n) 說明<br>
-      4. 比較表要含<strong>穩定性欄位</strong>並解釋其實務意義<br>
-      5. <strong>驗算過程</strong>要寫出來
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 氣泡排序包含 <code>bool swapped = false</code> 旗標判斷。<br>
+        2. 內層迴圈上界為 <code>n - 1 - i</code> 避免重複比較。<br>
+        3. 深入解釋已排序資料下第一輪直接 break，時間為 <strong>O(n)</strong>。<br>
+        4. 三大排序比較表（最佳、平均、最壞、空間、穩定性）完全正確。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 4</span><span class="tag">遞迴 · 25 分</span>
@@ -1050,85 +1089,76 @@ printf(<span class="s">"\n共 %d 個\n"</span>, count);</pre>
       (三) 比較兩者之時間複雜度，並說明遞迴版之問題與改善方式。（7 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 遞迴之定義與要素</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>說明</th></tr>
-        <tr><td><strong>定義</strong></td><td>函式在執行過程中<strong>直接或間接呼叫自己</strong>，將問題化為規模較小的同類子問題</td></tr>
-        <tr><td><strong>要素①終止條件</strong></td><td>Base Case——不再遞迴的最小情形；<u>缺少會造成無限遞迴與 Stack Overflow</u></td></tr>
-        <tr><td><strong>要素②遞迴關係</strong></td><td>以較小規模的自己表達目前問題，且<strong>規模須逐次縮小</strong></td></tr>
-        <tr><td>執行機制</td><td>每層呼叫都在<strong>呼叫堆疊（Call Stack）</strong>保留區域變數與返回位址</td></tr>
-      </table></div>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】遞迴必備終止步，費氏雙叉次方爆；迴圈線性省記憶，動態記憶化解圍</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>遞迴兩大命脈</strong>：終止條件（Base Case，防無窮迴圈/堆疊溢位 Stack Overflow）+ 遞迴關係（向 Base Case 收斂推進）。<br>
+          ② <strong>費氏遞迴問題</strong>：高度重疊子問題，遞迴樹如二元樹分裂，時間複雜度呈指數級 <strong>O(2^n)</strong>！<br>
+          ③ <strong>迴圈/DP 優勢</strong>：由底向上迭代累積，時間大幅縮減為 <strong>O(n)</strong>，空間 O(1)！</p>
+        </div>
 
-      <strong>📝 (二) 兩種寫法</strong>
-      <pre><span class="c">// 【遞迴版】F(0)=0, F(1)=1, F(n)=F(n-1)+F(n-2)</span>
-<span class="k">int</span> fibR(<span class="k">int</span> n) {
-    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;                 <span class="c">// 終止條件</span>
-    <span class="k">return</span> fibR(n - 1) + fibR(n - 2);      <span class="c">// 遞迴關係</span>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">遞迴 vs 迴圈程式雙對照</span><span class="danger-tag">O(2^n) 指數爆炸推導</span></div>
+          </div>
+
+          <p><strong>一、何謂遞迴及遞迴函式必備兩大要素（6 分）</strong></p>
+          <ol>
+            <li><strong>定義</strong>：函式在其定義中<strong>「直接或間接呼叫自身」</strong>之程式設計手法。</li>
+            <li><strong>兩大必備要素</strong>：
+              <ul>
+                <li><strong>終止條件（Base Case / Stopping Condition）</strong>：最基本已知解的情境，直接回傳常數，終止遞迴呼叫，<strong>防範堆疊溢位（Stack Overflow）</strong>。</li>
+                <li><strong>遞迴推進步（Recursive Step）</strong>：將大問題簡化為規模較小的同型子問題，且<strong>保證每一次呼叫皆向終止條件收斂逼近</strong>。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>二、費氏數列（Fibonacci）遞迴版與迴圈版程式撰寫（12 分）</strong></p>
+          <p><strong>寫法一：純遞迴版本</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+long long fib_recursive(int n) {
+    if (n &lt;= 0) return 0; // 終止條件 1
+    if (n == 1) return 1; // 終止條件 2
+    return fib_recursive(n - 1) + fib_recursive(n - 2); // 遞迴推進
 }
+          </pre>
 
-<span class="c">// 【迴圈版】</span>
-<span class="k">int</span> fibL(<span class="k">int</span> n) {
-    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;
-    <span class="k">int</span> a = 0, b = 1, c, i;
-    <span class="k">for</span> (i = 2; i &lt;= n; i++) {
-        c = a + b;      <span class="c">// 新的一項</span>
-        a = b;          <span class="c">// 往前推進</span>
-        b = c;
+          <p><strong>寫法二：迭代迴圈版本</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+long long fib_iterative(int n) {
+    if (n &lt;= 0) return 0;
+    if (n == 1) return 1;
+    long long prev2 = 0, prev1 = 1, curr = 0;
+    for (int i = 2; i &lt;= n; i++) {
+        curr = prev1 + prev2;
+        prev2 = prev1;
+        prev1 = curr;
     }
-    <span class="k">return</span> b;
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>（n = 6）：數列為 0,1,1,2,3,5,<strong>8</strong>
-      <div class="table-wrap"><table>
-        <tr><th>i</th><th>c=a+b</th><th>a</th><th>b</th></tr>
-        <tr><td>初始</td><td>—</td><td>0</td><td>1</td></tr>
-        <tr><td>2</td><td>1</td><td>1</td><td>1</td></tr>
-        <tr><td>3</td><td>2</td><td>1</td><td>2</td></tr>
-        <tr><td>4</td><td>3</td><td>2</td><td>3</td></tr>
-        <tr><td>5</td><td>5</td><td>3</td><td>5</td></tr>
-        <tr><td>6</td><td>8</td><td>5</td><td><strong>8</strong></td></tr>
-      </table></div></p>
+    return curr;
+}
+          </pre>
 
-      <strong>📊 (三) 比較與改善</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>遞迴版</th><th>迴圈版</th></tr>
-        <tr><td>時間複雜度</td><td><strong>O(2ⁿ)</strong></td><td><strong>O(n)</strong></td></tr>
-        <tr><td>空間複雜度</td><td>O(n)（呼叫堆疊）</td><td><strong>O(1)</strong></td></tr>
-        <tr><td>程式可讀性</td><td><strong>佳</strong>（貼近數學定義）</td><td>普通</td></tr>
-        <tr><td>風險</td><td>n 大時 <strong>Stack Overflow</strong></td><td>無</td></tr>
-      </table></div>
-      <pre><span class="c">遞迴版的問題：大量重複計算</span>
-fib(5)
-├ fib(4)
-│ ├ fib(3)
-│ │ ├ fib(2) ← 算過
-│ │ └ fib(1)
-│ └ fib(2) ← 又算一次
-└ fib(3) ← 又算一次
-  ├ fib(2) ← 第三次
-  └ fib(1)</pre>
-      <div class="table-wrap"><table>
-        <tr><th>改善方式</th><th>作法</th><th>複雜度</th></tr>
-        <tr><td><strong>改用迴圈</strong></td><td>由下而上計算</td><td>O(n)</td></tr>
-        <tr><td><strong>記憶化 Memoization</strong></td><td>加一個陣列存放算過的結果，<u>算過就查表</u></td><td>O(n)</td></tr>
-        <tr><td>動態規劃</td><td>記憶化的一般化概念（<strong>最佳子結構＋重疊子問題</strong>）</td><td>O(n)</td></tr>
-      </table></div>
-      <pre><span class="c">// 記憶化版本</span>
-<span class="k">int</span> memo[100] = {0};
-<span class="k">int</span> fibM(<span class="k">int</span> n) {
-    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;
-    <span class="k">if</span> (memo[n] != 0) <span class="k">return</span> memo[n];   <span class="c">// 算過就直接回傳</span>
-    memo[n] = fibM(n-1) + fibM(n-2);
-    <span class="k">return</span> memo[n];
-}</pre>
+          <p><strong>三、複雜度深度對比與記憶化改善方案（7 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>實作版本</th><th>時間複雜度</th><th>空間複雜度（Call Stack）</th><th>核心缺點剖析</th></tr>
+            <tr><td><strong>純遞迴版</strong></td><td><strong>O(2^n)（指數爆炸）</strong></td><td>O(n)（遞迴堆疊深度）</td><td>存在大量<strong>重疊子問題</strong>。例如算 fib(5) 重複算 fib(3) 兩次、fib(2) 三次，n &gt; 40 時系統直接卡死。</td></tr>
+            <tr><td><strong>迴圈迭代版</strong></td><td><strong>O(n)（線性時間）</strong></td><td><strong>O(1)（常數空間）</strong></td><td><strong>最優解</strong>。無遞迴開銷，無重疊計算，毫秒級完成。</td></tr>
+          </table></div>
+          <p><strong>【遞迴改良對策：記憶化（Memoization）】</strong><br>
+          若必須使用遞迴，可宣告全域陣列 <code>memo[]</code> 初始化為 -1。呼叫時先查表，若已算過直接回傳，若無則算完存入表。使遞迴時間複雜度由 <strong>O(2^n) 驟降至 O(n)</strong>！</p>
+        </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>終止條件＋遞迴關係</strong>兩要素<br>
-      2. <strong>兩種寫法都要寫出來</strong><br>
-      3. <strong>O(2ⁿ) vs O(n)</strong> 並<strong>畫出重複計算的樹狀圖</strong>說明原因<br>
-      4. 提出<strong>記憶化／動態規劃</strong>作為改善（這是最高分的部分）<br>
-      5. 迴圈版要<strong>驗算</strong>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 遞迴必備兩要素（Base Case + 向收斂推進）明確定義。<br>
+        2. 遞迴版與迴圈版 C 語言程式碼語法嚴密無瑕。<br>
+        3. 清楚指出遞迴版 <strong>O(2^n) 重疊子問題致命瓶頸</strong>。<br>
+        4. 迴圈版 <strong>O(n) 時間與 O(1) 空間</strong> 對比完整。<br>
+        5. 提出記憶化（Memoization）改善方案。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 5</span><span class="tag">字串 · 25 分</span>
@@ -1138,59 +1168,79 @@ fib(5)
       (三) 撰寫程式統計字串中英文字母、數字與其他字元之個數。（9 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 計算字串長度</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：C 字串以 <code>'\0'</code> 作為結束標記，逐一走訪直到遇見它。</p>
-      <pre><span class="k">int</span> myStrlen(<span class="k">char</span> s[]) {
-    <span class="k">int</span> len = 0;
-    <span class="k">while</span> (s[len] != <span class="s">'\0'</span>) {   <span class="c">// 直到遇見結束字元</span>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】反斜零結算長度，首尾雙指夾回文；ASCII判讀分三類</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>字串長度</strong>：走訪直到 <code>str[i] == '\0'</code>，回傳長度。<br>
+          ② <strong>回文判斷</strong>：雙指標 <code>left=0, right=len-1</code>，相向比對，有任一不符即回傳 false。<br>
+          ③ <strong>字元統計</strong>：利用 <code>isalpha()</code>、<code>isdigit()</code> 或 ASCII 範圍 <code>'A'~'Z', 'a'~'z', '0'~'9'</code> 分流計數。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">禁止使用 strlen 限制</span><span class="danger-tag">NULL 字元 '\0' 結尾判斷</span></div>
+          </div>
+
+          <p><strong>一、自寫字串長度函式（不得使用 strlen）（6 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+int my_strlen(const char *s) {
+    int len = 0;
+    while (s[len] != '\0') {
         len++;
     }
-    <span class="k">return</span> len;                  <span class="c">// 不含 '\0'</span>
-}</pre>
+    return len;
+}
+          </pre>
 
-      <strong>📝 (二) 判斷回文</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：首尾對應位置逐一比較，只需比較到中間即可。<strong>最後一個元素的索引是 len−1</strong>。</p>
-      <pre><span class="k">int</span> isPalindrome(<span class="k">char</span> s[]) {
-    <span class="k">int</span> len = myStrlen(s);
-    <span class="k">int</span> i;
-    <span class="k">for</span> (i = 0; i &lt; len / 2; i++) {      <span class="c">// 只需比較一半</span>
-        <span class="k">if</span> (s[i] != s[len - 1 - i]) {
-            <span class="k">return</span> 0;                    <span class="c">// 有一組不同即非回文</span>
+          <p><strong>二、判斷字串是否為回文（Palindrome）（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdbool.h&gt;
+
+bool is_palindrome(const char *s) {
+    int left = 0;
+    int right = my_strlen(s) - 1;
+    
+    while (left &lt; right) {
+        if (s[left] != s[right]) {
+            return false; // 任一對稱字元不同即非回文
+        }
+        left++;
+        right--;
+    }
+    return true; // 全數吻合必為回文
+}
+          </pre>
+
+          <p><strong>三、統計字串中字母、數字與其他字元個數（9 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void count_chars(const char *s, int *letters, int *digits, int *others) {
+    *letters = 0;
+    *digits = 0;
+    *others = 0;
+    
+    for (int i = 0; s[i] != '\0'; i++) {
+        char c = s[i];
+        if ((c &gt;= 'a' &amp;&amp; c &lt;= 'z') || (c &gt;= 'A' &amp;&amp; c &lt;= 'Z')) {
+            (*letters)++;
+        } else if (c &gt;= '0' &amp;&amp; c &lt;= '9') {
+            (*digits)++;
+        } else {
+            (*others)++;
         }
     }
-    <span class="k">return</span> 1;                            <span class="c">// 全部相同 → 是回文</span>
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>（"level"，len=5，迴圈跑 2 次）：<br>
-      i=0：s[0]='l' vs s[4]='l' ✔　i=1：s[1]='e' vs s[3]='e' ✔ → <strong>是回文</strong><br>
-      （中間的 s[2] 不需比較）<br><br>
-      <strong>延伸</strong>：若需忽略大小寫與空白，可先做預處理（轉小寫、移除非字母字元）再判斷。</p>
-
-      <strong>📝 (三) 統計字元類型</strong>
-      <pre><span class="k">int</span> alpha = 0, digit = 0, other = 0;
-<span class="k">int</span> i;
-
-<span class="k">for</span> (i = 0; s[i] != <span class="s">'\0'</span>; i++) {
-    <span class="k">char</span> c = s[i];
-    <span class="k">if</span> ((c &gt;= <span class="s">'A'</span> &amp;&amp; c &lt;= <span class="s">'Z'</span>) ||
-        (c &gt;= <span class="s">'a'</span> &amp;&amp; c &lt;= <span class="s">'z'</span>)) {
-        alpha++;                     <span class="c">// 英文字母</span>
-    } <span class="k">else if</span> (c &gt;= <span class="s">'0'</span> &amp;&amp; c &lt;= <span class="s">'9'</span>) {
-        digit++;                     <span class="c">// 數字</span>
-    } <span class="k">else</span> {
-        other++;                     <span class="c">// 其他（空白、符號等）</span>
-    }
 }
-printf(<span class="s">"字母 %d 個、數字 %d 個、其他 %d 個\n"</span>, alpha, digit, other);</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>："Ab3 #" → A(字母) b(字母) 3(數字) 空白(其他) #(其他) → <strong>字母 2、數字 1、其他 2</strong> ✔</p>
+          </pre>
+        </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>以 <code>'\0'</code> 判斷字串結束</strong><br>
-      2. 回文的索引 <strong><code>len-1-i</code></strong>（寫成 <code>len-i</code> 會越界）<br>
-      3. 回文迴圈<strong>只跑 len/2</strong><br>
-      4. 字元範圍判斷要<strong>大小寫都涵蓋</strong><br>
-      5. 複雜度：三小題皆為 <strong>O(n)</strong>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. my_strlen 正確以 <code>'\0'</code> 終止統計。<br>
+        2. 回文判斷雙指標向中靠攏，邊界處理精確。<br>
+        3. 字元分類條件（小寫、大寫、數字、其他）涵蓋完整。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 6</span><span class="tag">二維陣列 · 25 分</span>
@@ -1201,75 +1251,77 @@ printf(<span class="s">"字母 %d 個、數字 %d 個、其他 %d 個\n"</span>,
       (三) 將方陣轉置（列與行互換）。（8 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 每列與每行總和</strong>
-      <pre><span class="k">int</span> i, j;
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】主對同標副相加，轉置對調一半巡；行列加總分雙迴</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>對角線</strong>：主對角線 <code>i == j</code>；反對角線 <code>i + j == n - 1</code>。<br>
+          ② <strong>矩陣轉置</strong>：內層迴圈 <code>for (j = i + 1; j < n; j++)</code>，僅走訪上三角對調 <code>swap(m[i][j], m[j][i])</code>，防止重複對調又轉回來！</p>
+        </div>
 
-<span class="c">// 每一列的總和：固定 i，變動 j</span>
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    <span class="k">int</span> rowSum = 0;
-    <span class="k">for</span> (j = 0; j &lt; n; j++) {
-        rowSum += m[i][j];
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">反對角線 i+j == n-1</span><span class="danger-tag">轉置僅走訪上三角</span></div>
+          </div>
+
+          <p><strong>一、計算每一列與每一行之總和（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void print_row_col_sums(int n, int m[n][n]) {
+    // 計算每一列總和
+    for (int i = 0; i &lt; n; i++) {
+        int row_sum = 0;
+        for (int j = 0; j &lt; n; j++) {
+            row_sum += m[i][j];
+        }
+        printf("第 %d 列總和: %d\n", i, row_sum);
     }
-    printf(<span class="s">"第 %d 列總和 = %d\n"</span>, i, rowSum);
-}
-
-<span class="c">// 每一行的總和：固定 j，變動 i（注意內外層對調）</span>
-<span class="k">for</span> (j = 0; j &lt; n; j++) {
-    <span class="k">int</span> colSum = 0;
-    <span class="k">for</span> (i = 0; i &lt; n; i++) {
-        colSum += m[i][j];
+    // 計算每一行總和
+    for (int j = 0; j &lt; n; j++) {
+        int col_sum = 0;
+        for (int i = 0; i &lt; n; i++) {
+            col_sum += m[i][j];
+        }
+        printf("第 %d 行總和: %d\n", j, col_sum);
     }
-    printf(<span class="s">"第 %d 行總和 = %d\n"</span>, j, colSum);
-}</pre>
-      <p style="font-size:.88rem"><strong>關鍵</strong>：算<u>列</u>總和時外層是 i、算<u>行</u>總和時外層是 j——<strong>外層迴圈決定「以什麼為單位輸出」</strong>。</p>
-
-      <strong>📝 (二) 對角線總和</strong>
-      <pre><span class="k">int</span> mainDiag = 0, antiDiag = 0;
-
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    mainDiag += m[i][i];             <span class="c">// 主對角線：列與行索引相同</span>
-    antiDiag += m[i][n - 1 - i];     <span class="c">// 反對角線：兩索引相加為 n-1</span>
 }
-printf(<span class="s">"主對角線 = %d，反對角線 = %d\n"</span>, mainDiag, antiDiag);</pre>
-      <pre><span class="c">n = 3 的示意（★為主對角線，◆為反對角線）：
-★ ‧ ◆        m[0][0] m[0][1] m[0][2]
-‧ ✦ ‧        m[1][0] m[1][1] m[1][2]   ← 中心 m[1][1] 兩者共有
-◆ ‧ ★        m[2][0] m[2][1] m[2][2]
+          </pre>
 
-主對角線：m[0][0], m[1][1], m[2][2]  → i == j
-反對角線：m[0][2], m[1][1], m[2][0]  → i + j == n-1</span></pre>
+          <p><strong>二、計算主對角線與反對角線總和（7 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void calc_diagonals(int n, int m[n][n], int *main_diag, int *anti_diag) {
+    *main_diag = 0;
+    *anti_diag = 0;
+    for (int i = 0; i &lt; n; i++) {
+        *main_diag += m[i][i];             // 主對角線: i == j
+        *anti_diag += m[i][n - 1 - i];     // 反對角線: i + j == n - 1
+    }
+}
+          </pre>
 
-      <strong>📝 (三) 矩陣轉置</strong>
-      <pre><span class="c">// 寫法一：另建新陣列（較清楚，建議考試用）</span>
-<span class="k">int</span> t[n][n];
-<span class="k">for</span> (i = 0; i &lt; n; i++)
-    <span class="k">for</span> (j = 0; j &lt; n; j++)
-        t[j][i] = m[i][j];       <span class="c">// 索引對調</span>
+          <p><strong>三、方陣原地轉置（Transpose）（8 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void transpose_matrix(int n, int m[n][n]) {
+    // 嚴格僅走訪主對角線上方之「上三角區域」
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = i + 1; j &lt; n; j++) {
+            int temp = m[i][j];
+            m[i][j] = m[j][i];
+            m[j][i] = temp;
+        }
+    }
+}
+          </pre>
+          <p><em>注意：內層迴圈必須設定 <code>j = i + 1</code>。若由 <code>j = 0</code> 巡到 <code>n-1</code>，會對調兩次導致方陣完全復原成原狀！</em></p>
+        </div>
 
-<span class="c">// 寫法二：就地轉置（省空間，但迴圈範圍要注意）</span>
-<span class="k">for</span> (i = 0; i &lt; n; i++)
-    <span class="k">for</span> (j = i + 1; j &lt; n; j++) {   <span class="c">// j 從 i+1 開始，只處理上三角</span>
-        <span class="k">int</span> temp = m[i][j];
-        m[i][j] = m[j][i];
-        m[j][i] = temp;
-    }</pre>
-      <div class="warn"><span class="t">⚠️ 就地轉置的關鍵</span>
-      內層迴圈必須從 <strong><code>j = i + 1</code></strong> 開始。<br>
-      若寫成 <code>j = 0</code>，每對元素會被交換<strong>兩次</strong> → 又轉回原狀（與陣列反轉只跑一半是同樣的道理）。</div>
-      <p style="font-size:.88rem"><strong>驗算</strong>：
-      <pre>原始        轉置後
-1 2 3      1 4 7
-4 5 6  →   2 5 8
-7 8 9      3 6 9</pre></p>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 列／行總和的<strong>內外層迴圈對調</strong><br>
-      2. 主對角線 <strong>i == j</strong>、反對角線 <strong>i + j == n−1</strong><br>
-      3. 就地轉置的 <strong><code>j = i+1</code></strong> 並說明理由<br>
-      4. <strong>畫出小範例矩陣驗算</strong><br>
-      5. 複雜度皆為 <strong>O(n²)</strong>
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 列和與行和計算分別以雙層迴圈輸出。<br>
+        2. 主對角線 <code>m[i][i]</code> 與反對角線 <code>m[i][n-1-i]</code> 算式精確。<br>
+        3. <strong>方陣轉置明確設定內層 <code>j = i + 1</code> 走訪上三角對調</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 7</span><span class="tag">搜尋 · 25 分</span>
@@ -1279,67 +1331,73 @@ printf(<span class="s">"主對角線 = %d，反對角線 = %d\n"</span>, mainDia
       (三) 說明二分搜尋在 1000 筆資料中最壞需比較幾次，並說明計算方式。（5 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 兩種搜尋</strong>
-      <pre><span class="c">// 【線性搜尋】不需排序，逐一比對</span>
-<span class="k">int</span> linearSearch(<span class="k">int</span> a[], <span class="k">int</span> n, <span class="k">int</span> key) {
-    <span class="k">int</span> i;
-    <span class="k">for</span> (i = 0; i &lt; n; i++) {
-        <span class="k">if</span> (a[i] == key) <span class="k">return</span> i;   <span class="c">// 找到，回傳索引</span>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】線性盲巡歐恩行，二分已排對數贏；千筆砍半十次止，上限取整加一尋</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>線性搜尋</strong>：無序亦可，最壞 O(n)。<br>
+          ② <strong>二分搜尋（Binary Search）</strong>：<strong>絕對前提：資料必須已排序！</strong>取中點比大小，砍半區間，最壞 O(log n)。<br>
+          ③ <strong>1000 筆比較次數</strong>：<code>⌊log₂1000⌋ + 1 = 9 + 1 = 10 次</code>！</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">中點防溢位 low + (high-low)/2</span><span class="danger-tag">1000 筆最壞比較次數推導</span></div>
+          </div>
+
+          <p><strong>一、線性搜尋與二分搜尋 C 語言實作（12 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+// 線性搜尋：找到回傳索引，找不到回傳 -1
+int linear_search(int a[], int n, int target) {
+    for (int i = 0; i &lt; n; i++) {
+        if (a[i] == target) return i;
     }
-    <span class="k">return</span> -1;                        <span class="c">// 找不到</span>
+    return -1;
 }
 
-<span class="c">// 【二分搜尋】前提：陣列必須「已由小到大排序」</span>
-<span class="k">int</span> binarySearch(<span class="k">int</span> a[], <span class="k">int</span> n, <span class="k">int</span> key) {
-    <span class="k">int</span> low = 0, high = n - 1;
-    <span class="k">while</span> (low &lt;= high) {                    <span class="c">// 注意有等號</span>
-        <span class="k">int</span> mid = low + (high - low) / 2;    <span class="c">// 避免溢位的寫法</span>
-        <span class="k">if</span> (a[mid] == key) {
-            <span class="k">return</span> mid;                      <span class="c">// 找到</span>
-        } <span class="k">else if</span> (a[mid] &lt; key) {
-            low = mid + 1;                   <span class="c">// 目標在右半</span>
-        } <span class="k">else</span> {
-            high = mid - 1;                  <span class="c">// 目標在左半</span>
+// 二分搜尋：前提必須已排序（由小到大）
+int binary_search(int a[], int n, int target) {
+    int low = 0, high = n - 1;
+    while (low &lt;= high) {
+        int mid = low + (high - low) / 2; // 安全防溢位計算中點
+        if (a[mid] == target) {
+            return mid;
+        } else if (a[mid] &lt; target) {
+            low = mid + 1; // 目標在右半部
+        } else {
+            high = mid - 1; // 目標在左半部
         }
     }
-    <span class="k">return</span> -1;
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>（在 {1,3,5,7,9,11,13} 找 11，n=7）：
-      <div class="table-wrap"><table>
-        <tr><th>輪次</th><th>low</th><th>high</th><th>mid</th><th>a[mid]</th><th>動作</th></tr>
-        <tr><td>1</td><td>0</td><td>6</td><td>3</td><td>7</td><td>7 &lt; 11 → low = 4</td></tr>
-        <tr><td>2</td><td>4</td><td>6</td><td>5</td><td>11</td><td><strong>找到！回傳 5</strong></td></tr>
-      </table></div></p>
+    return -1; // 搜尋範圍縮減完畢仍無此數
+}
+          </pre>
 
-      <strong>📊 (二) 比較</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>線性搜尋</th><th>二分搜尋</th></tr>
-        <tr><td><strong>前提條件</strong></td><td>無</td><td><strong>資料必須已排序</strong></td></tr>
-        <tr><td>最佳情況</td><td>O(1)（第一個就是）</td><td>O(1)（中間就是）</td></tr>
-        <tr><td>平均／最壞</td><td><strong>O(n)</strong></td><td><strong>O(log n)</strong></td></tr>
-        <tr><td>實作難度</td><td>簡單</td><td>需注意邊界條件</td></tr>
-        <tr><td>適用資料結構</td><td>陣列、鏈結串列皆可</td><td>需<strong>隨機存取</strong>，鏈結串列不適用</td></tr>
-        <tr><td><strong>適用時機</strong></td><td>資料未排序、<strong>只搜尋一次</strong>、資料量小</td><td>資料已排序或<strong>需重複搜尋多次</strong></td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>實務判斷</strong>：排序本身要 O(n log n)。若只搜尋一次，<u>直接線性搜尋反而划算</u>；若要搜尋很多次，先排序再用二分搜尋才有效益。</p>
+          <p><strong>二、兩者前提條件、複雜度與適用時機比較（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>線性搜尋（Linear Search）</th><th>二分搜尋（Binary Search）</th></tr>
+            <tr><td><strong>必備前提條件</strong></td><td><strong>無任何限制</strong>（未排序、已排序皆可）</td><td><strong>資料必須已排序（Sorted）且支援 O(1) 隨機存取</strong>（陣列適用，鏈結串列不適用）</td></tr>
+            <tr><td><strong>最佳時間</strong></td><td>O(1)（首筆命中）</td><td>O(1)（正中命中）</td></tr>
+            <tr><td><strong>最壞時間</strong></td><td><strong>O(n)</strong></td><td><strong>O(log n)</strong></td></tr>
+            <tr><td><strong>最佳適用時機</strong></td><td>小資料量（n &lt; 20）、資料隨時插入無暇排序之即時流</td><td>靜態唯讀資料庫、頻繁查詢且已建好索引之系統</td></tr>
+          </table></div>
 
-      <strong>📐 (三) 1000 筆的比較次數</strong>
-      <pre>1000 → 500 → 250 → 125 → 63 → 32 → 16 → 8 → 4 → 2 → 1
-  ①     ②     ③     ④     ⑤    ⑥    ⑦   ⑧   ⑨  ⑩</pre>
-      <p style="font-size:.88rem">
-      <strong>計算方式</strong>：每次比較將範圍縮小為一半，故最多需 <strong>⌊log₂1000⌋ + 1 = 9 + 1 = 10 次</strong>。<br>
-      （log₂1000 ≈ 9.97）<br><br>
-      <strong>對照線性搜尋</strong>：最壞需 <strong>1000 次</strong>——差距 100 倍。<br>
-      資料量越大差距越懸殊：100 萬筆時，二分搜尋只需約 <strong>20 次</strong>。</p>
+          <p><strong>三、1000 筆資料二分搜尋最壞比較次數嚴格推導（5 分）</strong></p>
+          <div class="verify-box">
+            👉 <strong>推導公式</strong>：每次比對排除一半資料，最壞比較次數為 <strong><code>⌊log₂N⌋ + 1</code></strong>（即決策樹之樹高）。<br>
+            因 <code>2⁹ = 512 &lt; 1000 &lt; 2¹⁰ = 1024</code>：<br>
+            <code>⌊log₂1000⌋ + 1 = 9 + 1 = 10（次）</code> ✔<br>
+            <strong>結論</strong>：在 1000 筆資料中，二分搜尋<strong>最壞僅需比較 10 次</strong>即可確定目標是否存在！
+          </div>
+        </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>二分搜尋的前提是「已排序」</strong>——最重要的一句<br>
-      2. <code>while (low &lt;= high)</code> <strong>有等號</strong>（少了會漏掉最後一個元素）<br>
-      3. <code>mid = low + (high-low)/2</code> 的<strong>防溢位寫法</strong>是加分點<br>
-      4. <strong>驗算表格</strong><br>
-      5. 第三小題要<strong>寫出砍半過程</strong>而非只給答案
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 線性與二分搜尋程式語法完整，中點採用 <code>low + (high-low)/2</code>。<br>
+        2. 比較表強調二分搜尋前提為「已排序」且需支援 O(1) 隨機存取。<br>
+        3. <strong>明確以 <code>⌊log₂1000⌋ + 1 = 10 次</code> 計算推導最壞比較次數</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 8</span><span class="tag">函式 · 25 分</span>
@@ -1349,71 +1407,67 @@ printf(<span class="s">"主對角線 = %d，反對角線 = %d\n"</span>, mainDia
       (三) 撰寫一函式 <code>swap</code>，能真正交換呼叫端的兩個變數值。（8 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📊 (一) 函式的優點</strong>
-      <div class="table-wrap"><table>
-        <tr><th>優點</th><th>說明</th></tr>
-        <tr><td><strong>重用性</strong></td><td>寫一次，多處呼叫，避免重複程式碼</td></tr>
-        <tr><td><strong>模組化</strong></td><td>把大問題拆成小任務，符合<strong>高內聚、低耦合</strong></td></tr>
-        <tr><td><strong>易維護</strong></td><td>邏輯集中一處，修改只需改一個地方</td></tr>
-        <tr><td><strong>易測試</strong></td><td>可單獨測試每個函式（單元測試）</td></tr>
-        <tr><td>可讀性</td><td>有意義的函式名稱等同自我說明的文件</td></tr>
-        <tr><td>團隊分工</td><td>可由不同人各自負責不同函式</td></tr>
-      </table></div>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】傳值拷貝原不變，傳址指標動本尊；星號取值解位址</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>Call by Value</strong>：拷貝參數複本，函式內修改只影響區域變數，呼叫端變數完好如初。<br>
+          ② <strong>Call by Address</strong>：傳入變數記憶體位址 <code>&x</code>，函式宣告指標參數 <code>int *p</code>，以解參考 <code>*p</code> 直接修改原變數實體！</p>
+        </div>
 
-      <strong>📝 (二) 傳值 vs 傳址</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>傳值 Call by Value</th><th>傳址 Call by Reference</th></tr>
-        <tr><td>傳遞內容</td><td><strong>值的複本</strong></td><td><strong>記憶體位址</strong></td></tr>
-        <tr><td>能否改變原變數</td><td><strong>不能</strong></td><td><strong>能</strong></td></tr>
-        <tr><td>記憶體成本</td><td>需複製（大型結構較耗資源）</td><td>只傳位址，成本低</td></tr>
-        <tr><td>安全性</td><td><strong>高</strong>（原資料不受影響）</td><td>較低（可能意外修改）</td></tr>
-        <tr><td>C 語言</td><td><strong>預設方式</strong></td><td>須用指標（<code>*</code> 與 <code>&amp;</code>）</td></tr>
-      </table></div>
-      <pre><span class="c">// 【傳值】改不到原變數</span>
-<span class="k">void</span> byValue(<span class="k">int</span> x) {
-    x = 100;
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">指標 swap 函式標準寫法</span><span class="danger-tag">傳值交換無效原理說明</span></div>
+          </div>
+
+          <p><strong>一、函式（Functions）之核心優點（5 分）</strong></p>
+          <ol>
+            <li><strong>程式碼再利用（Reusability）</strong>：相同邏輯無須複製貼上，提高研發效率。</li>
+            <li><strong>模組化與高內聚（Modularity）</strong>：將龐大複雜系統分解為單一職責子程式，便於團隊分工與個別單元測試。</li>
+            <li><strong>便於維護與除錯（Maintainability）</strong>：業務邏輯變更僅需修改單一函式內部，降低 Ripple Effect 副作用。</li>
+          </ol>
+
+          <p><strong>二、傳值呼叫 vs 傳址呼叫深度差異（12 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>傳值呼叫（Call by Value）</th><th>傳址呼叫（Call by Address / Reference）</th></tr>
+            <tr><td><strong>參數傳遞本質</strong></td><td>將實質參數之<strong>數值拷貝一份複本</strong>至形式參數中</td><td>將實質參數之<strong>記憶體位址（Memory Address）</strong>傳遞給指標形式參數</td></tr>
+            <tr><td><strong>對呼叫端影響</strong></td><td>函式內對參數之任何修改，<strong>絕對不影響呼叫端原始變數</strong></td><td>函式內透過指標解參考修改，<strong>直接同步變更呼叫端原始變數</strong></td></tr>
+            <tr><td><strong>記憶體效能</strong></td><td>若傳遞龐大 struct，需全量拷貝，耗費記憶體</td><td>僅傳遞 4/8 Bytes 之指標位址，<strong>極度高效</strong></td></tr>
+          </table></div>
+
+          <p><strong>三、真正交換兩個變數之 swap 函式與對照（8 分）</strong></p>
+          <p><strong>錯誤示範：傳值呼叫（無法達成交換）</strong></p>
+          <pre style="background:#fee2e2;border:1px solid #f87171;padding:8px;border-radius:6px;font-family:Consolas,monospace;">
+void swap_wrong(int a, int b) { // 僅交換了本機區域複本，函式返回後瞬間銷毀！
+    int temp = a; a = b; b = temp;
 }
-<span class="k">int</span> a = 5;
-byValue(a);
-printf(<span class="s">"%d"</span>, a);      <span class="c">// 輸出 5（沒變）</span>
+          </pre>
 
-<span class="c">// 【傳址】可以改到原變數</span>
-<span class="k">void</span> byRef(<span class="k">int</span> *x) {   <span class="c">// * 宣告為指標</span>
-    *x = 100;             <span class="c">// * 表示「到該位址把值改掉」</span>
-}
-<span class="k">int</span> b = 5;
-byRef(&amp;b);               <span class="c">// &amp; 表示「取 b 的位址」</span>
-printf(<span class="s">"%d"</span>, b);      <span class="c">// 輸出 100（改到了）</span></pre>
-      <p style="font-size:.88rem"><strong>比喻</strong>：傳值＝<u>影印一份</u>給對方（正本不受影響）；傳址＝<u>告訴對方正本放哪裡</u>（會被改到）。<br><br>
-      <strong>重要例外</strong>：<strong>陣列傳入函式時自動是傳址</strong>（傳的是首元素位址），故函式內可修改原陣列。</p>
-
-      <strong>📝 (三) swap 函式</strong>
-      <pre><span class="c">// 必須用指標，否則交換的只是複本</span>
-<span class="k">void</span> swap(<span class="k">int</span> *x, <span class="k">int</span> *y) {
-    <span class="k">int</span> temp = *x;    <span class="c">// 暫存 x 指向的值</span>
-    *x = *y;
-    *y = temp;
+          <p><strong>正確解答：傳址呼叫（成功交換呼叫端實體變數）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+void swap(int *a, int *b) {
+    int temp = *a; // 取出 a 位址的值暫存
+    *a = *b;       // 將 b 位址的值寫入 a 位址
+    *b = temp;     // 將暫存值寫入 b 位址
 }
 
-<span class="c">// 呼叫方式</span>
-<span class="k">int</span> a = 10, b = 20;
-swap(&amp;a, &amp;b);         <span class="c">// 傳入兩個變數的「位址」</span>
-printf(<span class="s">"a=%d, b=%d"</span>, a, b);   <span class="c">// 輸出 a=20, b=10 ✔</span></pre>
-      <div class="warn"><span class="t">⚠️ 常見的錯誤寫法</span>
-      <pre>void swap(int x, int y) {     // ← 錯：傳值
-    int t = x; x = y; y = t;  // 只交換了函式內的複本
+int main() {
+    int x = 10, y = 20;
+    swap(&amp;x, &amp;y); // 傳入變數之記憶體位址
+    printf("x = %d, y = %d\n", x, y); // 正確輸出: x = 20, y = 10
+    return 0;
 }
-// 呼叫後 a、b 完全沒變</pre>
-      另一個常見錯誤是<strong>忘記用 temp</strong>：<code>*x = *y; *y = *x;</code> → 第一行就把 x 的原值覆蓋掉，結果兩個都變成原本的 y。</div>
+          </pre>
+        </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>C 預設傳值</strong>，要改原變數必須用指標<br>
-      2. <code>*</code>（取值）與 <code>&amp;</code>（取位址）的<strong>用法要正確</strong><br>
-      3. swap <strong>必須用 temp 暫存</strong><br>
-      4. 呼叫時要寫 <strong><code>swap(&amp;a, &amp;b)</code></strong><br>
-      5. 補充<strong>「陣列傳入函式是傳址」</strong>的例外是加分點
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 函式三大優點（再利用、模組化、好除錯）完整。<br>
+        2. 傳值（拷貝複本、不影響本尊）與傳址（傳記憶體位址、直接動本尊）對比深刻。<br>
+        3. 指標 swap 函式（<code>int *a, int *b</code>）與呼叫端（<code>&x, &y</code>）程式語法 100% 正確。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 9</span><span class="tag">綜合應用 · 25 分</span>
@@ -1424,73 +1478,69 @@ printf(<span class="s">"a=%d, b=%d"</span>, a, b);   <span class="c">// 輸出 a
       (三) 依成績由高到低排序，並輸出前三名。（9 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 平均與及格人數</strong>
-      <pre><span class="k">int</span> i, sum = 0, pass = 0;
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】單巡統計集一身，及格累進極值存；記錄索引省重查</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>一次走訪全包</strong>：以單一 for 迴圈走訪，同步完成累加總分、計算及格人數（≥60）、維護最大與最小值及其對應的索引值！<br>
+          ② <strong>極值初始化</strong>：<code>max_idx = min_idx = 0</code>，直接以首位比較。</p>
+        </div>
 
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    sum += score[i];
-    <span class="k">if</span> (score[i] &gt;= 60) pass++;      <span class="c">// 及格計數</span>
-}
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">單次走訪 O(n) 完成所有指標</span><span class="danger-tag">極值索引同步維護</span></div>
+          </div>
 
-<span class="k">float</span> avg = (<span class="k">float</span>)sum / n;         <span class="c">// 務必轉型</span>
-printf(<span class="s">"平均分數 = %.2f\n"</span>, avg);
-printf(<span class="s">"及格人數 = %d 人，及格率 = %.1f%%\n"</span>,
-       pass, (<span class="k">float</span>)pass / n * 100);</pre>
+          <p><strong>一、成績處理完整 C 語言實作（25 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdio.h&gt;
 
-      <strong>📝 (二) 最高分與最低分及其位置</strong>
-      <pre><span class="k">int</span> maxIdx = 0, minIdx = 0;      <span class="c">// 先假設第一個是最高也是最低</span>
-
-<span class="k">for</span> (i = 1; i &lt; n; i++) {        <span class="c">// 從第二個開始比</span>
-    <span class="k">if</span> (score[i] &gt; score[maxIdx]) maxIdx = i;
-    <span class="k">if</span> (score[i] &lt; score[minIdx]) minIdx = i;
-}
-
-printf(<span class="s">"最高分 = %d（第 %d 位學生）\n"</span>, score[maxIdx], maxIdx + 1);
-printf(<span class="s">"最低分 = %d（第 %d 位學生）\n"</span>, score[minIdx], minIdx + 1);</pre>
-      <p style="font-size:.88rem"><strong>技巧</strong>：記錄<u>索引</u>而非數值，這樣同時知道「是多少分」與「是第幾個」。<br>
-      輸出時 <code>maxIdx + 1</code> 是把 0-based 索引轉為人類習慣的 1-based 順位。</p>
-
-      <strong>📝 (三) 排序並輸出前三名</strong>
-      <pre><span class="c">// 以選擇排序由「大到小」排序（注意比較方向）</span>
-<span class="k">int</span> j, temp;
-<span class="k">for</span> (i = 0; i &lt; n - 1; i++) {
-    <span class="k">int</span> maxPos = i;
-    <span class="k">for</span> (j = i + 1; j &lt; n; j++) {
-        <span class="k">if</span> (score[j] &gt; score[maxPos])   <span class="c">// 由大到小 → 找最大值</span>
-            maxPos = j;
+void process_scores(int score[], int n) {
+    if (n &lt;= 0) {
+        printf("無成績資料！\n");
+        return;
     }
-    <span class="k">if</span> (maxPos != i) {                  <span class="c">// 需要交換才交換</span>
-        temp = score[i];
-        score[i] = score[maxPos];
-        score[maxPos] = temp;
+    
+    long long total = 0;
+    int pass_count = 0;
+    int max_idx = 0;
+    int min_idx = 0;
+    
+    for (int i = 0; i &lt; n; i++) {
+        // (一) 累計總分與及格人數
+        total += score[i];
+        if (score[i] &gt;= 60) {
+            pass_count++;
+        }
+        // (二) 追蹤最高分與最低分及其索引
+        if (score[i] &gt; score[max_idx]) {
+            max_idx = i;
+        }
+        if (score[i] &lt; score[min_idx]) {
+            min_idx = i;
+        }
     }
+    
+    double avg = (double)total / n;
+    
+    // 輸出成果
+    printf("全體平均分數: %.2f\n", avg);
+    printf("及格人數 (>=60): %d 人\n", pass_count);
+    printf("最高分: %d (位於索引: %d)\n", score[max_idx], max_idx);
+    printf("最低分: %d (位於索引: %d)\n", score[min_idx], min_idx);
 }
+          </pre>
+          <p><strong>複雜度分析</strong>：時間複雜度僅需 <strong>O(n)</strong> 單次掃描；額外空間複雜度為 <strong>O(1)</strong> 常數空間。</p>
+        </div>
 
-<span class="c">// 輸出前三名（須處理「不足三人」的邊界情形）</span>
-<span class="k">int</span> top = (n &lt; 3) ? n : 3;
-printf(<span class="s">"前 %d 名成績："</span>, top);
-<span class="k">for</span> (i = 0; i &lt; top; i++) {
-    printf(<span class="s">"第 %d 名：%d 分\n"</span>, i + 1, score[i]);
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>（score = {75, 92, 60, 88, 45}，n=5）：<br>
-      平均 = 360/5 = <strong>72.0</strong>；及格 4 人（75, 92, 60, 88）<br>
-      最高 92（第 2 位）、最低 45（第 5 位）<br>
-      排序後 {92, 88, 75, 60, 45} → 前三名 <strong>92、88、75</strong> ✔</p>
-
-      <div class="warn"><span class="t">⚠️ 實務補充（加分段）</span>
-      1. 若學生成績需與<strong>姓名</strong>一併處理，應改用<strong>結構陣列</strong>（<code>struct Student</code>），排序時整筆交換，避免成績與姓名對應錯亂<br>
-      2. 若有<strong>同分</strong>情形，「前三名」的定義須先釐清（是取三個人，還是取三個分數等級）<br>
-      3. 排序會<strong>改變原始資料順序</strong>，若後續仍需原順序，應先複製一份</div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>平均值轉型</strong> <code>(float)sum / n</code><br>
-      2. <strong>記錄索引</strong>而非只記數值<br>
-      3. max/min 初值取<strong>第一個元素</strong>（不可設 0）<br>
-      4. 由大到小排序的<strong>比較方向要對</strong><br>
-      5. <strong>處理不足三人的邊界情形</strong><br>
-      6. 提到<strong>結構陣列</strong>與<strong>同分處理</strong>是明顯加分
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 平均值計算採 <code>(double)total / n</code> 強制型別轉換。<br>
+        2. 及格條件 <code>score[i] &gt;= 60</code> 精確計數。<br>
+        3. <strong>最高分與最低分精確輸出其值與「索引位置（Index）」</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 10</span><span class="tag">除錯 · 25 分</span>
@@ -1509,56 +1559,73 @@ printf("平均 = %d，大於平均者 %d 個", avg, count);</pre>
       (二) 寫出修正後的程式。（10 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📊 (一) 錯誤分析</strong>
-      <div class="table-wrap"><table>
-        <tr><th>編號</th><th>錯誤</th><th>問題所在</th><th>後果</th></tr>
-        <tr><td>①</td><td><strong>變數未初始化</strong></td><td><code>int sum;</code> 未設為 0 就直接 <code>sum += a[i]</code></td><td>sum 起始為<strong>不確定的垃圾值</strong>，結果完全錯誤</td></tr>
-        <tr><td>②</td><td><strong>陣列越界（差一錯誤）</strong></td><td><code>for (i = 0; i &lt;= 5; i++)</code> 會存取 <code>a[5]</code></td><td>a[5] 不存在（合法索引 0~4），<strong>讀到不屬於陣列的記憶體</strong></td></tr>
-        <tr><td>③</td><td><strong>平均值型別錯誤</strong></td><td><code>int avg = sum / 5;</code> 為整數除法</td><td>小數被截斷；若總和為 155 則 avg = 31 而非 31.0</td></tr>
-        <tr><td>④</td><td>魔術數字</td><td>程式中直接寫 5</td><td>陣列大小改變時需多處修改，易遺漏</td></tr>
-      </table></div>
-      <div class="hl">
-      <strong>其中 ① 與 ② 最嚴重</strong>：<br>
-      ‧ ① 使結果<u>每次執行都可能不同</u>，是極難追查的 bug<br>
-      ‧ ② 屬<strong>未定義行為</strong>，C 語言不會報錯但可能破壞其他變數，甚至形成<strong>緩衝區溢位</strong>資安漏洞
-      </div>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】變數初值未歸零，整數相除截小數；陣列越界內存漏，修正型別再重巡</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>三大錯誤分析</strong>：<br>
+          ‧ 錯誤一：<code>int i, sum, avg;</code> 區域變數未初始化，<code>sum</code> 內含記憶體垃圾值！<br>
+          ‧ 錯誤二：<code>sum += a[i]</code> 迴圈若設 <code>i &lt;= 5</code> 會越界存取 <code>a[5]</code>（Index Out of Bounds）。<br>
+          ‧ 錯誤三：<code>avg = sum / 5;</code> 為整數除法，小數點被強制無條件捨去！<br>
+          ② <strong>修正重點</strong>：<code>int sum = 0;</code>、<code>double avg = (double)sum / 5;</code>、邊界 <code>i &lt; 5</code>。</p>
+        </div>
 
-      <strong>📝 (二) 修正後的程式</strong>
-      <pre>#define N 5                        <span class="c">// ④ 用常數取代魔術數字</span>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">逐項指出錯誤行號與原因</span><span class="danger-tag">提供完整修正後代碼</span></div>
+          </div>
 
-<span class="k">int</span> a[N] = {10, 20, 30, 40, 50};
-<span class="k">int</span> i;
-<span class="k">int</span> sum = 0;                       <span class="c">// ① 必須初始化為 0</span>
-<span class="k">int</span> count = 0;
-<span class="k">float</span> avg;                        <span class="c">// ③ 改為浮點數型別</span>
+          <p><strong>一、原程式核心錯誤診斷與原理解析（15 分）</strong></p>
+          <ol>
+            <li><strong>錯誤一：區域變數 <code>sum</code> 未初始化（Uninitialized Variable）</strong><br>
+              <strong>診斷</strong>：在 C 語言中，區域變數預設值為隨機的<strong>記憶體垃圾值（Garbage Value）</strong>。原程式執行 <code>sum += a[i]</code> 時，起算基底即為未定義數值，導致累加結果完全失真。</li>
+            <li><strong>錯誤二：整數除法小數點截斷（Integer Division Truncation）</strong><br>
+              <strong>診斷</strong>：<code>sum</code> 與 <code>5</code> 皆為整數，在 C 語言中運算子 <code>/</code> 會執行整數除法，<strong>無條件捨去小數點</strong>。若 <code>avg</code> 宣告為 int，更無法表達小數平均。</li>
+            <li><strong>錯誤三：走訪計數與平均比較之先後邏輯錯置</strong><br>
+              <strong>診斷</strong>：原程式在迴圈計算 sum 的同時試圖比對 <code>if (a[i] &gt; avg)</code>，但此時全體平均根本尚未算出！必須先走訪第一輪算完 avg，才能進行第二輪比對。</li>
+          </ol>
 
-<span class="k">for</span> (i = 0; i &lt; N; i++) {          <span class="c">// ② 用 &lt; 不用 &lt;=</span>
-    sum += a[i];
+          <p><strong>二、完整修正後之 C 語言標準程式碼（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdio.h&gt;
+
+int main() {
+    int a[5] = {10, 20, 30, 40, 50};
+    int sum = 0;       // 修正 1: 明確初始化為 0
+    double avg = 0.0;  // 修正 2: 宣告為 double 浮點型態
+    int count = 0;
+
+    // 第一輪: 累計總和
+    for (int i = 0; i &lt; 5; i++) {
+        sum += a[i];
+    }
+
+    // 修正 3: 強制型別轉換為 double 保留精確小數
+    avg = (double)sum / 5;
+
+    // 第二輪: 比較大於平均值的元素個數
+    for (int i = 0; i &lt; 5; i++) {
+        if (a[i] &gt; avg) {
+            count++;
+        }
+    }
+
+    printf("平均值: %.2f\n", avg);
+    printf("大於平均值的個數: %d\n", count); // 正確輸出: count = 2 (40, 50)
+    return 0;
 }
+          </pre>
+        </div>
 
-avg = (<span class="k">float</span>)sum / N;             <span class="c">// ③ 轉型後再除，避免截斷</span>
-
-<span class="k">for</span> (i = 0; i &lt; N; i++) {
-    <span class="k">if</span> (a[i] &gt; avg) count++;
-}
-
-printf(<span class="s">"平均 = %.2f，大於平均者 %d 個\n"</span>, avg, count);</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>：sum = 10+20+30+40+50 = 150；avg = 150/5 = <strong>30.00</strong><br>
-      大於 30 者：40、50 → <strong>2 個</strong> ✔</p>
-
-      <div class="warn"><span class="t">⚠️ 延伸：十大高頻 bug 檢查清單</span>
-      1. <code>=</code> 寫成 <code>==</code>　2. <strong>差一錯誤</strong>（<code>&lt;=</code> vs <code>&lt;</code>）　3. 迴圈變數忘了遞增<br>
-      4. switch 忘記 break　5. <strong>整數除法截斷</strong>　6. <strong>變數未初始化</strong><br>
-      7. 交換忘了用 temp　8. 字串少留 <code>'\0'</code> 空間　9. 字串用 <code>==</code> 比較　10. 遞迴無終止條件</div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>四個錯誤要全部找出</strong>（尤其 ① 未初始化與 ② 越界）<br>
-      2. 每個錯誤都要<strong>說明後果</strong>，不能只說「這裡錯了」<br>
-      3. 修正後的程式要<strong>標註對應哪個錯誤</strong><br>
-      4. <strong>要驗算</strong><br>
-      5. 提到「越界是<strong>未定義行為</strong>、可能造成資安漏洞」是明顯加分
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 明確指出 <code>sum 未初始化（含垃圾值）</code> 致命錯誤。<br>
+        2. 指出 <code>整數除法無條件截斷</code> 錯誤。<br>
+        3. 指出平均值尚未算出即在同迴圈比對之<strong>邏輯倒置錯誤</strong>。<br>
+        4. 提供完全修正且可編譯執行之標準 C 程式。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 11</span><span class="tag">遞迴應用 · 25 分</span>
@@ -1568,65 +1635,75 @@ printf(<span class="s">"平均 = %.2f，大於平均者 %d 個\n"</span>, avg, c
       (三) 說明遞迴與迴圈之優缺點比較。（7 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 遞迴版 GCD（輾轉相除法）</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：gcd(a, b) = gcd(b, a mod b)；當 b 為 0 時，a 即為答案。</p>
-      <pre><span class="k">int</span> gcd(<span class="k">int</span> a, <span class="k">int</span> b) {
-    <span class="k">if</span> (b == 0) <span class="k">return</span> a;      <span class="c">// 終止條件</span>
-    <span class="k">return</span> gcd(b, a % b);       <span class="c">// 遞迴關係</span>
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong> gcd(48, 18)：
-      <pre>gcd(48, 18) → gcd(18, 48%18=12)
-            → gcd(12, 18%12=6)
-            → gcd(6, 12%6=0)
-            → b==0，回傳 6 ✔</pre>
-      <strong>延伸</strong>：最小公倍數 <code>lcm(a,b) = a / gcd(a,b) * b</code>（<u>先除再乘</u>可避免溢位）。</p>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】輾轉相除取餘數，河內遞迴三步走；二冪減一移動數，指數代價空間深</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>歐幾里得 GCD</strong>：<code>gcd(a, b) = (b == 0) ? a : gcd(b, a % b);</code>。<br>
+          ② <strong>河內塔三大步</strong>：把 n-1 個盤自 A 借 C 移到 B ➔ 把第 n 個大盤由 A 移到 C ➔ 把 n-1 個盤由 B 借 A 移到 C。<br>
+          ③ <strong>移動總次數</strong>：遞迴式 <code>T(n) = 2T(n-1) + 1</code> ➔ 總移動次數為 <strong>2ⁿ - 1</strong>！</p>
+        </div>
 
-      <strong>📝 (二) 河內塔</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：要把 n 個盤子從起點柱搬到目標柱，可分三步：<br>
-      ① 先把上面 n−1 個搬到中繼柱　② 把最大的第 n 個搬到目標柱　③ 再把 n−1 個從中繼柱搬到目標柱</p>
-      <pre><span class="k">void</span> hanoi(<span class="k">int</span> n, <span class="k">char</span> from, <span class="k">char</span> to, <span class="k">char</span> via) {
-    <span class="k">if</span> (n == 1) {                          <span class="c">// 終止條件</span>
-        printf(<span class="s">"移動盤子 1: %c -&gt; %c\n"</span>, from, to);
-        <span class="k">return</span>;
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">河內塔 2^n - 1 嚴格數學歸納</span><span class="danger-tag">輾轉相除單行優雅遞迴</span></div>
+          </div>
+
+          <p><strong>一、歐幾里得輾轉相除法求最大公因數（GCD）（8 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+int gcd(int a, int b) {
+    if (b == 0) {
+        return a; // 終止條件：當除數為 0 時，被除數即為 GCD
     }
-    hanoi(n - 1, from, via, to);           <span class="c">// ① n-1 個搬到中繼柱</span>
-    printf(<span class="s">"移動盤子 %d: %c -&gt; %c\n"</span>, n, from, to);  <span class="c">// ② 搬最大的</span>
-    hanoi(n - 1, via, to, from);           <span class="c">// ③ n-1 個搬到目標柱</span>
+    return gcd(b, a % b); // 遞迴推進：gcd(a, b) = gcd(b, a mod b)
 }
+          </pre>
 
-<span class="c">// 呼叫：hanoi(3, 'A', 'C', 'B');  從 A 搬到 C，B 為中繼</span></pre>
-      <p style="font-size:.88rem"><strong>n = 3 的輸出</strong>（共 7 步）：
-      <pre>盤1: A→C    盤2: A→B    盤1: C→B
-盤3: A→C
-盤1: B→A    盤2: B→C    盤1: A→C</pre></p>
-      <div class="frame"><span class="t">📐 移動次數推導</span>
-      設 T(n) 為搬 n 個盤子所需次數：<br>
-      <strong>T(n) = T(n−1) + 1 + T(n−1) = 2·T(n−1) + 1</strong>，T(1) = 1<br><br>
-      展開：T(n) = 2ⁿ⁻¹ + 2ⁿ⁻² + … + 2 + 1 = <strong>2ⁿ − 1</strong>（等比級數和）<br><br>
-      驗證：n=1 → 1；n=2 → 3；n=3 → <strong>7</strong> ✔<br>
-      <strong>時間複雜度 O(2ⁿ)</strong>——n = 64 時需約 1.8×10¹⁹ 次，即使每秒一次也要數千億年。</div>
+          <p><strong>二、河內塔（Tower of Hanoi）遞迴程式與次數推導（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdio.h&gt;
 
-      <strong>📊 (三) 遞迴 vs 迴圈</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>遞迴</th><th>迴圈（迭代）</th></tr>
-        <tr><td>程式碼</td><td><strong>簡潔、貼近數學定義</strong></td><td>較冗長</td></tr>
-        <tr><td>可讀性</td><td>對遞迴性問題<strong>更直觀</strong></td><td>對簡單重複更直觀</td></tr>
-        <tr><td>記憶體</td><td>每層占用<strong>呼叫堆疊</strong></td><td><strong>省</strong></td></tr>
-        <tr><td>執行速度</td><td>較慢（函式呼叫開銷）</td><td><strong>快</strong></td></tr>
-        <tr><td>風險</td><td>層數太深 → <strong>Stack Overflow</strong></td><td>無此問題</td></tr>
-        <tr><td>適用</td><td>樹狀結構、分治法、<strong>問題本身即遞迴定義</strong>（河內塔、走訪樹）</td><td>簡單重複運算</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>結論</strong>：遞迴不必然較優。若問題本身<u>具遞迴結構</u>（河內塔、樹走訪）則遞迴清楚得多；若只是重複累加，<strong>迴圈更有效率</strong>。<br>
-      另可用<strong>記憶化</strong>改善遞迴的重複計算問題（如費氏數列由 O(2ⁿ) 降為 O(n)）。</p>
+// 將 n 個盤子從來源柱（from）經由輔助柱（aux）搬到目的柱（to）
+void hanoi(int n, char from, char aux, char to) {
+    if (n == 1) {
+        printf("將第 1 個盤子由 %c 移至 %c\n", from, to);
+        return;
+    }
+    // 步驟 1: 將前 n-1 個盤子由 from 借 to 移至 aux
+    hanoi(n - 1, from, to, aux);
+    // 步驟 2: 將最底層第 n 個最大盤子由 from 移至 to
+    printf("將第 %d 個盤子由 %c 移至 %c\n", n, from, to);
+    // 步驟 3: 將 n-1 個盤子由 aux 借 from 移至 to
+    hanoi(n - 1, aux, from, to);
+}
+          </pre>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 兩題都要有<strong>終止條件與遞迴關係</strong><br>
-      2. 河內塔<strong>三步驟的邏輯說明</strong>比程式碼更重要<br>
-      3. <strong>移動次數 2ⁿ−1 要有推導過程</strong>，不能只給公式<br>
-      4. n=3 的<strong>實際輸出驗算</strong><br>
-      5. 比較表要指出「<strong>遞迴不必然較優</strong>」的判斷準則
+          <p><strong>【移動總次數推導：數學歸納法】</strong></p>
+          <ol>
+            <li>遞迴關係式：<code>T(n) = 2 · T(n-1) + 1</code>，且 <code>T(1) = 1</code>。</li>
+            <li>展開計算：<br>
+              <code>T(n) + 1 = 2(T(n-1) + 1) = 2²(T(n-2) + 1) = ... = 2^(n-1)(T(1) + 1) = 2^n</code><br>
+              👉 <strong>移項得證：n 個盤子之總移動次數為 <code>2ⁿ - 1</code> 次！</strong></li>
+          </ol>
+
+          <p><strong>三、遞迴 vs 迴圈優缺點綜合評比（7 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>遞迴實作（Recursion）</th><th>迴圈迭代（Iteration）</th></tr>
+            <tr><td><strong>程式碼可讀性</strong></td><td><strong>極佳</strong>。結構優雅簡潔，直觀映射數學分治定義（如樹走訪、河內塔）。</td><td>較冗長，需自行維護額外堆疊狀態與迴圈變數。</td></tr>
+            <tr><td><strong>執行效能</strong></td><td>較差。每次函式呼叫需在 Call Stack 建立 Stack Frame，<strong>有函式呼叫額外開銷</strong>。</td><td><strong>極佳</strong>。無函式跳躍開銷，CPU 執行速度快。</td></tr>
+            <tr><td><strong>記憶體空間</strong></td><td>需耗費 <code>O(深度)</code> 記憶體堆疊空間，<strong>深層遞迴易導致 Stack Overflow</strong>！</td><td><strong>O(1) 常數空間</strong>，絕對無記憶體溢位風險。</td></tr>
+          </table></div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 輾轉相除法 GCD 遞迴基準條件與取模遞迴無誤。<br>
+        2. 河內塔三步驟遞迴程式邏輯精確。<br>
+        3. <strong>嚴格以 <code>T(n) = 2T(n-1) + 1</code> 推導出總移動次數為 <code>2ⁿ - 1</code></strong>。<br>
+        4. 遞迴 vs 迴圈在可讀性、效能、Call Stack 空間開銷比較完整。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 12</span><span class="tag">結構 · 25 分</span>
@@ -1637,83 +1714,72 @@ printf(<span class="s">"平均 = %.2f，大於平均者 %d 個\n"</span>, avg, c
       (三) 撰寫程式依薪資由高到低排序。（9 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 結構定義</strong>
-      <pre><span class="k">struct</span> Employee {
-    <span class="k">int</span>   id;              <span class="c">// 員工編號</span>
-    <span class="k">char</span>  name[30];       <span class="c">// 姓名（須預留 '\0' 空間）</span>
-    <span class="k">char</span>  dept[20];       <span class="c">// 部門</span>
-    <span class="k">int</span>   salary;          <span class="c">// 薪資（用整數避免浮點誤差）</span>
-};
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】自訂結構跨型態，陣列宣告百位容；平均單巡過篩選，箭號存取點號通</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>struct 定義</strong>：<code>typedef struct { int id; char name[50]; char dept[50]; double salary; } Employee;</code>。<br>
+          ② <strong>陣列走訪</strong>：以 <code>emp[i].salary</code> 點運算子取欄位，累加求平均，二次走訪列印高於平均者。</p>
+        </div>
 
-<span class="k">struct</span> Employee emp[100];   <span class="c">// 可存放 100 筆</span>
-<span class="k">int</span> n;                      <span class="c">// 實際筆數</span></pre>
-      <p style="font-size:.88rem"><strong>設計說明</strong>（寫出來會加分）：<br>
-      ① <strong>薪資用整數</strong>——涉及金額不宜用浮點數（有精度誤差）<br>
-      ② 字串欄位<strong>長度須預留 <code>'\0'</code></strong> 的空間<br>
-      ③ 實務上宜另設 <code>n</code> 記錄實際筆數，而非固定用 100</p>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">struct 結構體精準定義</span><span class="danger-tag">高於平均同仁格式化輸出</span></div>
+          </div>
 
-      <strong>📝 (二) 平均薪資與高於平均者</strong>
-      <pre><span class="k">int</span> i;
-<span class="k">long</span> total = 0;                  <span class="c">// 用 long 避免多筆加總溢位</span>
+          <p><strong>一、定義員工結構體與宣告 100 筆陣列（6 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+// 定義員工結構體
+typedef struct {
+    int emp_id;          // 員工編號
+    char name[50];       // 姓名
+    char department[50]; // 部門名稱
+    double salary;       // 薪資
+} Employee;
 
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    total += emp[i].salary;      <span class="c">// 用 . 存取結構成員</span>
-}
+// 宣告可容納 100 筆之陣列
+Employee staff[100];
+          </pre>
 
-<span class="k">float</span> avg = (<span class="k">float</span>)total / n;
-printf(<span class="s">"全體平均薪資 = %.2f\n\n"</span>, avg);
+          <p><strong>二、計算全體平均薪資並輸出高於平均之員工名單（19 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdio.h&gt;
 
-printf(<span class="s">"薪資高於平均者：\n"</span>);
-<span class="k">int</span> cnt = 0;
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    <span class="k">if</span> (emp[i].salary &gt; avg) {
-        printf(<span class="s">"%s（%s）：%d 元\n"</span>,
-               emp[i].name, emp[i].dept, emp[i].salary);
-        cnt++;
+void print_above_average_staff(Employee emp[], int n) {
+    if (n &lt;= 0) {
+        printf("無員工資料！\n");
+        return;
+    }
+
+    double total_salary = 0.0;
+    for (int i = 0; i &lt; n; i++) {
+        total_salary += emp[i].salary;
+    }
+    double avg_salary = total_salary / n;
+
+    printf("全體員工平均薪資: %.2f 元\n", avg_salary);
+    printf("---------------- 薪資高於平均之員工名單 ----------------\n");
+    printf("%-10s %-12s %-15s %-10s\n", "編號", "姓名", "部門", "薪資");
+
+    for (int i = 0; i &lt; n; i++) {
+        if (emp[i].salary &gt; avg_salary) {
+            printf("%-10d %-12s %-15s %-10.2f\n", 
+                   emp[i].emp_id, emp[i].name, emp[i].department, emp[i].salary);
+        }
     }
 }
-<span class="k">if</span> (cnt == 0) printf(<span class="s">"（無）\n"</span>);   <span class="c">// 邊界情形</span></pre>
+          </pre>
+        </div>
 
-      <strong>📝 (三) 依薪資排序</strong>
-      <pre><span class="c">// 以選擇排序由高到低；注意須交換「整筆結構」</span>
-<span class="k">int</span> j;
-<span class="k">struct</span> Employee temp;
-
-<span class="k">for</span> (i = 0; i &lt; n - 1; i++) {
-    <span class="k">int</span> maxPos = i;
-    <span class="k">for</span> (j = i + 1; j &lt; n; j++) {
-        <span class="k">if</span> (emp[j].salary &gt; emp[maxPos].salary)
-            maxPos = j;
-    }
-    <span class="k">if</span> (maxPos != i) {
-        temp        = emp[i];        <span class="c">// 整筆結構可直接指定</span>
-        emp[i]      = emp[maxPos];
-        emp[maxPos] = temp;
-    }
-}
-
-<span class="c">// 輸出排序結果</span>
-printf(<span class="s">"\n依薪資排序：\n"</span>);
-<span class="k">for</span> (i = 0; i &lt; n; i++) {
-    printf(<span class="s">"%d. %s %s %d\n"</span>,
-           i + 1, emp[i].name, emp[i].dept, emp[i].salary);
-}</pre>
-      <div class="warn"><span class="t">⚠️ 最關鍵的一點</span>
-      <strong>必須交換「整筆結構」，不能只交換薪資欄位</strong>——否則姓名與薪資的對應關係會錯亂，變成「張三的薪水配到李四頭上」。<br><br>
-      這是結構排序最容易犯、後果也最嚴重的錯誤。</div>
-      <p style="font-size:.88rem"><strong>實務補充</strong>：<br>
-      ① 資料量大時，可改為<strong>排序「指標陣列」</strong>而非搬移整筆結構，效率更好<br>
-      ② 薪資屬<strong>個人資料</strong>，實際系統應依《個人資料保護法》做權限控管，一般使用者不應看到他人薪資<br>
-      ③ 若需多欄位排序（先部門後薪資），應使用<strong>穩定排序</strong></p>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 結構定義正確，並說明<strong>薪資用整數的理由</strong><br>
-      2. 用 <strong><code>.</code> 存取結構成員</strong>（指標則用 <code>-&gt;</code>）<br>
-      3. <strong>交換整筆結構</strong>而非單一欄位——本題核心<br>
-      4. 平均值<strong>轉型</strong>、總和用 <code>long</code> 防溢位<br>
-      5. 提到<strong>個資保護</strong>與<strong>指標排序</strong>是公部門考試的加分方向
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. struct 定義欄位齊全，型別宣告精準。<br>
+        2. 宣告 100 筆陣列 <code>Employee staff[100];</code>。<br>
+        3. 計算平均薪資邏輯無誤，二次走訪輸出高於平均者。<br>
+        4. 程式排版整齊，符合工業級 C 語言撰寫風格。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 13</span><span class="tag">綜合 · 25 分</span>
@@ -1723,83 +1789,89 @@ printf(<span class="s">"\n依薪資排序：\n"</span>);
       (三) 說明程式設計時應注意之邊界條件，並以上述兩題為例。（7 分）
     </div>
     <details><summary>看參考解答</summary><div class="ans">
-      <strong>📝 (一) 十進位轉二進位</strong>
-      <p style="font-size:.88rem"><strong>思路</strong>：不斷除以 2 取餘數，餘數<u>由下往上</u>讀。可用陣列暫存後反向輸出，或用遞迴自然反轉。</p>
-      <pre><span class="c">// 【寫法一：陣列暫存後反向輸出】</span>
-<span class="k">void</span> toBinary(<span class="k">int</span> n) {
-    <span class="k">if</span> (n == 0) {                  <span class="c">// 邊界條件：0 要特別處理</span>
-        printf(<span class="s">"0"</span>);
-        <span class="k">return</span>;
-    }
-    <span class="k">int</span> bits[32];                  <span class="c">// 32 位元足夠存放 int</span>
-    <span class="k">int</span> idx = 0;
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】除二取餘逆向列，階乘邊界零得一；負數不合防溢位，長整型態保平安</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>十進位轉二進位</strong>：不斷除以 2 取餘數存陣列，最後<strong>逆向印出</strong>；特殊邊界 <code>n == 0</code> 需輸出 <code>0</code>！<br>
+          ② <strong>階乘邊界</strong>：<code>0! = 1</code>、負數無階乘（報錯防禦）；整數溢位防範（20! 超過 long long 上限）。</p>
+        </div>
 
-    <span class="k">while</span> (n &gt; 0) {
-        bits[idx++] = n % 2;       <span class="c">// 取餘數</span>
-        n = n / 2;                 <span class="c">// 縮小</span>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">轉二進位逆向輸出</span><span class="danger-tag">0! = 1 與負數溢位邊界處理</span></div>
+          </div>
+
+          <p><strong>一、十進位整數轉換為二進位程式（10 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+#include &lt;stdio.h&gt;
+
+void dec_to_bin(int n) {
+    // 邊界防禦：0 之特殊處理
+    if (n == 0) {
+        printf("0\n");
+        return;
     }
-    <span class="k">for</span> (idx = idx - 1; idx &gt;= 0; idx--)   <span class="c">// 反向輸出</span>
-        printf(<span class="s">"%d"</span>, bits[idx]);
+    if (n &lt; 0) {
+        printf("暫不支援負數補數轉換\n");
+        return;
+    }
+
+    int bits[32];
+    int count = 0;
+    while (n &gt; 0) {
+        bits[count++] = n % 2; // 取餘數
+        n /= 2;                // 除以 2
+    }
+
+    // 由下往上（逆向）輸出二進位
+    for (int i = count - 1; i &gt;= 0; i--) {
+        printf("%d", bits[i]);
+    }
+    printf("\n");
+}
+          </pre>
+
+          <p><strong>二、階乘（Factorial）遞迴版與迴圈版實作（8 分）</strong></p>
+          <pre style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px;border-radius:8px;font-family:Consolas,monospace;line-height:1.6;">
+// 遞迴版
+long long fact_recursive(int n) {
+    if (n &lt; 0) return -1; // 錯誤防禦
+    if (n == 0 || n == 1) return 1; // 0! = 1, 1! = 1
+    return n * fact_recursive(n - 1);
 }
 
-<span class="c">// 【寫法二：遞迴版（更簡潔）】</span>
-<span class="k">void</span> toBinaryR(<span class="k">int</span> n) {
-    <span class="k">if</span> (n == 0) <span class="k">return</span>;          <span class="c">// 終止條件</span>
-    toBinaryR(n / 2);              <span class="c">// 先處理高位</span>
-    printf(<span class="s">"%d"</span>, n % 2);         <span class="c">// 回傳時才印，順序自然正確</span>
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>（n = 13）：
-      <pre>13 / 2 = 6 餘 1  ↑
- 6 / 2 = 3 餘 0  │ 由下往上讀
- 3 / 2 = 1 餘 1  │
- 1 / 2 = 0 餘 1  ┘
-→ 1101₍₂₎
-
-驗證：8 + 4 + 0 + 1 = 13 ✔</pre></p>
-
-      <strong>📝 (二) 階乘</strong>
-      <pre><span class="c">// 【遞迴版】</span>
-<span class="k">long long</span> factR(<span class="k">int</span> n) {
-    <span class="k">if</span> (n &lt; 0) <span class="k">return</span> -1;        <span class="c">// 錯誤處理：負數無階乘</span>
-    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> 1;        <span class="c">// 終止條件（0! = 1）</span>
-    <span class="k">return</span> n * factR(n - 1);
-}
-
-<span class="c">// 【迴圈版】</span>
-<span class="k">long long</span> factL(<span class="k">int</span> n) {
-    <span class="k">if</span> (n &lt; 0) <span class="k">return</span> -1;
-    <span class="k">long long</span> result = 1;
-    <span class="k">int</span> i;
-    <span class="k">for</span> (i = 2; i &lt;= n; i++) {
-        result *= i;
+// 迴圈版
+long long fact_iterative(int n) {
+    if (n &lt; 0) return -1;
+    long long res = 1;
+    for (int i = 2; i &lt;= n; i++) {
+        res *= i;
     }
-    <span class="k">return</span> result;
-}</pre>
-      <p style="font-size:.88rem"><strong>驗算</strong>：5! = 5×4×3×2×1 = <strong>120</strong>；0! = <strong>1</strong>（定義）</p>
+    return res;
+}
+          </pre>
 
-      <strong>📊 (三) 邊界條件的重要性</strong>
-      <div class="table-wrap"><table>
-        <tr><th>類型</th><th>說明</th><th>本題實例</th></tr>
-        <tr><td><strong>零值</strong></td><td>0 常需特別處理</td><td><strong>toBinary(0)</strong> 若不特判，while 迴圈一次都不執行 → <u>沒有輸出</u></td></tr>
-        <tr><td><strong>最小值</strong></td><td>邊界的起點</td><td><strong>0! = 1</strong>、<strong>1! = 1</strong>（終止條件須涵蓋 n≤1）</td></tr>
-        <tr><td><strong>負數／無效輸入</strong></td><td>不合法的輸入</td><td>階乘的負數輸入須<strong>回傳錯誤值或拒絕</strong></td></tr>
-        <tr><td><strong>溢位</strong></td><td>超出型別範圍</td><td><strong>13! 已超過 int 上限</strong>；20! 超過 long long → 應改用大數運算或限制輸入</td></tr>
-        <tr><td><strong>陣列邊界</strong></td><td>索引不可越界</td><td>bits[32] 對 int 足夠；若型別更大須調整</td></tr>
-        <tr><td>空輸入</td><td>n = 0 或空陣列</td><td>各類統計程式須先判斷 n &gt; 0，<strong>避免除以零</strong></td></tr>
-      </table></div>
-      <div class="warn"><span class="t">⚠️ 為什麼邊界條件這麼重要</span>
-      <strong>絕大多數程式錯誤都發生在邊界</strong>——第一個、最後一個、零、空、最大值。<br><br>
-      這也是測試技巧中<strong>「邊界值分析」</strong>的由來：若規定範圍是 1~100，就測 <strong>0、1、2、99、100、101</strong>。<br><br>
-      機關系統的經典 bug：「所得<u>超過</u> 50 萬」與「所得<u>達</u> 50 萬」差一個字，稅額計算就會錯——而受影響的是民眾權益。</div>
+          <p><strong>三、程式設計必備三大邊界條件（Boundary Conditions）分析（7 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>資深工程師與國考評分之邊界檢驗重點</strong>：<br>
+            1. <strong>零與特異輸入（Zero Case）</strong>：<br>
+              ‧ 轉二進位時，若使用者輸入 <code>0</code>，while 迴圈直接跳過；若未加 <code>n == 0</code> 特殊處理，將輸出空白！<br>
+              ‧ 算階乘時，<strong><code>0! 依數學定義等於 1</code></strong>，若未在條件涵蓋將得出錯誤結果。<br>
+            2. <strong>負數無效輸入（Negative Inputs）</strong>：階乘不定義負整數，必須回傳錯誤代碼；轉二進位時若輸入負數，需做 2 的補數特別處理。<br>
+            3. <strong>數值型態溢位（Integer Overflow）</strong>：<br>
+              階乘成長率高達 <code>O(n!)</code>。32-bit int 算到 <code>13!</code> 即溢位變負數；64-bit long long 算到 <code>21!</code> 亦會溢位。實務上大於 20 之階乘必須採用<strong>大數運算（BigInt）字串陣列模擬乘法</strong>！
+          </div>
+        </div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 進位轉換要<strong>處理 n = 0</strong> 的情形<br>
-      2. 階乘的<strong>終止條件涵蓋 n ≤ 1</strong>（含 0! = 1）<br>
-      3. 提出<strong>溢位問題</strong>（13! 超過 int）<br>
-      4. 第三小題要<strong>用本題實例</strong>說明，不能只講抽象原則<br>
-      5. 連結到<strong>邊界值分析</strong>的測試概念是加分點
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 轉二進位除 2 取餘數，並明確逆向輸出。<br>
+        2. 階乘遞迴與迴圈程式齊備，型別使用 <code>long long</code>。<br>
+        3. <strong>三大邊界條件（0 特殊處理、負數防禦、整數溢位 BigInt）剖析透徹</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 14</span><span class="tag">觀念 · 25 分</span>
@@ -1809,56 +1881,60 @@ printf(<span class="s">"\n依薪資排序：\n"</span>);
       (三) 說明良好程式設計風格應注意之事項。（7 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 (一) 編譯式 vs 直譯式</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>編譯式</th><th>直譯式</th><th>混合式</th></tr>
-        <tr><td>翻譯方式</td><td>整份翻成執行檔</td><td>逐行翻譯執行</td><td>編譯成中間碼，由虛擬機執行</td></tr>
-        <tr><td>執行速度</td><td><strong>快</strong></td><td>慢</td><td>中</td></tr>
-        <tr><td>跨平台</td><td>差（需重新編譯）</td><td><strong>好</strong></td><td><strong>好</strong>（一次編譯到處執行）</td></tr>
-        <tr><td>錯誤發現</td><td><strong>編譯期</strong>即發現語法錯誤</td><td>執行到該行才發現</td><td>編譯期＋執行期</td></tr>
-        <tr><td>開發效率</td><td>較慢（每次都要重新編譯）</td><td><strong>快</strong>（改完即可執行）</td><td>中</td></tr>
-        <tr><td>原始碼保護</td><td><strong>佳</strong>（交付執行檔即可）</td><td>差（需提供原始碼）</td><td>中（中間碼可被反編譯）</td></tr>
-        <tr><td>代表語言</td><td>C、C++、Go</td><td>Python、JavaScript</td><td>Java、C#</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>編譯過程五階段</strong>：詞彙分析 → 語法分析 → 語意分析 → 中間碼產生與最佳化 → 目的碼產生；<br>
-      之後由<strong>連結器</strong>結合函式庫、<strong>載入器</strong>載入記憶體執行。</p>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】編譯機器直譯慢，封繼多抽四特性；DRY單一職責好，防禦編程安全高</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>編譯 vs 直譯</strong>：編譯式（C/C++，一次性翻成機器碼，執行極快，跨平台需重編譯）；直譯式（Python/JS，逐行解析執行，跨平台佳，執行較慢）。<br>
+          ② <strong>OOP 四大特性</strong>：封裝（Encapsulation / 隱藏實作）、繼承（Inheritance / 代碼再利用）、多型（Polymorphism / 相同介面相異行為）、抽象（Abstraction / 提取核心本質）。<br>
+          ③ <strong>風格要素</strong>：DRY（不重複造輪子）、駝峰命名、防禦性編程、清晰縮排註解。</p>
+        </div>
 
-      <strong>📊 (二) 物件導向四大特性</strong>
-      <div class="table-wrap"><table>
-        <tr><th>特性</th><th>定義</th><th>帶來的好處</th><th>實例</th></tr>
-        <tr><td><strong>封裝</strong><br>Encapsulation</td><td>將資料與操作包裝在一起，<strong>隱藏內部實作細節</strong>，只透過介面存取</td><td><strong>降低耦合</strong>、保護資料完整性</td><td>類別內屬性設為 private，提供 get/set 方法</td></tr>
-        <tr><td><strong>繼承</strong><br>Inheritance</td><td>子類別繼承父類別的屬性與方法，並可擴充</td><td><strong>提高重用性</strong>，減少重複程式碼</td><td>「教師」繼承「員工」的共同屬性</td></tr>
-        <tr><td><strong>多型</strong><br>Polymorphism</td><td>同一介面、不同實作</td><td><strong>提高擴充性</strong>——新增類別不必修改呼叫端</td><td>不同形狀物件都有 <code>area()</code>，各自算法不同</td></tr>
-        <tr><td><strong>抽象</strong><br>Abstraction</td><td>只保留關鍵特徵，忽略無關細節</td><td>降低複雜度，聚焦問題本質</td><td>抽象類別／介面定義「應具備什麼行為」</td></tr>
-      </table></div>
-      <p style="font-size:.88rem"><strong>與程序導向的差異</strong>：程序導向以<u>功能與流程</u>為中心（資料與處理分離）；物件導向以<u>物件</u>為中心（<strong>資料與行為封裝在一起</strong>），故需求變更時衝擊較小、重用性較高。</p>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">OOP四大特性精準定義</span><span class="danger-tag">編譯式vs直譯式執行期比較</span></div>
+          </div>
 
-      <strong>📊 (三) 良好程式設計風格</strong>
-      <div class="table-wrap"><table>
-        <tr><th>面向</th><th>做法</th></tr>
-        <tr><td><strong>命名</strong></td><td>有意義的變數與函式名稱（<code>studentCount</code> 優於 <code>x</code>）；命名規則全專案一致</td></tr>
-        <tr><td><strong>註解</strong></td><td>說明「<u>為什麼</u>這樣做」，而非重複程式碼在做什麼；複雜演算法須說明思路</td></tr>
-        <tr><td><strong>排版</strong></td><td>一致的縮排與括號風格，讓層次一目了然</td></tr>
-        <tr><td><strong>模組化</strong></td><td>函式<strong>單一職責</strong>；符合<strong>高內聚、低耦合</strong>；避免過長的函式</td></tr>
-        <tr><td><strong>避免魔術數字</strong></td><td>用具名常數取代（<code>#define MAX 100</code>）</td></tr>
-        <tr><td><strong>錯誤與邊界處理</strong></td><td>除法前檢查除數、存取前檢查索引與指標、<strong>輸入驗證</strong></td></tr>
-        <tr><td><strong>避免全域變數</strong></td><td>改以參數傳入、回傳值傳出，降低耦合</td></tr>
-        <tr><td>可測試性</td><td>邏輯與輸出入分離，便於單元測試</td></tr>
-        <tr><td><strong>安全性</strong></td><td>不信任外部輸入；避免緩衝區溢位；不硬編密碼於程式中</td></tr>
-      </table></div>
-      <div class="hl">
-      <strong>為什麼風格重要（結論可用）</strong>：<br>
-      機關資訊系統的<strong>生命週期動輒十年以上</strong>，期間可能歷經多次委外與人員輪調。<br>
-      <strong>可維護性遠比初期開發速度重要</strong>——寫得快但沒人看得懂的程式，長期成本遠高於一開始多花時間寫清楚。
+          <p><strong>一、編譯式語言 vs 直譯式語言深度比較（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>編譯式語言（Compiled Language）</th><th>直譯式語言（Interpreted Language）</th></tr>
+            <tr><td><strong>執行機制</strong></td><td>由編譯器（Compiler）<strong>一次性將原始碼完整轉譯為特定 CPU 平台之機器碼（Machine Code）</strong></td><td>由直譯器（Interpreter）在執行期<strong>逐行即時讀取原始碼並解析執行</strong></td></tr>
+            <tr><td><strong>執行速度</strong></td><td><strong>極快</strong>（直接由 CPU 硬體原生執行）</td><td>較慢（每次執行皆需逐行解析，有直譯開銷）</td></tr>
+            <tr><td><strong>跨平台能力</strong></td><td>較差（移至新作業系統或 CPU 架構必須重新編譯）</td><td><strong>極佳（只要該平台安裝有直譯器，同一腳本直接通用）</strong></td></tr>
+            <tr><td><strong>除錯與開發反饋</strong></td><td>語法錯誤在編譯期即全數抓出（型態安全佳），但改動需重新 Build</td><td>動態型態，隨改隨測，開發迭代極迅速</td></tr>
+            <tr><td><strong>代表性語言</strong></td><td><strong>C, C++, Rust, Go</strong></td><td><strong>Python, JavaScript, PHP, Ruby</strong></td></tr>
+          </table></div>
+
+          <p><strong>二、物件導向程式設計（OOP）四大特性（10 分）</strong></p>
+          <ol>
+            <li><strong>封裝（Encapsulation）</strong>：
+              將資料（屬性）與操作這些資料的函式（方法）綁定在同一個物件類別（Class）中，並透過存取修飾詞（<code>private, public</code>）<strong>隱藏內部實作細節（資訊隱藏）</strong>，僅暴露安全的操作介面，防止外部程式隨意篡改物件內部狀態。</li>
+            <li><strong>繼承（Inheritance）</strong>：
+              子類別（Subclass）可自動繼承父類別（Superclass）的屬性與方法，並能擴充自身專屬功能。<strong>大幅提升程式碼再利用性（Code Reuse）</strong>，建立階層化分類關係。</li>
+            <li><strong>多型（Polymorphism）</strong>：
+              <strong>「同一介面，相異實踐」</strong>。同一呼叫方法（如 <code>draw()</code>），依據執行期所綁定之實體物件不同（如圓形、三角形），動態展現出各自相異之行為。包含多載（Overloading，編譯期多型）與覆寫（Overriding，執行期動態多型）。</li>
+            <li><strong>抽象（Abstraction）</strong>：
+              過濾現實世界繁雜的非本質細節，僅抽取與當前系統目標相關的核心特徵，定義出抽象類別（Abstract Class）或介面（Interface），降低認知負擔。</li>
+          </ol>
+
+          <p><strong>三、優良程式設計風格（Coding Standards）應注意事項（7 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>公務系統長期維運高分編程原則</strong>：<br>
+            1. <strong>見名知義之命名規範（Meaningful Naming）</strong>：嚴格杜絕 <code>int a, b, c1;</code> 之晦澀變數。採用標準駝峰式（camelCase）或蛇形（snake_case），如 <code>citizenId, totalTaxAmount</code>。<br>
+            2. <strong>DRY 原則（Don't Repeat Yourself）</strong>：重複邏輯必須抽離封裝為獨立函式，消滅重複程式碼。<br>
+            3. <strong>防禦性編程（Defensive Programming）</strong>：所有函式入口強制對輸入參數進行合法性檢查（如檢查指標是否為 NULL、數值是否越界），不可預設立場認為呼叫端一定送入合法數據。<br>
+            4. <strong>一致之縮排與自我解釋代碼（Clean Code）</strong>：遵循 4 空格縮排，代碼簡潔明晰「Code as Documentation」，複雜演算法邏輯輔以清晰中文註解。
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 編譯式 vs 直譯式比較表（執行機制、速度、跨平台、代表語言）完整。<br>
+        2. <strong>物件導向四大特性（封裝、繼承、多型、抽象）定義精確無誤</strong>。<br>
+        3. 良好風格具體列出：見名知義命名、DRY 原則、防禦性編程（NULL檢查）、統一縮排註解。
+</div>
       </div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 編譯／直譯比較表要含<strong>跨平台與錯誤發現時機</strong><br>
-      2. 四大特性要寫出<strong>「帶來什麼好處」</strong>（封裝→低耦合、繼承→重用、多型→擴充）<br>
-      3. 風格事項至少寫出 <strong>6 項</strong><br>
-      4. 結論扣回<strong>機關系統生命週期長、可維護性優先</strong>——這是公部門考試的加分視角
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="card"><h3>E. 進階綜合（第 41～60 題）</h3>
@@ -6536,7 +6612,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 2" data-ans="A">
@@ -6563,7 +6640,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 3" data-ans="D">
@@ -6591,7 +6669,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 4" data-ans="C">
@@ -6619,7 +6698,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 5" data-ans="C">
@@ -6647,7 +6727,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 6" data-ans="D">
@@ -6675,7 +6756,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 7" data-ans="A">
@@ -6702,7 +6784,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 8" data-ans="D">
@@ -6730,7 +6813,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 9" data-ans="C">
@@ -6758,7 +6842,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 10" data-ans="C">
@@ -6786,7 +6871,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 11" data-ans="D">
@@ -6814,7 +6900,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 12" data-ans="A">
@@ -6841,7 +6928,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 13" data-ans="D">
@@ -6869,7 +6957,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 14" data-ans="C">
@@ -6897,7 +6986,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 15" data-ans="C">
@@ -6925,7 +7015,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 16" data-ans="D">
@@ -6953,7 +7044,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 17" data-ans="A">
@@ -6980,7 +7072,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 18" data-ans="D">
@@ -7008,7 +7101,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 19" data-ans="C">
@@ -7036,7 +7130,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 20" data-ans="C">
@@ -7064,7 +7159,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 21" data-ans="D">
@@ -7092,7 +7188,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 22" data-ans="A">
@@ -7119,7 +7216,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 23" data-ans="D">
@@ -7147,7 +7245,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 24" data-ans="C">
@@ -7175,7 +7274,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 25" data-ans="C">
@@ -7203,7 +7303,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 26" data-ans="D">
@@ -7231,7 +7332,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 27" data-ans="A">
@@ -7258,7 +7360,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 28" data-ans="D">
@@ -7286,7 +7389,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 29" data-ans="C">
@@ -7314,7 +7418,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 30" data-ans="C">
@@ -7342,7 +7447,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 31" data-ans="D">
@@ -7370,7 +7476,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 32" data-ans="A">
@@ -7397,7 +7504,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 33" data-ans="D">
@@ -7425,7 +7533,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 34" data-ans="C">
@@ -7453,7 +7562,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 35" data-ans="C">
@@ -7481,7 +7591,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 36" data-ans="D">
@@ -7509,7 +7620,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 37" data-ans="A">
@@ -7536,7 +7648,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 38" data-ans="D">
@@ -7564,7 +7677,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 39" data-ans="C">
@@ -7592,7 +7706,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 40" data-ans="C">
@@ -7620,7 +7735,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 41" data-ans="D">
@@ -7648,7 +7764,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 42" data-ans="A">
@@ -7675,7 +7792,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 43" data-ans="D">
@@ -7703,7 +7821,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 44" data-ans="C">
@@ -7731,7 +7850,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 45" data-ans="C">
@@ -7759,7 +7879,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 46" data-ans="D">
@@ -7787,7 +7908,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 47" data-ans="A">
@@ -7814,7 +7936,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 48" data-ans="D">
@@ -7842,7 +7965,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 49" data-ans="C">
@@ -7870,7 +7994,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 50" data-ans="C">
@@ -7898,7 +8023,8 @@ stmt.setString(1, 輸入);   <span class="c">// 輸入永遠被當成「資料�
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
 
@@ -7942,7 +8068,8 @@ for (int i = 2; i < 12; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 52" data-ans="C">
@@ -7994,7 +8121,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 53" data-ans="B">
@@ -8034,7 +8162,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 54" data-ans="A">
@@ -8077,7 +8206,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 55" data-ans="B">
@@ -8122,7 +8252,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 56" data-ans="B">
@@ -8165,7 +8296,8 @@ for (int i = 2; i < 15; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 57" data-ans="C">
@@ -8217,7 +8349,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 58" data-ans="B">
@@ -8257,7 +8390,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 59" data-ans="A">
@@ -8300,7 +8434,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 60" data-ans="B">
@@ -8345,7 +8480,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 61" data-ans="B">
@@ -8388,7 +8524,8 @@ for (int i = 2; i < 10; i += 3) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 62" data-ans="C">
@@ -8440,7 +8577,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 63" data-ans="B">
@@ -8480,7 +8618,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 64" data-ans="A">
@@ -8523,7 +8662,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 65" data-ans="B">
@@ -8568,7 +8708,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 66" data-ans="B">
@@ -8611,7 +8752,8 @@ for (int i = 2; i < 15; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 67" data-ans="C">
@@ -8663,7 +8805,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 68" data-ans="B">
@@ -8703,7 +8846,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 69" data-ans="A">
@@ -8746,7 +8890,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 70" data-ans="B">
@@ -8791,7 +8936,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 71" data-ans="B">
@@ -8834,7 +8980,8 @@ for (int i = 1; i < 10; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 72" data-ans="C">
@@ -8886,7 +9033,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 73" data-ans="B">
@@ -8926,7 +9074,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 74" data-ans="A">
@@ -8969,7 +9118,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 75" data-ans="B">
@@ -9014,7 +9164,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 76" data-ans="B">
@@ -9057,7 +9208,8 @@ for (int i = 2; i < 15; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 77" data-ans="C">
@@ -9109,7 +9261,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 78" data-ans="B">
@@ -9149,7 +9302,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 79" data-ans="A">
@@ -9192,7 +9346,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 80" data-ans="B">
@@ -9237,7 +9392,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 81" data-ans="B">
@@ -9280,7 +9436,8 @@ for (int i = 2; i < 10; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 82" data-ans="C">
@@ -9332,7 +9489,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 83" data-ans="B">
@@ -9372,7 +9530,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 84" data-ans="A">
@@ -9415,7 +9574,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 85" data-ans="B">
@@ -9460,7 +9620,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 86" data-ans="B">
@@ -9503,7 +9664,8 @@ for (int i = 2; i < 12; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 87" data-ans="C">
@@ -9555,7 +9717,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 88" data-ans="B">
@@ -9595,7 +9758,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 89" data-ans="A">
@@ -9638,7 +9802,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 90" data-ans="B">
@@ -9683,7 +9848,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 91" data-ans="B">
@@ -9726,7 +9892,8 @@ for (int i = 2; i < 12; i += 3) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 92" data-ans="C">
@@ -9778,7 +9945,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 93" data-ans="B">
@@ -9818,7 +9986,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 94" data-ans="A">
@@ -9861,7 +10030,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 95" data-ans="B">
@@ -9906,7 +10076,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 96" data-ans="B">
@@ -9949,7 +10120,8 @@ for (int i = 1; i < 10; i += 2) {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 97" data-ans="C">
@@ -10001,7 +10173,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 98" data-ans="B">
@@ -10041,7 +10214,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 99" data-ans="A">
@@ -10084,7 +10258,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 100" data-ans="B">
@@ -10129,7 +10304,8 @@ int main() {
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
   <div class="nav-btns">

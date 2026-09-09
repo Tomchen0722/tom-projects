@@ -86,6 +86,36 @@
     <p>插入或刪除後若某節點 |BF| ≥ 2，即需<strong>旋轉（Rotation）</strong>回復平衡。</p>
 
     <h4>四種旋轉（必考，一定要會畫）</h4>
+
+    <!-- AVL 旋轉步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：AVL 樹失衡判斷與旋轉四部曲</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>由下而上回溯找「第一個失衡節點 A」</strong><br>
+          新節點插入後，從插入點沿著父節點往上計算平衡因子 <code>BF = 左子樹高度 − 右子樹高度</code>。找到離插入點最近且 <code>|BF| &ge; 2</code> 的節點 A。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>由 A 往下看兩層確定型態</strong><br>
+          ‧ 若新節點在 A 的<strong>左</strong>子樹之<strong>左</strong>子樹 → <strong>LL 型</strong>（BF=2，左子 BF=1）<br>
+          ‧ 若新節點在 A 的<strong>右</strong>子樹之<strong>右</strong>子樹 → <strong>RR 型</strong>（BF=−2，右子 BF=−1）<br>
+          ‧ 若新節點在 A 的<strong>左</strong>子樹之<strong>右</strong>子樹 → <strong>LR 型</strong>（BF=2，左子 BF=−1）<br>
+          ‧ 若新節點在 A 的<strong>右</strong>子樹之<strong>左</strong>子樹 → <strong>RL 型</strong>（BF=−2，右子 BF=1）
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>執行旋轉操作（單旋 vs 雙旋）</strong><br>
+          ‧ <strong>LL 型（一次右旋）</strong>：A 的左子 B 升格為新根，B 的右子樹過繼給 A 當左子樹，A 降為 B 的右子。<br>
+          ‧ <strong>RR 型（一次左旋）</strong>：A 的右子 B 升格為新根，B 的左子樹過繼給 A 當右子樹，A 降為 B 的左子。<br>
+          ‧ <strong>LR 型（先左後右雙旋）</strong>：先對左子 B 做左旋化為 LL，再對 A 做右旋。<br>
+          ‧ <strong>RL 型（先右後左雙旋）</strong>：先對右子 B 做右旋化為 RR，再對 A 做左旋。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>中序走訪恆真性檢驗</strong><br>
+          旋轉前後，樹的<strong>中序走訪（Inorder Traversal）順序必須完全不變</strong>，且所有節點之 <code>BF &isin; {-1, 0, 1}</code>，高度恢復平衡。
+        </li>
+      </ul>
+    </div>
+
     <div class="table-wrap">
       <table>
         <tr><th>類型</th><th>發生情形</th><th>處理</th><th>旋轉次數</th></tr>

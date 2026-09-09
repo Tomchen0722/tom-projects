@@ -594,6 +594,42 @@ counter(); counter(); counter();
   <div class="card" id="c7">
     <h2>第 7 章　遞迴（年年考）</h2>
 
+    <!-- 遞迴與呼叫堆疊步驟化解析 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：遞迴函式呼叫與 Call Stack 追蹤推導四部曲</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>確認基本終止條件（Base Case）</strong><br>
+          檢查函式是否有明確的終止條件（如 <code>if (n &lt;= 1) return 1;</code>）。若無終止條件或參數未朝終止方向遞減/遞增，將引發無窮遞迴導致<strong>堆疊溢位（Stack Overflow）</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>建立呼叫推入階段（Push Frame 往下呼叫）</strong><br>
+          每次呼叫自己時，作業系統將目前的參數、區域變數與返回位址（Return Address）封裝為<strong>堆疊框架（Stack Frame）</strong>壓入呼叫堆疊（Call Stack），執行點跳至新函式開頭。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>觸發底線並逆向彈出結算（Pop Frame 往上回傳）</strong><br>
+          當達到 Base Case 時，不再遞迴呼叫，直接回傳常數值。系統依<strong>後進先出（LIFO）</strong>順序依序彈出堆疊框架，將回傳值代入上一層運算式完成逆推結算。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>空間複雜度（Space Complexity）推導</strong><br>
+          遞迴演算法之輔助空間複雜度取決於<strong>呼叫堆疊的最大深度（Max Call Stack Depth）</strong>。若深度為 n，則空間複雜度為 <code>O(n)</code>；改寫為迴圈迭代版（Iteration）則通常可降至 <code>O(1)</code>。
+        </li>
+      </ul>
+    </div>
+
+
+    <!-- 遞迴考前速記卡 -->
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：遞迴三要素與尾端遞迴優化</div>
+      <span class="formula">【口訣】底線明確防溢位，狀態遞減向底收，單路尾端可轉圈，堆疊深度定空間</span>
+      <ul>
+        <li><strong>遞迴三要素</strong>：終止條件（Base Case）、狀態推進（向 Base Case 收斂）、結果合併（Return Value）。</li>
+        <li><strong>尾端遞迴（Tail Recursion）</strong>：遞迴呼叫是函式的<strong>最後一個動作</strong>，且呼叫後不進行額外運算（如 <code>return tail_fact(n-1, acc*n);</code>）。</li>
+        <li><strong>編譯器優化（TCO）</strong>：具備 Tail Call Optimization 的現代編譯器可將尾端遞迴直接優化為跳躍迴圈（Jump Loop），將空間複雜度從 <code>O(n)</code> 降為 <code>O(1)</code>。</li>
+      </ul>
+    </div>
+
+
     <h3>7-1　什麼是遞迴</h3>
     <div class="easy">
       <div class="t">🧒 遞迴＝函式自己呼叫自己</div>

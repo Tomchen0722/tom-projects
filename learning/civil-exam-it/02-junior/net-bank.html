@@ -824,47 +824,47 @@
       (二) 說明各網段之隔離原則。（10 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、需求排序與遮罩決定（<u>主表①</u>）→ 二、位址配置（<u>主表②</u>）→ 三、驗算 → 四、隔離原則（<u>主表③</u>）→ 五、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】大數先切不浪費，二冪減二容主機；遮罩由左全填滿，首尾網播各扣一</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>主機數判斷</strong>：辦公 100 台（h=7，/25）、伺服器 25 台（h=5，/27）、監視 12 台（h=4，/28）、路由 2 台（h=2，/30）。<br>
+          ② <strong>扣除兩位址</strong>：首位為 Network ID，末位為 Broadcast IP。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">VLSM由大到小順序</span><span class="danger-tag">可用IP扣除頭尾兩碼</span></div>
+          </div>
+
+          <p><strong>一、依主機需求由大至小計算主機位元數（h）（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>順序</th><th>單位部門</th><th>需求數</th><th>滿足 2^h - 2 ≥ 需求之最小 h</th><th>區段大小（2^h）</th><th>子網路遮罩</th></tr>
+            <tr><td>1</td><td><strong>辦公網段</strong></td><td>100 台</td><td>h = 7（2⁷ - 2 = 126 ≥ 100）</td><td>128 個 IP</td><td><code>/25</code>（255.255.255.128）</td></tr>
+            <tr><td>2</td><td><strong>伺服器區</strong></td><td>25 台</td><td>h = 5（2⁵ - 2 = 30 ≥ 25）</td><td>32 個 IP</td><td><code>/27</code>（255.255.255.224）</td></tr>
+            <tr><td>3</td><td><strong>監視系統</strong></td><td>12 台</td><td>h = 4（2⁴ - 2 = 14 ≥ 12）</td><td>16 個 IP</td><td><code>/28</code>（255.255.255.240）</td></tr>
+            <tr><td>4</td><td><strong>路由器對接</strong></td><td>2 個 IP</td><td>h = 2（2² - 2 = 2 ≥ 2）</td><td>4 個 IP</td><td><code>/30</code>（255.255.255.252）</td></tr>
+          </table></div>
+
+          <p><strong>二、VLSM 各網段分配詳細成果總表（15 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>單位名稱</th><th>子網路位址（Network ID）</th><th>子網路遮罩</th><th>有效可用 IP 範圍</th><th>廣播位址（Broadcast IP）</th></tr>
+            <tr><td><strong>辦公網段</strong></td><td><code>192.168.30.0/25</code></td><td>255.255.255.128</td><td><code>192.168.30.1 ~ 192.168.30.126</code></td><td><code>192.168.30.127</code></td></tr>
+            <tr><td><strong>伺服器區</strong></td><td><code>192.168.30.128/27</code></td><td>255.255.255.224</td><td><code>192.168.30.129 ~ 192.168.30.158</code></td><td><code>192.168.30.159</code></td></tr>
+            <tr><td><strong>監視系統</strong></td><td><code>192.168.30.160/28</code></td><td>255.255.255.240</td><td><code>192.168.30.161 ~ 192.168.30.174</code></td><td><code>192.168.30.175</code></td></tr>
+            <tr><td><strong>路由器對接</strong></td><td><code>192.168.30.176/30</code></td><td>255.255.255.252</td><td><code>192.168.30.177 ~ 192.168.30.178</code></td><td><code>192.168.30.179</code></td></tr>
+            <tr><td><strong>剩餘保留</strong></td><td><code>192.168.30.180 ~ 192.168.30.255</code>（共剩餘 76 個 IP，保留作為日後擴充）</td><td colspan="3">—</td></tr>
+          </table></div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 主機需求由大到小排序計算 <code>2^h - 2</code>。<br>
+        2. 各子網路之 Network ID、Mask、Usable Range、Broadcast IP 100% 精確。<br>
+        3. 明確標示剩餘未分配區間。
+</div>
       </div>
-
-      <strong>📊 主表①　需求由大到小排序並決定遮罩</strong>
-      <div class="table-wrap"><table>
-        <tr><th>單位</th><th>需求</th><th>計算</th><th>CIDR</th><th>可用</th><th>區塊</th></tr>
-        <tr><td>辦公網段</td><td>100</td><td>2⁷−2 = 126 ≥ 100</td><td><strong>/25</strong></td><td>126</td><td>128</td></tr>
-        <tr><td>伺服器區</td><td>25</td><td>2⁵−2 = 30 ≥ 25</td><td><strong>/27</strong></td><td>30</td><td>32</td></tr>
-        <tr><td>監視系統</td><td>12</td><td>2⁴−2 = 14 ≥ 12</td><td><strong>/28</strong></td><td>14</td><td>16</td></tr>
-        <tr><td>路由器對接</td><td>2</td><td>2²−2 = 2</td><td><strong>/30</strong></td><td>2</td><td>4</td></tr>
-      </table></div>
-
-      <strong>📊 主表②　位址配置（由大到小依序）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>單位</th><th>網路位址</th><th>可用範圍</th><th>廣播位址</th><th>子網路遮罩</th></tr>
-        <tr><td>辦公網段</td><td>192.168.30.<strong>0</strong>/25</td><td>.1 – .126</td><td>.127</td><td>255.255.255.128</td></tr>
-        <tr><td>伺服器區</td><td>192.168.30.<strong>128</strong>/27</td><td>.129 – .158</td><td>.159</td><td>255.255.255.224</td></tr>
-        <tr><td>監視系統</td><td>192.168.30.<strong>160</strong>/28</td><td>.161 – .174</td><td>.175</td><td>255.255.255.240</td></tr>
-        <tr><td>路由器對接</td><td>192.168.30.<strong>176</strong>/30</td><td>.177 – .178</td><td>.179</td><td>255.255.255.252</td></tr>
-        <tr><td colspan="5">剩餘 .180 – .255（76 個位址）保留供未來擴充</td></tr>
-      </table></div>
-      <div class="hl"><strong>驗算</strong>：128 + 32 + 16 + 4 = <strong>180</strong> ≤ 256 ✔</div>
-
-      <strong>📊 主表③　各網段隔離原則</strong>
-      <div class="table-wrap"><table>
-        <tr><th>網段</th><th>隔離與控管原則</th></tr>
-        <tr><td><strong>辦公網段</strong></td><td>可存取伺服器區之<strong>應用埠</strong>；<u>不得直接存取資料庫埠</u></td></tr>
-        <tr><td><strong>伺服器區</strong></td><td>獨立 VLAN；僅開放必要服務埠；<strong>管理埠（SSH 22／RDP 3389）僅限管理端</strong></td></tr>
-        <tr><td><strong>監視系統</strong></td><td><strong>完全獨立</strong>——此類設備常有<u>預設密碼與韌體漏洞</u>；禁止主動連外，僅允許連至錄影主機；<strong>須變更預設憑證</strong></td></tr>
-        <tr><td>通用原則</td><td>① 防火牆<strong>預設拒絕</strong>逐條開放　② <strong>雙向管控</strong>（出向可阻斷資料竊出）　③ VLAN 間經 L3 套用 <strong>ACL</strong>　④ 啟用 DHCP Snooping ＋ DAI 防 ARP 欺騙　⑤ 日誌集中監控</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>一定要先由大到小排序</strong>——沒排序是最大扣分點<br>
-      2. 配置表<strong>四欄要齊全</strong>（網路位址／可用範圍／廣播／遮罩）<br>
-      3. <strong>要驗算</strong>並說明保留擴充<br>
-      4. <strong>監視系統（IoT）須獨立隔離</strong>——最常被忽略，寫了很加分<br>
-      5. 結論：「網段規劃應兼顧位址使用效率與<strong>安全隔離</strong>，並預留擴充空間。」
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 2</span><span class="tag">OSI · 25 分</span>
@@ -874,49 +874,64 @@
       (三) 比較集線器、交換器、路由器之工作層級與功能。（6 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、OSI 七層（<u>主表①</u>）→ 二、與 TCP/IP 四層對應 → 三、封裝過程（<u>畫圖</u>）→ 四、設備比較（<u>主表②</u>）→ 五、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】應表會傳網鏈實，資料段封包框元；集線實體換鏈結，路由尋徑居第三</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>七層口訣</strong>：應用、表現、會議、傳輸、網路、資料鏈結、實體。<br>
+          ② <strong>封裝 PDU</strong>：Data ➔ Segment（加 Port）➔ Packet（加 IP）➔ Frame（加 MAC）➔ Bits（實體訊號）。<br>
+          ③ <strong>設備層次</strong>：Hub（L1 實體廣播衝突）、Switch（L2 MAC 學習轉發）、Router（L3 IP 路由隔離廣播）。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">七層 PDU 與代表協定</span><span class="danger-tag">衝突網域 vs 廣播網域</span></div>
+          </div>
+
+          <p><strong>一、OSI 七層模型功能與代表協定（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>層級名稱</th><th>資料單元（PDU）</th><th>核心職責功能</th><th>代表協定與標準</th></tr>
+            <tr><td><strong>7. 應用層（Application）</strong></td><td>Data</td><td>提供使用者與應用程式存取網路服務之介面</td><td>HTTP, HTTPS, DNS, DHCP, SSH</td></tr>
+            <tr><td><strong>6. 表現層（Presentation）</strong></td><td>Data</td><td>資料格式轉換、語法轉譯、<strong>加解密（TLS）</strong>、資料壓縮</td><td>ASCII, Unicode, JPEG, TLS/SSL</td></tr>
+            <tr><td><strong>5. 會議層（Session）</strong></td><td>Data</td><td>建立、管理與終止跨主機之通訊會議（Session）</td><td>RPC, NetBIOS, PPTP</td></tr>
+            <tr><td><strong>4. 傳輸層（Transport）</strong></td><td><strong>Segment / Datagram</strong></td><td><strong>端到端（End-to-End）</strong>可靠傳輸、流量控制、埠號多工</td><td><strong>TCP, UDP</strong></td></tr>
+            <tr><td><strong>3. 網路層（Network）</strong></td><td><strong>Packet（封包）</strong></td><td><strong>邏輯定址（IP）、路徑選擇（Routing）</strong>、擁塞控制</td><td><strong>IPv4, IPv6, ICMP, OSPF, BGP</strong></td></tr>
+            <tr><td><strong>2. 資料鏈結層（Data Link）</strong></td><td><strong>Frame（訊框）</strong></td><td><strong>實體定址（MAC）、節點到節點傳輸</strong>、錯誤偵測（CRC）</td><td><strong>Ethernet（802.3）, Wi-Fi（802.11）, ARP</strong></td></tr>
+            <tr><td><strong>1. 實體層（Physical）</strong></td><td><strong>Bits（位元）</strong></td><td>實體媒介上的未加工原始位元串電壓、光訊號傳輸</td><td>RJ-45, 光纖, 雙絞線, EIA-232</td></tr>
+          </table></div>
+
+          <p><strong>二、資料封裝（Encapsulation）與解封裝過程（8 分）</strong></p>
+          <ol>
+            <li><strong>封裝過程（發送端：由上至下層層加頭）</strong>：
+              <ul>
+                <li><strong>應用層至會議層</strong>：產生使用者數據 <code>Data</code>。</li>
+                <li><strong>傳輸層</strong>：加上 TCP/UDP 標頭（含來源與目的 <strong>Port</strong>），封裝成 <strong>Segment</strong>。</li>
+                <li><strong>網路層</strong>：加上 IP 標頭（含來源與目的 <strong>IP 位址</strong>、TTL），封裝成 <strong>Packet</strong>。</li>
+                <li><strong>資料鏈結層</strong>：加上 MAC 標頭（含來源與下一跳 <strong>MAC 位址</strong>）與尾部 FCS（CRC 檢查碼），封裝成 <strong>Frame</strong>。</li>
+                <li><strong>實體層</strong>：將 Frame 編碼轉為高低電壓或光脈衝 <strong>Bits</strong>，送上實體介質傳輸。</li>
+              </ul>
+            </li>
+            <li><strong>解封裝（接收端：由下至上層層剝除標頭驗證）</strong>，最終還原原始資料交付應用程式。</li>
+          </ol>
+
+          <p><strong>三、集線器、交換器、路由器深度比較（7 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>集線器（Hub）</th><th>交換器（Switch）</th><th>路由器（Router）</th></tr>
+            <tr><td><strong>工作 OSI 層級</strong></td><td><strong>第 1 層（實體層）</strong></td><td><strong>第 2 層（資料鏈結層）</strong>（L3 Switch 兼具 L3）</td><td><strong>第 3 層（網路層）</strong></td></tr>
+            <tr><td><strong>轉發依據</strong></td><td>無視內容，純粹電氣訊號放大重送（Repeater）</td><td><strong>MAC 位址表（CAM Table）</strong></td><td><strong>路由表（Routing Table, IP）</strong></td></tr>
+            <tr><td><strong>衝突網域（Collision Domain）</strong></td><td>所有埠共享同一個衝突網域（易碰撞）</td><td><strong>每個埠皆為獨立衝突網域（全雙工無碰撞）</strong></td><td>每個介面皆為獨立衝突網域</td></tr>
+            <tr><td><strong>廣播網域（Broadcast Domain）</strong></td><td>全體共享一個廣播網域</td><td>預設全體共享一個廣播網域（可切 VLAN 隔離）</td><td><strong>每個介面皆為獨立廣播網域（能阻截廣播封包）</strong></td></tr>
+          </table></div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 七層名稱、代表協定與 PDU（Data, Segment, Packet, Frame, Bits）精確無誤。<br>
+        2. 封裝過程按順序指出加 Port ➔ 加 IP ➔ 加 MAC/FCS 標頭。<br>
+        3. 設備比較表明確指出<strong>衝突網域（Collision Domain）與廣播網域（Broadcast Domain）之隔離能力</strong>。
+</div>
       </div>
-
-      <strong>📊 主表①　OSI 七層</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層</th><th>名稱</th><th>功能</th><th>單位</th><th>協定／設備</th></tr>
-        <tr><td>7</td><td>應用層</td><td>使用者服務介面</td><td>Data</td><td>HTTP、FTP、SMTP、DNS</td></tr>
-        <tr><td>6</td><td>表達層</td><td>格式轉換、<strong>加密</strong>、壓縮</td><td>Data</td><td>JPEG、ASCII</td></tr>
-        <tr><td>5</td><td>會議層</td><td>對話建立與管理</td><td>Data</td><td>NetBIOS、RPC</td></tr>
-        <tr><td>4</td><td>傳輸層</td><td><strong>端對端可靠傳輸、埠號</strong></td><td><strong>Segment</strong></td><td>TCP、UDP</td></tr>
-        <tr><td>3</td><td>網路層</td><td><strong>邏輯定址與繞送</strong></td><td><strong>Packet</strong></td><td>IP、ICMP／路由器</td></tr>
-        <tr><td>2</td><td>資料連結層</td><td><strong>實體定址、錯誤偵測</strong></td><td><strong>Frame</strong></td><td>Ethernet／交換器</td></tr>
-        <tr><td>1</td><td>實體層</td><td>位元傳輸</td><td><strong>Bit</strong></td><td>雙絞線、光纖／集線器</td></tr>
-      </table></div>
-      <p style="font-size:.86rem">TCP/IP 四層對應：應用層（OSI 5-7）／傳輸層（4）／網際網路層（3）／網路存取層（1-2）。<br>
-      <strong>OSI 為參考模型（理論），TCP/IP 為實作（實際使用）。</strong></p>
-
-      <strong>📐 封裝過程（畫圖）</strong>
-      <pre>應用層    [        Data        ]
-傳輸層  [TCP標頭][    Data    ]         → Segment
-網路層 [IP標頭][TCP標頭][Data ]         → Packet
-連結層 [Frame標頭][IP][TCP][Data][FCS]  → Frame
-實體層 0101110100101110...              → Bits
-
-接收端反向解封裝（De-encapsulation）</pre>
-      <p style="font-size:.86rem"><strong>意義</strong>：① 每層只處理自己的標頭 → 分層獨立；② <strong>交換器只拆到 L2、路由器只拆到 L3</strong>，故交換器較快；③ 技術可各自演進（有線換無線，上層不受影響）。</p>
-
-      <strong>📊 主表②　設備比較</strong>
-      <div class="table-wrap"><table>
-        <tr><th>設備</th><th>層級</th><th>轉送依據</th><th>碰撞網域</th><th>廣播網域</th></tr>
-        <tr><td>集線器 Hub</td><td>L1</td><td>無（廣播）</td><td>全部共用 1 個</td><td>1 個</td></tr>
-        <tr><td><strong>交換器</strong></td><td>L2</td><td><strong>MAC 表</strong></td><td><strong>每埠 1 個</strong></td><td>1 個（未切 VLAN）</td></tr>
-        <tr><td><strong>路由器</strong></td><td>L3</td><td><strong>繞送表</strong></td><td>每介面 1 個</td><td><strong>每介面 1 個</strong></td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>封裝過程要畫圖</strong><br>
-      2. <strong>交換器分割碰撞網域、路由器分割廣播網域</strong><br>
-      3. 各層的<strong>資料單位名稱</strong>（Segment/Packet/Frame/Bit）<br>
-      4. 結論：「分層架構為網路設計之基礎，有助於設備選型、疑難排解與資安防護規劃。」
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 3</span><span class="tag">TCP/UDP · 25 分</span>
@@ -926,63 +941,77 @@
       (三) 區別流量控制與擁塞控制。（5 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、TCP/UDP 比較（<u>主表①</u>）→ 二、應用與原因（<u>主表②</u>）→ 三、交握流程（<u>畫圖</u>）與原因說明 → 四、兩種控制之區別（<u>主表③</u>）→ 五、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】TCP連線流擁控，UDP輕裝即時衝；三向交握定序號，四向揮手待半關</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>TCP vs UDP</strong>：TCP（連線導向、可靠、循序、流量/擁塞控制；HTTP/SSH/檔案）；UDP（非連線、無開銷、快、容忍掉包；DNS/VoIP/串流/DHCP）。<br>
+          ② <strong>三向交握</strong>：SYN ➔ SYN+ACK ➔ ACK（同步起始序號 ISN）。<br>
+          ③ <strong>四向揮手</strong>：FIN ➔ ACK ➔ FIN ➔ ACK（雙向各自獨立關閉，有半關閉狀態，TIME_WAIT 防滯留封包）。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">三向與四向交握訊號圖</span><span class="danger-tag">TIME_WAIT 2MSL 機制必答</span></div>
+          </div>
+
+          <p><strong>一、TCP 與 UDP 本質差異與應用場景（10 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>特性維度</th><th>TCP（傳輸控制協定）</th><th>UDP（使用者資料包協定）</th></tr>
+            <tr><td><strong>連線狀態</strong></td><td><strong>連線導向（Connection-Oriented）</strong>，需三向交握</td><td><strong>非連線導向（Connectionless）</strong>，隨即發送</td></tr>
+            <tr><td><strong>傳輸可靠性</strong></td><td><strong>保證可靠</strong>（確認 ACK、逾時重傳、序號去重）</td><td><strong>不可靠（Best Effort）</strong>，不保證抵達與順序</td></tr>
+            <tr><td><strong>控制機制</strong></td><td>具備<strong>流量控制（滑動視窗）與擁塞控制</strong></td><td>無任何流量與擁塞調節機制</td></tr>
+            <tr><td><strong>標頭開銷</strong></td><td>最小 <strong>20 Bytes</strong>（含旗標與選項可達 60B）</td><td>僅固定 <strong>8 Bytes</strong>，極度輕量</td></tr>
+            <tr><td><strong>傳輸模式</strong></td><td>位元組串流（Byte Stream）</td><td>獨立資料包（Datagram），保留封包邊界</td></tr>
+            <tr><td><strong>代表性應用（各三項）</strong></td><td>① <strong>HTTPS/Web</strong>（網頁不可缺字漏圖）<br>② <strong>SSH/遠端管理</strong>（指令必須精確）<br>③ <strong>SFTP/檔案傳輸</strong>（檔案資料零容忍錯位）</td><td>① <strong>DNS 查詢</strong>（講求毫秒級極速回應）<br>② <strong>VoIP 網路語音 / 即時視訊</strong>（容忍微幅掉包但不可延遲）<br>③ <strong>DHCP / 網路廣播</strong>（IP 配置廣播協定）</td></tr>
+          </table></div>
+
+          <p><strong>二、TCP 三向交握與四向揮手詳細流程（8 分）</strong></p>
+          <p><strong>（一）三向交握（Three-Way Handshake）建立連線</strong></p>
+          <pre style="background:#f8fafc;border-left:4px solid #3b82f6;padding:10px;font-family:Consolas,monospace;font-size:.88rem;line-height:1.7;">
+Client                                    Server
+  | ----- [1] SYN, Seq = x --------------> | (Server 收到：確認 Client 發送正常)
+  | <---- [2] SYN, ACK, Seq=y, Ack=x+1 --- | (Client 收到：確認 Server 收發皆正常)
+  | ----- [3] ACK, Seq = x+1, Ack=y+1 ---> | (Server 收到：確認雙方收發皆正常，連線建立 ESTABLISHED！)
+          </pre>
+          <p><em>為什麼建立連線需三次？為<strong>防止歷史失效的重複連線請求突然抵達 Server 引發錯誤建立</strong>，並讓雙方<strong>同步起始序號（ISN）</strong>。</em></p>
+
+          <p><strong>（二）四向揮手（Four-Way Teardown）終止連線</strong></p>
+          <pre style="background:#f8fafc;border-left:4px solid #ef4444;padding:10px;font-family:Consolas,monospace;font-size:.88rem;line-height:1.7;">
+Client                                    Server
+  | ----- [1] FIN, Seq = u --------------> | (Client 進入 FIN_WAIT_1)
+  | <---- [2] ACK, Ack = u+1 ------------- | (Server 進入 CLOSE_WAIT；此時進入「半關閉」狀態，Server 仍可發送殘餘資料)
+  |                                        | (Server 資料發送完畢，準備結束)
+  | <---- [3] FIN, ACK, Seq=w, Ack=u+1 --- | (Server 進入 LAST_ACK)
+  | ----- [4] ACK, Ack = w+1 ------------> | (Client 發出確認後進入 TIME_WAIT；Server 收到即 CLOSED)
+          </pre>
+          <p><em>為什麼斷線需四次？因為 TCP 為<strong>全雙工（Full-Duplex）</strong>，每個方向之關閉是各自獨立的。Server 收到 Client 之 FIN 時，本身可能仍有待發送資料，故先回 ACK 進入半關閉（Close-Wait），待數據播遷完畢才發出自己的 FIN。</em></p>
+
+          <p><strong>三、流量控制 vs 擁塞控制（7 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>控制機制</th><th>流量控制（Flow Control）</th><th>擁塞控制（Congestion Control）</th></tr>
+            <tr><td><strong>保護對象</strong></td><td><strong>保護接收端（Receiver）</strong>，防接收緩衝區溢滿（Buffer Overflow）</td><td><strong>保護中繼網路（Network Core）</strong>，防止全網路由器排隊崩潰</td></tr>
+            <tr><td><strong>核心手段</strong></td><td><strong>滑動視窗（Sliding Window）</strong>：接收端在 ACK 標頭中通告自己的接收視窗大小（<code>rwnd</code>）</td><td><strong>擁塞視窗（<code>cwnd</code>）</strong>：維護四大演算法（慢啟動、擁塞避免、快速重傳、快速復原）</td></tr>
+            <tr><td><strong>傳送上限</strong></td><td colspan="2">實際發送端發送視窗上限為：<strong><code>Send_Window = min(rwnd, cwnd)</code></strong>（兩者取最小）</td></tr>
+          </table></div>
+
+          <p><strong>四、公門資安防禦 SYN Flood 加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>資安反 DoS 攻擊實務（SYN Cookie 技術）</strong>：<br>
+            黑客常發送海量偽冒 IP 之 SYN 封包，使公務伺服器進入 <code>SYN_RECV</code> 狀態並耗盡 TCP 半開連線佇列（Backlog Queue），造成正規民眾無法登入。機關伺服器必須啟用 <strong>SYN Cookie 技術</strong>：在收到 SYN 時不配置記憶體控制區塊（TCB），而是將連線特徵編碼入 ISN 序號中隨 ACK 發出，待 Client 回傳合法第 3 步 ACK 時再行解密分配資源，徹底免疫 SYN Flood 攻擊！
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. TCP vs UDP 對比完整，各列三項合理應用。<br>
+        2. 三向交握與四向揮手時序圖精確，標明 <strong>SYN, ACK, FIN 與序號遞增</strong>。<br>
+        3. 深入解釋「建立需 3 次（防失效連線）」與「中斷需 4 次（全雙工半關閉）」。<br>
+        4. 流量控制（保護接收端 rwnd）vs 擁塞控制（保護網路 cwnd）明確區分。<br>
+        5. 補充公務抗 DoS 防護（SYN Cookie）實務加分段。
+</div>
       </div>
-
-      <strong>📊 主表①　TCP vs UDP</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>TCP</th><th>UDP</th></tr>
-        <tr><td>連線</td><td><strong>連線導向</strong>（三向交握）</td><td>非連線導向</td></tr>
-        <tr><td>可靠性</td><td><strong>可靠</strong>（確認、重送、排序）</td><td>不可靠</td></tr>
-        <tr><td>順序</td><td>保證</td><td>不保證</td></tr>
-        <tr><td>流量／擁塞控制</td><td>有</td><td><strong>無</strong></td></tr>
-        <tr><td>標頭</td><td>20 bytes 以上</td><td><strong>8 bytes</strong></td></tr>
-        <tr><td>速度</td><td>較慢、負擔大</td><td><strong>快、負擔小</strong></td></tr>
-      </table></div>
-
-      <strong>📊 主表②　應用與原因</strong>
-      <div class="table-wrap"><table>
-        <tr><th>協定</th><th>應用</th><th>原因</th></tr>
-        <tr><td rowspan="3"><strong>TCP</strong><br>（不能錯）</td><td>HTTP／HTTPS 網頁</td><td>內容不可缺漏錯亂</td></tr>
-        <tr><td>SMTP／IMAP 郵件</td><td>郵件不可遺失</td></tr>
-        <tr><td>FTP／SSH 檔案與遠端登入</td><td>一個位元錯誤即可能損毀檔案</td></tr>
-        <tr><td rowspan="3"><strong>UDP</strong><br>（不能慢）</td><td>DNS 查詢</td><td>單一封包即完成，交握成本高於重送成本</td></tr>
-        <tr><td>VoIP／視訊</td><td><strong>即時性優先</strong>，掉一格優於卡頓</td></tr>
-        <tr><td>線上遊戲／串流</td><td>狀態持續更新，舊封包重送已無意義</td></tr>
-      </table></div>
-
-      <strong>📐 交握流程（畫圖）</strong>
-      <pre>【建立連線 — 三向交握】
-用戶端 ──── SYN (seq=x) ────────────→ 伺服器
-       ←─── SYN+ACK (seq=y,ack=x+1) ──
-       ──── ACK (ack=y+1) ───────────→
-       ◄══════ 連線建立 ═══════════►
-
-【終止連線 — 四向斷線】
-FIN → ACK ← FIN ← ACK →</pre>
-      <div class="table-wrap"><table>
-        <tr><th>問題</th><th>原因</th></tr>
-        <tr><td><strong>為何建立要三次</strong></td><td>連線是<strong>雙向</strong>的，兩邊都須確認「對方收得到我」；前兩次僅確認單方向，<strong>第三次 ACK 才使伺服器確知對方也收到其回應</strong>，同時完成雙方初始序號（ISN）交換與同步</td></tr>
-        <tr><td><strong>為何斷線要四次</strong></td><td>TCP 為<strong>全雙工</strong>，兩方向須<u>各自</u>關閉。一方送 FIN 僅表示「我沒有資料要送了」，<strong>對方可能仍有資料待傳完</strong>，故其 ACK 與 FIN 需分開送出</td></tr>
-      </table></div>
-
-      <strong>📊 主表③　流量控制 vs 擁塞控制</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>流量控制</th><th>擁塞控制</th></tr>
-        <tr><td>解決問題</td><td><strong>接收端</strong>緩衝區溢滿</td><td><strong>網路</strong>壅塞</td></tr>
-        <tr><td>機制</td><td><strong>滑動視窗</strong>（rwnd）</td><td>慢啟動、擁塞避免、快速重送、快速回復（cwnd）</td></tr>
-        <tr><td>白話</td><td>「你講太快，我聽不完」</td><td>「馬路太塞，大家慢一點」</td></tr>
-      </table></div>
-      <p style="font-size:.86rem">實際傳送量 = <strong>min(rwnd, cwnd)</strong>；「慢啟動」實為<strong>指數成長</strong>，名稱僅指起始量小。</p>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>交握要畫圖並標 seq/ack</strong><br>
-      2. <strong>「為何三次、為何四次」的理由</strong>是最大區分點——只畫圖不解釋拿不到高分<br>
-      3. <strong>TCP 不能錯、UDP 不能慢</strong>的對比<br>
-      4. 能寫出 <strong>min(rwnd, cwnd)</strong> 是加分
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 4</span><span class="tag">密碼學 · 25 分</span>
@@ -992,58 +1021,81 @@ FIN → ACK ← FIN ← ACK →</pre>
       (三) 說明 HTTPS 為何採用混合加密。（5 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、兩種加密比較（<u>主表①</u>）→ 二、數位簽章流程（<u>畫圖</u>）＋達成目標（<u>主表②</u>）→ 三、HTTPS 混合加密流程與理由 → 四、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】對稱對稱極速配，非對稱管金鑰分；私簽公驗防賴帳，混合加密保乾坤</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>加密二分</strong>：對稱式（AES，同鑰加密解密，極快，適合大量資料；痛點：金鑰分發難）；非對稱式（RSA/ECC，公鑰加密私鑰解密，運算慢；強項：金鑰交換與身分認證）。<br>
+          ② <strong>數位簽章</strong>：發送端用<strong>自己私鑰</strong>對 Hash 簽署；接收端用<strong>發送端公鑰</strong>驗證（完整性、來源鑑別、不可否認性）。<br>
+          ③ <strong>HTTPS/TLS</strong>：非對稱交換 Session Key ➔ 後續通訊切換為對稱加密（效能兼顧安全）。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">數位簽章金鑰配對必對</span><span class="danger-tag">HTTPS混合加密流程圖</span></div>
+          </div>
+
+          <p><strong>一、對稱式 vs 非對稱式加密深度比較（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>對稱式加密（Symmetric Encryption）</th><th>非對稱式加密（Asymmetric Encryption）</th></tr>
+            <tr><td><strong>金鑰配置</strong></td><td>加密與解密使用<strong>同一把金鑰（共用密鑰）</strong></td><td>一對金鑰：<strong>公開金鑰（Public Key）</strong>與<strong>私密金鑰（Private Key）</strong></td></tr>
+            <tr><td><strong>加解密效能</strong></td><td><strong>極快（硬體加速，適合 GB 等級大檔）</strong></td><td><strong>極慢（涉及大質數乘冪運算，慢 100~1000 倍）</strong></td></tr>
+            <tr><td><strong>金鑰管理難題</strong></td><td>N 個人互相通訊需管理 <code>N(N-1)/2</code> 把金鑰，分發傳輸易遭截獲</td><td>N 個人僅需 <code>2N</code> 把金鑰，公鑰可完全公開</td></tr>
+            <tr><td><strong>主要功能</strong></td><td><strong>機密性（Confidentiality）</strong>大量資料加密</td><td><strong>金鑰交換（Key Exchange）、數位簽章（身分認證與不可否認性）</strong></td></tr>
+            <tr><td><strong>代表性演算法</strong></td><td><strong>AES-256, ChaCha20, 3DES</strong></td><td><strong>RSA, ECC（橢圓曲線）, Diffie-Hellman</strong></td></tr>
+          </table></div>
+
+          <p><strong>二、數位簽章（Digital Signature）產生與驗證流程（10 分）</strong></p>
+          <div class="step-box">
+            <div class="step-title">📝 逐步解析推導：數位簽章標準工作流程</div>
+            <ul class="step-list">
+              <li class="step-item"><span class="step-badge">步驟 1</span><strong>發送端簽署階段</strong><br>
+                ‧ 將原始公文或文件以單向雜湊演算法（如 <strong>SHA-256</strong>）計算出固定長度之訊息摘要（Digest）。<br>
+                ‧ 發送端以<strong>「自己的私密金鑰（Sender's Private Key）」</strong>對該摘要進行加密，所生成的密文即為<strong>數位簽章</strong>。<br>
+                ‧ 將「原始文件」連同「數位簽章」一併傳送給接收端。</li>
+              <li class="step-item"><span class="step-badge">步驟 2</span><strong>接收端驗證階段</strong><br>
+                ‧ 接收端取得發送端經 CA 憑證認證之<strong>「發送端公開金鑰（Sender's Public Key）」</strong>，對數位簽章進行解密，還原出原始摘要 A。<br>
+                ‧ 接收端自行以相同的 SHA-256 對收到的原始文件重新計算產生摘要 B。<br>
+                ‧ 比對摘要 A 與 B：若 <code>A == B</code>，驗章成功！</li>
+            </ul>
+          </div>
+          <p><strong>【數位簽章達成之三大資安目標】</strong></p>
+          <ol>
+            <li><strong>資料完整性（Integrity）</strong>：文件若遭竄改 1 bit，重新計算之 Hash B 必不吻合。</li>
+            <li><strong>來源鑑別（Authentication）</strong>：能以發送端公鑰成功解密，保證必為持有私鑰之本人所簽發。</li>
+            <li><strong>不可否認性（Non-repudiation）</strong>：私鑰僅發送端獨有，發送端事後<strong>無法否認其簽署行為</strong>（電子簽章法法律效力）。</li>
+          </ol>
+
+          <p><strong>三、HTTPS 混合加密與 TLS 1.3 握手流程（7 分）</strong></p>
+          <ol>
+            <li><strong>為何採混合加密（Hybrid Encryption）？</strong><br>
+              若全用非對稱加密，伺服器 CPU 將不堪重負；若全用對稱加密，金鑰無法安全傳遞。因此<strong>「以非對稱加密交換 Session Key，後續傳輸全採對稱加密」</strong>，兼得安全性與極速傳輸！</li>
+            <li><strong>TLS 1.3 極速 1-RTT 握手過程</strong>：
+              <ul>
+                <li><strong>Client Hello</strong>：傳送支援的密碼套件與 Diffie-Hellman（ECDHE）公鑰參數。</li>
+                <li><strong>Server Hello</strong>：回傳選定的密碼套件、Server 憑證（含數位簽章與公鑰）以及 Server 端的 ECDHE 參數。雙方在本地直接計算出相同的對稱密鑰（Session Key）。</li>
+                <li><strong>Finished</strong>：後續所有 HTTP 請求與回應全面啟用 <strong>AES-GCM 對稱加密</strong> 傳輸。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>四、公門電子公文與憑證管理加分段</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>政府公開金鑰基礎建設（GPKI）實務</strong>：<br>
+            全國公文電子交換系統（e-Client）全面基於 GPKI 運作。各機關持有<strong>政府機關憑證（GCA）</strong>，公務同仁持有<strong>自然人憑證（MOICA）</strong>。公文簽發上傳時強制以 GCA 私卡進行硬體晶片簽章，收文機關透過 GCA 憑證廢止清冊（CRL/OCSP）驗證有效性，確立公文之法律公信力。
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 對稱 vs 非對稱比較表（金鑰數、速度、功能、演算法）精準無誤。<br>
+        2. 數位簽章簽署與驗證之<strong>「私鑰簽署、公鑰驗證」</strong>絕對不可顛倒。<br>
+        3. 達成<strong>完整性、來源鑑別、不可否認性</strong>三大資安目標。<br>
+        4. 詳述 HTTPS 混合加密原理與 TLS 1.3 握手。<br>
+        5. 補充台灣政府 GPKI、GCA 與自然人憑證實務。
+</div>
       </div>
-
-      <strong>📊 主表①　對稱 vs 非對稱</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>對稱式</th><th>非對稱式</th></tr>
-        <tr><td>金鑰</td><td>加解密<strong>同一把</strong></td><td><strong>公鑰／私鑰成對</strong></td></tr>
-        <tr><td>速度</td><td><strong>快</strong></td><td>慢（約 100～1000 倍）</td></tr>
-        <tr><td>金鑰數（n 人）</td><td><strong>n(n−1)/2</strong></td><td><strong>2n</strong></td></tr>
-        <tr><td>金鑰配送</td><td><strong>困難</strong>（如何安全交給對方）</td><td>容易（公鑰可公開）</td></tr>
-        <tr><td>可否簽章</td><td>不可</td><td><strong>可以</strong></td></tr>
-        <tr><td>代表演算法</td><td>AES、3DES</td><td>RSA、ECC、DH</td></tr>
-      </table></div>
-
-      <strong>📐 數位簽章流程圖</strong>
-      <pre>【簽署端 A】                      【驗證端 B】
-  原文                            收到：原文 + 簽章
-   │                                │        │
-   ├①雜湊→ 摘要                     │        └④用A的公鑰解密
-   │        │                       │             ↓
-   │  ②用A的私鑰加密                 └⑤重新雜湊  摘要A
-   │        ↓                            ↓
-   │     數位簽章                      摘要B
-   └──③一併傳送──┘                ⑥比對：相同 → 未竄改且確為A所簽</pre>
-
-      <strong>📊 主表②　達成之資安目標</strong>
-      <div class="table-wrap"><table>
-        <tr><th>目標</th><th>如何達成</th></tr>
-        <tr><td><strong>完整性</strong></td><td>原文遭改則雜湊值不符</td></tr>
-        <tr><td><strong>鑑別性</strong></td><td>只有持該私鑰者能產生此簽章</td></tr>
-        <tr><td><strong>不可否認性</strong></td><td>私鑰僅簽署者持有，事後無法抵賴（<strong>HMAC 做不到</strong>）</td></tr>
-        <tr><td><u>不提供機密性</u></td><td>原文為明文；如需保密須<strong>另行加密</strong></td></tr>
-      </table></div>
-      <p style="font-size:.86rem"><strong>為何先雜湊再簽</strong>：非對稱運算慢且原文可能很大，雜湊成固定短長度後再簽，效率高得多。</p>
-
-      <strong>📐 HTTPS 混合加密</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>使用</th><th>理由</th></tr>
-        <tr><td>交握階段</td><td><strong>非對稱式</strong>（憑證驗證伺服器身分、協商對稱金鑰）</td><td>解決<strong>金鑰配送與信任</strong>問題</td></tr>
-        <tr><td>資料傳輸</td><td><strong>對稱式</strong>（如 AES-GCM）</td><td>非對稱式太慢，全程使用將無法實用</td></tr>
-      </table></div>
-      <p style="font-size:.86rem"><strong>設計精神</strong>：以慢但能建立信任的非對稱式處理「金鑰交換」，以快的對稱式處理「大量資料」。<br>
-      加分：<strong>前向保密（PFS）</strong>——採 ECDHE 臨時金鑰，即使日後伺服器私鑰洩漏，過去通訊仍無法解密。</p>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>數位簽章一定要畫流程圖</strong>（六個步驟）<br>
-      2. <strong>「不提供機密性」</strong>與<strong>「不可否認性只有簽章能達成」</strong><br>
-      3. <strong>為何先雜湊再簽</strong><br>
-      4. HTTPS 混合加密的<strong>設計理由</strong>（不只是「兩者都用」）
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 5</span><span class="tag">資安事件 · 25 分</span>
@@ -1054,58 +1106,63 @@ FIN → ACK ← FIN ← ACK →</pre>
       (三) 說明應變流程與法定通報義務。（7 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、入侵途徑與擴散原因（<u>主表①</u>）→ 二、分層防護（<u>主表②</u>）→ 三、應變流程（<u>主表③</u>）→ 四、通報義務 → 五、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】偵武傳利安指動，殺鏈七步逐層斷；端點偵測阻橫移</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>網路殺鏈（Cyber Kill Chain）七階段</strong>：偵察（Reconnaissance）➔ 武器化（Weaponization）➔ 傳遞（Delivery）➔ 利用（Exploitation）➔ 安裝（Installation）➔ 指揮控制（C2）➔ 目標行動（Actions on Objectives）。<br>
+          ② <strong>勒索軟體事件</strong>：釣魚信（傳遞）➔ 開啟巨集執行惡意碼（利用）➔ 植入後門（安裝）➔ 連回黑客主機（C2）➔ 提權內網橫向移動（Lateral Movement）➔ 加密伺服器（行動）。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">殺鏈七階段嚴格對映</span><span class="danger-tag">橫向移動防護必提EDR</span></div>
+          </div>
+
+          <p><strong>一、以網路殺鏈（Cyber Kill Chain）分析事件入侵與擴散路徑（12 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>殺鏈階段</th><th>本案對應事件情境</th><th>攻擊者具體行為</th><th>防禦阻斷機會點</th></tr>
+            <tr><td><strong>1. 偵察（Reconnaissance）</strong></td><td>鎖定機關同仁名單與公務 Email</td><td>在機關對外官網或社群網站蒐集同仁職稱與信箱</td><td>外部官網個資清洗，限制組織架構名錄外流</td></tr>
+            <tr><td><strong>2. 武器化（Weaponization）</strong></td><td>製作特製勒索附件</td><td>將勒索程式 Payload 封裝入假冒公文的 Word/PDF 巨集中</td><td>無（發生於攻擊者本地端）</td></tr>
+            <tr><td><strong>3. 傳遞（Delivery）</strong></td><td>寄發社交工程釣魚郵件</td><td>將偽冒上級或業務相關之信件送入同仁信箱</td><td><strong>郵件安全閘道（SEG）</strong>過濾惡意連結與附檔</td></tr>
+            <tr><td><strong>4. 利用（Exploitation）</strong></td><td>同仁受騙開啟附件點選執行</td><td>利用 Office 巨集或零日漏洞觸發惡意程式碼執行</td><td>關閉 Office 巨集自動執行，作業系統修補更新</td></tr>
+            <tr><td><strong>5. 安裝（Installation）</strong></td><td>電腦遭植入惡意後門程式</td><td>在受害者本機建立持續性存取點（如登記 Run 註冊表）</td><td><strong>端點偵測與回應（EDR）</strong>即時阻斷未知可疑進程</td></tr>
+            <tr><td><strong>6. 指揮控制（C2）</strong></td><td>受害主機連回黑客伺服器</td><td>主機向外建立反向連線（Reverse Shell）接收黑客遠端指令</td><td>防火牆阻絕未知外連 IP/DNS，威脅情報阻斷</td></tr>
+            <tr><td><strong>7. 目標行動（Actions）</strong></td><td><strong>橫向移動並加密伺服器</strong></td><td>利用 Mimikatz 傾倒記憶體竊取管理員雜湊憑證（Pass-the-Hash），橫向滲透 AD 伺服器並派送勒索軟體全體加密</td><td><strong>內網微隔離（Micro-segmentation）</strong>、限制特權帳號跨主機登入、備份離線隔離</td></tr>
+          </table></div>
+
+          <p><strong>二、全面縱深防禦（Defense-in-Depth）對策（8 分）</strong></p>
+          <ol>
+            <li><strong>邊界與郵件層</strong>：部署具備沙箱技術（Sandbox）的先進郵件防禦閘道，對所有外部附件執行動態行為分析；阻絕惡意網址點擊。</li>
+            <li><strong>端點安全層</strong>：全機關終端電腦<strong>全面強制安裝 EDR（端點偵測與回應）系統</strong>，即時阻斷異常 PowerShell/腳本執行，並將可疑活動即時上傳 SOC。</li>
+            <li><strong>身分與存取管理（IAM）</strong>：
+              <ul>
+                <li>實施<strong>特權存取管理（PAM, Privileged Access Management）</strong>，網域管理員（Domain Admin）禁止登入一般辦公電腦，防止記憶體憑證遭竊。</li>
+                <li>全面啟用<strong>多因子驗證（MFA）</strong>，所有伺服器管理連線強制使用自然人憑證或 Authenticator。</li>
+              </ul>
+            </li>
+            <li><strong>網路與隔離層</strong>：落實<strong>內網微隔離與零信任</strong>，辦公同仁電腦彼此之間禁止互通（Client Isolation），防止勒索軟體透過 SMB 協定橫向擴散。</li>
+          </ol>
+
+          <p><strong>三、通報法規與公門災難應變加分段（5 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>《資通安全管理法》法定應變義務</strong>：<br>
+            ‧ <strong>法定義務時限</strong>：伺服器遭勒索加密通常構成<strong>第 3 級或第 4 級資通安全事件</strong>。機關必須於<strong>「知悉後 1 小時內」完成向數位發展部資安署（N-ISAC / N-CERT）之法定通報</strong>！<br>
+            ‧ <strong>復原時限</strong>：重大事件應於 <strong>36 小時內完成損害控制與復原</strong>。<br>
+            ‧ <strong>應變處置</strong>：第一時間<strong>實體拔除受害主機網路線（切斷 C2 擴散）</strong>，保留記憶體快照作為數位鑑識（Forensics）證據，嚴格禁止私自重灌破壞證據；啟動<strong>離線乾淨備份（Immutable Backup）</strong>還原核心業務服務。
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 網路殺鏈（Cyber Kill Chain）七階段名稱精準，完整對應本案情境。<br>
+        2. 指出橫向移動（Lateral Movement）竊取網域管理權限之關鍵攻擊手法。<br>
+        3. 縱深防禦涵蓋：郵件安全閘道、EDR、特權存取管理（PAM/MFA）、內網微隔離。<br>
+        4. <strong>明確寫出《資通安全管理法》知悉後 1 小時內通報、36 小時內復原之法規標準</strong>。<br>
+        5. 提出實體斷網隔離、保留鑑識證據與離線備份還原之標準應變流程。
+</div>
       </div>
-
-      <strong>📊 主表①　入侵與擴散分析</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>可能情形</th></tr>
-        <tr><td><strong>入侵</strong></td><td>釣魚郵件附件含惡意巨集或利用未修補漏洞；亦可能為暴露在外的 RDP／VPN 弱密碼</td></tr>
-        <tr><td><strong>立足</strong></td><td>植入後門，建立對外 C2 連線</td></tr>
-        <tr><td><strong>擴散原因</strong></td><td>① <strong>網段未隔離</strong>，可自由橫向移動<br>② 使用者具<strong>系統管理員權限</strong><br>③ 竊取<strong>網域管理員帳密</strong>提權<br>④ 未啟用 MFA<br>⑤ 端點僅有特徵碼防毒，無行為式偵測</td></tr>
-        <tr><td><strong>災情擴大</strong></td><td><strong>備份與正式環境同網域且線上連接 → 備份一併遭加密</strong></td></tr>
-      </table></div>
-
-      <strong>📊 主表②　分層防護措施</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層次</th><th>措施</th></tr>
-        <tr><td><strong>郵件／入口</strong></td><td>郵件安全閘道（附件沙箱、URL 檢測）、封鎖高風險副檔名、外部郵件加註警示、SPF/DKIM/DMARC 防冒名</td></tr>
-        <tr><td><strong>端點</strong></td><td><strong>修補管理</strong>、<strong>停用巨集</strong>或僅允許簽章巨集、<strong>EDR 行為偵測</strong>、使用者<strong>非管理員權限</strong></td></tr>
-        <tr><td><strong>網路</strong></td><td><strong>網段隔離／VLAN</strong>限制橫向移動、<strong>出向流量管控</strong>阻斷 C2、關閉對外 RDP、VPN 加 <strong>MFA</strong></td></tr>
-        <tr><td><strong>帳號權限</strong></td><td>最小權限、<strong>特權帳號管理</strong>、禁止以網域管理員登入一般端點、全面 MFA</td></tr>
-        <tr><td><strong>備份（最關鍵）</strong></td><td><strong>3-2-1 原則</strong>＋<strong>離線／不可變備份</strong>；備份系統<strong>獨立驗證、獨立網段</strong>；<strong>多版本保留</strong>；<strong>定期演練還原</strong></td></tr>
-        <tr><td><strong>管理</strong></td><td>教育訓練與<strong>社交工程演練</strong>、資安政策、定期弱點掃描、日誌集中監控</td></tr>
-      </table></div>
-
-      <strong>📊 主表③　應變流程</strong>
-      <div class="table-wrap"><table>
-        <tr><th>階段</th><th>作為</th></tr>
-        <tr><td>① 偵測分析</td><td>確認真偽、判定影響範圍與<strong>事件等級</strong></td></tr>
-        <tr><td>② <strong>圍堵</strong></td><td>隔離受害主機（<strong>拔網路線而非直接關機</strong>）、阻斷 C2</td></tr>
-        <tr><td>③ <strong>證據保存</strong></td><td>記憶體與磁碟映像、日誌；維持<strong>證據監管鏈</strong>；<u>切勿急於重灌</u></td></tr>
-        <tr><td>④ 通報</td><td>依規定時限通報（見下）</td></tr>
-        <tr><td>⑤ 根除</td><td>清除惡意程式、修補漏洞、<strong>重設所有可能外洩之憑證</strong></td></tr>
-        <tr><td>⑥ 復原</td><td>由<u>經確認乾淨</u>之備份還原；<strong>還原前先掃描</strong>避免二次感染</td></tr>
-        <tr><td>⑦ 檢討</td><td>根因分析、改善措施列管追蹤</td></tr>
-      </table></div>
-
-      <div class="table-wrap"><table>
-        <tr><th>法定義務</th><th>內容</th></tr>
-        <tr><td><strong>資通安全管理法</strong></td><td>知悉後於<strong>規定時限內</strong>通報主管機關；重大事件（3、4 級）須提出<strong>調查、處理及改善報告</strong></td></tr>
-        <tr><td><strong>個人資料保護法</strong></td><td>若涉個資外洩，應查明後<strong>通知當事人</strong></td></tr>
-        <tr><td>刑法</td><td>涉及犯罪者得報請司法機關偵辦</td></tr>
-        <tr><td><strong>贖金立場</strong></td><td><strong>原則上不支付</strong>——不保證能解、助長犯罪，公務機關支付另涉預算與法律問題</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>「備份要離線」</strong>——本題核心，線上備份被一起加密是最常見的失敗原因<br>
-      2. <strong>「拔網路線而非關機」「不要急著重灌」「重設所有憑證」</strong><br>
-      3. <strong>網段隔離限制橫向移動</strong><br>
-      4. <strong>依法通報＋個資外洩通知當事人</strong><br>
-      5. 結論：「技術防護與人員意識缺一不可；<strong>離線備份是最壞情況下的最後防線</strong>。」
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 6</span><span class="tag">法規 · 25 分</span>
@@ -1115,58 +1172,67 @@ FIN → ACK ← FIN ← ACK →</pre>
       (三) 說明機關可採行之個資保護技術措施。（7 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、資安法主要要求（<u>主表①</u>）→ 二、個資法規範（<u>主表②</u>）→ 三、技術措施（<u>主表③</u>）→ 四、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】機關責任分五等，事件通報一小時；三六小時速復原，PDCA循環管</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>責任等級</strong>：A、B、C、D、E 五級（依核心業務敏感度劃分，A 級為國安與關鍵基礎設施）。<br>
+          ② <strong>通報時效</strong>：資安事件分 1~4 級；知悉後 <strong>1 小時內通報</strong>；3~4 級重大事件 <strong>36 小時內復原完成</strong>。<br>
+          ③ <strong>ISMS 與 PDCA</strong>：Plan（風險評鑑/訂政策）➔ Do（實施控管/教育訓練）➔ Check（內外部稽核/演練）➔ Act（管理審查/持續改善）。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">資安法專用名詞全命中</span><span class="danger-tag">通報與復原時效必背</span></div>
+          </div>
+
+          <p><strong>一、《資通安全管理法》對公務機關核心要求（10 分）</strong></p>
+          <ol>
+            <li><strong>資通安全責任等級劃分（A 至 E 五級）</strong>：
+              主管機關依機關業務涉及國家安全、國家關鍵基礎設施（CI）、民眾重大權益或保有巨量個資劃分：
+              <ul>
+                <li><strong>A 級機關</strong>：如總統府、五院、國防外交、大型醫學中心。要求：設資安專責單位與資安長、全面導入 ISMS 獲第三方認證、建置 SOC 監控、每年進行紅隊演練。</li>
+                <li><strong>B 級機關</strong>：直轄市政府局處、一般部會。要求配置專職人員，定期辦理社交工程演練。</li>
+              </ul>
+            </li>
+            <li><strong>資通安全事件通報與應變時效（國考絕對考點）</strong>：
+              <ul>
+                <li><strong>事件分級</strong>：依侵害核心業務與機密外洩程度分為 <strong>1、2、3、4 級</strong>。</li>
+                <li><strong>通報時限</strong>：所有級別事件，<strong>必須於「知悉後 1 小時內」至國家資安通報應變平台完成通報</strong>！</li>
+                <li><strong>復原時限</strong>：第 1、2 級事件應於 <strong>72 小時內完成復原</strong>；第 3、4 級重大事件應於 <strong>36 小時內完成損害控制與復原</strong>，並於 <strong>1 個月內提出調查改善報告</strong>。</li>
+              </ul>
+            </li>
+            <li><strong>限制採購危害國家資通安全產品</strong>：公務資通訊設備與委外系統<strong>嚴格禁止採購與使用大陸品牌或有資安疑慮之軟硬體服務</strong>。</li>
+          </ol>
+
+          <p><strong>二、資訊安全管理系統（ISMS）與 PDCA 循環落地（8 分）</strong></p>
+          <p>ISMS 遵循 <strong>ISO/IEC 27001</strong> 標準，透過戴明循環（PDCA）建立動態資安防護基線：</p>
+          <div class="table-wrap"><table>
+            <tr><th>PDCA 階段</th><th>主要推動工作</th><th>機關具體實務產出</th></tr>
+            <tr><td><strong>Plan（規劃）</strong></td><td>定義 ISMS 適用範圍、訂定資安政策、執行<strong>資產盤點與風險評鑑（Risk Assessment）</strong></td><td>產出《資訊資產清冊》、《風險處理計畫（RTP）》、《適用性聲明書（SoA）》</td></tr>
+            <tr><td><strong>Do（實施）</strong></td><td>落實各項資安控制措施、配置資源、執行<strong>全員資安教育訓練（法定每年 3 小時）</strong></td><td>部署防火牆/EDR、社交工程釣魚演練、存取權限審查紀錄</td></tr>
+            <tr><td><strong>Check（檢查）</strong></td><td>執行<strong>內部資安稽核（Internal Audit）</strong>、效能度量、弱點掃描與滲透測試</td><td>產出《內部稽核報告》、《資安弱點改善追蹤清冊》</td></tr>
+            <tr><td><strong>Act（行動）</strong></td><td>召開高層<strong>管理審查會議（Management Review）</strong>、矯正預防措施、持續改善（Continual Improvement）</td><td>滾動修訂資安政策、精進防禦預算配置</td></tr>
+          </table></div>
+
+          <p><strong>三、機關資通安全維護計畫核心規劃面向（7 分）</strong></p>
+          <ol>
+            <li><strong>核心資訊資產盤點與風險評鑑</strong>：鑑別高風險系統，排定弱點修補優先順序。</li>
+            <li><strong>委外廠商監督管理（Supply Chain Security）</strong>：委外招標載明資安責任，定期執行廠商稽核，防範供應鏈攻擊。</li>
+            <li><strong>備份與業務持續運作（BCP）</strong>：落實異地備份與每年無預警災難復原演練。</li>
+            <li><strong>認知推廣與通報演練</strong>：每年辦理兩次電子郵件社交工程防禦演練，不合格同仁強制補訓。</li>
+          </ol>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 資通安全責任等級 A 至 E 級完整劃分。<br>
+        2. <strong>事件通報「知悉後 1 小時內」、重大事件「36 小時內復原」、1 個月內結案報告</strong>數值 100% 正確。<br>
+        3. ISMS 之 PDCA 四階段工作與產出物表格化呈現。<br>
+        4. 提及全員每年 3 小時法定訓練與限制大陸危害資通產品規範。
+</div>
       </div>
-
-      <strong>📊 主表①　資通安全管理法</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>內容</th></tr>
-        <tr><td>適用對象</td><td>公務機關、特定非公務機關（關鍵基礎設施提供者等）</td></tr>
-        <tr><td><strong>資安責任等級</strong></td><td>依業務重要性與資料敏感度分 <strong>A～E 五級</strong>，等級越高應辦事項越多</td></tr>
-        <tr><td>維護計畫</td><td>訂定<strong>資通安全維護計畫</strong>並落實，定期提出實施情形</td></tr>
-        <tr><td>應辦事項</td><td>配置專責人力、<strong>資產盤點與風險評估</strong>、防護措施、<strong>教育訓練</strong>、<strong>資安演練</strong></td></tr>
-        <tr><td><strong>事件通報</strong></td><td>知悉後於<strong>規定時限內</strong>通報；事件依影響程度分 <strong>1～4 級</strong>，3、4 級須提改善報告</td></tr>
-        <tr><td>稽核</td><td>主管機關得辦理；機關亦須內部稽核並追蹤改善</td></tr>
-        <tr><td>委外管理</td><td>要求受託者符合資安規定並納入契約監督</td></tr>
-      </table></div>
-      <p style="font-size:.86rem">※ <strong>不必背條號與精確時限</strong>，寫「規定時限內」最安全；硬背錯誤反而扣分。</p>
-
-      <strong>📊 主表②　個人資料保護法</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>內容</th></tr>
-        <tr><td>個資定義</td><td>得以<strong>直接或間接</strong>識別特定個人之資料</td></tr>
-        <tr><td><strong>特種個資</strong></td><td>病歷、醫療、基因、性生活、健康檢查、<strong>犯罪前科</strong> → 原則不得蒐集處理利用</td></tr>
-        <tr><td>三種行為</td><td><strong>蒐集、處理、利用</strong>，各有法定合法要件</td></tr>
-        <tr><td>核心原則</td><td>須有<strong>特定目的</strong>、於<strong>必要範圍</strong>內；<strong>目的外利用</strong>受嚴格限制</td></tr>
-        <tr><td>告知義務</td><td>蒐集時應告知機關、目的、類別、利用範圍、當事人權利</td></tr>
-        <tr><td>當事人權利</td><td>查詢閱覽、製給複製本、補充更正、<strong>請求停止蒐集處理利用</strong>、<strong>請求刪除</strong></td></tr>
-        <tr><td><strong>安全維護義務</strong></td><td>應採<strong>適當之技術與組織措施</strong></td></tr>
-        <tr><td><strong>外洩通知</strong></td><td>查明後<strong>通知當事人</strong></td></tr>
-      </table></div>
-
-      <strong>📊 主表③　個資保護技術措施</strong>
-      <div class="table-wrap"><table>
-        <tr><th>技術</th><th>說明</th><th>可否還原</th></tr>
-        <tr><td>加密</td><td>傳輸（TLS）＋靜態加密；<strong>金鑰管理為關鍵</strong></td><td>✅</td></tr>
-        <tr><td>雜湊加鹽</td><td>密碼儲存必用 <strong>bcrypt／Argon2</strong></td><td>❌</td></tr>
-        <tr><td>遮罩</td><td>畫面與報表部分隱藏（A12345****）</td><td>❌</td></tr>
-        <tr><td>代碼化</td><td>以無意義代碼取代，對照表另行嚴管</td><td>✅</td></tr>
-        <tr><td><strong>去識別化</strong></td><td>移除直接識別欄位＋<strong>準識別欄位泛化</strong>（年齡→年齡層、地址→區級）</td><td>視方法</td></tr>
-        <tr><td><strong>存取控制</strong></td><td><strong>RBAC</strong>、最小權限、以<strong>檢視表</strong>限制可見欄位</td><td>—</td></tr>
-        <tr><td><strong>稽核軌跡</strong></td><td>記錄「誰、何時、查了誰的資料」並偵測<strong>異常查詢</strong></td><td>—</td></tr>
-        <tr><td><strong>環境隔離</strong></td><td><strong>測試環境不得使用真實個資</strong></td><td>—</td></tr>
-        <tr><td>保存與銷毀</td><td>訂定保存期限，屆期安全銷毀（含備份媒體）</td><td>—</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>資安責任等級 A~E 五級</strong>與<strong>事件 1~4 級</strong>要分清<br>
-      2. <strong>特定目的、必要範圍</strong>是個資法核心<br>
-      3. <strong>測試環境不得使用真實個資</strong>——很少人寫但很實務<br>
-      4. <strong>稽核軌跡與異常查詢偵測</strong>（防內部濫用）<br>
-      5. 結論：「資料保護須<strong>技術措施與管理制度並行</strong>，並符合法定義務。」
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 7</span><span class="tag">網頁安全 · 25 分</span>
@@ -1176,45 +1242,74 @@ FIN → ACK ← FIN ← ACK →</pre>
       (三) 說明機關委外開發網站時，應如何於驗收階段確保安全。（5 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 三種攻擊比較（本題主表）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>項目</th><th>SQL Injection</th><th>XSS</th><th>CSRF</th></tr>
-        <tr><td><strong>攻擊對象</strong></td><td>伺服器<strong>資料庫</strong></td><td><strong>其他使用者的瀏覽器</strong></td><td>使用者的<strong>既有登入狀態</strong></td></tr>
-        <tr><td><strong>原理</strong></td><td>輸入被當成 SQL 指令執行</td><td>注入惡意腳本於他人瀏覽器執行</td><td>誘使瀏覽器<strong>自動帶憑證</strong>送出請求</td></tr>
-        <tr><td><strong>根本成因</strong></td><td><strong>資料與指令未分離</strong></td><td><strong>輸出未編碼</strong></td><td><strong>無法辨識請求是否為本人意願</strong></td></tr>
-        <tr><td>典型手法</td><td><code>' OR '1'='1</code>、<code>admin' --</code></td><td>儲存型／反射型／DOM 型</td><td>誘點連結或隱藏表單</td></tr>
-        <tr><td>危害</td><td>竊取／竄改／刪除資料、取得系統權限</td><td>竊 Cookie、竄改頁面、釣魚</td><td>以受害者身分執行操作</td></tr>
-        <tr><td><strong>核心防禦</strong></td><td><strong>參數化查詢</strong></td><td><strong>輸出編碼＋CSP</strong></td><td><strong>CSRF Token＋SameSite</strong></td></tr>
-      </table></div>
-      <div class="hl">一句話：<strong>XSS 是「偷你的身分」，CSRF 是「借你的手」。</strong><br>
-      注意：<strong>HttpOnly 降低 XSS 危害，但對 CSRF 無效</strong>。</div>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】注後端偷資料庫，XSS害前端盜Cookie；CSRF借憑證行惡，權杖編碼參數位</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>三大攻擊核心對比</strong>：<br>
+          ‧ <strong>SQLi</strong>：攻擊後端資料庫（字串拼接引發）；防範：參數化查詢 Prepared Statement。<br>
+          ‧ <strong>XSS</strong>：攻擊前端瀏覽器（注入惡意 JS 竊取 Session）；防範：輸出編碼、Cookie 設 HttpOnly、CSP 策略。<br>
+          ‧ <strong>CSRF</strong>：冒用使用者身分在合法網站執行操作；防範：一次性 CSRF Token、Cookie 設 SameSite=Strict/Lax。<br>
+          ② <strong>委外驗收</strong>：納入 SSDLC，要求提供源碼掃描零中高風險報告與第三方滲透測試報告！</p>
+        </div>
 
-      <strong>📊 分層防範措施</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層次</th><th>措施</th></tr>
-        <tr><td><strong>程式層（根本解）</strong></td><td>參數化查詢／ORM；<strong>輸出編碼</strong>（依輸出位置採不同編碼）；輸入驗證採<strong>白名單</strong>；CSRF Token</td></tr>
-        <tr><td><strong>資料庫層</strong></td><td><strong>最小權限</strong>（應用程式帳號非 DBA）、<strong>錯誤訊息不外露</strong>、敏感欄位加密</td></tr>
-        <tr><td><strong>網路層</strong></td><td><strong>WAF</strong>、<strong>DMZ 隔離</strong>（資料庫不得置於 DMZ）、TLS 加密</td></tr>
-        <tr><td><strong>管理層</strong></td><td>安全程式開發規範與教育訓練、上線前 <strong>SAST／DAST 與滲透測試</strong>、定期弱點掃描</td></tr>
-      </table></div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">三大攻擊受害者與防禦矩陣</span><span class="danger-tag">委外採購驗收四步驟</span></div>
+          </div>
 
-      <strong>📊 委外驗收階段之安全確保</strong>
-      <div class="table-wrap"><table>
-        <tr><th>作為</th><th>說明</th></tr>
-        <tr><td>需求規格書</td><td>明定應遵循之<strong>安全開發規範</strong>（如 OWASP）與檢測標準</td></tr>
-        <tr><td><strong>第三方檢測</strong></td><td>委由<strong>獨立第三方</strong>執行弱點掃描與滲透測試（避免球員兼裁判）</td></tr>
-        <tr><td><strong>缺失複測</strong></td><td>高風險弱點<strong>修補完成並複測通過</strong>後始得驗收</td></tr>
-        <tr><td>組態檢查</td><td>確認<strong>測試資料已清除</strong>、<strong>預設帳號已停用或變更</strong>、關閉目錄列表與詳細錯誤訊息</td></tr>
-        <tr><td>契約條款</td><td>保固期內之<strong>漏洞修補義務與時限</strong>；第三方元件清單（SBOM）</td></tr>
-      </table></div>
+          <p><strong>一、SQLi、XSS、CSRF 三大網頁攻擊原理與本質差異（12 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>SQL Injection（SQL 注入）</th><th>XSS（跨網站腳本攻擊）</th><th>CSRF（跨網站請求偽造）</th></tr>
+            <tr><td><strong>攻擊受害者</strong></td><td><strong>後端伺服器與資料庫</strong></td><td><strong>造訪該網頁之終端民眾（瀏覽器）</strong></td><td><strong>已被受害使用者登入之合法 Web 系統</strong></td></tr>
+            <tr><td><strong>攻擊媒介</strong></td><td>惡意 SQL 指令片段</td><td>惡意 <strong>JavaScript 腳本</strong></td><td>偽冒跨站 HTTP 請求（利用瀏覽器自動附帶憑證特性）</td></tr>
+            <tr><td><strong>攻擊成因</strong></td><td>後端將使用者輸入直接字串拼接 SQL</td><td>未經消毒將輸入內容原樣輸出至 HTML/DOM</td><td>未驗證請求來源是否由使用者主觀意圖所發起</td></tr>
+            <tr><td><strong>危害後果</strong></td><td>資料庫全洩漏、資料遭刪除、伺服器淪陷</td><td><strong>竊取民眾 Session Cookie、側錄密碼、釣魚導向</strong></td><td><strong>冒用民眾身分執行轉帳、修改密碼、提交公文</strong></td></tr>
+          </table></div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. 三種攻擊要<strong>清楚區分攻擊對象</strong>（資料庫／他人瀏覽器／登入狀態）<br>
-      2. 各自的<strong>根本成因</strong>與<strong>根本解</strong><br>
-      3. <strong>HttpOnly 對 CSRF 無效</strong><br>
-      4. 驗收要有<strong>第三方檢測＋複測</strong>與<strong>預設帳號變更</strong>
+          <p><strong>二、各項攻擊專屬之最佳防禦技術對策（8 分）</strong></p>
+          <ol>
+            <li><strong>SQL Injection 防禦</strong>：
+              <ul>
+                <li><strong>根本解法：全面實施參數化查詢（Prepared Statement）</strong>，使資料與指令語法樹在編譯期分離。</li>
+                <li>實施資料庫帳號最小權限原則，禁止使用管理員連線。</li>
+              </ul>
+            </li>
+            <li><strong>XSS 防禦</strong>：
+              <ul>
+                <li><strong>輸出編碼（Context-aware Output Encoding）</strong>：將 <code>&lt;, &gt;, &quot;, &#39;, &amp;</code> 轉為 HTML 實體編碼。</li>
+                <li><strong>防竊防禦：將敏感 Session Cookie 加上 <code>HttpOnly</code> 屬性</strong>，瀏覽器 JavaScript 完全無法讀取，徹底廢除 Cookie 竊取。</li>
+                <li>部署<strong>內容安全策略（CSP, Content Security Policy）</strong>，禁止非白名單來源腳本與 <code>inline script</code> 執行。</li>
+              </ul>
+            </li>
+            <li><strong>CSRF 防禦</strong>：
+              <ul>
+                <li><strong>CSRF Token 機制</strong>：表單中嵌入隨機產生的<strong>一次性 Anti-CSRF Token</strong>，後端比對合格才予放行。</li>
+                <li><strong>Cookie 設定 <code>SameSite=Strict</code> 或 <code>Lax</code></strong>，禁止第三方跨站請求自動附帶 Cookie。</li>
+                <li>關鍵交易強制啟用<strong>雙因子驗證（MFA）</strong>或重新輸入密碼。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>三、機關委外開發採購與驗收安全管理（5 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>公務委外資安規範與契約約定</strong>：<br>
+            1. <strong>招標規格書（RFP）</strong>：強制載明遵循安全軟體開發生命週期（SSDLC），排除 OWASP Top 10 與 CWE/SANS Top 25 弱點。<br>
+            2. <strong>驗收階段三大必驗要件</strong>：<br>
+            ‧ <strong>源碼安全檢測（SAST）</strong>：提供第三方源碼掃描報告，<strong>中高級（Medium/High）弱點必須歸零（0 弱點）</strong>。<br>
+            ‧ <strong>黑箱弱點掃描（DAST）與滲透測試（Pen Test）</strong>：由獨立資安廠商進行全站黑箱檢測並出具合格證明。<br>
+            ‧ <strong>交付完整原始碼與智財權</strong>：機關取得程式著作財產權與 SBOM（軟體物料清單），防範第三方開源套件後門漏洞。
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 三大攻擊表格完整：受害者、媒介、成因、後果清晰區隔。<br>
+        2. SQLi 防 Prepared Statement；XSS 防 <code>HttpOnly</code>、輸出編碼、CSP；CSRF 防 CSRF Token、<code>SameSite</code>。<br>
+        3. 委外管理提倡 SSDLC，驗收明確列出<strong>「源碼掃描中高級弱點歸零」與「第三方滲透測試報告」</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 8</span><span class="tag">無線網路 · 25 分</span>
@@ -1224,53 +1319,62 @@ FIN → ACK ← FIN ← ACK →</pre>
       (三) 機關欲建置供民眾使用之公共 Wi-Fi，請提出安全規劃建議。（7 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 主表①　無線安全協定演進</strong>
-      <div class="table-wrap"><table>
-        <tr><th>協定</th><th>加密</th><th>安全性</th><th>說明</th></tr>
-        <tr><td>WEP</td><td>RC4 + 24 位元 IV</td><td><strong>已破解</strong></td><td>IV 太短易重複，數分鐘可破，<strong>絕不可用</strong></td></tr>
-        <tr><td>WPA</td><td>TKIP（仍基於 RC4）</td><td>過渡方案</td><td>為兼容舊硬體之臨時措施</td></tr>
-        <tr><td><strong>WPA2</strong></td><td><strong>AES-CCMP</strong></td><td>目前最低要求</td><td>曾有 KRACK 弱點（已修補）</td></tr>
-        <tr><td><strong>WPA3</strong></td><td>AES + <strong>SAE</strong></td><td><strong>目前最佳</strong></td><td>SAE 取代 PSK 交握，<strong>可防離線字典攻擊</strong>並提供前向保密</td></tr>
-      </table></div>
-      <div class="table-wrap"><table>
-        <tr><th>模式</th><th>驗證</th><th>適用</th></tr>
-        <tr><td>Personal（PSK）</td><td>共享密碼</td><td>家用；<u>人員異動須全面換密碼</u></td></tr>
-        <tr><td><strong>Enterprise（802.1X）</strong></td><td>每人獨立帳號，經 <strong>RADIUS</strong> 驗證</td><td><strong>機關內部應採此模式</strong>：離職僅需停用該帳號</td></tr>
-      </table></div>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】永不信任常驗證，假設入侵小權限；PEP執掌策略門，PDP大腦定行止</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>傳統邊界痛點</strong>：外硬內軟（城堡護城河模型），一旦 VPN 或釣魚被突破，內網如入無人之境。<br>
+          ② <strong>零信任三大核心原則</strong>：永不信任，始終驗證（Never Trust, Always Verify）；明確驗證身分；最小權限原則；假設已遭入侵（Assume Breach）。<br>
+          ③ <strong>NIST SP 800-207 架構</strong>：控制平面（PDP 策略決策點：策略引擎 PE + 策略管理員 PA）➔ 資料平面（PEP 策略執行點：閘道/端點代理）。</p>
+        </div>
 
-      <strong>📊 主表②　常見攻擊手法</strong>
-      <div class="table-wrap"><table>
-        <tr><th>攻擊</th><th>說明</th></tr>
-        <tr><td>竊聽 Eavesdropping</td><td>無線訊號公開傳播，未加密即可擷取</td></tr>
-        <tr><td><strong>惡意 AP（Rogue AP）</strong></td><td>員工私接無線基地台，形成未受管控之後門</td></tr>
-        <tr><td><strong>邪惡雙胞胎（Evil Twin）</strong></td><td>架設同名 SSID 誘使連線，進行中間人攻擊</td></tr>
-        <tr><td><strong>解除驗證攻擊（Deauth）</strong></td><td>強制斷線，誘導重連以擷取交握封包或導向惡意 AP</td></tr>
-        <tr><td>字典／暴力破解</td><td>擷取交握封包後離線破解 PSK（<u>WPA3 的 SAE 可防</u>）</td></tr>
-        <tr><td>WPS PIN 破解</td><td>應<strong>停用 WPS</strong></td></tr>
-      </table></div>
-      <div class="warn"><span class="t">⚠️ 必須指出的無效措施</span>
-      <strong>隱藏 SSID</strong>（探測封包仍可發現）、<strong>MAC 位址過濾</strong>（可偽造）、<strong>降低發射功率</strong>（高增益天線仍可收）——皆屬「<strong>以隱蔽代替安全</strong>」，只能輔助。</div>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">NIST 800-207 核心組件</span><span class="danger-tag">三大核心原則與公務推動</span></div>
+          </div>
 
-      <strong>📊 主表③　公共 Wi-Fi 安全規劃</strong>
-      <div class="table-wrap"><table>
-        <tr><th>面向</th><th>建議</th></tr>
-        <tr><td><strong>網路隔離（最重要）</strong></td><td>① 訪客網路<strong>完全獨立於內部網路</strong>（獨立 VLAN + 防火牆）<br>② 啟用<strong>用戶端隔離</strong>，禁止訪客彼此連線<br>③ 僅開放上網所需之埠，禁止存取內部任何資源</td></tr>
-        <tr><td><strong>加密</strong></td><td>至少 WPA2/WPA3；若須開放式便民，宜採 <strong>WPA3 Enhanced Open（OWE）</strong>提供加密；登入頁須用 HTTPS</td></tr>
-        <tr><td><strong>身分與紀錄</strong></td><td>依規定保存<strong>連線紀錄</strong>以備調查；可採簡訊認證或既有政府身分驗證機制</td></tr>
-        <tr><td><strong>使用管理</strong></td><td>訂定使用者條款、頻寬與時間限制、惡意網站內容過濾</td></tr>
-        <tr><td><strong>個資</strong></td><td>蒐集手機號碼等須符合《個人資料保護法》——<strong>告知特定目的、限必要範圍、訂保存期限並屆期銷毀</strong></td></tr>
-        <tr><td>維運</td><td>AP 韌體更新、<strong>定期偵測惡意 AP</strong>、集中管理與監控、納入資通安全維護計畫</td></tr>
-        <tr><td>民眾提醒</td><td>登入頁提示公共網路風險，建議勿於公共 Wi-Fi 進行金融交易</td></tr>
-      </table></div>
+          <p><strong>一、傳統邊界防護（Perimeter Security）架構之侷限（8 分）</strong></p>
+          <ol>
+            <li><strong>城堡與護城河模型（Castle-and-Moat）的盲點</strong>：
+              傳統架構劃分「外部不可信」與「內部可信」網域。只要攻擊者透過社交工程釣魚或傳統 VPN 成功登入內網，<strong>系統便預設其為合法信任實體</strong>，內網橫向移動（Lateral Movement）完全缺乏阻攔。</li>
+            <li><strong>混合雲與遠距辦公打破實體邊界</strong>：
+              同仁居家遠距上班、機關系統移轉公有雲，使得資料不再侷限於機關機房內部，「實體邊界已然消逝」，傳統單點防火牆防禦完全失效。</li>
+          </ol>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>WPA3 的 SAE 可防離線字典攻擊</strong><br>
-      2. <strong>機關內部應用 802.1X Enterprise 而非 PSK</strong><br>
-      3. <strong>隱藏 SSID 與 MAC 過濾不是有效安全措施</strong><br>
-      4. 公共 Wi-Fi 的<strong>「完全隔離」與「用戶端隔離」</strong><br>
-      5. <strong>連線紀錄保存</strong>與<strong>個資法特定目的</strong>
+          <p><strong>二、零信任架構（Zero Trust Architecture）核心原則與組成元件（10 分）</strong></p>
+          <p><strong>（一）零信任三大黃金指導原則（NIST SP 800-207）</strong></p>
+          <ol>
+            <li><strong>永不信任，始終驗證（Never Trust, Always Verify）</strong>：不論連線來自內部網路或外部網路，任何存取必須依據使用者身分、設備健康度、環境情境逐次進行嚴格驗證與動態授權。</li>
+            <li><strong>最小特權原則（Principle of Least Privilege）</strong>：僅賦予完成目前工作所必須之最小權限，並實施即時授權（Just-in-Time, JIT）。</li>
+            <li><strong>假設已遭入侵（Assume Breach）</strong>：系統設計預設內部網路早已存在惡意攻擊者，實施端對端加密與微隔離（Micro-segmentation），極小化爆炸半徑（Blast Radius）。</li>
+          </ol>
+
+          <p><strong>（二）零信任三大核心組成元件與架構分層</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>架構平面</th><th>核心元件</th><th>角色與功能運作機制</th></tr>
+            <tr><td rowspan="2"><strong>控制平面（Control Plane）</strong></td><td><strong>策略決策點（PDP）之策略引擎（PE）</strong></td><td><strong>零信任的大腦</strong>。綜整威脅情報、身分認證、設備健康度與行為上下文，決定「是否允許此連線」。</td></tr>
+            <tr><td><strong>策略決策點（PDP）之策略管理員（PA）</strong></td><td>負責發送指令指揮 PEP，建立或斷開使用者與應用程式間的加密通訊通道。</td></tr>
+            <tr><td><strong>資料平面（Data Plane）</strong></td><td><strong>策略執行點（PEP）</strong></td><td><strong>零信任的守門員</strong>。部署於邊界或端點之閘道代理，直接攔截所有網路封包，僅在獲得 PDP 授權時才轉發流量。</td></tr>
+          </table></div>
+
+          <p><strong>三、公務機關遠距辦公推動零信任三大階段（7 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>國家資安署零信任推動三部曲（身分、設備、信任推論）</strong>：<br>
+            1. <strong>身分鑑別（Identity）</strong>：全面停用純帳號密碼登入，遠距辦公一律採用基於 <strong>FIDO2（無密碼/生物辨識/自然人憑證）</strong>之多因子身分鑑別。<br>
+            2. <strong>設備鑑別（Device）</strong>：終端設備必須安裝機關管理代理程式，檢驗 TPM 晶片硬體憑證、OS 安全更新修補率與 EDR 防毒防護狀態，未達標設備禁止連入。<br>
+            3. <strong>信任推論（Trust Inference）</strong>：動態連續評估連線風險，若使用者突然自異常異地 IP 登入或大量下載敏感檔案，即刻調降信任分數並中斷 Session。
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 傳統邊界防護「外硬內軟、缺乏橫向防禦」盲點說明透徹。<br>
+        2. 零信任三大原則（永不信任始終驗證、最小權限、假設已遭入侵）標題精煉。<br>
+        3. <strong>明確繪製或條列 PDP（策略引擎PE+策略管理員PA）與 PEP 之控制/資料平面架構</strong>。<br>
+        4. 結合資安署推動政府零信任三部曲：<strong>身分鑑別（FIDO2）、設備鑑別（TPM）、信任推論</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 9</span><span class="tag">資安管理 · 25 分</span>
@@ -1280,59 +1384,62 @@ FIN → ACK ← FIN ← ACK →</pre>
       (三) 說明何謂縱深防禦，並以機關網路架構為例說明。（8 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 主表①　CIA 三大目標</strong>
-      <div class="table-wrap"><table>
-        <tr><th>目標</th><th>意義</th><th>威脅</th><th>防護措施</th></tr>
-        <tr><td><strong>機密性</strong></td><td>只有授權者能存取</td><td>竊聽、外洩、越權查詢</td><td>加密、存取控制、資料分類</td></tr>
-        <tr><td><strong>完整性</strong></td><td>未被未授權竄改</td><td>篡改、中間人攻擊</td><td>雜湊、數位簽章、版本控制</td></tr>
-        <tr><td><strong>可用性</strong></td><td>需要時能使用</td><td>DDoS、勒索軟體、硬體故障</td><td>備份、備援、流量清洗、容量規劃</td></tr>
-      </table></div>
-      <p style="font-size:.86rem">擴充目標：<strong>鑑別性</strong>（確認身分）、<strong>不可否認性</strong>（數位簽章）、<strong>可歸責性</strong>（日誌）。<br>
-      <strong>重要觀點</strong>：CIA 三者<u>常互相衝突</u>（權限收太緊會犧牲可用性）——<strong>資安的本質是風險管理，不是把安全做到最高</strong>。</p>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】密整用三足鼎立，威脅弱點算風險；縱深多重層層阻，單點破防全線固</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>CIA 三大目標</strong>：Confidentiality（機密性/防外洩/加密存取）、Integrity（完整性/防竄改/Hash簽章）、Availability（可用性/防中斷/備援HA）。<br>
+          ② <strong>風險公式</strong>：<code>風險 = 威脅 × 弱點 × 資產價值</code>；處理方式：減緩、規避、轉移、接受。<br>
+          ③ <strong>縱深防禦（Defense-in-Depth）</strong>：邊界（防火牆）➔ 網路（VLAN/IPS）➔ 主機（EDR）➔ 應用（WAF）➔ 資料（AES加密）。</p>
+        </div>
 
-      <strong>📊 主表②　風險管理</strong>
-      <div class="table-wrap"><table>
-        <tr><th>要素</th><th>說明</th></tr>
-        <tr><td><strong>風險公式</strong></td><td><strong>風險 = 威脅 × 弱點 × 衝擊</strong></td></tr>
-        <tr><td>資產</td><td>需保護的對象（資料、系統、設備、人員、聲譽）</td></tr>
-        <tr><td>威脅</td><td>可能造成損害的來源（駭客、天災、內部人員、故障）</td></tr>
-        <tr><td>弱點</td><td>可被利用的缺陷（未修補漏洞、弱密碼、缺乏訓練）</td></tr>
-      </table></div>
-      <div class="table-wrap"><table>
-        <tr><th>風險處理</th><th>做法</th><th>機關實例</th></tr>
-        <tr><td><strong>降低</strong></td><td>導入控制措施</td><td>防火牆、修補、教育訓練</td></tr>
-        <tr><td><strong>轉移</strong></td><td>移轉第三方</td><td>投保資安保險、業務委外</td></tr>
-        <tr><td><strong>避免</strong></td><td>不從事該活動</td><td>停止提供高風險服務</td></tr>
-        <tr><td><strong>接受</strong></td><td>評估後承擔</td><td>殘餘風險經權責主管<strong>簽核</strong>後接受</td></tr>
-      </table></div>
-      <p style="font-size:.86rem">控制措施分類：<strong>管理性／技術性／實體性</strong>；或依時機：<strong>預防性／偵測性／矯正性／嚇阻性</strong>。<br>
-      ISMS（ISO 27001）以 <strong>PDCA</strong> 循環持續改善。</p>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">CIA三大目標定義與對策</span><span class="danger-tag">縱深防禦五層次實例</span></div>
+          </div>
 
-      <strong>📐 主表③　縱深防禦（以機關網路為例）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層次</th><th>措施</th></tr>
-        <tr><td><strong>周邊</strong></td><td>防火牆（預設拒絕、雙向管控）、IPS、DDoS 防護、郵件安全閘道</td></tr>
-        <tr><td><strong>網段</strong></td><td>VLAN 隔離 ＋ ACL；DMZ 放對外服務（<strong>資料庫不得置於 DMZ</strong>）；IoT／訪客獨立網段</td></tr>
-        <tr><td><strong>主機</strong></td><td>安全基準組態、修補管理、EDR、關閉不必要服務</td></tr>
-        <tr><td><strong>應用</strong></td><td>WAF、安全開發規範、上線前檢測</td></tr>
-        <tr><td><strong>資料</strong></td><td>加密、遮罩、最小權限、稽核軌跡</td></tr>
-        <tr><td><strong>管理</strong></td><td>資安政策、教育訓練、演練、稽核</td></tr>
-      </table></div>
-      <pre>網際網路 → 防火牆 → DMZ（網站、郵件）
-                  → 內部防火牆 → 辦公網段
-                              → 伺服器區
-                              → 管理網段
-                              → IoT／訪客網段</pre>
-      <p style="font-size:.86rem"><strong>核心精神</strong>：不依賴單一防線，<strong>任一層失效仍有其他層可攔阻</strong>。</p>
+          <p><strong>一、資訊安全三大目標（CIA Triad）與防護對策（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>資安核心目標</th><th>嚴格定義</th><th>常見威脅與攻擊手法</th><th>主要技術防護對策</th></tr>
+            <tr><td><strong>機密性（Confidentiality）</strong></td><td>確保唯有獲得合法授權之人，方能存取特定資料，防止未授權洩漏。</td><td>網路封包竊聽、帳號密碼遭盜用、資料庫外洩</td><td><strong>AES-256 加密、TLS 傳輸加密、多因子認證（MFA）</strong>、RBAC 角色存取控管</td></tr>
+            <tr><td><strong>完整性（Integrity）</strong></td><td>確保資料在儲存與傳輸過程中，未遭未授權的新增、刪除或非法竄改。</td><td>中間人（MitM）竄改公文、SQL 注入更新資料</td><td><strong>單向雜湊（SHA-256）、數位簽章（Digital Signature）</strong>、資料庫異動日誌</td></tr>
+            <tr><td><strong>可用性（Availability）</strong></td><td>確保經授權之使用者在需要時，隨時能夠及時且穩定地存取資訊與服務。</td><td>DDoS 阻斷攻擊、勒索軟體加密、機房火災斷電</td><td><strong>主從雙機熱備（HA）、負載平衡、UPS 不斷電系統、定期 3-2-1 備份</strong></td></tr>
+          </table></div>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>CIA 三者會互相衝突</strong>，資安本質是風險管理<br>
-      2. <strong>風險 = 威脅 × 弱點 × 衝擊</strong>與四種處理方式<br>
-      3. <strong>殘餘風險須經簽核後接受</strong><br>
-      4. 縱深防禦要<strong>畫架構圖</strong>並列出各層措施<br>
-      5. 結論：「資安非單純技術問題，而是<strong>治理問題</strong>——需高階支持、權責分工、資源投入與持續稽核。」
+          <p><strong>二、風險管理要素與四大風險處理策略（9 分）</strong></p>
+          <ol>
+            <li><strong>風險評鑑核心要素公式</strong>：<br>
+              <code>資訊風險值（Risk） = 資產價值（Asset） × 威脅發生機率（Threat） × 弱點嚴重程度（Vulnerability）</code></li>
+            <li><strong>四大風險處理策略（Risk Treatment）</strong>：
+              <ul>
+                <li><strong>風險減緩（Mitigation）</strong>：導入資安控制措施以降低機率或衝擊（如加裝防火牆與修補系統漏洞）。</li>
+                <li><strong>風險規避（Avoidance）</strong>：徹底終止該項高風險活動（如禁止公務電腦連線外部 P2P 網站）。</li>
+                <li><strong>風險轉移（Transfer）</strong>：將潛在損失轉移至第三方（如投保資安險或業務外包託管）。</li>
+                <li><strong>風險接受（Acceptance）</strong>：殘留風險低於機關可容忍上限時，由長官正式簽准予以承擔。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>三、何謂縱深防禦（Defense-in-Depth）及機關實例（8 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>縱深防禦核心理念</strong>：<strong>「不依賴任何單一安全防護手段」</strong>，層層設防。即便某一層（如防火牆）被突破，後續防線（EDR、資料庫加密）仍能阻斷攻擊。<br>
+            ‧ <strong>機關五層防護實例</strong>：<br>
+            1. <strong>邊界防禦層</strong>：部署次世代防火牆（NGFW）阻絕非法外連。<br>
+            2. <strong>網路防禦層</strong>：劃分 VLAN 虛擬區域網路，在關鍵節點部署入侵防禦系統（IPS）。<br>
+            3. <strong>應用防禦層</strong>：對外網站架設 WAF 阻擋 SQLi/XSS，源碼實施弱點修補。<br>
+            4. <strong>主機端點層</strong>：全體同仁 PC 強制安裝 EDR 端點偵測與回應軟體，即時隔離受害主機。<br>
+            5. <strong>資料儲存層</strong>：核心資料庫實施 AES 欄位加密與獨立活動監控（DAM），終局守護個資。
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. CIA 三大核心定義、威脅與防護對策精確。<br>
+        2. 風險要素公式（資產×威脅×弱點）與四大處理策略（減緩、規避、轉移、接受）。<br>
+        3. <strong>縱深防禦概念（多層防線防單點崩潰）與機關五層具體實例對應完整</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 10</span><span class="tag">備份 · 25 分</span>
@@ -1342,42 +1449,72 @@ FIN → ACK ← FIN ← ACK →</pre>
       (三) 某機關核心系統要求 RTO ≤ 4 小時、RPO ≤ 1 小時，且須能因應勒索軟體，請提出建議。（9 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <strong>📊 主表①　三種備份比較</strong>
-      <div class="table-wrap"><table>
-        <tr><th>類型</th><th>備份內容</th><th>備份時間</th><th>儲存空間</th><th>復原步驟</th></tr>
-        <tr><td><strong>完整</strong></td><td>全部資料</td><td>最長</td><td>最大</td><td>最簡單、<strong>最快</strong></td></tr>
-        <tr><td><strong>差異</strong></td><td>自上次<strong>完整</strong>備份後的變更</td><td>中</td><td>中</td><td>完整 ＋ <strong>最後一次</strong>差異</td></tr>
-        <tr><td><strong>增量</strong></td><td>自上次<strong>任何</strong>備份後的變更</td><td><strong>最短</strong></td><td>最小</td><td>完整 ＋ <strong>所有</strong>增量（最慢）</td></tr>
-      </table></div>
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】BCP管營運DRP救災，RTO停多久RPO丟幾筆；三二一備份永固，雙活多活抗全毀</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>BCP vs DRP</strong>：BCP（業務持續運作，組織層級，保證核心業務不斷線）；DRP（災難復原計畫，IT 技術層級，系統與資料重生）。<br>
+          ② <strong>RTO vs RPO</strong>：RTO ≤ 4 小時（4 小時內把系統拉起來）；RPO ≤ 1 小時（最多只容忍遺失過去 1 小時之交易）。<br>
+          ③ <strong>3-2-1 備份</strong>：3 份資料、2 種不同介質（磁碟 + 磁帶/物件儲存）、1 份異地存放（最好離線防勒索）。<br>
+          ④ <strong>高可用落地</strong>：負載平衡器 + 雙機熱備援（Active-Standby）+ 資料庫同動同步（Synchronous Replication）。</p>
+        </div>
 
-      <strong>📊 主表②　RTO 與 RPO</strong>
-      <div class="table-wrap"><table>
-        <tr><th>指標</th><th>意義</th><th>決定什麼</th></tr>
-        <tr><td><strong>RTO</strong>（復原時間目標）</td><td>可容忍的<strong>停機時間</strong>上限</td><td><strong>備援架構</strong>（熱／溫／冷備援）</td></tr>
-        <tr><td><strong>RPO</strong>（復原點目標）</td><td>可容忍的<strong>資料遺失量</strong>上限</td><td><strong>備份／日誌傳送頻率</strong></td></tr>
-      </table></div>
-      <pre>          RPO              事件           RTO
-  ←─遺失多少資料─┤   ▼ 發生   ├─多久恢復服務─→
-   最後一次備份                     服務恢復</pre>
-      <p style="font-size:.86rem">另需說明 <strong>BIA（營運衝擊分析）</strong>：盤點關鍵業務、評估中斷衝擊，作為訂定 RTO／RPO 的依據。</p>
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">BCP與DRP層級區分</span><span class="danger-tag">RTO≤4h RPO≤1h 技術架構</span></div>
+          </div>
 
-      <strong>📊 主表③　本案架構建議</strong>
-      <div class="table-wrap"><table>
-        <tr><th>目標</th><th>建議做法</th></tr>
-        <tr><td><strong>達成 RPO ≤ 1 小時</strong></td><td>① 每日完整備份 ＋ <strong>每小時交易日誌備份並傳送異地</strong><br>② 或採<strong>非同步複寫</strong>至備援站，可使 RPO 逼近數分鐘</td></tr>
-        <tr><td><strong>達成 RTO ≤ 4 小時</strong></td><td>① 建置<strong>溫備援或熱備援</strong>站台，預先部署系統環境<br>② 虛擬化叢集 ＋ 高可用（HA），單機故障可自動切換<br>③ 訂定明確<strong>切換決策程序</strong>（誰有權決定、判斷準則），避免決策延誤耗掉時間<br>④ <u>冷備援於 4 小時內完成還原風險偏高，不建議</u></td></tr>
-        <tr><td><strong>因應勒索軟體</strong><br>（本題重點）</td><td>① <strong>離線備份（Air-gapped）</strong>——實體隔離使惡意程式無法觸及<br>② <strong>不可變備份（Immutable／WORM）</strong>——保留期間內不可刪改<br>③ <strong>備份系統帳號與網域分離</strong>——攻擊者常先取得網域管理員權限再刪備份<br>④ <strong>多版本保留</strong>——惡意程式可能潛伏數週，僅留最新備份可能已受污染<br>⑤ <strong>還原前先掃描</strong>，避免二次感染</td></tr>
-        <tr><td><strong>管理配套</strong></td><td>① <strong>定期演練還原</strong>並記錄——「備份成功」不等於「還原成功」<br>② 演練應包含<strong>實際切換</strong>至備援站<br>③ 備份加密並控管存取<br>④ 備份監控與失敗告警<br>⑤ 異地備援站應位於<strong>不同地理區域</strong><br>⑥ 依《資通安全管理法》納入維護計畫並定期演練</td></tr>
-      </table></div>
+          <p><strong>一、BCP 與 DRP 之內涵差異及 RTO / RPO 指標（8 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>比較維度</th><th>業務持續運作計畫（BCP）</th><th>災難復原計畫（DRP）</th></tr>
+            <tr><td><strong>涵蓋層級</strong></td><td><strong>全機關組織管理層級（Business-level）</strong></td><td><strong>資訊科技技術層級（IT-level）</strong></td></tr>
+            <tr><td><strong>核心目標</strong></td><td>遭遇重大災變時，確保機關<strong>核心公務業務不中斷</strong>，維持最低法定營運能力</td><td>專注於將損壞的<strong>伺服器、網路與資料庫系統安全重啟並復原資料</strong></td></tr>
+            <tr><td><strong>包含要件</strong></td><td>業務衝擊分析（BIA）、替代辦公場所、人員指揮鏈、公關通報</td><td>資料備份還原步驟、備援機房切換、硬體重置SOP</td></tr>
+          </table></div>
+          <p><strong>【核心復原指標嚴格定義】</strong></p>
+          <ol>
+            <li><strong>RTO（復原時間目標）</strong>：系統發生中斷後，<strong>恢復正常營運所需花費的最大時間上限</strong>（衡量「中斷時間長短」）。</li>
+            <li><strong>RPO（復原點目標）</strong>：發生災變時，機關<strong>所能容忍遺失之最大資料時間範圍</strong>（衡量「資料遺失量」）。</li>
+          </ol>
 
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>RTO 與 RPO 要分開回應</strong>（架構 vs 頻率）<br>
-      2. <strong>離線／不可變備份</strong>是抗勒索的核心<br>
-      3. <strong>備份帳號與網域分離</strong>、<strong>多版本保留</strong><br>
-      4. <strong>「備份成功不等於還原成功」——必須定期演練</strong><br>
-      5. <strong>3-2-1 原則</strong>
+          <p><strong>二、備份策略類型與 3-2-1 黃金法則（8 分）</strong></p>
+          <ol>
+            <li><strong>備份三種類型效能權衡</strong>：
+              <ul>
+                <li><strong>完整備份</strong>：全量拷貝，時間最長，但還原最快（單檔即還原）。</li>
+                <li><strong>差異備份</strong>：備份上次全備份後之異動，還原僅需全備份 + 最新差備份。</li>
+                <li><strong>增量備份</strong>：僅備份上次任意備份後之增量，最省空間，但還原鏈結長，任一損壞即全毀。</li>
+              </ul>
+            </li>
+            <li><strong>3-2-1 備份黃金原則</strong>：
+              <ul>
+                <li><strong>3 份資料複本</strong>：1 份正式生產資料 + 2 份獨立備份。</li>
+                <li><strong>2 種不同儲存媒介</strong>：如一份存放於高效能 SAN 磁碟陣列，另一份存放於 LTO 磁帶或雲端物件儲存。</li>
+                <li><strong>1 份異地保存（Offsite）</strong>：存放於距離主機房至少 30 公里以上之異地機房，防範地震火災等區域性天災；現代更衍生 <strong>3-2-1-1-0 法則（額外包含 1 份不可篡改之離線 Immutable / Air-Gapped 備份）</strong>，防勒索病毒通殺。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>三、滿足 RTO ≤ 4 小時、RPO ≤ 1 小時之高可用架構規劃（9 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>公務核心系統技術架構落地實作</strong>：<br>
+            ‧ <strong>應用層（Web/App）</strong>：部署高可用性<strong>負載平衡器（HAProxy / F5）搭配雙機 Active-Standby</strong>，後端部署叢集化 Web 伺服器，單機當機時 10 秒內自動容錯移轉（Failover），滿足 RTO 極限需求。<br>
+            ‧ <strong>資料庫層（Database HA）</strong>：<br>
+              1. <strong>同機房主從熱備援</strong>：採用主資料庫（Primary）與熱備援庫（Hot Standby），配置<strong>同動同步複寫（Synchronous Replication）</strong>，達成 <strong>RPO = 0（零資料遺失）</strong>。<br>
+              2. <strong>異地災難備援機房（DR Site）</strong>：透過專線配置<strong>非同步串流複寫（Asynchronous Streaming）</strong>，網路頻寬延遲控制在秒級，確保異地資料落後 <strong>RPO 遠小於 1 小時（實測約 10~30 秒）</strong>。<br>
+            ‧ <strong>自動與手動切換 SOP</strong>：主機房遭遇毀滅性災難時，透過 DNS GSLB（全域伺服器負載平衡）將流量切換至異地機房，操作程序嚴格自動化控制在 <strong>30 分鐘內完成切換（遠低於法定 RTO ≤ 4 小時門檻）</strong>！
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. BCP（全機關業務營運）vs DRP（資訊系統技術復原）層次區分清楚。<br>
+        2. RTO（中斷時間上限）與 RPO（資料損失時間上限）定義精確。<br>
+        3. 3-2-1 備份法則（3複本、2介質、1異地）並提及防勒索不可篡改離線備份。<br>
+        4. 滿足 RTO ≤ 4h、RPO ≤ 1h 之具體架構包含：<strong>負載平衡雙機熱備、資料庫即時串流同步、異地 GSLB 切換</strong>。
+</div>
       </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 11</span><span class="tag">網路管理 · 25 分</span>
@@ -1385,63 +1522,63 @@ FIN → ACK ← FIN ← ACK →</pre>
       某機關辦公室多位同仁反映「無法上網」，身為資訊人員，請說明你的排查程序與可能原因。（25 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、先釐清問題範圍（<u>主表①</u>）→ 二、依 OSI 分層由下而上排查（<u>主表②</u>）→ 三、常見原因與對策（<u>主表③</u>）→ 四、後續管理建議 → 五、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】由下而上七層查，線燈網卡回送測；閘道路由查域名，代理解析分群尋</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>排查第一準則</strong>：由下而上（Bottom-Up，實體層 ➔ 資料鏈結 ➔ 網路 ➔ 應用）。<br>
+          ② <strong>排查命令五步</strong>：<br>
+          ‧ 步 1：實體燈號與網路線（L1）。<br>
+          ‧ 步 2：<code>ping 127.0.0.1</code> 測本機 TCP/IP 堆疊（L2/L3）。<br>
+          ‧ 步 3：<code>ipconfig /all</code> 看 IP、Mask、預設閘道是否正確取得。<br>
+          ‧ 步 4：<code>ping 預設閘道</code> 測內網通訊。<br>
+          ‧ 步 5：<code>ping 8.8.8.8</code> 測外網路由；<code>nslookup</code> 測 DNS 網域名稱解析！</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">OSI 由下而上排查法</span><span class="danger-tag">單一 vs 全體故障範圍鑑別</span></div>
+          </div>
+
+          <p><strong>一、故障範圍快速定性分析（先行步驟）（5 分）</strong></p>
+          <ol>
+            <li><strong>詢問確認影響範圍</strong>：
+              <ul>
+                <li><strong>僅單一同仁無法上網</strong>：問題高機率出在該同仁本機網卡、網線、插座或專屬 IP 衝突。</li>
+                <li><strong>全科室/全棟無法上網</strong>：問題出在樓層交換器當機、核心路由器故障、DHCP 伺服器耗盡或對外電信專線中斷。</li>
+              </ul>
+            </li>
+          </ol>
+
+          <p><strong>二、依 OSI 模型「由下而上（Bottom-Up）」排查程序與診斷（15 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>排查步驟</th><th>檢驗層級</th><th>使用指令與具體動作</th><th>可能故障原因與排除手法</th></tr>
+            <tr><td><strong>步驟 1</strong></td><td><strong>第 1 層：實體層</strong></td><td>目視檢查 RJ-45 網路線是否鬆脫、網卡指示燈（Link/Act）是否亮綠燈。</td><td>網路線破損、水晶頭接腳氧化、牆面插座跳線脫落。<strong>排除：更換合格 Cat 6 網路線。</strong></td></tr>
+            <tr><td><strong>步驟 2</strong></td><td><strong>本機協定堆疊</strong></td><td>在 CMD 輸入 <code>ping 127.0.0.1</code></td><td>若 ping 失敗，代表作業系統本機 TCP/IP 網路協定堆疊損壞或驅動程式崩潰。<strong>排除：重裝網卡驅動或修復系統。</strong></td></tr>
+            <tr><td><strong>步驟 3</strong></td><td><strong>第 2/3 層：IP 配置</strong></td><td>輸入 <code>ipconfig /all</code></td><td>若取得 <code>169.254.X.X</code>（APIPA 偽位址），代表<strong>無法連線至 DHCP 伺服器</strong>（DHCP Pool 滿或封包遺失）。<strong>排除：執行 <code>ipconfig /release</code> 與 <code>/renew</code>。</strong></td></tr>
+            <tr><td><strong>步驟 4</strong></td><td><strong>內網預設閘道</strong></td><td>輸入 <code>ping 192.168.1.1</code>（預設閘道 IP）</td><td>若失敗，代表<strong>同仁至樓層交換器/路由器間連線中斷</strong>，或發生 IP 衝突、VLAN 劃分錯誤。</td></tr>
+            <tr><td><strong>步驟 5</strong></td><td><strong>對外實體路由</strong></td><td>輸入 <code>ping 168.95.1.1</code> 或 <code>8.8.8.8</code></td><td>若可 ping 通外部公開 IP，但瀏覽器打不開網頁，代表<strong>網路實體通暢，純粹是 DNS 解析故障！</strong></td></tr>
+            <tr><td><strong>步驟 6</strong></td><td><strong>第 7 層：應用/DNS</strong></td><td>輸入 <code>nslookup www.gov.tw</code></td><td>若回報逾時，確認為 DNS 伺服器當機或快取污染。<strong>排除：<code>ipconfig /flushdns</code> 並改換備用 DNS。</strong></td></tr>
+          </table></div>
+
+          <p><strong>三、代理伺服器與資安政策攔截排查（5 分）</strong></p>
+          <div class="verify-box">
+            🏛️ <strong>公門特定情境（Proxy 與資安管制）</strong>：<br>
+            若上述網路指令全數正常，但瀏覽器依舊顯示無法連線：<br>
+            1. <strong>檢查瀏覽器 Proxy 設定</strong>：公務機關常強制配置上網代理伺服器（Proxy），若同仁誤勾「手動代理」或 Proxy 伺服器異常，將無法造訪網頁。<br>
+            2. <strong>防毒防火牆誤判</strong>：同仁電腦安裝之 EDR/防毒軟體防火牆規則將瀏覽器列入黑名單，暫時重置軟體防火牆規則進行驗證。
+          </div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 先行區分「單一使用者 vs 全體科室」故障範圍。<br>
+        2. <strong>嚴格遵循 OSI 由下而上（實體燈號 ➔ 127.0.0.1 ➔ ipconfig ➔ 預設閘道 ➔ 外網IP ➔ DNS）標準五步排查法</strong>。<br>
+        3. 每步清楚附帶排查 CMD 指令與判定原理。<br>
+        4. 補充公務機關 Proxy 代理伺服器與 EDR 軟體攔截考量。
+</div>
       </div>
-
-      <strong>📊 主表①　先釐清範圍（不要急著動手）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>問題</th><th>用意</th></tr>
-        <tr><td>影響範圍？（一人／一個科室／整層樓／全機關）</td><td>判斷是端點問題或網路設備問題</td></tr>
-        <tr><td>何時開始？近期有無變更？</td><td><strong>多數故障肇因於「未經評估的變更」</strong></td></tr>
-        <tr><td>是完全不通，還是特定網站／服務不通？</td><td>區分網路層問題或應用層／DNS 問題</td></tr>
-        <tr><td>有線或無線？</td><td>縮小範圍</td></tr>
-      </table></div>
-
-      <strong>📊 主表②　分層排查程序（由下而上）</strong>
-      <div class="table-wrap"><table>
-        <tr><th>層</th><th>檢查項目</th><th>工具／指令</th><th>判讀</th></tr>
-        <tr><td><strong>L1 實體</strong></td><td>網路線、接頭、交換器埠燈號、電源</td><td>目視</td><td>燈不亮 → 線材或埠故障</td></tr>
-        <tr><td><strong>L2 連結</strong></td><td>VLAN 設定、Port Security、交換器狀態</td><td>交換器管理介面</td><td>埠被 err-disable → Port Security 觸發</td></tr>
-        <tr><td><strong>L3 網路</strong></td><td>IP 設定是否正確</td><td><code>ipconfig /all</code></td><td><strong>169.254.x.x → DHCP 取得失敗</strong></td></tr>
-        <tr><td></td><td>同網段是否可通</td><td><code>ping 預設閘道</code></td><td>不通 → L1/L2 或閘道問題</td></tr>
-        <tr><td></td><td>跨網段是否可通</td><td><code>ping 8.8.8.8</code></td><td>不通 → 路由、防火牆或對外線路</td></tr>
-        <tr><td></td><td>路徑在哪中斷</td><td><code>tracert</code></td><td>找出中斷節點</td></tr>
-        <tr><td><strong>DNS</strong></td><td>名稱解析</td><td><code>ping www.gov.tw</code>、<code>nslookup</code></td><td><strong>IP 通但網址不通 → DNS 問題</strong></td></tr>
-        <tr><td><strong>L4–L7</strong></td><td>埠號、防火牆規則、代理伺服器、服務狀態</td><td><code>netstat</code>、telnet 測埠</td><td>特定服務不通 → 應用層或政策問題</td></tr>
-      </table></div>
-
-      <strong>📊 主表③　常見原因與對策</strong>
-      <div class="table-wrap"><table>
-        <tr><th>可能原因</th><th>徵兆</th><th>對策</th></tr>
-        <tr><td><strong>DHCP 伺服器異常／位址池耗盡</strong></td><td>多人取得 169.254</td><td>檢查服務、擴充位址池、縮短租期</td></tr>
-        <tr><td><strong>DNS 伺服器異常</strong></td><td>IP 通、網址不通</td><td>改用備援 DNS、檢查服務</td></tr>
-        <tr><td>交換器／路由器故障或設定變更</td><td>整區不通</td><td>檢視設定變更紀錄、切換備援</td></tr>
-        <tr><td><strong>對外線路中斷</strong></td><td>內網通、外網不通</td><td>聯繫 ISP；<u>是否有第二條線路備援</u></td></tr>
-        <tr><td>IP 位址衝突</td><td>時通時不通</td><td>檢查是否有人手動設定靜態 IP</td></tr>
-        <tr><td><strong>迴圈造成廣播風暴</strong></td><td>全網變慢或癱瘓</td><td>檢查是否有人誤接兩條線；啟用 <strong>STP</strong> 與 BPDU Guard</td></tr>
-        <tr><td>ARP 欺騙或惡意程式</td><td>異常流量、封包導向異常</td><td>啟用 DHCP Snooping ＋ DAI；隔離受害主機</td></tr>
-        <tr><td>防火牆或上網政策變更</td><td>特定網站不通</td><td>檢視規則變更紀錄</td></tr>
-      </table></div>
-
-      <div class="table-wrap"><table>
-        <tr><th>後續管理建議</th></tr>
-        <tr><td>① 建立<strong>網路架構圖與設備清冊</strong>（故障時才知道從何查起）<br>
-        ② 落實<strong>變更管理</strong>：任何設定變更須紀錄並備妥<strong>回復計畫</strong><br>
-        ③ 部署<strong>網路監控與告警</strong>，主動發現而非等使用者通報<br>
-        ④ 關鍵設備與線路<strong>備援</strong>，避免單點故障<br>
-        ⑤ 建立<strong>故障處理 SOP 與知識庫</strong>，累積案例（因應人員輪調）<br>
-        ⑥ 依 ITIL 精神區分<strong>事件管理</strong>（盡快恢復）與<strong>問題管理</strong>（根除原因）</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>先釐清影響範圍與近期變更</strong>——顯示有系統思維而非亂試<br>
-      2. <strong>由下而上分層排查</strong>的架構<br>
-      3. <strong>169.254 → DHCP 失敗</strong>、<strong>IP 通但網址不通 → DNS</strong> 這兩個判讀<br>
-      4. <strong>事件管理 vs 問題管理</strong>（先恢復服務、再根除原因）<br>
-      5. 後續管理建議（變更管理、監控、SOP）
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="q"><span class="no">申論 12</span><span class="tag">綜合 · 25 分</span>
@@ -1450,69 +1587,37 @@ FIN → ACK ← FIN ← ACK →</pre>
       請就<strong>連線方式、身分驗證、權限控管、端點安全、管理制度</strong>五個面向提出資安建議。（25 分）
     </div>
     <details><summary>看答題架構</summary><div class="ans">
-      <div class="frame"><span class="t">📋 答題骨架</span>
-      一、前言：遠距存取<strong>將機關邊界延伸至家庭網路</strong>，風險大幅提高 →
-      二～六、五個面向逐項（各一表）→ 七、結論
+        <div class="memo-card">
+          <div class="memo-header">⚡ 考前 30 秒秒殺速記口訣</div>
+          <p><span class="formula">【口訣】通道加密身分雙，權限最小端點檢；制度宣導定期審，遠距辦公固若金</span></p>
+          <p><strong>心智記憶錨點</strong>：<br>
+          ① <strong>五大維度</strong>：連線方式（SSL-VPN / 專屬加密通道）、身分驗證（MFA 多因子 / 自然人憑證）、權限控管（最小特權 / 角色分權）、端點安全（EDR / 病毒碼檢查）、管理制度（遠距資安守則 / 簽署保密）。</p>
+        </div>
+
+        <div class="score-template">
+          <div class="score-template-header">
+            <span class="score-template-title">🎯 國考閱卷滿分作答範本（採點給分標準版）</span>
+            <div><span class="scoring-tag">五大面向完整對應</span><span class="danger-tag">遠距端點與MFA考核</span></div>
+          </div>
+
+          <p><strong>一、遠距辦公五大面向資安防護建議架構（25 分）</strong></p>
+          <div class="table-wrap"><table>
+            <tr><th>防護面向</th><th>核心技術原則</th><th>公務機關具體實施作法</th></tr>
+            <tr><td><strong>一、連線方式</strong></td><td><strong>安全加密通道</strong></td><td>‧ 禁止直接以 RDP 開放公網連線。<br>‧ 必須透過 <strong>SSL-VPN 或 IPsec VPN</strong> 加密通道建立連線，通訊傳輸強制啟用 TLS 1.3/AES-256 加密。</td></tr>
+            <tr><td><strong>二、身分驗證</strong></td><td><strong>多因子驗證（MFA）</strong></td><td>‧ 嚴格禁止僅憑帳號密碼登入。<br>‧ 實施<strong>「所知（密碼） + 所持有（自然人憑證或手機 OTP Authenticator）」</strong>雙因子鑑別，徹底阻絕字典檔或釣魚盜帳號。</td></tr>
+            <tr><td><strong>三、權限控管</strong></td><td><strong>最小特權與微隔離</strong></td><td>‧ 依同仁職掌實施 <strong>RBAC 權限控管</strong>，僅開放該同仁業務必要之伺服器服務。<br>‧ 限制 VPN 連線直接跨網段橫向存取；重要管理介面限制僅能由專屬跳板機（Bastion Host）登入。</td></tr>
+            <tr><td><strong>四、端點安全</strong></td><td><strong>端點合規與防護</strong></td><td>‧ 優先使用機關配發之公務筆電；若採 BYOD，必須通過<strong>端點健康檢查（Host Integrity Check）</strong>。<br>‧ 端點必須強制安裝機關統一集中管考之 <strong>EDR（端點偵測與回應）</strong>，作業系統修補率達標，未合規者強制拒絕連線。</td></tr>
+            <tr><td><strong>五、管理制度</strong></td><td><strong>制度規範與稽核</strong></td><td>‧ 訂定《遠距辦公資通安全作業指引》，遠距同仁強制簽署<strong>資訊保密協議（NDA）</strong>。<br>‧ 規範禁止於公共場所使用開放式未加密 Wi-Fi 辦公；定期對 VPN 登入與異動日誌進行稽核審查。</td></tr>
+          </table></div>
+        </div>
+
+<div class="hl"><span class="t">✍️ 閱卷老師踩分點極大化清單</span>
+        1. 題目要求之五大面向（連線方式、身分驗證、權限控管、端點安全、管理制度）完整涵蓋，無一遺漏。<br>
+        2. 技術規格點出：SSL-VPN、MFA 多因子/自然人憑證、RBAC、EDR 端點健康檢查、遠距資安守則。<br>
+        3. 條列層次清晰，排版結構專業整飭。
+</div>
       </div>
-
-      <strong>📊 面向一：連線方式</strong>
-      <div class="table-wrap"><table>
-        <tr><th>建議</th><th>說明</th></tr>
-        <tr><td><strong>採 VPN 加密通道</strong></td><td>SSL/TLS VPN（部署簡便）或 IPsec VPN；<strong>禁止直接對外開放 RDP（3389）</strong>——這是勒索軟體最常見入口</td></tr>
-        <tr><td>高敏感系統採 <strong>VDI</strong></td><td>虛擬桌面，<strong>資料不落地</strong>至個人裝置</td></tr>
-        <tr><td>中長期評估 <strong>ZTNA</strong></td><td>以應用程式為單位授權，逐步取代傳統 VPN</td></tr>
-        <tr><td>VPN 設備維護</td><td><strong>優先納入修補管理</strong>——VPN 漏洞常被優先鎖定攻擊</td></tr>
-      </table></div>
-
-      <strong>📊 面向二：身分驗證</strong>
-      <div class="table-wrap"><table>
-        <tr><th>建議</th><th>說明</th></tr>
-        <tr><td><strong>強制 MFA</strong></td><td><strong>最重要的單一措施</strong>；僅靠帳密的 VPN 極易遭撞庫或釣魚</td></tr>
-        <tr><td>密碼政策</td><td>長度與複雜度、禁用常見密碼、定期檢查是否出現在外洩資料庫</td></tr>
-        <tr><td>帳號管理</td><td><strong>定期停用久未使用帳號</strong>；離職即時停權</td></tr>
-        <tr><td>異常登入偵測</td><td>非上班時間、境外 IP、短時間多地登入 → 告警或阻擋</td></tr>
-      </table></div>
-
-      <strong>📊 面向三：權限控管</strong>
-      <div class="table-wrap"><table>
-        <tr><th>建議</th><th>說明</th></tr>
-        <tr><td><strong>最小權限</strong></td><td>VPN 連入後<u>不應可存取整個內網</u>，須以 ACL 限制可達之系統與埠</td></tr>
-        <tr><td><strong>RBAC</strong></td><td>依角色授權，人員異動只需改角色指派</td></tr>
-        <tr><td>分級開放</td><td>依系統敏感度決定是否開放遠端存取；<strong>最機敏者可不開放</strong></td></tr>
-        <tr><td>特權帳號</td><td>管理者帳號<strong>不得用於遠端日常作業</strong>；採跳板機並全程稽核</td></tr>
-        <tr><td>存取紀錄</td><td>完整保留連線與操作日誌，納入 SIEM 監控</td></tr>
-      </table></div>
-
-      <strong>📊 面向四：端點安全</strong>
-      <div class="table-wrap"><table>
-        <tr><th>建議</th><th>說明</th></tr>
-        <tr><td><strong>優先配發公務筆電</strong></td><td>可統一納管；若須使用個人裝置（BYOD），風險顯著較高</td></tr>
-        <tr><td><strong>裝置健康檢查</strong></td><td>連線前確認已更新修補、防毒／EDR 運作中、<strong>磁碟加密</strong>已啟用</td></tr>
-        <tr><td>資料落地控管</td><td>禁止將機敏資料存於個人裝置；必要時以 DLP 或 VDI 控管</td></tr>
-        <tr><td>實體安全</td><td>螢幕自動鎖定、避免於公共場所處理機敏資料、遺失時可<strong>遠端抹除</strong></td></tr>
-        <tr><td>家庭網路</td><td>提醒同仁變更家用路由器預設密碼、使用 WPA2/WPA3、<strong>避免使用公用 Wi-Fi</strong></td></tr>
-      </table></div>
-
-      <strong>📊 面向五：管理制度</strong>
-      <div class="table-wrap"><table>
-        <tr><th>建議</th><th>說明</th></tr>
-        <tr><td><strong>訂定遠距辦公資安規範</strong></td><td>明定可存取系統、禁止事項、資料處理原則；<strong>經權責單位核定並公告</strong></td></tr>
-        <tr><td>申請與核准程序</td><td>遠端存取權限應<strong>經主管核准</strong>並定期檢視</td></tr>
-        <tr><td><strong>教育訓練</strong></td><td>釣魚郵件辨識、社交工程演練；<strong>因應深偽（Deepfake），重要指示須以另一管道回撥確認</strong></td></tr>
-        <tr><td>事件通報</td><td>明確告知同仁發現異常時的<strong>通報窗口與程序</strong></td></tr>
-        <tr><td>法規遵循</td><td>依《資通安全管理法》納入資通安全維護計畫；涉個資者依《個人資料保護法》辦理</td></tr>
-        <tr><td>定期檢討</td><td>依實際使用狀況與威脅情勢調整規範</td></tr>
-      </table></div>
-
-      <div class="hl"><span class="t">✍️ 必寫拿分點</span>
-      1. <strong>五個面向全部回答</strong>——缺一面向即扣 5 分<br>
-      2. <strong>MFA 是最重要的單一措施</strong><br>
-      3. <strong>禁止直接對外開放 RDP</strong><br>
-      4. <strong>VPN 連入後仍須最小權限</strong>（不是進來就通行無阻）<br>
-      5. <strong>資料不落地／VDI</strong>與<strong>裝置健康檢查</strong><br>
-      6. 結論：「遠距辦公使機關邊界延伸至家庭網路，防護不能僅靠 VPN；須以<strong>身分驗證、最小權限、端點管理與制度規範</strong>並行，並考量機關<strong>維運能量</strong>分階段導入。」
-      </div>
-    </div></details>
+    </details>
   </div>
 
   <div class="card"><h3>F. 進階綜合（第 46～65 題）</h3>
@@ -6107,7 +6212,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 2" data-ans="C">
@@ -6135,7 +6241,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 3" data-ans="C">
@@ -6163,7 +6270,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 4" data-ans="C">
@@ -6191,7 +6299,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 5" data-ans="C">
@@ -6219,7 +6328,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 6" data-ans="C">
@@ -6247,7 +6357,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 7" data-ans="C">
@@ -6275,7 +6386,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 8" data-ans="C">
@@ -6303,7 +6415,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 9" data-ans="C">
@@ -6331,7 +6444,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 10" data-ans="C">
@@ -6359,7 +6473,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 11" data-ans="C">
@@ -6387,7 +6502,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 12" data-ans="C">
@@ -6415,7 +6531,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 13" data-ans="C">
@@ -6443,7 +6560,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 14" data-ans="C">
@@ -6471,7 +6589,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 15" data-ans="C">
@@ -6499,7 +6618,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 16" data-ans="C">
@@ -6527,7 +6647,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 17" data-ans="C">
@@ -6555,7 +6676,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 18" data-ans="C">
@@ -6583,7 +6705,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 19" data-ans="C">
@@ -6611,7 +6734,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 20" data-ans="C">
@@ -6639,7 +6763,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 21" data-ans="C">
@@ -6667,7 +6792,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 22" data-ans="C">
@@ -6695,7 +6821,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 23" data-ans="C">
@@ -6723,7 +6850,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 24" data-ans="C">
@@ -6751,7 +6879,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 25" data-ans="C">
@@ -6779,7 +6908,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 26" data-ans="C">
@@ -6807,7 +6937,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 27" data-ans="C">
@@ -6835,7 +6966,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 28" data-ans="C">
@@ -6863,7 +6995,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 29" data-ans="C">
@@ -6891,7 +7024,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 30" data-ans="C">
@@ -6919,7 +7053,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 31" data-ans="C">
@@ -6947,7 +7082,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 32" data-ans="C">
@@ -6975,7 +7111,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 33" data-ans="C">
@@ -7003,7 +7140,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 34" data-ans="C">
@@ -7031,7 +7169,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 35" data-ans="C">
@@ -7059,7 +7198,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 36" data-ans="C">
@@ -7087,7 +7227,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 37" data-ans="C">
@@ -7115,7 +7256,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 38" data-ans="C">
@@ -7143,7 +7285,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 39" data-ans="C">
@@ -7171,7 +7314,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 40" data-ans="C">
@@ -7199,7 +7343,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 41" data-ans="C">
@@ -7227,7 +7372,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 42" data-ans="C">
@@ -7255,7 +7401,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 43" data-ans="C">
@@ -7283,7 +7430,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 44" data-ans="C">
@@ -7311,7 +7459,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 45" data-ans="C">
@@ -7339,7 +7488,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 46" data-ans="C">
@@ -7367,7 +7517,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 47" data-ans="C">
@@ -7395,7 +7546,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 48" data-ans="C">
@@ -7423,7 +7575,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 49" data-ans="C">
@@ -7451,7 +7604,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
     <div class="q" data-qno="進階 50" data-ans="C">
@@ -7479,7 +7633,8 @@ FIN → ACK ← FIN ← ACK →</pre>
         </div>
         
         </div>
-      </details>
+      </details>
+
     </div>
     
 
@@ -7519,7 +7674,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 52" data-ans="B">
@@ -7558,7 +7714,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 53" data-ans="A">
@@ -7597,7 +7754,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 54" data-ans="B">
@@ -7631,7 +7789,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 55" data-ans="B">
@@ -7672,7 +7831,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 56" data-ans="A">
@@ -7711,7 +7871,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 57" data-ans="B">
@@ -7750,7 +7911,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 58" data-ans="C">
@@ -7789,7 +7951,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 59" data-ans="B">
@@ -7823,7 +7986,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 60" data-ans="B">
@@ -7864,7 +8028,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 61" data-ans="A">
@@ -7903,7 +8068,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 62" data-ans="B">
@@ -7942,7 +8108,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 63" data-ans="B">
@@ -7981,7 +8148,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 64" data-ans="B">
@@ -8015,7 +8183,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 65" data-ans="B">
@@ -8056,7 +8225,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 66" data-ans="A">
@@ -8095,7 +8265,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 67" data-ans="A">
@@ -8134,7 +8305,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 68" data-ans="C">
@@ -8173,7 +8345,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 69" data-ans="B">
@@ -8207,7 +8380,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 70" data-ans="B">
@@ -8248,7 +8422,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 71" data-ans="A">
@@ -8287,7 +8462,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 72" data-ans="B">
@@ -8326,7 +8502,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 73" data-ans="A">
@@ -8365,7 +8542,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 74" data-ans="B">
@@ -8399,7 +8577,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 75" data-ans="B">
@@ -8440,7 +8619,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 76" data-ans="A">
@@ -8479,7 +8659,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 77" data-ans="B">
@@ -8518,7 +8699,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 78" data-ans="C">
@@ -8557,7 +8739,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 79" data-ans="B">
@@ -8591,7 +8774,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 80" data-ans="B">
@@ -8632,7 +8816,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 81" data-ans="A">
@@ -8671,7 +8856,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 82" data-ans="B">
@@ -8710,7 +8896,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 83" data-ans="B">
@@ -8749,7 +8936,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 84" data-ans="B">
@@ -8783,7 +8971,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 85" data-ans="B">
@@ -8824,7 +9013,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 86" data-ans="A">
@@ -8863,7 +9053,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 87" data-ans="B">
@@ -8902,7 +9093,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 88" data-ans="B">
@@ -8941,7 +9133,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 89" data-ans="B">
@@ -8975,7 +9168,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 90" data-ans="B">
@@ -9016,7 +9210,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 91" data-ans="A">
@@ -9055,7 +9250,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 92" data-ans="B">
@@ -9094,7 +9290,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 93" data-ans="B">
@@ -9133,7 +9330,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 94" data-ans="B">
@@ -9167,7 +9365,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 95" data-ans="B">
@@ -9208,7 +9407,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 96" data-ans="A">
@@ -9247,7 +9447,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 97" data-ans="A">
@@ -9286,7 +9487,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 98" data-ans="A">
@@ -9325,7 +9527,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 99" data-ans="B">
@@ -9359,7 +9562,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
     <div class="q" data-qno="進階 100" data-ans="B">
@@ -9400,7 +9604,8 @@ FIN → ACK ← FIN ← ACK →</pre>
             </div>
             
         </div>
-      </details>
+      </details>
+
     </div>
         
   <div class="nav-btns">
