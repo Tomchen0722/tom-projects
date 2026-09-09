@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHFI 數位鑑識調查官完全講義 | CyberZen</title>
+  <meta name="description" content="EC-Council CHFI v10 電腦鑑識調查員認證完全指南。RFC 3227 揮發性順序、法庭證物鏈、硬體防寫、Windows 微物跡證、Prefetch、MFT、Shimcache 與 Volatility 3 記憶體鑑識實戰。">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 頂部導航 -->
+  <header class="zen-topbar">
+    <a href="index.html" class="zen-brand">
+      <div class="logo-mark">禪</div>
+      <div class="title-wrap">
+        <div class="title">CyberZen 資安之道</div>
+        <div class="subtitle">CHFI 數位鑑識講堂</div>
+      </div>
+    </a>
+    <nav>
+      <ul class="zen-nav-links">
+        <li><a href="index.html">研習首頁</a></li>
+        <li><a href="cissp-sscp.html">CISSP / SSCP 治理架構</a></li>
+        <li><a href="ceh-ecsa.html">CEH / ECSA 攻防滲透</a></li>
+        <li><a href="chfi.html" class="active">CHFI 數位鑑識</a></li>
+        <li><a href="enterprise-labs.html">企業實做實驗室</a></li>
+        <li><a href="exam-simulator.html">必勝模擬考場</a></li>
+        <li><a href="../../index.html" class="btn-hub-return">← 回作品集 Hub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="zen-container">
+
+    <!-- 標頭區 -->
+    <section class="zen-hero" style="padding-bottom: 1.5rem;">
+      <div class="zen-hero-stamp-wrap">
+        <span class="zen-stamp green">數位法醫之道</span>
+        <span class="zen-stamp">法庭鐵證標準</span>
+        <span class="zen-stamp amber">凡走過必留痕跡</span>
+      </div>
+      <h1>CHFI <span class="highlight">數位鑑識與法庭鐵證之境</span></h1>
+      <p class="lead">
+        真正的鑑識專家，是數位世界的神探與法醫。<br>
+        從封鎖現場、RFC 3227 揮發性順序採證、保護證物鏈 (Chain of Custody)，<br>
+        到深入 Windows 核心微物跡證（Prefetch, MFT, Shimcache）與記憶體逆向分析，讓真相水落石出。
+      </p>
+    </section>
+
+    <!-- 第一單元：RFC 3227 揮發性順序 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第一單元 · 鑑識第一金律：RFC 3227 揮發性順序 (Order of Volatility)</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box">
+        <span class="badge">🧒 高中生秒懂譬喻</span>
+        <h4>搶救數位證物，就像搶救「正在融化的冰雕」！</h4>
+        <p>
+          當鑑識小組趕到犯罪現場時，電腦主機上的證據正在以驚人的速度蒸發！微秒級消逝的 CPU 暫存器就像薄薄的冰霜；記憶體 (RAM) 只要一拔電源就會在幾毫秒內徹底融化成水；而傳統硬碟上的磁區則像堅硬的巨石，關機十年資料依然存在。<br>
+          因此，<strong>鑑識人員採集證據時，必須由「最容易蒸發」的先採！</strong>
+        </p>
+      </div>
+
+      <div class="step-timeline">
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>第 1 優先級：暫存器與處理器快取 (Registers and Cache)</h4>
+            <p>消逝速度以<strong>奈秒 (ns) / 微秒</strong>計。CPU 當前運算的變數與金鑰，重新開機或上下文切換瞬間蕩然無存。</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>第 2 優先級：實體記憶體與網路動態 (Routing Table, ARP Cache, RAM)</h4>
+            <p>
+              實體記憶體 (RAM)、路由表、ARP 快取、核心連線狀態與運行中的進程清單。<br>
+              <strong style="color: var(--accent-vermilion);">⚠️ 拔電源大忌</strong>：現代無檔案勒索軟體 (Fileless Malware) 完全不落硬碟，只藏在記憶體中！如果直接拔電源，關鍵證據將永久消失！
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <h4>第 3 優先級：暫存檔案系統 (Temporary File Systems / Swap / Pagefile)</h4>
+            <p>分頁檔 <code>pagefile.sys</code>、休眠檔 <code>hiberfil.sys</code> 與系統暫存磁區，裡面常殘留剛被記憶體交換出來的明文密碼與通訊記錄。</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">4</div>
+          <div class="step-content">
+            <h4>第 4 優先級：非揮發性磁碟 (Hard Disk Drives / SSD)</h4>
+            <p>磁區、分割區、未配置空間 (Unallocated Space) 與檔案鬆弛空間 (Slack Space)。關機後仍可持久保留數月或數年。</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">5</div>
+          <div class="step-content">
+            <h4>第 5 優先級：遠端日誌與監控紀錄 (Remote Logs / SIEM)</h4>
+            <p>遠端 Syslog、SIEM 集中伺服器、防火牆日誌。受中央控管，不易被單一遭駭端點竄改。</p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">6</div>
+          <div class="step-content">
+            <h4>第 6 優先級：備份磁帶與封存媒體 (Archival Media / Backup Tapes)</h4>
+            <p>離線存放的磁帶、冷儲存光碟，生命週期長達數十年，揮發性最低。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第二單元：證物保管鏈與映像標準 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第二單元 · 證物保管鏈 (Chain of Custody) 與法庭鐵證標準</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="exam-trap-box">
+        <span class="badge">⚖️ 法庭採信最高準則</span>
+        <h4>鑑識調查第一鐵律：絕不能在原始證物上進行任何操作！</h4>
+        <p>
+          在法庭上，被告律師一定會問：「調查官，你剛才插上隨身碟時，有沒有可能改變了硬碟最後修改時間？」<br>
+          只要你動手直接在原始硬碟開機，<strong>整份證物將在法庭上被法官視為遭污染 (Tainted Evidence)，全案撤銷起訴！</strong>
+        </p>
+      </div>
+
+      <div class="zen-grid-2">
+        <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px;">
+          <h4 style="color: var(--accent-vermilion); font-family: var(--font-serif); font-size: 1.15rem; margin-bottom: 8px;">
+            🔌 硬體防寫保護裝置 (Write-Blocker)
+          </h4>
+          <p style="font-size: 0.9rem; color: var(--ink-secondary); line-height: 1.7;">
+            將嫌疑人硬碟接到鑑識工作站時，中間<strong>必須串接硬體 Write-Blocker</strong>！該裝置從實體電路阻斷任何「寫入 (Write)」訊號，只允許傳輸「讀取 (Read)」指令，確保原始磁區一個位元都不被改變。
+          </p>
+        </div>
+
+        <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px;">
+          <h4 style="color: var(--accent-matcha); font-family: var(--font-serif); font-size: 1.15rem; margin-bottom: 8px;">
+            🧮 雜湊值校驗 (Hash Verification)
+          </h4>
+          <p style="font-size: 0.9rem; color: var(--ink-secondary); line-height: 1.7;">
+            • <strong>製作映像前</strong>：計算原始磁碟的 MD5 與 SHA-256 雜湊。<br>
+            • <strong>製作映像後</strong>：計算產出的映像檔 (E01 / Raw DD) 雜湊。<br>
+            <strong>二者雜湊字串必須 100% 完全相同</strong>，此為法庭證明「映像與原始證物一模一樣」的數學鐵證。
+          </p>
+        </div>
+      </div>
+
+      <div class="enterprise-box" style="margin-top: 1.5rem;">
+        <span class="badge">📋 證物保管鏈表單 (Chain of Custody Form) 必備欄位</span>
+        <ul>
+          <li><strong>證物唯一編號 (Case & Item ID)</strong>：精確對應嫌疑人主機序號與硬碟型號。</li>
+          <li><strong>採集時間與地理地點</strong>：由誰、在幾年幾月幾日幾分幾秒、在哪個辦公室查扣。</li>
+          <li><strong>移交與簽署人紀錄</strong>：每一次移交（如警方移交給鑑識實驗室、實驗室移交給法庭），雙方必須親自簽名並記錄原因。</li>
+          <li><strong>封存封條狀況</strong>：防篡改封條 (Tamper-evident Tape) 是否完好無損。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 第三單元：Windows 鑑識關鍵微物跡證 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第三單元 · Windows 鑑識神器：隱藏在系統中的微物跡證</h2>
+    </div>
+
+    <div class="zen-card">
+      <p style="font-size: 0.95rem; line-height: 1.8; color: var(--ink-secondary);">
+        嫌疑犯在事後刪除了惡意木馬 <code>payload.exe</code>，並清空了資源回收筒。調查官如何向法官證明「這個程式確實曾在此電腦被執行過」？
+      </p>
+
+      <div class="zen-table-wrap">
+        <table class="zen-table">
+          <thead>
+            <tr>
+              <th>微物跡證名稱</th>
+              <th>存放路徑與格式</th>
+              <th>鑑識調查可取得之關鍵情資</th>
+              <th>反鑑識對抗與破解手法</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>預先讀取檔 (Prefetch)</strong></td>
+              <td><code>C:\Windows\Prefetch\*.pf</code></td>
+              <td>
+                • 程式名稱與執行路徑<br>
+                • <strong>最近 8 次執行的精確時間戳記</strong><br>
+                • 程式執行總次數 (Run Count)<br>
+                • 啟動時加載的所有 DLL 模組清單
+              </td>
+              <td>即使原 <code>.exe</code> 檔案被粉碎刪除，Prefetch 依然保留該檔案曾被執行的鐵證！</td>
+            </tr>
+            <tr>
+              <td><strong>Shimcache (AppCompatCache)</strong></td>
+              <td>登錄檔 <code>SYSTEM</code> 儲存單元中</td>
+              <td>Windows 為了相容性記錄的執行檔案清單，包含檔案完整路徑、大小與上次修改時間。</td>
+              <td>重開機時才會寫入磁碟登錄檔，記憶體鑑識時可直接從 RAM 抽取最新動態。</td>
+            </tr>
+            <tr>
+              <td><strong>Amcache</strong></td>
+              <td><code>C:\Windows\appcompat\Programs\Amcache.hve</code></td>
+              <td>記錄程式安裝與執行歷史，<strong>最神之處在於記錄了程式的 SHA-1 雜湊值</strong>！</td>
+              <td>即便駭客把木馬改名成 <code>notepad.exe</code>，透過 Amcache 的 SHA-1 查 VirusTotal 立即原形畢露！</td>
+            </tr>
+            <tr>
+              <td><strong>Shellbags</strong></td>
+              <td><code>NTUSER.DAT</code> 與 <code>UsrClass.dat</code></td>
+              <td>使用者曾開啟、瀏覽過哪些資料夾，即便該資料夾存在於已拔除的外接隨身碟中！</td>
+              <td>能證明嫌疑犯曾手動點擊瀏覽特定敏感機密目錄。</td>
+            </tr>
+            <tr>
+              <td><strong>NTFS $MFT</strong></td>
+              <td>磁區開頭 <code>\$MFT</code></td>
+              <td>
+                檔案主控表，內含 <code>$STANDARD_INFORMATION</code> 與 <code>$FILE_NAME</code> 兩套時間戳記。
+              </td>
+              <td>
+                <strong style="color: var(--accent-vermilion);">偵破 Timestomping</strong>：駭客改得動 <code>$SI</code>，但 Windows 核心只允許修改 <code>$FN</code> 的受限操作。兩者時間矛盾即證明被竄改！
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 第四單元：Volatility 3 記憶體鑑識實戰 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第四單元 · 記憶體鑑識實戰：Volatility 3 核心指令與分析鏈</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="zen-terminal">
+        <div class="zen-terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+          </div>
+          <span class="terminal-title">bash - Volatility 3 Memory Forensic Suite</span>
+        </div>
+        <pre><code><span class="cmd-comment"># 1. 枚舉記憶體中的所有進程清單 (PID, PPID 父進程 ID)</span>
+<span class="cmd-prompt">investigator@box:~$</span> python3 vol.py -f memdump.raw <span class="cmd-flag">windows.pslist</span>
+
+<span class="cmd-comment"># 2. 顯示樹狀階層結構（尋找不合常理的父子進程，如 powershell 孵化 svchost）</span>
+<span class="cmd-prompt">investigator@box:~$</span> python3 vol.py -f memdump.raw <span class="cmd-flag">windows.pstree</span>
+
+<span class="cmd-comment"># 3. 掃描可疑的注入程式碼與隱藏模組（搜尋具備 PAGE_EXECUTE_READWRITE 權限的記憶體頁）</span>
+<span class="cmd-prompt">investigator@box:~$</span> python3 vol.py -f memdump.raw <span class="cmd-flag">windows.malfind</span>
+<span class="cmd-output">[!] 發現可疑注入：PID 3424 (lsass.exe) 包含未連結記憶體塊，存在 MZ 標頭！</span>
+
+<span class="cmd-comment"># 4. 提取當下連線狀態（查出回連的 C2 惡意中繼站 IP 與端口）</span>
+<span class="cmd-prompt">investigator@box:~$</span> python3 vol.py -f memdump.raw <span class="cmd-flag">windows.netscan</span>
+<span class="cmd-danger">TCP 192.168.1.50:49211 -> 185.220.101.5:443 (ESTABLISHED) PID: 3424</span>
+
+<span class="cmd-comment"># 5. 傾印惡意進程的記憶體分頁以供進一步 YARA 惡意特徵掃描</span>
+<span class="cmd-prompt">investigator@box:~$</span> python3 vol.py -f memdump.raw <span class="cmd-flag">windows.dumpfiles --pid 3424</span></code></pre>
+      </div>
+    </div>
+
+    <!-- 考官破題心法 -->
+    <div class="exam-trap-box">
+      <span class="badge">⚖️ CHFI 考證陷阱警示</span>
+      <h4>五大高頻情境考點避坑指南</h4>
+      <ol style="margin-left: 1.25rem; font-size: 0.95rem; line-height: 1.85; color: #5C1A10;">
+        <li><strong>拔電源 vs 正常關機</strong>：若考題出現「嫌疑犯正在使用軟體抹除整個硬碟（全螢幕進度條狂跑覆蓋 00）」，此時是<strong>唯一的緊急例外——立刻拔除電源線！</strong>除此之外的任何情境，一律先採集 RAM 記憶體。</li>
+        <li><strong>Daubert Standard 法庭標準</strong>：專家證人的證詞是否具備科學公信力，依據 4 點：可驗證性 (Tested)、同儕審查 (Peer Reviewed)、已知錯誤率 (Error Rate)、該領域普遍接受 (General Acceptance)。</li>
+        <li><strong>Event ID 4624 登入類型</strong>：
+          • <strong>Type 2</strong>：互動式本機鍵盤登入 (Interactive)。<br>
+          • <strong>Type 3</strong>：網路共享存取 (Network Share / SMB)。<br>
+          • <strong>Type 10</strong>：遠端桌面連線登入 (RemoteInteractive / RDP) ★ 高頻考點！
+        </li>
+      </ol>
+    </div>
+
+  </main>
+
+  <footer class="zen-footer">
+    <div style="font-family: var(--font-serif); font-size: 1.1rem; color: var(--ink-primary); margin-bottom: 8px;">
+      CyberZen 資安之道 · CHFI 數位鑑識調查員完全講堂
+    </div>
+    <p>依據 EC-Council CHFI 考綱與 ISO/IEC 27037 數位證據處理標準編撰</p>
+    <div style="margin-top: 14px;">
+      <a href="ceh-ecsa.html">← 上一篇：CEH / ECSA 攻防滲透</a> ｜ <a href="enterprise-labs.html">前往：企業級實戰實驗室 →</a>
+    </div>
+  </footer>
+
+</body>
+</html>

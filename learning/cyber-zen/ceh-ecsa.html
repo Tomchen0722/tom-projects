@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEH & ECSA 道德駭客與進階滲透分析完全講義 | CyberZen</title>
+  <meta name="description" content="EC-Council CEH v12 與 ECSA/CPENT 道德駭客認證完全指南。五階段攻擊思維、Nmap 掃描底層封包逆向、緩衝區溢位、Active Directory 網域滲透與企業級漏洞報告標準。">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 頂部導航 -->
+  <header class="zen-topbar">
+    <a href="index.html" class="zen-brand">
+      <div class="logo-mark">禪</div>
+      <div class="title-wrap">
+        <div class="title">CyberZen 資安之道</div>
+        <div class="subtitle">CEH & ECSA 攻防滲透講堂</div>
+      </div>
+    </a>
+    <nav>
+      <ul class="zen-nav-links">
+        <li><a href="index.html">研習首頁</a></li>
+        <li><a href="cissp-sscp.html">CISSP / SSCP 治理架構</a></li>
+        <li><a href="ceh-ecsa.html" class="active">CEH / ECSA 攻防滲透</a></li>
+        <li><a href="chfi.html">CHFI 數位鑑識</a></li>
+        <li><a href="enterprise-labs.html">企業實做實驗室</a></li>
+        <li><a href="exam-simulator.html">必勝模擬考場</a></li>
+        <li><a href="../../index.html" class="btn-hub-return">← 回作品集 Hub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="zen-container">
+
+    <!-- 標頭區 -->
+    <section class="zen-hero" style="padding-bottom: 1.5rem;">
+      <div class="zen-hero-stamp-wrap">
+        <span class="zen-stamp amber">EC-Council 實戰殿堂</span>
+        <span class="zen-stamp">攻防博弈</span>
+        <span class="zen-stamp green">精通底層封包</span>
+      </div>
+      <h1>CEH & ECSA <span class="highlight">道德駭客與紅隊作戰藍圖</span></h1>
+      <p class="lead">
+        知己知彼，百戰不殆。若想抵禦頂級駭客，必須先行學會像駭客般思考。<br>
+        本講義從 TCP 三向交握旗標與記憶體暫存器 EIP 切入，<br>
+        深入解析 Nmap 掃描原理、Active Directory 企業網域提權、Kerberoasting 攻擊與滲透報告標準。
+      </p>
+    </section>
+
+    <!-- 第一單元：駭客攻擊五階段 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第一單元 · 駭客攻擊五大經典階段 (The 5 Phases of Hacking)</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box">
+        <span class="badge">🧒 高中生秒懂譬喻</span>
+        <h4>駭客就像「高明的小偷集團」，步步為營</h4>
+        <ul>
+          <li><strong>1. 偵察踩點 (Reconnaissance)</strong>：戴鴨舌帽在豪宅外散步，看哪天有送牛奶的、哪裡有監視器盲點（OSINT 公開情報蒐集、Google Hacking）。</li>
+          <li><strong>2. 探測掃描 (Scanning)</strong>：深夜拿鐵絲輕輕敲每扇窗戶、轉動後門把手，看哪扇窗沒上鎖（Nmap 端口掃描、漏洞掃描）。</li>
+          <li><strong>3. 破窗奪權 (Gaining Access)</strong>：從小氣窗鑽進去，成功進入客廳（利用漏洞 Exploit、SQL 注入、密碼暴力破解）。</li>
+          <li><strong>4. 留設後門 (Maintaining Access)</strong>：在地下室藏一把備用鑰匙，並挖一條暗道，即使屋主換了前門大鎖也能隨時溜進來（Rootkit、維持權限、橫向移動）。</li>
+          <li><strong>5. 抹除痕跡 (Clearing Tracks)</strong>：離開前拿吸塵器吸掉腳印、擦掉指紋、關掉監視錄影紀錄（清除 Windows 事件日誌、日誌偽造）。</li>
+        </ul>
+      </div>
+
+      <div class="step-timeline">
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>階段一：偵察與足跡收集 (Reconnaissance & Footprinting)</h4>
+            <p>
+              分為<strong>被動偵察 (Passive)</strong>（不接觸目標系統，如 Whois、Shodan、LinkedIn、DNS 紀錄）與<strong>主動偵察 (Active)</strong>（直接發送封包探測，如 ping sweep）。<br>
+              <strong>CEH 考點</strong>：被動偵察永遠是黑客的第一步，因為不會在目標的 IDS/IPS 留下任何警報！
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>階段二：掃描與枚舉 (Scanning & Enumeration)</h4>
+            <p>
+              使用 Nmap、Masscan 探測存活主機 (Host Discovery)、開放端口 (Port Scanning) 與服務版本 (Banner Grabbing)。進一步進行 SMB、SNMP、LDAP 枚舉，抓出有效使用者帳號與群組資訊。
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <h4>階段三：獲取存取權限 (Gaining Access)</h4>
+            <p>
+              攻擊的核心分水嶺！利用目標系統的已知弱點（CVE）發送 Exploit 酬載，包含作業系統漏洞（如 MS17-010 EternalBlue）、Web 漏洞（SQLi, RCE）或社交工程（釣魚郵件 Payload）。
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">4</div>
+          <div class="step-content">
+            <h4>階段四：維持權限與橫向移動 (Maintaining Access & Pivoting)</h4>
+            <p>
+              植入木馬後門 (Trojan / C2 Agent)、建立持續性任務 (Scheduled Tasks / Registry Run Keys)。以此突破點為跳板 (Pivot)，向企業內部網路的 Active Directory 網域控制站發動橫向滲透。
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">5</div>
+          <div class="step-content">
+            <h4>階段五：清除痕跡 (Clearing Tracks)</h4>
+            <p>
+              修改檔案存取時間戳記 (Timestomping)、停用系統稽核日誌、覆蓋 Windows <code>Security.evtx</code> 與 Linux <code>/var/log/auth.log</code>，避免遭藍隊鑑識人員追查。
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第二單元：Nmap 旗標底層剖析 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第二單元 · Nmap 掃描底層封包旗標與 RFC 793 陷阱</h2>
+    </div>
+
+    <div class="zen-card">
+      <p style="font-size: 0.95rem; line-height: 1.8; color: var(--ink-secondary);">
+        CEH 考試中最經典、失分率最高的題目，就是考察 <strong>Nmap 的掃描旗標 (Flags)</strong> 與目標伺服器的 TCP 反應機制：
+      </p>
+
+      <div class="zen-terminal">
+        <div class="zen-terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+          </div>
+          <span class="terminal-title">bash - Kali Linux Nmap Suite</span>
+        </div>
+        <pre><code><span class="cmd-comment"># 1. TCP 半開隱匿掃描 (SYN Stealth Scan - 最常用、速度快、需要 root 權限)</span>
+<span class="cmd-prompt">attacker@kali:~$</span> nmap <span class="cmd-flag">-sS -p 80,443,445</span> 192.168.1.100
+
+<span class="cmd-comment"># 2. TCP 全連接掃描 (TCP Connect Scan - 建立完整三次交握，非 root 預設)</span>
+<span class="cmd-prompt">attacker@kali:~$</span> nmap <span class="cmd-flag">-sT -p 80,443</span> 192.168.1.100
+
+<span class="cmd-comment"># 3. 聖誕樹掃描 (Xmas Scan - 同時點亮 FIN, PSH, URG 三個旗標)</span>
+<span class="cmd-prompt">attacker@kali:~$</span> nmap <span class="cmd-flag">-sX -p 22,80</span> 192.168.1.100
+
+<span class="cmd-comment"># 4. 空標掃描 (Null Scan - 不開啟任何旗標)</span>
+<span class="cmd-prompt">attacker@kali:~$</span> nmap <span class="cmd-flag">-sN -p 22,80</span> 192.168.1.100</code></pre>
+      </div>
+
+      <div class="zen-table-wrap">
+        <table class="zen-table">
+          <thead>
+            <tr>
+              <th>掃描技術</th>
+              <th>參數</th>
+              <th>發送的 TCP 旗標</th>
+              <th>目標端口「開啟」之回應</th>
+              <th>目標端口「關閉」之回應</th>
+              <th>RFC 793 規範與作業系統特性</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>TCP SYN 掃描</strong></td>
+              <td><code>-sS</code></td>
+              <td>SYN</td>
+              <td><span style="color: var(--accent-matcha); font-weight: 700;">回覆 SYN-ACK</span><br>(攻擊者隨即發送 RST 拆線)</td>
+              <td>回覆 RST-ACK</td>
+              <td>適用所有作業系統，隱匿度高，因為尚未建立完整連線應用層不會寫入連線日誌。</td>
+            </tr>
+            <tr>
+              <td><strong>TCP Connect 掃描</strong></td>
+              <td><code>-sT</code></td>
+              <td>SYN</td>
+              <td>回覆 SYN-ACK<br>(攻擊者回覆 ACK 完成交握)</td>
+              <td>回覆 RST-ACK</td>
+              <td>使用系統 <code>connect()</code> API，普通權限可用，但容易被伺服器應用日誌記錄。</td>
+            </tr>
+            <tr>
+              <td><strong>Xmas 聖誕樹掃描</strong></td>
+              <td><code>-sX</code></td>
+              <td>FIN + PSH + URG</td>
+              <td><strong>完全靜默無回應 (No Response)</strong></td>
+              <td>回覆 RST</td>
+              <td><strong style="color: var(--accent-vermilion);">⚠️ 致命考點</strong>：Windows 系統不遵守 RFC 793！對任何關閉或開啟的端口皆回覆 RST，因此 <strong>Xmas 無法掃描 Windows</strong>！</td>
+            </tr>
+            <tr>
+              <td><strong>Null 掃描</strong></td>
+              <td><code>-sN</code></td>
+              <td>無 (全部清零)</td>
+              <td><strong>完全靜默無回應 (No Response)</strong></td>
+              <td>回覆 RST</td>
+              <td>同上，僅對符合 RFC 793 的 Unix/Linux 系統有效，遇 Windows 均回覆 RST。</td>
+            </tr>
+            <tr>
+              <td><strong>FIN 掃描</strong></td>
+              <td><code>-sF</code></td>
+              <td>FIN</td>
+              <td><strong>完全靜默無回應 (No Response)</strong></td>
+              <td>回覆 RST</td>
+              <td>能穿透某些僅阻擋 SYN 封包的無狀態防火牆 (Stateless Firewall)。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 第三單元：Buffer Overflow 記憶體溢位詳解 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第三單元 · 記憶體深淵：緩衝區溢位 (Buffer Overflow) 底層剖析</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box">
+        <span class="badge">🧒 高中生秒懂譬喻</span>
+        <h4>倒水進玻璃杯，水淹過隔壁的控制開關</h4>
+        <p>
+          想像程式在記憶體劃出一個容積只有 <strong>100ml</strong> 的杯子（Buffer 緩衝區）。程式設計師沒有檢查使用者的輸入長度，壞蛋一口氣灌了 <strong>150ml</strong> 的毒水！多出來的 50ml 漫出杯緣，正好淹過隔壁負責控制大門去向的「返回地址指針 (EIP)」！於是壞蛋把 EIP 改成指向自己帶來的惡意程式碼（Shellcode），電腦就完全聽命於駭客了。
+        </p>
+      </div>
+
+      <div class="step-timeline">
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>記憶體堆疊 (Stack) 的佈局</h4>
+            <p style="font-family: var(--font-mono); font-size: 0.88rem; background: var(--bg-secondary); padding: 8px 12px; border-radius: 4px;">
+              [ 低記憶體位址 ]<br>
+              ├── 區域變數 (Local Variables / Buffer)<br>
+              ├── 框架指針 (Saved Frame Pointer - EBP)<br>
+              ├── <strong>返回位址 (Saved Return Address - EIP) ★ 關鍵攻擊目標</strong><br>
+              └── 函數參數 (Function Arguments)<br>
+              [ 高記憶體位址 ]
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>NOP Sled (空指令滑梯) 的妙用</h4>
+            <p>
+              在 Shellcode 前面鋪上一長串 <code>\x90</code> (x86 的 NOP 指令，代表「什麼都不做直接執行下一行」)。攻擊者即便無法精準命中 Shellcode 的第一行，只要 EIP 指針落在這塊 NOP 滑梯的任何位置，CPU 就會像溜滑梯一樣一路順滑滑到 Shellcode 觸發漏洞！
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <h4>現代作業系統三大防禦鐵壁</h4>
+            <ul>
+              <li><strong>DEP / NX (資料執行防止)</strong>：把堆疊 (Stack) 標記為不可執行。即便注入 Shellcode，CPU 也拒絕在此記憶體分頁執行指令。</li>
+              <li><strong>ASLR (位址空間配置隨機化)</strong>：每次開機與程式載入時，將堆疊、堆積 (Heap) 與函式庫的基底位址隨機打亂，讓攻擊者猜不到位址。</li>
+              <li><strong>Stack Canaries (金絲雀保護碼)</strong>：在 Buffer 與 EIP 之間塞入一個隨機秘密數字，函數結束前檢查該數字是否被改動，若被改動立刻終止程式。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第四單元：Active Directory 企業網域提權實戰 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第四單元 · 企業內網終局之戰：Active Directory 網域滲透與 Kerberoasting</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="enterprise-box">
+        <span class="badge">🏢 企業實戰場景</span>
+        <h4>為什麼全球 90% 的企業滲透，都在攻打 Active Directory (AD)？</h4>
+        <p>
+          在跨國企業內部，只要拿下網域控制站 (Domain Controller)，就等於掌握全公司的電子郵件、ERP 帳號、薪資檔案與伺服器特權。以下是現代紅隊與 ECSA 認證必考的標準提權攻擊鏈：
+        </p>
+      </div>
+
+      <div class="step-timeline">
+        <div class="step-item">
+          <div class="step-badge">1</div>
+          <div class="step-content">
+            <h4>步驟 1：內網廣播欺騙 (LLMNR / NBT-NS Poisoning)</h4>
+            <p>
+              當內網員工打錯共享資料夾路徑時，Windows 會向區網廣播尋找主機。攻擊者啟動 <strong>Responder</strong> 工具搶先偽裝成該伺服器，誘騙員工電腦傳送 <strong>NetNTLMv2 Hash</strong>，隨後以 Hashcat 進行離線字典破解。
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">2</div>
+          <div class="step-content">
+            <h4>步驟 2：Kerberoasting 服務票據提取</h4>
+            <p>
+              任何合法的網域帳號（即便只是約聘實習生），都可以向網域 KDC 申請具有 <strong>SPN (Service Principal Name)</strong> 的服務票據 (TGS)。<br>
+              <strong>攻擊原理</strong>：該票據是用「執行該服務的服務帳號密碼 NTLM Hash」加密的！攻擊者把票據匯出到自己本機，在沒有連線監控的情況下用 GPU 離線爆破服務帳號密碼！
+            </p>
+          </div>
+        </div>
+
+        <div class="step-item">
+          <div class="step-badge">3</div>
+          <div class="step-content">
+            <h4>步驟 3：Golden Ticket (黃金票據) 終極後門</h4>
+            <p>
+              一旦攻擊者獲取網域核心帳號 <code>krbtgt</code> 的 NTLM Hash，就能在<strong>不經過網域控制站</strong>的情況下，自行偽造出任意權限、有效期限長達 10 年的偽造 TGT (Golden Ticket)，成為企業網域的影子神祇！<br>
+              <strong>企業唯一防禦法</strong>：定期連續重設兩次 <code>krbtgt</code> 密碼！
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ECSA 滲透測試報告標準 -->
+    <div class="exam-trap-box">
+      <span class="badge">📑 ECSA 專業報告標準</span>
+      <h4>滲透測試報告的靈魂：寫給 CEO 看的 Executive Summary</h4>
+      <p>
+        ECSA / CPENT 認證與 CEH 最大的不同在於：<strong>能否提出具備商業價值的專業滲透報告</strong>。
+      </p>
+      <ul>
+        <li><strong>高階主管摘要 (Executive Summary)</strong>：不寫技術指令！用餅圖與柱狀圖呈現高危、中危漏洞數量，並以業務損益（財務風險、合規罰款）說明修復優先級。</li>
+        <li><strong>技術發現 (Technical Findings)</strong>：附上 CVSS v3.1 評分向量（如 <code>CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H - 9.8 嚴重</code>）、重現步驟 (PoC) 與精確的廠商修補建議。</li>
+      </ul>
+    </div>
+
+  </main>
+
+  <footer class="zen-footer">
+    <div style="font-family: var(--font-serif); font-size: 1.1rem; color: var(--ink-primary); margin-bottom: 8px;">
+      CyberZen 資安之道 · CEH & ECSA 頂級攻防滲透講堂
+    </div>
+    <p>依據 EC-Council 最新考綱與 MITRE ATT&CK 框架編撰 · 秉持白帽道德倫理</p>
+    <div style="margin-top: 14px;">
+      <a href="cissp-sscp.html">← 上一篇：CISSP / SSCP 治理架構</a> ｜ <a href="chfi.html">前往：CHFI 數位鑑識講堂 →</a>
+    </div>
+  </footer>
+
+</body>
+</html>
