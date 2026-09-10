@@ -52,15 +52,15 @@
     <div class="zen-card" style="padding: 1.25rem 2rem; margin-bottom: 2rem;">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="cert-filters">
-          <button class="zen-stamp active-filter" data-filter="all" style="cursor: pointer; background: var(--accent-vermilion); color: #FFF;">全部證照 (6題精華)</button>
-          <button class="zen-stamp" data-filter="CISSP" style="cursor: pointer; background: #FFF;">CISSP (2題)</button>
+          <button class="zen-stamp active-filter" data-filter="all" style="cursor: pointer; background: var(--accent-vermilion); color: #FFF;">全部證照 (7題精華)</button>
+          <button class="zen-stamp" data-filter="CISSP" style="cursor: pointer; background: #FFF;">CISSP (3題)</button>
           <button class="zen-stamp green" data-filter="SSCP" style="cursor: pointer; background: #FFF;">SSCP (1題)</button>
           <button class="zen-stamp amber" data-filter="CEH" style="cursor: pointer; background: #FFF;">CEH (1題)</button>
           <button class="zen-stamp green" data-filter="CHFI" style="cursor: pointer; background: #FFF;">CHFI (1題)</button>
           <button class="zen-stamp" data-filter="ECSA" style="cursor: pointer; background: #FFF; border-color: var(--accent-indigo); color: var(--accent-indigo);">ECSA (1題)</button>
         </div>
         <div style="font-size: 0.95rem; color: var(--ink-secondary);">
-          答題進度：<strong id="answered-count" style="color: var(--accent-vermilion);">0</strong> / 6 題 ｜ 正確率：<strong id="accuracy-rate" style="color: var(--accent-matcha);">0%</strong>
+          答題進度：<strong id="answered-count" style="color: var(--accent-vermilion);">0</strong> / <span id="total-count">7</span> 題 ｜ 正確率：<strong id="accuracy-rate" style="color: var(--accent-matcha);">0%</strong>
         </div>
       </div>
     </div>
@@ -209,6 +209,34 @@
           trapB: "【干擾項 B 陷阱】PIN 碼與幸運數字同屬於『Something you know』。",
           trapD: "【干擾項 D 陷阱】完全同一維度，甚至同一密碼，毫無安全性提升。"
         }
+      },
+      {
+        id: 7,
+        cert: "CISSP",
+        domain: "領域 1 · 安全與風險管理 (定量計算)",
+        title: "某跨國電商的核心資料庫資產價值 (AV) 評定為 $4,000,000 美元。若遭受大規模分散式阻斷服務 (DDoS) 攻擊，預估暴露係數 (EF) 為 25%。歷史情資顯示該類型攻擊平均每 2 年發生一次 (ARO = 0.5)。資安團隊評估引進一套年費 $120,000 美元之雲端清洗防護服務 (ACS)，可將暴露係數降至 5%，且發生率降至每 10 年一次 (ARO = 0.1)。身為 CISO，依據成本效益分析 (CBA)，你的計算與商業決策應當為何？",
+        options: [
+          { letter: "A", text: "CBA 為 -$20,000 美元，防護成本超過風險收益，建議拒絕採購並由公司承擔風險。" },
+          { letter: "B", text: "CBA 為 +$360,000 美元，實施此防護措施能為公司創造龐大年化淨收益，建議核准預算！" },
+          { letter: "C", text: "CBA 為 +$500,000 美元，因為單次損失期望值 (SLE) 從 $1,000,000 降至 $200,000。" },
+          { letter: "D", text: "無法計算，因為尚未評估不可抗力之天災與火災之暴露係數。" }
+        ],
+        answer: "B",
+        trapAnalysis: {
+          whyCorrect: "【B 是唯一正確答案】<strong>完整步驟數學推導如下</strong>：<br>" +
+                      "1. 防護實施前：<br>" +
+                      "• SLE_prior = AV × EF = $4,000,000 × 0.25 = $1,000,000<br>" +
+                      "• ALE_prior = SLE_prior × ARO = $1,000,000 × 0.5 = <strong>$500,000 / 年</strong><br>" +
+                      "2. 防護實施後：<br>" +
+                      "• SLE_post = $4,000,000 × 0.05 = $200,000<br>" +
+                      "• ALE_post = $200,000 × 0.1 = <strong>$20,000 / 年</strong><br>" +
+                      "3. 成本效益分析 (CBA)：<br>" +
+                      "• <strong>CBA = (ALE_prior - ALE_post) - ACS = ($500,000 - $20,000) - $120,000 = $480,000 - $120,000 = +$360,000 美元 / 年</strong>！<br>" +
+                      "每年為公司淨省 36 萬美元，效益極為顯著，身為 CISO 應堅定立案採購！",
+          trapA: "【干擾項 A 陷阱】常因公式誤算：若直接拿防護後 ALE ($20,000) 減去 ACS ($120,000) 就會誤算出 -$100,000 或 -$20,000，忽略了原本每年高達 $500,000 的巨大損失。",
+          trapC: "【干擾項 C 陷阱】把原始 ALE ($500,000) 直接當作效益，完全忽略了防護年成本 (ACS) 與殘餘風險 (ALE_post)。",
+          trapD: "【干擾項 D 陷阱】藉口資料不足拖延決策，違背高階安全管理者之量化決策職責。"
+        }
       }
     ];
 
@@ -306,6 +334,9 @@
       });
 
       document.getElementById('answered-count').textContent = answered;
+      if (document.getElementById('total-count')) {
+        document.getElementById('total-count').textContent = total;
+      }
       const rate = answered > 0 ? Math.round((correct / answered) * 100) : 0;
       document.getElementById('accuracy-rate').textContent = `${rate}% (${correct}/${answered})`;
     }

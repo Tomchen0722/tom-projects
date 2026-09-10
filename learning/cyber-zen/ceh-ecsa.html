@@ -205,14 +205,142 @@
               <td>回覆 RST</td>
               <td>能穿透某些僅阻擋 SYN 封包的無狀態防火牆 (Stateless Firewall)。</td>
             </tr>
-          </tbody>
-        </table>
+      <!-- TCP 旗標位元組遮罩數學推導 -->
+      <div class="math-formula-box vermilion" style="margin-top: 1.5rem;">
+        <div class="math-formula-title">
+          <span>📶 TCP 標頭控制旗標之二進位位元遮罩 (Bitmask) 數學推導</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--ink-secondary); line-height: 1.75;">
+          TCP 標頭的第 13 個位元組定義了 6 大關鍵控制旗標。在 Raw Socket 程式設計或封包逆向時，旗標是透過<strong>二進位位元運算 (Bitwise OR)</strong> 累加而成的：
+        </p>
+
+        <div class="zen-table-wrap">
+          <table class="zen-table">
+            <thead>
+              <tr>
+                <th>旗標名稱 (Flag)</th>
+                <th>二進位位元權重 (Bit Position)</th>
+                <th>十進位數值</th>
+                <th>十六進位 (Hex)</th>
+                <th>掃描技術應用範例</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>FIN (Finish)</strong></td>
+                <td>2^0 (Bit 0)</td>
+                <td>1</td>
+                <td><code>0x01</code></td>
+                <td>FIN Scan (<code>-sF</code>) = 1</td>
+              </tr>
+              <tr>
+                <td><strong>SYN (Synchronize)</strong></td>
+                <td>2^1 (Bit 1)</td>
+                <td>2</td>
+                <td><code>0x02</code></td>
+                <td>SYN Stealth Scan (<code>-sS</code>) = 2</td>
+              </tr>
+              <tr>
+                <td><strong>RST (Reset)</strong></td>
+                <td>2^2 (Bit 2)</td>
+                <td>4</td>
+                <td><code>0x04</code></td>
+                <td>拆線重置封包 = 4</td>
+              </tr>
+              <tr>
+                <td><strong>PSH (Push)</strong></td>
+                <td>2^3 (Bit 3)</td>
+                <td>8</td>
+                <td><code>0x08</code></td>
+                <td>強制立即將緩衝區資料送交應用層</td>
+              </tr>
+              <tr>
+                <td><strong>ACK (Acknowledgment)</strong></td>
+                <td>2^4 (Bit 4)</td>
+                <td>16</td>
+                <td><code>0x10</code></td>
+                <td>ACK Scan (<code>-sA</code>) 探測防火牆規則 = 16</td>
+              </tr>
+              <tr>
+                <td><strong>URG (Urgent)</strong></td>
+                <td>2^5 (Bit 5)</td>
+                <td>32</td>
+                <td><code>0x20</code></td>
+                <td>緊急指針有效</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="math-step vermilion" style="margin-top: 1rem;">
+          <div class="math-step-title">🎄 Xmas Scan 聖誕樹掃描旗標數值合成推導</div>
+          <div class="math-calc-line">
+            Xmas Flags = URG(32) + PSH(8) + FIN(1) = 32 + 8 + 1 = <span class="math-highlight">41</span> (十六進位為 <code>0x29</code>)<br>
+            Null Scan Flags = 0 (十六進位為 <code>0x00</code>)
+          </div>
+          <p class="math-note">
+            ⚠️ <strong>RFC 793 狀態機核心判別</strong>：依據 RFC 793 第 36 頁規範，若主機處於 CLOSED 狀態收到任何不含 RST 的封包，必須回覆 RST；若處於 LISTEN (開啟) 狀態收到不含 SYN 與 ACK 的異常封包 (如 <code>0x29</code> Xmas 或 <code>0x00</code> Null)，必須<strong>靜默丟棄 (Drop)</strong>！但微軟 Windows 核心協定棧原始碼未實作此分支，只要收到非 SYN 封包一律回傳 RST，這正是 Xmas 遇到 Windows 必定現形的根本代碼原因！
+          </p>
+        </div>
       </div>
     </div>
 
-    <!-- 第三單元：Buffer Overflow 記憶體溢位詳解 -->
+    <!-- 新增單元：CIDR 與子網路遮罩數學推導 -->
     <div class="zen-section-header">
-      <h2 class="zen-section-title">第三單元 · 記憶體深淵：緩衝區溢位 (Buffer Overflow) 底層剖析</h2>
+      <h2 class="zen-section-title">第三單元 · 網路偵察數學底座：CIDR 子網路遮罩與可用主機精確推導</h2>
+    </div>
+
+    <div class="zen-card">
+      <div class="hs-easy-box">
+        <span class="badge">🧒 高中生秒懂譬喻</span>
+        <h4>切蛋糕分房間：IP 位址的「門牌號」與「房間號」</h4>
+        <p>
+          IPv4 地址一共只有 32 個開關 (Bits)。CIDR 斜線記號（例如 <code>/27</code>）代表<strong>前 27 個開關固定為「大樓編號 (網路號)」</strong>，剩下的 <strong>5 個開關由這棟大樓的「房間 (主機)」自由使用</strong>。
+        </p>
+      </div>
+
+      <div class="math-formula-box green">
+        <div class="math-formula-title">
+          <span>📐 子網路主機數與遮罩二進位轉十進位逐步推導</span>
+        </div>
+
+        <div class="math-derivation-steps">
+          <div class="math-step matcha">
+            <span class="math-step-num" style="background: var(--accent-matcha);">1</span>
+            <div class="math-step-title">公式 1：主機可用位元數 h 與可用主機容量推導</div>
+            <div class="math-calc-line">
+              主機位元數 h = 32 - 前綴長度 (Prefix)<br>
+              總 IP 數量 = 2^h<br>
+              <strong>可用主機數量 (Usable Hosts) = 2^h - 2</strong> (扣除全 0 的網路識別碼 Network ID 與全 1 的廣播位址 Broadcast IP)
+            </div>
+          </div>
+
+          <div class="math-step matcha">
+            <span class="math-step-num" style="background: var(--accent-matcha);">2</span>
+            <div class="math-step-title">實例推導：/27 企業子網路劃分 (經典 CEH 考題)</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              給定網段 <code>192.168.1.64/27</code>，求其子網路遮罩、可用 IP 範圍與廣播位址：
+            </p>
+            <div class="math-calc-line">
+              h = 32 - 27 = 5 位元<br>
+              第四個 Octet 二進位 = 11100000 ➔ 128 + 64 + 32 = <span class="math-highlight">224</span><br>
+              <strong>子網路遮罩 (Subnet Mask)</strong> = <span class="math-highlight">255.255.255.224</span> (快速心算：256 - 2^5 = 256 - 32 = 224)<br>
+              總 IP 數 = 2^5 = 32 個<br>
+              <strong>可用主機數</strong> = 32 - 2 = <span class="math-highlight">30 台</span><br>
+              • 網路識別碼 (Network ID) = <strong>192.168.1.64</strong> (主機位元全為 0)<br>
+              • 第一個可用主機 IP = <strong>192.168.1.65</strong><br>
+              • 最後一個可用主機 IP = <strong>192.168.1.94</strong><br>
+              • 廣播位址 (Broadcast IP) = <strong>192.168.1.95</strong> (主機位元全為 1)<br>
+              • 下一個子網路起點 = 192.168.1.96/27
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第四單元：Buffer Overflow 記憶體溢位詳解 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第四單元 · 記憶體深淵：緩衝區溢位 (Buffer Overflow) 底層剖析</h2>
     </div>
 
     <div class="zen-card">
@@ -261,12 +389,134 @@
             </ul>
           </div>
         </div>
+
+        <div class="step-item">
+          <div class="step-badge">4</div>
+          <div class="step-content">
+            <h4>🎯 精確計算：EIP 覆蓋偏移量 (Offset) 數學定位推導</h4>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              在逆向分析目標程式時，如何精準知道需要填充多少個 <code>"A"</code> 才能剛好抵達 EIP？
+            </p>
+            <div class="math-calc-line">
+              1. 生成 500 位元組的非重複循環特徵字串 (De Bruijn Pattern)：<br>
+              <code>msf-pattern_create -l 500</code> ➔ Aa0Aa1Aa2Aa3Aa4...<br>
+              2. 發送給目標程式，GDB / x64dbg 捕捉崩潰時 EIP 暫存器內容為：<span class="math-highlight">0x39694438</span> ('8Di9')<br>
+              3. 計算數學距離偏移量：<br>
+              <code>msf-pattern_offset -q 39694438</code> ➔ <span class="math-highlight">Exact match at offset 112</span><br>
+              4. 終極 Payload 結構推導：<br>
+              <strong>Payload = ("A" × 112) + [JMP ESP 地址 4 bytes] + [NOP Sled: \x90 × 16] + [Shellcode]</strong>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 第四單元：Active Directory 企業網域提權實戰 -->
+    <!-- 密碼學破壞力：生日悖論與 GPU 算力模型 -->
     <div class="zen-section-header">
-      <h2 class="zen-section-title">第四單元 · 企業內網終局之戰：Active Directory 網域滲透與 Kerberoasting</h2>
+      <h2 class="zen-section-title">第五單元 · 密碼學破壞力：生日悖論雜湊碰撞與 GPU 破解耗時模型</h2>
+    </div>
+
+    <div class="zen-card">
+      <p style="font-size: 0.95rem; line-height: 1.8; color: var(--ink-secondary);">
+        在 CEH 與 ECSA 中，駭客常使用兩種數學武器：一是利用<strong>生日悖論</strong>製造偽造雜湊憑證；二是利用<strong>密碼空間排列組合</strong>以 GPU 離線暴力秒殺弱密碼。
+      </p>
+
+      <div class="math-formula-box amber">
+        <div class="math-formula-title">
+          <span>🎂 數學推導 1：生日悖論 (Birthday Attack) 雜湊碰撞機率證明</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+          為什麼只要 23 個人，其中兩人同一天生日的機率就超過 50%？若輸出空間為 N，需要多少次隨機嘗試才能找到一組雜湊碰撞 (Hash Collision)？
+        </p>
+
+        <div class="math-derivation-steps">
+          <div class="math-step amber">
+            <span class="math-step-num" style="background: var(--accent-amber);">1</span>
+            <div class="math-step-title">步驟 1：不發生碰撞的反面機率推導</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              設隨機產生 k 個雜湊值，輸出空間大小為 N。所有 k 個值均不相同的機率為：
+            </p>
+            <div class="math-calc-line">
+              P(無碰撞) = 1 × (1 - 1/N) × (1 - 2/N) × ... × (1 - (k-1)/N)<br>
+              利用泰勒展開近似 e^(-x) ≈ 1 - x (當 x 很小時)：<br>
+              P(無碰撞) ≈ e^(-1/N) × e^(-2/N) × ... × e^(-(k-1)/N) = e^(- [k(k-1)] / (2N) ) ≈ <span class="math-highlight">e^(- k^2 / 2N)</span>
+            </div>
+          </div>
+
+          <div class="math-step amber">
+            <span class="math-step-num" style="background: var(--accent-amber);">2</span>
+            <div class="math-step-title">步驟 2：求解碰撞機率達到 50% 時的關鍵嘗試次數 k</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              令 P(碰撞) = 1 - P(無碰撞) = 0.5 ➔ e^(- k^2 / 2N) = 0.5：
+            </p>
+            <div class="math-calc-line">
+              - k^2 / (2N) = ln(0.5) = -0.693 ➔ k^2 = 2N × 0.693 = 1.386 N<br>
+              <strong>k ≈ 1.177 × √N ≈ 2^(n/2)</strong>
+            </div>
+            <p class="math-note">
+              💥 <strong>致命數學結論</strong>：一個長度為 n 位元的雜湊演算法，其<strong>抗碰撞安全強度只有 n/2 位元</strong>！<br>
+              • <strong>MD5 (128-bit)</strong> ➔ 安全強度只有 2^64！現代 GPU 只要數小時就能算出兩個內容不同但 MD5 完全一樣的檔案（Flame 惡意軟體偽造微軟數位簽章實例）！<br>
+              • <strong>SHA-1 (160-bit)</strong> ➔ 安全強度只有 2^80（Google 2017 SHAttered 實證已告破）！<br>
+              • <strong>SHA-256 (256-bit)</strong> ➔ 安全強度為 2^128 ≈ 3.4 × 10^38，人類在現存宇宙物理條件下絕無可能碰撞！
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- GPU 暴力破解時間模型 -->
+      <div class="math-formula-box indigo" style="margin-top: 1.5rem;">
+        <div class="math-formula-title">
+          <span>⚡ 數學推導 2：密碼長度 vs GPU 雜湊算力 (Hash Rate) 破解耗時模型</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+          公式：總密碼組合數 S = C^L ； 預期破解耗時 T = S / (2 × H) （平均只需嘗試前一半組合即可命中）
+        </p>
+
+        <div class="zen-table-wrap">
+          <table class="zen-table">
+            <thead>
+              <tr>
+                <th>密碼設定規格</th>
+                <th>字元集大小 (C) 與長度 (L)</th>
+                <th>可能組合總數 (S = C^L)</th>
+                <th>8 張 RTX 4090 算 NTLM (100 GH/s = 10^11 次/秒) 預期破解耗時</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>8 位純數字</strong> (如生日)</td>
+                <td>C = 10, L = 8</td>
+                <td>10^8 = 100,000,000</td>
+                <td>10^8 / (2 × 10^11) = <strong style="color: var(--accent-vermilion);">0.0005 秒 (瞬間秒殺)</strong></td>
+              </tr>
+              <tr>
+                <td><strong>8 位純小寫英文</strong></td>
+                <td>C = 26, L = 8</td>
+                <td>26^8 ≈ 2.08 × 10^11</td>
+                <td>2.08 × 10^11 / (2 × 10^11) ≈ <strong style="color: var(--accent-vermilion);">1 秒鐘內搞定</strong></td>
+              </tr>
+              <tr>
+                <td><strong>8 位大小寫英數特殊字</strong></td>
+                <td>C = 95, L = 8</td>
+                <td>95^8 ≈ 6.63 × 10^15</td>
+                <td>6.63 × 10^15 / (2 × 10^11) ≈ 33,171 秒 ≈ <strong>9.2 小時</strong></td>
+              </tr>
+              <tr>
+                <td><strong style="color: var(--accent-matcha);">12 位大小寫英數特殊字 ★</strong></td>
+                <td>C = 95, L = 12</td>
+                <td>95^12 ≈ 5.4 × 10^23</td>
+                <td>5.4 × 10^23 / (2 × 10^11 × 3.15 × 10^7) ≈ <strong style="color: var(--accent-matcha);">85,000 年！</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="math-note">
+          🎯 <strong>CEH / CISSP 命題核心</strong>：增加密碼「長度」帶來的安全指數提升，遠遠高於單純增加「複雜度」。將 8 位複雜密碼延長至 12 位，破解難度瞬間暴增 <strong>8,000 萬倍</strong>！
+        </p>
+      </div>
+    <!-- 第六單元：Active Directory 企業網域提權實戰 -->
+    <div class="zen-section-header">
+      <h2 class="zen-section-title">第六單元 · 企業內網終局之戰：Active Directory 網域滲透與 Kerberoasting</h2>
     </div>
 
     <div class="zen-card">

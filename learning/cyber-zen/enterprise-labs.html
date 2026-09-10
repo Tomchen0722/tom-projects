@@ -345,6 +345,49 @@ Protection: PAGE_EXECUTE_READWRITE</span>
           </div>
         </div>
 
+        <!-- BIA 不等式與停機損失模型數學推導 -->
+        <div class="math-formula-box amber" style="margin: 1.5rem 0;">
+          <div class="math-formula-title">
+            <span>📊 【BIA 數學決策模型】MTD 嚴格不等式與停機財務損失函數推導</span>
+          </div>
+
+          <div class="math-derivation-steps">
+            <div class="math-step amber">
+              <span class="math-step-num" style="background: var(--accent-amber);">1</span>
+              <div class="math-step-title">時程不等式推導：MTD &ge; RTO + WRT</div>
+              <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+                很多初學者誤以為伺服器開機 (RTO) 就等於業務復原。事實上，系統開機後還需要進行資料庫一致性校驗、未入帳資料人工回補 (Work Recovery Time, WRT)：
+              </p>
+              <div class="math-calc-line">
+                災難發生 (0h) ➔ [ RTO: 系統開機部署 (0.5h) ] ➔ [ WRT: 交易回溯校驗 (1.0h) ] ➔ 業務完全就緒 (1.5h)<br>
+                <strong>數學約束條件</strong>：RTO(0.5h) + WRT(1.0h) = 1.5h &le; MTD(2.0h) ✅ (符合安全裕度 0.5 小時)
+              </div>
+              <p class="math-note">
+                ⚠️ <strong>若 RTO + WRT &gt; MTD</strong>：企業將跨過「不可逆存亡臨界點」，遭受監管機構撤銷營業執照或供應鏈客戶直接取消百億訂單！
+              </p>
+            </div>
+
+            <div class="math-step amber">
+              <span class="math-step-num" style="background: var(--accent-amber);">2</span>
+              <div class="math-step-title">晶圓廠停機財務損失模型與備援站 TCO 效益推導</div>
+              <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+                晶圓製造特性：一旦瞬間跳電或系統當機，機台內正在蝕刻的整批晶圓 (WIP) 將全數報廢，產生固定報廢損失 $10,000,000 台幣：
+              </p>
+              <div class="math-calc-line">
+                總損失函數：Total_Loss(t) = (每小時產能損失 × t) + WIP報廢損失 + SLA違約罰金<br>
+                • <strong>方案 A (採用冷站 Cold Site)</strong>：修復需 24 小時<br>
+                Loss_Cold = ($3,500,000 × 24) + $10,000,000 + $50,000,000 (SLA違約) = <span class="math-highlight">$144,000,000 台幣 (1.44 億)</span><br>
+                • <strong>方案 B (採用雲端熱備援 Hot Site)</strong>：修復需 0.5 小時<br>
+                Loss_Hot = ($3,500,000 × 0.5) + $10,000,000 + $0 = <strong style="color: var(--accent-matcha); font-size: 1.05rem;">$11,750,000 台幣 (1,175 萬)</strong><br>
+                <strong>單次災難淨減損</strong> = $144,000,000 - $11,750,000 = <span class="math-highlight" style="color: var(--accent-matcha); font-size: 1.05rem;">+$132,250,000 台幣 (1.32 億)</span>
+              </div>
+              <p class="math-note">
+                🎯 <strong>CISO 呈報董事會總結</strong>：雲端熱備援年維護成本為 800 萬台幣，相較於冷站每年僅多支出 650 萬，但一旦發生災難可立即為公司挽回超過 1.3 億元之毀滅性損失，投資效益極度顯著。
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div class="step-item">
           <div class="step-badge">2</div>
           <div class="step-content">

@@ -154,6 +154,56 @@
         </div>
       </div>
 
+      <!-- RAID 5 奇偶校驗數學還原推導 -->
+      <div class="math-formula-box amber" style="margin-top: 1.5rem;">
+        <div class="math-formula-title">
+          <span>💾 【硬體鑑識數學】RAID 5 奇偶校驗 (Parity) XOR 位元層級還原推導</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--ink-secondary); line-height: 1.75;">
+          在涉案伺服器查扣時，若其中一顆硬碟損壞，鑑識調查官如何利用布林代數中的 <strong>XOR (互斥或 ⊕)</strong> 運算，無損 100% 還原遺失磁碟的原始數位證據？
+        </p>
+
+        <div class="math-derivation-steps">
+          <div class="math-step amber">
+            <span class="math-step-num" style="background: var(--accent-amber);">1</span>
+            <div class="math-step-title">步驟 1：XOR 數學代數性質與校驗碼產生原理</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              XOR 滿足結合律、交換律，且任何數與自身 XOR 為 0 (A ⊕ A = 0)，任何數與 0 XOR 為自身 (A ⊕ 0 = A)。<br>
+              三顆資料硬碟 D1, D2, D3 的奇偶校驗磁區 P 計算公式為：
+            </p>
+            <div class="math-calc-line">
+              P = D1 ⊕ D2 ⊕ D3
+            </div>
+          </div>
+
+          <div class="math-step amber">
+            <span class="math-step-num" style="background: var(--accent-amber);">2</span>
+            <div class="math-step-title">步驟 2：硬碟 D2 損毀時的數學反演推導</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              等式兩邊同時 ⊕ (D1 ⊕ D3)：
+            </p>
+            <div class="math-calc-line">
+              P ⊕ D1 ⊕ D3 = (D1 ⊕ D2 ⊕ D3) ⊕ D1 ⊕ D3 = D2 ⊕ (D1 ⊕ D1) ⊕ (D3 ⊕ D3) = D2 ⊕ 0 ⊕ 0 = <span class="math-highlight">D2</span><br>
+              <strong>還原公式：D2 = D1 ⊕ D3 ⊕ P</strong>
+            </div>
+          </div>
+
+          <div class="math-step amber">
+            <span class="math-step-num" style="background: var(--accent-amber);">3</span>
+            <div class="math-step-title">步驟 3：真實位元組數值驗算示範</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              假設某區塊中三個磁碟的位元組資料如下：<br>
+              • D1 = <code>1011 0011</code><br>
+              • D2 = <code>1100 1101</code><br>
+              • D3 = <code>0110 1010</code><br>
+              計算得校驗區塊 P = D1 ⊕ D2 ⊕ D3 = <code>10110011</code> ⊕ <code>11001101</code> ⊕ <code>01101010</code> = <span class="math-highlight">0001 0100</span><br>
+              <strong>災難發生：D2 硬碟故障</strong>，調查官執行還原計算：<br>
+              D1 ⊕ D3 ⊕ P = <code>10110011</code> ⊕ <code>01101010</code> ⊕ <code>00010100</code> = <strong style="color: var(--accent-matcha); font-size: 1.05rem;">1100 1101</strong> (與 D2 完全一致，資料 100% 復活！)
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="enterprise-box" style="margin-top: 1.5rem;">
         <span class="badge">📋 證物保管鏈表單 (Chain of Custody Form) 必備欄位</span>
         <ul>
@@ -227,6 +277,78 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- 磁區與叢集鬆弛空間數學推導 -->
+      <div class="math-formula-box green" style="margin-top: 1.5rem;">
+        <div class="math-formula-title">
+          <span>🔬 【鑑識底層數學】NTFS 叢集鬆弛空間 (Slack Space) 精確位元組分配推導</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--ink-secondary); line-height: 1.75;">
+          嫌疑犯將敏感檔案「粉碎刪除」後，再存入一個新檔案覆蓋。鑑識軟體（EnCase / Autopsy）為什麼依然能從磁碟深處抽出關鍵證據？核心在於<strong>叢集分配最小單位所產生的鬆弛空間 (Slack Space)</strong>：
+        </p>
+
+        <div class="math-derivation-steps">
+          <div class="math-step matcha">
+            <span class="math-step-num" style="background: var(--accent-matcha);">1</span>
+            <div class="math-step-title">步驟 1：檔案系統儲存幾何架構定義</div>
+            <div class="math-calc-line">
+              實體磁區 (Sector) = 512 位元組 (Bytes)<br>
+              NTFS 標準配置單位叢集 (Cluster) = 8 個磁區 = 8 × 512 = <span class="math-highlight">4,096 位元組 (4KB)</span><br>
+              <strong>作業系統鐵律</strong>：作業系統分配硬碟空間以「整顆叢集」為最小單位，哪怕檔案只有 1 個字元，也必須佔據整整 4,096 位元組！
+            </div>
+          </div>
+
+          <div class="math-step matcha">
+            <span class="math-step-num" style="background: var(--accent-matcha);">2</span>
+            <div class="math-step-title">步驟 2：案例計算 —— 儲存 5,000 位元組機密檔案</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              嫌疑犯寫入一個大小剛好為 <strong>5,000 位元組</strong> 的受賄名單，計算其磁碟分配：
+            </p>
+            <div class="math-calc-line">
+              所需叢集數 = ceil(5,000 / 4,096) = <span class="math-highlight">2 個叢集 (總共分配 8,192 位元組)</span><br>
+              • 第 1 叢集 (Offset 0 ~ 4,095)：完全寫滿 (4,096 位元組)<br>
+              • 第 2 叢集 (Offset 4,096 ~ 8,191)：僅使用了 5,000 - 4,096 = <span class="math-highlight">904 位元組</span>
+            </div>
+          </div>
+
+          <div class="math-step matcha">
+            <span class="math-step-num" style="background: var(--accent-matcha);">3</span>
+            <div class="math-step-title">步驟 3：RAM Slack 與 Drive/File Slack 精確位元組推導</div>
+            <p style="font-size: 0.88rem; color: var(--ink-secondary);">
+              在第 2 個叢集中，剩餘未使用的空間被精細劃分為兩部分：
+            </p>
+            <div class="math-calc-line">
+              1. <strong>RAM Slack</strong>：從資料結尾 (904B) 到該實體磁區末端 (512 × 2 = 1,024B)：<br>
+              RAM Slack = 1,024 - 904 = <strong style="color: var(--accent-vermilion); font-size: 1rem;">120 位元組</strong><br>
+              (歷史作業系統在此處常以記憶體緩衝區直接填補，導致此 120 位元組殘留 RAM 中剛被複製的明文密碼！)<br><br>
+              2. <strong>Drive / File Slack</strong>：從該磁區結尾 (1,024B) 到整顆叢集結尾 (4,096B)：<br>
+              Drive Slack = 4,096 - 1,024 = <strong style="color: var(--accent-vermilion); font-size: 1rem;">3,072 位元組</strong><br>
+              (完全不被寫入覆蓋！裡面完整保存了『上一個被刪除檔案』的原始磁區歷史資料！)<br><br>
+              <strong>總未分配鬆弛空間 (Total Slack Space)</strong> = 120 + 3,072 = <span class="math-highlight" style="font-size: 1.05rem;">3,192 位元組</span>
+            </div>
+            <p class="math-note">
+              🕵️ <strong>CHFI 法庭致勝關鍵</strong>：嫌疑犯以為把前一個機密檔案刪除並存入新檔案就能死無對證，但鑑識專家利用 Hex Editor 深入這 3,192 位元組的 Slack Space，成功抽取前一份犯罪檔案的關鍵殘留碎片！
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Windows FILETIME 時間戳記推導 -->
+      <div class="math-formula-box indigo" style="margin-top: 1.5rem;">
+        <div class="math-formula-title">
+          <span>⏱️ Windows 64-bit FILETIME 時間戳記與 Timestomping 偽造破案數學</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--ink-secondary); line-height: 1.75;">
+          Windows NTFS 使用 64 位元整數記錄時間戳記，以 <strong>自 1601 年 1 月 1 日 00:00:00 UTC 起算的 100 奈秒 (10^-7 秒) 間隔數</strong> 儲存。
+        </p>
+        <div class="math-calc-line">
+          Unix 時間戳記 (Epoch Time - 1970年起算秒數) 換算公式：<br>
+          <strong>Unix Timestamp = (FILETIME - 116,444,736,000,000,000) / 10,000,000</strong>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--ink-secondary); margin-top: 8px;">
+          ⚖️ <strong>破案玄機</strong>：黑客常用 <code>timestomp.exe</code> 竄改 <code>$STANDARD_INFORMATION</code> ($SI) 的時間以掩蓋行蹤，但該工具往往只能修改到「秒級（毫秒部分全歸零 <code>.0000000</code>）」，而且無法竄改 Windows 核心鎖定的 <code>$FILE_NAME</code> ($FN) 屬性！鑑識人員比對 $SI 與 $FN 的毫秒精度與時間矛盾，即成為法庭上判定「蓄意偽造跡證」的鐵證！
+        </p>
       </div>
     </div>
 
