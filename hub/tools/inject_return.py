@@ -34,6 +34,8 @@ TARGETS = [
     "learning/cloud/GCP-Learning/*.html",
     "learning/cloud/GCP-Learning/lessons/*.html",
     "learning/dev/git-course/site/*.html",
+    "learning/autocad2024/*.html",
+    "learning/autocad2024/modules/*.html",
 ]
 
 SNIPPET_TEMPLATE = """

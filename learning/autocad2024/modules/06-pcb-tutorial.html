@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 6 單元：【旗艦實戰】PCB 電路板完整製圖教學 | AutoCAD 2024 高中生自學手冊</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-badge">A</div>
+        <div class="logo-text">
+          <h1>AutoCAD 2024 自學手冊</h1>
+          <span>HIGH SCHOOL CAD &amp; PCB GUIDE</span>
+        </div>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="../index.html" class="nav-link">🏠 回首頁</a></li>
+        <li><a href="01-interface.html" class="nav-link">01 介面環境</a></li>
+        <li><a href="02-draw-tools.html" class="nav-link">02 繪製工具</a></li>
+        <li><a href="03-modify-tools.html" class="nav-link">03 修改工具</a></li>
+        <li><a href="04-layers-properties.html" class="nav-link">04 圖層性質</a></li>
+        <li><a href="05-blocks-annotation.html" class="nav-link">05 圖塊註解</a></li>
+        <li><a href="06-pcb-tutorial.html" class="nav-link active" style="color:var(--cad-green);font-weight:bold;">⚡ 06 PCB實戰</a></li>
+        <li><a href="07-shortcuts.html" class="nav-link">07 快捷鍵表</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <header class="hero" style="padding: 48px 0 36px;background:radial-gradient(circle at 70% 20%, rgba(16, 185, 129, 0.2) 0%, transparent 60%), var(--bg-dark);">
+    <div class="container">
+      <div class="hero-tag" style="border-color:rgba(16,185,129,0.4);color:var(--cad-green);">UNIT 06 · FLAGSHIP PCB PROJECT</div>
+      <h1 class="hero-title">【旗艦實戰】NE555 雙色閃燈 <span class="gradient-text">PCB 電路板繪圖全流程</span></h1>
+      <p class="hero-desc">
+        將前五個單元所學融會貫通！本單元帶你從「電路原理圖符號」繪製封裝，到「實體雙層印刷電路板 (PCB)」的尺寸規劃、DIP-8 焊盤陣列、45 度銅箔走線、絲印外框與尺寸標註。每一步驟皆附確切指令、座標參數與圖解！
+      </p>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 40px 24px;">
+
+    <!-- 專案目標與電路圖原理簡介 -->
+    <section>
+      <h2 style="font-size:1.8rem;color:#fff;margin-bottom:12px;border-left:5px solid var(--cad-green);padding-left:14px;">
+        一、 專案目標：經典 NE555 無穩態雙色閃燈電路
+      </h2>
+      <p style="color:var(--text-light);font-size:1rem;margin-bottom:20px;">
+        這是高職電子科、高中生活科技與物理實驗最經典的電路。電路利用一顆 NE555 計時晶片與電容電阻充放電，產生方波振盪訊號，推動紅色與綠色 LED 像警車警示燈一樣規律交替閃爍！
+      </p>
+
+      <!-- 電路原理圖 SVG 向量展示 -->
+      <div style="background:#111622;border:1px solid #2d3748;border-radius:12px;padding:24px;margin-bottom:32px;text-align:center;">
+        <h3 style="color:#38bdf8;font-size:1.1rem;margin-bottom:16px;">⚡ NE555 雙色閃爍電路 · 完整原理圖 (Schematic)</h3>
+        <svg viewBox="0 0 800 380" style="max-width:760px;width:100%;height:auto;filter:drop-shadow(0 6px 18px rgba(0,0,0,0.6));">
+          <!-- 背景方框 -->
+          <rect x="10" y="10" width="780" height="360" rx="8" fill="#182030" stroke="#334155" stroke-width="1.5"/>
+
+          <!-- 頂部 VCC (+9V) 匯流排 -->
+          <line x1="60" y1="50" x2="720" y2="50" stroke="#ef4444" stroke-width="2.5"/>
+          <text x="730" y="55" fill="#ef4444" font-family="monospace" font-weight="bold" font-size="14">+9V (VCC)</text>
+
+          <!-- 底部 GND (0V) 匯流排 -->
+          <line x1="60" y1="330" x2="720" y2="330" stroke="#38bdf8" stroke-width="2.5"/>
+          <text x="730" y="335" fill="#38bdf8" font-family="monospace" font-weight="bold" font-size="14">GND (接地)</text>
+
+          <!-- NE555 核心晶片方塊 (U1) -->
+          <rect x="300" y="100" width="180" height="180" rx="6" fill="#1e293b" stroke="#00d2ff" stroke-width="2.5"/>
+          <text x="390" y="180" fill="#ffffff" font-size="18" font-weight="bold" text-anchor="middle">NE555</text>
+          <text x="390" y="205" fill="#94a3b8" font-size="12" text-anchor="middle">定時器 IC (U1)</text>
+
+          <!-- 引腳標記 -->
+          <!-- Pin 8: VCC (右上) -->
+          <line x1="390" y1="50" x2="390" y2="100" stroke="#ef4444" stroke-width="2"/>
+          <text x="400" y="118" fill="#ef4444" font-size="12" font-family="monospace">8: VCC</text>
+
+          <!-- Pin 4: RESET (接到 VCC) -->
+          <line x1="340" y1="50" x2="340" y2="100" stroke="#ef4444" stroke-width="2"/>
+          <text x="330" y="118" fill="#cbd5e1" font-size="12" font-family="monospace">4: RST</text>
+
+          <!-- Pin 1: GND (正下方) -->
+          <line x1="390" y1="280" x2="390" y2="330" stroke="#38bdf8" stroke-width="2"/>
+          <text x="400" y="272" fill="#38bdf8" font-size="12" font-family="monospace">1: GND</text>
+
+          <!-- Pin 3: OUT (右側) -->
+          <line x1="480" y1="190" x2="570" y2="190" stroke="#10b981" stroke-width="2.5"/>
+          <text x="445" y="195" fill="#10b981" font-size="13" font-family="monospace" font-weight="bold">3: OUT</text>
+
+          <!-- Pin 7: DISCH (左上) -->
+          <line x1="300" y1="140" x2="200" y2="140" stroke="#cbd5e1" stroke-width="2"/>
+          <text x="308" y="145" fill="#cbd5e1" font-size="12" font-family="monospace">7: DISCH</text>
+
+          <!-- Pin 6: THRES & Pin 2: TRIG (左中與左下) -->
+          <line x1="300" y1="200" x2="200" y2="200" stroke="#cbd5e1" stroke-width="2"/>
+          <text x="308" y="205" fill="#cbd5e1" font-size="12" font-family="monospace">6: THRES</text>
+          
+          <line x1="300" y1="240" x2="200" y2="240" stroke="#cbd5e1" stroke-width="2"/>
+          <text x="308" y="245" fill="#cbd5e1" font-size="12" font-family="monospace">2: TRIG</text>
+          <line x1="200" y1="200" x2="200" y2="240" stroke="#cbd5e1" stroke-width="2"/>
+
+          <!-- R1 電阻 (1k) -->
+          <rect x="190" y="65" width="20" height="40" fill="#2d3748" stroke="#fbbf24" stroke-width="2"/>
+          <line x1="200" y1="50" x2="200" y2="65" stroke="#ef4444" stroke-width="2"/>
+          <line x1="200" y1="105" x2="200" y2="140" stroke="#cbd5e1" stroke-width="2"/>
+          <text x="175" y="90" fill="#fbbf24" font-size="11" text-anchor="end">R1 1kΩ</text>
+
+          <!-- R2 電阻 (100k) -->
+          <rect x="190" y="150" width="20" height="40" fill="#2d3748" stroke="#fbbf24" stroke-width="2"/>
+          <line x1="200" y1="140" x2="200" y2="150" stroke="#cbd5e1" stroke-width="2"/>
+          <line x1="200" y1="190" x2="200" y2="200" stroke="#cbd5e1" stroke-width="2"/>
+          <text x="175" y="175" fill="#fbbf24" font-size="11" text-anchor="end">R2 100kΩ</text>
+
+          <!-- C1 定時電容 (10uF) -->
+          <line x1="200" y1="240" x2="200" y2="270" stroke="#cbd5e1" stroke-width="2"/>
+          <line x1="185" y1="270" x2="215" y2="270" stroke="#38bdf8" stroke-width="2.5"/>
+          <line x1="190" y1="278" x2="210" y2="278" stroke="#38bdf8" stroke-width="2.5"/>
+          <line x1="200" y1="278" x2="200" y2="330" stroke="#38bdf8" stroke-width="2"/>
+          <text x="175" y="275" fill="#38bdf8" font-size="11" text-anchor="end">C1 10μF</text>
+          <text x="218" y="268" fill="#ef4444" font-size="11">+</text>
+
+          <!-- C2 濾波電容 (Pin 5 到 GND) -->
+          <line x1="440" y1="280" x2="440" y2="330" stroke="#38bdf8" stroke-width="2"/>
+          <text x="445" y="272" fill="#cbd5e1" font-size="11" font-family="monospace">5: CONT</text>
+          <line x1="430" y1="300" x2="450" y2="300" stroke="#38bdf8" stroke-width="2"/>
+          <line x1="430" y1="306" x2="450" y2="306" stroke="#38bdf8" stroke-width="2"/>
+          <text x="460" y="306" fill="#94a3b8" font-size="10">C2 0.01μF</text>
+
+          <!-- LED1 分支 (推挽輸出) -->
+          <line x1="570" y1="190" x2="570" y2="120" stroke="#10b981" stroke-width="2"/>
+          <line x1="570" y1="120" x2="600" y2="120" stroke="#10b981" stroke-width="2"/>
+          <!-- R3 電阻 470R -->
+          <rect x="600" y="110" width="35" height="20" fill="#2d3748" stroke="#fbbf24" stroke-width="2"/>
+          <text x="617" y="103" fill="#fbbf24" font-size="11" text-anchor="middle">R3 470Ω</text>
+          <line x1="635" y1="120" x2="660" y2="120" stroke="#10b981" stroke-width="2"/>
+          <!-- LED1 紅色 -->
+          <polygon points="660,110 660,130 675,120" fill="#ef4444"/>
+          <line x1="675" y1="110" x2="675" y2="130" stroke="#ef4444" stroke-width="2"/>
+          <line x1="675" y1="120" x2="710" y2="120" stroke="#38bdf8" stroke-width="2"/>
+          <line x1="710" y1="120" x2="710" y2="330" stroke="#38bdf8" stroke-width="2"/>
+          <text x="668" y="145" fill="#ef4444" font-size="11" font-weight="bold">LED1 (紅)</text>
+
+          <!-- LED2 分支 (接地導通) -->
+          <line x1="570" y1="190" x2="570" y2="240" stroke="#10b981" stroke-width="2"/>
+          <!-- LED2 綠色 -->
+          <polygon points="600,240 585,250 585,230" fill="#22c55e"/>
+          <line x1="600" y1="230" x2="600" y2="250" stroke="#22c55e" stroke-width="2"/>
+          <line x1="600" y1="240" x2="630" y2="240" stroke="#10b981" stroke-width="2"/>
+          <!-- R4 電阻 470R -->
+          <rect x="630" y="230" width="35" height="20" fill="#2d3748" stroke="#fbbf24" stroke-width="2"/>
+          <text x="647" y="223" fill="#fbbf24" font-size="11" text-anchor="middle">R4 470Ω</text>
+          <line x1="665" y1="240" x2="710" y2="240" stroke="#ef4444" stroke-width="2"/>
+          <line x1="710" y1="240" x2="710" y2="50" stroke="#ef4444" stroke-width="2"/>
+          <text x="590" y="265" fill="#22c55e" font-size="11" font-weight="bold">LED2 (綠)</text>
+
+          <!-- 接點實心黑圓點 (DONUT) -->
+          <circle cx="200" cy="50" r="4" fill="#ef4444"/>
+          <circle cx="340" cy="50" r="4" fill="#ef4444"/>
+          <circle cx="390" cy="50" r="4" fill="#ef4444"/>
+          <circle cx="710" cy="50" r="4" fill="#ef4444"/>
+          <circle cx="200" cy="140" r="4" fill="#ffffff"/>
+          <circle cx="200" cy="200" r="4" fill="#ffffff"/>
+          <circle cx="200" cy="240" r="4" fill="#ffffff"/>
+          <circle cx="390" cy="330" r="4" fill="#38bdf8"/>
+          <circle cx="200" cy="330" r="4" fill="#38bdf8"/>
+          <circle cx="440" cy="330" r="4" fill="#38bdf8"/>
+          <circle cx="710" cy="330" r="4" fill="#38bdf8"/>
+          <circle cx="570" cy="190" r="4" fill="#10b981"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 步驟一：圖紙與單位初始化 -->
+    <div class="step-box">
+      <div class="step-header">
+        <span class="step-badge">步驟 1</span>
+        <span class="step-title">開新檔案與設定工程單位（UNITS）</span>
+      </div>
+      <div class="step-content">
+        <p><strong>🧑‍🏫 高中生操作指引：</strong></p>
+        <ol style="padding-left:20px;line-height:1.8;">
+          <li>啟動 AutoCAD 2024，點擊左上角「新建 (New)」➜ 選擇標準樣板檔 <strong><code>acadiso.dwt</code></strong>（國際公制公釐單位樣板，絕不要選到英制的 <code>acad.dwt</code>！）。</li>
+          <li>在指令行鍵入 <span class="key-badge">UNITS</span> 按空白鍵：
+            <ul>
+              <li><strong>長度類型</strong>：十進位 (Decimal)</li>
+              <li><strong>精確度</strong>：<code>0.00</code>（小數點後兩位）</li>
+              <li><strong>插入比例單位</strong>：<strong>公釐 (Millimeters)</strong></li>
+            </ul>
+          </li>
+          <li>輸入 <span class="key-badge">LIMITS</span>（圖紙界限）➜ 設定左下角 <code>0,0</code>，右上角 <code>100,70</code> ➜ 輸入 <span class="key-badge">Z</span> 空白鍵 ➜ <span class="key-badge">A</span> 空白鍵（全圖顯示）。</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 步驟二：建立標準 PCB 六大圖層 -->
+    <div class="step-box">
+      <div class="step-header">
+        <span class="step-badge">步驟 2</span>
+        <span class="step-title">建立 PCB 六大圖層（LAYER）</span>
+      </div>
+      <div class="step-content">
+        <p>輸入 <span class="key-badge">LA</span> 打開圖層性質管理員，依序建立下列 6 個工業標準圖層：</p>
+        <div style="background:#12151c;padding:14px;border-radius:6px;font-family:monospace;font-size:0.88rem;line-height:1.8;">
+          • <span style="color:#fbbf24;">01_Board_Outline</span> (顏色: 2 黃色, 線寬: 0.50mm, 實線)<br>
+          • <span style="color:#d946ef;">02_Mounting_Holes</span> (顏色: 6 洋紅, 線寬: 0.25mm, 實線)<br>
+          • <span style="color:#f59e0b;">03_Pads_ThroughHole</span> (顏色: 30 橙色, 線寬: 0.40mm, 實線)<br>
+          • <span style="color:#10b981;">04_Copper_Traces</span> (顏色: 3 綠色, 線寬: 0.50mm, 實線)<br>
+          • <span style="color:#ffffff;">05_Top_Silk</span> (顏色: 7 白色, 線寬: 0.20mm, 實線)<br>
+          • <span style="color:#f97316;">06_Dimension</span> (顏色: 30 橙色, 線寬: 0.18mm, 實線)
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟三：繪製板框與四個 M3 安裝螺孔 -->
+    <div class="step-box">
+      <div class="step-header">
+        <span class="step-badge">步驟 3</span>
+        <span class="step-title">繪製 50mm × 35mm 圓角板框與 M3 螺孔</span>
+      </div>
+      <div class="step-content">
+        <p><strong>1. 繪製圓角板框：</strong></p>
+        <ol style="padding-left:20px;line-height:1.8;">
+          <li>切換到 <code>01_Board_Outline</code> 圖層。</li>
+          <li>鍵入 <span class="key-badge">REC</span> 按空白鍵 ➜ 鍵入 <span class="key-badge">F</span> ➜ 輸入圓角半徑 <code>3.0</code> 按空白鍵。</li>
+          <li>指定第一角點：<code>0,0</code> 按空白鍵。</li>
+          <li>指定對角點：<code>@50,35</code> 按空白鍵 ➜ 一張四個角帶有 R3 光滑圓角的美麗板框完成！</li>
+        </ol>
+
+        <p style="margin-top:14px;"><strong>2. 繪製四角 M3 安裝螺栓孔：</strong></p>
+        <ol style="padding-left:20px;line-height:1.8;">
+          <li>切換到 <code>02_Mounting_Holes</code> 圖層。</li>
+          <li>M3 螺栓孔直徑為 3.2mm（半徑 <code>1.6</code>mm），孔心距離板邊皆為 3.5mm。</li>
+          <li>輸入 <span class="key-badge">C</span> ➜ 圓心座標輸入 <code>3.5,3.5</code> ➜ 半徑輸入 <code>1.6</code>（左下孔）。</li>
+          <li>使用 <span class="key-badge">MI</span>（鏡射）或 <span class="key-badge">CO</span>（複製）指令，快速產生其餘三個孔：
+            <ul>
+              <li>右下孔心：<code>46.5, 3.5</code></li>
+              <li>右上孔心：<code>46.5, 31.5</code></li>
+              <li>左上孔心：<code>3.5, 31.5</code></li>
+            </ul>
+          </li>
+          <li><strong>安全鎖定</strong>：畫好板框與螺孔後，在圖層管理員把這兩個圖層「鎖護（閉鎖）」，避免手滑移位！</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 步驟四：繪製 DIP-8 NE555 晶片與被動元件焊盤 -->
+    <div class="step-box">
+      <div class="step-header">
+        <span class="step-badge">步驟 4</span>
+        <span class="step-title">佈局 DIP-8 晶片腳座與焊盤陣列</span>
+      </div>
+      <div class="step-content">
+        <p><strong>1. 繪製單個標準貫孔焊盤：</strong></p>
+        <ol style="padding-left:20px;line-height:1.8;">
+          <li>切換到 <code>03_Pads_ThroughHole</code> 圖層。</li>
+          <li>輸入 <span class="key-badge">DO</span>（DONUT 圓環）➜ 內徑輸入 <code>0.9</code>（鑽孔）➜ 外徑輸入 <code>2.0</code>（銅箔焊環）。</li>
+          <li>在板中央偏左座標 <code>21.19, 13.69</code> 點擊放置 Pin 1 焊盤！</li>
+        </ol>
+
+        <p style="margin-top:14px;"><strong>2. 使用 ARRAY 矩形陣列快速生成 8 隻腳：</strong></p>
+        <ol style="padding-left:20px;line-height:1.8;">
+          <li>點選剛才的焊盤，輸入 <span class="key-badge">ARRAYRECT</span> 按空白鍵。</li>
+          <li>在功能區設定：<strong>行數 (COLUMNS) = 2，列數 (ROWS) = 4</strong>。</li>
+          <li><strong>行間距 (Between Columns) = 7.62 mm</strong>（300 mil 標準 DIP 寬度）。</li>
+          <li><strong>列間距 (Between Rows) = 2.54 mm</strong>（100 mil 標準引腳間距）。</li>
+          <li>按 Enter 確認 ➜ 8 顆焊盤 1 秒精確就位！再輸入 <span class="key-badge">X</span>（炸開）轉回單獨焊盤便於走線連接。</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 步驟五：銅箔走線與 45 度轉角物理原因 -->
+    <div class="step-box" style="border-left:4px solid var(--cad-green);">
+      <div class="step-header">
+        <span class="step-badge" style="background:#10b981;color:#0f172a;">步驟 5</span>
+        <span class="step-title">銅箔走線繪製與「為什麼絕不能走 90 度直角？」物理化學深度剖析</span>
+      </div>
+      <div class="step-content">
+        <p>切換到 <code>04_Copper_Traces</code> 圖層，按下 <span class="key-badge">F10</span> 開啟「極座標追蹤」，並在右下角將角度增量設為 <strong>45°</strong>！</p>
+        
+        <p>輸入 <span class="key-badge">PL</span>（聚合線）➜ 鍵入 <span class="key-badge">W</span> 設定線寬：
+          <br>• 電源與接地線 (VCC, GND)：寬度設為 <code>1.0</code> mm（電流大，線路越粗電阻越小，發熱損耗越低）。
+          <br>• 邏輯訊號線 (TRIG, OUT, CONT)：寬度設為 <code>0.5</code> mm。
+        </p>
+
+        <!-- 45 度角深度原理卡片 -->
+        <div class="memo-card orange" style="margin-top:20px;">
+          <div class="memo-title">
+            <span>🔬 高中物理與化學大解密：為什麼 PCB 走線嚴禁 90° 直角，必須走 45° 倒角？</span>
+          </div>
+          <p>
+            <strong>① 化學蝕刻原因（過度腐蝕斷線陷阱）：</strong><br>
+            在 PCB 製造廠，電路板是將整片銅箔泡進酸性氯化鐵（$\text{FeCl}_3$）腐蝕液中，把不要的銅溶解掉。如果走線是 90 度銳角，腐蝕藥水會在直角內凹處形成表面張力渦流並嚴重殘留滯留，導致直角處被「過度蝕刻 (Over-etching)」，走線寬度變窄甚至直接被腐蝕斷路！45 度斜角能讓藥水均勻流過。<br><br>
+            <strong>② 物理電磁學與訊號反射（EMI 輻射與阻抗突變）：</strong><br>
+            根據高中物理電磁感應與波動學說，導線就像一條高頻水管。當走線轉 90 度時，直角轉彎處的幾何線寬會瞬間暴增為原來的 $\sqrt{2} \approx 1.414$ 倍！線寬突然變大會導致該點的<strong>特性阻抗（Impedance）瞬間驟降</strong>，造成高頻訊號在此處產生強烈的「訊號反射 (Reflection)」；同時 90 度的尖端會形成微型天線，向外發射電磁輻射干擾 (EMI)，干擾周圍晶片正常運作。改走 45 度斜角或光滑圓弧，能讓幾何寬度變化降到最低，確保訊號順暢傳遞！
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 步驟六：絲印層標記與工程尺寸標註 -->
+    <div class="step-box">
+      <div class="step-header">
+        <span class="step-badge">步驟 6</span>
+        <span class="step-title">絲印標籤繪製與工程尺寸標註</span>
+      </div>
+      <div class="step-content">
+        <ol style="padding-left:20px;line-height:1.8;">
+          <li>切換到 <code>05_Top_Silk</code> 圖層：
+            <ul>
+              <li>用 <span class="key-badge">REC</span> 繪製 IC 晶片外框（長 9.8mm × 寬 6.5mm）。</li>
+              <li>在 Pin 1 側用 <span class="key-badge">ARC</span> 畫一個半徑 1.2mm 的半圓形防呆缺口 (Notch)。</li>
+              <li>用 <span class="key-badge">DT</span> 輸入文字：字高 <code>1.5</code>mm，標記 <code>U1 NE555</code>、<code>R1</code>、<code>C1</code>、<code>LED1</code>。</li>
+            </ul>
+          </li>
+          <li>切換到 <code>06_Dimension</code> 圖層：
+            <ul>
+              <li>輸入 <span class="key-badge">DLI</span>，依序標註外框總長度 <code>50.00 mm</code> 與總寬度 <code>35.00 mm</code>。</li>
+              <li>標註螺栓孔心距離：水平 <code>43.00 mm</code>、垂直 <code>28.00 mm</code>。</li>
+              <li>輸入 <span class="key-badge">DRA</span> 標註四角圓角半徑 <code>R3.00</code>。</li>
+              <li>輸入 <span class="key-badge">DDI</span> 標註孔徑 <code>Ø3.20</code>。</li>
+            </ul>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 步驟七：出圖列印配置 (PLOT) -->
+    <div class="step-box" style="border-left:4px solid var(--cad-cyan);">
+      <div class="step-header">
+        <span class="step-badge">步驟 7</span>
+        <span class="step-title">出圖列印配置（PLOT）—— 1:1 真實物理比例出圖</span>
+      </div>
+      <div class="step-content">
+        <p>要把畫好的電路圖印在熱轉印紙上自己洗電路板，比例絕對不能跑掉（否則 IC 腳位插不進去！）：</p>
+        <ol style="padding-left:20px;line-height:1.8;">
+          <li>按鍵盤 <span class="key-badge">Ctrl</span> + <span class="key-badge">P</span> 呼叫出圖對話框。</li>
+          <li><strong>印表機/繪圖儀</strong>：選擇 <code>AutoCAD PDF (General Documentation).pc3</code>。</li>
+          <li><strong>圖紙尺寸</strong>：選擇 <code>ISO A4 (210.00 x 297.00 mm)</code>。</li>
+          <li><strong>出圖範圍</strong>：選擇「視窗 (Window)」➜ 用滑鼠拉框圈選整張電路板與標註。</li>
+          <li><strong>出圖比例</strong>：<strong>務必取消勾選「布滿圖紙 (Fit to paper)」！在比例下拉選單選擇 <code>1:1</code>（1 公釐 = 1 單位）</strong>！</li>
+          <li><strong>出圖型式表</strong>：選擇 <code>monochrome.ctb</code>（全黑白單色，洗板熱轉印專用）或保留彩色。</li>
+          <li>點擊「預覽 (Preview)」確認無誤後，按下「確定」，產出精美高清的工程 PDF 檔案！</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 導航按鈕 -->
+    <div style="display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--border);">
+      <a href="05-blocks-annotation.html" class="btn btn-secondary">← 上一篇：05 「圖塊」與「註解」高效製圖</a>
+      <a href="07-shortcuts.html" class="btn btn-primary">下一篇：07 快捷鍵大全與新手常見 10 大地雷 →</a>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-links">
+        <a href="../index.html">手冊首頁</a>
+        <a href="01-interface.html">介面環境</a>
+        <a href="02-draw-tools.html">繪製工具</a>
+        <a href="03-modify-tools.html">修改工具</a>
+        <a href="04-layers-properties.html">圖層性質</a>
+        <a href="05-blocks-annotation.html">圖塊註解</a>
+        <a href="06-pcb-tutorial.html">PCB實戰</a>
+        <a href="07-shortcuts.html">快捷鍵</a>
+      </div>
+      <p>AutoCAD 2024 高中生完全自學手冊 · 專案位置：<code>C:\AI\AutoCAD2024</code></p>
+    </div>
+  </footer>
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  // 依所在環境決定回哪裡：
+  //   本機          → 本機的 Project Hub
+  //   作品集站台內  → 用相對路徑，換網域也不會壞
+  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
+  //                   只能用完整網址連回作品集
+  var host = location.hostname;
+  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
+  var onSite = host === 'tomchen0722.github.io';
+  var href = local ? 'http://127.0.0.1:7000'
+           : (onSite ? '../../../index.html' : 'https://tomchen0722.github.io/tom-projects/');
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>
