@@ -35,10 +35,10 @@
 
   <header class="hero" style="padding: 48px 0 36px;">
     <div class="container">
-      <div class="hero-tag">UNIT 05 · BLOCKS &amp; ANNOTATION MASTERY</div>
+      <div class="hero-tag">UNIT 05 · BLOCKS, ATTRIBUTES &amp; ANNOTATION</div>
       <h1 class="hero-title">AutoCAD 2024 <span class="gradient-text">「圖塊」與「註解」高效製圖</span></h1>
       <p class="hero-desc">
-        電子電路板上有成百上千顆電阻、電容和 IC，難道要一個個重畫嗎？利用「印章模具學（圖塊 Block）」，畫好一次終身重用！搭配標準工程尺寸標註與引線，讓圖紙專業度達到甲級技術士水準！
+        電子電路板上有成百上千顆電阻、電容與 IC，絕不能每次重畫！掌握「印章模具哲學（圖塊 Block）」、自動化屬性文字 (ATTDEF)、永久外部零件庫 (WBLOCK) 與 ISO 尺寸標註管理員，讓圖紙精確度直達工廠量產標準。
       </p>
     </div>
   </header>
@@ -46,145 +46,152 @@
   <main class="container" style="padding: 40px 24px;">
 
     <!-- 1. 圖塊本質：印章模具學 -->
-    <div class="step-box" style="border-left: 4px solid var(--cad-cyan);">
+    <div class="step-box" style="border-left: 4px solid var(--terracotta);">
       <div class="step-header">
-        <span class="step-badge">核心架構</span>
+        <span class="step-badge" style="background:var(--terracotta);color:#fff;">核心哲學</span>
         <span class="step-title">1. 圖塊 (Block) 的印章模具哲學 —— 畫一次，用一生</span>
       </div>
       <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 想像做鳳梨酥或餅乾。你先雕刻出一個精緻的「鋼製模具」（定義圖塊），之後要產出 1,000 塊餅乾，只要拿模具往麵團上一壓（插入圖塊），1 秒印出一個！</p>
+        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 想像做鳳梨酥或中秋月餅。你先雕刻出一個精美的鋼製模具（定義圖塊），之後要產出 1,000 塊月餅，只要拿模具往麵團上一壓（插入圖塊），1 秒印出一個！</p>
         
-        <div class="memo-card">
-          <strong>💡 為什麼不用 Copy 複製，而一定要做成圖塊？兩大救命理由：</strong><br>
-          1. <strong>全圖連動修改</strong>：若你用 Copy 複製了 50 顆電阻，老闆突然說電阻焊盤要從 1.8mm 改大到 2.0mm，你就得手動改 50 次，改到眼睛抽筋！但若做成圖塊，你只要在「圖塊編輯器 (BEDIT)」裡修改模具一次，全圖 50 顆電阻瞬間自動同時更新！<br>
-          2. <strong>大幅縮小檔案體積</strong>：複製 1,000 個獨立圖形會讓 DWG 檔案暴增到幾十 MB；使用圖塊時，電腦只記錄「模具一次 + 1,000 個座標點」，檔案依然輕巧秒開！
+        <!-- SVG 圖塊結構對比圖 -->
+        <div style="background:var(--sand-alt);border:1px solid var(--sand-border);border-radius:10px;padding:20px;margin:20px 0;text-align:center;">
+          <svg viewBox="0 0 700 140" style="max-width:660px;width:100%;height:auto;">
+            <!-- 圖塊定義 -->
+            <g transform="translate(30, 20)">
+              <rect x="0" y="0" width="160" height="90" rx="6" fill="#FDFBF7" stroke="#C2410C" stroke-width="2"/>
+              <text x="80" y="20" fill="#C2410C" font-size="11" font-weight="bold" text-anchor="middle">【模具】BLOCK 定義</text>
+              <rect x="25" y="32" width="110" height="40" rx="3" fill="#2E2A28"/>
+              <circle cx="40" cy="52" r="6" fill="#FDFBF7" stroke="#B87818" stroke-width="2"/>
+              <text x="80" y="56" fill="#FBBF24" font-size="11" font-family="'JetBrains Mono',monospace" text-anchor="middle">NE555P</text>
+              <circle cx="80" cy="90" r="4" fill="#C2410C"/>
+              <text x="80" y="105" fill="#786B62" font-size="9" text-anchor="middle">基準插入點 (0,0)</text>
+            </g>
+
+            <!-- 插入動作 -->
+            <g transform="translate(230, 60)">
+              <line x1="0" y1="0" x2="60" y2="0" stroke="#B87818" stroke-width="2"/>
+              <polygon points="60,0 48,-5 48,5" fill="#B87818"/>
+              <text x="30" y="-10" fill="#B87818" font-size="11" font-family="'JetBrains Mono', monospace" text-anchor="middle">INSERT (I)</text>
+            </g>
+
+            <!-- 多次實例 -->
+            <g transform="translate(330, 15)">
+              <g transform="translate(0, 0)">
+                <rect x="0" y="0" width="100" height="45" rx="3" fill="#2E2A28" stroke="#4A7C59" stroke-width="1.5"/>
+                <text x="50" y="27" fill="#FDFBF7" font-size="10" font-family="monospace" text-anchor="middle">U1: 定時器</text>
+              </g>
+              <g transform="translate(130, 0)">
+                <rect x="0" y="0" width="100" height="45" rx="3" fill="#2E2A28" stroke="#4A7C59" stroke-width="1.5"/>
+                <text x="50" y="27" fill="#FDFBF7" font-size="10" font-family="monospace" text-anchor="middle">U2: 振盪器</text>
+              </g>
+              <g transform="translate(260, 0)">
+                <rect x="0" y="0" width="100" height="45" rx="3" fill="#2E2A28" stroke="#4A7C59" stroke-width="1.5"/>
+                <text x="50" y="27" fill="#FDFBF7" font-size="10" font-family="monospace" text-anchor="middle">U3: 比較器</text>
+              </g>
+              <text x="180" y="75" fill="#4A7C59" font-size="11" font-weight="bold" text-anchor="middle">✓ 修改模具一次，全圖所有晶片瞬間同步更新！</text>
+              <text x="180" y="95" fill="#786B62" font-size="10" text-anchor="middle">檔案體積小 90% · 絕不增加多餘幾何負擔</text>
+            </g>
+          </svg>
         </div>
 
-        <div style="margin:20px 0;background:#12151c;padding:16px;border-radius:8px;">
-          <strong style="color:#38bdf8;">🎯 製作電子元件圖塊三大步驟 (指令: BLOCK / B)：</strong><br>
-          1. 先在畫面上畫好元件（例如一個長 8mm、寬 2.8mm 的電阻絲印框與兩個焊盤）。<br>
-          2. 輸入 <span class="key-badge">B</span> 按空白鍵，彈出圖塊定義對話框：<br>
-             • <strong>名稱 (Name)</strong>：輸入易懂的型號，例如 <code>RESISTOR_TH</code> (直插電阻)。<br>
-             • <strong>基準點 (Base point)</strong>：點擊「挑選點」，選擇電阻的「中心點」或「Pin 1 焊盤中心」作為抓取把柄。<br>
-             • <strong>選取物件 (Select objects)</strong>：把剛才畫的線和圓形圈選起來。<br>
-          3. 點擊「確定」，一顆標準電子元件印章大功告成！
+        <div class="grid-cards" style="grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="card">
+            <h4 style="color:var(--terracotta);">為什麼嚴禁用 Copy 代替圖塊？</h4>
+            <p style="font-size:0.9rem;line-height:1.7;">
+              若你複製了 50 顆電阻，主管突然要求將焊盤直徑由 1.8mm 放大到 2.0mm，用 Copy 你必須手動重改 50 次；而圖塊只要雙擊進入編輯器改一次，全圖 50 顆電阻一秒同步更新！
+            </p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--cad-green);">永久零件庫：WBLOCK (寫出圖塊)</h4>
+            <p style="font-size:0.9rem;line-height:1.7;">
+              指令 <code>BLOCK</code> 只能保存在目前的圖紙裡；輸入 <code>WBLOCK</code> 可以把這顆 NE555 晶片單獨導出為電腦硬碟裡的 <code>NE555P.dwg</code> 檔案，日後做任何新專案直接從檔案庫拖曳進來！
+            </p>
+          </div>
         </div>
 
-        <div class="cmd-line"><span class="cmd-prompt">呼叫印章:</span> 輸入 I (INSERT) ➜ 在圖塊清單中拖曳出 RESISTOR_TH 放置於電路板上</div>
+        <div class="cmd-line" style="margin-top:16px;">
+          製作步驟: <span class="cmd-prompt">B</span> ➜ 名稱: <span class="cmd-prompt">DIP8_NE555</span> ➜ 基準點: 點選 Pin 1 中心 ➜ 選取物件: 框選所有焊盤與外框 ➜ 確定！
+        </div>
       </div>
     </div>
 
-    <!-- 2. 圖塊編輯器 BEDIT 與炸開 EXPLODE -->
-    <div class="step-box">
+    <!-- 2. ATTDEF 屬性文字與自動物料清單 BOM -->
+    <div class="step-box" style="border-left: 4px solid var(--cad-green);">
       <div class="step-header">
-        <span class="step-badge">指令: BEDIT (快速鍵: BE) / EXPLODE (快速鍵: X)</span>
-        <span class="step-title">2. 修改模具與積木拆解</span>
+        <span class="step-badge" style="background:var(--cad-green);color:#fff;">指令: ATTDEF (縮寫: ATT)</span>
+        <span class="step-title">2. 屬性定義 (Attribute) —— 智慧零件標籤與自動化 BOM 清單</span>
       </div>
       <div class="step-content">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-          <div style="background:#0f172a;padding:16px;border-radius:8px;border:1px solid #334155;">
-            <h4 style="color:#10b981;margin-bottom:8px;">🛠️ 圖塊編輯器 (BEDIT)</h4>
-            <p style="font-size:0.9rem;color:#cbd5e1;line-height:1.6;">
-              在任何圖塊上<strong>連續快按兩下滑鼠左鍵</strong>，立刻進入全螢幕「灰色背景的圖塊手術室」！在裡面隨意調整尺寸、加字，點擊右上角「關閉圖塊編輯器並儲存」，整個工程圖面立刻全面連動更新！
-            </p>
-          </div>
-          <div style="background:#0f172a;padding:16px;border-radius:8px;border:1px solid #334155;">
-            <h4 style="color:#ef4444;margin-bottom:8px;">💥 分解 / 炸開 (EXPLODE / X)</h4>
-            <p style="font-size:0.9rem;color:#cbd5e1;line-height:1.6;">
-              如果某顆電阻想要做特殊修改、不想跟其他圖塊連動，點選它後在指令行輸入 <span class="key-badge">X</span> 按空白鍵！圖塊立刻被「炸開」，還原成各自獨立的線條和圓形，脫離模具控制。
-            </p>
-          </div>
+        <p><strong>🧑‍🏫 頂尖工業技巧：</strong> 普通圖塊每次蓋出來文字都一樣。但帶有「屬性 (Attribute)」的圖塊，每次插入畫布時，AutoCAD 會自動跳出彈出視窗詢問你：<br>
+        <code>「請輸入零件編號：[R1]」➜「請輸入阻值規格：[10kΩ 1/4W]」</code>！</p>
+
+        <div style="background:var(--sand);padding:14px;border-radius:6px;border:1px solid var(--sand-border);margin:14px 0;">
+          <strong>🎯 製作智慧電阻圖塊步驟：</strong><br>
+          1. 畫好電阻外形 ➜ 指令行輸入 <span class="key-badge">ATT</span> 按空白鍵。<br>
+          2. <strong>標記 (Tag)</strong>：輸入 <code>REFDES</code>（如 R1）。<br>
+          3. <strong>提示 (Prompt)</strong>：輸入 <code>請輸入零件編號：</code>。<br>
+          4. <strong>預設值 (Default)</strong>：輸入 <code>R?</code> ➜ 點選文字擺放位置。<br>
+          5. 輸入 <code>B</code> 定義圖塊時，將屬性文字一同框選進去！<br>
+          💡 <em>神級應用：全圖畫完後，執行 <code>DATAEXTRACTION</code> 指令，軟體自動將全板所有零件編號與阻值匯出成 Excel 採購表 (BOM 表)！</em>
         </div>
       </div>
     </div>
 
-    <!-- 3. 工程文字標註：單行文字 vs 多行文字 -->
-    <div class="step-box">
+    <!-- 3. 工程尺寸標註系統 (Dimension) 與七大標籤調校 -->
+    <div class="step-box" style="border-left: 4px solid var(--amber);">
       <div class="step-header">
-        <span class="step-badge">指令: TEXT (單行) / MTEXT (多行)</span>
-        <span class="step-title">3. 文字標記 —— 元件編號與電路板說明</span>
+        <span class="step-badge" style="background:var(--amber);color:#fff;">指令: DIM 系列 (DLI / DAL / DRA / DDI)</span>
+        <span class="step-title">3. 工程尺寸標註系統 —— 工廠加工與品管驗收的法定規範</span>
       </div>
       <div class="step-content">
-        <p>在電路板上，我們必須標記 <code>R1 10k</code>、<code>C1 10μF</code>、<code>NE555</code>，AutoCAD 提供兩種文字工具：</p>
-        
-        <table style="width:100%;border-collapse:collapse;margin:16px 0;background:#12151c;border-radius:6px;font-size:0.9rem;">
-          <thead>
-            <tr style="background:#222c3d;color:#38bdf8;text-align:left;">
-              <th style="padding:10px 14px;">類型</th>
-              <th style="padding:10px 14px;">快速鍵</th>
-              <th style="padding:10px 14px;">特點與適用場合</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom:1px solid #283548;">
-              <td style="padding:10px 14px;font-weight:bold;color:#fbbf24;">單行文字 (TEXT)</td>
-              <td style="padding:10px 14px;font-family:monospace;"><span class="key-badge">DT</span></td>
-              <td style="padding:10px 14px;">輕量快速！輸入起點、字高（如 PCB 絲印字高 <code>1.5</code> mm）、旋轉角（<code>0</code>）後直接打字。適合標記零件短代號（R1、GND、VCC）。</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 14px;font-weight:bold;color:#34d399;">多行文字 (MTEXT)</td>
-              <td style="padding:10px 14px;font-family:monospace;"><span class="key-badge">MT</span> 或 <span class="key-badge">T</span></td>
-              <td style="padding:10px 14px;">功能強大！拉出一個文字方塊，頂部出現類似 Word 的文字編輯列，支援段落排版、項目符號、特殊符號（如直徑 Ø、度數 °、微米 μ）。適合寫專案說明、設計注意事項。</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+        <p><strong>🧑‍🏫 工程鐵則：</strong> 「沒有標註公差尺寸的圖面，只是一張概念草稿！」AutoCAD 標註具有強大的<strong>「幾何關聯性 (Associative)」</strong>——當你用拉伸指令把電路板長度由 50mm 拖長至 60mm 時，尺寸線上的數值會<strong>自動即時跳轉為 60.00</strong>！</p>
 
-    <!-- 4. 工程尺寸標註系統 (Dimension) -->
-    <div class="step-box" style="border-left: 4px solid var(--cad-orange);">
-      <div class="step-header">
-        <span class="step-badge" style="background:#f59e0b;color:#0f172a;">指令: DIM 系列 (快速鍵: DLI / DAL / DRA / DDI)</span>
-        <span class="step-title">4. 尺寸標註 —— 工廠加工與品管驗收的法定依據</span>
-      </div>
-      <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 「沒有標註尺寸的圖紙，只是一張廢紙！」工廠師傅必須根據你標的數字來裁切板子、設定鑽頭直徑。AutoCAD 的尺寸標註具有「關聯性」——當你用拉伸指令把電路板改長 10mm，上面的尺寸數字會<strong>自動跳轉為新數字</strong>！</p>
-
-        <!-- 常用尺寸指令圖解表 -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;margin:16px 0;">
-          <div style="background:#12151c;padding:14px;border-radius:6px;border:1px solid #334155;">
-            <div style="font-weight:bold;color:#38bdf8;margin-bottom:6px;">📏 DIMLINEAR (DLI) 線性標註</div>
-            <p style="font-size:0.85rem;color:#cbd5e1;line-height:1.6;">
-              專門標註<strong>水平或垂直長度</strong>。<br>
-              點選電路板左下角與右下角，滑鼠往下拉，點一下左鍵放下尺寸線 ➜ 顯示 <code>50.00 mm</code>！
+        <div class="grid-cards" style="grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));margin:16px 0;">
+          <div class="card">
+            <h4 style="color:var(--terracotta);">📏 DIMLINEAR (DLI) 線性標註</h4>
+            <p style="font-size:0.88rem;line-height:1.6;">
+              標註嚴格的<strong>水平或垂直尺寸</strong>。<br>
+              抓取電路板左下角與右下角安裝孔中心，下拉標註 <code>42.00 mm</code> 孔距。
             </p>
           </div>
-
-          <div style="background:#12151c;padding:14px;border-radius:6px;border:1px solid #334155;">
-            <div style="font-weight:bold;color:#fbbf24;margin-bottom:6px;">📐 DIMALIGNED (DAL) 對齊標註</div>
-            <p style="font-size:0.85rem;color:#cbd5e1;line-height:1.6;">
-              專門標註<strong>斜線的真實幾何長度</strong>。<br>
-              標註線會自動旋轉並平行於該斜線（標註 45 度斜走線長度必備）。
+          <div class="card">
+            <h4 style="color:var(--amber);">📐 DIMALIGNED (DAL) 對齊標註</h4>
+            <p style="font-size:0.88rem;line-height:1.6;">
+              標註<strong>任意傾斜線段的真實空間長度</strong>。<br>
+              標註線自適應旋轉平行於該線段（PCB 45 度斜走線長度專用）。
             </p>
           </div>
-
-          <div style="background:#12151c;padding:14px;border-radius:6px;border:1px solid #334155;">
-            <div style="font-weight:bold;color:#34d399;margin-bottom:6px;">⭕ DIMRADIUS (DRA) 半徑標註</div>
-            <p style="font-size:0.85rem;color:#cbd5e1;line-height:1.6;">
-              點選圓弧或圓形，自動標出 <code>R3.00</code>（標註電路板四個倒圓角）。
+          <div class="card">
+            <h4 style="color:var(--cad-green);">⭕ DIMRADIUS (DRA) 半徑標註</h4>
+            <p style="font-size:0.88rem;line-height:1.6;">
+              點選圓弧或圓角，自動生成帶引線標記 <code>R3.00</code>（板角防割手圓角）。
             </p>
           </div>
-
-          <div style="background:#12151c;padding:14px;border-radius:6px;border:1px solid #334155;">
-            <div style="font-weight:bold;color:#f87171;margin-bottom:6px;">⌀ DIMDIAMETER (DDI) 直徑標註</div>
-            <p style="font-size:0.85rem;color:#cbd5e1;line-height:1.6;">
-              點選鑽孔圓形，自動標出直徑符號 <code>Ø3.20</code>（標註螺栓安裝孔孔徑）。
+          <div class="card">
+            <h4 style="color:var(--cad-blue);">⌀ DIMDIAMETER (DDI) 直徑標註</h4>
+            <p style="font-size:0.88rem;line-height:1.6;">
+              點選鑽孔圓周，自動輸出國際工程直徑符號 <code>Ø3.20</code>（M3 孔徑）。
             </p>
           </div>
         </div>
 
-        <div class="memo-card orange">
-          <strong>💡 標註形式管理員 (DIMSTYLE / 快捷鍵 D)：</strong><br>
-          如果發現標註出來的數字太小（像螞蟻一樣看不清）或者箭頭太大：<br>
-          輸入 <span class="key-badge">D</span> 按空白鍵 ➜ 點選「修改 (Modify)」➜ 在「文字」標籤把字高改為 <code>2.5</code> mm，在「符號與箭頭」把箭頭大小改為 <code>2.0</code> mm，在「主要單位」設定精度為 <code>0.00</code>（兩位小數），全圖尺寸立刻漂亮規整！
+        <div style="background:var(--sand);padding:16px;border-radius:6px;border:1px solid var(--sand-border);margin-top:16px;">
+          <h4 style="color:var(--terracotta);margin-bottom:8px;">🛠️ 標註形式管理員 (DIMSTYLE / 快捷鍵 D) 調校秘笈：</h4>
+          <p style="font-size:0.92rem;line-height:1.7;">
+            若剛標出的文字太小看不清或小數點太長：輸入 <span class="key-badge">D</span> 按空白鍵 ➜ 點選「修改 (Modify)」：<br>
+            • <strong>文字 (Text)</strong>：文字高度設為 <code>2.5mm</code>，文字對齊選擇<strong>「與尺寸線對齊 (ISO 標準)」</strong>。<br>
+            • <strong>符號與箭頭 (Symbols)</strong>：箭頭大小設為 <code>2.0mm</code>，箭頭樣式選「實心閉合」。<br>
+            • <strong>主要單位 (Primary Units)</strong>：精確度選 <code>0.00</code>，勾選<strong>「消除後續零 (Trailing Zero Suppression)」</strong>（讓 50.00mm 乾淨顯示為 50，更美觀）。
+          </p>
         </div>
       </div>
     </div>
 
     <!-- 導航按鈕 -->
-    <div style="display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--border);">
+    <div style="display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--sand-border);">
       <a href="04-layers-properties.html" class="btn btn-secondary">← 上一篇：04 「圖層」與「性質」管理秘笈</a>
-      <a href="06-pcb-tutorial.html" class="btn btn-primary" style="background:linear-gradient(135deg,#059669,#047857);">下一篇：⚡ 06 【旗艦實戰】PCB 電路板完整製圖教學 →</a>
+      <a href="06-pcb-tutorial.html" class="btn btn-primary">下一篇：⚡ 06 【旗艦實戰】PCB 電路板完整製圖教學 →</a>
     </div>
 
   </main>
@@ -205,16 +212,10 @@
     </div>
   </footer>
 
-
 <!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
 <script>
 (function(){
   if (document.getElementById('tom-hub-return')) return;
-  // 依所在環境決定回哪裡：
-  //   本機          → 本機的 Project Hub
-  //   作品集站台內  → 用相對路徑，換網域也不會壞
-  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
-  //                   只能用完整網址連回作品集
   var host = location.hostname;
   var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
   var onSite = host === 'tomchen0722.github.io';
@@ -235,8 +236,6 @@
       + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
       + '#tom-hub-return:hover::after{opacity:0;}'
       + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
-      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
-      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
       + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
       + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
       + '@media print{ #tom-hub-return{display:none;}}';
