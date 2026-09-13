@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>第 2 單元：「繪製」面板全指令圖解 | AutoCAD 2024 高中生自學手冊</title>
+  <title>第 2 單元：「繪製」面板全指令圖解與幾何建構 | AutoCAD 2024 高中生自學手冊</title>
   <link rel="stylesheet" href="../assets/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,10 +35,10 @@
 
   <header class="hero" style="padding: 48px 0 36px;">
     <div class="container">
-      <div class="hero-tag">UNIT 02 · DRAW PANEL COMMANDS</div>
-      <h1 class="hero-title">AutoCAD 2024 <span class="gradient-text">「繪製」面板全指令圖解</span></h1>
+      <div class="hero-tag">UNIT 02 · DRAW PANEL &amp; GEOMETRIC PRIMITIVES</div>
+      <h1 class="hero-title">AutoCAD 2024 <span class="gradient-text">「繪製」面板全指令圖解與幾何建構</span></h1>
       <p class="hero-desc">
-        繪製 (Draw) 是所有幾何創意的起點。從一條最純粹的直線、帶有厚度的一體成型聚合線，到精密計算的圓形與正多邊形。每個指令都有步驟拆解與真實參數教學！
+        繪製 (Draw) 是所有工程實體的骨架。從基本的獨立兩點直線、自帶物理線寬的一體化聚合線 (PLINE)，到同心圓環焊盤 (DONUT) 與大面積鋪銅填充 (HATCH)。本章以逐動指令提示與高中幾何，全面拆解 10 大核心繪圖指令！
       </p>
     </div>
   </header>
@@ -46,150 +46,280 @@
   <main class="container" style="padding: 40px 24px;">
 
     <!-- 1. LINE 直線 -->
-    <div class="step-box">
+    <div class="step-box" style="border-left: 4px solid var(--terracotta);">
       <div class="step-header">
-        <span class="step-badge">指令: LINE (快速鍵: L)</span>
-        <span class="step-title">1. 線 (Line) —— 最基礎的兩點直達線段</span>
+        <span class="step-badge" style="background:var(--terracotta);color:#fff;">指令: LINE (縮寫: L)</span>
+        <span class="step-title">1. 線 (Line) —— 獨立雙端點線段與閉合/復原語法</span>
       </div>
       <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 直線就是兩點連成一線。畫出來的每條線都是「獨立的個體」，哪怕你畫了一個正方形，它依然是 4 根各自獨立的牙籤，點選其中一邊只會選到那一條。</p>
+        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 「兩點決定一直線」。在 AutoCAD 裡連續畫很多段線，每一段都是<strong>獨立個體</strong>（像用一根根火柴棒排成圖案）。如果只想移動其中一根線，點選時不會牽扯到其它線段。</p>
         
-        <div style="margin:16px 0;background:#12151c;padding:14px;border-radius:6px;border-left:3px solid var(--cad-cyan);">
-          <strong>🎯 操作三步驟：</strong><br>
-          1. 指令行輸入 <span class="key-badge">L</span> 後按 <span class="key-badge">空白鍵</span>。<br>
-          2. 在畫面點擊滑鼠左鍵決定<strong>第一點（起點）</strong>。<br>
-          3. 移開滑鼠點擊第二點（或鍵入長度數值如 <code>50</code>）按空白鍵。<br>
-          4. <strong>子選項技巧</strong>：在畫完幾條線後，輸入 <span class="key-badge">C</span>（Close 閉合）按空白鍵，自動連接回最初的起點形成封閉多邊形！按 <span class="key-badge">U</span>（Undo）可復原剛才畫錯的那一小段。
+        <!-- SVG 示意圖 (日系暖色) -->
+        <div style="background:var(--sand-alt);border:1px solid var(--sand-border);border-radius:10px;padding:16px;margin:16px 0;text-align:center;">
+          <svg viewBox="0 0 700 130" style="max-width:650px;width:100%;height:auto;">
+            <circle cx="80" cy="65" r="5" fill="#C2410C"/>
+            <text x="80" y="45" fill="#C2410C" font-size="11" font-weight="bold" text-anchor="middle">起點 P1 (點擊左鍵)</text>
+            <line x1="80" y1="65" x2="280" y2="65" stroke="#1F1A17" stroke-width="2.5"/>
+            <circle cx="280" cy="65" r="5" fill="#4A7C59"/>
+            <text x="280" y="45" fill="#4A7C59" font-size="11" font-weight="bold" text-anchor="middle">第二點 P2 (@50,0)</text>
+            
+            <line x1="280" y1="65" x2="440" y2="25" stroke="#B87818" stroke-width="2.5"/>
+            <circle cx="440" cy="25" r="5" fill="#B87818"/>
+            <text x="440" y="15" fill="#B87818" font-size="11" font-weight="bold" text-anchor="middle">第三點 P3 (@20&lt;30)</text>
+
+            <line x1="440" y1="25" x2="80" y2="65" stroke="#0284C7" stroke-width="2" stroke-dasharray="4"/>
+            <text x="250" y="25" fill="#0284C7" font-size="11" font-weight="bold">輸入 C ➜ 自動封閉回 P1</text>
+            <text x="600" y="70" fill="#786B62" font-size="11">每段線均可獨立選取</text>
+          </svg>
         </div>
 
-        <div class="cmd-line"><span class="cmd-prompt">指令歷程:</span> L ➜ 指定第一點: (點擊) ➜ 指定下一點: @50,0 ➜ 指定下一點: C (閉合)</div>
+        <div style="background:var(--sand);padding:14px;border-radius:6px;border:1px solid var(--sand-border);margin:14px 0;">
+          <strong>🎯 命令列實機對話模擬：</strong>
+          <div class="cmd-line" style="margin-top:8px;">
+            指令: <span class="cmd-prompt">L</span> (按空白鍵)<br>
+            LINE 指定第一點: (在畫布點擊滑鼠左鍵)<br>
+            指定下一點或 [復原(U)]: <span class="cmd-prompt">@50,0</span> (向右畫 50mm)<br>
+            指定下一點或 [復原(U)]: <span class="cmd-prompt">@0,35</span> (向上畫 35mm)<br>
+            指定下一點或 [閉合(C)/復原(U)]: <span class="cmd-prompt">C</span> (輸入 C 自動連回起點並結束指令！)
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 2. PLINE 聚合線 -->
+    <!-- 2. PLINE 聚合線 (旗艦核心) -->
     <div class="step-box" style="border-left: 4px solid var(--cad-green);">
       <div class="step-header">
-        <span class="step-badge" style="background:#10b981;color:#0f172a;">指令: PLINE (快速鍵: PL)</span>
-        <span class="step-title">2. 聚合線 (Polyline) —— 一筆畫到底的「電路走線神器」</span>
+        <span class="step-badge" style="background:var(--cad-green);color:#fff;">指令: PLINE (縮寫: PL)</span>
+        <span class="step-title">2. 聚合線 (Polyline) —— 連體嬰「電路走線神器」與線寬 Width 詳解</span>
       </div>
       <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 聚合線就像用奇異筆一筆畫到底！雖然中間轉了幾十個彎，甚至混雜了直角與弧線，但整條線是<strong>連為一體的「單一物件」</strong>。最猛的是：<strong>它可以設定線寬（Width）</strong>！因此繪製 PCB 印刷電路板的「銅箔走線」100% 必須使用 PLINE！</p>
-        
-        <div style="margin:16px 0;background:#12151c;padding:14px;border-radius:6px;">
-          <strong>🎯 核心特異功能：設定線寬 (Width)</strong><br>
-          在點了起點之後，指令行會提示 <code>[圓弧(A)/半寬(H)/長度(L)/退回(U)/寬度(W)]</code>：<br>
-          • 鍵入 <span class="key-badge">W</span> 按空白鍵 ➜ 起始寬度輸入 <code>1.0</code> ➜ 終止寬度輸入 <code>1.0</code> ➜ 馬上畫出寬度為 1mm 的實體粗走線！<br>
-          • 若起始寬度設 <code>2.0</code>，終止寬度設 <code>0</code>，就能一筆畫出漂亮的實心箭頭！
+        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 聚合線就像用奇異筆一筆畫到底！不論畫了多少個折角、接了多少段圓弧，整條線在 CAD 眼中都是<strong>「單一物件 (Single Entity)」</strong>。最關鍵的是：<strong>聚合線本身可以設定「實體物理線寬 (Width)」</strong>！因此在繪製 PCB 印刷電路板的銅箔走線時，<strong>100% 必須使用 PLINE</strong>！</p>
+
+        <!-- SVG 線寬與箭頭示意圖 -->
+        <div style="background:var(--sand-alt);border:1px solid var(--sand-border);border-radius:10px;padding:16px;margin:16px 0;text-align:center;">
+          <svg viewBox="0 0 700 130" style="max-width:650px;width:100%;height:auto;">
+            <!-- 實體走線 -->
+            <text x="120" y="25" fill="#4A7C59" font-size="11" font-weight="bold">【PCB 銅箔走線】設定寬度 W = 0.8mm</text>
+            <polyline points="30,70 120,70 160,35 240,35" fill="none" stroke="#4A7C59" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="30" cy="70" r="8" fill="#B87818"/>
+            <circle cx="240" cy="35" r="8" fill="#B87818"/>
+            <text x="135" y="100" fill="#786B62" font-size="10">轉折處一體成型，阻抗連續</text>
+
+            <!-- 分隔線 -->
+            <line x1="280" y1="20" x2="280" y2="115" stroke="#D1C4B2" stroke-width="1.5" stroke-dasharray="4"/>
+
+            <!-- 漸變箭頭應用 -->
+            <text x="480" y="25" fill="#C2410C" font-size="11" font-weight="bold">【箭頭技巧】起點寬度 4.0 ➜ 終點寬度 0</text>
+            <polygon points="340,60 480,60 480,50 560,70 480,90 480,80 340,80" fill="#C2410C"/>
+            <text x="480" y="115" fill="#786B62" font-size="10">一筆畫出標準工程指示箭頭</text>
+          </svg>
         </div>
 
-        <div class="cmd-line"><span class="cmd-prompt">指令歷程:</span> PL ➜ 指定起點 ➜ W ➜ 起始寬度: 1.0 ➜ 終止寬度: 1.0 ➜ 指定下一點</div>
+        <div style="background:var(--sand);padding:14px;border-radius:6px;border:1px solid var(--sand-border);margin:14px 0;">
+          <strong>🎯 PLINE 常用子選項秘笈：</strong><br>
+          • <strong>寬度 (Width, 快速鍵 W)</strong>：可分別指定線段「起點寬度」與「終止寬度」。若兩者相同則為均勻粗線；若起點 3.0、終點 0 則為實心箭頭。<br>
+          • <strong>圓弧 (Arc, 快速鍵 A)</strong>：可在畫直線的途中，<strong>無縫切換為平滑相切圓弧</strong>！再輸入 <code>L</code> (Line) 又能切回直線。<br>
+          • <strong>半寬 (Halfwidth, 快速鍵 H)</strong>：以中心軸為基準輸入一半寬度（半寬 × 2 = 全寬）。
+        </div>
+
+        <div class="cmd-line">
+          指令: <span class="cmd-prompt">PL</span> ➜ 指定起點 ➜ <span class="cmd-prompt">W</span> ➜ 指定起始寬度: <span class="cmd-prompt">0.8</span> ➜ 指定終止寬度: <span class="cmd-prompt">0.8</span> ➜ 指定下一點: @10,0 ➜ <span class="cmd-prompt">A</span> (轉為圓弧走線)
+        </div>
       </div>
     </div>
 
     <!-- 3. CIRCLE 圓形 -->
-    <div class="step-box">
+    <div class="step-box" style="border-left: 4px solid var(--amber);">
       <div class="step-header">
-        <span class="step-badge">指令: CIRCLE (快速鍵: C)</span>
-        <span class="step-title">3. 圓 (Circle) —— 螺栓孔與焊盤的基石</span>
+        <span class="step-badge" style="background:var(--amber);color:#fff;">指令: CIRCLE (縮寫: C)</span>
+        <span class="step-title">3. 圓 (Circle) —— 半徑、直徑、2P/3P 與相切幾何學</span>
       </div>
       <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 圓規畫圓！AutoCAD 預設是「給圓心、給半徑 (Radius)」，但工廠圖面通常標註「直徑 (Diameter, 符號 Ø)」，新手常常誤把直徑當半徑輸入，導致畫出來的孔大了一倍！</p>
-        
+        <p><strong>🧑‍🏫 高中幾何考點：</strong> 圓的標準方程式 $(x - h)^2 + (y - k)^2 = R^2$。AutoCAD 提供了 6 種幾何定義圓的方式，其中 PCB 設計與機構開孔最常用的有四種：</p>
+
+        <div class="grid-cards" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));margin:16px 0;">
+          <div class="card">
+            <h4 style="color:var(--terracotta);">1. 圓心 + 半徑 (Radius, 預設)</h4>
+            <p style="font-size:0.9rem;">
+              指令 <code>C</code> ➜ 點選圓心 ➜ 輸入數值 <code>1.6</code> ➜ 畫出半徑 1.6mm（對應 M3 螺絲孔）的圓。
+            </p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--cad-green);">2. 圓心 + 直徑 (Diameter, 子選項 D)</h4>
+            <p style="font-size:0.9rem;">
+              指令 <code>C</code> ➜ 點選圓心 ➜ 鍵入 <code>D</code> ➜ 輸入數值 <code>3.2</code> ➜ 依標註直徑 Ø3.2 精確作圖。
+            </p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--amber);">3. 兩點圓 (2P)</h4>
+            <p style="font-size:0.9rem;">
+              指令 <code>C</code> ➜ 鍵入 <code>2P</code> ➜ 點選直徑兩端的端點 ➜ 自動生成跨越兩條平行線的貼合圓。
+            </p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--cad-blue);">4. 相切、相切、半徑 (TTR)</h4>
+            <p style="font-size:0.9rem;">
+              指令 <code>C</code> ➜ 鍵入 <code>TTR</code> ➜ 分別點選兩條相交邊線 ➜ 輸入半徑 <code>5.0</code> ➜ 自動計算雙切圓！
+            </p>
+          </div>
+        </div>
+
+        <div class="memo-card amber">
+          <strong>⚠️ 鑽孔防呆警告：</strong> 機械製造標註大多寫直徑（例如 <code>Ø3.2</code> 或 <code>M3</code>），但在 AutoCAD 中若直接輸入 <code>3.2</code>，軟體會當作<strong>半徑</strong>處理，畫出來的孔直徑會變成 <code>6.4mm</code>（整整大了一倍）！一定要養成按 <code>D</code> 再輸入直徑的好習慣！
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. ARC 圓弧 (深入補充) -->
+    <div class="step-box" style="border-left: 4px solid var(--cad-blue);">
+      <div class="step-header">
+        <span class="step-badge" style="background:var(--cad-blue);color:#fff;">指令: ARC (縮寫: A)</span>
+        <span class="step-title">4. 圓弧 (Arc) —— 11 種幾何定義與逆時針正角定律</span>
+      </div>
+      <div class="step-content">
+        <p><strong>🧑‍🏫 高中三角幾何定理：</strong> 在 AutoCAD 中，所有的弧線預設都遵循<strong>「逆時針方向為正 (Counter-Clockwise)」</strong>！若起點與終點順序點反，畫出來的弧線會凹向完全相反的方向。</p>
+
+        <div style="background:var(--sand);padding:14px;border-radius:6px;border:1px solid var(--sand-border);margin:14px 0;">
+          <strong>🎯 三大高頻使用圓弧技法：</strong><br>
+          • <strong>三點定弧 (3-Point, 預設)</strong>：依序點擊「起點 ➜ 弧上任一點 ➜ 終點」，適合隨形繪製。<br>
+          • <strong>起點、圓心、終點 (S, C, E)</strong>：先點起點，再指定旋轉中心點，最後指定終點角度（注意逆時針旋轉！）。<br>
+          • <strong>連續切線弧 (Continue)</strong>：在畫完一條線後，直接按 <code>A</code> ➜ 空白鍵 ➜ 自動以剛才那條線的端點作為切線方向，畫出完全平滑過渡的相切弧（PCB 高速信號等長蛇形線常用！）。
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. RECTANG 矩形 -->
+    <div class="step-box" style="border-left: 4px solid var(--terracotta);">
+      <div class="step-header">
+        <span class="step-badge" style="background:var(--terracotta);color:#fff;">指令: RECTANG (縮寫: REC)</span>
+        <span class="step-title">5. 矩形 (Rectangle) —— 雙對角線座標、圓角 (F) 與倒角 (C) 參數</span>
+      </div>
+      <div class="step-content">
+        <p><strong>🧑‍🏫 高中解析幾何：</strong> 矩形本質上一條四段閉合的聚合線。最快速的精確繪製方法是「給定左下角頂點 $(X_1, Y_1)$，再以相對座標輸入對角點 <code>@長,寬</code>」。</p>
+
+        <div style="background:var(--sand);padding:14px;border-radius:6px;border:1px solid var(--sand-border);margin:14px 0;">
+          <strong>🎯 自帶倒角與圓角的高階參數（點起點前先輸入）：</strong><br>
+          • <strong>圓角 (Fillet, F)</strong>：輸入 <code>REC</code> ➜ 鍵入 <span class="key-badge">F</span> ➜ 輸入圓角半徑 <code>3.0</code> ➜ 再點起點畫框 ➜ 畫出來的矩形四個角自動打磨成 $R=3\text{mm}$ 的平滑弧角（PCB 電路板防割手圓角必備！）。<br>
+          • <strong>倒角 (Chamfer, C)</strong>：輸入 <code>REC</code> ➜ 鍵入 <span class="key-badge">C</span> ➜ 設定倒角距離 <code>2.0, 2.0</code> ➜ 產生 45 度切角邊框。
+        </div>
+
+        <div class="cmd-line">
+          指令: <span class="cmd-prompt">REC</span> ➜ <span class="cmd-prompt">F</span> ➜ 圓角半徑: <span class="cmd-prompt">3</span> ➜ 指定第一角點: <span class="cmd-prompt">0,0</span> ➜ 指定對角點: <span class="cmd-prompt">@50,35</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. DONUT 圓環 (PCB 核心) -->
+    <div class="step-box" style="border-left: 4px solid var(--amber);">
+      <div class="step-header">
+        <span class="step-badge" style="background:var(--amber);color:#fff;">指令: DONUT (縮寫: DO)</span>
+        <span class="step-title">6. 圓環 (Donut) —— PCB 穿孔焊盤、實心節點與盲孔神技</span>
+      </div>
+      <div class="step-content">
+        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 就像甜甜圈！中間是鑽孔空心，外圈是實心填滿的銅箔。如果你把「內徑設為 0」，它立刻變成一顆<strong>實心黑圓點</strong>（在電路原理圖中代表兩條導線焊在一起的 Junction 節點！）。</p>
+
+        <!-- SVG 示意圖 -->
+        <div style="background:var(--sand-alt);border:1px solid var(--sand-border);border-radius:10px;padding:16px;margin:16px 0;text-align:center;">
+          <svg viewBox="0 0 600 130" style="max-width:550px;width:100%;height:auto;">
+            <!-- 空心焊盤 -->
+            <circle cx="150" cy="65" r="30" fill="#4A7C59" stroke="#2B2523" stroke-width="1.5"/>
+            <circle cx="150" cy="65" r="14" fill="#FDFBF7" stroke="#2B2523" stroke-width="1.5"/>
+            <text x="150" y="115" fill="#4A7C59" font-size="11" font-weight="bold" text-anchor="middle">PCB 貫孔焊盤 (內徑 0.9 / 外徑 2.0)</text>
+
+            <!-- 實心節點 -->
+            <line x1="360" y1="65" x2="520" y2="65" stroke="#1F1A17" stroke-width="2"/>
+            <line x1="440" y1="20" x2="440" y2="110" stroke="#1F1A17" stroke-width="2"/>
+            <circle cx="440" cy="65" r="8" fill="#1F1A17"/>
+            <text x="440" y="125" fill="#1F1A17" font-size="11" font-weight="bold" text-anchor="middle">原理圖實心節點 (內徑 0 / 外徑 1.2)</text>
+          </svg>
+        </div>
+
+        <div class="cmd-line">
+          指令: <span class="cmd-prompt">DO</span> ➜ 指定內徑: <span class="cmd-prompt">0.9</span> ➜ 指定外徑: <span class="cmd-prompt">2.0</span> ➜ 點選焊盤中心點 (連續蓋印章)
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. HATCH 填充線與銅箔鋪銅 -->
+    <div class="step-box" style="border-left: 4px solid var(--cad-green);">
+      <div class="step-header">
+        <span class="step-badge" style="background:var(--cad-green);color:#fff;">指令: HATCH (縮寫: H)</span>
+        <span class="step-title">7. 填充線 (Hatch) —— 大面積鋪銅 (Copper Pour) 與剖面線剖析</span>
+      </div>
+      <div class="step-content">
+        <p><strong>🧑‍🏫 高中物理與電磁學關聯：</strong> 在高頻與敏感電路中，未走線的空白區域不能留空，必須鋪滿大面積接地銅箔（GND Copper Pour）。這樣做能形成「屏蔽罩」，吸收高頻雜訊並降低電源回路阻抗！在 AutoCAD 中，正是用 <code>HATCH</code> 的 <code>SOLID</code> 純色填滿來模擬鋪銅。</p>
+
+        <div style="background:var(--sand);padding:14px;border-radius:6px;border:1px solid var(--sand-border);margin:14px 0;">
+          <strong>🎯 兩種選取方式比較：</strong><br>
+          • <strong>點選內部點 (Pick Points)</strong>：滑鼠移到封閉區域內點一下，AutoCAD 自動向外雷射掃描邊界。<br>
+          • <strong>選取邊界物件 (Select Objects)</strong>：直接點選外圍的閉合矩形或聚合線，效率最高、不容易出錯。
+        </div>
+
+        <div class="memo-card amber">
+          <strong>⚠️ 填充線破網失誤（找不到閉合邊界）：</strong><br>
+          若邊界有 0.001mm 的微小縫隙，填色運算會失敗並噴出紅色小圓圈警示。解決之道：設定<strong>「邊界容差 (Gap Tolerance / HPGAPTOL)」</strong>，例如設為 <code>0.1</code>，軟體會自動把 0.1mm 以內的微小缺口視為封閉閉合！
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. POLYGON 正多邊形 -->
+    <div class="step-box" style="border-left: 4px solid var(--cad-blue);">
+      <div class="step-header">
+        <span class="step-badge" style="background:var(--cad-blue);color:#fff;">指令: POLYGON (縮寫: POL)</span>
+        <span class="step-title">8. 正多邊形 (Polygon) —— 內接於圓 (I) vs 外切於圓 (C) 幾何驗證</span>
+      </div>
+      <div class="step-content">
+        <p><strong>🧑‍🏫 高中數學正多邊形幾何：</strong> 正多邊形由多條等長弦或等長切線構成。AutoCAD 依據一個假想圓的半徑 $R$ 來決定多邊形大小：</p>
+
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
-          <div style="background:#0f172a;padding:12px;border-radius:6px;border:1px solid #334155;">
-            <strong style="color:#38bdf8;">方法 A：圓心 + 半徑 (預設)</strong><br>
-            輸入 <span class="key-badge">C</span> ➜ 點選圓心 ➜ 輸入半徑值（例如 M3 螺絲孔半徑 <code>1.6</code>）按空白鍵。
+          <div style="background:var(--sand);padding:14px;border-radius:8px;border:1px solid var(--sand-border);">
+            <strong style="color:var(--terracotta);">選項 I：內接於圓 (Inscribed in circle)</strong><br>
+            • 多邊形的每個<strong>「頂角」</strong>均落在半徑為 $R$ 的假想圓圓周上。<br>
+            • 邊長 $L = 2R \sin(\frac{180^\circ}{n})$。<br>
+            • <strong>應用：</strong>繪製接地倒三角形符號、六角形電晶體符號。
           </div>
-          <div style="background:#0f172a;padding:12px;border-radius:6px;border:1px solid #334155;">
-            <strong style="color:#fbbf24;">方法 B：圓心 + 直徑 (D)</strong><br>
-            輸入 <span class="key-badge">C</span> ➜ 點選圓心 ➜ 鍵入 <span class="key-badge">D</span> 按空白鍵 ➜ 輸入直徑值 <code>3.2</code> 按空白鍵。
+          <div style="background:var(--sand);padding:14px;border-radius:8px;border:1px solid var(--sand-border);">
+            <strong style="color:var(--cad-green);">選項 C：外切於圓 (Circumscribed about circle)</strong><br>
+            • 多邊形的每個<strong>「邊的中點」</strong>均與半徑為 $R$ 的假想圓相切。<br>
+            • 邊心距剛好等於 $R$。<br>
+            • <strong>應用：</strong>機械六角螺帽（對邊寬度為 $2R$，扳手開口尺寸）。
           </div>
         </div>
-
-        <div class="memo-card">
-          <strong>💡 考前秒殺子選項：</strong><br>
-          • <strong>2P (兩點圓)</strong>：點選直徑的兩個端點決定圓（適合畫卡在兩條平行線中間的切圓）。<br>
-          • <strong>TTR (相切、相切、半徑)</strong>：點選兩條邊線並給定半徑，電腦自動算出同時與兩條線相切的圓！
-        </div>
       </div>
     </div>
 
-    <!-- 4. RECTANG 矩形 -->
-    <div class="step-box">
+    <!-- 9. ELLIPSE 橢圓 -->
+    <div class="step-box" style="border-left: 4px solid var(--amber);">
       <div class="step-header">
-        <span class="step-badge">指令: RECTANG (快速鍵: REC)</span>
-        <span class="step-title">4. 矩形 (Rectangle) —— 外框與晶片包裝必備</span>
+        <span class="step-badge" style="background:var(--amber);color:#fff;">指令: ELLIPSE (縮寫: EL)</span>
+        <span class="step-title">9. 橢圓 (Ellipse) —— 長軸、短軸與高中圓錐曲線</span>
       </div>
       <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 只要指定「左下角」和「右上角」兩個對角頂點，電腦立刻畫出封閉的長方形（本質也是一條封閉聚合線）。</p>
+        <p><strong>🧑‍🏫 高中數學圓錐曲線：</strong> 橢圓標準方程式 $\frac{x^2}{a^2} + \frac{y^2}{b^2} = 1$。AutoCAD 繪製橢圓的口訣是：「給定第一軸的兩個端點（決定長軸 $2a$），再給定第二軸的半軸長度（決定短軸 $b$）」。常用於按鈕開孔與長圓形安裝槽（Oblong Slot）。</p>
+      </div>
+    </div>
+
+    <!-- 10. POINT 與 DIVIDE 等分定位 -->
+    <div class="step-box" style="border-left: 4px solid var(--cad-green);">
+      <div class="step-header">
+        <span class="step-badge" style="background:var(--cad-green);color:#fff;">指令: POINT (PO) / DIVIDE (DIV) / PTYPE</span>
+        <span class="step-title">10. 點與等分 (Divide) —— 排針 (Header Pins) 快速精準定位</span>
+      </div>
+      <div class="step-content">
+        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 當你要在一條 20mm 的線段上，均勻擺放 8 根杜邦排針插孔時，不用拿計算機除以 7！直接使用 <code>DIVIDE</code> 指令：</p>
         
-        <div style="margin:16px 0;background:#12151c;padding:14px;border-radius:6px;">
-          <strong>🎯 精確給定長寬：相對座標 <code>@寬,高</code></strong><br>
-          1. 輸入 <span class="key-badge">REC</span> 按空白鍵。<br>
-          2. 點選左下角起點。<br>
-          3. 輸入 <code>@50,35</code> 按空白鍵 ➜ 立刻生成長 50mm、寬 35mm 的標準 PCB 電路板外框！<br>
-          4. <strong>帶圓角的矩形</strong>：在點起點前，先鍵入 <span class="key-badge">F</span> ➜ 輸入圓角半徑 <code>3.0</code> ➜ 再點起點畫框，四個角自動打磨成光滑圓弧！
+        <div style="background:var(--sand);padding:14px;border-radius:6px;border:1px solid var(--sand-border);margin:14px 0;">
+          <strong>🎯 等分排針三步法：</strong><br>
+          1. 輸入 <code>PTYPE</code> ➜ 將點的樣式改成「十字叉 ✕」（否則預設的點只有 1 個像素，畫在螢幕上看都看不見！）。<br>
+          2. 輸入 <code>DIV</code> 按空白鍵 ➜ 選取基準線段 ➜ 輸入等分數目 <code>8</code>。<br>
+          3. 配合物件鎖點的<strong>「節點 (Node)」</strong>，就能直接把焊盤精準吸附在每個等分點上！
         </div>
-
-        <div class="cmd-line"><span class="cmd-prompt">指令歷程:</span> REC ➜ F ➜ 圓角半徑: 3 ➜ 指定第一點: 0,0 ➜ 指定對角點: @50,35</div>
-      </div>
-    </div>
-
-    <!-- 5. DONUT 圓環 -->
-    <div class="step-box" style="border-left:4px solid var(--cad-orange);">
-      <div class="step-header">
-        <span class="step-badge" style="background:#f59e0b;color:#0f172a;">指令: DONUT (快速鍵: DO)</span>
-        <span class="step-title">5. 圓環 (Donut) —— 電路板實心焊點與盲孔神技</span>
-      </div>
-      <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 就像甜甜圈！中間是一個穿透的空心孔，外面是一圈實心填滿的銅箔。如果你把「內徑設為 0」，它就會變成一顆<strong>實心黑圓點</strong>（用來畫電路原理圖中導線相交連接的 Junction 節點！）。</p>
-        
-        <div style="margin:16px 0;background:#12151c;padding:14px;border-radius:6px;">
-          <strong>🎯 繪製 PCB 貫孔焊盤參數：</strong><br>
-          • 內徑 (鑽孔穿腳孔徑)：<code>0.9</code> mm<br>
-          • 外徑 (銅箔外焊環徑)：<code>2.0</code> mm<br>
-          • 輸入完成後，滑鼠點到哪裡，實心銅箔焊盤就蓋到哪裡，連續蓋印章！
-        </div>
-
-        <div class="cmd-line"><span class="cmd-prompt">指令歷程:</span> DO ➜ 內徑: 0.9 ➜ 外徑: 2.0 ➜ 點選焊盤中心座標</div>
-      </div>
-    </div>
-
-    <!-- 6. HATCH 填充線 -->
-    <div class="step-box">
-      <div class="step-header">
-        <span class="step-badge">指令: HATCH (快速鍵: H)</span>
-        <span class="step-title">6. 填充線 (Hatch) —— 剖面線與銅箔鋪銅 (Copper Pour)</span>
-      </div>
-      <div class="step-content">
-        <p><strong>🧑‍🏫 高中生白話秒懂：</strong> 油漆桶工具！在任何封閉的封閉區域內，灌入斜線紋理（如機械零件剖面線 ANSI31）或純色色塊（SOLID）。在電路板上，通常用來給大面積地線「鋪銅 (Ground Copper Pour)」，增強電路抗干擾能力。</p>
-        
-        <div class="memo-card orange">
-          <strong>⚠️ 新手常見地雷（無法填充）：</strong><br>
-          填充線的邊界必須是<strong>完全封閉的幾何區域</strong>！只要線條之間有哪怕 0.001mm 的小缺口，油漆就會漏出去，AutoCAD 會跳出紅色圓圈警示「找不到有效的封閉邊界」！解決方法：使用 <code>FILLET</code>（圓角 R=0）把線頭接合。
-        </div>
-      </div>
-    </div>
-
-    <!-- 7. POLYGON 正多邊形 -->
-    <div class="step-box">
-      <div class="step-header">
-        <span class="step-badge">指令: POLYGON (快速鍵: POL)</span>
-        <span class="step-title">7. 正多邊形 (Polygon) —— 螺帽六角形與接地符號</span>
-      </div>
-      <div class="step-content">
-        <p><strong>🧑‍🏫 高中幾何考點：內接於圓 (Inscribed) vs 外切於圓 (Circumscribed)</strong></p>
-        <p>
-          輸入邊數（如六角螺帽輸入 <code>6</code>，接地倒三角形輸入 <code>3</code>）➜ 指定中心點 ➜ 選擇：<br>
-          • <strong>I (內接於圓)</strong>：多邊形的各個「頂點」剛好碰在假想圓的圓周上（邊在圓內）。<br>
-          • <strong>C (外切於圓)</strong>：多邊形的各個「邊的中點」剛好碰在假想圓的圓周上（邊在圓外）。
-        </p>
       </div>
     </div>
 
     <!-- 導航按鈕 -->
-    <div style="display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--border);">
-      <a href="01-interface.html" class="btn btn-secondary">← 上一篇：01 介面總覽與環境設定</a>
+    <div style="display:flex;justify-content:space-between;margin-top:56px;padding-top:24px;border-top:1px solid var(--sand-border);">
+      <a href="01-interface.html" class="btn btn-secondary">← 上一篇：01 介面環境與座標系統</a>
       <a href="03-modify-tools.html" class="btn btn-primary">下一篇：03 「修改」面板全指令圖解 →</a>
     </div>
 
@@ -211,16 +341,10 @@
     </div>
   </footer>
 
-
 <!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
 <script>
 (function(){
   if (document.getElementById('tom-hub-return')) return;
-  // 依所在環境決定回哪裡：
-  //   本機          → 本機的 Project Hub
-  //   作品集站台內  → 用相對路徑，換網域也不會壞
-  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
-  //                   只能用完整網址連回作品集
   var host = location.hostname;
   var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
   var onSite = host === 'tomchen0722.github.io';
@@ -241,8 +365,6 @@
       + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
       + '#tom-hub-return:hover::after{opacity:0;}'
       + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
-      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
-      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
       + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
       + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
       + '@media print{ #tom-hub-return{display:none;}}';
