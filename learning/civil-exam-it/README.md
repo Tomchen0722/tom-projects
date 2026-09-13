@@ -8,7 +8,7 @@
 ## 一句話說明
 
 **四種考試分開準備**，講義從高中程度講起，
-並附 **11 科深化教材（各 24 章推導與判準）**、**題庫 4,835 題選擇（全部可線上作答、即時判對錯、錯題複習）+ 110 題申論**、**13 份模擬試卷**，
+並附 **11 科深化教材（各 24 章推導與判準，包含 step-box 步進推導與 memo-card 考前速記）**、**題庫 4,865 題選擇（全部可線上作答、即時判對錯、錯題複習）+ 110 題申論**、**13 份模擬試卷**，
 以及涵蓋國文作文、公文寫作、法學知識與英文的**共同科目**專區。
 
 ---
@@ -30,24 +30,24 @@ civil-exam-it/
 │
 ├── 01-senior3/             高考三級（四科全申論）
 │   ├── index.html            考科權重、目標分數設定、命題趨勢、讀書順序
-│   ├── ds.html / ds2.html    資料結構 第 1–4 章 / 第 5–12 章
+│   ├── ds.html / ds2.html    資料結構 第 1–4 章 / 第 5–12 章（含算式步進推導）
 │   ├── ds-bank.html          資料結構題庫：選擇 270 ＋ 申論 14
-│   ├── db.html / db2.html    資料庫應用
+│   ├── db.html / db2.html    資料庫應用（含關聯除法與 SQL 雙重否定推導）
 │   ├── db-bank.html          資料庫題庫：選擇 270 ＋ 申論 14
 │   ├── net.html / net2.html  資通網路（第 1–7 章）／ 資訊安全（第 8–14 章）
 │   ├── net-bank.html         網路資安題庫：選擇 270 ＋ 申論 14
-│   ├── mis.html / mis2.html  資訊管理
-│   ├── mis-bank.html         資訊管理題庫：選擇 175 ＋ 申論 16
+│   ├── mis.html / mis2.html / mis3.html  資訊管理（含敏捷/CPM/NPV/SBOM深化）
+│   ├── mis-bank.html         資訊管理題庫：選擇 326 ＋ 申論 16
 │   └── mock.html             模擬試卷 4 份 × 4 題申論，附評分配分表
 │
 ├── 02-junior/              普考（計概全測驗，另兩科申論）
 │   ├── index.html            五科平均計分的策略說明、目標分數設定
-│   ├── computer.html / computer2.html   計算機概要 第 1–5 章 / 第 6–12 章
-│   ├── computer-bank.html    計概題庫：選擇 110 題
-│   ├── net.html              資通網路與安全概要（10 章）
-│   ├── net-bank.html         選擇 65 ＋ 申論 12
-│   ├── prog.html             程式設計概要（12 章，從零教起，C ＋ 虛擬碼）
-│   ├── prog-bank.html        選擇 60 ＋ 程式撰寫申論 14
+│   ├── computer.html / computer2.html / computer3.html  計算機概要（含排班/分頁/量子密碼深化）
+│   ├── computer-bank.html    計概題庫：選擇 366 題
+│   ├── net.html / net2.html  資通網路與安全概要（含 CIDR/RSA/零信任/SDN 深化）
+│   ├── net-bank.html         選擇 321 ＋ 申論 12
+│   ├── prog.html / prog2.html  程式設計概要（含 Lomuto Partition/SOLID/DP/SQLi 深化）
+│   ├── prog-bank.html        選擇 316 ＋ 程式撰寫申論 14
 │   └── mock.html             卷一 計概 50 題測驗；卷二／卷三 各 4 題申論
 │
 ├── 03-local3/              地方特考三等（考科同高考三級）
@@ -69,9 +69,10 @@ civil-exam-it/
     ├── official-doc.html     公文寫作：六種類別、期望語對照、26 篇完整範例
     ├── law-const.html        中華民國憲法
     ├── law-intro.html        法學緒論
-    ├── law-bank.html         法學知識題庫 600 題：憲法 190 ＋ 法緒／行政法 210 ＋ 民刑法與特別法 90
-    │                          ＋ 混合實戰 60 ＋ 資訊法制 50，附 16 張考前速記總表
-    ├── english.html          英文：題型解法、高頻單字 120、十大文法點
+    ├── law-special.html      法學知識特別法專題（個資/採購/國賠/刑法/憲判深化）
+    ├── law-bank.html         法學知識題庫 656 題：憲法 190 ＋ 法緒／行政法 210 ＋ 民刑法與特別法 96
+    │                          ＋ 混合實戰 60 ＋ 資訊法制 50 ＋ 進階題組 100，附 16 張考前速記總表
+    ├── english.html / english2.html 英文：題型解法、高頻單字、科技長文句構解析
     └── english-bank.html     英文題庫 620 題：字彙 230 ＋ 文法 200 ＋ 克漏字 12 篇
                                ＋ 閱讀 28 篇；40 篇長文全附完整繁體中文翻譯
 ```

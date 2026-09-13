@@ -17,7 +17,7 @@
 <div class="hero">
   <div class="badge">⌨️ 普考 · 專業科目三 · 進階深度擴充</div>
   <h1>程式設計概要 (進階)</h1>
-  <p><strong>給想拿 80 分以上的高手</strong>。本篇專注於進階資料結構實作、動態規劃 (DP)、物件導向設計原則 (SOLID) 以及安全程式設計。<br>掌握這些進階觀念，在面對申論題的「程式碼改寫」與「效能最佳化」題型時將游刃有餘。</p>
+  <p><strong>給想拿 80 分以上的高手</strong>。本篇專注於進階資料結構實作、動態規劃 (DP)、物件導向設計原則 (SOLID) 以及安全程式設計。<br>掌握這些進階觀念與行行步驟化推導，在面對申論題的「程式碼改寫」與「演算法最佳化」題型時將游刃有餘。</p>
 </div>
 
 <div class="container">
@@ -28,8 +28,8 @@
       <li><a href="#c1">物件導向設計原則 (SOLID)</a></li>
       <li><a href="#c2">進階資料結構實作 (Linked List & Tree)</a></li>
       <li><a href="#c3">C/C++ 指標與記憶體管理深度解析</a></li>
-      <li><a href="#c4">安全程式設計 (Secure Coding)</a></li>
-      <li><a href="#c5">最新程式技術趨勢 (AI 與無伺服器)</a></li>
+      <li><a href="#c4">動態規劃 (DP) 演算法詳解</a></li>
+      <li><a href="#c5">安全程式設計 (Secure Coding)</a></li>
     </ol>
   </div>
 
@@ -50,54 +50,155 @@
       </table>
     </div>
 
-    <div class="frame">
-      <span class="t">💡 考前破題技巧</span>
-      如果題目問：「請說明何謂多型 (Polymorphism) 並舉例說明其優點？」<br>
-      <strong>答題結構</strong>：<br>
-      1. <strong>定義</strong>：相同的訊息發送給不同的物件，會引發不同的行為。<br>
-      2. <strong>程式碼範例</strong>：定義 <code>Animal</code> 介面的 <code>speak()</code>，<code>Dog</code> 實作汪汪，<code>Cat</code> 實作喵喵。<br>
-      3. <strong>優點與結合 SOLID</strong>：強調多型是實現 <strong>開閉原則 (OCP)</strong> 的關鍵，未來若新增 <code>Bird</code>，完全不需要修改呼叫端 (Client) 的程式碼。
+    <!-- LSP 步驟化詳解範例 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：里氏替換原則 (LSP) 正方形繼承長方形之破壞與重構四部曲</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>分析直覺繼承的缺陷代碼（違反 LSP）</strong><br>
+          數學上「正方形是一種長方形」，故初學者常寫：<br>
+          <pre>class Rectangle {
+  protected int w, h;
+  public void setWidth(int w) { this.w = w; }
+  public void setHeight(int h) { this.h = h; }
+  public int getArea() { return w * h; }
+}
+class Square extends Rectangle {
+  @Override
+  public void setWidth(int w) { this.w = this.h = w; } // 強制長寬一致
+  @Override
+  public void setHeight(int h) { this.w = this.h = h; }
+}</pre>
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>追蹤客戶端呼叫時產生的契約崩潰</strong><br>
+          客戶端撰寫一通用函式預期長方形特性：<br>
+          <pre>void resize(Rectangle r) {
+  r.setWidth(5);
+  r.setHeight(4);
+  assert r.getArea() == 20; // 預期面積為 5 × 4 = 20
+}</pre>
+          若傳入 <code>Square</code> 實體：執行 <code>setWidth(5)</code> 使得寬高均為 5；接續執行 <code>setHeight(4)</code> 使得寬高均變為 4！<br>
+          結算面積為 $4 \times 4 = 16 \ne 20$！斷言崩潰（Assertion Failure）。子類別無法安全替換父類別。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>執行正規重構（提取共同抽象或改採組合）</strong><br>
+          正方形與長方形本質上擁有不同的行為不變量（Invariants）。正確重構為兩者皆實作更通用的抽象形狀介面：<br>
+          <pre>interface Shape {
+  int getArea();
+}
+class Rectangle implements Shape {
+  private int w, h;
+  public Rectangle(int w, int h) { this.w = w; this.h = h; }
+  public int getArea() { return w * h; }
+}
+class Square implements Shape {
+  private int side;
+  public Square(int side) { this.side = side; }
+  public int getArea() { return side * side; }
+}</pre>
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>重構後之 LSP 檢驗</strong><br>
+          任何接受 <code>Shape</code> 的客戶端僅依賴 <code>getArea()</code>，傳入 <code>Rectangle</code> 或 <code>Square</code> 行為均完全符合契約預期，完美修復 LSP！
+        </li>
+      </ul>
     </div>
+
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：SOLID 五大原則秒殺口訣</div>
+      <span class="formula">【口訣】單一職責一事專，開閉擴充不改先；里氏替換父子全，介面隔離細分簡，依賴反轉介面聯</span>
+      <ul>
+        <li><strong>SRP</strong>：Class 只有一個改變的原因（維護高內聚 High Cohesion）。</li>
+        <li><strong>OCP</strong>：藉由抽象化介面實現擴充（低耦合 Low Coupling）。</li>
+        <li><strong>LSP</strong>：子類別前置條件不得變嚴格，後置條件不得變寬鬆。</li>
+        <li><strong>ISP</strong>：胖介面（Fat Interface）拆解成多個專屬小介面。</li>
+        <li><strong>DIP</strong>：高階策略不依賴底層細節，以 IoC / DI 實現。</li>
+      </ul>
+    </div>
+
   </div>
 
   <!-- 第 2 章 -->
   <div class="card" id="c2">
-    <h2>第 2 章　進階資料結構實作</h2>
-    <p>普考雖然偏重陣列，但近年來對於「鏈結串列 (Linked List)」與「二元樹 (Binary Tree)」的實作要求逐漸增加，尤其是在 C 語言的指標操作上。</p>
+    <h2>第 2 章　進階資料結構實作 (Linked List & Tree)</h2>
+    <p>普考程式設計概要的申論題，最常考「用 C 語言或虛擬碼實作某個資料結構的操作」。</p>
 
-    <h3>2-1　單向鏈結串列 (Singly Linked List) 反轉</h3>
-    <p>這是一道極高頻的經典面試與考試題，考驗對指標操作的掌握度。</p>
-    <pre><span class="c">// 定義節點結構</span>
-<span class="k">struct</span> Node {
-    <span class="k">int</span> data;
-    <span class="k">struct</span> Node* next;
-};
+    <h3>2-1　單向鏈結串列 (Singly Linked List) 原地反轉</h3>
+    <p>這是國考連續考過數次的超級大熱門！考點在於：<strong>不准使用額外陣列空間，必須以 $O(1)$ 空間複雜度原地 (In-place) 反轉指標</strong>。</p>
 
-<span class="c">// 反轉鏈結串列的函式</span>
-<span class="k">struct</span> Node* reverseList(<span class="k">struct</span> Node* head) {
-    <span class="k">struct</span> Node* prev = NULL;    <span class="c">// 前一個節點</span>
-    <span class="k">struct</span> Node* curr = head;    <span class="c">// 當前節點</span>
-    <span class="k">struct</span> Node* nextTemp = NULL; <span class="c">// 暫存下一個節點</span>
-    
-    <span class="k">while</span> (curr != NULL) {
-        nextTemp = curr-&gt;next;   <span class="c">// 1. 先記住下一個是誰，避免斷鏈</span>
-        curr-&gt;next = prev;       <span class="c">// 2. 反轉：把當前的 next 指向前面</span>
-        prev = curr;             <span class="c">// 3. prev 往前挪一步</span>
-        curr = nextTemp;         <span class="c">// 4. curr 往前挪一步</span>
-    }
-    <span class="k">return</span> prev;                 <span class="c">// 新的 head 是原本的最後一個節點</span>
+    <!-- 鏈結串列反轉步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：單向鏈結串列原地反轉 (In-place Reverse) 雙指針追蹤推導四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【問題定義】</strong>給定鏈結串列 <code>head -> [1] -> [2] -> [3] -> NULL</code>，要求將指標方向完全倒轉為 <code>new_head -> [3] -> [2] -> [1] -> NULL</code>。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>初始化三指標（prev, curr, next）</strong><br>
+          ‧ <code>struct Node *prev = NULL;</code>（前一個節點，一開始為 NULL）<br>
+          ‧ <code>struct Node *curr = head;</code>（當前處理中的節點）<br>
+          ‧ <code>struct Node *next = NULL;</code>（暫存下一個節點，防止斷鏈後遺失）
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>迴圈單步核心四動作（行行不能顛倒）</strong><br>
+          <pre>while (curr != NULL) {
+  next = curr->next;  // 動作 1：先儲存下一個節點的位址（避免斷鏈）
+  curr->next = prev;  // 動作 2：核心反轉！將當前節點指向前一個節點
+  prev = curr;        // 動作 3：前進指標，prev 移到當前節點
+  curr = next;        // 動作 4：前進指標，curr 移到下一個節點
 }</pre>
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>追蹤狀態轉移表（以 3 個節點為例）</strong><br>
+          <div class="table-wrap">
+            <table>
+              <tr><th>回合</th><th>初始狀態</th><th>執行後 curr-&gt;next</th><th>prev 移至</th><th>curr 移至</th><th>串列狀態</th></tr>
+              <tr><td>初始</td><td>prev=NULL, curr=[1]</td><td>-</td><td>-</td><td>-</td><td>[1]-&gt;[2]-&gt;[3]</td></tr>
+              <tr><td>第 1 輪</td><td>next=[2]</td><td>[1]-&gt;NULL</td><td>[1]</td><td>[2]</td><td>NULL&lt;-[1] , [2]-&gt;[3]</td></tr>
+              <tr><td>第 2 輪</td><td>next=[3]</td><td>[2]-&gt;[1]</td><td>[2]</td><td>[3]</td><td>NULL&lt;-[1]&lt;-[2] , [3]</td></tr>
+              <tr><td>第 3 輪</td><td>next=NULL</td><td>[3]-&gt;[2]</td><td>[3]</td><td>NULL</td><td>NULL&lt;-[1]&lt;-[2]&lt;-[3]</td></tr>
+            </table>
+          </div>
+          當 <code>curr == NULL</code> 迴圈終止，此時 <code>prev</code> 恰好指向原串列的尾端 <code>[3]</code>，即為新串列之 <code>new_head</code>！
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>複雜度分析</strong><br>
+          ‧ 時間複雜度：每個節點只走訪一次，為 <strong>$O(n)$</strong>。<br>
+          ‧ 空間複雜度：僅使用 3 個指標變數，為 <strong>$O(1)$</strong>，完全符合原地反轉之嚴苛要求。
+        </li>
+      </ul>
+    </div>
 
-    <h3>2-2　二元搜尋樹 (BST) 的走訪</h3>
-    <p>樹的走訪分為前序、中序、後序。若要將 BST 的節點「由小到大」印出，必須使用<strong>中序走訪 (Inorder Traversal)</strong>。</p>
-    <pre><span class="c">// 中序走訪：左 -> 中 -> 右</span>
-<span class="k">void</span> inorderTraversal(<span class="k">struct</span> TreeNode* root) {
-    <span class="k">if</span> (root == NULL) <span class="k">return</span>;
-    
-    inorderTraversal(root-&gt;left);       <span class="c">// 走訪左子樹</span>
-    printf(<span class="s">"%d "</span>, root-&gt;data);         <span class="c">// 處理當前節點 (印出)</span>
-    inorderTraversal(root-&gt;right);      <span class="c">// 走訪右子樹</span>
-}</pre>
+    <h3>2-2　二元搜尋樹 (BST) 刪除節點三種情境</h3>
+    <p>BST 的走訪可由中序得到由小到大的排序。而在考題中，最刁鑽的是<strong>刪除 (Delete) 節點</strong>的實作。</p>
+
+    <!-- BST 刪除步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：二元搜尋樹 (BST) 節點刪除演算法與雙子節點取代步驟</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">情境 1</span><strong>被刪除節點為葉節點 (Leaf Node，無子樹)</strong><br>
+          直接將父節點指向該節點的指標設為 <code>NULL</code>，並呼叫 <code>free()</code> 釋放記憶體。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">情境 2</span><strong>被刪除節點只有一個子節點 (只有左子樹或只有右子樹)</strong><br>
+          將父節點直接跨過該節點，指向其獨生子節點（如同鏈結串列刪除中間節點），再釋放記憶體。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">情境 3</span><strong>被刪除節點擁有兩個子節點 (最常考申論)</strong><br>
+          ‧ <strong>尋找替補者</strong>：找「左子樹最大值（中序前驅者 Inorder Predecessor）」或「右子樹最小值（中序後繼者 Inorder Successor）」。<br>
+          ‧ <strong>數值複製</strong>：將替補節點的鍵值複製到欲刪除節點中。<br>
+          ‧ <strong>轉化刪除</strong>：因為中序後繼者至多只有一個右子節點（絕無左子節點），因此問題轉化為情境 1 或情境 2，遞迴刪除該替補節點即可。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>時間複雜度總結</strong><br>
+          ‧ 平均時間複雜度：樹高為 $h = O(\log n)$，故搜尋與刪除均為 <strong>$O(\log n)$</strong>。<br>
+          ‧ 最差情況：樹退化成歪斜樹（Skewed Tree）時，時間複雜度退化至 <strong>$O(n)$</strong>。
+        </li>
+      </ul>
+    </div>
+
   </div>
 
   <!-- 第 3 章 -->
@@ -105,66 +206,110 @@
     <h2>第 3 章　C/C++ 指標與記憶體管理深度解析</h2>
     <p>指標 (Pointer) 是 C 語言的靈魂，也是考試最容易失分的地方。指標本質上就是一個「儲存記憶體位址的變數」。</p>
 
-    <h3>3-1　指標與陣列的關係</h3>
-    <p>在 C 語言中，陣列名稱本身就是一個指標，指向陣列的第一個元素。</p>
-    <pre><span class="k">int</span> arr[5] = {10, 20, 30, 40, 50};
-<span class="k">int</span> *p = arr;  <span class="c">// p 指向 arr[0]</span>
-
-printf(<span class="s">"%d\n"</span>, *p);       <span class="c">// 印出 10</span>
-printf(<span class="s">"%d\n"</span>, *(p + 2)); <span class="c">// 指標加法：位址前進 2 個 int 的空間，印出 30</span>
-printf(<span class="s">"%d\n"</span>, p[2]);     <span class="c">// 等同於 *(p + 2)，印出 30</span></pre>
-
-    <h3>3-2　動態記憶體配置 (Dynamic Memory Allocation)</h3>
-    <p>靜態陣列必須在編譯時決定大小（如 <code>int a[100];</code>）。若要在執行時根據使用者輸入來決定陣列大小，必須使用 <code>malloc()</code> (C語言) 或 <code>new</code> (C++)，配置在 <strong>Heap（堆積）</strong>區塊中。</p>
-    <div class="warn">
-      <span class="t">⚠️ 記憶體洩漏 (Memory Leak)</span>
-      使用動態配置的記憶體，作業系統不會自動回收。如果程式碼沒有呼叫 <code>free()</code> (或 <code>delete</code>) 把空間還給作業系統，程式跑久了就會把記憶體吃光導致當機。
+    <!-- 二維陣列指標步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：C 語言二維陣列指標與記憶體位址偏移量推導</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【國考經典試題】</strong>宣告 <code>int a[3][4] = {{1,2,3,4}, {5,6,7,8}, {9,10,11,12}};</code>，已知 <code>int</code> 佔 4 位元組，陣列起始位址（Base Address）為 <code>1000</code>。請推導 <code>*(*(a + 2) + 1)</code> 與 <code>*(a[1] + 3)</code> 之實體位址與取值。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>解析二維陣列的型態與指標級別</strong><br>
+          ‧ <code>a</code> 是陣列名稱，型態為「指向含 4 個整數之一維陣列的指標」（<code>int (*)[4]</code>）。<br>
+          ‧ 因此 <code>a + 1</code> 前進的位移量不是 4 位元組，而是<strong>整整一列（Row）的大小</strong>：$4 \times 4 = 16$ 位元組！
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>推導 <code>*(*(a + 2) + 1)</code></strong><br>
+          ‧ <code>a + 2</code>：跳過 2 列，指向第 2 列（索引從 0 起算）。位址 = $1000 + 2 \times 16 = 1032$。<br>
+          ‧ <code>*(a + 2)</code>：解參考後型態降階為 <code>int*</code>，指向第 2 列的第 0 個元素（即 <code>&a[2][0]</code>）。位址仍為 <code>1032</code>。<br>
+          ‧ <code>*(a + 2) + 1</code>：以 <code>int*</code> 前進 1 個整數，位址 = $1032 + 1 \times 4 = \mathbf{1036}$。<br>
+          ‧ <code>*(*(a + 2) + 1)</code>：對位址 1036 解參考取值，得到 <code>a[2][1]</code> 的數值 = <strong>10</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>推導 <code>*(a[1] + 3)</code></strong><br>
+          ‧ <code>a[1]</code> 等同於 <code>*(a + 1)</code>，指向第 1 列開頭（即 <code>&a[1][0]</code>），位址 = $1000 + 1 \times 16 = 1016$。<br>
+          ‧ <code>a[1] + 3</code>：前進 3 個整數，位址 = $1016 + 3 \times 4 = \mathbf{1028}$。<br>
+          ‧ <code>*(a[1] + 3)</code>：對位址 1028 解參考取值，得到 <code>a[1][3]</code> 的數值 = <strong>8</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>通用定址公式對照</strong><br>
+          二維陣列（列為主 Row-Major）元素 $A[i][j]$ 的記憶體位址公式為：
+          $$\text{Address}(A[i][j]) = \text{Base} + (i \times C + j) \times \text{Size}$$
+          代入 $i=2, j=1$：$1000 + (2 \times 4 + 1) \times 4 = 1000 + 36 = 1036$；值為第 9 個元素（數值 10）。完全吻合！
+        </li>
+      </ul>
     </div>
-    <pre><span class="c">// 動態產生一個大小為 n 的整數陣列</span>
-<span class="k">int</span> n = 10;
-<span class="k">int</span> *ptr = (<span class="k">int</span>*) malloc(n * <span class="k">sizeof</span>(<span class="k">int</span>));
 
-<span class="k">if</span> (ptr == NULL) {
-    printf(<span class="s">"記憶體配置失敗\n"</span>);
-    <span class="k">return</span> 1;
-}
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：指標與陣列轉換等價律</div>
+      <span class="formula">【口訣】中括號變加號星，外加括號指針精；a[i][j] = *(*(a+i)+j) = *(a[i]+j) = (*(a+i))[j]</span>
+      <ul>
+        <li><code>int *p[4]</code>：指標陣列（Array of 4 Pointers）。</li>
+        <li><code>int (*p)[4]</code>：陣列指標（Pointer to an Array of 4 Ints）。</li>
+        <li>動態記憶體使用完畢務必 <code>free(ptr); ptr = NULL;</code> 防止記憶體洩漏與懸空指標（Dangling Pointer）。</li>
+      </ul>
+    </div>
 
-<span class="c">// 使用 ptr...</span>
-
-free(ptr); <span class="c">// 用完務必釋放記憶體！</span>
-ptr = NULL; <span class="c">// 避免迷途指標 (Dangling Pointer)</span></pre>
   </div>
 
   <!-- 第 4 章 -->
   <div class="card" id="c4">
-    <h2>第 4 章　遞迴進階與動態規劃 (DP)</h2>
+    <h2>第 4 章　動態規劃 (DP) 演算法詳解</h2>
     <p>傳統的遞迴往往因為「重複計算」導致效能極差（如樸素的費氏數列為 $O(2^n)$）。<strong>動態規劃 (Dynamic Programming, DP)</strong> 的核心概念就是「用空間換取時間」——將計算過的子問題答案記錄下來，避免重複計算。</p>
 
-    <h3>4-1　自頂向下 (Top-Down)：記憶化搜索 (Memoization)</h3>
-    <pre><span class="c">// 使用陣列 memo 記錄算過的結果，初始化為 -1</span>
-<span class="k">int</span> memo[100]; 
-<span class="k">int</span> fib_memo(<span class="k">int</span> n) {
-    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;
-    <span class="c">// 如果算過，直接查表回傳，時間複雜度降為 O(n)</span>
-    <span class="k">if</span> (memo[n] != -1) <span class="k">return</span> memo[n];
-    
-    memo[n] = fib_memo(n-1) + fib_memo(n-2);
-    <span class="k">return</span> memo[n];
-}</pre>
+    <!-- 0/1 背包問題步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：0/1 背包問題動態規劃表格填寫與回溯推導四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【題目情境】</strong>背包總承重限制 $W = 6$。現有 4 件不可分割的物品如下表，求可裝入之最大總價值及所選物品集合。
+      </p>
+      <div class="table-wrap">
+        <table>
+          <tr><th>物品 $i$</th><th>重量 $w_i$</th><th>價值 $v_i$</th></tr>
+          <tr><td>1</td><td>2</td><td>3</td></tr>
+          <tr><td>2</td><td>3</td><td>4</td></tr>
+          <tr><td>3</td><td>4</td><td>5</td></tr>
+          <tr><td>4</td><td>2</td><td>6</td></tr>
+        </table>
+      </div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>建立狀態轉移方程式 (State Transition Equation)</strong><br>
+          令 $dp[i][w]$ 表示「考慮前 $i$ 個物品，在容量為 $w$ 的背包下能獲得的最大價值」：<br>
+          ‧ 若當前背包容量裝不下第 $i$ 件物品（$w &lt; w_i$）：$dp[i][w] = dp[i-1][w]$（只能不選）。<br>
+          ‧ 若裝得下（$w \ge w_i$）：在「不選」與「選」兩者間取最大值：<br>
+          $$dp[i][w] = \max\Big(dp[i-1][w],\; dp[i-1][w - w_i] + v_i\Big)$$
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>由底向上逐步填入 DP 表格（Row by Row）</strong><br>
+          <div class="table-wrap">
+            <table>
+              <tr><th>$i \backslash w$</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+              <tr><td>0（無物品）</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+              <tr><td>1 ($w_1=2, v_1=3$)</td><td>0</td><td>0</td><td>3</td><td>3</td><td>3</td><td>3</td><td>3</td></tr>
+              <tr><td>2 ($w_2=3, v_2=4$)</td><td>0</td><td>0</td><td>3</td><td>4</td><td>4</td><td>7</td><td>7</td></tr>
+              <tr><td>3 ($w_3=4, v_3=5$)</td><td>0</td><td>0</td><td>3</td><td>4</td><td>5</td><td>7</td><td>8</td></tr>
+              <tr><td>4 ($w_4=2, v_4=6$)</td><td>0</td><td>0</td><td>6</td><td>6</td><td>9</td><td>10</td><td><strong>11</strong></td></tr>
+            </table>
+          </div>
+          👉 <strong>最大總價值 = $dp[4][6] = 11$</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>執行回溯 (Backtracking) 找出選取的物品組合</strong><br>
+          從右下角 $dp[4][6] = 11$ 開始往回逆推：<br>
+          ‧ 檢視物品 4：$dp[4][6]=11 \ne dp[3][6]=8$ → <strong>物品 4 有被選中！</strong> 剩餘容量 = $6 - 2 = 4$。<br>
+          ‧ 檢視物品 3：$dp[3][4]=5 \ne dp[2][4]=4$ → <strong>物品 3 未選？</strong>等等：$dp[3][4]=5$，若選物品 3 需容量 4，但 $dp[2][0] + 5 = 5$；而 $dp[2][4]=4$，故 $dp[3][4]=5 \ne 4$，因此<strong>物品 3 有被選中！</strong> 剩餘容量 = $4 - 4 = 0$。<br>
+          ‧ 剩餘容量為 0，物品 2 與物品 1 皆未選。<br>
+          ‧ 檢查總重量：物品 4 ($w=2$) + 物品 3 ($w=4$) = 6；總價值 = $6 + 5 = 11$！
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>複雜度總結</strong><br>
+          ‧ 時間複雜度：填滿表格共需 $O(N \times W) = O(4 \times 6) = 24$ 步（為<strong>偽多項式時間 Pseudo-polynomial Time</strong>）。<br>
+          ‧ 空間複雜度：二維陣列為 $O(N \times W)$，若使用一維滾動陣列（倒序遍歷容量）可優化至 $O(W)$。
+        </li>
+      </ul>
+    </div>
 
-    <h3>4-2　自底向上 (Bottom-Up)：表格法 (Tabulation)</h3>
-    <p>DP 的另一種寫法，直接用迴圈從最小的問題開始推導，甚至可以不使用遞迴函式呼叫，效能更好且不會發生 Stack Overflow。</p>
-    <pre><span class="k">int</span> fib_dp(<span class="k">int</span> n) {
-    <span class="k">if</span> (n &lt;= 1) <span class="k">return</span> n;
-    <span class="k">int</span> dp[n+1];
-    dp[0] = 0;
-    dp[1] = 1;
-    <span class="k">for</span> (<span class="k">int</span> i = 2; i &lt;= n; i++) {
-        dp[i] = dp[i-1] + dp[i-2];
-    }
-    <span class="k">return</span> dp[n];
-}</pre>
-    <p><u>考點提示</u>：如果題目要求「請寫出一個效能為 $O(n)$ 的費氏數列演算法」，請務必寫出上述的 DP 迴圈寫法。</p>
   </div>
 
   <!-- 第 5 章 -->
@@ -174,22 +319,35 @@ ptr = NULL; <span class="c">// 避免迷途指標 (Dangling Pointer)</span></pre
 
     <h3>5-1　防禦 SQL 注入 (SQL Injection)</h3>
     <p>駭客在輸入欄位輸入 <code>' OR '1'='1' --</code>，若程式直接使用字串拼接組成 SQL 語法，會導致密碼驗證被繞過。<strong>唯一的防禦正解是「參數化查詢 (Parameterized Query) / 預備語句 (Prepared Statement)」。</strong></p>
-    <div class="table-wrap">
-      <table>
-        <tr><th>❌ 錯誤寫法 (字串拼接)</th><th>✅ 正確寫法 (參數化查詢)</th></tr>
-        <tr>
-          <td><pre>String query = "SELECT * FROM users 
-WHERE account='" + user + "' 
-AND pwd='" + pass + "'";
-<span class="c">// 駭客可輕易竄改語意</span></pre></td>
-          <td><pre>String query = "SELECT * FROM users 
-WHERE account = ? AND pwd = ?";
-PreparedStatement pstmt = conn.prepareStatement(query);
-pstmt.setString(1, user);
-pstmt.setString(2, pass);
-<span class="c">// 資料庫引擎會將輸入嚴格視為「字串值」</span></pre></td>
-        </tr>
-      </table>
+
+    <!-- SQL 注入防禦步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：SQL 注入語法樹污染原理與 Prepared Statement 防禦二階段解析</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>剖析弱點寫法之語法樹污染過程</strong><br>
+          程式碼：<code>"SELECT * FROM users WHERE user='" + input_user + "' AND pwd='" + input_pwd + "'"</code><br>
+          當駭客輸入 <code>input_user = admin' --</code> 時，拼裝後的整句 SQL 變成：<br>
+          <code>SELECT * FROM users WHERE user='admin' --' AND pwd='...'</code><br>
+          資料庫編譯器（Parser）在建構抽象語法樹（AST）時，將 <code>--</code> 之後的所有密碼驗證全部當作註解略過，導致直接以 admin 身分登入！
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>Prepared Statement 之二階段編譯機制</strong><br>
+          預備語句將運作拆為嚴格分離的兩階段：<br>
+          ‧ <strong>階段一：語法預編譯（Pre-compilation）</strong><br>
+          資料庫先接收帶有佔位符 <code>?</code> 的骨架：<code>SELECT * FROM users WHERE user = ? AND pwd = ?</code>。<br>
+          此時資料庫語法剖析器（SQL Parser）已經將 AST 語法樹的指令架構完全定型（明確固定為「條件等於」比較）。<br>
+          ‧ <strong>階段二：參數值綁定（Parameter Binding）</strong><br>
+          驅動程式將駭客輸入的 <code>admin' --</code> 作為「純字面常數（Literal String）」填入佔位符。<br>
+          此時任何單引號 <code>'</code> 與註解符 <code>--</code> 都只被當作密碼字串中的普通文字符號，<strong>絕不可能跨界修改已經編譯成型的語法樹結構！</strong>
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>其他防禦縱深防禦措施</strong><br>
+          ‧ <strong>最小權限原則</strong>：資料庫連線帳號僅賦予特定表格之 SELECT/INSERT 權限，禁止具備 DROP TABLE 或管理者權限。<br>
+          ‧ <strong>輸入白名單驗證</strong>：限制帳號只能包含字母與數字，長度介於 4~20 字元。<br>
+          ‧ <strong>WAF (Web Application Firewall)</strong>：在網路邊界攔截常見的 SQL 注入特徵字串。
+        </li>
+      </ul>
     </div>
 
     <h3>5-2　例外處理 (Exception Handling)</h3>
@@ -210,6 +368,16 @@ pstmt.setString(2, pass);
     System.out.println(<span class="s">"清理資源"</span>);
 }</pre>
     <p><u>考點提示</u>：考題常問「<code>finally</code> 區塊的功用為何？」標準答案是：<strong>確保無論程式是否拋出例外，關鍵的資源釋放工作（如關閉檔案、關閉資料庫連線）都絕對會被執行，避免資源洩漏 (Resource Leak)。</strong></p>
+
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：安全程式設計四大鐵律</div>
+      <span class="formula">【口訣】入庫預編防注入，跨站編碼消腳本；暫存溢位限長度，除錯關閉隱資訊</span>
+      <ul>
+        <li><strong>SQL Injection 防禦</strong>：首選 Prepared Statement / ORM 參數化。</li>
+        <li><strong>XSS 跨站腳本防禦</strong>：輸出內容必須進行 HTML 實體編碼（HTML Entity Encoding）。</li>
+        <li><strong>Buffer Overflow 防禦</strong>：淘汰 <code>gets()</code>, <code>strcpy()</code>，全面改用具長度限制的 <code>fgets()</code>, <code>strncpy()</code>。</li>
+      </ul>
+    </div>
 
   </div>
 

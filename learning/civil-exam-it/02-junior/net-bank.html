@@ -9608,6 +9608,220 @@ Client                                    Server
 
     </div>
         
+    <div class="card"><h3>K. 零信任、SDN、現代協定與次世代網路（第 316～321 題）</h3></div>
+
+  <div class="q" data-qno="316" data-ans="B"><span class="no">316</span><span class="tag">零信任</span>
+    <div class="stem">依據美國國家標準與技術研究院 NIST SP 800-207 所定義的「零信任架構（Zero Trust Architecture, ZTA）」，關於控制平面（Control Plane）與資料平面（Data Plane）的元件職責，下列敘述何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>策略強制執行點（PEP）屬於控制平面，負責分析使用者風險分數並產出存取策略</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>策略決策點（PDP）包含策略引擎（PE）與策略管理器（PA），負責持續評估信任度並向 PEP 下達連線控制指令</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>策略引擎（PE）直接攔截所有使用者的網路資料封包，負責解密與負載平衡</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>一旦 PEP 建立了連線通道，在使用者主動登出前 PDP 絕不允許動態撤銷該存取權限</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) 策略決策點（PDP）包含策略引擎（PE）與策略管理器（PA），負責持續評估信任度並向 PEP 下達連線控制指令</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：NIST SP 800-207 零信任控制平面與資料平面架構剖析</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>釐清 PDP (策略決策點) 的兩大元件</strong><br>
+      控制平面由 <strong>PDP (Policy Decision Point)</strong> 掌管，細分為：<br>
+      ‧ <strong>策略引擎 (PE, Policy Engine)</strong>：大腦。依據企業策略、威脅情資、端點健康度動態計算信任分數，做出「允許或拒絕」之裁定。<br>
+      ‧ <strong>策略管理器 (PA, Policy Administrator)</strong>：指揮官。根據 PE 的決策，產生並發送具時效性之動態憑證與指令給 PEP。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>釐清 PEP (策略強制執行點) 的資料平面定位</strong><br>
+      <strong>PEP (Policy Enforcement Point)</strong> 屬於<strong>資料平面 (Data Plane)</strong>。它像守門人閘道，位於使用者與受保護資源之間，負責實際攔截封包、建立短效加密通道或斬斷連線。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>動態撤銷與持續評估特性</strong><br>
+      零信任的核心是「持續驗證（Continuous Verification）」。即使連線已建立，若端點 EDR 偵測到異常行為，PDP 隨時可向 PEP 發送中斷指令，絕非一次登入永久保證。
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>選項 (B) 完全合規</strong><br>
+      選項 (B) 精準敘述了 PDP 的構成（PE + PA）及其控制指令角色，完全符合 NIST SP 800-207 規範！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：零信任元件分工——「PE 算分數，PA 下指令，合稱 PDP 管決策；PEP 站門口，純管放通行」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) PEP 屬於資料平面；(C) PE 是邏輯決策大腦，不經手搬運網路封包；(D) 違背零信任「隨時動態撤銷」的持續驗證原則。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="317" data-ans="B"><span class="no">317</span><span class="tag">SDN</span>
+    <div class="stem">在軟體定義網路（SDN）的 OpenFlow 協定運作機制中，當封包抵達 OpenFlow 交換器並進入多級流表管線（Flow Table Pipeline）時，若封包在某個 Flow Table 中未能匹配到任何既有的 Flow Entry，且該表未設定特定預設動作，此時所觸發的標準處置流程為何？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>交換器自動將該封包直接以廣播（Broadcast）方式轉發至本機所有實體連接埠</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>交換器將封包封裝為 <code>Packet-In</code> 訊息，透過南向介面傳送給集中式 SDN 控制器決定處置方式</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>交換器立即在本地端自動生成臨時流表項，將後續相同來源的封包全部強制丟棄（Drop）</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>交換器透過北向介面（Northbound API）向網路應用程式發送 RESTful 請求以重新啟動設備</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) 交換器將封包封裝為 <code>Packet-In</code> 訊息，透過南向介面傳送給集中式 SDN 控制器決定處置方式</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：OpenFlow 流水線 Table-Miss 處置與控制器互動流程</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>認識 Table-Miss 事件</strong><br>
+      在 OpenFlow 架構中，交換器自身沒有路由計算大腦。當封包抵達交換器比對流表時，若所有表項皆無法命中（Table-Miss），交換器無法自主決定下一跳。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>觸發 Packet-In 訊息上呈控制器</strong><br>
+      交換器依 OpenFlow 規範，將該未知的首封包（或其標頭）打包成 <code>Packet-In</code> 訊息，透過<strong>南向介面 (Southbound API)</strong> 發送給 SDN Controller（中央大腦）。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>控制器決策下發 Flow-Mod</strong><br>
+      控制器收到 Packet-In 後，依據全局網路拓撲與路由演算法計算路徑，透過 <code>Flow-Mod</code> 訊息將新表項寫入該交換器硬體中，並附帶 <code>Packet-Out</code> 將原封包送出。後續相同流量即可在硬體線速轉發。
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>介面定義核對</strong><br>
+      交換器與控制器之間為「南向介面」；控制器與上層管理應用程式之間為「北向介面」。選項 (B) 敘述精準無誤。
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：OpenFlow 轉發——「流表命中硬體走，未中 Packet-In 問大腦，南向下發 Flow-Mod，次封包起免思考」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) 盲目廣播會引發廣播風暴；(C) 交換器無權自主生成正規流表；(D) 交換器不具備北向介面，北向介面是控制器對上的介面。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="318" data-ans="B"><span class="no">318</span><span class="tag">傳輸協定</span>
+    <div class="stem">現代網頁傳輸協定由 HTTP/2 演進至 HTTP/3（基於 QUIC 協定）。關於 HTTP/2 仍存在而 HTTP/3 成功解決的核心傳輸層效能瓶頸，下列敘述何者最為正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>HTTP/2 缺乏標頭壓縮功能，而 HTTP/3 引入了 HPACK 靜態字典壓縮</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>HTTP/2 雖在應用層支援多工傳輸，但因底層共用單一 TCP 連線，單一封包遺失會導致整條 TCP 滑動視窗停滯，引發 TCP 層隊頭阻塞（Head-of-Line Blocking）；HTTP/3 改用基於 UDP 的 QUIC 徹底消除此問題</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>HTTP/2 必須強制使用三向交握建立連線，而 HTTP/3 完全不需要任何交握即可直接保證明文傳輸</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>HTTP/2 無法在行動裝置切換 Wi-Fi 與行動網路時保持連線，而 HTTP/3 利用 TCP Option 欄位記錄 IPv6 位址以維持不斷線</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) HTTP/2 雖在應用層支援多工傳輸，但因底層共用單一 TCP 連線，單一封包遺失會導致整條 TCP 滑動視窗停滯，引發 TCP 層隊頭阻塞（Head-of-Line Blocking）；HTTP/3 改用基於 UDP 的 QUIC 徹底消除此問題</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：HTTP/2 隊頭阻塞瓶頸 vs HTTP/3 QUIC 根本性解決之道</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>HTTP/2 的多工機制與隱藏缺陷</strong><br>
+      HTTP/2 採用單一 TCP 連線上的二進位分框（Binary Framing），實現多個 HTTP Stream 多工交錯傳輸，解決了 HTTP/1.1 的應用層隊頭阻塞。但在傳輸層（L4），所有 Stream 都被塞進同一個 TCP 的滑動視窗中。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>TCP 層的隊頭阻塞 (TCP HOL Blocking)</strong><br>
+      TCP 協議保證「資料必須完全按順序交付」。若網路環境掉包，丟失了 Stream 1 的某個 Byte，接收端作業系統核心的 TCP 滑動視窗將停止前進，<strong>後續已經安全到達的 Stream 2、Stream 3 封包也全部被迫卡在核心緩衝區等待重傳</strong>，無法被瀏覽器讀取渲染！
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>HTTP/3 QUIC 如何徹底根絕此痛點</strong><br>
+      HTTP/3 放棄 TCP，改架構於無連線的 <strong>UDP</strong> 之上，由 <strong>QUIC (Quick UDP Internet Connections)</strong> 在應用層自行實作可靠性傳輸：<br>
+      ‧ 每個 Stream 擁有獨立的序號與滑動視窗。<br>
+      ‧ Stream 1 掉包，僅需重傳 Stream 1，Stream 2 完全不受影響可立即交付應用程式！
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>連線遷移 (Connection Migration) 優勢</strong><br>
+      QUIC 使用 64 位元的 Connection ID 識別連線，手機從 Wi-Fi 切換到 5G（IP 改變）時，傳輸連線毫不中斷，徹底解決傳統 TCP 四元組斷線重連問題。選項 (B) 說明極為精確！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：HTTP 演進史——「HTTP/1.1 連線少，HTTP/2 多工好但 TCP 卡掉包，HTTP/3 QUIC 走 UDP 獨立串流零阻塞」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) HTTP/2 已採用 HPACK，HTTP/3 升級為 QPACK；(C) HTTP/3 整合 TLS 1.3 具備 0-RTT/1-RTT 加密交握，絕非明文；(D) QUIC 基於 UDP 與 Connection ID，不依賴 TCP Option。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="319" data-ans="B"><span class="no">319</span><span class="tag">IPv6過渡</span>
+    <div class="stem">在 IPv6 與 IPv4 互通轉譯技術中，當純 IPv6 用戶端主機欲存取僅具備 IPv4 公開位址（例如 <code>198.51.100.1</code>）的伺服器時，DNS64 與 NAT64 協同運作的處理步驟順序為何？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>NAT64 先將 IPv4 伺服器改為 IPv6 → DNS64 解析 A 紀錄 → 用戶端發起 TCP 連線</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>用戶端查詢 AAAA 紀錄 → DNS64 查無 AAAA 轉查 A 紀錄，並以知名前綴 <code>64:ff9b::/96</code> 合成虛擬 IPv6 位址回傳 → 用戶端發送 IPv6 封包 → NAT64 轉譯為 IPv4 封包轉發</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>用戶端以 6to4 穿隧協定直接連線至 IPv4 伺服器 → 由伺服器端本機安裝 NAT64 驅動程式進行解密</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>DNS64 將使用者的 IPv6 位址直接轉換為 MAC 位址 → NAT64 在資料連結層進行廣播代理</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) 用戶端查詢 AAAA 紀錄 → DNS64 查無 AAAA 轉查 A 紀錄，並以知名前綴 <code>64:ff9b::/96</code> 合成虛擬 IPv6 位址回傳 → 用戶端發送 IPv6 封包 → NAT64 轉譯為 IPv4 封包轉發</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：DNS64 與 NAT64 跨協定協同轉譯完整步驟</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>純 IPv6 用戶端發起網址查詢 (AAAA 查詢)</strong><br>
+      純 IPv6 主機只能發送 IPv6 封包，故向 DNS64 伺服器發送域名之 AAAA 記錄查詢。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>DNS64 執行 IPv4-Embedded 虛擬位址合成</strong><br>
+      權威 DNS 回應無 AAAA 記錄，僅有 IPv4 的 A 記錄（如 <code>198.51.100.1</code>）。<br>
+      DNS64 將該 32 位元 IPv4 位址嵌入知名前綴（Well-Known Prefix <strong><code>64:ff9b::/96</code></strong>），合成出一個合成 IPv6 位址：<code>64:ff9b::c633:6401</code> 並回傳給用戶端。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>用戶端向該合成位址發送 IPv6 封包</strong><br>
+      用戶端以為對方是原生 IPv6 伺服器，直接發送 IPv6 封包。網路路由表將 <code>64:ff9b::/96</code> 前綴引導至 <strong>NAT64 閘道器</strong>。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 4</span><strong>NAT64 執行標頭轉譯與校驗和重算</strong><br>
+      NAT64 閘道剝除 IPv6 標頭，提取出內嵌的真實 IPv4 位址（<code>198.51.100.1</code>），將來源 IP 換成閘道自身的 IPv4 位址，重算 Checksum 後送至公開 IPv4 網際網路完成雙向通訊！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：DNS64+NAT64——「DNS64 負責合成位址騙用戶（64:ff9b::/96），NAT64 負責換殼改封包（v6進v4出）」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) 伺服器本身無法被強制改成 IPv6；(C) 6to4 穿隧需要雙端皆具備特定設定，不能直接連純 IPv4 伺服器；(D) 混淆了第三層與第二層概念。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="320" data-ans="B"><span class="no">320</span><span class="tag">IPsec</span>
+    <div class="stem">關於 IPsec 協定套件中的「封裝安全載荷（Encapsulating Security Payload, ESP）」在「通道模式（Tunnel Mode）」下的封裝結構與保護範圍，下列敘述何者正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>僅對傳輸層載荷（TCP/UDP 資料）加密，保留原始 IP 標頭不變，且不外加任何新標頭</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>對整個原始 IP 封包（包含原始 IP 標頭與資料）進行加密，並在外層加上一個全新的外部 IP 標頭（New IP Header）</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>僅提供數位簽章與資料完整性驗證（Authentication），完全不提供任何機密性加密功能</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>通道模式專門用於同一區域網路內主機對主機（Host-to-Host）的終端加密，無法穿越網際網路</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) 對整個原始 IP 封包（包含原始 IP 標頭與資料）進行加密，並在外層加上一個全新的外部 IP 標頭（New IP Header）</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：IPsec ESP 通道模式封裝結構與保護範圍分析</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>區分傳輸模式 (Transport Mode) vs 通道模式 (Tunnel Mode)</strong><br>
+      ‧ <strong>傳輸模式</strong>：僅保護上層載荷（TCP/UDP 標頭 + 資料），原始 IP 標頭暴露於外。適合端點對端點（Host-to-Host）通訊。<br>
+      ‧ <strong>通道模式</strong>：將<strong>整個原始 IP 封包全部包入載荷中加密</strong>，並在最外層加上一個全新的外部公網 IP 標頭（New IP Header）。適合站點對站點（Site-to-Site Gateway-to-Gateway VPN）。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>剖析 ESP 通道模式之位元組封裝結構</strong><br>
+      <code>[New IP Header] [ESP Header] 🔒| [Original IP Header] [TCP Header] [Payload] [ESP Trailer] |🔒 [ESP Auth]</code><br>
+      ‧ 符號 🔒 之間（含內部原始私有 IP 標頭與所有資料）<strong>受到強大對稱式加密演算法（如 AES）完全加密保護</strong>。<br>
+      ‧ 外部路由器只能看見 <code>New IP Header</code>（總公司閘道與分公司閘道的公開 IP），內部主機 IP 完全被隱蔽。
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>AH vs ESP 屬性檢驗</strong><br>
+      ‧ AH 協定：僅提供完整性與身分驗證，無加密功能。<br>
+      ‧ ESP 協定：兼具加密（機密性）、完整性與防重送攻擊。選項 (B) 敘述精準無誤。
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：IPsec 兩模式兩協定——「傳輸模式保載荷，通道模式套新頭；AH 認證不加密，ESP 全包最安心」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) 這是「傳輸模式」的特徵；(C) 這是「AH 協定」的特徵，ESP 具備強加密；(D) 通道模式是企業 Site-to-Site 穿越公網建立 VPN 的標準模式。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="321" data-ans="B"><span class="no">321</span><span class="tag">物聯網</span>
+    <div class="stem">物聯網（IoT）輕量級通訊協定 MQTT 提供了三種服務品質等級（QoS 0, QoS 1, QoS 2）。若環境要求訊息傳遞「確實只送達一次（Exactly Once）」，絕不允許訊息遺失亦絕不允許重複處理，則發布端（Publisher）與代理伺服器（Broker）之間所採用的四向交握封包順序為何？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span><code>PUBLISH &rarr; PUBACK &rarr; PINGREQ &rarr; PINGRESP</code></span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span><code>PUBLISH &rarr; PUBREC &rarr; PUBREL &rarr; PUBCOMP</code></span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span><code>SYN &rarr; SYN-ACK &rarr; ACK &rarr; DATA</code></span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span><code>CONNECT &rarr; CONNACK &rarr; SUBSCRIBE &rarr; SUBACK</code></span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) <code>PUBLISH &rarr; PUBREC &rarr; PUBREL &rarr; PUBCOMP</code></strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：MQTT QoS 2 四向交握保證 Exactly-Once 機制</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>比較 MQTT 三種 QoS 等級</strong><br>
+      ‧ <strong>QoS 0（最多送一次 At most once）</strong>：送出即忘（Fire and forget），無任何確認封包。<br>
+      ‧ <strong>QoS 1（至少送一次 At least once）</strong>：<code>PUBLISH &rarr; PUBACK</code>。若發送端未收到 PUBACK 則重傳，可能造成接收端收到重複訊息。<br>
+      ‧ <strong>QoS 2（確實送一次 Exactly once）</strong>：最嚴謹等級，保證訊息不遺失且絕不重複。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>追蹤 QoS 2 四向交握四步驟</strong><br>
+      1. <strong>PUBLISH</strong>：發布端送出訊息，帶有唯一之 Packet ID，並在本地端保留該訊息以備重傳。<br>
+      2. <strong>PUBREC (Publish Received)</strong>：接收端（Broker）收到訊息並暫存 Packet ID 防止重複處理，回傳已收到通知。<br>
+      3. <strong>PUBREL (Publish Release)</strong>：發布端確認接收端已安全收件，釋放本機暫存，送出釋放指令。<br>
+      4. <strong>PUBCOMP (Publish Complete)</strong>：接收端收到釋放指令，正式完成訊息派送並向發布端回傳最終完成確認。
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>雙重去重保證</strong><br>
+      兩階段確認徹底消除了任何重傳造成的重複入庫，即使網路在中間斷線重發，也能精準辨識 Packet ID，嚴格落實 Exactly Once！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：MQTT QoS 2 四向交握順序——「發布 (PUBLISH) 收到 (PUBREC)，釋放 (PUBREL) 完成 (PUBCOMP)」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) PUBACK 為 QoS 1 使用之確認；(C) 為 TCP 三向交握；(D) 為客戶端連線與主題訂閱之交握，非訊息發布。
+</div>
+    </div></details>
+  </div>
+
   <div class="nav-btns">
     <a class="btn btn-prev" href="net.html">← 資通網路與安全概要講義</a>
     <a class="btn btn-next" href="prog.html">下一科：程式設計概要 →</a>

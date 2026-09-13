@@ -617,6 +617,51 @@
       此時懲罰最重：ssthresh 減半，<strong>cwnd 直接歸零 (回到 1)，重新執行慢啟動</strong>。
     </div>
 
+    <!-- TCP 壅塞控制數值演化追蹤步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：TCP 壅塞視窗 (cwnd) 跨 RTT 數值演化與狀態轉移五部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【經典數值推導】</strong>初始條件：慢啟動門檻 <code>ssthresh = 16 MSS</code>，起始擁塞視窗 <code>cwnd = 1 MSS</code>。請逐步推導傳輸過程中在「第 6 個 RTT 收到 3 個重複 ACK」與「第 10 個 RTT 發生逾時 (Timeout)」時，cwnd 與 ssthresh 之演變數值。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">階段 1</span><strong>慢啟動階段（Slow Start, 指數成長：每 RTT 倍增）</strong><br>
+          ‧ RTT 1: cwnd = 1 MSS<br>
+          ‧ RTT 2: cwnd = 2 MSS<br>
+          ‧ RTT 3: cwnd = 4 MSS<br>
+          ‧ RTT 4: cwnd = 8 MSS<br>
+          ‧ RTT 5: cwnd = 16 MSS（達到門檻 ssthresh = 16，<strong>狀態轉移至擁塞避免</strong>）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">階段 2</span><strong>擁塞避免階段（Congestion Avoidance, 加法增加：每 RTT +1）</strong><br>
+          ‧ RTT 6: cwnd = 17 MSS。此時發送端連續收到 <strong>3 個重複 ACK</strong>！觸發輕度壅塞信號。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">階段 3</span><strong>快速重送與快速回復（Fast Retransmit & Recovery: TCP Reno）</strong><br>
+          ‧ 立即重傳遺失封包，不停下等待 Timeout。<br>
+          ‧ 更新門檻：$ssthresh = \max(\lfloor cwnd / 2 \rfloor, 2) = \lfloor 17 / 2 \rfloor = \mathbf{8\text{ MSS}}$。<br>
+          ‧ <strong>進入快速回復</strong>：$cwnd = ssthresh + 3 = 8 + 3 = 11$ MSS（在 Reno 實作中暫時借用），當遺失封包被 ACK 後，<strong>以 $cwnd = 8$ MSS 直接進入擁塞避免</strong>（絕不歸 1）！<br>
+          ‧ RTT 7: cwnd = 8 + 1 = 9 MSS<br>
+          ‧ RTT 8: cwnd = 10 MSS<br>
+          ‧ RTT 9: cwnd = 11 MSS<br>
+          ‧ RTT 10: cwnd = 12 MSS。此時<strong>突然發生傳輸逾時（Timeout）</strong>！
+        </li>
+        <li class="step-item">
+          <span class="step-badge">階段 4</span><strong>重度壅塞處置（Timeout 嚴厲懲罰）</strong><br>
+          ‧ 更新門檻：$ssthresh = \max(\lfloor cwnd / 2 \rfloor, 2) = \lfloor 12 / 2 \rfloor = \mathbf{6\text{ MSS}}$。<br>
+          ‧ <strong>強制歸零重啟</strong>：$cwnd = \mathbf{1\text{ MSS}}$！<strong>退回慢啟動階段</strong>。<br>
+          ‧ RTT 11: cwnd = 2 MSS（慢啟動）<br>
+          ‧ RTT 12: cwnd = 4 MSS（慢啟動）<br>
+          ‧ RTT 13: cwnd = 6 MSS（達到新門檻 6，轉入擁塞避免）<br>
+          ‧ RTT 14: cwnd = 7 MSS（加法增加）
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>AIMD (加法增加、乘法減少) 原理驗算</strong><br>
+          TCP 演算法確保在多條連線競爭頻寬時，所有連線的視窗能公平且穩定地收斂至最大利用率。快速重送（乘法減半）vs 逾時（歸一重啟）是歷屆最核心之配分關鍵！
+        </li>
+      </ul>
+    </div>
+
     <h3>5-4　TCP 標頭重點欄位與旗標</h3>
     <div class="table-wrap">
       <table>

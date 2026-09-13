@@ -201,8 +201,49 @@ WHERE <span class="k">NOT EXISTS</span> (
         SELECT * FROM 選課 E
         WHERE E.學號 = S.學號 AND E.課號 = C.課號
     )
+    <!-- 關聯代數除法與雙重否定 SQL 步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：關聯代數除法（Division）與雙重否定 SQL 推導四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【經典題目】</strong>現有兩關聯表：<code>Takes(StudentID, CourseID)</code> 與 <code>RequiredCourse(CourseID)</code>。請以關聯代數與 SQL 查詢「選修了所有必修課的學生學號」。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>關聯代數除法運算式定義</strong><br>
+          除法運算式：$$\pi_{\text{StudentID}}(\text{Takes}) \div \text{RequiredCourse}$$
+          除法之嚴格數學定義：若 $R(A, B) \div S(B) = Q(A)$，則 $Q$ 包含所有滿足「對 $S$ 中的每一個 $b$，元組 $(a, b)$ 皆屬於 $R$」之 $a$ 值。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>以五個基本運算元等價展開除法（申論必考）</strong><br>
+          關聯代數除法非基本運算，等價展開步驟：<br>
+          ‧ 全體候選學生：$T_1 = \pi_A(R)$<br>
+          ‧ 所有可能配對：$T_2 = \pi_A(R) \times S$<br>
+          ‧ 找出「缺修任何一門必修課」的配對：$T_3 = T_2 - R$<br>
+          ‧ 找出「有缺課紀錄」的學生名單：$T_4 = \pi_A(T_3)$<br>
+          ‧ 全體候選學生扣除有缺課學生，即得全修學生：<strong>$R \div S = T_1 - T_4 = \pi_A(R) - \pi_A((\pi_A(R) \times S) - R)$</strong>！
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>轉化為 SQL 雙重否定 NOT EXISTS 巢狀子查詢</strong><br>
+          口訣邏輯：「選修了所有必修課」等價於「<strong>不存在</strong>一門必修課，該學生<strong>沒有</strong>選修」：<br>
+          <pre>SELECT S.StudentID FROM Student S
+WHERE NOT EXISTS (
+  SELECT C.CourseID FROM RequiredCourse C
+  WHERE NOT EXISTS (
+    SELECT 1 FROM Takes T
+    WHERE T.StudentID = S.StudentID AND T.CourseID = C.CourseID
+  )
 );</pre>
-      這個模板<strong>背下來</strong>，考到直接套。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>GROUP BY 與 COUNT 聚合函數改寫驗算</strong><br>
+          若學生修課記錄不重複，亦可使用直觀的分組計數改寫：<br>
+          <pre>SELECT StudentID FROM Takes
+WHERE CourseID IN (SELECT CourseID FROM RequiredCourse)
+GROUP BY StudentID
+HAVING COUNT(DISTINCT CourseID) = (SELECT COUNT(*) FROM RequiredCourse);</pre>
+          兩者結果完全一致，後者執行效能通常更佳，考試寫出兩者必得滿分！
+        </li>
+      </ul>
     </div>
   </div>
 

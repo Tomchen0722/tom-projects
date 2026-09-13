@@ -385,7 +385,44 @@
     <div class="warn">
       <span class="t">⚠️ 最容易錯的地方</span>
       減法與除法<strong>順序不能顛倒</strong>。pop 出來的<strong>第一個是右運算元</strong>，第二個才是左運算元。<br>
-      <code>a b −</code> 是 a − b，不是 b − a。考試很愛在這裡設陷阱。
+    <!-- 中序轉後序與運算式堆疊步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：中序轉後序運算式堆疊推導四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【運算式推導】</strong>給定中序運算式 <code>A + B * (C - D) / E</code>，請使用堆疊演算法由左至右掃描轉為後序運算式。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>定義運算子優先權規則（In-Stack vs Incoming Precedence）</strong><br>
+          ‧ 括號外 <code>(</code> 優先權最高（立即推入），推入後在堆疊內 <code>(</code> 優先權降為最低。<br>
+          ‧ 乘除 <code>* /</code> 優先權高於 加減 <code>+ -</code>。<br>
+          ‧ 規則：若輸入運算子優先權 &le; 堆疊頂端運算子，則<strong>持續 pop 頂端運算子輸出</strong>，直至頂端優先權較小，再將輸入運算子 push。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>逐字元掃描與堆疊狀態追蹤</strong><br>
+          <div class="table-wrap">
+            <table>
+              <tr><th>掃描字元</th><th>動作類型</th><th>堆疊內容 (Bottom→Top)</th><th>目前後序輸出 (Output)</th></tr>
+              <tr><td>A</td><td>運算元直接輸出</td><td>空</td><td>A</td></tr>
+              <tr><td>+</td><td>Push</td><td>[+]</td><td>A</td></tr>
+              <tr><td>B</td><td>運算元直接輸出</td><td>[+]</td><td>A B</td></tr>
+              <tr><td>*</td><td>* 優先權大於 +，Push</td><td>[+, *]</td><td>A B</td></tr>
+              <tr><td>(</td><td>Push</td><td>[+, *, (]</td><td>A B</td></tr>
+              <tr><td>C</td><td>運算元直接輸出</td><td>[+, *, (]</td><td>A B C</td></tr>
+              <tr><td>-</td><td>Push (在括號內)</td><td>[+, *, (, -]</td><td>A B C</td></tr>
+              <tr><td>D</td><td>運算元直接輸出</td><td>[+, *, (, -]</td><td>A B C D</td></tr>
+              <tr><td>)</td><td>遇右括號，Pop 直到左括號</td><td>[+, *]</td><td>A B C D -</td></tr>
+              <tr><td>/</td><td>/ 優先權不小於 *，Pop * 後 Push /</td><td>[+, /]</td><td>A B C D - *</td></tr>
+              <tr><td>E</td><td>運算元直接輸出</td><td>[+, /]</td><td>A B C D - * E</td></tr>
+              <tr><td>結束</td><td>清空堆疊依序 Pop</td><td>空</td><td><strong>A B C D - * E / +</strong></td></tr>
+            </table>
+          </div>
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>完全括號法比對驗算</strong><br>
+          加括號：<code>((A + ((B * (C - D)) / E)))</code> → 運算子移至右括號：<code>((A ((B (C D)- )* E)/ )+ )</code> → 去除括號得：<code>A B C D - * E / +</code>。兩者結果完全一致，推導正確！
+        </li>
+      </ul>
     </div>
 
     <h3>3-2　佇列（Queue）— 先進先出 FIFO</h3>
@@ -535,21 +572,35 @@ def preorder(t: Node):
       ❌ <strong>前序 + 後序</strong> → <strong>無法</strong>唯一還原（除非是完滿二元樹）<br><br>
       <strong>關鍵</strong>：中序負責「切左右」，前序／後序負責「找根」。少了中序就不知道左右子樹的分界在哪。
     </div>
-    <div class="frame">
-      <span class="t">📐 實作步驟（以前序＋中序為例）</span>
-      前序：<code>A B D E C F</code>　中序：<code>D B E A C F</code><br><br>
-      1. 前序第一個 <strong>A</strong> = 根<br>
-      2. 在中序中找到 A，左邊 <code>D B E</code> = 左子樹，右邊 <code>C F</code> = 右子樹<br>
-      3. 左子樹前序取 3 個：<code>B D E</code>，中序 <code>D B E</code> → 根是 B，左 D、右 E<br>
-      4. 右子樹前序 <code>C F</code>，中序 <code>C F</code> → 根是 C，右子是 F<br><br>
-      <strong>還原結果</strong>：<br>
-      <code>
-      　　A<br>
-      　／　＼<br>
-      　B　　C<br>
-      ／＼　　＼<br>
-      D　E　　 F
-      </code>
+    <!-- 前序與中序還原二元樹步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：前序與中序走訪還原唯一二元樹四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【題目給定】</strong>前序走訪序列：<code>A B D E C F</code>；中序走訪序列：<code>D B E A C F</code>。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>在前序序列中鎖定「全樹之根節點」</strong><br>
+          前序為 VLR（根→左→右），故第一個字元 <strong>A</strong> 必為整個二元樹的根節點（Root）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>在中序序列中切割「左子樹」與「右子樹」</strong><br>
+          中序為 LVR（左→根→右）。在中序中找到 A：<br>
+          ‧ A 的左側 <code>{D, B, E}</code> 必全屬於 <strong>A 的左子樹</strong>（節點數共 3 個）。<br>
+          ‧ A 的右側 <code>{C, F}</code> 必全屬於 <strong>A 的右子樹</strong>（節點數共 2 個）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>遞迴處理左子樹與右子樹之根節點</strong><br>
+          ‧ <strong>左子樹</strong>：取前序接下來的 3 個節點 <code>{B, D, E}</code>，首個節點 <strong>B</strong> 為左子樹之根。對照中序 <code>D B E</code>，B 的左側為 <strong>D</strong>（葉節點），右側為 <strong>E</strong>（葉節點）。<br>
+          ‧ <strong>右子樹</strong>：取前序剩餘的 2 個節點 <code>{C, F}</code>，首個節點 <strong>C</strong> 為右子樹之根。對照中序 <code>C F</code>，C 左側為空，右側為 <strong>F</strong>（葉節點）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>推導後序走訪（Postorder）並驗證</strong><br>
+          樹形結構：A 的左子為 B（B 帶左子 D、右子 E）；A 的右子為 C（C 帶右子 F）。<br>
+          後序走訪 (LRV)：左子樹後序 <code>D E B</code>，右子樹後序 <code>F C</code>，根 <code>A</code>。<br>
+          👉 <strong>唯一後序走訪結果：<code>D E B F C A</code></strong>。完全驗證無誤！
+        </li>
+      </ul>
     </div>
 
     <h3>4-4　引線二元樹（Threaded Binary Tree）</h3>

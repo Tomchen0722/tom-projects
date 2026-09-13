@@ -17,7 +17,7 @@
 <div class="hero">
   <div class="badge">🌐 普考 · 專業科目二 · 進階深度擴充</div>
   <h1>資通網路 (進階)</h1>
-  <p><strong>專為應付新興技術考題設計。</strong><br>涵蓋零信任架構 (Zero Trust)、軟體定義網路 (SDN)、現代應用層協定 (HTTP/2, HTTP/3, QUIC) 及進階資安防護。</p>
+  <p><strong>專為應付新興技術考題設計。</strong><br>涵蓋零信任架構 (Zero Trust)、軟體定義網路 (SDN)、現代應用層協定 (HTTP/2, HTTP/3, QUIC)、IPv6 過渡機制及進階 IPsec VPN，每章均附步驟化解析與速記口訣。</p>
 </div>
 
 <div class="container">
@@ -49,16 +49,47 @@
     <div class="table-wrap">
       <table>
         <tr><th>支柱</th><th>說明</th><th>關鍵技術</th></tr>
-        <tr><td><strong>身分 (Identity)</strong></td><td>確保是合法的人員或設備。</td><td>多因子驗證 (MFA)、單一簽入 (SSO)、FIDO</td></tr>
+        <tr><td><strong>身分 (Identity)</strong></td><td>確保是合法的人員或設備。</td><td>多因子驗證 (MFA)、單一簽入 (SSO)、FIDO2</td></tr>
         <tr><td><strong>設備 (Device)</strong></td><td>檢查設備的健康狀態與合規性。</td><td>端點偵測與回應 (EDR)、行動裝置管理 (MDM)</td></tr>
         <tr><td><strong>網路 (Network) / 環境</strong></td><td>限縮橫向移動的範圍。</td><td><strong>微切分 (Micro-segmentation)</strong>、軟體定義邊界 (SDP)</td></tr>
       </table>
     </div>
 
-    <div class="easy">
-      <div class="t">🧒 微切分 (Micro-segmentation) 是什麼？</div>
-      <p>傳統網路像是一艘<strong>沒有水密艙的船</strong>，只要外殼（防火牆）破了一個洞，水就會淹滿整艘船（駭客在內網橫向移動）。</p>
-      <p>微切分則是把船艙切成許多<strong>獨立的水密艙</strong>。即使駭客攻破了一台印表機或員工電腦，他也無法輕易連線到旁邊的資料庫伺服器，因為每個區塊之間都有嚴格的存取控制。</p>
+    <!-- 零信任步驟化詳解範例 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：NIST SP 800-207 零信任控制平面 PDP 與資料平面 PEP 存取判定五部曲</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>使用者或設備端點發起存取請求</strong><br>
+          主體（Subject）透過 Untrusted Network 向企業內部資源發出請求，封包直接被邊界的<strong>策略強制執行點 (Policy Enforcement Point, PEP)</strong> 攔截並暫停連線。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>PEP 向上轉呈控制平面 (Control Plane)</strong><br>
+          PEP 將請求上下文資訊（使用者憑證、設備健康度、來源 IP、時間）轉發至<strong>策略決策點 (Policy Decision Point, PDP)</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>策略引擎 (Policy Engine, PE) 進行動態風險評估</strong><br>
+          PE 比對企業安全策略，並整合外部威脅情資（Threat Intelligence）、CDM 連續診斷與緩解系統、PKI 憑證中心，綜合計算信任分數（Trust Score）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 4</span><strong>策略管理器 (Policy Administrator, PA) 核發動態憑證</strong><br>
+          若 PE 判定通過，PA 發送控制指令給 PEP，指示 PEP 為該主體建立<strong>僅限於本次連線、最短有效期限的即時加密通道 (mTLS)</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>連線期間之連續性驗證 (Continuous Evaluation)</strong><br>
+          零信任絕非「登入一次即保證安全」。連線期間若端點 EDR 偵測到惡意程式植入，PE 立即通知 PA 下達撤銷指令，PEP 瞬間中斷資料傳輸通道。
+        </li>
+      </ul>
+    </div>
+
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：零信任架構核心口訣</div>
+      <span class="formula">【口訣】從不信任持續驗，控制資料兩端分；PE 決策 PA 派，PEP 邊界閘門守</span>
+      <ul>
+        <li><strong>PDP (Policy Decision Point)</strong>：由 PE（大腦，負責決策）與 PA（手腳，下達指令）組成。</li>
+        <li><strong>PEP (Policy Enforcement Point)</strong>：資料平面閘道，負責實際攔截與放行封包。</li>
+        <li><strong>三大支柱</strong>：身分鑑別 (MFA/FIDO)、設備健康 (EDR/合規)、網路微切分 (限制橫向移動)。</li>
+      </ul>
     </div>
 
   </div>
@@ -66,30 +97,57 @@
   <!-- 第 2 章 -->
   <div class="card" id="c2">
     <h2>第 2 章　軟體定義網路 (SDN) 與 NFV</h2>
-    <p>隨著雲端資料中心的擴展，傳統由硬體路由器/交換器主導的網路架構已缺乏彈性。SDN 帶來了網路架構的革命。</p>
 
     <h3>2-1　SDN 的核心概念</h3>
-    <p>SDN 的最大特色是<strong>「控制層 (Control Plane)」與「資料層 (Data Plane)」分離</strong>。</p>
-    <div class="table-wrap">
-      <table>
-        <tr><th>層面</th><th>功能與特徵</th><th>比喻</th></tr>
-        <tr><td><strong>應用層 (Application Plane)</strong></td><td>提供防火牆、負載平衡等網路服務的軟體。</td><td>企業老闆 (決定規則)</td></tr>
-        <tr><td><strong>控制層 (Control Plane)</strong></td><td><strong>SDN 控制器</strong>，掌握全網視角，計算最佳路徑。透過 <strong>Northbound API</strong> 與應用層溝通。</td><td>交通警察局長 (統一指揮)</td></tr>
-        <tr><td><strong>資料層 (Data Plane)</strong></td><td>純硬體轉發設備（如 SDN 交換器），只負責依照控制層下達的規則轉發封包。透過 <strong>Southbound API (如 OpenFlow)</strong> 與控制層溝通。</td><td>路口交警 (只負責吹哨指揮)</td></tr>
-      </table>
+    <p>傳統網路設備（路由器、交換器）將「大腦」與「雙手」綁在一起：</p>
+    <ul>
+      <li><strong>控制平面 (Control Plane)</strong>：決定封包「該往哪裡走」（路由演算法、OSPF、BGP）。</li>
+      <li><strong>資料平面 (Data Plane / Forwarding Plane)</strong>：真正執行「搬運封包」的工作（硬體 ASIC 轉發）。</li>
+    </ul>
+    <div class="hl">
+      <strong>SDN 的精髓：將控制平面集中抽離至軟體控制器 (SDN Controller)，底層交換器退化為純粹聽令轉發的資料平面。</strong>
     </div>
 
-    <h3>2-2　網路功能虛擬化 (NFV)</h3>
-    <p>將原本需要專屬硬體（如實體防火牆、實體負載平衡器）的網路功能，改為用軟體執行在標準的 x86 伺服器上。</p>
-    <div class="hl">
-      <strong>SDN 與 NFV 的差異</strong>：SDN 是改變網路架構（控制與轉發分離），而 NFV 是改變設備形態（軟體取代專屬硬體）。兩者常搭配使用以達到最高彈性。
+    <!-- SDN OpenFlow 步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：SDN OpenFlow 多級 Flow Table 流水線比對與動作執行推導</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>封包進入 Table 0（最高優先階層比對）</strong><br>
+          封包到達 OpenFlow 交換器，首先進入 Flow Table 0。由硬體 TCAM 提取標頭欄位（進埠、來源/目的 MAC、VLAN ID、來源/目的 IP、L4 埠號）與表項之 Match Fields 進行比對。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>命中 Flow Entry (Match) 累加計數器並執行指令</strong><br>
+          若比對成功：對應的 Counters 遞增（計數封包數與位元組數）。接著執行 Instructions，包含：<br>
+          ‧ 修改封包（如重寫 VLAN 標籤或改寫 TTL）。<br>
+          ‧ 呼叫 <code>GoTo-Table n</code> 指令，將封包帶往下一級 Flow Table 繼續比對（流水線架構，避免單表過度龐大）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>若完全未命中 (Table-Miss) 轉送控制器</strong><br>
+          若所有表項皆無法匹配，觸發預設的 Table-Miss 動作：包裝成 <code>Packet-In</code> 訊息，透過 <strong>OpenFlow 南向介面 (Southbound API)</strong> 送往集中式 SDN 控制器。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>控制器運算與下發 Flow-Mod</strong><br>
+          控制器依全局拓撲計算最佳路徑後，回傳 <code>Flow-Mod</code> 指令將新的流表項寫入交換器硬體中，並以 <code>Packet-Out</code> 轉發該封包，完成首封包學習！
+        </li>
+      </ul>
     </div>
+
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：SDN 三大平面與介面對照</div>
+      <span class="formula">【口訣】應用在上北向下，控制中央管全網；南向下達 OpenFlow，資料平面純轉發</span>
+      <ul>
+        <li><strong>北向介面 (Northbound API)</strong>：應用程式（如負載平衡、QoS 策略）與控制器通訊（通常為 RESTful API）。</li>
+        <li><strong>南向介面 (Southbound API)</strong>：控制器與底層硬體交換器通訊（如 OpenFlow, NETCONF）。</li>
+        <li><strong>NFV (網路功能虛擬化)</strong>：將專用硬體（如防火牆、負載平衡器）軟體化執行於通用伺服器 VM/Container 上。</li>
+      </ul>
+    </div>
+
   </div>
 
   <!-- 第 3 章 -->
   <div class="card" id="c3">
     <h2>第 3 章　現代網頁協定 (HTTP/2, HTTP/3, QUIC)</h2>
-    <p>HTTP/1.1 已經使用了超過 20 年，但其「隊頭阻塞 (Head-of-Line Blocking)」問題嚴重影響了現代富網頁的載入速度。</p>
 
     <h3>3-1　HTTP/2 的改良</h3>
     <ul>
@@ -100,15 +158,42 @@
     </ul>
 
     <h3>3-2　HTTP/3 與 QUIC</h3>
-    <p>HTTP/2 雖然解決了 HTTP 層的阻塞，但底層仍然使用 TCP。只要 TCP 掉了一個封包，整個連線都會卡住等待重傳（TCP 層的隊頭阻塞）。</p>
+    <p>HTTP/2 雖然解決了 HTTP 應用層的隊頭阻塞，但底層仍然使用 TCP。只要 TCP 掉了一個封包，整個連線的滑動視窗都會卡住等待重傳（TCP 層的隊頭阻塞）。</p>
     <div class="table-wrap">
       <table>
         <tr><th>特性</th><th>說明</th></tr>
         <tr><td><strong>基於 UDP 的 QUIC 協定</strong></td><td>HTTP/3 <strong>捨棄了 TCP，改用基於 UDP 開發的 QUIC 協定</strong>。由 QUIC 在應用層實作可靠傳輸與壅塞控制。</td></tr>
-        <tr><td><strong>解決 TCP 隊頭阻塞</strong></td><td>因為多個串流在 QUIC 中是獨立的，掉了一個封包只會影響該串流，其他串流可繼續傳輸。</td></tr>
+        <tr><td><strong>徹底解決 TCP 隊頭阻塞</strong></td><td>因為多個串流在 QUIC 中是獨立的，掉了一個封包只會影響該串流，其他串流可繼續傳輸。</td></tr>
+        <tr><td><strong>連線遷移 (Connection Migration)</strong></td><td>連線不綁定 IP:Port 四元組，而是依據 64-bit 的 Connection ID。手機從 Wi-Fi 切換到 5G 行動網路時，<strong>連線完全不會中斷</strong>。</td></tr>
         <tr><td><strong>零往返時間 (0-RTT) 交握</strong></td><td>結合了傳輸層與加密層 (TLS 1.3) 的交握，以前連線過的伺服器可以直接傳送資料，連線速度極快。</td></tr>
       </table>
     </div>
+
+    <!-- HTTP/2 vs HTTP/3 步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：HTTP/2 多工串流隊頭阻塞 vs HTTP/3 QUIC 連線遷移解構</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>解析 HTTP/2 之單一 TCP 虛擬串流機制</strong><br>
+          HTTP/2 將連線劃分為多個帶有 Stream ID 的二進位 Frame。雖然應用層可交錯發送 Stream 1 (網頁) 與 Stream 2 (圖片)，但所有 Stream 最終打包在同一個 TCP 連線的 Byte Stream 中。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>追蹤 TCP 封包遺失時的隊頭阻塞 (HOL Blocking)</strong><br>
+          當 Stream 1 的 TCP 封包在網路中遺失時，受限於 TCP 的<strong>按序交付（In-order Delivery）保證</strong>，接收端作業系統核心的 TCP 滑動視窗停止前進，即使 Stream 2 的資料封包完好到達，也必須滯留在緩衝區內無法上交應用層！
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>HTTP/3 QUIC 如何徹底杜絕 HOL Blocking</strong><br>
+          QUIC 直接建立在 UDP 之上，將可靠性保證提升至各別串流層面：<br>
+          ‧ Stream 1 遺失封包，只有 Stream 1 進行 ACK 偵測與重傳。<br>
+          ‧ Stream 2 不受任何牽連，核心立即將 Stream 2 資料交付應用程式渲染，串流之間完全相互獨立！
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>連線遷移 (Connection Migration) 流程</strong><br>
+          傳統 TCP 依賴 <code>{SrcIP, SrcPort, DstIP, DstPort}</code> 四元組。使用者走出門外從 Wi-Fi 跳至 4G 時，SrcIP 改變，TCP 連線必定斷線重連。QUIC 使用 <strong>Connection ID (CID)</strong> 標識連線，IP 變更時只需發送一個更新 Probe 封包，下載作業零中斷！
+        </li>
+      </ul>
+    </div>
+
   </div>
 
   <!-- 第 4 章 -->
@@ -128,8 +213,37 @@
         <tr><th>技術</th><th>說明</th></tr>
         <tr><td><strong>雙堆疊 (Dual Stack)</strong></td><td>設備同時跑 IPv4 與 IPv6 兩個協定。最直接，但仍需消耗 IPv4 位址。</td></tr>
         <tr><td><strong>穿隧技術 (Tunneling)</strong></td><td>把 IPv6 封包「包在」IPv4 封包裡面（如 6to4, Teredo），藉此通過不支援 IPv6 的 IPv4 網路。</td></tr>
-        <tr><td><strong>位址轉換 (NAT64)</strong></td><td>類似 NAT 的概念，將 IPv6 的標頭轉換為 IPv4 標頭，讓純 IPv6 的主機可以連上純 IPv4 的伺服器。</td></tr>
+        <tr><td><strong>位址轉換 (NAT64 / DNS64)</strong></td><td>將 IPv6 標頭轉換為 IPv4 標頭，讓純 IPv6 主機可暢通存取純 IPv4 網頁。</td></tr>
       </table>
+    </div>
+
+    <!-- NAT64 / DNS64 步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：DNS64 與 NAT64 協同運作之封包位址合成與轉譯四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【轉換情境】</strong>純 IPv6 客戶端 (<code>2001:db8:1::10</code>) 欲存取僅具備 IPv4 之伺服器 (<code>192.0.2.1</code>)。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>DNS 查詢與 AAAA 合成 (DNS64)</strong><br>
+          客戶端發出 AAAA 記錄查詢。DNS64 伺服器向上游查無 AAAA 紀錄，僅查到 IPv4 A 紀錄 <code>192.0.2.1</code>。DNS64 取出該 IPv4 位址並加上知名前綴（Well-Known Prefix <code>64:ff9b::/96</code>），合成出虛擬 IPv6 位址：<strong><code>64:ff9b::192.0.2.1</code></strong>（即 <code>64:ff9b::c000:0201</code>）回傳給客戶端。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>客戶端向合成位址發送 IPv6 封包</strong><br>
+          客戶端發送來源為 <code>2001:db8:1::10</code>、目的為 <code>64:ff9b::c000:0201</code> 之 IPv6 封包。路由表將此前綴指引至 NAT64 閘道器。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>NAT64 執行協定轉譯與狀態表記錄</strong><br>
+          NAT64 閘道器剝除 IPv6 標頭：<br>
+          ‧ 將目的 IPv6 位址還原為 IPv4：<code>192.0.2.1</code>。<br>
+          ‧ 將來源 IPv6 位址透過 NAT 轉換為閘道自身之公開 IPv4 位址及動態連接埠。<br>
+          ‧ 重算 IPv4 Checksum 與 TCP Checksum，將 IPv4 封包轉發至網際網路。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>反向回應封包重組</strong><br>
+          IPv4 伺服器回傳回應封包，NAT64 閘道查表比對 Session，將 IPv4 標頭封裝回原本客戶端的 IPv6 標頭送回。整個過程對純 IPv6 客戶端與純 IPv4 伺服器完全透明！
+        </li>
+      </ul>
     </div>
 
   </div>
@@ -157,6 +271,43 @@
         <tr><td><strong>通道模式 (Tunnel Mode)</strong></td><td>加密/驗證 <strong>整個原始 IP 封包</strong>，並在外面加上一個<strong>新的 IP 標頭</strong>（通常是 VPN 閘道器的 IP）。</td><td>Site-to-Site (分公司到總公司的 VPN)</td></tr>
       </table>
     </div>
+
+    <!-- IPsec 封裝步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：IPsec 通道模式 (Tunnel Mode) ESP 封裝結構位元組拆解五步驟</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>保留原始 IP 封包作為資料載體</strong><br>
+          原始封包結構：<code>[Original IP Header] [TCP Header] [Data]</code>。原始 IP 標頭含有內部私有 IP 位址（如 10.0.1.5）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>附加 ESP Trailer (尾端)</strong><br>
+          在資料尾端加入 Padding（填充以符合區塊加密區塊倍數）、Pad Length、以及 Next Header（標註內部被包住的是 IP 協定，值為 4）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>執行加密 (Encryption)</strong><br>
+          使用協商好的對稱式演算法（如 AES-GCM 或 AES-CBC），對 <code>[Original IP Header] [TCP Header] [Data] [ESP Trailer]</code> 進行整體加密！<strong>原始標頭被徹底加密隱蔽</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 4</span><strong>附加 ESP Header (開頭) 與 ESP Auth (認證尾端)</strong><br>
+          ‧ 前端加入 ESP Header：包含 32 位元 SPI（安全關聯索引）與 Sequence Number（防重送攻擊）。<br>
+          ‧ 尾端加入 ESP Auth (ICV， integrity Check Value)：利用 HMAC 演算法對 ESP Header 及其加密載荷進行數位簽章。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>附加外部全新 IP 標頭 (New Outer IP Header)</strong><br>
+          最外層加上公網 VPN 閘道器的實體 IP 標頭。最終封包在公開網際網路傳輸時，任何中間路由器僅能看見外部閘道 IP，內部原始來源、目的與傳輸內容全部受到極致加密保護！
+        </li>
+      </ul>
+    </div>
+
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：IPsec 封裝與協定秒殺口訣</div>
+      <span class="formula">【口訣】AH 認證不加密，ESP 全包最安心；傳輸模式保載荷，通道外掛新標頭</span>
+      <ul>
+        <li><strong>AH 與 NAT 不相容</strong>：因為 AH 驗證包含外部 IP 標頭，經 NAT 修改 IP 後 Checksum 必定損壞！</li>
+        <li><strong>ESP 通道模式</strong>：企業 Site-to-Site VPN 標準首選，具備防重送、防竄改與強加密三合一保護。</li>
+      </ul>
+    </div>
     
   </div>
 
@@ -170,9 +321,9 @@
     <div class="frame">
       <span class="t">📐 網路切片 (Network Slicing) 是什麼？</span>
       想像一條實體的高速公路（實體 5G 網路），我們可以把它「虛擬切分」成好幾條專用車道（切片）：<br>
-      - <strong>車道 A（大頻寬）</strong>：專門給看 4K/8K 影片的人走，路很寬，但不用太管煞車反應時間。<br>
-      - <strong>車道 B（低延遲）</strong>：專門給「自駕車」與「遠距醫療」走，這條路保證絕對不塞車、反應極快，確保開刀不會卡頓。<br>
-      - <strong>車道 C（大連結）</strong>：專門給幾百萬個路燈、水表（物聯網）走，這些設備傳送的資料很小，但數量極多。<br>
+      - <strong>車道 A（大頻寬 eMBB）</strong>：專門給看 4K/8K 影片的人走，路很寬，但不用太管煞車反應時間。<br>
+      - <strong>車道 B（低延遲 URLLC）</strong>：專門給「自駕車」與「遠距醫療」走，這條路保證絕對不塞車、反應極快，確保開刀不會卡頓。<br>
+      - <strong>車道 C（大連結 mMTC）</strong>：專門給幾百萬個路燈、水表（物聯網）走，這些設備傳送的資料很小，但數量極多。<br>
       <strong>結論：同一組實體設備，透過軟體定義網路 (SDN)，切出多個各自獨立的虛擬網路，互不干擾。</strong>
     </div>
 
@@ -187,11 +338,30 @@
 
     <h3>6-3　物聯網通訊協定 (MQTT)</h3>
     <p>物聯網 (IoT) 設備通常電池很小、網路很爛（例如裝在深山裡的溫濕度計）。如果用傳統網頁的 HTTP 來傳資料，標頭 (Header) 太肥大，會耗光電池。因此出現了 <strong>MQTT</strong>。</p>
-    <ul>
-      <li><strong>極輕量化</strong>：MQTT 標頭最小只有 2 Bytes（HTTP 動輒幾百 Bytes）。非常省電！</li>
-      <li><strong>發布/訂閱模式 (Publish/Subscribe)</strong>：設備不用互相連線。感測器只要把資料「發布 (Publish)」到中心的仲介伺服器 (Broker)，手機 App 向 Broker「訂閱 (Subscribe)」即可收到資料。</li>
-      <li><strong>QoS (服務品質) 保證</strong>：分為 0 (最多送一次)、1 (至少送一次)、2 (確實只送一次)，確保在爛網路下資料不會遺失或重複。</li>
-    </ul>
+
+    <!-- MQTT QoS 步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：MQTT 協定 QoS 2 (Exactly Once) 四向交握保證不重複機制</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>發布者送出 PUBLISH (QoS 2)</strong><br>
+          Publisher 送出帶有 Message ID 的 <code>PUBLISH</code> 封包，並將訊息存放在本地端 Outbox 佇列中。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>Broker 確認收件並回傳 PUBREC (Publish Received)</strong><br>
+          Broker 收到訊息，儲存 Message ID 防止重複處理，並回傳 <code>PUBREC</code> 告知「已收到第一段確認」。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>發布者釋放狀態並送出 PUBREL (Publish Release)</strong><br>
+          Publisher 收到 PUBREC 後，確認訊息已安全送達，將本機 Outbox 狀態清空，發送 <code>PUBREL</code> 封包給 Broker，通知 Broker 可以正式向訂閱者分發。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>Broker 結束事務回傳 PUBCOMP (Publish Complete)</strong><br>
+          Broker 收到 PUBREL 後，徹底刪除暫存狀態並回傳 <code>PUBCOMP</code>。四向交握確保在任何網路閃斷重傳情境下，訊息<strong>絕對不會遺失且嚴格只被處理一次（Exactly Once）</strong>！
+        </li>
+      </ul>
+    </div>
+
   </div>
 
   <div class="nav-btns">

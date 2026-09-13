@@ -199,15 +199,40 @@
       </table>
     </div>
 
-    <h4>範例一：求網路位址與可用範圍</h4>
-    <div class="frame">
-      <strong>題：192.168.10.100/26</strong><br><br>
-      ① /26 → 遮罩末組 = <strong>192</strong>（26−24 = 2 個網路位元 → 11000000）<br>
-      ② 區塊大小 = 256 − 192 = <strong>64</strong><br>
-      ③ 段界：.0、.64、.128、.192 → 100 落在 <strong>64～127</strong><br><br>
-      <strong>網路位址 = 192.168.10.64</strong><br>
-      <strong>廣播位址 = 192.168.10.127</strong><br>
-      <strong>可用範圍 = .65 ~ .126（62 台）</strong>
+    <!-- 子網路計算四部曲步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：CIDR 子網路切割與主機位址範圍推導四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【範例題目】</strong>給定主機 IP 位址 <code>192.168.10.130/26</code>，請計算其所屬子網路之子網路遮罩、網路位址、可用主機 IP 範圍與廣播位址。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>由 CIDR 斜線記法換算子網路遮罩</strong><br>
+          ‧ 前綴長度為 <code>/26</code>，表示前 26 個位元為 1，其餘 6 個位元為 0。<br>
+          ‧ 第 4 個 Byte 含有 2 個 1（$26 - 24 = 2$）：$11000000_{(2)} = 128 + 64 = \mathbf{192}$。<br>
+          👉 <strong>子網路遮罩 (Subnet Mask) = 255.255.255.192</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>計算區塊大小 (Block Size / Magic Number)</strong><br>
+          $$\text{Block Size} = 256 - \text{末組遮罩值} = 256 - 192 = \mathbf{64}$$
+          （亦可由主機位元數 $h = 32 - 26 = 6$ 計算：$2^6 = 64$）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>跳格法鎖定區間段首（網路位址）與段尾（廣播位址）</strong><br>
+          以 64 為倍數列出各子網路邊界：<br>
+          ‧ 子網路 0：<code>.0 ~ .63</code><br>
+          ‧ 子網路 1：<code>.64 ~ .127</code><br>
+          ‧ 子網路 2：<code>.128 ~ .191</code>（主機 IP <code>.130</code> 正好落在本段！）<br>
+          ‧ 子網路 3：<code>.192 ~ .255</code><br>
+          👉 <strong>網路位址 (Network ID) = 192.168.10.128</strong>（段首，主機位元全為 0）。<br>
+          👉 <strong>廣播位址 (Broadcast ID) = 192.168.10.191</strong>（段尾，主機位元全為 1）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>計算可用主機 IP 範圍與容量驗算</strong><br>
+          ‧ <strong>可用主機範圍</strong>：介於段首+1 至 段尾-1，即 <strong>192.168.10.129 ～ 192.168.10.190</strong>。<br>
+          ‧ <strong>可用主機總數</strong>：$2^h - 2 = 2^6 - 2 = 64 - 2 = \mathbf{62\text{ 台}}$。推導精確無誤！
+        </li>
+      </ul>
     </div>
     <div class="easy">
       <div class="t">🧒 為什麼「區塊大小」這招有效</div>
@@ -468,6 +493,47 @@
       <strong>① 要保密 → 用「對方的公鑰」加密</strong>（只有對方私鑰能解）→ 機密性<br>
       <strong>② 要簽名 → 用「自己的私鑰」簽章</strong>（大家用你的公鑰驗證）→ 鑑別性、不可否認性<br>
       <strong>③ HTTPS = 非對稱式交換金鑰 + 對稱式傳資料</strong>
+    </div>
+
+    <!-- RSA 加解密數學推導步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：RSA 非對稱加密金鑰生成與加解密手算數學推導五部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【經典題目】</strong>選定兩質數 $p = 3, q = 11$，公開金鑰指定 $e = 7$。請推導模數 $n$、歐拉函數 $\phi(n)$、私密金鑰 $d$，並示範明文 $M = 2$ 之加密與解密過程。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>計算模數 $n$ 與歐拉函數 $\phi(n)$</strong><br>
+          ‧ 模數：$n = p \times q = 3 \times 11 = \mathbf{33}$。<br>
+          ‧ 歐拉商數：$\phi(n) = (p - 1)(q - 1) = (3 - 1) \times (11 - 1) = 2 \times 10 = \mathbf{20}$。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>計算解密私鑰 $d$（模反元素 Extended Euclidean）</strong><br>
+          依定義：$(e \times d) \equiv 1 \pmod{\phi(n)}$，即 $(7 \times d) \equiv 1 \pmod{20}$。<br>
+          ‧ 尋找滿足 $7d = 20k + 1$ 之最小整數：<br>
+          &nbsp;&nbsp;當 $k=1$ 時，$7d = 21 \implies d = 3$！<br>
+          👉 <strong>公開金鑰為 $(e, n) = (7, 33)$；私密金鑰為 $(d, n) = (3, 33)$</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>執行加密運算 (Encryption)</strong><br>
+          給定明文 $M = 2$，密文公式：$C = M^e \bmod n$：<br>
+          $$C = 2^7 \bmod 33 = 128 \bmod 33$$
+          因 $33 \times 3 = 99$；$128 - 99 = 29$。<br>
+          👉 <strong>密文 $C = 29$</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 4</span><strong>執行解密運算 (Decryption)</strong><br>
+          使用私鑰 $d = 3$ 還原明文，解密公式：$M' = C^d \bmod n$：<br>
+          $$M' = 29^3 \bmod 33$$
+          手算簡化技巧：$29 \equiv -4 \pmod{33}$，故：<br>
+          $$(-4)^3 = -64 \equiv -64 + 2 \times 33 = -64 + 66 = \mathbf{2}$$
+          👉 <strong>還原明文 $M' = 2$</strong>！完全吻合原本明文。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>費馬小定理與歐拉定理檢驗</strong><br>
+          由歐拉定理 $M^{\phi(n)} \equiv 1 \pmod n$，故 $C^d \equiv (M^e)^d \equiv M^{ed} \equiv M^{20k+1} \equiv M \pmod n$。數學邏輯嚴謹成立！
+        </li>
+      </ul>
     </div>
 
     <h3>雜湊與數位簽章</h3>

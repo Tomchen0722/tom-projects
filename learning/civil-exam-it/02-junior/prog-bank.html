@@ -10308,6 +10308,233 @@ int main() {
 
     </div>
         
+    <div class="card"><h3>K. 物件導向架構、動態規劃與安全程式設計（第 311～316 題）</h3></div>
+
+  <div class="q" data-qno="311" data-ans="B"><span class="no">311</span><span class="tag">物件導向</span>
+    <div class="stem">在物件導向軟體工程中，關於 SOLID 原則中的「里氏替換原則（Liskov Substitution Principle, LSP）」，下列程式碼設計何者「違反」了 LSP 原則？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>衍生類別（子類別）擴充了基底類別（父類別）未定義的新方法，且保留了父類別原有的所有方法行為</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>子類別 <code>Square</code>（正方形）繼承父類別 <code>Rectangle</code>（長方形），並改寫 <code>setWidth</code> 與 <code>setHeight</code> 方法使得設定寬度時連同高度一併修改</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>子類別覆寫父類別方法時，放寬了輸入參數的前置條件（Preconditions），並強化了回傳值的後置條件（Postconditions）</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>定義抽象介面 <code>Shape</code>，讓 <code>Rectangle</code> 與 <code>Square</code> 分別實作 <code>getArea()</code> 方法而無相互繼承關係</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) 子類別 <code>Square</code>（正方形）繼承父類別 <code>Rectangle</code>（長方形），並改寫 <code>setWidth</code> 與 <code>setHeight</code> 方法使得設定寬度時連同高度一併修改</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：里氏替換原則 (LSP) 之行為契約完整性分析</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>里氏替換原則（LSP）核心定義</strong><br>
+      子類別必須能夠<strong>完全替換</strong>父類別，且在客戶端看來程式的行為與預期完全一致，不破壞原契約條件。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>分析長方形與正方形繼承的崩潰點</strong><br>
+      長方形的行為不變量（Invariant）為「寬與高獨立變化」：<br>
+      ‧ 客戶端預期：對 <code>Rectangle r</code> 執行 <code>r.setWidth(5); r.setHeight(4);</code> 其面積必為 $5 \times 4 = 20$。<br>
+      ‧ 若將 <code>r</code> 替換為子類別 <code>Square</code>：執行 <code>setHeight(4)</code> 時連帶將寬度也竄改成 4，面積變成 $4 \times 4 = 16$！<br>
+      👉 客戶端原本正確的程式碼因替換子類別而產生邏輯錯誤，<strong>嚴重違反 LSP 原則</strong>！
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>正確架構重構方式</strong><br>
+      正方形與長方形本質上不是「Is-A」的行為繼承關係。應提取共同介面 <code>Shape</code>（如選項 D），兩者獨立實作，避免繼承引起的副作用。
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>合約設計（Design by Contract）檢驗</strong><br>
+      LSP 規定：子類別「前置條件不可更嚴格（可放寬）」、「後置條件不可更寬鬆（可更嚴格）」，故選項 (C) 符合 LSP。
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：里氏替換——「父能去處子必達，行為契約不走樣，正方切莫繼承長方」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) 擴充新方法屬於物件導向正常多型擴展；(C) 符合合約理論之替換原則；(D) 為修復 LSP 缺陷之推薦重構模式。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="312" data-ans="A"><span class="no">312</span><span class="tag">指標運算</span>
+    <div class="stem">在 C 語言程式中宣告如下：<br><code>int a[3][4] = {{10, 20, 30, 40}, {50, 60, 70, 80}, {90, 100, 110, 120}};<br>int (*p)[4] = a;</code><br>已知 <code>int</code> 資料型態佔用 4 個位元組（Bytes），陣列起始位址（Base Address）為 <code>2000</code>。請問運算式 <code>*(*(p + 2) + 1)</code> 的取值與其在記憶體中的實體位址分別為何？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>取值為 100，位址為 2036</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>取值為 70，位址為 2024</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>取值為 100，位址為 2040</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>取值為 60，位址為 2020</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(A) 取值為 100，位址為 2036</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：二維陣列列為主記憶體定址與指標運算</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>分析指標指標級別與跨步位移量 (Stride)</strong><br>
+      <code>int (*p)[4]</code> 是指向「含 4 個 int 之一維陣列」的指標。每前進 1 步，跳過整整一列：<br>
+      ‧ 一列跨距：$4 \text{ 個整數} \times 4\text{ Bytes} = \mathbf{16\text{ Bytes}}$。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>推導列指標位址 <code>*(p + 2)</code></strong><br>
+      ‧ <code>p + 2</code> 前進 2 列：位址 = $2000 + 2 \times 16 = 2032$。<br>
+      ‧ <code>*(p + 2)</code> 解參考後降階為 <code>int*</code>，指向第 2 列開頭元素 <code>a[2][0]</code>，位址仍為 <code>2032</code>。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>推導欄位址與取值 <code>*(*(p + 2) + 1)</code></strong><br>
+      ‧ 此時型態為 <code>int*</code>，加 1 代表前進 1 個整數：位址 = $2032 + 1 \times 4 = \mathbf{2036}$。<br>
+      ‧ 再做一次解參考取值：指向 <code>a[2][1]</code>，其陣列數值即為 <strong>100</strong>！
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>通用公式驗算</strong><br>
+      二維陣列列為主定址公式：$\text{Addr}(a[i][j]) = \text{Base} + (i \times \text{Cols} + j) \times \text{Size}$<br>
+      代入 $i=2, j=1$：$2000 + (2 \times 4 + 1) \times 4 = 2000 + 36 = 2036$；對應數值為 100。兩者完全吻合！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：二維指標加法——外層加一跳一列（整列乘），內層加一跳一格（型態乘）！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(B) 算成 a[1][2]；(C) 位址多加了 4 Bytes；(D) 算成 a[1][1]。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="313" data-ans="B"><span class="no">313</span><span class="tag">資料結構</span>
+    <div class="stem">在二元搜尋樹（Binary Search Tree, BST）中刪除一個「同時擁有左子節點與右子節點」的節點 $N$ 時，標準演算法會選取其「中序後繼者（Inorder Successor）」$S$ 來取代節點 $N$ 的位置。關於此操作流程，下列敘述何者最為正確？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>節點 $S$ 必為節點 $N$ 的左子樹中數值最大的節點，且 $S$ 絕不可能擁有右子節點</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>節點 $S$ 必為節點 $N$ 的右子樹中數值最小的節點，且 $S$ 絕不可能擁有左子節點</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>找到 $S$ 後，必須將節點 $N$ 的整棵右子樹直接搬移至 $S$ 的左子樹，並刪除根節點</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>替補後若該樹失衡，其時間複雜度在最差情況下仍保證為 $O(1)$</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) 節點 $S$ 必為節點 $N$ 的右子樹中數值最小的節點，且 $S$ 絕不可能擁有左子節點</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：BST 刪除雙子節點中序後繼者替換演算法</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>中序後繼者（Inorder Successor）定位</strong><br>
+      BST 中序走訪（左-根-右）產出由小到大的排序。節點 $N$ 的中序後繼者 $S$，即為「比 $N$ 大的最小節點」：<br>
+      👉 其位置必在 <strong>$N$ 的右子樹中，一路向左走到底的節點（右子樹之最小值）</strong>。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>分析後繼者 $S$ 的子節點特性</strong><br>
+      因 $S$ 已是該右子樹中最左邊的節點，<strong>$S$ 絕對不可能擁有左子節點</strong>（若有，該左子節點值必更小，產生矛盾）。但 $S$ 仍可能帶有右子節點。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>數值複製與降階刪除</strong><br>
+      將 $S$ 的資料值直接複製覆寫至 $N$。<br>
+      接著刪除原本的節點 $S$。因為 $S$ 至多只有一個右子節點，問題瞬間簡化為「刪除只有一個子節點或葉節點」的簡單情境，直接將父節點改指其右子節點即可。
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>複雜度檢驗</strong><br>
+      走訪尋找 $S$ 的路徑不超過樹高 $h$。平均時間複雜度為 $O(\log n)$，最差歪斜樹為 $O(n)$。選項 (B) 敘述完全正確！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：BST 雙子刪除法——「右樹找最小（中序後繼無左子），左樹找最大（中序前驅無右子），值覆蓋、單子接」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) 左子樹中數值最大的稱為「中序前驅者 (Inorder Predecessor)」；(C) 不需要整棵搬移，只需值複製並重指單一指標；(D) 最差時間複雜度為 $O(n)$。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="314" data-ans="A"><span class="no">314</span><span class="tag">動態規劃</span>
+    <div class="stem">求解 0/1 背包問題（0/1 Knapsack Problem）時，背包承重上限為 $W = 5\text{ kg}$。現有 3 件不可分割的物品：物品 1（重 2 kg，價值 3 萬元）、物品 2（重 3 kg，價值 4 萬元）、物品 3（重 4 kg，價值 7 萬元）。若使用動態規劃演算法由小到大填寫狀態表格 $dp[i][w]$（考慮前 $i$ 件物品在容量 $w$ 下之最大價值），請問此背包最多能裝入的總價值為多少萬元？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>7 萬元</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>8 萬元</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>9 萬元</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>10 萬元</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(A) 7 萬元</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：0/1 背包動態規劃狀態表逐格填寫與回溯</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>狀態轉移方程式定義</strong><br>
+      $$dp[i][w] = \max(dp[i-1][w],\; dp[i-1][w - w_i] + v_i) \quad (\text{若 } w \ge w_i)$$
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>逐列填寫 DP 表格 ($i$ 為物品，容量 $w=0 \sim 5$)</strong><br>
+      ‧ <strong>考慮物品 1 ($w_1=2, v_1=3$)</strong>：<br>
+      &nbsp;&nbsp;$w=0,1$: 0 萬；$w=2,3,4,5$: <strong>3 萬</strong>。<br>
+      ‧ <strong>考慮物品 2 ($w_2=3, v_2=4$)</strong>：<br>
+      &nbsp;&nbsp;$w=3$: $\max(3, 0+4) = 4$ 萬。<br>
+      &nbsp;&nbsp;$w=4$: $\max(3, 0+4) = 4$ 萬。<br>
+      &nbsp;&nbsp;$w=5$: $\max(dp[1][5], dp[1][5-3]+4) = \max(3, 3+4) = \mathbf{7\text{ 萬}}$。<br>
+      ‧ <strong>考慮物品 3 ($w_3=4, v_3=7$)</strong>：<br>
+      &nbsp;&nbsp;$w=4$: $\max(dp[2][4], dp[2][0]+7) = \max(4, 7) = 7$ 萬。<br>
+      &nbsp;&nbsp;$w=5$: $\max(dp[2][5], dp[2][5-4]+7) = \max(7, 0+7) = \mathbf{7\text{ 萬}}$。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 3</span><strong>結算最大價值與所選組合</strong><br>
+      最終格 $dp[3][5] = \mathbf{7\text{ 萬元}}$。<br>
+      可選組合：<br>
+      ‧ 組合甲：選物品 1 (2kg, 3萬) + 物品 2 (3kg, 4萬) = 5kg，價值 7 萬。<br>
+      ‧ 組合乙：單選物品 3 (4kg, 7萬) = 4kg，價值 7 萬。<br>
+      兩者皆未超過 5kg 上限，最大價值皆為 7 萬元！
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>窮舉排除更高可能</strong><br>
+      若想達到 8 萬元以上，必須同時選物品 2 (4萬) 與物品 3 (7萬)，總重 $3 + 4 = 7 > 5\text{ kg}$，超重不合法。故 7 萬元為極限最佳解！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：0/1 背包動態表——「容量不夠抄上方，容量足夠比兩旁：不選看上層，選了退重加價值」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(B)、(C)、(D) 的價值組合總重皆超過背包容量上限 5 kg。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="315" data-ans="B"><span class="no">315</span><span class="tag">資安程式</span>
+    <div class="stem">在防禦 SQL 注入（SQL Injection）攻擊時，軟體工程界與 OWASP 強烈要求開發人員必須全面採用「參數化查詢（Parameterized Query / Prepared Statement）」而非「動態字串拼接」。其在資料庫引擎底層能從根本徹底杜絕 SQL 注入的關鍵原理為何？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span>資料庫驅動程式會自動過濾並移除輸入字串中所有英文字母與空白字元</span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span>預備語句在編譯階段已將 SQL 語法結構（抽象語法樹 AST）固定成型，後續傳入的參數值僅被視為純資料字面值（Literal Value），絕不改變原語法樹架構</span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span>參數化查詢會在執行前自動將使用者的輸入以 AES-256 演算法加密存檔，使資料庫無法辨識惡意指令</span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span>資料庫伺服器會將所有的 SELECT 查詢全部轉化為唯讀檢視表（Read-only View），禁止執行 WHERE 條件式</span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(B) 預備語句在編譯階段已將 SQL 語法結構（抽象語法樹 AST）固定成型，後續傳入的參數值僅被視為純資料字面值（Literal Value），絕不改變原語法樹架構</strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：Prepared Statement 抽象語法樹 (AST) 防禦原理</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>SQL 注入產生的根本原因：指令與資料混淆</strong><br>
+      字串拼接將外部輸入與 SQL 關鍵字混雜在一起送給資料庫剖析器（SQL Parser）。駭客輸入包含引號 <code>'</code>、<code>OR</code>、註解 <code>--</code> 等字元時，Parser 會將其解析為「語法指令節點」，改變了抽象語法樹（AST）的執行邏輯。
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>Prepared Statement 之二階段編譯機制</strong><br>
+      ‧ <strong>階段 1（Prepare 預編譯）</strong>：資料庫接收 SQL 語法模板（如 <code>SELECT * FROM users WHERE u=? AND p=?</code>），資料庫在此時已完成詞法剖析、語法分析並確立 AST 語法樹。<strong>指令語意在此刻已永久定型</strong>。<br>
+      ‧ <strong>階段 2（Bind 參數綁定與執行）</strong>：應用程式將使用者輸入透過二進位協議直接填入佔位符 <code>?</code>。資料庫引擎將該參數<strong>嚴格視為純粹的字串資料值</strong>，絕不再進行二次語法編譯剖析。
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>駭客輸入 <code>' OR 1=1 --</code> 的底層行為驗算</strong><br>
+      在 Prepared Statement 下，<code>' OR 1=1 --</code> 只會被資料庫當成使用者帳號叫作「單引號+OR+1=1+減減」的特殊字串去資料表中比對，絕不會被當成邏輯 OR 運算子，徹底斬斷注入攻擊！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：預編譯防注入——「語法樹先固定，參數純當字面量，單引註解不越界」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(A) 移除英文字母與空白將破壞正常資料；(C) 資料庫不會自動將所有輸入以 AES 加密；(D) 參數化查詢依然能正常執行包含 WHERE 的查詢。
+</div>
+    </div></details>
+  </div>
+
+  <div class="q" data-qno="316" data-ans="A"><span class="no">316</span><span class="tag">指標操作</span>
+    <div class="stem">下列以 C 語言撰寫之單向鏈結串列原地反轉（In-place Reverse）函式：<br><code>struct Node* reverseList(struct Node* head) {<br>&nbsp;&nbsp;struct Node *prev = NULL, *curr = head, *next = NULL;<br>&nbsp;&nbsp;while (curr != NULL) {<br>&nbsp;&nbsp;&nbsp;&nbsp;next = curr->next;<br>&nbsp;&nbsp;&nbsp;&nbsp;/* 關鍵指標調整 */<br>&nbsp;&nbsp;&nbsp;&nbsp;prev = curr;<br>&nbsp;&nbsp;&nbsp;&nbsp;curr = next;<br>&nbsp;&nbsp;}<br>&nbsp;&nbsp;return prev;<br>}</code><br>若欲成功將鏈結串列方向完全反轉且不造成記憶體斷鏈遺失，則在 <code>/* 關鍵指標調整 */</code> 處應填入哪一行程式碼？</div>
+    <div class="choices two">
+      <button type="button" class="ch" data-ch="A"><b>A</b><span><code>curr->next = prev;</code></span></button>
+      <button type="button" class="ch" data-ch="B"><b>B</b><span><code>prev->next = curr;</code></span></button>
+      <button type="button" class="ch" data-ch="C"><b>C</b><span><code>curr = curr->next;</code></span></button>
+      <button type="button" class="ch" data-ch="D"><b>D</b><span><code>next->next = curr;</code></span></button>
+    </div>
+    <details><summary>詳解</summary><div class="ans">
+      <strong>答案：(A) <code>curr->next = prev;</code></strong><br>
+<div class="step-box">
+  <div class="step-title">📝 逐步解析推導：單向鏈結串列原地反轉四步指針調配</div>
+  <ul class="step-list">
+    <li class="step-item"><span class="step-badge">步驟 1</span><strong>理解原地反轉四部曲的標準次序</strong><br>
+      反轉單向鏈結串列的核心在於「把當前節點原本指向後方的 next 指標，改為指向前方的前驅節點 prev」。<br>
+      迴圈標準四步驟：<br>
+      1. <code>next = curr->next;</code>（暫存下一個節點，防止改向後斷鏈）<br>
+      2. <strong><code>curr->next = prev;</code>（核心反轉！將箭頭反指）</strong><br>
+      3. <code>prev = curr;</code>（指標步進，prev 前移至當前）<br>
+      4. <code>curr = next;</code>（指標步進，curr 前移至下一節點）
+    </li>
+    <li class="step-item"><span class="step-badge">步驟 2</span><strong>對照題目空缺位置</strong><br>
+      題目中已寫出步驟 1（<code>next = curr->next;</code>）以及步驟 3、4。顯然中間缺漏的正為核心反向動作：<strong><code>curr->next = prev;</code></strong>！
+    </li>
+    <li class="step-item"><span class="step-badge check">驗算</span><strong>邊界條件追蹤</strong><br>
+      首輪迴圈執行時，<code>prev</code> 為 <code>NULL</code>，<code>curr->next = prev</code> 使原串列的第一個節點（反轉後的最後一個節點）指向 <code>NULL</code>，符合鏈結串列尾端規範，無窮迴圈或內存洩漏風險為 0！
+    </li>
+  </ul>
+</div>
+<div class="verify-box">💡 <strong>考前秒殺口訣</strong>：鏈結反轉四步曲——「下節點先存（next=curr->next），當前反指前（curr->next=prev），前驅當前移（prev=curr），當前後續走（curr=next）」！</div>
+<div style="margin-top:10px;font-size:.85rem;color:#64748b;">
+  <strong>⚠️ 錯誤選項破解</strong>：(B) 初始 prev 為 NULL，執行 prev->next 會引發 Null Pointer Segmentation Fault；(C) 導致迴圈推進錯誤並遺失反轉；(D) 破壞尚未處理之後續串列結構。
+</div>
+    </div></details>
+  </div>
+
   <div class="nav-btns">
     <a class="btn btn-prev" href="prog.html">← 程式設計概要講義</a>
     <a class="btn btn-next" href="mock.html">下一步：普考全套模擬試卷 →</a>

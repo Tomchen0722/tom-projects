@@ -925,6 +925,42 @@ arr = NULL;     <span class="c">// 避免成為迷途指標</span></pre>
       <strong>觀察</strong>：每回合結束，<u>最大的數字就會「浮」到最後面</u>並固定下來——這就是「氣泡」的由來，也是內層迴圈可以寫 <code>j &lt; n-1-i</code> 的原因。
     </div>
 
+    <!-- 快速排序分割演算法步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：快速排序（Quick Sort）基準點分割與分治追蹤四部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【分割範例】</strong>給定未排序陣列 <code>arr = {38, 27, 43, 3, 9, 82, 10}</code>，選取最後一個元素 <code>pivot = 10</code>，請示範單次分割（Partition）之詳細指標走訪過程。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>初始化雙指標（i 指向小於區尾端，j 負責巡訪）</strong><br>
+          ‧ 令基準值 <code>pivot = arr[high] = 10</code>。<br>
+          ‧ 初始化 <code>i = low - 1 = -1</code>（代表目前尚未發現任何小於 pivot 的元素）。<br>
+          ‧ 巡訪指標 <code>j</code> 從 <code>low = 0</code> 到 <code>high - 1 = 5</code> 依序走訪。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>逐一比較並動態交換（小于 pivot 則 i++ 並交換）</strong><br>
+          ‧ $j=0$ (arr[0]=38 &gt; 10)：不動作。<br>
+          ‧ $j=1$ (arr[1]=27 &gt; 10)：不動作。<br>
+          ‧ $j=2$ (arr[2]=43 &gt; 10)：不動作。<br>
+          ‧ $j=3$ (arr[3]=3 &le; 10)：<strong>找到小於 10 之元素！</strong> <code>i++</code> (i=0)，交換 <code>arr[0]</code> 與 <code>arr[3]</code>。陣列變為：<code>{3, 27, 43, 38, 9, 82, 10}</code>。<br>
+          ‧ $j=4$ (arr[4]=9 &le; 10)：<strong>找到小於 10 之元素！</strong> <code>i++</code> (i=1)，交換 <code>arr[1]</code> 與 <code>arr[4]</code>。陣列變為：<code>{3, 9, 43, 38, 27, 82, 10}</code>。<br>
+          ‧ $j=5$ (arr[5]=82 &gt; 10)：不動作。巡訪結束。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>將基準值歸位至分割點 (i + 1)</strong><br>
+          交換 <code>arr[i+1]</code>（即 arr[2]=43）與 <code>arr[high]</code>（pivot=10）。<br>
+          最終陣列結構：<code>{[3, 9], 10, [38, 27, 82, 43]}</code>。<br>
+          👉 <strong>基準值 10 成功落座於索引 2</strong>：其左側全部 &le; 10，其右側全部 &gt; 10！
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>複雜度分析與最壞情況成因</strong><br>
+          ‧ <strong>最佳/平均時間複雜度</strong>：每次基準值剛好平分陣列，遞迴深度 $\log n$，時間為 <strong>$O(n \log n)$</strong>。<br>
+          ‧ <strong>最差情況 $O(n^2)$</strong>：當陣列<strong>已由小到大排序</strong>且固定選最後一個為 pivot，每次分割極度不平衡（一邊為 0，一邊為 $n-1$），退化為等差數列加總 $O(n^2)$。防範法：採「三數取中法（Median-of-Three）」選 pivot。
+        </li>
+      </ul>
+    </div>
+
     <h3>10-2　搜尋演算法</h3>
     <pre><span class="c">// ① 線性搜尋 — O(n)，資料不必排序</span>
 <span class="k">for</span> (i = 0; i &lt; n; i++)

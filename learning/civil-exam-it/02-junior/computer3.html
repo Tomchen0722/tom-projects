@@ -17,7 +17,7 @@
 <div class="hero">
   <div class="badge">💻 普考 · 專業科目一 · 進階深度擴充</div>
   <h1>計算機概要 (進階)</h1>
-  <p><strong>這部分專為準備高考/特考，或想在普考拿下 90 分以上高分的考生所設計。</strong><br>涵蓋現代作業系統核心機制、分散式與雲端運算架構、多執行緒與並行處理原理等深層次觀念。</p>
+  <p><strong>這部分專為準備高考/特考，或想在普考拿下 90 分以上高分的考生所設計。</strong><br>涵蓋現代作業系統核心機制、分散式與雲端運算架構、多執行緒與並行處理原理等深層次觀念，每章均附完整數學推導與步驟化詳解。</p>
 </div>
 
 <div class="container">
@@ -28,7 +28,8 @@
       <li><a href="#c1">現代作業系統排程演算法深度剖析</a></li>
       <li><a href="#c2">虛擬記憶體與分頁機制 (Paging)</a></li>
       <li><a href="#c3">多執行緒與並行處理 (Concurrency)</a></li>
-      <li><a href="#c4">分散式系統與雲端架構</a></li>
+      <li><a href="#c4">雲端運算與分散式系統</a></li>
+      <li><a href="#c5">最前沿科技 (邊緣運算與量子電腦)</a></li>
     </ol>
   </div>
 
@@ -52,10 +53,66 @@
     <p>為了解決「多層佇列」中行程無法跨佇列移動導致「飢餓 (Starvation)」的問題，MFQ 允許行程在不同優先權的佇列之間移動（回饋）。</p>
     <div class="frame">
       <span class="t">📐 MFQ 運作機制（以 3 個佇列為例）</span>
-      1. <strong>Q0 (RR, Time Quantum = 8ms)</strong>：新行程進入 Q0。若在 8ms 內無法執行完畢，表示它是耗費 CPU 的工作，會被<strong>降級</strong>放入 Q1。<br>
-      2. <strong>Q1 (RR, Time Quantum = 16ms)</strong>：若在 16ms 內仍未執行完，再降級至 Q2。<br>
+      1. <strong>Q0 (RR, Time Quantum = 4ms)</strong>：新行程進入最高優先權 Q0。若在 4ms 內無法執行完畢，表示它是耗費 CPU 的工作，會被<strong>降級</strong>放入 Q1。<br>
+      2. <strong>Q1 (RR, Time Quantum = 8ms)</strong>：若在 8ms 內仍未執行完，再降級至 Q2。<br>
       3. <strong>Q2 (FCFS)</strong>：最低優先權，適合處理純運算的背景工作。<br>
       <strong>防飢餓機制 (Aging)</strong>：若低優先權的行程等待時間過長，系統會將其<strong>升級</strong>至高優先權佇列。
+    </div>
+
+    <!-- MFQ 步驟化詳解範例 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：多層回饋佇列 (MFQ) 行程流轉與甘特圖推導五部曲</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【範例情境】</strong>系統設有三層佇列：Q0 (RR, q=4ms)、Q1 (RR, q=8ms)、Q2 (FCFS)。三行程資訊如下：<br>
+        ‧ <strong>P1</strong>：到達時間 t=0，CPU 需求 18ms<br>
+        ‧ <strong>P2</strong>：到達時間 t=2，CPU 需求 5ms<br>
+        ‧ <strong>P3</strong>：到達時間 t=4，CPU 需求 7ms
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>Q0 第一輪排程（優先權最高，搶占式執行）</strong><br>
+          ‧ t=0：P1 進入 Q0 開始執行。到 t=2 時 P2 到達 Q0，因同在 Q0，P1 繼續執行完其時間配額 4ms（t=0~4）。P1 剩餘 14ms，用盡配額被<strong>降級至 Q1</strong>。<br>
+          ‧ t=4：P3 到達 Q0。此時 Q0 中有 P2 與 P3。系統依 FCFS 順序挑選 P2（t=4~8 執行 4ms）。P2 剩餘 1ms，用盡配額被<strong>降級至 Q1</strong>。<br>
+          ‧ t=8：Q0 僅剩 P3，執行 4ms（t=8~12）。P3 剩餘 3ms，用盡配額被<strong>降級至 Q1</strong>。此時 Q0 變空。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>Q1 第二輪排程（Q0 為空才調度 Q1，時間配額 8ms）</strong><br>
+          此時 Q1 內有 P1 (剩 14ms)、P2 (剩 1ms)、P3 (剩 3ms)：<br>
+          ‧ t=12~20：P1 執行 8ms，剩餘 6ms 未完，被<strong>降級至 Q2</strong>。<br>
+          ‧ t=20~21：P2 執行 1ms，<strong>P2 順利執行完畢！</strong>（結束時間 t=21）<br>
+          ‧ t=21~24：P3 執行 3ms，<strong>P3 順利執行完畢！</strong>（結束時間 t=24）。此時 Q1 變空。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>Q2 第三輪排程（FCFS 背景佇列）</strong><br>
+          ‧ t=24~30：Q2 中僅有 P1，執行剩餘的 6ms 直至結束。<strong>P1 於 t=30 完工！</strong>
+        </li>
+        <li class="step-item">
+          <span class="step-badge formula">結算</span><strong>甘特圖與各行程績效指標計算</strong><br>
+          甘特圖序列：<code>[P1: 0~4] → [P2: 4~8] → [P3: 8~12] → [P1: 12~20] → [P2: 20~21] → [P3: 21~24] → [P1: 24~30]</code><br>
+          ‧ <strong>週轉時間 (Turnaround Time = 完工時間 − 到達時間)</strong>：<br>
+          &nbsp;&nbsp;P1: 30 − 0 = <strong>30 ms</strong>；P2: 21 − 2 = <strong>19 ms</strong>；P3: 24 − 4 = <strong>20 ms</strong>。<br>
+          &nbsp;&nbsp;平均週轉時間 = (30 + 19 + 20) / 3 = <strong>23.0 ms</strong>。<br>
+          ‧ <strong>等待時間 (Waiting Time = 週轉時間 − CPU 需求)</strong>：<br>
+          &nbsp;&nbsp;P1: 30 − 18 = <strong>12 ms</strong>；P2: 19 − 5 = <strong>14 ms</strong>；P3: 20 − 7 = <strong>13 ms</strong>。<br>
+          &nbsp;&nbsp;平均等待時間 = (12 + 14 + 13) / 3 = <strong>13.0 ms</strong>。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>邏輯合理性雙重檢查</strong><br>
+          短工作（如 5ms 的 P2）在第二層就能完工，獲得絕佳回應時間；長運算（如 18ms 的 P1）自動沉澱至底層 Q2，不阻礙互動式行程。驗算無誤！
+        </li>
+      </ul>
+    </div>
+
+    <!-- 考前速記卡 -->
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：MFQ 排程五大特徵</div>
+      <span class="formula">【口訣】新程進頂配額小，超額沉降至底跑；短工速解回饋好，長佇老化抗飢餓</span>
+      <ul>
+        <li><strong>佇列數量</strong>：由多個優先權不同的佇列組成。</li>
+        <li><strong>各層演算法</strong>：頂層與中層必為 Round Robin（時間配額由小變大），底層常為 FCFS。</li>
+        <li><strong>降級條件</strong>：耗盡當層時間配額（CPU Bound）。</li>
+        <li><strong>升級機制</strong>：等待時間超過門檻（Aging）或主動讓出 CPU 進行 I/O（I/O Bound）。</li>
+      </ul>
     </div>
 
   </div>
@@ -80,6 +137,55 @@
         <tr><td><strong>TLB Hit (命中)</strong></td><td>CPU → 查 TLB → 找到 Frame → 存取實體記憶體</td><td>極快</td></tr>
         <tr><td><strong>TLB Miss (未命中)</strong></td><td>CPU → 查 TLB 失敗 → 查主記憶體的分頁表 → 更新 TLB → 存取實體記憶體</td><td>較慢 (需存取記憶體兩次)</td></tr>
       </table>
+    </div>
+
+    <!-- TLB EMAT 步驟化詳解範例 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：TLB 快取與雙層分頁有效存取時間 (EMAT) 數值計算</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【國考經典題型】</strong>某 32 位元電腦系統採用<strong>兩階分頁（Two-level Paging）</strong>架構，分頁大小為 4 KB。已知 TLB 查詢時間為 <strong>15 ns</strong>，主記憶體存取時間為 <strong>80 ns</strong>。若 TLB 的命中率（Hit Ratio）為 <strong>95%</strong>，求有效記憶體存取時間（Effective Memory Access Time, EMAT）。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>剖析 32 位元邏輯位址結構</strong><br>
+          ‧ 分頁大小 = 4 KB = $2^{12}$ Bytes → 位移量（Offset, $d$）佔 <strong>12 位元</strong>。<br>
+          ‧ 分頁號碼總位元數 = 32 − 12 = <strong>20 位元</strong>。<br>
+          ‧ 採兩階分頁：第一階外部頁表（Outer Page, $p_1$）佔 10 位元，第二階頁表（Inner Page, $p_2$）佔 10 位元。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>分析 TLB 命中 (Hit) 時的存取時間</strong><br>
+          當 TLB 命中時，直接自 TLB 取得實體頁框號碼（Frame Number），不需走訪兩階頁表：<br>
+          $$T_{\text{hit}} = \text{TLB 查表時間} + \text{實體記憶體存取資料時間} = 15\text{ ns} + 80\text{ ns} = \mathbf{95\text{ ns}}$$
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>分析 TLB 未命中 (Miss) 時的存取時間</strong><br>
+          當 TLB 未命中時，硬體必須走訪主記憶體中的頁表：<br>
+          ‧ 第 1 次存取記憶體：讀取第一階外部頁表（Outer Page Table）。<br>
+          ‧ 第 2 次存取記憶體：讀取第二階頁表（Inner Page Table）取得 Frame Number。<br>
+          ‧ 第 3 次存取記憶體：依實體位址讀取真正的資料。<br>
+          $$T_{\text{miss}} = \text{TLB 查表時間} + 3 \times \text{記憶體存取時間} = 15 + (3 \times 80) = 15 + 240 = \mathbf{255\text{ ns}}$$
+        </li>
+        <li class="step-item">
+          <span class="step-badge formula">計算</span><strong>代入期望值公式計算 EMAT</strong><br>
+          $$\text{EMAT} = \alpha \times T_{\text{hit}} + (1 - \alpha) \times T_{\text{miss}}$$
+          代入數值：<br>
+          $$\text{EMAT} = 0.95 \times 95\text{ ns} + 0.05 \times 255\text{ ns} = 90.25\text{ ns} + 12.75\text{ ns} = \mathbf{103.0\text{ ns}}$$
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>若無 TLB 之效能對比驗算</strong><br>
+          若完全沒有 TLB 快取，每次記憶體存取皆需 $3 \times 80 = 240\text{ ns}$。具備 95% 命中率的 TLB 讓存取時間大幅降至 103 ns（加速比達 2.33 倍），計算結果完全正確！
+        </li>
+      </ul>
+    </div>
+
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：分頁與 TLB EMAT 公式速記</div>
+      <span class="formula">【通式】k 階分頁未命中，查表 k 次取資 1；TLB 命中一次足，百九命中速若飛</span>
+      <ul>
+        <li><strong>單階分頁 Miss</strong>：$\text{TLB} + 2 \times \text{Mem}$（1次頁表 + 1次資料）。</li>
+        <li><strong>兩階分頁 Miss</strong>：$\text{TLB} + 3 \times \text{Mem}$（2次頁表 + 1次資料）。</li>
+        <li><strong>$k$ 階分頁 Miss</strong>：$\text{TLB} + (k+1) \times \text{Mem}$。</li>
+      </ul>
     </div>
 
   </div>
@@ -109,6 +215,50 @@
         <tr><td><strong>號誌 (Semaphore)</strong></td><td>由 Dijkstra 提出，使用一個整數變數 <code>S</code>，支援 <code>wait()</code> (或 P) 與 <code>signal()</code> (或 V) 兩個原子操作。若 S=5，代表有 5 個資源可供存取，常用於生產者-消費者問題。</td></tr>
         <tr><td><strong>監視器 (Monitor)</strong></td><td>一種高階的語言層級同步機制（如 Java 的 <code>synchronized</code> 關鍵字），將共享變數與操作方法封裝起來，保證同一時間只有一個執行緒能執行 Monitor 內的方法。</td></tr>
       </table>
+    </div>
+
+    <!-- 臨界區間與 Peterson 演算法步驟化詳解 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：臨界區間三要件與 Peterson 演算法推導證明</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【演算法結構】</strong>兩個行程 $P_0$ 與 $P_1$ 共享變數 <code>boolean flag[2]; int turn;</code>。<br>
+        $P_i$ 的進入區間代碼：<code>flag[i] = true; turn = j; while (flag[j] && turn == j);</code><br>
+        離開區間代碼：<code>flag[i] = false;</code>
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>檢驗要件一：互斥 (Mutual Exclusion)</strong><br>
+          ‧ 假設兩行程同時處於臨界區間，則必滿足 <code>flag[0] == true</code> 且 <code>flag[1] == true</code>。<br>
+          ‧ 觀察其 while 迴圈終止條件：$P_0$ 進入時必有 <code>flag[1] == false</code> 或 <code>turn == 0</code>；$P_1$ 進入時必有 <code>flag[0] == false</code> 或 <code>turn == 1</code>。<br>
+          ‧ 由於 <code>turn</code> 為單一變數，在任一瞬間其值只能是 0 或 1，不可能同時為 0 且為 1。<br>
+          👉 <strong>矛盾成立！雙方絕不可能同時越過 while 迴圈，嚴格滿足互斥性。</strong>
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>檢驗要件二：進展 (Progress)</strong><br>
+          ‧ 若 $P_1$ 不想進入臨界區間（<code>flag[1] == false</code>），則 $P_0$ 的 while 條件 <code>(flag[1] && turn == 1)</code> 立即為假，$P_0$ 暢行無阻。<br>
+          ‧ 若兩者同時想進（<code>flag[0] = flag[1] = true</code>），後賦值給 <code>turn</code> 的行程會覆寫前者的值，將優先權讓給對方（禮讓原則）。故決定權完全由想進入的行程裁定，絕不發生死結，滿足進展性。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>檢驗要件三：有限等待 (Bounded Waiting)</strong><br>
+          ‧ 當 $P_0$ 離開臨界區間時，會執行 <code>flag[0] = false;</code>，這會使卡在 while 迴圈的 $P_1$ 立即脫離等待並進入臨界區間。<br>
+          ‧ 即使 $P_0$ 企圖立即重進，它也必須先執行 <code>turn = 1;</code>，再度將機會禮讓給 $P_1$。<br>
+          👉 $P_1$ 最多只需等待 $P_0$ 進入一次，保證絕無飢餓現象，滿足有限等待。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>死結四大必要條件核對</strong><br>
+          作業系統死結（Deadlock）必同時滿足：<strong>互斥 (Mutual Exclusion)、持有並等待 (Hold and Wait)、不可搶奪 (No Preemption)、循環等待 (Circular Wait)</strong>。任何預防死結的演算法只要打破其中一項即可成功防禦。
+        </li>
+      </ul>
+    </div>
+
+    <div class="memo-card">
+      <div class="memo-header">⚡ 考前 30 秒秒殺口訣卡：同步臨界區間三要件與死結四條件</div>
+      <span class="formula">【同步三要件】互斥唯一進，進展不卡關，有限等待免飢餓</span><br>
+      <span class="formula">【死結四要素】互斥握等不搶奪，環形循環鎖終生</span>
+      <ul>
+        <li><strong>Peterson 核心技巧</strong>：意圖設自己（<code>flag[i]=true</code>），謙虛讓對方（<code>turn=j</code>）。</li>
+        <li><strong>Semaphore 核心操作</strong>：$P(S)$（Wait，資源數減一，若 &lt; 0 則睡眠阻塞）；$V(S)$（Signal，資源數加一，若 &le; 0 則喚醒等待者）。</li>
+      </ul>
     </div>
 
   </div>
@@ -142,6 +292,38 @@
       因為網路斷線 (P) 是常態且無法避免，所以系統通常在 <strong>CP (一致性優先，如銀行轉帳)</strong> 或 <strong>AP (可用性優先，如社群貼文)</strong> 之間做取捨。<br>
       AP 系統通常依賴「最終一致性 (Eventual Consistency)」來彌補一致性的妥協。
     </div>
+
+    <!-- CAP 與 Raft 共識推導 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：CAP 定理網路分區與 Raft 演算法多數決 (Quorum) 推導</div>
+      <p style="margin:0 0 10px 0;font-size:.9rem;color:#475569;">
+        <strong>【分散式情境】</strong>由 5 台伺服器節點 ($N_1 \sim N_5$) 組成的 Raft 叢集，突然發生網路分區斷線，被分割成兩邊：分區 A 含 $\{N_1, N_2, N_3\}$，分區 B 含 $\{N_4, N_5\}$。
+      </p>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>計算多數決法定人數 (Quorum Majority)</strong><br>
+          ‧ 法定多數門檻公式：$Q = \lfloor N / 2 \rfloor + 1$。<br>
+          ‧ 對於 5 節點叢集：$Q = \lfloor 5 / 2 \rfloor + 1 = 2 + 1 = \mathbf{3}$ 個節點。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>評估分區 A 之行為（一致性保障）</strong><br>
+          分區 A 擁有 3 個節點，剛好達到 Quorum 門檻（$3 \ge 3$）：<br>
+          ‧ 分區 A 能順利選出 Leader 並繼續接收寫入（Write Request）。<br>
+          ‧ 每次日誌複製獲得 3 票同意即可完成 Commit，系統保持正常讀寫。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>評估分區 B 之行為（避免腦裂 Split-Brain）</strong><br>
+          分區 B 僅剩 2 個節點，未達 Quorum 門檻（$2 &lt; 3$）：<br>
+          ‧ 分區 B 的節點即使發起選舉也絕不可能獲得 3 票，無法產生 Leader。<br>
+          ‧ 分區 B 若收到寫入請求，必須<strong>拒絕寫入或報錯 (Fail)</strong>。這是典型的 CP 系統行為（寧可犧牲可用性，也絕不允許雙頭寫入造成資料分歧）。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>網路復原後的日誌對齊 (Reconciliation)</strong><br>
+          當網路分區修復時，分區 B 節點發現分區 A 具有更高的任期編號 (Term)，會自動降為 Follower 並以分區 A 的 Leader 日誌覆寫自身未提交之日誌，系統無縫回歸一致性狀態。
+        </li>
+      </ul>
+    </div>
+
     <p>雲端架構之所以能快速擴展，依賴底層的隔離技術。近年來，Docker 等容器技術大幅取代了傳統虛擬機。</p>
     <div class="table-wrap">
       <table>
@@ -182,6 +364,39 @@
         <tr><td><strong>資安威脅 (Shor's Algorithm)</strong></td><td>目前全球網路最仰賴的 RSA 非對稱加密（利用大質數分解極難的特性），未來可能被量子電腦在幾秒內破解。因此目前全球密碼學界正在積極研發 <strong>「後量子密碼學 (PQC)」</strong>。</td></tr>
       </table>
     </div>
+
+    <!-- 量子演算法與 PQC 步驟化推導 -->
+    <div class="step-box">
+      <div class="step-title">🎯 步驟化詳解：Shor 演算法因數分解複雜度降階與後量子密碼 (PQC) 轉移</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <span class="step-badge">步驟 1</span><strong>傳統電腦破解 RSA 的瓶頸（次指數時間）</strong><br>
+          目前傳統電腦最佳的大整數質因數分解演算法為<strong>普通數篩法（General Number Field Sieve, GNFS）</strong>，其時間複雜度為次指數階：
+          $$O\left(\exp\left(c \cdot (\ln N)^{1/3} (\ln \ln N)^{2/3}\right)\right)$$
+          對於 RSA-2048，傳統超級電腦需要運算數萬年至上百萬年方可破解。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 2</span><strong>Shor 量子演算法降階原理（多項式時間）</strong><br>
+          Shor 演算法巧妙地將質因數分解問題轉化為<strong>求模幕週期問題（Order Finding）</strong>：<br>
+          ‧ 利用量子疊加態同時計算所有可能的幕次。<br>
+          ‧ 利用<strong>量子傅立葉轉換（Quantum Fourier Transform, QFT）</strong>引發建設性干涉，直接抽出函數週期 $r$。<br>
+          ‧ 計算複雜度直接被驟降至多項式時間：<strong>$O((\log N)^3)$</strong>！RSA-2048 在足夠量子位元的量子電腦上僅需數秒至數分鐘。
+        </li>
+        <li class="step-item">
+          <span class="step-badge">步驟 3</span><strong>對稱式金鑰的影響：Grover 演算法（平方加速）</strong><br>
+          Grover 搜尋演算法可將暴力破解對稱金鑰的時間從 $O(2^n)$ 降為 <strong>$O(2^{n/2})$</strong>。<br>
+          👉 對策：只需將對稱加密金鑰長度加倍（例如由 AES-128 提升至 <strong>AES-256</strong>），即可確保在量子時代依然安全。
+        </li>
+        <li class="step-item">
+          <span class="step-badge check">驗算</span><strong>後量子密碼 (PQC) 防禦藍圖</strong><br>
+          NIST 於 2022 年公布後量子密碼標準化首批名單：主要採用<strong>晶格密碼學 (Lattice-based Cryptography)</strong>：<br>
+          ‧ <strong>金鑰封裝機制 (KEM)</strong>：CRYSTALS-Kyber（現改稱 ML-KEM）。<br>
+          ‧ <strong>數位簽章</strong>：CRYSTALS-Dilithium（現改稱 ML-DSA）與 SPHINCS+。<br>
+          晶格問題（如最短向量問題 SVP）即使使用量子電腦也無法在多項式時間求解，是未來資訊系統升級的必考熱點！
+        </li>
+      </ul>
+    </div>
+
   </div>
 
   <div class="nav-btns">
