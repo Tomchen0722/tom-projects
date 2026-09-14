@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第 10 單元：零基礎 20 個實戰詳細解說範例 | AutoCAD 2024 自學手冊</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 28px 0 20px;
+      padding: 14px;
+      background: var(--sand-alt);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--sand-deep);
+    }
+    .filter-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--sand-deep);
+      color: var(--ink);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--terracotta);
+      color: #fff;
+      border-color: var(--terracotta);
+      box-shadow: 0 4px 12px rgba(194, 65, 12, 0.2);
+    }
+    .progress-box {
+      background: linear-gradient(135deg, #FFFDF9 0%, #F7F1E8 100%);
+      border: 1.5px solid var(--amber-soft);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .progress-track {
+      height: 12px;
+      background: var(--sand-deep);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--amber) 0%, var(--terracotta) 100%);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .example-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+      margin-bottom: 50px;
+    }
+    .example-card {
+      background: var(--card-bg);
+      border: 1px solid var(--sand-deep);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+    .example-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--terracotta);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .badge-num {
+      background: var(--terracotta);
+      color: white;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .badge-tag {
+      background: var(--sand-alt);
+      color: var(--ink-mid);
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--sand-deep);
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-family: var(--font-serif);
+      color: var(--ink);
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .command-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1F1A17;
+      color: #FDFBF7;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      padding: 5px 12px;
+      border-radius: 6px;
+      margin-bottom: 14px;
+      width: fit-content;
+    }
+    .step-list {
+      list-style: none;
+      counter-reset: step-counter;
+      margin: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .step-list li {
+      counter-increment: step-counter;
+      position: relative;
+      padding-left: 28px;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: var(--ink-mid);
+    }
+    .step-list li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 1px;
+      width: 20px;
+      height: 20px;
+      background: var(--sand-deep);
+      color: var(--ink);
+      font-size: 0.75rem;
+      font-weight: bold;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+    }
+    .card-tip {
+      background: var(--sand-alt);
+      border-left: 3px solid var(--amber);
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      color: var(--ink-mid);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-top: auto;
+      line-height: 1.5;
+    }
+    .check-action {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--sand-deep);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink-mid);
+      cursor: pointer;
+    }
+    .check-action input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--terracotta);
+      cursor: pointer;
+    }
+    .key-badge {
+      display: inline-block;
+      background: #ECE5DD;
+      border: 1px solid #D5C9BC;
+      border-bottom: 2px solid #BCADA0;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #3C332E;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部導航列 -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <a href="../index.html" class="nav-logo">
+        <div class="logo-badge">A</div>
+        <div class="logo-text">
+          <h1>AutoCAD 2024 自學手冊</h1>
+          <span>HIGH SCHOOL CAD &amp; PCB GUIDE</span>
+        </div>
+      </a>
+      <ul class="nav-menu">
+        <li><a href="../index.html" class="nav-link">🏠 回首頁</a></li>
+        <li><a href="01-interface.html" class="nav-link">01 介面環境</a></li>
+        <li><a href="02-draw-tools.html" class="nav-link">02 繪製工具</a></li>
+        <li><a href="03-modify-tools.html" class="nav-link">03 修改工具</a></li>
+        <li><a href="04-layers-properties.html" class="nav-link">04 圖層性質</a></li>
+        <li><a href="05-blocks-annotation.html" class="nav-link">05 圖塊註解</a></li>
+        <li><a href="06-pcb-tutorial.html" class="nav-link" style="color:var(--cad-green);font-weight:bold;">⚡ 06 PCB實戰</a></li>
+        <li><a href="07-shortcuts.html" class="nav-link">07 快捷鍵表</a></li>
+        <li><a href="08-interior-design.html" class="nav-link" style="color:var(--terracotta);font-weight:bold;">🏡 08 室內設計</a></li>
+        <li><a href="09-rooftop-roof.html" class="nav-link" style="color:var(--amber);font-weight:bold;">🏗️ 09 樓頂鐵皮屋頂</a></li>
+        <li><a href="10-twenty-examples.html" class="nav-link active" style="color:var(--terracotta);font-weight:bold;">🎯 10 零基礎20範例</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- 標題 Hero -->
+  <header class="hero" style="padding: 44px 0 28px;">
+    <div class="container">
+      <div class="hero-tag">UNIT 10 · 20 STEP-BY-STEP PRACTICAL EXERCISES</div>
+      <h1 class="hero-title">零基礎自學 <span class="gradient-text">20 個實用實戰詳細解說範例</span></h1>
+      <p class="hero-desc">
+        專為「完全沒有基礎」的初學者設計！每一個範例均拆解為「按什麼鍵、滑鼠點哪裡、輸入什麼數值、畫面回饋什麼」的手把手保姆級步驟。點擊勾選框即可在瀏覽器儲存您的自學成就進度！
+      </p>
+    </div>
+  </header>
+
+  <main class="container" style="padding: 20px 24px 60px;">
+
+    <!-- 學習進度條 -->
+    <div class="progress-box">
+      <div class="progress-header">
+        <div>
+          <span style="font-size:1.15rem;font-weight:700;color:var(--ink);">🏆 您的 20 題自學成就榜</span>
+          <span style="font-size:0.88rem;color:var(--ink-mid);margin-left:8px;">(每在 AutoCAD 完成一題就勾選一下，自動存檔)</span>
+        </div>
+        <div id="progressText" style="font-family:var(--font-mono);font-size:1.1rem;font-weight:bold;color:var(--terracotta);">
+          0 / 20 完成 (0%)
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressBar"></div>
+      </div>
+    </div>
+
+    <!-- 分類篩選按鈕 -->
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterExamples('all', this)">🌟 全部 20 題 (All)</button>
+      <button class="filter-btn" onclick="filterExamples('stage1', this)">📏 階段一：基本幾何與尺寸 (1~5)</button>
+      <button class="filter-btn" onclick="filterExamples('stage2', this)">✂️ 階段二：修改工具神器 (6~10)</button>
+      <button class="filter-btn" onclick="filterExamples('stage3', this)">🛋️ 階段三：室內建築實戰 (11~15)</button>
+      <button class="filter-btn" onclick="filterExamples('stage4', this)">📐 階段四：圖層標註與出圖 (16~20)</button>
+    </div>
+
+    <!-- 20 個實例卡片網格 -->
+    <div class="example-grid" id="exampleGrid">
+
+      <!-- 範例 1 -->
+      <div class="example-card" data-stage="stage1" id="card-ex-1">
+        <div class="card-top">
+          <span class="badge-num">範例 01</span>
+          <span class="badge-tag">基礎幾何 · ★☆☆</span>
+        </div>
+        <h3 class="card-title">畫一條長度剛好 100mm 的水平直線</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">L</span> <span>(LINE 直線)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>學會開啟正交鎖定與輸入精確長度，線條絕不畫歪。</p>
+        <ol class="step-list">
+          <li>按兩次 <span class="key-badge">ESC</span> 確認目前處於乾淨待命狀態。</li>
+          <li>按一下鍵盤 <span class="key-badge">F8</span> 開啟「正交模式」（狀態列直角圖示變亮藍色）。</li>
+          <li>輸入 <span class="key-badge">L</span>，按一下 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠左鍵在畫布上任意點一下（決定線條起點）。</li>
+          <li>將滑鼠游標朝右方平拉（拉出水平方向即可，不需按住滑鼠鍵）。</li>
+          <li>直接輸入數字 <span class="key-badge">100</span>，按一下 <span class="key-badge">空白鍵</span>。</li>
+          <li>按 <span class="key-badge">ESC</span> 結束繪製。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>防呆小秘訣：</strong>如果畫出來太短或看不到，快連續雙擊滑鼠中鍵（滾輪），畫面會自動全景顯示！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(1, this.checked)" id="check-1">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 2 -->
+      <div class="example-card" data-stage="stage1" id="card-ex-2">
+        <div class="card-top">
+          <span class="badge-num">範例 02</span>
+          <span class="badge-tag">基礎幾何 · ★☆☆</span>
+        </div>
+        <h3 class="card-title">畫一個 150 × 100 mm 的精密長方形</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">REC</span> <span>(RECTANG 矩形)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>掌握相對座標 <code>@寬,高</code> 的輸入語法，一鍵生成封閉圖框。</p>
+        <ol class="step-list">
+          <li>按 <span class="key-badge">ESC</span>，輸入 <span class="key-badge">REC</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠左鍵在畫面任意點一下（指定矩形第一個角點）。</li>
+          <li>鍵盤輸入 <span class="key-badge">@150,100</span>（先輸入小老鼠 @，寬度 150，英文半形逗號，高度 100）。</li>
+          <li>按 <span class="key-badge">空白鍵</span> 完成。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>防呆小秘訣：</strong>逗點一定要是「英文半形逗點 ,」，如果是中文全形「，」CAD 會判斷錯誤！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(2, this.checked)" id="check-2">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 3 -->
+      <div class="example-card" data-stage="stage1" id="card-ex-3">
+        <div class="card-top">
+          <span class="badge-num">範例 03</span>
+          <span class="badge-tag">基礎幾何 · ★☆☆</span>
+        </div>
+        <h3 class="card-title">畫一個直徑 60mm 的圓形</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">C</span> <span>(CIRCLE 圓)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>理解 AutoCAD 畫圓預設是半徑，如何精確切換為直徑。</p>
+        <ol class="step-list">
+          <li>按 <span class="key-badge">ESC</span>，輸入 <span class="key-badge">C</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠左鍵在畫布上點一下（決定圓心位置）。</li>
+          <li>看下方指令列提示：輸入 <span class="key-badge">D</span>，按 <span class="key-badge">空白鍵</span>（切換為直徑模式）。</li>
+          <li>輸入數值 <span class="key-badge">60</span>，按 <span class="key-badge">空白鍵</span>。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>防呆小秘訣：</strong>如果不輸入 D 直接打 60，CAD 會把 60 當成半徑，畫出來會是直徑 120 的大圓喔！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(3, this.checked)" id="check-3">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 4 -->
+      <div class="example-card" data-stage="stage1" id="card-ex-4">
+        <div class="card-top">
+          <span class="badge-num">範例 04</span>
+          <span class="badge-tag">鎖點應用 · ★☆☆</span>
+        </div>
+        <h3 class="card-title">捕捉圓心，繪製同心圓墊片（內徑 30mm）</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">C</span> + <span class="key-badge">F3 物件鎖點</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>學會用綠色鎖點標記自動吸附圓心，兩圓共心絕不失準。</p>
+        <ol class="step-list">
+          <li>按鍵盤 <span class="key-badge">F3</span> 確認物件鎖點已開啟（狀態列方形圖示亮藍色）。</li>
+          <li>輸入 <span class="key-badge">C</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>游標移到剛才範例 3 圓形的外邊緣晃一下，圓心處會自動浮現一個「綠色小圓圈」。</li>
+          <li>游標移到該綠色圓心點一下左鍵（成功鎖定圓心！）。</li>
+          <li>輸入 <span class="key-badge">D</span> 按空白鍵，再輸入 <span class="key-badge">30</span> 按空白鍵。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>防呆小秘訣：</strong>在狀態列的物件鎖點圖示按右鍵，可勾選要自動鎖定「端點、中點、圓心、交點」。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(4, this.checked)" id="check-4">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 5 -->
+      <div class="example-card" data-stage="stage1" id="card-ex-5">
+        <div class="card-top">
+          <span class="badge-num">範例 05</span>
+          <span class="badge-tag">極座標 · ★☆☆</span>
+        </div>
+        <h3 class="card-title">繪製 45 度支架斜線（長度 80mm）</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">L</span> + 極座標語法</div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>掌握 <code>@長度<角度</code> 語法，輕鬆繪製任意傾斜幾何線條。</p>
+        <ol class="step-list">
+          <li>按一下 <span class="key-badge">F8</span> 關閉正交模式（因為正交只能畫水平與垂直）。</li>
+          <li>輸入 <span class="key-badge">L</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>畫布上任意點一下決定起點。</li>
+          <li>鍵盤輸入 <span class="key-badge">@80&lt;45</span>（按住 Shift + 逗號鍵打出小於符號 &lt;）。</li>
+          <li>按 <span class="key-badge">空白鍵</span>，再按 <span class="key-badge">ESC</span> 結束。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>角度規則：</strong>CAD 逆時針為正角度。正右方是 0°、正上方是 90°、正左方是 180°。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(5, this.checked)" id="check-5">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 6 -->
+      <div class="example-card" data-stage="stage2" id="card-ex-6">
+        <div class="card-top">
+          <span class="badge-num">範例 06</span>
+          <span class="badge-tag">修改工具 · ★★☆</span>
+        </div>
+        <h3 class="card-title">向內等距複製 10mm 框線（偏移指令）</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">O</span> <span>(OFFSET 偏移)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>製圖最神級的指令！所有雙線牆壁、邊框都靠它一秒完成。</p>
+        <ol class="step-list">
+          <li>確認畫布上有一個長方形（如範例 2）。</li>
+          <li>輸入 <span class="key-badge">O</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>看指令列提示「指定偏移距離」：輸入 <span class="key-badge">10</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠左鍵點選長方形外框線。</li>
+          <li>將滑鼠游標移到長方形的「內側」，點一下左鍵。</li>
+          <li>按 <span class="key-badge">ESC</span> 結束指令。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>防呆小秘訣：</strong>點完物件後，滑鼠游標往內點就是內縮，往外點就是外擴，隨您控制！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(6, this.checked)" id="check-6">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 7 -->
+      <div class="example-card" data-stage="stage2" id="card-ex-7">
+        <div class="card-top">
+          <span class="badge-num">範例 07</span>
+          <span class="badge-tag">修改工具 · ★★☆</span>
+        </div>
+        <h3 class="card-title">剪除十字交叉的多餘線頭（修剪指令）</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">TR</span> <span>(TRIM 修剪)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>掃除畫面雜線，AutoCAD 2024 智慧修剪宛如直覺橡皮擦。</p>
+        <ol class="step-list">
+          <li>先用 <span class="key-badge">L</span> 畫兩條十字互相穿透交叉的直線。</li>
+          <li>按 <span class="key-badge">ESC</span>，輸入 <span class="key-badge">TR</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠游標移到你想剪掉的那段凸出線段上（線條會自動變淡預覽）。</li>
+          <li>點一下滑鼠左鍵，多餘線頭立刻被截斷剪除！</li>
+          <li>修剪完畢後按 <span class="key-badge">ESC</span> 離開。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>特別注意：</strong>修剪只能剪「有交點相交」的線。若是一整條獨立線段，請選取後直接按鍵盤 Delete 鍵。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(7, this.checked)" id="check-7">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 8 -->
+      <div class="example-card" data-stage="stage2" id="card-ex-8">
+        <div class="card-top">
+          <span class="badge-num">範例 08</span>
+          <span class="badge-tag">修改工具 · ★★☆</span>
+        </div>
+        <h3 class="card-title">把尖銳直角切換為平滑 R15 圓角</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">F</span> <span>(FILLET 圓角)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>消除產品銳角，自動將直角交線過渡為指定半徑弧線。</p>
+        <ol class="step-list">
+          <li>輸入 <span class="key-badge">F</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>輸入 <span class="key-badge">R</span>（設定半徑 Radius），按 <span class="key-badge">空白鍵</span>。</li>
+          <li>輸入半徑數值 <span class="key-badge">15</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠左鍵點擊第一個相鄰邊（垂直邊）。</li>
+          <li>滑鼠左鍵點擊第二個相鄰邊（水平邊）。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>隱藏神技：</strong>若將半徑設為 0，FILLET 還能把兩條沒接合的線瞬間接合成乾淨的直角！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(8, this.checked)" id="check-8">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 9 -->
+      <div class="example-card" data-stage="stage2" id="card-ex-9">
+        <div class="card-top">
+          <span class="badge-num">範例 09</span>
+          <span class="badge-tag">修改工具 · ★★☆</span>
+        </div>
+        <h3 class="card-title">只畫左半邊，鏡射出完整對稱花瓶</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">MI</span> <span>(MIRROR 鏡射)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>畫對稱圖形（杯子、飛機、雙扇門）只需畫一半，速度翻倍。</p>
+        <ol class="step-list">
+          <li>在左側畫好半邊花瓶輪廓，並在右側畫一條筆直的垂直線作為中心軸。</li>
+          <li>輸入 <span class="key-badge">MI</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>用滑鼠由右向左拉綠色框選取左側花瓶線條，按 <span class="key-badge">空白鍵</span> 確認。</li>
+          <li>滑鼠左鍵點擊垂直中心線的頂端點，再點底端點（指定鏡射軸）。</li>
+          <li>指令列問「是否刪除來源物件？」：直接按 <span class="key-badge">空白鍵</span>（預設為否）。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>防呆小秘訣：</strong>鏡射軸點兩點時開著 F8 正交模式，能確保鏡射對稱軸垂直絕對精確。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(9, this.checked)" id="check-9">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 10 -->
+      <div class="example-card" data-stage="stage2" id="card-ex-10">
+        <div class="card-top">
+          <span class="badge-num">範例 10</span>
+          <span class="badge-tag">修改工具 · ★★☆</span>
+        </div>
+        <h3 class="card-title">圓形餐桌周圍均勻排列 6 張椅子</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">AR</span> <span>(ARRAY 環形陣列)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>齒輪孔、法蘭盤螺栓、圓桌椅快速等角度環形排列。</p>
+        <ol class="step-list">
+          <li>畫一個大圓（餐桌），並在大圓正上方畫一個小圓（椅子）。</li>
+          <li>輸入 <span class="key-badge">AR</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>點擊小圓（椅子），按 <span class="key-badge">空白鍵</span>。</li>
+          <li>指令列選擇類型：輸入 <span class="key-badge">PO</span>（環形 Polar），按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠點選大圓的「圓心」。</li>
+          <li>頂部功能區「項目(Items)」欄位輸入 <span class="key-badge">6</span>，按 Enter。</li>
+          <li>點擊右上角綠色勾勾「關閉陣列」。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>陣列可隨時改：</strong>點選做好的椅子陣列，隨時可以在上方輸入 8 或 10，立刻自動更新！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(10, this.checked)" id="check-10">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 11 -->
+      <div class="example-card" data-stage="stage3" id="card-ex-11">
+        <div class="card-top">
+          <span class="badge-num">範例 11</span>
+          <span class="badge-tag">建築室內 · ★★☆</span>
+        </div>
+        <h3 class="card-title">繪製 5m × 4m 房間與 15cm 雙線外牆</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">REC</span> + <span class="key-badge">O</span> + <span class="key-badge">X</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>建築室內起步第一步：建立結構雙線牆體與打散線條以利開門窗。</p>
+        <ol class="step-list">
+          <li>輸入 <span class="key-badge">REC</span> 按空白鍵，點第一點，輸入 <span class="key-badge">@5000,4000</span> 按空白鍵（以 mm 為單位）。</li>
+          <li>輸入 <span class="key-badge">O</span> 按空白鍵，偏移距離輸入牆厚 <span class="key-badge">150</span> 按空白鍵。</li>
+          <li>點選矩形外框，滑鼠移到內側點一下左鍵。</li>
+          <li>按 <span class="key-badge">ESC</span>。此時兩圈矩形各自是一整條封閉線，無法單獨開門剪線。</li>
+          <li>輸入 <span class="key-badge">X</span>（EXPLODE 分解），按空白鍵，框選兩圈矩形按空白鍵。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>打散的意義：</strong>分解後變成 8 條獨立線段，後續才能用 TRIM 修剪出開門開窗的開口！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(11, this.checked)" id="check-11">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 12 -->
+      <div class="example-card" data-stage="stage3" id="card-ex-12">
+        <div class="card-top">
+          <span class="badge-num">範例 12</span>
+          <span class="badge-tag">建築室內 · ★★☆</span>
+        </div>
+        <h3 class="card-title">在牆上繪製標準 90cm 室內開門與軌跡弧線</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">L</span> + <span class="key-badge">A</span> <span>(ARC 弧線)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>畫出標準建築室內平面圖的單開門與開啟迴旋方向。</p>
+        <ol class="step-list">
+          <li>用 <span class="key-badge">TR</span> 在牆體上剪出 900mm 淨寬開口。</li>
+          <li>在開口門鉸鏈處，輸入 <span class="key-badge">L</span> 按空白鍵，垂直畫一條長度 <span class="key-badge">900</span> 的門片線。</li>
+          <li>輸入 <span class="key-badge">A</span>（弧線 ARC），按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠依序點擊三點：門扇頂端點 → 弧線中途約 45° 位置 → 門關閉接觸的牆面端點。</li>
+          <li>弧線生成完成！</li>
+        </ol>
+        <div class="card-tip">💡 <strong>建築小常識：</strong>室內房門淨開口通常為 900mm，浴廁門通常為 750mm。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(12, this.checked)" id="check-12">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 13 -->
+      <div class="example-card" data-stage="stage3" id="card-ex-13">
+        <div class="card-top">
+          <span class="badge-num">範例 13</span>
+          <span class="badge-tag">建築室內 · ★★☆</span>
+        </div>
+        <h3 class="card-title">繪製標準 120cm × 15cm 鋁門窗符號</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">REC</span> + <span class="key-badge">L</span> + <span class="key-badge">O</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>繪製包含窗框與雙層玻璃窗扇的標準鋁窗圖例。</p>
+        <ol class="step-list">
+          <li>在外牆用 <span class="key-badge">TR</span> 剪出 1200mm 窗洞。</li>
+          <li>輸入 <span class="key-badge">REC</span> 按空白鍵，在窗洞處畫一個 <span class="key-badge">@1200,150</span> 的外框。</li>
+          <li>輸入 <span class="key-badge">O</span> 按空白鍵，距離輸入 <span class="key-badge">30</span> 按空白鍵，點矩形向內偏移做窗框。</li>
+          <li>輸入 <span class="key-badge">L</span> 連接左右兩側中點，畫出中央玻璃線條。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>規範標準：</strong>窗戶在平面圖中通常使用細線（如 0.15mm 或青色/黃色），與粗牆體區分開。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(13, this.checked)" id="check-13">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 14 -->
+      <div class="example-card" data-stage="stage3" id="card-ex-14">
+        <div class="card-top">
+          <span class="badge-num">範例 14</span>
+          <span class="badge-tag">圖塊資產 · ★★★</span>
+        </div>
+        <h3 class="card-title">將家具製作成「圖塊」，隨叫隨用</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">B</span> <span>(BLOCK 建立)</span> / <span class="key-badge">I</span> <span>(INSERT 插入)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>學會建立自己的零件/家具圖庫，終生不需要重新繪製！</p>
+        <ol class="step-list">
+          <li>畫好一張 800 × 800mm 的客廳單人沙發。</li>
+          <li>輸入 <span class="key-badge">B</span>，按 <span class="key-badge">空白鍵</span> 開啟圖塊定義視窗。</li>
+          <li>名稱輸入：<span class="key-badge">單人沙發</span>。</li>
+          <li>點「挑選點」按鈕，點擊沙發背靠的左下角（設定插入基準點）。</li>
+          <li>點「選取物件」按鈕，框選整個沙發，按空白鍵確認。</li>
+          <li>勾選「轉換為圖塊」，按「確定」。</li>
+          <li>測試：輸入 <span class="key-badge">I</span> 按空白鍵，隨時拖出這張沙發放到任何房間！</li>
+        </ol>
+        <div class="card-tip">💡 <strong>圖塊大好處：</strong>未來如果沙發要改顏色或尺寸，只要編輯圖塊一次，全圖 100 張沙發自動全部更新！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(14, this.checked)" id="check-14">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 15 -->
+      <div class="example-card" data-stage="stage3" id="card-ex-15">
+        <div class="card-top">
+          <span class="badge-num">範例 15</span>
+          <span class="badge-tag">材質網底 · ★★☆</span>
+        </div>
+        <h3 class="card-title">在浴室地面鋪設 300 × 300mm 格子地磚</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">H</span> <span>(HATCH 填充線)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>為建築區域填入地磚、剖面斜線、混凝土或泥土材質。</p>
+        <ol class="step-list">
+          <li>準備好封閉的浴室地面線框（例如 1800 × 2000mm 封閉矩形）。</li>
+          <li>按 <span class="key-badge">ESC</span>，輸入 <span class="key-badge">H</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>頂部功能區自動跳出「填充線建立」標籤：
+            <br>• 圖樣點選 <span class="key-badge">NET</span>（方格網狀）。
+            <br>• 比例（Scale）數值由 1.0 改成 <span class="key-badge">300</span>。
+          </li>
+          <li>滑鼠游標移到浴室矩形內部，點一下左鍵。</li>
+          <li>點擊頂部最右側「關閉填充線建立」。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>填充線卡住常規原因：</strong>圖形一定要「完全封閉」，只要有一點點微小縫隙，CAD 就會警告找不到邊界！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(15, this.checked)" id="check-15">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 16 -->
+      <div class="example-card" data-stage="stage4" id="card-ex-16">
+        <div class="card-top">
+          <span class="badge-num">範例 16</span>
+          <span class="badge-tag">圖層管理 · ★★★</span>
+        </div>
+        <h3 class="card-title">建立標準專業圖層（牆壁紅、家具青、標註綠）</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">LA</span> <span>(LAYER 圖層)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>擺脫圖紙亂糟糟！專業工程師必定建立的標準分層架構。</p>
+        <ol class="step-list">
+          <li>按 <span class="key-badge">ESC</span>，輸入 <span class="key-badge">LA</span>，按 <span class="key-badge">空白鍵</span> 開啟圖層管理員。</li>
+          <li>點擊「新建圖層」按鈕（或按快捷鍵 Alt + N）：
+            <br>• 圖層 1：名稱設為 <code>WALL_牆體</code>，顏色挑選 <strong>紅色 (Red)</strong>，線粗設為 0.35mm。
+            <br>• 圖層 2：名稱設為 <code>DOOR_門窗</code>，顏色挑選 <strong>黃色 (Yellow)</strong>。
+            <br>• 圖層 3：名稱設為 <code>FURN_家具</code>，顏色挑選 <strong>青色 (Cyan)</strong>。
+            <br>• 圖層 4：名稱設為 <code>DIM_標註</code>，顏色挑選 <strong>綠色 (Green)</strong>。
+          </li>
+          <li>關閉圖層面板。在頂部「圖層下拉清單」切換到對應圖層，畫出的線條自動著色！</li>
+        </ol>
+        <div class="card-tip">💡 <strong>圖層管理威力：</strong>點圖層前面的「燈泡」或「太陽」可以隨時隱藏家具或標註，列印時清清楚楚！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(16, this.checked)" id="check-16">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 17 -->
+      <div class="example-card" data-stage="stage4" id="card-ex-17">
+        <div class="card-top">
+          <span class="badge-num">範例 17</span>
+          <span class="badge-tag">尺寸標註 · ★★☆</span>
+        </div>
+        <h3 class="card-title">標註房間牆壁與開口真實長度（線性標註）</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">DLI</span> <span>(DIMLINEAR 線性標註)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>給施工圖標示精確毫米長度，工人才能按圖施工。</p>
+        <ol class="step-list">
+          <li>先將目前圖層切換到 <code>DIM_標註</code>。</li>
+          <li>輸入 <span class="key-badge">DLI</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠左鍵點選線段的「第一個端點」（靠綠色方形鎖點精確吸附）。</li>
+          <li>滑鼠左鍵點選線段的「第二個端點」。</li>
+          <li>將滑鼠往外拉開適當距離，點一下左鍵定位尺寸引線。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>連續標註神技：</strong>標完第一個尺寸後，輸入 <span class="key-badge">DCO</span>（DIMCONTINUE），只要連續點擊就能自動串連標註！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(17, this.checked)" id="check-17">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 18 -->
+      <div class="example-card" data-stage="stage4" id="card-ex-18">
+        <div class="card-top">
+          <span class="badge-num">範例 18</span>
+          <span class="badge-tag">尺寸標註 · ★★☆</span>
+        </div>
+        <h3 class="card-title">標註圓形直徑 Ø 與圓角半徑 R</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">DDI</span> <span>(直徑)</span> / <span class="key-badge">DRA</span> <span>(半徑)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>國際機械與土木規範標準的圓形半徑與孔徑標註。</p>
+        <ol class="step-list">
+          <li>標註圓直徑：輸入 <span class="key-badge">DDI</span> 按空白鍵，點擊外圓圓周，滑鼠往外拉出點擊，標出 <code>Ø60</code>。</li>
+          <li>標註圓弧半徑：輸入 <span class="key-badge">DRA</span> 按空白鍵，點擊圓弧倒角，往外拉出點擊，標出 <code>R15</code>。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>符號意義：</strong>直徑符號在工程圖上為 Ø (Phi)，半徑符號為 R (Radius)。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(18, this.checked)" id="check-18">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 19 -->
+      <div class="example-card" data-stage="stage4" id="card-ex-19">
+        <div class="card-top">
+          <span class="badge-num">範例 19</span>
+          <span class="badge-tag">文字註解 · ★★☆</span>
+        </div>
+        <h3 class="card-title">撰寫工程圖標題欄與施工圖說文字</h3>
+        <div class="command-badge"><span>指令:</span> <span class="key-badge">MT</span> <span>(MTEXT 多行文字)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>排版清晰的工程標題、比例與材質施工備註。</p>
+        <ol class="step-list">
+          <li>切換至文字圖層，輸入 <span class="key-badge">MT</span>，按 <span class="key-badge">空白鍵</span>。</li>
+          <li>滑鼠在畫布上拉出一個長方形框（指定文字範圍）。</li>
+          <li>鍵盤輸入：<code>一層平面配置圖  比例 1:100</code>。</li>
+          <li>滑鼠反白選取文字，在上方文字格式列將「文字高度」設為 <span class="key-badge">300</span>（平面圖適當高度）。</li>
+          <li>點擊外側空白處完成輸入。</li>
+        </ol>
+        <div class="card-tip">💡 <strong>文字高度觀念：</strong>CAD 裡文字大小是真實世界尺寸！如果畫 5 米房間，文字高設 3 就會小得像螞蟻看不到，應設 200~300。</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(19, this.checked)" id="check-19">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+      <!-- 範例 20 -->
+      <div class="example-card" data-stage="stage4" id="card-ex-20">
+        <div class="card-top">
+          <span class="badge-num">範例 20</span>
+          <span class="badge-tag">出圖輸出 · ★★★</span>
+        </div>
+        <h3 class="card-title">將完成圖面輸出為高解析度 A4 PDF 圖檔</h3>
+        <div class="command-badge"><span>快捷鍵:</span> <span class="key-badge">Ctrl + P</span> <span>(PLOT 出圖列印)</span></div>
+        <p style="font-size:0.88rem;color:var(--ink);margin-bottom:8px;"><strong>目標成果：</strong>把畫好的作品轉為全世界都能開的標準 PDF 文件，隨時列印！</p>
+        <ol class="step-list">
+          <li>按鍵盤 <span class="key-badge">Ctrl + P</span> 打開「出圖 - 模型」視窗。</li>
+          <li><strong>印表機名稱：</strong>下拉選擇 <code>AutoCAD PDF (General Documentation).pc3</code>。</li>
+          <li><strong>圖紙大小：</strong>下拉選擇 <code>ISO full bleed A4 (297.00 x 210.00 公釐)</code>。</li>
+          <li><strong>出圖區域：</strong>下拉選擇 <code>視窗(W)</code>，此時視窗縮小，請用滑鼠框選要列印的圖案。</li>
+          <li>勾選「置中出圖」與「布滿圖紙」。</li>
+          <li>點擊左下角「預覽(P)」檢查，滿意後按滑鼠右鍵選「出圖」，存成 PDF 檔案！</li>
+        </ol>
+        <div class="card-tip">💡 <strong>恭喜完工：</strong>到此步驟，您已經完整走過 CAD 從無到有繪圖、修改、標註、到出圖發包的全部標準流程！</div>
+        <label class="check-action">
+          <input type="checkbox" onchange="toggleExercise(20, this.checked)" id="check-20">
+          <span>我已在 AutoCAD 2024 完成這題練習</span>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- 底部返回與接續學習 -->
+    <div style="text-align:center;padding:36px;background:var(--sand-alt);border-radius:var(--radius-md);border:1px solid var(--sand-deep);">
+      <h3 style="font-size:1.4rem;font-family:var(--font-serif);color:var(--ink);margin-bottom:12px;">🎉 零基礎自學成功地圖</h3>
+      <p style="color:var(--ink-mid);max-width:650px;margin:0 auto 20px;line-height:1.7;">
+        只要您認真跟著完成上述 20 個範例，您就已經超越了 80% 的 CAD 初學者！接下來您可以進一步深入探索各單元，或進入室內設計與 PCB 實戰專案。
+      </p>
+      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <a href="01-interface.html" class="btn btn-primary">📖 複習 01 單元：軟體介面完整全圖解</a>
+        <a href="../index.html" class="btn btn-secondary">🏠 返回手冊首頁</a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer style="background:var(--card-bg);border-top:1px solid var(--sand-deep);padding:24px 0;text-align:center;color:var(--ink-light);font-size:0.85rem;">
+    <div class="container">
+      AutoCAD 2024 零基礎新手自學手冊 · 專為初學者打造的 20 題逐步實戰指南
+    </div>
+  </footer>
+
+  <script>
+    const totalExercises = 20;
+
+    function getSavedProgress() {
+      try {
+        const data = localStorage.getItem('cad2024_exercises');
+        return data ? JSON.parse(data) : {};
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function updateProgressUI() {
+      const progress = getSavedProgress();
+      let completedCount = 0;
+      for (let i = 1; i <= totalExercises; i++) {
+        const isChecked = !!progress[i];
+        const checkbox = document.getElementById('check-' + i);
+        if (checkbox) checkbox.checked = isChecked;
+        if (isChecked) completedCount++;
+      }
+      const percent = Math.round((completedCount / totalExercises) * 100);
+      document.getElementById('progressText').innerText = completedCount + ' / ' + totalExercises + ' 完成 (' + percent + '%)';
+      document.getElementById('progressBar').style.width = percent + '%';
+    }
+
+    function toggleExercise(id, checked) {
+      const progress = getSavedProgress();
+      if (checked) {
+        progress[id] = true;
+      } else {
+        delete progress[id];
+      }
+      localStorage.setItem('cad2024_exercises', JSON.stringify(progress));
+      updateProgressUI();
+    }
+
+    function filterExamples(stage, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const cards = document.querySelectorAll('.example-card');
+      cards.forEach(card => {
+        if (stage === 'all' || card.getAttribute('data-stage') === stage) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', updateProgressUI);
+  </script>
+
+</body>
+</html>
