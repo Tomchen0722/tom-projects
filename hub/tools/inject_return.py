@@ -36,6 +36,7 @@ TARGETS = [
     "learning/dev/git-course/site/*.html",
     "learning/autocad2024/*.html",
     "learning/autocad2024/modules/*.html",
+    "learning/realtor/*.html",
 ]
 
 SNIPPET_TEMPLATE = """
