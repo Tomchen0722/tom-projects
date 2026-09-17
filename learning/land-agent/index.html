@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>地政士國家專技普考衝刺學習系統 | 600題精闢解析題庫與實務講義</title>
+  <meta name="description" content="專門職業及技術人員普通考試地政士考試全真學習系統，收錄民法信託法、土地法規、土地登記規則與測量、土地稅法規共600題不重複題庫，內建計時模擬考與深度講義。">
+  <link rel="stylesheet" href="assets/app.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- 頂部導航列 -->
+  <nav class="top-nav">
+    <div class="container nav-inner">
+      <a href="#" class="brand" onclick="switchTab('dashboard')">
+        <div class="brand-badge">地</div>
+        <div class="brand-text">
+          <h1>地政士專技普考通關</h1>
+          <span>LAND AGENT PROFESSIONAL EXAM</span>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><button class="nav-btn active" data-tab="dashboard">🏠 總覽首頁</button></li>
+        <li><button class="nav-btn" data-tab="mock-exam">📝 全真模擬考</button></li>
+        <li><button class="nav-btn" data-tab="practice">📖 章節練習</button></li>
+        <li><button class="nav-btn" data-tab="error-book">❌ 錯題筆記本</button></li>
+        <li><button class="nav-btn" data-tab="search">🔍 題庫搜尋</button></li>
+        <li><button class="nav-btn" data-tab="flashcards">💡 數字速記卡</button></li>
+        <li><button class="nav-btn" data-tab="notes">📚 考科講義</button></li>
+      </ul>
+
+      <div class="top-controls">
+        <button class="theme-btn" id="themeToggleBtn" title="切換深色/淺色護眼模式">🌙</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 標籤頁 1: 總覽首頁 (Dashboard) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="view-section active" id="tab-dashboard">
+      <div class="hero-banner">
+        <h2>目標 100% 考取證照！地政士專技普考金牌衝刺平台</h2>
+        <p>
+          專為地政自學與在職衝刺考生打造！收錄 <strong>600 道四大專業科目精準題庫</strong>（民法信託、土地法規、土地登記與測量、土地稅法規各 150 題，題題附法條依據、詳解與考點防呆），結合 <strong>60 分鐘全真計時模擬考引擎</strong>、<strong>錯題本</strong>、<strong>120 組數字速記卡</strong> 與 <strong>深度系統講義</strong>。
+        </p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-gold" onclick="startMockExam(50)">🚀 開始 50 題全真模擬考</button>
+          <button class="btn btn-outline" onclick="switchTab('practice')">📖 依章節循序練習</button>
+          <button class="btn btn-outline" onclick="switchTab('notes')">📚 研讀四大考科講義</button>
+        </div>
+      </div>
+
+      <!-- 統計數據卡片 -->
+      <div class="grid-4" style="margin-bottom:32px;">
+        <div class="stat-card">
+          <div class="stat-icon emerald">📚</div>
+          <div class="stat-info">
+            <h4>題庫總題數</h4>
+            <div class="stat-value" id="statTotalQuestions">600</div>
+            <div class="stat-desc">4大專業考科完整涵蓋</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon gold">🏆</div>
+          <div class="stat-info">
+            <h4>模擬考最高分</h4>
+            <div class="stat-value" id="statBestScore">尚無紀錄</div>
+            <div class="stat-desc">60分及格門檻</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">❌</div>
+          <div class="stat-info">
+            <h4>待複習錯題</h4>
+            <div class="stat-value" id="statErrorCount">0</div>
+            <div class="stat-desc">強化個人記憶弱點</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon blue">⏱️</div>
+          <div class="stat-info">
+            <h4>歷次模擬考</h4>
+            <div class="stat-value" id="statExamTimes">0 次</div>
+            <div class="stat-desc">累積臨場實戰經驗</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 四大科目進度與考試門檻 -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <span>📊 四大專業科目練習進度</span>
+            <button class="btn btn-secondary btn-sm" onclick="switchTab('practice')">進入章節練習 ➔</button>
+          </div>
+
+          <div class="sub-progress-row">
+            <div class="sub-progress-header">
+              <span>第一科：民法概要與信託法概要</span>
+              <span id="subProgressText1" style="font-family:var(--font-mono);">0 / 150 題 (0%)</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="subProgressFill1" style="width:0%;"></div></div>
+          </div>
+
+          <div class="sub-progress-row">
+            <div class="sub-progress-header">
+              <span>第二科：土地法規（含平均地權、徵收、地政士法）</span>
+              <span id="subProgressText2" style="font-family:var(--font-mono);">0 / 150 題 (0%)</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="subProgressFill2" style="width:0%;"></div></div>
+          </div>
+
+          <div class="sub-progress-row">
+            <div class="sub-progress-header">
+              <span>第三科：土地登記規則與地籍測量實施規則</span>
+              <span id="subProgressText3" style="font-family:var(--font-mono);">0 / 150 題 (0%)</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="subProgressFill3" style="width:0%;"></div></div>
+          </div>
+
+          <div class="sub-progress-row">
+            <div class="sub-progress-header">
+              <span>第四科：土地稅法規（含囤房稅2.0、房地合一2.0）</span>
+              <span id="subProgressText4" style="font-family:var(--font-mono);">0 / 150 題 (0%)</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="subProgressFill4" style="width:0%;"></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>⚖️ 國家地政士普考及格門檻規定</span>
+            <span class="subject-pill pill-sec3">考選部標準</span>
+          </div>
+          <ul style="padding-left:20px;font-size:14.5px;color:var(--ink-secondary);line-height:1.9;">
+            <li><strong>總成績標準</strong>：以各應試科目成績平均計算，<strong>滿 60 分為及格</strong>。</li>
+            <li><strong>零分限制</strong>：應試科目中<strong>不得有一科成績為 0 分</strong>，否則不予及格。</li>
+            <li><strong>專業科目限制</strong>：專業科目平均成績<strong>未滿 50 分者，不予及格</strong>。</li>
+            <li><strong>應試科目</strong>：普通科目 1 科（國文）、專業科目 4 科，專業科目採混合式或申論/選擇題型。</li>
+            <li><strong>執業權重</strong>：地政士領有專門職業執照，具備產權過戶、稅捐申報、共有處分與代位繼承之法定排他專屬權。</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 歷次模擬考歷史記錄 -->
+      <div class="card">
+        <div class="card-title">
+          <span>📜 最近 5 次模擬考評量紀錄</span>
+          <button class="btn btn-gold btn-sm" onclick="startMockExam(50)">+ 開啟新模擬考</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <thead>
+              <tr style="border-bottom:1.5px solid var(--border);text-align:left;">
+                <th style="padding:10px;">測驗日期</th>
+                <th style="padding:10px;">試卷類型</th>
+                <th style="padding:10px;">測驗成績</th>
+                <th style="padding:10px;">作答耗時</th>
+                <th style="padding:10px;">及格狀態</th>
+              </tr>
+            </thead>
+            <tbody id="examHistoryTbody">
+              <!-- 由 JavaScript 自動渲染 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 標籤頁 2: 全真模擬考 (Mock Exam) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="view-section" id="tab-mock-exam">
+      <!-- 模式設定卡片 -->
+      <div class="card" id="examSetupCard">
+        <div class="card-title">
+          <span>📝 地政士全真計時模擬考</span>
+          <span class="subject-pill pill-sec1">全真環境模擬</span>
+        </div>
+        <p style="color:var(--ink-secondary);font-size:15px;line-height:1.7;margin-bottom:24px;">
+          系統將從四大專業科目（民法與信託法、土地法規、土地登記與測量、土地稅法規）中<strong>均勻隨機抽取試題</strong>，模擬真實臨場考驗。測驗過程支援題號跳題卡、標記狀態，交卷後自動計算各科得分率並提供逐題深入解析！
+        </p>
+        <div class="grid-2" style="margin-bottom:24px;">
+          <div style="background:var(--bg-alt);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:20px;text-align:center;">
+            <h3 style="font-size:18px;margin-bottom:8px;color:var(--emerald);">⚡ 50 題高效衝刺模擬考</h3>
+            <p style="font-size:13px;color:var(--ink-secondary);margin-bottom:16px;">適合平時每日複習，限時 45 分鐘，每題 2 分，滿分 100 分。</p>
+            <button class="btn btn-emerald" onclick="startMockExam(50)" style="width:100%;">開始 50 題衝刺考</button>
+          </div>
+          <div style="background:var(--bg-alt);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:20px;text-align:center;">
+            <h3 style="font-size:18px;margin-bottom:8px;color:var(--gold);">🔥 100 題全真耐力模擬考</h3>
+            <p style="font-size:13px;color:var(--ink-secondary);margin-bottom:16px;">適合週末考前檢定，限時 60 分鐘，每題 1 分，滿分 100 分。</p>
+            <button class="btn btn-gold" onclick="startMockExam(100)" style="width:100%;">開始 100 題全真考</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 考試進行中區域 -->
+      <div id="examOngoingArea" style="display:none;">
+        <div class="exam-layout">
+          <!-- 左側題目作答區 -->
+          <div>
+            <div class="card" id="examQuestionDisplay">
+              <!-- JavaScript 動態注入題目 -->
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:16px;">
+              <button class="btn btn-secondary" id="examPrevBtn" onclick="examNavPrev()">◀ 上一題</button>
+              <button class="btn btn-gold" onclick="confirmSubmitExam()">📋 立即繳卷計分</button>
+              <button class="btn btn-secondary" id="examNextBtn" onclick="examNavNext()">下一題 ➔</button>
+            </div>
+          </div>
+
+          <!-- 右側計時器與跳題導覽 -->
+          <div class="exam-sidebar">
+            <div class="timer-box">
+              <div class="timer-label">倒數計時剩餘時間</div>
+              <div class="timer-digits" id="examTimerDigits">60:00</div>
+              <div id="examAnsweredCount" style="font-size:13px;color:#D1E5D9;">已作答：0 / 50</div>
+            </div>
+
+            <div class="card">
+              <div class="card-title" style="margin-bottom:12px;font-size:15px;">
+                <span>題目快速導覽</span>
+              </div>
+              <div class="question-nav-grid" id="examNavGrid">
+                <!-- JavaScript 動態注入圓點按鈕 -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 考試結果計分卡片 -->
+      <div class="card" id="examResultCard" style="display:none;">
+        <!-- JavaScript 動態注入成績與診斷 -->
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 標籤頁 3: 章節循序練習 (Practice) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="view-section" id="tab-practice">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">
+          <span>📖 四大考科循序刷題練習</span>
+          <span id="practiceCountDisplay" style="font-size:13px;font-family:var(--font-mono);color:var(--emerald);">符合條件：600 題</span>
+        </div>
+
+        <div class="filter-bar">
+          <select class="filter-select" id="practiceCatSelect" style="flex:1;">
+            <option value="ALL">全部專業考科 (600 題)</option>
+            <option value="民法概要與信託法概要">第一科：民法概要與信託法概要 (150 題)</option>
+            <option value="土地法規">第二科：土地法規 (150 題)</option>
+            <option value="土地登記規則與地籍測量">第三科：土地登記規則與地籍測量 (150 題)</option>
+            <option value="土地稅法規">第四科：土地稅法規 (150 題)</option>
+          </select>
+
+          <input type="text" class="search-input" id="practiceSearchInput" placeholder="在篩選科目內搜尋關鍵字（如：地上權、查封、自用住宅、優先購買）...">
+        </div>
+      </div>
+
+      <!-- 題目清單渲染容器 -->
+      <div id="practiceQuestionsContainer">
+        <!-- JavaScript 動態注入題目 -->
+      </div>
+
+      <!-- 分頁列 -->
+      <div id="practicePagination"></div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 標籤頁 4: 錯題筆記本 (Error Notebook) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="view-section" id="tab-error-book">
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-title">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span>❌ 錯題弱點強化筆記本</span>
+            <span class="subject-pill pill-sec4" id="errorBookCountBadge">0 題</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="clearAllErrors()">清空所有錯題</button>
+        </div>
+        <p style="font-size:14px;color:var(--ink-secondary);line-height:1.6;">
+          本系統自動記錄您在全真模擬考與章節刷題中做錯的題目。建議考前針對此專區集中反覆重測，徹底釐清盲點，直到答對為止！
+        </p>
+      </div>
+
+      <div id="errorBookQuestionsContainer">
+        <!-- JavaScript 動態注入錯題 -->
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 標籤頁 5: 題庫全文檢索 (Search) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="view-section" id="tab-search">
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">
+          <span>🔍 600 題全題庫法規關鍵字即時檢索</span>
+          <span class="subject-pill pill-sec1" id="searchResultCount">0 題</span>
+        </div>
+        <input type="text" class="search-input" id="globalSearchInput" placeholder="輸入任何法規詞彙（例如：「房地合一」、「34條之1」、「信託」、「抵押權」、「重購退稅」、「自用住宅」、「囤房稅」）..." style="width:100%;padding:16px 20px;font-size:16px;">
+      </div>
+
+      <div id="searchResultsContainer">
+        <div style="text-align:center;padding:48px 20px;color:var(--ink-muted);background:var(--bg-card);border-radius:var(--radius-md);border:1px solid var(--border);">
+          請在上方搜尋框輸入關鍵字開始檢索全題庫。
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 標籤頁 6: 高頻數字速記卡 (Flashcards) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="view-section" id="tab-flashcards">
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">
+          <span>💡 考前 30 分鐘必背：120 組高頻數字與考點速記卡</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="nav-btn fc-filter-btn active" data-fc-cat="all">全部速記卡</button>
+          <button class="nav-btn fc-filter-btn" data-fc-cat="days">法定天數與月數</button>
+          <button class="nav-btn fc-filter-btn" data-fc-cat="years">法定年限與列管期</button>
+          <button class="nav-btn fc-filter-btn" data-fc-cat="rates">關鍵稅率與比率</button>
+          <button class="nav-btn fc-filter-btn" data-fc-cat="amounts">免稅額與罰鍰金額</button>
+        </div>
+      </div>
+
+      <div class="flashcard-grid" id="flashcardGrid">
+        <!-- JavaScript 動態注入速記卡片 -->
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- 標籤頁 7: 四大考科深度講義 (Notes) -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section class="view-section" id="tab-notes">
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-title">
+          <span>📚 四大考科精華講義閱讀器</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="nav-btn note-select-btn active" data-note="00-study-guide">🎯 通關戰略指南</button>
+          <button class="nav-btn note-select-btn" data-note="01-civil-and-trust">📖 民法與信託法</button>
+          <button class="nav-btn note-select-btn" data-note="02-land-laws">📜 土地法規與平均地權</button>
+          <button class="nav-btn note-select-btn" data-note="03-land-registration">📋 土地登記與地籍測量</button>
+          <button class="nav-btn note-select-btn" data-note="04-land-tax-laws">💰 土地稅法與房地合一2.0</button>
+        </div>
+      </div>
+
+      <article class="note-article" id="noteContentArea">
+        <!-- 由 JavaScript 自動注入講義內容 -->
+      </article>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p style="font-weight:600;margin-bottom:6px;">地政士（土地登記專業代理人）專技普考證照衝刺學習系統</p>
+      <p>收錄 600 道標準解析考題 · 四大專業科目深度講義 · 60分鐘全真模擬考 · 離線本機純靜態執行</p>
+    </div>
+  </footer>
+
+  <!-- 題庫與核心邏輯腳本 -->
+  <script src="assets/questions-data.js"></script>
+  <script src="assets/app.js"></script>
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  // 依所在環境決定回哪裡：
+  //   本機          → 本機的 Project Hub
+  //   作品集站台內  → 用相對路徑，換網域也不會壞
+  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
+  //                   只能用完整網址連回作品集
+  var host = location.hostname;
+  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
+  var onSite = host === 'tomchen0722.github.io';
+  var href = local ? 'http://127.0.0.1:7000'
+           : (onSite ? '../../index.html' : 'https://tomchen0722.github.io/tom-projects/');
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>
