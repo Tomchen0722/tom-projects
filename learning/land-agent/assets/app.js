@@ -69,16 +69,19 @@
   // 導航標籤切換 (Navigation)
   // ══════════════════════════════════════════════════════════
   function initNavigation() {
-    const navBtns = document.querySelectorAll('.nav-btn');
+    const navBtns = document.querySelectorAll('.nav-links .nav-btn');
     navBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const targetTab = btn.getAttribute('data-tab');
-        switchTab(targetTab);
+        if (targetTab) {
+          switchTab(targetTab);
+        }
       });
     });
   }
 
   function switchTab(tabId) {
+    if (!tabId) return;
     if (state.examActive && tabId !== 'mock-exam') {
       if (!confirm('全真模擬考正在進行中，確定要離開嗎？（計時器將繼續運行）')) {
         return;
@@ -86,7 +89,7 @@
     }
 
     state.currentTab = tabId;
-    document.querySelectorAll('.nav-btn').forEach(b => {
+    document.querySelectorAll('.nav-links .nav-btn').forEach(b => {
       b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
     });
     document.querySelectorAll('.view-section').forEach(sec => {
@@ -97,6 +100,9 @@
     if (tabId === 'dashboard') updateDashboardStats();
     if (tabId === 'practice') renderPracticeQuestions();
     if (tabId === 'error-book') renderErrorBook();
+    if (tabId === 'notes') {
+      loadNote(state.currentNote || '00-study-guide');
+    }
   }
   window.switchTab = switchTab;
 
@@ -880,13 +886,15 @@
   // 四大考科深度講義 (Notes Reader)
   // ══════════════════════════════════════════════════════════
   function initNotes() {
-    loadNote('00-study-guide');
+    loadNote(state.currentNote || '00-study-guide');
     const noteBtns = document.querySelectorAll('.note-select-btn');
     noteBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         noteBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        loadNote(btn.getAttribute('data-note'));
+        const key = btn.getAttribute('data-note');
+        state.currentNote = key;
+        loadNote(key);
       });
     });
   }
@@ -1017,9 +1025,9 @@
 
   function loadNote(noteKey) {
     const viewer = document.getElementById('noteContentArea');
-    if (viewer && NOTES_STORE[noteKey]) {
-      viewer.innerHTML = NOTES_STORE[noteKey];
-      window.scrollTo({ top: 180, behavior: 'smooth' });
+    const store = (window.NOTES_STORE && Object.keys(window.NOTES_STORE).length > 0) ? window.NOTES_STORE : NOTES_STORE;
+    if (viewer && store && store[noteKey]) {
+      viewer.innerHTML = store[noteKey];
     }
   }
 
