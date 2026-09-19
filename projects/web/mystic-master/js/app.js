@@ -589,8 +589,281 @@ function showDecadeYearDetail(item) {
 // 3. 相術乾坤殿（手相與面相）
 // ----------------------------------------------------
 function initPhysiognomyModule() {
+    initPalmUploadStudio();
     initPalmistryInteractions();
     initFaceInteractions();
+}
+
+// 真人掌相照片上傳與智能辨識中心控制器
+function initPalmUploadStudio() {
+    const fileInput = document.getElementById("palmFileInput");
+    const dropZone = document.getElementById("palmDropZone");
+    const btnBrowse = document.getElementById("btnBrowsePalm");
+    const btnCamera = document.getElementById("btnCameraPalm");
+    const presetBtns = document.querySelectorAll(".btn-preset-palm");
+    const canvas = document.getElementById("palmInteractiveCanvas");
+    const scannerBar = document.getElementById("palmScannerBar");
+    const reportCard = document.getElementById("palmReportCard");
+    const layerBtns = document.querySelectorAll(".layer-btn");
+
+    if (!canvas || !reportCard) return;
+
+    let currentMode = "preset"; // "preset" or "custom"
+    let currentPresetKey = "leader";
+    let customImgElement = null;
+    let currentAnalysis = null;
+    let activeHighlight = null;
+
+    let activeLayers = {
+        all: true,
+        life: false,
+        head: false,
+        heart: false,
+        fate: false,
+        sun: false,
+        mounts: false,
+        ages: false
+    };
+
+    function refreshCanvasView() {
+        if (!currentAnalysis) return;
+        if (currentMode === "preset") {
+            window.PhysiognomySystem.palmAnalyzer.drawPresetToCanvas(currentPresetKey, canvas);
+        } else if (customImgElement) {
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(customImgElement, 0, 0, canvas.width, canvas.height);
+        }
+        window.PhysiognomySystem.palmAnalyzer.renderOverlays(canvas, currentAnalysis, activeLayers, activeHighlight);
+    }
+
+    function triggerScanAnimation(callback) {
+        if (scannerBar) {
+            scannerBar.classList.add("scanning");
+            if (window.mysticAudio) window.mysticAudio.playStarGlitter();
+            setTimeout(() => {
+                scannerBar.classList.remove("scanning");
+                if (callback) callback();
+            }, 1200);
+        } else {
+            if (callback) callback();
+        }
+    }
+
+    function runPresetAnalysis(presetKey) {
+        currentMode = "preset";
+        currentPresetKey = presetKey;
+        customImgElement = null;
+
+        presetBtns.forEach(b => {
+            b.classList.toggle("active", b.getAttribute("data-preset") === presetKey);
+        });
+
+        triggerScanAnimation(() => {
+            window.PhysiognomySystem.palmAnalyzer.drawPresetToCanvas(presetKey, canvas);
+            currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, null, presetKey);
+            refreshCanvasView();
+            renderPalmReport(currentAnalysis.report);
+        });
+    }
+
+    function runCustomImageAnalysis(file) {
+        if (!file || !file.type.startsWith("image/")) {
+            alert("請選擇有效的手掌圖片檔案（JPG/PNG/WebP）！");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                currentMode = "custom";
+                customImgElement = img;
+
+                // 適配畫布尺寸（維持高解析度）
+                const maxW = 540;
+                const aspect = img.height / img.width;
+                canvas.width = maxW;
+                canvas.height = Math.round(maxW * aspect);
+
+                presetBtns.forEach(b => b.classList.remove("active"));
+
+                triggerScanAnimation(() => {
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, img, null);
+                    refreshCanvasView();
+                    renderPalmReport(currentAnalysis.report);
+                });
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function renderPalmReport(rep) {
+        reportCard.innerHTML = `
+            <div class="pr-header">
+                <div class="pr-title-group">
+                    <span class="pr-badge-tier">${rep.auspiciousTier}</span>
+                    <h3>${rep.title}</h3>
+                    <div style="font-size: 13px; color: var(--wood-warm); font-weight: 600; margin-top: 4px;">
+                        🖐️ 判定掌型：【${rep.handType}】
+                    </div>
+                </div>
+                <div class="pr-score-box">
+                    <div class="pr-score-num">${rep.score}</div>
+                    <div class="pr-score-sub">相格氣運綜合指數</div>
+                </div>
+            </div>
+
+            <div class="pr-summary">
+                <strong>📜 大師相理總評：</strong>${rep.summary}
+            </div>
+
+            <h4 class="pr-section-title">💼 核心功名線吉凶辨析（事業線與太陽線）</h4>
+            <div class="pr-detail-grid">
+                <div class="pr-line-box pr-lb-career">
+                    <h4 style="color: #d97706;">⚡ ${rep.careerLine.name}</h4>
+                    <p><strong>起訖走向：</strong>${rep.careerLine.startPoint} ➔ ${rep.careerLine.trend}</p>
+                    <p>${rep.careerLine.analysis}</p>
+                    <div class="pr-ages-flow">
+                        ${rep.careerLine.keyAges.map(ka => `
+                            <div class="pr-age-item"><strong>${ka.age}：</strong>${ka.desc}</div>
+                        `).join("")}
+                    </div>
+                </div>
+
+                <div class="pr-line-box pr-lb-sun">
+                    <h4 style="color: #ca8a04;">☀️ ${rep.sunLine.name}</h4>
+                    <p><strong>紋理形態：</strong>${rep.sunLine.feature}</p>
+                    <p>${rep.sunLine.analysis}</p>
+                </div>
+            </div>
+
+            <h4 class="pr-section-title">🌿 先天三才主線深度診斷（生命・智慧・感情）</h4>
+            <div class="pr-detail-grid">
+                <div class="pr-line-box pr-lb-life">
+                    <h4 style="color: #10b981;">🌿 ${rep.lifeLine.name}</h4>
+                    <p><strong>形態辨微：</strong>${rep.lifeLine.feature}</p>
+                    <p>${rep.lifeLine.analysis}</p>
+                    <p style="font-size: 12px; color: #047857; background: rgba(16, 185, 129, 0.08); padding: 6px 10px; border-radius: 6px;">
+                        <strong>🩺 調攝方針：</strong>${rep.lifeLine.healthTip}
+                    </p>
+                </div>
+
+                <div class="pr-line-box pr-lb-head">
+                    <h4 style="color: #2563eb;">🧠 ${rep.headLine.name}</h4>
+                    <p><strong>形態辨微：</strong>${rep.headLine.feature}</p>
+                    <p>${rep.headLine.analysis}</p>
+                </div>
+
+                <div class="pr-line-box pr-lb-heart">
+                    <h4 style="color: #db2777;">❤️ ${rep.heartLine.name}</h4>
+                    <p><strong>形態辨微：</strong>${rep.heartLine.feature}</p>
+                    <p>${rep.heartLine.analysis}</p>
+                </div>
+            </div>
+
+            <div class="pr-line-box" style="margin-bottom: 16px; border-top-color: var(--wood-warm); background: #fdfbf7;">
+                <h4 style="color: var(--wood-warm);">⛰️ 八大掌丘氣場全息盤點</h4>
+                <p>${rep.mountsFocus}</p>
+            </div>
+
+            <div class="pr-line-box" style="border-top-color: var(--tea-green); background: rgba(91, 112, 82, 0.06);">
+                <h4 style="color: var(--tea-green);">⛩️ 大師修身立命戰略箴言</h4>
+                <p>《麻衣相法》云：「有心無相，相逐心生；有相無心，相隨心滅。」掌紋本是大腦神經與生活習性在雙掌之生物微刻。吉相者當居安思危、順勢而為以建不世之功；遇考驗者則當沈澱心性、固本培元。修身正念，運隨心轉！</p>
+            </div>
+
+            <div class="pr-action-toolbar">
+                <button class="btn btn-wood" id="btnPrintPalmReport"><span class="icon">🖨️</span> 列印 / 保存大師診斷書</button>
+            </div>
+        `;
+
+        const printBtn = document.getElementById("btnPrintPalmReport");
+        if (printBtn) {
+            printBtn.addEventListener("click", () => {
+                window.print();
+            });
+        }
+    }
+
+    // 事件監聽綁定
+    if (btnBrowse && fileInput) {
+        btnBrowse.addEventListener("click", (e) => {
+            e.stopPropagation();
+            fileInput.removeAttribute("capture");
+            fileInput.click();
+        });
+    }
+
+    if (btnCamera && fileInput) {
+        btnCamera.addEventListener("click", (e) => {
+            e.stopPropagation();
+            fileInput.setAttribute("capture", "environment");
+            fileInput.click();
+        });
+    }
+
+    if (dropZone && fileInput) {
+        dropZone.addEventListener("click", () => {
+            fileInput.removeAttribute("capture");
+            fileInput.click();
+        });
+
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("drag-over");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("drag-over");
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("drag-over");
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                runCustomImageAnalysis(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                runCustomImageAnalysis(e.target.files[0]);
+            }
+        });
+    }
+
+    presetBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const pKey = btn.getAttribute("data-preset");
+            runPresetAnalysis(pKey);
+        });
+    });
+
+    layerBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const layer = btn.getAttribute("data-layer");
+            if (layer === "all") {
+                const isAllActive = !activeLayers.all;
+                Object.keys(activeLayers).forEach(k => activeLayers[k] = isAllActive);
+                layerBtns.forEach(b => b.classList.toggle("active", isAllActive));
+            } else {
+                activeLayers[layer] = !activeLayers[layer];
+                btn.classList.toggle("active", activeLayers[layer]);
+                activeLayers.all = Object.keys(activeLayers).filter(k => k !== "all").every(k => activeLayers[k]);
+                const allBtn = document.querySelector('.layer-btn[data-layer="all"]');
+                if (allBtn) allBtn.classList.toggle("active", activeLayers.all);
+            }
+            refreshCanvasView();
+            if (window.mysticAudio) window.mysticAudio.playWoodTap();
+        });
+    });
+
+    // 預設載入帝王實業型掌相範本
+    runPresetAnalysis("leader");
 }
 
 function initPalmistryInteractions() {

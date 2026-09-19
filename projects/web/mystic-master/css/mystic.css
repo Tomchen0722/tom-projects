@@ -2182,3 +2182,429 @@ body {
     color: var(--wood-warm);
     font-weight: 600;
 }
+
+/* ==========================================================================
+   真人掌相照片上傳與智能辨識中心（Palm Upload Studio）
+   ========================================================================== */
+.palm-upload-studio {
+    margin-bottom: 36px;
+    padding: 28px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(180, 83, 42, 0.15);
+    box-shadow: 0 10px 30px rgba(90, 60, 40, 0.06);
+}
+
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.studio-title-box {
+    flex: 1 1 540px;
+}
+
+.studio-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(180, 83, 42, 0.1);
+    color: var(--wood-warm);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.studio-title {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    color: var(--wood-warm);
+    margin-bottom: 10px;
+}
+
+.studio-desc {
+    font-size: 14px;
+    color: var(--ink-dark);
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.studio-privacy-note {
+    font-size: 12px;
+    color: var(--tea-green);
+    background: rgba(91, 112, 82, 0.1);
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.studio-quick-presets {
+    flex: 0 0 auto;
+    background: var(--bg-base);
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px dashed rgba(180, 83, 42, 0.3);
+}
+
+.preset-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--wood-warm);
+    margin-bottom: 10px;
+}
+
+.preset-btns-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-preset-palm {
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    color: var(--ink-dark);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.btn-preset-palm:hover, .btn-preset-palm.active {
+    background: var(--wood-warm);
+    color: #ffffff;
+    border-color: var(--wood-warm);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(180, 83, 42, 0.2);
+}
+
+/* 拖曳上傳區塊 */
+.upload-dropzone-area {
+    border: 2px dashed rgba(180, 83, 42, 0.35);
+    background: rgba(251, 249, 244, 0.8);
+    border-radius: 16px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-bottom: 28px;
+}
+
+.upload-dropzone-area:hover, .upload-dropzone-area.drag-over {
+    border-color: var(--wood-warm);
+    background: rgba(245, 236, 227, 0.9);
+    box-shadow: 0 8px 24px rgba(180, 83, 42, 0.12);
+    transform: scale(1.005);
+}
+
+.dropzone-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+}
+
+.dropzone-content h4 {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    color: var(--wood-warm);
+    margin-bottom: 6px;
+}
+
+.dropzone-content p {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 16px;
+}
+
+.dropzone-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 分析工作區：畫布與診斷報告兩欄排版 */
+.palm-analysis-workspace {
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .palm-analysis-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+.canvas-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.canvas-wrapper {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fbf8f3;
+    border: 1px solid rgba(180, 83, 42, 0.2);
+    box-shadow: 0 8px 25px rgba(90, 60, 40, 0.08);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#palmInteractiveCanvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    cursor: crosshair;
+}
+
+/* 掃描線動畫 */
+.palm-scanner-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, #10b981, #d97706, #2563eb, transparent);
+    box-shadow: 0 0 16px rgba(217, 119, 6, 0.8), 0 0 30px rgba(16, 185, 129, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.palm-scanner-bar.scanning {
+    opacity: 1;
+    animation: palmScanAnim 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes palmScanAnim {
+    0% { top: 0%; opacity: 0.9; }
+    50% { top: 100%; opacity: 1; }
+    100% { top: 0%; opacity: 0.9; }
+}
+
+.canvas-watermark {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: rgba(180, 83, 42, 0.35);
+    pointer-events: none;
+    font-family: var(--font-heading);
+}
+
+/* 圖層控制器按鈕列 */
+.layer-controls-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--bg-base);
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+}
+
+.layer-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--wood-warm);
+    margin-right: 4px;
+}
+
+.layer-btn {
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--ink-dark);
+}
+
+.layer-btn:hover {
+    border-color: var(--wood-warm);
+    color: var(--wood-warm);
+}
+
+.layer-btn.active {
+    background: var(--wood-warm);
+    color: #ffffff;
+    border-color: var(--wood-warm);
+    font-weight: bold;
+}
+
+/* 掌相全息診斷報告書卡片 */
+.palm-report-card {
+    padding: 26px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+}
+
+.pr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
+    border-bottom: 2px solid rgba(180, 83, 42, 0.15);
+}
+
+.pr-title-group h3 {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    color: var(--wood-warm);
+    margin-bottom: 6px;
+}
+
+.pr-badge-tier {
+    display: inline-block;
+    padding: 3px 10px;
+    background: rgba(200, 138, 53, 0.15);
+    color: #8c531b;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pr-score-box {
+    text-align: right;
+}
+
+.pr-score-num {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--wood-warm);
+    line-height: 1;
+}
+
+.pr-score-sub {
+    font-size: 11px;
+    color: var(--ink-muted);
+}
+
+.pr-summary {
+    background: rgba(251, 249, 244, 0.85);
+    padding: 14px 16px;
+    border-left: 4px solid var(--wood-warm);
+    border-radius: 0 10px 10px 0;
+    font-size: 13.5px;
+    color: #443831;
+    line-height: 1.65;
+    margin-bottom: 20px;
+}
+
+.pr-section-title {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    color: var(--wood-warm);
+    margin: 18px 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pr-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.pr-line-box {
+    padding: 16px;
+    background: #fbf9f5;
+    border-radius: 12px;
+    border-top: 3px solid #ccc;
+}
+
+.pr-lb-career { border-top-color: #d97706; }
+.pr-lb-life { border-top-color: #10b981; }
+.pr-lb-head { border-top-color: #2563eb; }
+.pr-lb-heart { border-top-color: #db2777; }
+.pr-lb-sun { border-top-color: #ca8a04; }
+
+.pr-line-box h4 {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.pr-line-box p {
+    font-size: 13px;
+    color: #443831;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.pr-ages-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08);
+}
+
+.pr-age-item {
+    font-size: 12px;
+    color: #57534e;
+}
+
+.pr-age-item strong {
+    color: var(--wood-warm);
+}
+
+.pr-action-toolbar {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.section-divider-zen {
+    text-align: center;
+    margin: 40px 0 30px 0;
+    position: relative;
+}
+
+.section-divider-zen::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    background: var(--border-subtle);
+    z-index: 0;
+}
+
+.section-divider-zen span {
+    position: relative;
+    z-index: 1;
+    background: var(--bg-base);
+    padding: 0 20px;
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--wood-warm);
+    letter-spacing: 2px;
+}
