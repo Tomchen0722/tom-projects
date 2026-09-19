@@ -322,9 +322,144 @@ const ZiWeiSystem = {
             bureau,
             mingZhi: diZhi[mingZhiIndex],
             shenZhi: diZhi[shenZhiIndex],
+            birthYear,
+            birthMonth: monthNum,
+            birthDay,
             chart
         };
+    },
+
+    // ----------------------------------------------------
+    // 流年精算演算法（Annual Fortune）
+    // ----------------------------------------------------
+    calculateLiunian(chartResult, targetYear = 2026) {
+        const tianGan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+        const diZhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+        const zodiacs = ["鼠", "牛", "虎", "兔", "龍", "蛇", "馬", "羊", "猴", "雞", "狗", "豬"];
+
+        const targetY = parseInt(targetYear, 10);
+        const yGanIdx = (targetY - 4) % 10;
+        const yZhiIdx = (targetY - 4) % 12;
+        const targetGan = tianGan[yGanIdx >= 0 ? yGanIdx : yGanIdx + 10];
+        const targetZhi = diZhi[yZhiIdx >= 0 ? yZhiIdx : yZhiIdx + 12];
+        const zodiac = zodiacs[yZhiIdx >= 0 ? yZhiIdx : yZhiIdx + 12];
+
+        // 計算年齡
+        const age = chartResult.birthYear ? (targetY - chartResult.birthYear + 1) : 18;
+
+        // 流年命宮地支即為當年地支
+        const liunianMingCell = chartResult.chart.find(c => c.zhiName === targetZhi) || chartResult.chart[0];
+
+        // 流年四化表
+        const fourSihuaGans = {
+            "甲": { lu: "廉貞星", quan: "破軍星", ke: "武曲星", ji: "太陽星", luKey: "lianzhen", quanKey: "pojun", keKey: "wuqu", jiKey: "taiyang" },
+            "乙": { lu: "天機星", quan: "天梁星", ke: "紫微星", ji: "太陰星", luKey: "tianji", quanKey: "tianliang", keKey: "ziwei", jiKey: "taiyin" },
+            "丙": { lu: "天同星", quan: "天機星", ke: "文昌星", ji: "廉貞星", luKey: "tiantong", quanKey: "tianji", keKey: "wenchang", jiKey: "lianzhen" },
+            "丁": { lu: "太陰星", quan: "天同星", ke: "天機星", ji: "巨門星", luKey: "taiyin", quanKey: "tiantong", keKey: "tianji", jiKey: "jumen" },
+            "戊": { lu: "貪狼星", quan: "太陰星", ke: "右弼星", ji: "天機星", luKey: "tanlang", quanKey: "taiyin", keKey: "tianfu", jiKey: "tianji" },
+            "己": { lu: "武曲星", quan: "貪狼星", ke: "天梁星", ji: "文曲星", luKey: "wuqu", quanKey: "tanlang", keKey: "tianliang", jiKey: "wenqu" },
+            "庚": { lu: "太陽星", quan: "武曲星", ke: "太陰星", ji: "天同星", luKey: "taiyang", quanKey: "wuqu", keKey: "taiyin", jiKey: "tiantong" },
+            "辛": { lu: "巨門星", quan: "太陽星", ke: "文曲星", ji: "文昌星", luKey: "jumen", quanKey: "taiyang", keKey: "wenqu", jiKey: "wenchang" },
+            "壬": { lu: "天梁星", quan: "紫微星", ke: "左輔星", ji: "武曲星", luKey: "tianliang", quanKey: "ziwei", keKey: "tianfu", jiKey: "wuqu" },
+            "癸": { lu: "破軍星", quan: "巨門星", ke: "太陰星", ji: "貪狼星", luKey: "pojun", quanKey: "jumen", keKey: "taiyin", jiKey: "tanlang" }
+        };
+
+        const curSihua = fourSihuaGans[targetGan] || fourSihuaGans["丙"];
+
+        // 尋找流年四化落入命盤的哪個宮位
+        const findPalaceOfStar = (starKey) => {
+            const cell = chartResult.chart.find(c => c.stars.includes(starKey));
+            return cell ? cell.palaceName : "本命宮";
+        };
+
+        const luPalace = findPalaceOfStar(curSihua.luKey);
+        const quanPalace = findPalaceOfStar(curSihua.quanKey);
+        const kePalace = findPalaceOfStar(curSihua.keKey);
+        const jiPalace = findPalaceOfStar(curSihua.jiKey);
+
+        // 綜合運勢分數演算（基準 75 + 流年和諧度加權）
+        const yearOffset = (targetY - 2026) % 5;
+        const fortuneScore = Math.min(98, Math.max(68, 80 + (targetY % 7) * 2 - (age % 3) * 3));
+
+        // 深度高中白話四維度指引
+        const guides = {
+            study: `【學業大考運】${targetYear} 年流年【${curSihua.ke}化科】飛星牽動，名聲文運受到催化！大考衝刺專注力進入高效期，容易在模擬考中突破以往卡關的瓶頸題。建議加強整理錯題本，對於公式推導要溯源根本，考場上能發揮超常冷靜。`,
+            social: `【同儕與貴人運】流年【${curSihua.lu}化祿】入【${luPalace}】，同儕人際磁場溫和如春風。在班級與社團裡容易遇到願意主動分享筆記的學霸好友，師長也對你青睞有加。主動請益會有意想不到的收穫。`,
+            health: `【身心與作息防護】流年【${curSihua.ji}化忌】坐於【${jiPalace}】，提醒此年需特別防範「神經性疲倦」與換季感冒。大考高壓下切莫長時間通宵刷題，保證大腦前額葉血供，中午務必小憩 20 分鐘。`,
+            mindset: `【高中生年度心法】今年是『${curSihua.quan}化權』主導的執行力之年！別把精力浪費在虛無的焦慮上，為自己訂下清晰的倒數打卡計畫，『行則將至，做則必成』！`
+        };
+
+        return {
+            targetYear: targetY,
+            targetGan,
+            targetZhi,
+            zodiac,
+            age,
+            fortuneScore,
+            liunianMingPalace: liunianMingCell.palaceName,
+            liunianMingZhi: targetZhi,
+            sihua: {
+                lu: { star: curSihua.lu, palace: luPalace, meaning: "機遇與資源" },
+                quan: { star: curSihua.quan, palace: quanPalace, meaning: "掌控與突破" },
+                ke: { star: curSihua.ke, palace: kePalace, meaning: "名譽與考運" },
+                ji: { star: curSihua.ji, palace: jiPalace, meaning: "考驗與修煉" }
+            },
+            guides
+        };
+    },
+
+    // ----------------------------------------------------
+    // 未來十年運勢動態圖譜（10-Year Decadal Roadmap）
+    // ----------------------------------------------------
+    calculateDecadeFortune(chartResult, startYear = 2026, count = 10) {
+        const decadeData = [];
+        const themeLibrary = [
+            { title: "潛龍蓄勢・地基築牢", keyword: "積澱期", desc: "如同大樹深扎根基。不急於一時的高光，專注於各科基礎知識的查漏補缺。" },
+            { title: "厚積薄發・大考突圍", keyword: "衝刺期", desc: "考場亮劍之年！多年的刷題與沉澱迎來質變，臨場定力十足，迎向金榜題名。" },
+            { title: "大學初啼・視野拓寬", keyword: "探索期", desc: "告別高中題海，踏入高等學府殿堂。專業科目與跨領域涉獵讓你眼界大開。" },
+            { title: "羽翼漸豐・社群開拓", keyword: "成長期", desc: "人脈圈大幅躍升，參與高品質社團、專案競賽與產學研究，發現自己的真正熱愛。" },
+            { title: "專業深耕・技能破局", keyword: "淬鍊期", desc: "主修專業走向深水區，開始累積獨當一面的硬實力，大考考研或專案斬獲殊榮。" },
+            { title: "風雲際會・實習展翼", keyword: "出發期", desc: "走出象牙塔接觸業界真實生態，實戰能力顯著飆升，深得主管與團隊信賴。" },
+            { title: "天道酬勤・獨立成峰", keyword: "立業期", desc: "自我人生座標愈加清晰，無論是升學深造還是初入職場，都展現出強大統率力。" },
+            { title: "登高望遠・蓄勢再升", keyword: "整合期", desc: "資源與人脈進入正向複利循環，學會宏觀佈局，開始主導重要方向。" },
+            { title: "知行合一・收穫豐盈", keyword: "收穫期", desc: "早年所有的堅持與自律在此年結出甜美果實，身心達到成熟充實的平衡。" },
+            { title: "開闢新境・長青基業", keyword: "新生期", desc: "十年一週期圓滿完成，人生踏入下一個更高維度的嶄新里程碑！" }
+        ];
+
+        for (let i = 0; i < count; i++) {
+            const currentYear = startYear + i;
+            const liunian = this.calculateLiunian(chartResult, currentYear);
+            const theme = themeLibrary[i % themeLibrary.length];
+
+            // 針對年齡階段制定高中/大學升學里程碑標籤
+            let stageBadge = "";
+            if (liunian.age <= 18) {
+                stageBadge = "🏫 高中衝刺階段";
+            } else if (liunian.age <= 22) {
+                stageBadge = "🎓 大學本科深造";
+            } else {
+                stageBadge = "🚀 碩班研究 / 初入職場";
+            }
+
+            decadeData.push({
+                year: currentYear,
+                ganZhi: `${liunian.targetGan}${liunian.targetZhi}`,
+                zodiac: liunian.zodiac,
+                age: liunian.age,
+                stageBadge,
+                score: liunian.fortuneScore,
+                theme: theme.title,
+                keyword: theme.keyword,
+                desc: theme.desc,
+                sihuaOverview: `祿在${liunian.sihua.lu.palace} ｜ 權在${liunian.sihua.quan.palace} ｜ 科在${liunian.sihua.ke.palace} ｜ 忌在${liunian.sihua.ji.palace}`,
+                studyAdvice: liunian.guides.study,
+                actionTip: liunian.guides.mindset
+            });
+        }
+
+        return decadeData;
     }
 };
 
 window.ZiWeiSystem = ZiWeiSystem;
+

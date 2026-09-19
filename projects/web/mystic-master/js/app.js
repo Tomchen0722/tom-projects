@@ -1,13 +1,14 @@
-// 天機玄學閣主控制器（App Controller）
+// 天機玄學閣主控制器（App Controller）- 和風簡約暖色系增強版
 document.addEventListener("DOMContentLoaded", () => {
     initNavigation();
     initZiWeiModule();
+    initLiunianModule();
     initPhysiognomyModule();
     initIChingModule();
     initQuizModule();
     initDailyOracle();
     initAudioControls();
-    initStarBackground();
+    initWarmZenBackground();
 });
 
 // 頂部導覽切換
@@ -183,22 +184,17 @@ function runZiWeiCalculation() {
     }
 
     renderZiWeiGrid(result);
+    updateLiunianAndDecadeUI();
 }
 
 // 渲染紫微盤 12 宮格傳統排法
 function renderZiWeiGrid(result) {
     const gridContainer = document.getElementById("ziweiPanGrid");
     const centerInfo = document.getElementById("ziweiCenterCourt");
-    const detailPanel = document.getElementById("palaceDetailContent");
     if (!gridContainer || !centerInfo) return;
 
     gridContainer.innerHTML = "";
 
-    // 十二地支在九宮格外圈的順序（傳統紫微盤排列）
-    // 巳 午 未 申 (上方)
-    // 辰 (左)     酉 (右)
-    // 卯 (左)     戌 (右)
-    // 寅 丑 子 亥 (下方)
     const displayOrder = [
         5, 6, 7, 8,   // 巳 午 未 申
         4,          9,   // 辰     酉
@@ -206,7 +202,6 @@ function renderZiWeiGrid(result) {
         2, 1, 0, 11   // 寅 丑 子 亥
     ];
 
-    // 更新中堂資訊
     centerInfo.innerHTML = `
         <div class="court-seal">天機盤印</div>
         <h3>紫微天府星盤中堂</h3>
@@ -252,7 +247,6 @@ function renderZiWeiGrid(result) {
         gridContainer.appendChild(cell);
     });
 
-    // 預設選中命宮
     const mingCell = result.chart.find(c => c.isMing) || result.chart[0];
     showPalaceDetail(mingCell);
 }
@@ -302,7 +296,188 @@ function showPalaceDetail(cellData) {
 }
 
 // ----------------------------------------------------
-// 2. 相術乾坤殿（手相與面相）
+// NEW! 2. 流年精算與未來十年圖譜模組
+// ----------------------------------------------------
+let selectedLiunianYear = 2026;
+
+function initLiunianModule() {
+    renderLiunianYearButtons();
+    updateLiunianAndDecadeUI();
+}
+
+// 生成 2024~2035 年份快速切換按鈕
+function renderLiunianYearButtons() {
+    const container = document.getElementById("liunianYearButtons");
+    if (!container) return;
+
+    container.innerHTML = "";
+    const years = [2024, 2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035];
+
+    years.forEach(yr => {
+        const btn = document.createElement("button");
+        btn.className = `liunian-year-btn ${yr === selectedLiunianYear ? 'active' : ''}`;
+        btn.textContent = yr === 2026 ? `${yr}年 (今年)` : `${yr}年`;
+        btn.addEventListener("click", () => {
+            selectedLiunianYear = yr;
+            document.querySelectorAll(".liunian-year-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            renderLiunianReport(yr);
+            if (window.mysticAudio) window.mysticAudio.playStarGlitter();
+        });
+        container.appendChild(btn);
+    });
+}
+
+function updateLiunianAndDecadeUI() {
+    if (!window.currentZiWeiChart) return;
+    renderLiunianReport(selectedLiunianYear);
+    renderDecadeTimeline();
+}
+
+// 渲染流年報告
+function renderLiunianReport(year) {
+    if (!window.currentZiWeiChart) return;
+    const report = window.ZiWeiSystem.calculateLiunian(window.currentZiWeiChart, year);
+
+    // 左側概要卡
+    const summaryBox = document.getElementById("liunianSummaryBox");
+    if (summaryBox) {
+        summaryBox.innerHTML = `
+            <div class="ln-badge">歲次・${report.targetGan}${report.targetZhi}（${report.zodiac}年）</div>
+            <h3 class="ln-year-title">${report.targetYear} 流年運勢</h3>
+            <div class="ln-meta">實歲約 ${report.age} 歲 ｜ 流年命宮在【${report.liunianMingZhi}宮】（${report.liunianMingPalace}）</div>
+            
+            <div class="ln-score-circle">
+                <span class="ln-score-num">${report.fortuneScore}</span>
+                <span class="ln-score-label">流年運勢指數</span>
+            </div>
+
+            <div class="ln-sihua-list">
+                <div style="font-weight: bold; margin-bottom: 6px; color: var(--wood-warm);">🌟 本年流年四化飛星：</div>
+                <div class="ln-sihua-item">
+                    <span>🌱 ${report.sihua.lu.star} 化祿</span>
+                    <span style="color: var(--tea-green);">飛入【${report.sihua.lu.palace}】</span>
+                </div>
+                <div class="ln-sihua-item">
+                    <span>🔥 ${report.sihua.quan.star} 化權</span>
+                    <span style="color: #b91c1c;">飛入【${report.sihua.quan.palace}】</span>
+                </div>
+                <div class="ln-sihua-item">
+                    <span>📖 ${report.sihua.ke.star} 化科</span>
+                    <span style="color: #2563eb;">飛入【${report.sihua.ke.palace}】</span>
+                </div>
+                <div class="ln-sihua-item">
+                    <span>❄️ ${report.sihua.ji.star} 化忌</span>
+                    <span style="color: #7c3aed;">飛入【${report.sihua.ji.palace}】</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // 右側四維度指引卡
+    const guidesGrid = document.getElementById("liunianGuidesGrid");
+    if (guidesGrid) {
+        guidesGrid.innerHTML = `
+            <div class="ln-guide-card ln-gc-study glass-panel">
+                <h4 class="ln-guide-title">📚 大考與學業考運</h4>
+                <p>${report.guides.study}</p>
+            </div>
+            <div class="ln-guide-card ln-gc-social glass-panel">
+                <h4 class="ln-guide-title">🤝 同儕社團與貴人</h4>
+                <p>${report.guides.social}</p>
+            </div>
+            <div class="ln-guide-card ln-gc-health glass-panel">
+                <h4 class="ln-guide-title">🩺 身心機能與作息</h4>
+                <p>${report.guides.health}</p>
+            </div>
+            <div class="ln-guide-card ln-gc-mind glass-panel">
+                <h4 class="ln-guide-title">🎯 高中生年度心法</h4>
+                <p>${report.guides.mindset}</p>
+            </div>
+        `;
+    }
+}
+
+// 渲染未來十年運勢時間軸（10-Year Decadal Roadmap）
+function renderDecadeTimeline() {
+    const container = document.getElementById("decadeTimelineContainer");
+    const detailBox = document.getElementById("decadeActiveDetailBox");
+    if (!container || !window.currentZiWeiChart) return;
+
+    const decadeData = window.ZiWeiSystem.calculateDecadeFortune(window.currentZiWeiChart, 2026, 10);
+    container.innerHTML = "";
+
+    decadeData.forEach((item, idx) => {
+        const card = document.createElement("div");
+        card.className = `decade-card ${idx === 0 ? 'active' : ''}`;
+        card.setAttribute("data-year", item.year);
+
+        card.innerHTML = `
+            <div class="dc-head">
+                <span class="dc-year">${item.year}</span>
+                <span class="dc-age">${item.age}歲</span>
+            </div>
+            <div class="dc-stage">${item.stageBadge}</div>
+            <div class="dc-theme">${item.theme}</div>
+            <div class="dc-desc">${item.desc}</div>
+            <div class="dc-score-bar-box">
+                <div class="dc-score-label">
+                    <span>運勢能量</span>
+                    <strong>${item.score}分</strong>
+                </div>
+                <div class="dc-score-bar">
+                    <div class="dc-score-fill" style="width: ${item.score}%"></div>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener("click", () => {
+            document.querySelectorAll(".decade-card").forEach(c => c.classList.remove("active"));
+            card.classList.add("active");
+            showDecadeYearDetail(item);
+            if (window.mysticAudio) window.mysticAudio.playStarGlitter();
+        });
+
+        container.appendChild(card);
+    });
+
+    // 預設展示第 1 年詳解
+    showDecadeYearDetail(decadeData[0]);
+}
+
+function showDecadeYearDetail(item) {
+    const detailBox = document.getElementById("decadeActiveDetailBox");
+    if (!detailBox) return;
+
+    detailBox.innerHTML = `
+        <div class="dad-header">
+            <div>
+                <h3 class="dad-title">${item.year} 年（${item.ganZhi}年・${item.zodiac}）｜ 歲數：約 ${item.age} 歲</h3>
+                <span style="color: var(--wood-warm); font-weight: bold; font-size: 14px;">${item.stageBadge} ｜ 核心主題：【${item.theme}】</span>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 13px; color: var(--ink-muted);">年度運勢指數</span>
+                <div style="font-size: 28px; font-weight: 800; color: var(--wood-warm);">${item.score} 分</div>
+            </div>
+        </div>
+        <div class="dad-sihua">
+            <strong>🌌 流年四化配置：</strong>${item.sihuaOverview}
+        </div>
+        <div class="dad-content-row">
+            <div class="dad-block">
+                <h4>🎓 升學與學術里程碑預測</h4>
+                <p>${item.studyAdvice}</p>
+            </div>
+            <div class="dad-block">
+                <h4>💡 人生決策與避坑指南</h4>
+                <p>${item.actionTip}</p>
+            </div>
+        </div>
+    `;
+}
+
+// ----------------------------------------------------
+// 3. 相術乾坤殿（手相與面相）
 // ----------------------------------------------------
 function initPhysiognomyModule() {
     initPalmistryInteractions();
@@ -314,7 +489,6 @@ function initPalmistryInteractions() {
     const mountsList = window.PhysiognomySystem.palmistry.mounts;
     const handTypesList = window.PhysiognomySystem.palmistry.handTypes;
 
-    // 手相三大主線切換按鈕
     const lineBtnContainer = document.getElementById("palmLinesButtons");
     const infoBox = document.getElementById("palmActiveDetail");
     if (lineBtnContainer) {
@@ -333,11 +507,9 @@ function initPalmistryInteractions() {
             lineBtnContainer.appendChild(btn);
         });
 
-        // 預設顯示生命線
         showPalmLineDetail(linesList[0]);
     }
 
-    // 點擊 SVG 線路
     const svgLines = document.querySelectorAll(".palm-svg-line");
     svgLines.forEach(lineElem => {
         lineElem.addEventListener("click", () => {
@@ -354,7 +526,6 @@ function initPalmistryInteractions() {
         });
     });
 
-    // 掌丘卡片渲染
     const mountsGrid = document.getElementById("mountsGrid");
     if (mountsGrid) {
         mountsGrid.innerHTML = "";
@@ -374,7 +545,6 @@ function initPalmistryInteractions() {
         });
     }
 
-    // 五行掌型渲染
     const handTypesGrid = document.getElementById("handTypesGrid");
     if (handTypesGrid) {
         handTypesGrid.innerHTML = "";
@@ -426,7 +596,6 @@ function initFaceInteractions() {
     const officials = window.PhysiognomySystem.physiognomy.fiveOfficials;
     const mindset = window.PhysiognomySystem.physiognomy.mindsetPrinciples[0];
 
-    // 三停按鈕與卡片
     const threeZonesContainer = document.getElementById("threeZonesGrid");
     if (threeZonesContainer) {
         threeZonesContainer.innerHTML = "";
@@ -446,7 +615,6 @@ function initFaceInteractions() {
         });
     }
 
-    // 五官卡片
     const officialsContainer = document.getElementById("fiveOfficialsGrid");
     if (officialsContainer) {
         officialsContainer.innerHTML = "";
@@ -466,7 +634,6 @@ function initFaceInteractions() {
         });
     }
 
-    // 相由心生科學對照
     const mindsetBox = document.getElementById("mindsetScienceBox");
     if (mindsetBox && mindset) {
         mindsetBox.innerHTML = `
@@ -480,7 +647,7 @@ function initFaceInteractions() {
 }
 
 // ----------------------------------------------------
-// 3. 易道變易殿（易經八卦）
+// 4. 易道變易殿（易經八卦）
 // ----------------------------------------------------
 let coinTossCount = 0;
 let coinTossResults = [];
@@ -505,7 +672,6 @@ function initIChingModule() {
     }
 }
 
-// 渲染八卦圓盤與屬性
 function renderBaguaWheel() {
     const container = document.getElementById("baguaTrigramsList");
     if (!container) return;
@@ -525,26 +691,19 @@ function renderBaguaWheel() {
     });
 }
 
-// 執行文王金錢課拋擲
 function performCoinToss() {
-    if (coinTossCount >= 6) {
-        return;
-    }
+    if (coinTossCount >= 6) return;
 
     const tossBtn = document.getElementById("tossCoinsBtn");
     tossBtn.disabled = true;
 
-    // 音效
     if (window.mysticAudio) {
         window.mysticAudio.playCoinDrop();
     }
 
-    // 動畫翻轉銅錢
     const coins = [document.getElementById("coin1"), document.getElementById("coin2"), document.getElementById("coin3")];
     coins.forEach(c => {
-        if (c) {
-            c.classList.add("spinning");
-        }
+        if (c) c.classList.add("spinning");
     });
 
     setTimeout(() => {
@@ -556,7 +715,6 @@ function performCoinToss() {
         coinTossResults.push(tossResult);
         coinTossCount++;
 
-        // 更新銅錢外觀（面=3, 背=2）
         coins.forEach((c, idx) => {
             if (c) {
                 const isYang = tossResult.coins[idx] === 3;
@@ -569,7 +727,6 @@ function performCoinToss() {
         updateYaoHistoryUI();
 
         if (coinTossCount >= 6) {
-            // 完成六爻，解析卦象！
             finishHexagramDivination();
             tossBtn.disabled = true;
             tossBtn.textContent = "六爻已成・點擊下方重置";
@@ -587,7 +744,6 @@ function updateYaoHistoryUI() {
     list.innerHTML = "";
     const yaoPositions = ["初爻", "二爻", "三爻", "四爻", "五爻", "上爻"];
 
-    // 由上爻至初爻倒序顯示（卦象視覺自下而上構建）
     for (let i = 5; i >= 0; i--) {
         const item = document.createElement("div");
         item.className = "yao-history-row";
@@ -684,7 +840,6 @@ function resetCoinToss() {
     }
 }
 
-// 64 卦速查選單
 function initHexagramLookup() {
     const upperSelect = document.getElementById("lookupUpperTri");
     const lowerSelect = document.getElementById("lookupLowerTri");
@@ -698,7 +853,7 @@ function initHexagramLookup() {
     function updateLookup() {
         const uCode = upperSelect.value;
         const lCode = lowerSelect.value;
-        const fullCode = lCode + uCode; // 下卦在下，上卦在上
+        const fullCode = lCode + uCode;
 
         const hex = window.IChingSystem.hexagrams[fullCode] || window.IChingSystem.getFallbackHexagram(fullCode);
         resultBox.innerHTML = `
@@ -723,7 +878,7 @@ function initHexagramLookup() {
 }
 
 // ----------------------------------------------------
-// 4. 玄學大考驗（問答闖關）與每日靈光籤
+// 5. 玄學大考驗與每日靈籤
 // ----------------------------------------------------
 let currentQuizIndex = 0;
 let userScore = 0;
@@ -747,7 +902,6 @@ function renderQuizQuestion(idx) {
 
     const questions = window.QuizSystem.questions;
     if (idx >= questions.length) {
-        // 完成測驗，顯示總成績評定
         let rankTitle = "玄學小秀才";
         let rankBadge = "🥉";
         if (userScore >= 90) {
@@ -871,9 +1025,9 @@ function initDailyOracle() {
 }
 
 // ----------------------------------------------------
-// 5. 畫布星宿背景動效 (Canvas Constellation Background)
+// 6. 和風暖陽金塵浮動背景（Warm Zen Particles）
 // ----------------------------------------------------
-function initStarBackground() {
+function initWarmZenBackground() {
     const canvas = document.getElementById("starfieldCanvas");
     if (!canvas) return;
 
@@ -886,52 +1040,39 @@ function initStarBackground() {
         height = canvas.height = window.innerHeight;
     });
 
-    const stars = [];
-    const count = 75;
+    const particles = [];
+    const count = 50;
     for (let i = 0; i < count; i++) {
-        stars.push({
+        particles.push({
             x: Math.random() * width,
             y: Math.random() * height,
-            radius: Math.random() * 1.6 + 0.4,
-            alpha: Math.random() * 0.8 + 0.2,
-            speed: Math.random() * 0.25 + 0.05,
-            direction: Math.random() * Math.PI * 2
+            radius: Math.random() * 2.2 + 0.8,
+            alpha: Math.random() * 0.45 + 0.15,
+            speedY: Math.random() * 0.35 + 0.1,
+            driftX: Math.random() * 0.2 - 0.1,
+            colorType: Math.random() < 0.6 ? "amber" : "wood"
         });
     }
 
     function animate() {
         ctx.clearRect(0, 0, width, height);
 
-        // 繪製微弱星連線
-        ctx.strokeStyle = "rgba(139, 92, 246, 0.08)";
-        ctx.lineWidth = 0.6;
-        for (let i = 0; i < stars.length; i++) {
-            for (let j = i + 1; j < stars.length; j++) {
-                const dx = stars[i].x - stars[j].x;
-                const dy = stars[i].y - stars[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 100) {
-                    ctx.beginPath();
-                    ctx.moveTo(stars[i].x, stars[i].y);
-                    ctx.lineTo(stars[j].x, stars[j].y);
-                    ctx.stroke();
-                }
+        particles.forEach(p => {
+            p.y -= p.speedY;
+            p.x += Math.sin(p.y * 0.01) * 0.3 + p.driftX;
+
+            if (p.y < 0) {
+                p.y = height + 10;
+                p.x = Math.random() * width;
             }
-        }
-
-        // 繪製星星
-        stars.forEach(s => {
-            s.x += Math.cos(s.direction) * s.speed;
-            s.y += Math.sin(s.direction) * s.speed;
-
-            if (s.x < 0) s.x = width;
-            if (s.x > width) s.x = 0;
-            if (s.y < 0) s.y = height;
-            if (s.y > height) s.y = 0;
+            if (p.x < 0) p.x = width;
+            if (p.x > width) p.x = 0;
 
             ctx.beginPath();
-            ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(245, 158, 11, ${s.alpha})`;
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.colorType === "amber" 
+                ? `rgba(200, 138, 53, ${p.alpha})`
+                : `rgba(180, 83, 42, ${p.alpha})`;
             ctx.fill();
         });
 
