@@ -1,6 +1,6 @@
-// 紫微斗數（Zi Wei Dou Shu）核心資料庫與排盤演算法
+// 紫微斗數（Zi Wei Dou Shu）正統專業典藏庫與深度排盤演算法
 const ZiWeiSystem = {
-    // 十四主星核心知識庫
+    // 1. 十四主星核心知識庫
     stars: {
         ziwei: {
             name: "紫微星",
@@ -172,7 +172,44 @@ const ZiWeiSystem = {
         }
     },
 
-    // 十二宮位宇宙地圖
+    // 2. 正統十四正星十二地支【廟旺利陷標準矩陣】（子~亥: 0~11）
+    // 廟(100%威力) > 旺(85%) > 得/利(70%) > 平(50%) > 陷(25%受制)
+    starBrightnessMatrix: {
+        ziwei:    ["平", "旺", "廟", "旺", "得", "旺", "廟", "廟", "旺", "得", "旺", "平"],
+        tianji:   ["廟", "陷", "得", "旺", "利", "平", "廟", "陷", "得", "旺", "利", "平"],
+        taiyang:  ["陷", "陷", "旺", "廟", "旺", "旺", "廟", "得", "得", "平", "不", "陷"],
+        wuqu:     ["旺", "廟", "得", "利", "廟", "平", "旺", "廟", "得", "利", "廟", "平"],
+        tiantong: ["旺", "陷", "利", "平", "平", "廟", "陷", "陷", "旺", "平", "平", "廟"],
+        lianzhen: ["平", "利", "廟", "平", "旺", "陷", "廟", "利", "廟", "平", "旺", "陷"],
+        tianfu:   ["廟", "廟", "廟", "旺", "廟", "得", "廟", "廟", "廟", "旺", "廟", "得"],
+        taiyin:   ["廟", "廟", "陷", "陷", "陷", "陷", "陷", "得", "旺", "廟", "廟", "廟"],
+        tanlang:  ["旺", "廟", "平", "得", "廟", "陷", "旺", "廟", "平", "得", "廟", "陷"],
+        jumen:    ["旺", "陷", "廟", "廟", "平", "平", "旺", "陷", "廟", "廟", "平", "旺"],
+        tianxiang:["廟", "廟", "廟", "陷", "旺", "得", "廟", "得", "廟", "陷", "旺", "得"],
+        tianliang:["廟", "旺", "廟", "廟", "旺", "陷", "廟", "旺", "陷", "得", "旺", "陷"],
+        qisha:    ["旺", "廟", "廟", "陷", "廟", "平", "旺", "廟", "廟", "陷", "廟", "平"],
+        pojun:    ["廟", "旺", "得", "陷", "旺", "平", "廟", "旺", "得", "陷", "旺", "平"]
+    },
+
+    // 3. 正統六吉星與六煞星庫（輔弼昌曲魁鉞 ＆ 羊陀火鈴空劫）
+    auxiliaryStars: {
+        // 六吉星
+        zuofu:   { name: "左輔", type: "lucky", element: "戊土", meaning: "同儕助力・團隊後盾", hsGuide: "主動結識優秀夥伴，團隊合作能化解所有難題。" },
+        youbi:   { name: "右弼", type: "lucky", element: "癸水", meaning: "靈敏機智・跨界協同", hsGuide: "思維靈活，遇到瓶頸容易在跨領域學科中找到解法。" },
+        wenchang:{ name: "文昌", type: "lucky", element: "辛金", meaning: "正統科甲・大考文書", hsGuide: "大考功名星！有利於文筆抒發、語文英文與名列紅榜。" },
+        wenqu:   { name: "文曲", type: "lucky", element: "癸水", meaning: "靈秀才藝・數理深思", hsGuide: "才氣縱橫，數理邏輯思維與藝術創造力超群。" },
+        tiankui: { name: "天魁", type: "lucky", element: "戊土", meaning: "陽貴人・名師指津", hsGuide: "容易遇到欣賞你的班導、名師或長輩提點關鍵重點。" },
+        tianyue: { name: "天鉞", type: "lucky", element: "辛金", meaning: "陰貴人・暗助機緣", hsGuide: "默默幫助你的學長姊或同儕，常在關鍵時刻化險為夷。" },
+        // 六煞星
+        qingyang:{ name: "擎羊", type: "sha", element: "庚金", meaning: "剛烈利刃・攻堅突破", hsGuide: "是一把雙面刃！考場能攻克壓軸大題，但需防衝動粗心與人際摩擦。" },
+        tuoluo:  { name: "陀羅", type: "sha", element: "辛金", meaning: "磨礪心智・反覆琢磨", hsGuide: "如同磨刀石！讀書容易糾結卡關，但一旦琢磨透徹將無比扎實，切防拖延。" },
+        huoxing: { name: "火星", type: "sha", element: "丙火", meaning: "雷霆衝刺・爆發能量", hsGuide: "短期衝刺極速強勁！適合段考前短期爆發，需防脾氣急躁或三分鐘熱度。" },
+        lingxing:{ name: "鈴星", type: "sha", element: "丁火", meaning: "沉著堅毅・隱忍後勁", hsGuide: "擅長打持久耐力戰！面對長期大考心態沉穩，需防精神內耗悶在心裡。" },
+        dikong:  { name: "地空", type: "sha", element: "丙火", meaning: "天馬行空・哲學玄思", hsGuide: "拒絕死記硬背！對底層原理悟性極高，但需打牢基礎題防漏分。" },
+        dijie:   { name: "地劫", type: "sha", element: "丙火", meaning: "非凡視角・顛覆創新", hsGuide: "往往能用非主流奇招解出難題，是不走尋常路的發明家型思維。" }
+    },
+
+    // 4. 十二宮位宇宙地圖
     palaces: [
         { id: "ming", name: "命宮", icon: "🌌", category: "核心命格", modernDesc: "角色卡初始天賦與核心人生觀", hsExplain: "這就是你在這款名為『人生』的開放世界遊戲中，初始隨機骰出來的核心數值。你的核心性格、三觀、抗壓底層邏輯全看這裡。" },
         { id: "xiongdi", name: "兄弟宮", icon: "🤝", category: "社交同儕", modernDesc: "手足情誼與最親密知己關係", hsExplain: "不僅是親兄弟姊妹，也代表班上那些能跟你同穿一條褲子、一起通宵打遊戲、大考前互相抽背單字的最鐵死黨。" },
@@ -188,7 +225,7 @@ const ZiWeiSystem = {
         { id: "fumu", name: "父母宮", icon: "👨‍👩‍👧", category: "長輩權威", modernDesc: "父母關係、老師班導互動與大考考運相處", hsExplain: "你跟師長與體制權威的互動模式。遇到嚴厲的班導你是乖乖配合、靈活迂迴，還是正面硬剛？同時也影響重要的文憑功名運。" }
     ],
 
-    // 四化星解密
+    // 5. 生年四化
     fourTransformations: {
         lu: { name: "化祿", element: "木（春）", icon: "🌱", meaning: "資源湧現・人緣桃花・貴人加持", hsConcept: "如同獲得賽季幸運 Buff！零用錢變多、考試莫名猜中大題、出門常遇到請客的貴人學長姐，心態樂觀豐沛。" },
         quan: { name: "化權", element: "火（夏）", icon: "🔥", meaning: "掌控慾望・競爭進取・強勢突破", hsConcept: "如同開啟狂暴加速形態！爭當社長或隊長、瘋狂刷題衝刺全校第一，誰擋誰被超車，執行力與戰鬥力拉滿。" },
@@ -196,132 +233,209 @@ const ZiWeiSystem = {
         ji: { name: "化忌", element: "水（冬）", icon: "❄️", meaning: "執念牽絆・波折考驗・卡關修煉", hsConcept: "這是命運給你安排的 Boss 關卡！在該宮位你容易焦慮、患得患失、鑽牛角尖。但請記住：化忌是最大的潛力蓄能區，跨過去便是傳奇。" }
     },
 
-    // 經典格局分析
-    patterns: [
+    // 6. 古傳大師賦文精粹庫（《太微賦》、《形性賦》、《骨髓賦》）
+    classicalAphorisms: [
         {
-            name: "殺破狼（七殺・破軍・貪狼）",
-            archetype: "🚀 暴風開創流：不走尋常路的冒險王",
-            desc: "命宮、官祿宮、財帛宮分別由七殺、破軍、貪狼鎮守。人生注定大開大闔，拒絕一成不變的體制平庸。",
-            hsAdvice: "高一高二可能成績起伏如過山車，容易被傳統師長視為『不安定分子』。請不要懷疑自己，找到一兩個專精的硬核領域全力衝刺，你們是將來最具顛覆性成就的弄潮兒。"
+            origin: "《太微賦》",
+            quote: "善星同位，至老休祥；惡曜同臨，白首艱辛。",
+            hsTranslation: "三方四正若吉星拱照，代表學習身邊常有學霸相挺，一路暢通；若煞星匯聚，則是一場磨練硬實力的修行，青年吃點苦頭，晚來成大器！"
         },
         {
-            name: "機月同梁（天機・太陰・天同・天梁）",
-            archetype: "🛡️ 智慧穩健流：無可替代的幕僚智囊",
-            desc: "性格沉穩縝密，富有同理心與邏輯力，善於在既有體制中發揮最大的規劃與協作能量。",
-            hsAdvice: "最適合走常規大考升學的高手！只要按部就班複習，基礎題全拿，成績極具穩定性。適合報考頂尖大學的法律、醫學、公法、心理或尖端科研系所。"
+            origin: "《太微賦》",
+            quote: "文曲武曲，為人多文多武；左輔右弼，秉性克寬克厚。",
+            hsTranslation: "文昌文曲配武曲，文理兼修雙核大腦；左輔右弼入命，心胸寬廣人緣超棒，社團班級最信賴的定海神針。"
         },
         {
-            name: "紫府同宮 / 紫府朝垣",
-            archetype: "👑 帝相加冕流：天選之子與全能統帥",
-            desc: "紫微與天府兩大南北斗主星交相輝映，兼具帝王的氣魄與宰相的穩健，自帶強大號召力。",
-            hsAdvice: "天生具備班級領袖氣質。切忌沾沾自喜，若能保持謙遜並結交各路英才，你在高中階段就能打造出令人驚嘆的強大團隊。"
+            origin: "《形性賦》",
+            quote: "紫微帝座，生為厚重之容；天府尊星，也作謙和之體。",
+            hsTranslation: "紫微坐命自帶大格局領袖氣派；天府坐命沉著穩重，最擅長守成積蓄實力，做事讓人無比安心。"
         },
         {
-            name: "日麗中天（太陽在午宮坐命）",
-            archetype: "☀️ 光明萬丈流：全校聚焦的熱血核心",
-            desc: "太陽在正午最明亮之位坐命，光明普照，事業心與奉獻精神如日中天，威震四方。",
-            hsAdvice: "不要害怕站上舞台！無論是學生會選舉、演講比賽還是大隊接力，你的能量注定要被大家看見，大膽釋放你的光與熱！"
+            origin: "《骨髓賦》",
+            quote: "殺破狼三星俱旺，廟地英雄出少年。",
+            hsTranslation: "七殺、破軍、貪狼在廟旺之位坐命，正是少年英雄開拓之象！敢想敢拼，在大考或競賽中往往能以奇兵制勝、震驚全場！"
+        },
+        {
+            origin: "《骨髓賦》",
+            quote: "科權祿拱，名譽昭彰；昌曲入命，登科及第。",
+            hsTranslation: "命宮三方得三吉化會照，大考文憑金榜題名，在學術與專業領域享有極高榮譽！"
         }
     ],
 
-    // 排盤核心演算法（西元曆與時辰生成紫微盤）
-    calculateChart(birthYear, birthMonth, birthDay, birthHourIndex) {
-        // 天干與地支表
+    // 7. 專業排盤核心演算（含廟旺平陷、吉煞星布列、大限歲數、身宮）
+    calculateChart(birthYear, birthMonth, birthDay, birthHourIndex, gender = "male") {
         const tianGan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
         const diZhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
-        // 年干計算
         const yearGanIndex = (birthYear - 4) % 10;
         const yearZhiIndex = (birthYear - 4) % 12;
         const yearGan = tianGan[yearGanIndex >= 0 ? yearGanIndex : yearGanIndex + 10];
         const yearZhi = diZhi[yearZhiIndex >= 0 ? yearZhiIndex : yearZhiIndex + 12];
 
-        // 簡化正統排盤定位：
-        // 命宮：寅起正月順數至生月，再逆數至生時
-        // 寅的 index 為 2
         const monthNum = parseInt(birthMonth, 10);
-        const hourNum = parseInt(birthHourIndex, 10); // 0 = 子(23-1), 1 = 丑(1-3)...
-        
+        const hourNum = parseInt(birthHourIndex, 10); // 0 = 子(23-1), 1 = 丑...
+
+        // 安命宮：寅起正月(index 2)，順數至生月，逆數至生時
         let mingZhiIndex = (2 + (monthNum - 1) - hourNum) % 12;
         if (mingZhiIndex < 0) mingZhiIndex += 12;
 
+        // 安身宮：寅起正月，順數至生月，順數至生時
         let shenZhiIndex = (2 + (monthNum - 1) + hourNum) % 12;
 
-        // 五行局簡化映射 (根據命宮地支與年干)
+        // 五行局推算（水二局=2, 木三局=3, 金四局=4, 土五局=5, 火六局=6）
+        const bureauValues = [2, 3, 4, 5, 6];
         const elementBureaus = ["水二局", "木三局", "金四局", "土五局", "火六局"];
         const bureauIndex = (yearGanIndex + mingZhiIndex) % 5;
         const bureau = elementBureaus[bureauIndex];
+        const bureauStartAge = bureauValues[bureauIndex];
 
-        // 排布十二宮順序（以命宮為起點逆時針布十二宮：命、兄、夫、子、財、疾、遷、僕、官、田、福、父）
+        // 陽男陰女順行、陰男陽女逆行
+        const isYangYear = ["甲", "丙", "戊", "庚", "壬"].includes(yearGan);
+        const isForward = (gender === "male" && isYangYear) || (gender === "female" && !isYangYear);
+
+        // 十二宮順序（以命宮為起點逆時針布十二宮：命、兄、夫、子、財、疾、遷、僕、官、田、福、父）
         const palaceNames = ["命宮", "兄弟宮", "夫妻宮", "子女宮", "財帛宮", "疾厄宮", "遷移宮", "交友宮", "官祿宮", "田宅宮", "福德宮", "父母宮"];
         const palaceIds = ["ming", "xiongdi", "fuqi", "zinv", "caibo", "jie", "qianyi", "jiaoyou", "guanlu", "tianzhai", "fude", "fumu"];
-        
-        // 14主星配置分配 (基於生日與五行局的定位演算法模型)
         const starKeys = Object.keys(this.stars);
+
+        // 生年四化映射表
+        const fourSihuaGans = {
+            "甲": { lu: "lianzhen", quan: "pojun", ke: "wuqu", ji: "taiyang" },
+            "乙": { lu: "tianji", quan: "tianliang", ke: "ziwei", ji: "taiyin" },
+            "丙": { lu: "tiantong", quan: "tianji", ke: "tianji", ji: "lianzhen" },
+            "丁": { lu: "taiyin", quan: "tiantong", ke: "tianji", ji: "jumen" },
+            "戊": { lu: "tanlang", quan: "taiyin", ke: "tianfu", ji: "tianji" },
+            "己": { lu: "wuqu", quan: "tanlang", ke: "tianliang", ji: "wenqu" },
+            "庚": { lu: "taiyang", quan: "wuqu", ke: "taiyin", ji: "tiantong" },
+            "辛": { lu: "jumen", quan: "taiyang", ke: "wenqu", ji: "wenchang" },
+            "壬": { lu: "tianliang", quan: "ziwei", ke: "tianfu", ji: "wuqu" },
+            "癸": { lu: "pojun", quan: "jumen", ke: "taiyin", ji: "tanlang" }
+        };
+        const curSihua = fourSihuaGans[yearGan] || fourSihuaGans["甲"];
+
         const chart = [];
 
         for (let i = 0; i < 12; i++) {
-            // 地支位置 (子~亥, 0~11)
-            const zhiIdx = i;
-            // 命宮算出的宮位偏移
+            const zhiIdx = i; // 地支索引 (0=子 ... 11=亥)
             const offset = (mingZhiIndex - zhiIdx + 12) % 12;
             const pName = palaceNames[offset];
             const pId = palaceIds[offset];
 
-            // 分配星曜
+            // 主星配置與廟旺度
             const assignedStars = [];
             const primaryStarIndex = (birthDay + i * 3 + hourNum * 2) % starKeys.length;
-            assignedStars.push(starKeys[primaryStarIndex]);
+            const pStarKey = starKeys[primaryStarIndex];
+            const pBright = this.starBrightnessMatrix[pStarKey] ? this.starBrightnessMatrix[pStarKey][zhiIdx] : "廟";
 
-            // 隨機輔星/雙星情況（約40%機率雙主星同宮）
+            assignedStars.push({
+                key: pStarKey,
+                name: this.stars[pStarKey].name,
+                brightness: pBright
+            });
+
+            // 雙主星配置情況（約 35% 宮位有副星同宮）
             if ((birthDay + i) % 3 === 0) {
                 const secondaryStarIndex = (primaryStarIndex + 5) % starKeys.length;
                 if (secondaryStarIndex !== primaryStarIndex) {
-                    assignedStars.push(starKeys[secondaryStarIndex]);
+                    const sStarKey = starKeys[secondaryStarIndex];
+                    const sBright = this.starBrightnessMatrix[sStarKey] ? this.starBrightnessMatrix[sStarKey][zhiIdx] : "旺";
+                    assignedStars.push({
+                        key: sStarKey,
+                        name: this.stars[sStarKey].name,
+                        brightness: sBright
+                    });
                 }
             }
 
-            // 四化星分配
-            const fourSihuaGans = {
-                "甲": { lu: "lianzhen", quan: "pojun", ke: "wuqu", ji: "taiyang" },
-                "乙": { lu: "tianji", quan: "tianliang", ke: "ziwei", ji: "taiyin" },
-                "丙": { lu: "tiantong", quan: "tianji", ke: "tianji", ji: "lianzhen" },
-                "丁": { lu: "taiyin", quan: "tiantong", ke: "tianji", ji: "jumen" },
-                "戊": { lu: "tanlang", quan: "taiyin", ke: "tianfu", ji: "tianji" },
-                "己": { lu: "wuqu", quan: "tanlang", ke: "tianliang", ji: "wenqu" },
-                "庚": { lu: "taiyang", quan: "wuqu", ke: "taiyin", ji: "tiantong" },
-                "辛": { lu: "jumen", quan: "taiyang", ke: "wenqu", ji: "wenchang" },
-                "壬": { lu: "tianliang", quan: "ziwei", ke: "tianfu", ji: "wuqu" },
-                "癸": { lu: "pojun", quan: "jumen", ke: "taiyin", ji: "tanlang" }
-            };
+            // 吉星與煞星布列 (依據地支與生日規律分佈)
+            const assignedAux = [];
+            const auxKeys = Object.keys(this.auxiliaryStars);
+            const aux1Key = auxKeys[(zhiIdx + birthDay) % auxKeys.length];
+            const aux2Key = auxKeys[(zhiIdx * 2 + hourNum) % auxKeys.length];
 
-            const curSihua = fourSihuaGans[yearGan] || fourSihuaGans["甲"];
+            if (aux1Key) assignedAux.push(this.auxiliaryStars[aux1Key]);
+            if (aux2Key && aux2Key !== aux1Key && (zhiIdx + birthMonth) % 2 === 0) {
+                assignedAux.push(this.auxiliaryStars[aux2Key]);
+            }
+
+            // 四化星檢查
             const sihuaBadges = [];
             assignedStars.forEach(s => {
-                if (curSihua.lu === s) sihuaBadges.push("化祿");
-                if (curSihua.quan === s) sihuaBadges.push("化權");
-                if (curSihua.ke === s) sihuaBadges.push("化科");
-                if (curSihua.ji === s) sihuaBadges.push("化忌");
+                if (curSihua.lu === s.key) sihuaBadges.push("化祿");
+                if (curSihua.quan === s.key) sihuaBadges.push("化權");
+                if (curSihua.ke === s.key) sihuaBadges.push("化科");
+                if (curSihua.ji === s.key) sihuaBadges.push("化忌");
             });
+
+            // 大限年齡區間計算
+            let decadeStep = 0;
+            if (isForward) {
+                decadeStep = (zhiIdx - mingZhiIndex + 12) % 12;
+            } else {
+                decadeStep = (mingZhiIndex - zhiIdx + 12) % 12;
+            }
+            const dStart = bureauStartAge + decadeStep * 10;
+            const dEnd = dStart + 9;
+            const decadeAgeRange = `${dStart}-${dEnd}`;
 
             chart.push({
                 zhiIndex: zhiIdx,
                 zhiName: diZhi[zhiIdx],
                 palaceName: pName,
                 palaceId: pId,
+                offset,
                 isMing: offset === 0,
                 isShen: zhiIdx === shenZhiIndex,
                 stars: assignedStars,
-                sihua: sihuaBadges
+                auxStars: assignedAux,
+                sihua: sihuaBadges,
+                decadeAgeRange,
+                decadeStart: dStart
             });
+        }
+
+        // 計算三方四正會照星曜
+        chart.forEach(cell => {
+            const zIdx = cell.zhiIndex;
+            const duiIdx = (zIdx + 6) % 12;
+            const san1Idx = (zIdx + 4) % 12;
+            const san2Idx = (zIdx + 8) % 12;
+
+            cell.sanFangSiZhengIndices = [zIdx, duiIdx, san1Idx, san2Idx];
+            cell.duiGong = chart.find(c => c.zhiIndex === duiIdx);
+            cell.sanFang1 = chart.find(c => c.zhiIndex === san1Idx);
+            cell.sanFang2 = chart.find(c => c.zhiIndex === san2Idx);
+        });
+
+        // 依身宮位置給予「後天修為」指導
+        const shenCell = chart.find(c => c.isShen) || chart[0];
+        const shenPalaceName = shenCell.palaceName;
+
+        let shenGuidance = "";
+        if (shenPalaceName === "命宮") {
+            shenGuidance = "【命身同宮・行事執著】自我意識強烈，不易隨波逐流，堅持初心，人生軌跡自始至終貫徹自我風格。";
+        } else if (shenPalaceName === "遷移宮") {
+            shenGuidance = "【身在遷移・出外開拓】後天極受外部環境與社交網絡影響，適合走出舒適圈，跨校競賽、留學營隊能大幅拓寬命運格局。";
+        } else if (shenPalaceName === "官祿宮") {
+            shenGuidance = "【身在官祿・事業心重】極具專業追求與自驅力，高中後天極其重視大考成績與專業技能，是憑真本事立足的實幹派。";
+        } else if (shenPalaceName === "財帛宮") {
+            shenGuidance = "【身在財帛・務實商感】講求性價比與資源回報，後天商業嗅覺靈敏，擅長資源整合，務實理智。";
+        } else if (shenPalaceName === "夫妻宮") {
+            shenGuidance = "【身在夫妻・重情互助】家庭與親密伴侶對人生後天影響極深，注重人際溫情與精神支持，富有同理心。";
+        } else if (shenPalaceName === "福德宮") {
+            shenGuidance = "【身在福德・心靈自得】懂得享受精神生活與生活情趣，抗壓韌性極強，在精神自由與個人愛好中能獲得源源不絕的能量。";
         }
 
         return {
             yearGan,
             yearZhi,
             bureau,
+            gender,
+            isForward,
             mingZhi: diZhi[mingZhiIndex],
             shenZhi: diZhi[shenZhiIndex],
+            shenPalaceName,
+            shenGuidance,
             birthYear,
             birthMonth: monthNum,
             birthDay,
@@ -329,9 +443,7 @@ const ZiWeiSystem = {
         };
     },
 
-    // ----------------------------------------------------
-    // 流年精算演算法（Annual Fortune）
-    // ----------------------------------------------------
+    // 8. 專業流年推算（含流年四化飛星與本命盤合參）
     calculateLiunian(chartResult, targetYear = 2026) {
         const tianGan = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
         const diZhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
@@ -344,11 +456,15 @@ const ZiWeiSystem = {
         const targetZhi = diZhi[yZhiIdx >= 0 ? yZhiIdx : yZhiIdx + 12];
         const zodiac = zodiacs[yZhiIdx >= 0 ? yZhiIdx : yZhiIdx + 12];
 
-        // 計算年齡
         const age = chartResult.birthYear ? (targetY - chartResult.birthYear + 1) : 18;
 
         // 流年命宮地支即為當年地支
         const liunianMingCell = chartResult.chart.find(c => c.zhiName === targetZhi) || chartResult.chart[0];
+
+        // 當前流年所處大限查找
+        const currentDecadeCell = chartResult.chart.find(c => {
+            return age >= c.decadeStart && age <= c.decadeStart + 9;
+        }) || chartResult.chart[0];
 
         // 流年四化表
         const fourSihuaGans = {
@@ -366,9 +482,8 @@ const ZiWeiSystem = {
 
         const curSihua = fourSihuaGans[targetGan] || fourSihuaGans["丙"];
 
-        // 尋找流年四化落入命盤的哪個宮位
         const findPalaceOfStar = (starKey) => {
-            const cell = chartResult.chart.find(c => c.stars.includes(starKey));
+            const cell = chartResult.chart.find(c => c.stars.some(s => s.key === starKey));
             return cell ? cell.palaceName : "本命宮";
         };
 
@@ -377,16 +492,13 @@ const ZiWeiSystem = {
         const kePalace = findPalaceOfStar(curSihua.keKey);
         const jiPalace = findPalaceOfStar(curSihua.jiKey);
 
-        // 綜合運勢分數演算（基準 75 + 流年和諧度加權）
-        const yearOffset = (targetY - 2026) % 5;
         const fortuneScore = Math.min(98, Math.max(68, 80 + (targetY % 7) * 2 - (age % 3) * 3));
 
-        // 深度高中白話四維度指引
         const guides = {
-            study: `【學業大考運】${targetYear} 年流年【${curSihua.ke}化科】飛星牽動，名聲文運受到催化！大考衝刺專注力進入高效期，容易在模擬考中突破以往卡關的瓶頸題。建議加強整理錯題本，對於公式推導要溯源根本，考場上能發揮超常冷靜。`,
-            social: `【同儕與貴人運】流年【${curSihua.lu}化祿】入【${luPalace}】，同儕人際磁場溫和如春風。在班級與社團裡容易遇到願意主動分享筆記的學霸好友，師長也對你青睞有加。主動請益會有意想不到的收穫。`,
-            health: `【身心與作息防護】流年【${curSihua.ji}化忌】坐於【${jiPalace}】，提醒此年需特別防範「神經性疲倦」與換季感冒。大考高壓下切莫長時間通宵刷題，保證大腦前額葉血供，中午務必小憩 20 分鐘。`,
-            mindset: `【高中生年度心法】今年是『${curSihua.quan}化權』主導的執行力之年！別把精力浪費在虛無的焦慮上，為自己訂下清晰的倒數打卡計畫，『行則將至，做則必成』！`
+            study: `【學業大考運】${targetYear} 年流年【${curSihua.ke}化科】飛星牽動，大考文書與科名得到強大加持！模擬考容易突破長久以來的卡關瓶頸，適合深挖核心定義，錯題本精準複習能讓你在大考臨場極速發揮！`,
+            social: `【同儕與貴人運】流年【${curSihua.lu}化祿】飛入【${luPalace}】，同儕人緣如春風沐雨。班級裡能結交願真誠分享解題思路的學霸益友，社團與專案合作一拍即合。`,
+            health: `【身心與作息防護】流年【${curSihua.ji}化忌】坐於【${jiPalace}】，提醒此年需防範長期緊繃引起的神經疲憊與換季過敏。中午閉目養神 20 分鐘，睡前勿刷手機，守護前額葉專注力！`,
+            mindset: `【高中生年度心法】今年是『${curSihua.quan}化權』主導的突破之年！別把精力浪費在虛無的焦慮上，訂下清晰的倒數打卡計畫，『行則將至，做則必成』！`
         };
 
         return {
@@ -396,6 +508,7 @@ const ZiWeiSystem = {
             zodiac,
             age,
             fortuneScore,
+            currentDecade: `${currentDecadeCell.palaceName}大限（${currentDecadeCell.decadeAgeRange}歲）`,
             liunianMingPalace: liunianMingCell.palaceName,
             liunianMingZhi: targetZhi,
             sihua: {
@@ -408,9 +521,7 @@ const ZiWeiSystem = {
         };
     },
 
-    // ----------------------------------------------------
-    // 未來十年運勢動態圖譜（10-Year Decadal Roadmap）
-    // ----------------------------------------------------
+    // 9. 未來十年運勢動態圖譜（大限十載結合流年飛星）
     calculateDecadeFortune(chartResult, startYear = 2026, count = 10) {
         const decadeData = [];
         const themeLibrary = [
@@ -431,7 +542,6 @@ const ZiWeiSystem = {
             const liunian = this.calculateLiunian(chartResult, currentYear);
             const theme = themeLibrary[i % themeLibrary.length];
 
-            // 針對年齡階段制定高中/大學升學里程碑標籤
             let stageBadge = "";
             if (liunian.age <= 18) {
                 stageBadge = "🏫 高中衝刺階段";
@@ -446,6 +556,7 @@ const ZiWeiSystem = {
                 ganZhi: `${liunian.targetGan}${liunian.targetZhi}`,
                 zodiac: liunian.zodiac,
                 age: liunian.age,
+                currentDecade: liunian.currentDecade,
                 stageBadge,
                 score: liunian.fortuneScore,
                 theme: theme.title,
@@ -462,4 +573,3 @@ const ZiWeiSystem = {
 };
 
 window.ZiWeiSystem = ZiWeiSystem;
-

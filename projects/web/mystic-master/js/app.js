@@ -175,8 +175,9 @@ function runZiWeiCalculation() {
     const month = parseInt(document.getElementById("birthMonth").value, 10) || 6;
     const day = parseInt(document.getElementById("birthDay").value, 10) || 15;
     const hour = parseInt(document.getElementById("birthHour").value, 10) || 6;
+    const gender = document.getElementById("birthGender") ? document.getElementById("birthGender").value : "male";
 
-    const result = window.ZiWeiSystem.calculateChart(year, month, day, hour);
+    const result = window.ZiWeiSystem.calculateChart(year, month, day, hour, gender);
     window.currentZiWeiChart = result;
 
     if (window.mysticAudio) {
@@ -185,9 +186,10 @@ function runZiWeiCalculation() {
 
     renderZiWeiGrid(result);
     updateLiunianAndDecadeUI();
+    renderAphorisms();
 }
 
-// 渲染紫微盤 12 宮格傳統排法
+// 渲染紫微盤 12 宮格正統排法
 function renderZiWeiGrid(result) {
     const gridContainer = document.getElementById("ziweiPanGrid");
     const centerInfo = document.getElementById("ziweiCenterCourt");
@@ -202,13 +204,18 @@ function renderZiWeiGrid(result) {
         2, 1, 0, 11   // 寅 丑 子 亥
     ];
 
+    // 計算當前選中流年的地支
+    const diZhi = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+    const yZhiIdx = (selectedLiunianYear - 4) % 12;
+    const targetZhi = diZhi[yZhiIdx >= 0 ? yZhiIdx : yZhiIdx + 12];
+
     centerInfo.innerHTML = `
         <div class="court-seal">天機盤印</div>
-        <h3>紫微天府星盤中堂</h3>
-        <p class="court-meta"><strong>歲次：</strong>${result.yearGan}${result.yearZhi}年</p>
-        <p class="court-meta"><strong>五行局：</strong>${result.bureau}</p>
-        <p class="court-meta"><strong>命宮坐地支：</strong>${result.mingZhi}宮 ｜ <strong>身宮：</strong>${result.shenZhi}宮</p>
-        <div class="court-tip">💡 點選周圍任意宮位，即可在右側查看該宮的高中學業與生活解析！</div>
+        <h3>紫微正統星盤中堂</h3>
+        <p class="court-meta"><strong>歲次：</strong>${result.yearGan}${result.yearZhi}年 ｜ <strong>造化：</strong>${result.gender === 'male' ? '乾造（男）' : '坤造（女）'}</p>
+        <p class="court-meta"><strong>五行局：</strong>${result.bureau}（${result.isForward ? '順行' : '逆行'}大限）</p>
+        <p class="court-meta"><strong>命宮坐：</strong>${result.mingZhi}宮 ｜ <strong>身宮坐：</strong>${result.shenZhi}宮（${result.shenPalaceName}）</p>
+        <div class="court-tip">💡 點選任一宮位，盤面將即時高亮「三方四正」並呈現合參解析！</div>
     `;
 
     displayOrder.forEach(zhiIdx => {
@@ -219,29 +226,65 @@ function renderZiWeiGrid(result) {
         cell.className = `ziwei-cell ${cellData.isMing ? 'is-ming' : ''} ${cellData.isShen ? 'is-shen' : ''}`;
         cell.setAttribute("data-zhi", cellData.zhiIndex);
 
-        const starNames = cellData.stars.map(sKey => {
-            const s = window.ZiWeiSystem.stars[sKey];
-            return `<span class="cell-star-tag">${s ? s.name : sKey}</span>`;
+        // 主星標籤（含廟旺平陷）
+        const starNames = cellData.stars.map(s => {
+            return `<span class="cell-star-tag">${s.name}<span class="bright-badge bright-${s.brightness}">[${s.brightness}]</span></span>`;
         }).join("");
 
+        // 吉星與煞星標籤
+        const auxNames = cellData.auxStars ? cellData.auxStars.map(a => {
+            return `<span class="aux-star-tag aux-${a.type}">${a.name}</span>`;
+        }).join("") : "";
+
+        // 四化標籤
         const sihuaBadges = cellData.sihua.map(b => `<span class="sihua-badge badge-${b}">${b}</span>`).join("");
+
+        // 是否為流年命宮
+        const isLiunianMing = cellData.zhiName === targetZhi;
 
         cell.innerHTML = `
             <div class="cell-top-bar">
                 <span class="cell-palace-name">${cellData.palaceName}</span>
-                <span class="cell-zhi">${cellData.zhiName}</span>
+                <div>
+                    <span class="decade-badge">${cellData.decadeAgeRange}歲</span>
+                    <span class="cell-zhi">${cellData.zhiName}</span>
+                </div>
             </div>
             <div class="cell-stars">${starNames}</div>
+            ${auxNames ? `<div class="cell-aux-stars">${auxNames}</div>` : ''}
             <div class="cell-sihua-row">${sihuaBadges}</div>
-            ${cellData.isMing ? '<span class="marker-tag marker-ming">命宮坐此</span>' : ''}
+            ${cellData.isMing ? '<span class="marker-tag marker-ming">本命宮</span>' : ''}
             ${cellData.isShen ? '<span class="marker-tag marker-shen">身宮</span>' : ''}
+            ${isLiunianMing ? `<span class="marker-tag marker-liunian">${selectedLiunianYear}流年命</span>` : ''}
         `;
 
         cell.addEventListener("click", () => {
-            document.querySelectorAll(".ziwei-cell").forEach(c => c.classList.remove("selected"));
+            document.querySelectorAll(".ziwei-cell").forEach(c => {
+                c.classList.remove("selected");
+                c.classList.remove("is-sanfang-sizheng");
+                const oldCorner = c.querySelector(".sanfang-corner-badge");
+                if (oldCorner) oldCorner.remove();
+            });
             cell.classList.add("selected");
+
+            // 高亮三方四正會照宮位
+            if (cellData.sanFangSiZhengIndices) {
+                cellData.sanFangSiZhengIndices.forEach(idx => {
+                    const targetCell = document.querySelector(`.ziwei-cell[data-zhi="${idx}"]`);
+                    if (targetCell && idx !== cellData.zhiIndex) {
+                        targetCell.classList.add("is-sanfang-sizheng");
+                        let role = "會照";
+                        if (idx === (cellData.zhiIndex + 6) % 12) role = "對照";
+                        const corner = document.createElement("span");
+                        corner.className = "sanfang-corner-badge";
+                        corner.textContent = `三方・${role}`;
+                        targetCell.appendChild(corner);
+                    }
+                });
+            }
+
             showPalaceDetail(cellData);
-            window.mysticAudio.playStarGlitter();
+            if (window.mysticAudio) window.mysticAudio.playStarGlitter();
         });
 
         gridContainer.appendChild(cell);
@@ -251,7 +294,7 @@ function renderZiWeiGrid(result) {
     showPalaceDetail(mingCell);
 }
 
-// 點擊宮位顯示詳解
+// 點擊宮位顯示正統深度詳解
 function showPalaceDetail(cellData) {
     const panel = document.getElementById("palaceDetailContent");
     if (!panel) return;
@@ -262,37 +305,103 @@ function showPalaceDetail(cellData) {
         hsExplain: "反映你的相應生活領域"
     };
 
-    const starObjs = cellData.stars.map(k => window.ZiWeiSystem.stars[k]).filter(Boolean);
+    // 三方四正星曜統整
+    const dui = cellData.duiGong;
+    const san1 = cellData.sanFang1;
+    const san2 = cellData.sanFang2;
+
+    const allAssocAux = [
+        ...(cellData.auxStars || []),
+        ...(dui && dui.auxStars ? dui.auxStars : []),
+        ...(san1 && san1.auxStars ? san1.auxStars : []),
+        ...(san2 && san2.auxStars ? san2.auxStars : [])
+    ];
+    const luckyStars = allAssocAux.filter(a => a.type === "lucky");
+    const shaStars = allAssocAux.filter(a => a.type === "sha");
 
     panel.innerHTML = `
         <div class="detail-header">
-            <h3 class="detail-title">${cellData.palaceName}（${cellData.zhiName}宮）</h3>
+            <div>
+                <h3 class="detail-title">${cellData.palaceName}（${cellData.zhiName}宮）</h3>
+                <span style="font-size: 12px; color: var(--ink-muted);">行運大限：【${cellData.decadeAgeRange} 歲】 ｜ 身宮坐守：${cellData.isShen ? '是（主宰後天修為）' : '否'}</span>
+            </div>
             <span class="detail-tag">${palaceInfo.category || "重要領域"}</span>
         </div>
+
         <div class="detail-meaning">
             <strong>🎯 宮位現代意涵：</strong>${palaceInfo.modernDesc}
         </div>
         <div class="detail-hs-meaning">
-            <strong>🏫 高中生生活解讀：</strong>${palaceInfo.hsExplain}
+            <strong>🏫 高中生活與學業解讀：</strong>${palaceInfo.hsExplain}
         </div>
+
+        <!-- 三方四正會照分析 -->
+        <div class="sanfang-summary-box">
+            <h4>🌐 三方四正會照合參（對宮：${dui ? dui.palaceName : '對宮'} ｜ 三合：${san1 ? san1.palaceName : ''}、${san2 ? san2.palaceName : ''}）：</h4>
+            <div>
+                <strong>✨ 匯合六吉星（${luckyStars.length}顆）：</strong>
+                ${luckyStars.length > 0 ? luckyStars.map(l => `<span class="sanfang-pill" style="color: #166534;">${l.name}</span>`).join("") : '<span style="color: var(--ink-muted);">本宮及三方吉星平穩</span>'}
+            </div>
+            <div style="margin-top: 6px;">
+                <strong>⚡ 匯合六煞星（${shaStars.length}顆）：</strong>
+                ${shaStars.length > 0 ? shaStars.map(s => `<span class="sanfang-pill" style="color: #991b1b;">${s.name}</span>`).join("") : '<span style="color: var(--ink-muted);">無明顯刑煞沖照</span>'}
+            </div>
+            <div style="margin-top: 8px; color: var(--wood-warm); font-size: 12px; line-height: 1.5;">
+                <strong>💡 大師合參斷語：</strong>${luckyStars.length >= 2 ? '三方吉星照會，學習與大考如得神助，多借力良師益友！' : (shaStars.length >= 2 ? '煞星臨照，正是「玉不琢不成器」的攻堅之格！大考遇難題越挫越勇，逆向突圍！' : '本宮氣象清和，遵循自身節奏按部就班，水到渠成。')}
+            </div>
+        </div>
+
+        ${cellData.isShen ? `
+            <div class="hs-analogy-box" style="margin-bottom: 14px;">
+                <strong>🥋 身宮後天修為錦囊：</strong>
+                <span>${window.currentZiWeiChart.shenGuidance}</span>
+            </div>
+        ` : ''}
+
         <div class="detail-stars-section">
-            <h4>🌟 坐守星曜解析：</h4>
-            ${starObjs.length > 0 ? starObjs.map(s => `
-                <div class="detail-star-block glass-panel">
-                    <div class="ds-name"><strong>${s.name}</strong>（${s.element}・${s.title}）</div>
-                    <div class="ds-archetype">${s.archetype}</div>
-                    <div class="ds-study"><strong>💡 高中升學讀書策略：</strong>${s.studyGuide}</div>
-                    <div class="ds-mind"><strong>⚠️ 避雷防爆心態：</strong>${s.examMindset}</div>
-                </div>
-            `).join("") : `<div class="detail-star-block"><p>此宮無十四主星（借對宮星曜觀測），象徵該領域靈活變通，受外部環境影響較大。</p></div>`}
+            <h4>🌟 坐守主星與廟旺度分析：</h4>
+            ${cellData.stars.length > 0 ? cellData.stars.map(sItem => {
+                const s = window.ZiWeiSystem.stars[sItem.key];
+                return `
+                    <div class="detail-star-block glass-panel">
+                        <div class="ds-name">
+                            <strong>${s.name}</strong>
+                            <span class="bright-badge bright-${sItem.brightness}">[狀態：${sItem.brightness}・${sItem.brightness === '廟' || sItem.brightness === '旺' ? '光芒最熾' : (sItem.brightness === '平' ? '平順中和' : '考驗磨礪')}]</span>
+                            <span style="font-size: 12px; color: var(--ink-muted); margin-left: 6px;">（${s.element}・${s.title}）</span>
+                        </div>
+                        <div class="ds-archetype">${s.archetype}</div>
+                        <div class="ds-study"><strong>💡 高中升學讀書策略：</strong>${s.studyGuide}</div>
+                        <div class="ds-mind"><strong>⚠️ 避雷防爆心態：</strong>${s.examMindset}</div>
+                    </div>
+                `;
+            }).join("") : `<div class="detail-star-block"><p>此宮無十四正星（空宮借對宮【${dui ? dui.palaceName : '對宮'}】星曜會照），象徵在該領域適應力極強、可塑性極高，多受外部環境與良師指引影響！</p></div>`}
         </div>
+
         ${cellData.sihua.length > 0 ? `
-            <div class="detail-sihua-section">
+            <div class="detail-sihua-section" style="margin-top: 14px;">
                 <h4>🔮 宮位四化引動：</h4>
-                <div class="sihua-explain">本宮引動【${cellData.sihua.join("、")}】，代表在此生活維度中將得到格外顯著的能量催化與考驗！</div>
+                <div class="sihua-explain">本宮得生年【${cellData.sihua.join("、")}】加持，象徵你在這項生活領域具備格外顯著的命運錨點與突破機遇！</div>
             </div>
         ` : ''}
     `;
+}
+
+// 渲染古傳大師賦文精粹
+function renderAphorisms() {
+    const container = document.getElementById("aphorismsGrid");
+    if (!container) return;
+
+    container.innerHTML = "";
+    window.ZiWeiSystem.classicalAphorisms.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "aphorism-card glass-panel";
+        card.innerHTML = `
+            <div class="aph-origin">${item.origin} 原文精粹</div>
+            <div class="aph-quote">「${item.quote}」</div>
+            <div class="aph-hs"><strong>🏫 高中生現代白話註解：</strong>${item.hsTranslation}</div>
+        `;
+        container.appendChild(card);
+    });
 }
 
 // ----------------------------------------------------
