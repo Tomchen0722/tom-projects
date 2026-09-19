@@ -129,20 +129,20 @@ function render14Stars(filter) {
             <div class="star-archetype">${s.archetype}</div>
             <p class="star-desc">${s.desc}</p>
             <div class="hs-analogy-box">
-                <strong>🏫 高中生校園畫像：</strong>
-                <span>${s.hsAnalogy}</span>
+                <strong>👑 格局風範與人物原型：</strong>
+                <span>${s.proProfile || s.hsAnalogy}</span>
             </div>
             <div class="star-strengths-box">
                 <strong>✨ 天賦優勢：</strong>
                 <ul>${s.strengths.map(item => `<li>${item}</li>`).join("")}</ul>
             </div>
             <div class="star-study-box">
-                <strong>📚 大考升學與學習錦囊：</strong>
-                <p>${s.studyGuide}</p>
+                <strong>💼 事業拓展與實戰策略：</strong>
+                <p>${s.careerStrategy || s.studyGuide}</p>
             </div>
             <div class="star-mindset-box">
-                <strong>🛡️ 避坑與心態防禦：</strong>
-                <p>${s.examMindset}</p>
+                <strong>🛡️ 關鍵決策與風險防禦：</strong>
+                <p>${s.riskMindset || s.examMindset}</p>
             </div>
         `;
         container.appendChild(card);
@@ -163,7 +163,7 @@ function renderPalacesOverview() {
             <div class="p-title">${p.name}</div>
             <div class="p-category">${p.category}</div>
             <div class="p-modern">${p.modernDesc}</div>
-            <div class="p-hs">${p.hsExplain}</div>
+            <div class="p-hs">${p.proExplain || p.hsExplain}</div>
         `;
         container.appendChild(item);
     });
@@ -171,7 +171,7 @@ function renderPalacesOverview() {
 
 // 執行排盤計算與渲染 12 宮格
 function runZiWeiCalculation() {
-    const year = parseInt(document.getElementById("birthYear").value, 10) || 2008;
+    const year = parseInt(document.getElementById("birthYear").value, 10) || 1996;
     const month = parseInt(document.getElementById("birthMonth").value, 10) || 6;
     const day = parseInt(document.getElementById("birthDay").value, 10) || 15;
     const hour = parseInt(document.getElementById("birthHour").value, 10) || 6;
@@ -329,10 +329,10 @@ function showPalaceDetail(cellData) {
         </div>
 
         <div class="detail-meaning">
-            <strong>🎯 宮位現代意涵：</strong>${palaceInfo.modernDesc}
+            <strong>🎯 宮位正統意涵：</strong>${palaceInfo.modernDesc}
         </div>
         <div class="detail-hs-meaning">
-            <strong>🏫 高中生活與學業解讀：</strong>${palaceInfo.hsExplain}
+            <strong>🏛️ 人生格局與實戰解讀：</strong>${palaceInfo.proExplain || palaceInfo.hsExplain}
         </div>
 
         <!-- 三方四正會照分析 -->
@@ -347,13 +347,13 @@ function showPalaceDetail(cellData) {
                 ${shaStars.length > 0 ? shaStars.map(s => `<span class="sanfang-pill" style="color: #991b1b;">${s.name}</span>`).join("") : '<span style="color: var(--ink-muted);">無明顯刑煞沖照</span>'}
             </div>
             <div style="margin-top: 8px; color: var(--wood-warm); font-size: 12px; line-height: 1.5;">
-                <strong>💡 大師合參斷語：</strong>${luckyStars.length >= 2 ? '三方吉星照會，學習與大考如得神助，多借力良師益友！' : (shaStars.length >= 2 ? '煞星臨照，正是「玉不琢不成器」的攻堅之格！大考遇難題越挫越勇，逆向突圍！' : '本宮氣象清和，遵循自身節奏按部就班，水到渠成。')}
+                <strong>💡 大師合參斷語：</strong>${luckyStars.length >= 2 ? '三方吉星照會，事業拓展與重大決策如虎添翼，多結盟行業前輩與得力幹將！' : (shaStars.length >= 2 ? '煞曜臨照，乃典型「玉不琢不成器」之攻堅格局！身處逆境越挫越勇，宜以戰略定力破局突圍！' : '本宮氣象清和敦厚，穩健經營、循序漸進，水到渠成。')}
             </div>
         </div>
 
         ${cellData.isShen ? `
             <div class="hs-analogy-box" style="margin-bottom: 14px;">
-                <strong>🥋 身宮後天修為錦囊：</strong>
+                <strong>🥋 身宮後天立命修為：</strong>
                 <span>${window.currentZiWeiChart.shenGuidance}</span>
             </div>
         ` : ''}
@@ -370,17 +370,17 @@ function showPalaceDetail(cellData) {
                             <span style="font-size: 12px; color: var(--ink-muted); margin-left: 6px;">（${s.element}・${s.title}）</span>
                         </div>
                         <div class="ds-archetype">${s.archetype}</div>
-                        <div class="ds-study"><strong>💡 高中升學讀書策略：</strong>${s.studyGuide}</div>
-                        <div class="ds-mind"><strong>⚠️ 避雷防爆心態：</strong>${s.examMindset}</div>
+                        <div class="ds-study"><strong>💼 事業經營與實戰策略：</strong>${s.careerStrategy || s.studyGuide}</div>
+                        <div class="ds-mind"><strong>🛡️ 關鍵決策與風險防禦：</strong>${s.riskMindset || s.examMindset}</div>
                     </div>
                 `;
-            }).join("") : `<div class="detail-star-block"><p>此宮無十四正星（空宮借對宮【${dui ? dui.palaceName : '對宮'}】星曜會照），象徵在該領域適應力極強、可塑性極高，多受外部環境與良師指引影響！</p></div>`}
+            }).join("") : `<div class="detail-star-block"><p>此宮無十四正星（空宮借對宮【${dui ? dui.palaceName : '對宮'}】星曜會照），象徵在該領域適應力極強、可塑性極高，多受外部大環境與合夥人引導影響！</p></div>`}
         </div>
 
         ${cellData.sihua.length > 0 ? `
             <div class="detail-sihua-section" style="margin-top: 14px;">
                 <h4>🔮 宮位四化引動：</h4>
-                <div class="sihua-explain">本宮得生年【${cellData.sihua.join("、")}】加持，象徵你在這項生活領域具備格外顯著的命運錨點與突破機遇！</div>
+                <div class="sihua-explain">本宮得生年【${cellData.sihua.join("、")}】加持，象徵您在此領域具備格外顯著的命運錨點、重大轉折與突破機遇！</div>
             </div>
         ` : ''}
     `;
@@ -398,7 +398,7 @@ function renderAphorisms() {
         card.innerHTML = `
             <div class="aph-origin">${item.origin} 原文精粹</div>
             <div class="aph-quote">「${item.quote}」</div>
-            <div class="aph-hs"><strong>🏫 高中生現代白話註解：</strong>${item.hsTranslation}</div>
+            <div class="aph-hs"><strong>📜 大師專業評註與實戰指引：</strong>${item.proAnnotation || item.hsTranslation}</div>
         `;
         container.appendChild(card);
     });
@@ -488,19 +488,19 @@ function renderLiunianReport(year) {
     if (guidesGrid) {
         guidesGrid.innerHTML = `
             <div class="ln-guide-card ln-gc-study glass-panel">
-                <h4 class="ln-guide-title">📚 大考與學業考運</h4>
-                <p>${report.guides.study}</p>
+                <h4 class="ln-guide-title">💼 事業功名與職場進展</h4>
+                <p>${report.guides.career || report.guides.study}</p>
             </div>
             <div class="ln-guide-card ln-gc-social glass-panel">
-                <h4 class="ln-guide-title">🤝 同儕社團與貴人</h4>
-                <p>${report.guides.social}</p>
+                <h4 class="ln-guide-title">💰 財帛利祿與資產運作</h4>
+                <p>${report.guides.wealth || report.guides.social}</p>
             </div>
             <div class="ln-guide-card ln-gc-health glass-panel">
-                <h4 class="ln-guide-title">🩺 身心機能與作息</h4>
+                <h4 class="ln-guide-title">🩺 身心調攝與自律心法</h4>
                 <p>${report.guides.health}</p>
             </div>
             <div class="ln-guide-card ln-gc-mind glass-panel">
-                <h4 class="ln-guide-title">🎯 高中生年度心法</h4>
+                <h4 class="ln-guide-title">🎯 年度大師戰略決策心法</h4>
                 <p>${report.guides.mindset}</p>
             </div>
         `;
@@ -574,11 +574,11 @@ function showDecadeYearDetail(item) {
         </div>
         <div class="dad-content-row">
             <div class="dad-block">
-                <h4>🎓 升學與學術里程碑預測</h4>
-                <p>${item.studyAdvice}</p>
+                <h4>🏛️ 事業發展與資產累積進程</h4>
+                <p>${item.careerAdvice || item.studyAdvice}</p>
             </div>
             <div class="dad-block">
-                <h4>💡 人生決策與避坑指南</h4>
+                <h4>💡 戰略抉擇與風險防禦指南</h4>
                 <p>${item.actionTip}</p>
             </div>
         </div>
@@ -648,7 +648,7 @@ function initPalmistryInteractions() {
                     <span class="m-pos">（${m.pos}）</span>
                 </div>
                 <div class="m-meaning"><strong>能量意象：</strong>${m.meaning}</div>
-                <div class="m-hs"><strong>🏫 高中生指引：</strong>${m.hsGuide}</div>
+                <div class="m-hs"><strong>⛰️ 大師相理辨微：</strong>${m.proGuide || m.hsGuide}</div>
             `;
             mountsGrid.appendChild(card);
         });
@@ -664,7 +664,7 @@ function initPalmistryInteractions() {
                 <h4>${ht.type}</h4>
                 <p class="ht-traits"><strong>掌型外貌：</strong>${ht.traits}</p>
                 <p class="ht-role"><strong>現代角色：</strong>${ht.modernRole}</p>
-                <div class="ht-hs"><strong>📚 高中讀書特質：</strong>${ht.hsProfile}</div>
+                <div class="ht-hs"><strong>💼 職場與實戰特質：</strong>${ht.proProfile || ht.hsProfile}</div>
             `;
             handTypesGrid.appendChild(card);
         });
@@ -687,8 +687,8 @@ function showPalmLineDetail(line) {
             <p class="line-origin"><strong>📍 起訖位置：</strong>${line.origin}</p>
             <p class="line-classical"><strong>📜 古典正統涵義：</strong>${line.classical}</p>
             <div class="line-hs-box">
-                <strong>🏫 高中生體感譬喻：</strong>
-                <p>${line.hsAnalogy}</p>
+                <strong>🖐️ 專業相理解構與意象：</strong>
+                <p>${line.proSignificance || line.hsAnalogy}</p>
             </div>
             <div class="line-patterns-box">
                 <strong>🔍 常見形態判讀：</strong>
@@ -717,7 +717,7 @@ function initFaceInteractions() {
                     <span class="tz-age">${z.age}</span>
                 </div>
                 <div class="tz-concept"><strong>心智特徵：</strong>${z.concept}</div>
-                <div class="tz-hs"><strong>🏫 高中學業指引：</strong>${z.hsGuide}</div>
+                <div class="tz-hs"><strong>👤 人生運勢與事業指引：</strong>${z.proGuide || z.hsGuide}</div>
                 <div class="tz-tuning"><strong>🌿 調養心法：</strong>${z.tuningTip}</div>
             `;
             threeZonesContainer.appendChild(card);
@@ -749,7 +749,7 @@ function initFaceInteractions() {
             <div class="mindset-card glass-panel">
                 <div class="ms-quote">「${mindset.ancient}」</div>
                 <div class="ms-science"><strong>🧬 現代神經認知科學解析：</strong>${mindset.modernScience}</div>
-                <div class="ms-action"><strong>✨ 高中生每日實踐清單：</strong>${mindset.actionGuide}</div>
+                <div class="ms-action"><strong>✨ 大師每日修持指引：</strong>${mindset.actionGuide}</div>
             </div>
         `;
     }
@@ -794,7 +794,7 @@ function renderBaguaWheel() {
             <h4 class="tri-name">${t.name}為${t.nature}</h4>
             <div class="tri-code">二進制碼：<code>${t.code}</code></div>
             <div class="tri-virtue"><strong>卦德：</strong>${t.virtue}</div>
-            <div class="tri-hs"><strong>🏫 青年心態：</strong>${t.hsConcept}</div>
+            <div class="tri-hs"><strong>🌀 卦德大局意涵：</strong>${t.proConcept || t.hsConcept}</div>
         `;
         container.appendChild(item);
     });
@@ -921,12 +921,12 @@ function finishHexagramDivination() {
             </div>
 
             <div class="hs-strategy-grand-box">
-                <h4>🎓 高中生人生與大考破局指南：</h4>
-                <p>${result.originalHex.hsStrategy}</p>
+                <h4>🏛️ 周易大師正統決策與破局指南：</h4>
+                <p>${result.originalHex.proStrategy || result.originalHex.hsStrategy}</p>
                 ${result.hasChanges ? `
                     <div class="future-advice">
                         <strong>🚀 轉變後的長遠啟示（變卦指引）：</strong>
-                        <p>${result.changedHex.hsStrategy}</p>
+                        <p>${result.changedHex.proStrategy || result.changedHex.hsStrategy}</p>
                     </div>
                 ` : ''}
             </div>
@@ -974,8 +974,8 @@ function initHexagramLookup() {
                 <p class="lc-judge"><strong>卦辭：</strong>${hex.judgement}</p>
                 <p class="lc-image"><strong>象曰：</strong>${hex.image}</p>
                 <div class="lc-strategy">
-                    <strong>🏫 高中決策心法：</strong>
-                    <p>${hex.hsStrategy}</p>
+                    <strong>📜 大師戰略心法：</strong>
+                    <p>${hex.proStrategy || hex.hsStrategy}</p>
                 </div>
             </div>
         `;
@@ -1027,11 +1027,11 @@ function renderQuizQuestion(idx) {
         container.innerHTML = `
             <div class="quiz-summary-card glass-panel">
                 <div class="qs-badge">${rankBadge}</div>
-                <h3>玄學大會考圓滿完成！</h3>
+                <h3>玄學大師實戰考核完成！</h3>
                 <div class="qs-score">${userScore} <span class="unit">分</span></div>
                 <div class="qs-rank">獲得榮譽封號：<strong>【${rankTitle}】</strong></div>
-                <p class="qs-words">你已經成功掌握了紫微斗數、相術微表情與易經決策樹的底層智慧！願這份貫通古今的洞察力，陪伴你在高中的學業與生活中乘風破浪、所向披靡！</p>
-                <button class="btn btn-gold" id="retryQuizBtn">重新挑戰測驗</button>
+                <p class="qs-words">您已經深刻掌握了紫微斗數星曜格局、相理神態氣色與周易動態決策樹的至高智慧！願這份貫通古今的洞察力，助您在事業開拓、資產運作與人生重大博弈中乘風破浪、立於不敗之地！</p>
+                <button class="btn btn-gold" id="retryQuizBtn">重新挑戰考核</button>
             </div>
         `;
         document.getElementById("retryQuizBtn").addEventListener("click", () => {
