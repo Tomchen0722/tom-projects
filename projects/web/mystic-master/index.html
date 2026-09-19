@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天機玄學閣｜紫微斗數・手相面相・易經八卦 青年現代白話精修館</title>
+    <meta name="description" content="精通紫微斗數、手相面相、易經八卦之古典玄學智慧，圖文並茂，以高中生通俗易懂的現代譬喻與科學視角深入解析人生天賦、微表情體魄與動態決策樹。">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/mystic.css">
+</head>
+<body>
+    <!-- 動態星空背景畫布 -->
+    <canvas id="starfieldCanvas"></canvas>
+
+    <!-- 頂部導航列 -->
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="brand-area">
+                <div class="brand-logo">☯</div>
+                <div class="brand-text">
+                    <h1>天機玄學閣</h1>
+                    <div class="brand-subtitle">紫微斗數・相術乾坤・易道變易 ｜ 現代青年白話典藏</div>
+                </div>
+            </div>
+
+            <nav class="nav-tabs">
+                <button class="nav-tab-btn active" data-target="sec-ziwei">
+                    <span>🌌</span> <span>紫微天宮殿</span>
+                </button>
+                <button class="nav-tab-btn" data-target="sec-phys">
+                    <span>🖐️</span> <span>相術乾坤殿</span>
+                </button>
+                <button class="nav-tab-btn" data-target="sec-iching">
+                    <span>☯️</span> <span>易道變易殿</span>
+                </button>
+                <button class="nav-tab-btn" data-target="sec-quiz">
+                    <span>🪷</span> <span>天機大考驗</span>
+                </button>
+                <button class="nav-tab-btn" data-target="sec-philo">
+                    <span>📜</span> <span>大師心法閣</span>
+                </button>
+            </nav>
+
+            <div class="header-actions">
+                <button class="audio-btn" id="audioToggleBtn" title="開關古典靈音聲效">
+                    <span class="icon">🔔</span> <span>靈音：開啟</span>
+                </button>
+                <a href="/index.html" class="hub-back-btn">← 返回專案總覽</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <!-- ===============================================================
+             第一殿堂：紫微天宮殿（紫微斗數）
+             =============================================================== -->
+        <section id="sec-ziwei" class="mystic-section active">
+            <div class="section-banner">
+                <h2>🌌 紫微天宮殿：你的開放世界天生角色卡</h2>
+                <p>紫微斗數絕非盲目宿命論，而是古代先賢設計的大型人生 RPG 天賦模型！命宮是核心初始屬性，官祿是主線任務樹，四化則是賽季 Buff 與卡關修煉。</p>
+            </div>
+
+            <!-- 排盤計算器 -->
+            <div class="calculator-box glass-panel">
+                <div class="calc-inputs-row">
+                    <div class="form-group">
+                        <label for="birthYear">出生西元年（陽曆）</label>
+                        <input type="number" id="birthYear" min="1990" max="2035" value="2008">
+                    </div>
+                    <div class="form-group">
+                        <label for="birthMonth">出生月份</label>
+                        <select id="birthMonth">
+                            <option value="1">一月 (Jan)</option>
+                            <option value="2">二月 (Feb)</option>
+                            <option value="3">三月 (Mar)</option>
+                            <option value="4">四月 (Apr)</option>
+                            <option value="5">五月 (May)</option>
+                            <option value="6" selected>六月 (Jun)</option>
+                            <option value="7">七月 (Jul)</option>
+                            <option value="8">八月 (Aug)</option>
+                            <option value="9">九月 (Sep)</option>
+                            <option value="10">十月 (Oct)</option>
+                            <option value="11">十一月 (Nov)</option>
+                            <option value="12">十二月 (Dec)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="birthDay">出生日期</label>
+                        <input type="number" id="birthDay" min="1" max="31" value="15">
+                    </div>
+                    <div class="form-group">
+                        <label for="birthHour">出生時辰（地支時段）</label>
+                        <select id="birthHour">
+                            <option value="0">子時 (23:00 - 01:00)</option>
+                            <option value="1">丑時 (01:00 - 03:00)</option>
+                            <option value="2">寅時 (03:00 - 05:00)</option>
+                            <option value="3">卯時 (05:00 - 07:00)</option>
+                            <option value="4">辰時 (07:00 - 09:00)</option>
+                            <option value="5">巳時 (09:00 - 11:00)</option>
+                            <option value="6" selected>午時 (11:00 - 13:00)</option>
+                            <option value="7">未時 (13:00 - 15:00)</option>
+                            <option value="8">申時 (15:00 - 17:00)</option>
+                            <option value="9">酉時 (17:00 - 19:00)</option>
+                            <option value="10">戌時 (19:00 - 21:00)</option>
+                            <option value="11">亥時 (21:00 - 23:00)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-gold" id="ziweiCalcBtn">✨ 排定天盤並解讀天賦</button>
+                </div>
+
+                <div class="preset-charts">
+                    <span>⚡ 快速探索典型高中人格盤：</span>
+                    <button class="preset-chart-btn" data-year="2008" data-month="6" data-day="15" data-hour="6">日麗中天・全校熱血學霸</button>
+                    <button class="preset-chart-btn" data-year="2007" data-month="3" data-day="9" data-hour="2">殺破狼・創新破局先鋒</button>
+                    <button class="preset-chart-btn" data-year="2008" data-month="10" data-day="22" data-hour="4">機月同梁・縝密策略智囊</button>
+                    <button class="preset-chart-btn" data-year="2007" data-month="1" data-day="5" data-hour="0">紫府同宮・天選領袖會長</button>
+                </div>
+            </div>
+
+            <!-- 排盤工作區：左宮位盤，右詳解 -->
+            <div class="pan-workspace">
+                <div class="ziwei-board-frame glass-panel">
+                    <div class="ziwei-12-grid" id="ziweiPanGrid">
+                        <!-- 由 JS 動態生成 12 宮格與中央中堂 -->
+                    </div>
+                    <div class="ziwei-center-court" id="ziweiCenterCourt">
+                        <!-- 中堂資訊由 JS 生成 -->
+                    </div>
+                </div>
+
+                <div class="palace-detail-panel glass-panel" id="palaceDetailContent">
+                    <!-- 點選宮位後動態顯示高中白話指引 -->
+                </div>
+            </div>
+
+            <!-- 十四主星人格光譜總覽 -->
+            <h3 class="section-subheading">🌟 十四主星人格光譜（高中校園人物對照表）</h3>
+            <div class="stars-filter-bar">
+                <button class="star-filter-btn active" data-filter="all">全部十四主星</button>
+                <button class="star-filter-btn" data-filter="emperor">👑 帝王統帥系（紫微・天府・太陽・太陰）</button>
+                <button class="star-filter-btn" data-filter="combat">⚔️ 剛毅開拓系（七殺・破軍・貪狼・武曲）</button>
+                <button class="star-filter-btn" data-filter="wisdom">🧠 智多輔弼系（天機・巨門・天梁・天相・天同・廉貞）</button>
+            </div>
+            <div class="stars-cards-grid" id="starsGrid">
+                <!-- 由 JS 渲染十四主星卡片 -->
+            </div>
+
+            <!-- 十二宮位宇宙地圖總覽 -->
+            <h3 class="section-subheading">🗺️ 十二宮位人生領域地圖</h3>
+            <div class="palaces-overview-grid" id="palacesOverviewGrid">
+                <!-- 由 JS 渲染十二宮總覽 -->
+            </div>
+        </section>
+
+        <!-- ===============================================================
+             第二殿堂：相術乾坤殿（手相與面相）
+             =============================================================== -->
+        <section id="sec-phys" class="mystic-section">
+            <div class="section-banner">
+                <h2>🖐️ 相術乾坤殿：身心狀態的全息生物儀表板</h2>
+                <p>古人觀相，本質上是古代人體工學、心理微表情與神經學的積累！掌紋是大腦神經元與長期習慣在手掌上的投影，面相則是精力充沛度、專注度與生活作息的即時反饋。</p>
+            </div>
+
+            <!-- 子導覽：手相 vs 面相 -->
+            <div class="phys-subnav">
+                <button class="phys-sub-btn active" id="btnShowPalm">🖐️ 掌紋掌丘透視鏡（手相）</button>
+                <button class="phys-sub-btn" id="btnShowFace">👤 三停五官法鏡（面相）</button>
+            </div>
+
+            <!-- 手相視圖 -->
+            <div id="palmistryView">
+                <div class="palmistry-interactive-area">
+                    <div class="palm-svg-container glass-panel">
+                        <div class="palm-lines-controls" id="palmLinesButtons">
+                            <!-- 由 JS 動態生成主線切換按鈕 -->
+                        </div>
+                        <!-- 高解析互動手掌向量 SVG -->
+                        <svg class="palm-interactive-svg" viewBox="0 0 500 650" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 手掌輪廓陰影與主體 -->
+                            <path d="M 120,400 C 90,320 80,240 100,200 C 110,180 135,190 145,220 L 160,300 C 160,250 165,130 180,90 C 190,60 215,65 220,95 L 235,280 C 240,220 250,90 270,50 C 285,25 310,35 310,75 L 305,285 C 315,220 330,120 350,105 C 370,90 390,110 380,150 L 365,310 C 380,260 415,200 435,210 C 450,220 445,260 425,320 C 445,360 455,420 440,510 C 425,580 380,620 320,630 L 190,630 C 140,610 120,530 120,400 Z" 
+                                  fill="#161c36" stroke="#f59e0b" stroke-width="3" opacity="0.95"/>
+                            
+                            <!-- 掌丘微光感應區 -->
+                            <!-- 木星丘（食指根部） -->
+                            <circle cx="205" cy="300" r="28" fill="rgba(16, 185, 129, 0.15)" stroke="rgba(16, 185, 129, 0.4)" stroke-dasharray="3,3"/>
+                            <text x="205" y="305" fill="#6ee7b7" font-size="11" text-anchor="middle">木星丘</text>
+
+                            <!-- 土星丘（中指根部） -->
+                            <circle cx="270" cy="290" r="26" fill="rgba(245, 158, 11, 0.15)" stroke="rgba(245, 158, 11, 0.4)" stroke-dasharray="3,3"/>
+                            <text x="270" y="295" fill="#fde68a" font-size="11" text-anchor="middle">土星丘</text>
+
+                            <!-- 太陽丘（無名指根部） -->
+                            <circle cx="335" cy="310" r="26" fill="rgba(239, 68, 68, 0.15)" stroke="rgba(239, 68, 68, 0.4)" stroke-dasharray="3,3"/>
+                            <text x="335" y="315" fill="#fca5a5" font-size="11" text-anchor="middle">太陽丘</text>
+
+                            <!-- 水星丘（小指根部） -->
+                            <circle cx="390" cy="350" r="24" fill="rgba(56, 189, 248, 0.15)" stroke="rgba(56, 189, 248, 0.4)" stroke-dasharray="3,3"/>
+                            <text x="390" y="355" fill="#7dd3fc" font-size="11" text-anchor="middle">水星丘</text>
+
+                            <!-- 金星丘（拇指大魚際） -->
+                            <ellipse cx="190" cy="460" rx="45" ry="55" fill="rgba(236, 72, 153, 0.12)" stroke="rgba(236, 72, 153, 0.4)" stroke-dasharray="3,3"/>
+                            <text x="190" y="465" fill="#f472b6" font-size="12" text-anchor="middle">金星丘</text>
+
+                            <!-- 月丘（小魚際下部） -->
+                            <ellipse cx="370" cy="510" rx="42" ry="50" fill="rgba(139, 92, 246, 0.15)" stroke="rgba(139, 92, 246, 0.4)" stroke-dasharray="3,3"/>
+                            <text x="370" y="515" fill="#c4b5fd" font-size="12" text-anchor="middle">月丘</text>
+
+                            <!-- 1. 生命線（綠色，環繞金星丘） -->
+                            <path class="palm-svg-line" data-line="life" 
+                                  d="M 160,340 C 175,360 235,390 238,460 C 240,520 210,580 185,615" 
+                                  fill="none" stroke="#10b981" stroke-width="4.5"/>
+                            <text x="215" y="560" fill="#10b981" font-size="12" font-weight="bold">生命線</text>
+
+                            <!-- 2. 智慧線 / 頭腦線（藍色，橫穿掌心向月丘） -->
+                            <path class="palm-svg-line" data-line="head" 
+                                  d="M 160,345 C 210,360 270,390 320,430 C 345,455 365,480 375,510" 
+                                  fill="none" stroke="#3b82f6" stroke-width="4.5"/>
+                            <text x="315" y="420" fill="#3b82f6" font-size="12" font-weight="bold">智慧線</text>
+
+                            <!-- 3. 感情線（粉紅紅色，自小指下方橫向食指） -->
+                            <path class="palm-svg-line" data-line="heart" 
+                                  d="M 420,380 C 370,360 280,350 235,335 C 220,330 210,315 205,300" 
+                                  fill="none" stroke="#ec4899" stroke-width="4.5"/>
+                            <text x="310" y="340" fill="#ec4899" font-size="12" font-weight="bold">感情線</text>
+
+                            <!-- 4. 事業線 / 命運線（金黃色，垂直升向中指） -->
+                            <path class="palm-svg-line" data-line="fate" 
+                                  d="M 275,600 C 275,520 273,430 270,310" 
+                                  fill="none" stroke="#f59e0b" stroke-width="3.5" stroke-dasharray="8,2"/>
+                            <text x="282" y="470" fill="#f59e0b" font-size="11" font-weight="bold">事業線</text>
+
+                            <!-- 5. 太陽線（淡黃色，無名指下方） -->
+                            <path class="palm-svg-line" data-line="sun" 
+                                  d="M 335,420 L 335,325" 
+                                  fill="none" stroke="#eab308" stroke-width="3" stroke-dasharray="4,2"/>
+                            <text x="342" y="380" fill="#eab308" font-size="11">太陽線</text>
+                        </svg>
+                        <div class="court-tip">💡 點擊上方按鈕或手掌線條，即可查看該紋路的詳細診斷！</div>
+                    </div>
+
+                    <!-- 即時解析面板 -->
+                    <div id="palmActiveDetail">
+                        <!-- 由 JS 渲染動態選中線條詳解 -->
+                    </div>
+                </div>
+
+                <!-- 八大掌丘卡片 -->
+                <h3 class="section-subheading">⛰️ 八大掌丘能量分佈圖解</h3>
+                <div class="mounts-grid" id="mountsGrid">
+                    <!-- 由 JS 渲染掌丘 -->
+                </div>
+
+                <!-- 五行掌型辨析 -->
+                <h3 class="section-subheading">🖐️ 五行掌型判定（你是哪種天賦手？）</h3>
+                <div class="hand-types-grid" id="handTypesGrid">
+                    <!-- 由 JS 渲染五行掌 -->
+                </div>
+            </div>
+
+            <!-- 面相視圖 -->
+            <div id="physiognomyView" style="display: none;">
+                <div class="face-interactive-area">
+                    <div class="face-svg-box glass-panel">
+                        <!-- 高解析向量面相示意圖 -->
+                        <svg class="face-interactive-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+                            <!-- 臉部輪廓 -->
+                            <path d="M 120,80 C 160,40 240,40 280,80 C 330,140 335,260 310,360 C 290,430 240,470 200,475 C 160,470 110,430 90,360 C 65,260 70,140 120,80 Z" 
+                                  fill="#141a34" stroke="#f59e0b" stroke-width="2.5"/>
+
+                            <!-- 三停虛擬分界線 -->
+                            <!-- 上停與中停分界（眉毛線） -->
+                            <line x1="80" y1="200" x2="320" y2="200" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,4"/>
+                            <text x="325" y="195" fill="#38bdf8" font-size="11">上停/中停界</text>
+
+                            <!-- 中停與下停分界（準頭鼻底線） -->
+                            <line x1="85" y1="330" x2="315" y2="330" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,4"/>
+                            <text x="325" y="335" fill="#f59e0b" font-size="11">中停/下停界</text>
+
+                            <!-- 額頭（天庭 / 15-30歲） -->
+                            <ellipse cx="200" cy="130" rx="65" ry="35" fill="rgba(56, 189, 248, 0.12)" stroke="rgba(56, 189, 248, 0.4)"/>
+                            <text x="200" y="135" fill="#7dd3fc" font-size="13" font-weight="bold" text-anchor="middle">天庭（上停・學運記憶）</text>
+
+                            <!-- 印堂（兩眉之間命宮） -->
+                            <circle cx="200" cy="195" r="14" fill="rgba(239, 68, 68, 0.25)" stroke="#ef4444" stroke-width="2"/>
+                            <text x="200" y="199" fill="#fca5a5" font-size="11" font-weight="bold" text-anchor="middle">印堂</text>
+
+                            <!-- 眉毛（保壽官） -->
+                            <path d="M 130,195 Q 165,185 185,195" fill="none" stroke="#e2e8f0" stroke-width="4.5" stroke-linecap="round"/>
+                            <path d="M 270,195 Q 235,185 215,195" fill="none" stroke="#e2e8f0" stroke-width="4.5" stroke-linecap="round"/>
+
+                            <!-- 眼睛（監察官） -->
+                            <ellipse cx="160" cy="225" rx="22" ry="10" fill="#0b0f19" stroke="#cbd5e1" stroke-width="2"/>
+                            <circle cx="160" cy="225" r="6" fill="#f59e0b"/>
+                            <ellipse cx="240" cy="225" rx="22" ry="10" fill="#0b0f19" stroke="#cbd5e1" stroke-width="2"/>
+                            <circle cx="240" cy="225" r="6" fill="#f59e0b"/>
+                            <text x="200" y="240" fill="#cbd5e1" font-size="11" text-anchor="middle">雙眼（眼神定力）</text>
+
+                            <!-- 鼻子（審辨官） -->
+                            <path d="M 200,210 L 200,290 Q 200,315 185,315 Q 200,325 215,315 Z" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="2"/>
+                            <text x="200" y="305" fill="#fde68a" font-size="11" font-weight="bold" text-anchor="middle">準頭</text>
+
+                            <!-- 嘴巴（出納官） -->
+                            <path d="M 165,370 Q 200,385 235,370 Q 200,395 165,370 Z" fill="#b91c1c" stroke="#f87171" stroke-width="1.5"/>
+                            <text x="200" y="380" fill="#fca5a5" font-size="10" text-anchor="middle">口唇</text>
+
+                            <!-- 地閣（下巴 / 51歲後） -->
+                            <ellipse cx="200" cy="440" rx="45" ry="20" fill="rgba(16, 185, 129, 0.12)" stroke="rgba(16, 185, 129, 0.4)"/>
+                            <text x="200" y="445" fill="#6ee7b7" font-size="12" font-weight="bold" text-anchor="middle">地閣（下停・晚成底蘊）</text>
+                        </svg>
+                        <div class="court-tip">💡 臉部三停劃分：天庭主早年學業，中停主中年拼搏，地閣主後勁蓄積！</div>
+                    </div>
+
+                    <!-- 三停六府詳解 -->
+                    <div class="three-zones-grid" id="threeZonesGrid">
+                        <!-- 由 JS 渲染三停詳細資料 -->
+                    </div>
+                </div>
+
+                <!-- 五官解析網格 -->
+                <h3 class="section-subheading">👁️ 五官（五大採審監出官）深入辨析</h3>
+                <div class="officials-grid" id="fiveOfficialsGrid">
+                    <!-- 由 JS 渲染五官 -->
+                </div>
+
+                <!-- 相由心生科學對照 -->
+                <h3 class="section-subheading">🧬 「相由心生」現代認知神經學對照與調養</h3>
+                <div id="mindsetScienceBox">
+                    <!-- 由 JS 渲染心法卡 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ===============================================================
+             第三殿堂：易道變易殿（易經八卦）
+             =============================================================== -->
+        <section id="sec-iching" class="mystic-section">
+            <div class="section-banner">
+                <h2>☯️ 易道變易殿：宇宙運行的動態演算法與決策樹</h2>
+                <p>三千年前的二進制（0 與 1）！六十四卦是 64 種人生決策博弈的狀態矩陣。透過文王金錢課起卦，感受事物從現狀（本卦）、過程暗流（互卦）到未來走勢（變卦）的動態推演！</p>
+            </div>
+
+            <!-- 太極旋轉與文王金錢課擲銅錢舞台 -->
+            <div class="iching-hero-grid">
+                <!-- 左側太極八卦二進制 -->
+                <div class="taiji-wheel-box glass-panel">
+                    <div class="taiji-disc"></div>
+                    <h3 style="color: var(--gold-bright); margin-bottom: 8px;">陰陽太極二進制模型</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+                        陰爻（⚋ = 0）與陽爻（⚊ = 1）。萊布尼茲正是由易經八卦啟發，創立了現代資訊技術的底層二進制運算。易經不是占卜騙術，而是嚴密的宇宙系統變異動態學！
+                    </p>
+                </div>
+
+                <!-- 右側金錢課互動模擬器 -->
+                <div class="coin-toss-stage glass-panel">
+                    <h3 class="stage-title">🪙 文王金錢課・六爻起卦機</h3>
+                    <p class="stage-subtitle">每次拋擲三枚古銅錢，連續 6 次由下至上疊出專屬卦象！</p>
+
+                    <!-- 三枚銅錢視圖 -->
+                    <div class="coins-row">
+                        <div class="coin-disc" id="coin1">天</div>
+                        <div class="coin-disc" id="coin2">地</div>
+                        <div class="coin-disc" id="coin3">天</div>
+                    </div>
+
+                    <div class="coin-actions">
+                        <button class="btn btn-gold" id="tossCoinsBtn">🎲 搖動龜甲・拋擲銅錢（第 1 爻）</button>
+                        <button class="btn btn-mystic" id="resetCoinsBtn">🔄 重新起卦</button>
+                    </div>
+
+                    <!-- 六爻構建歷史 -->
+                    <div class="yao-history-container" id="yaoHistoryList">
+                        <!-- 由 JS 動態生成六爻歷史 -->
+                    </div>
+
+                    <!-- 卦象解析結果區域 -->
+                    <div id="hexagramResultBox">
+                        <div class="empty-prompt">請點擊上方按鈕拋擲三枚銅錢，連續 6 次即可演繹出專屬的六爻卦象！</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 八卦基本元模組展示 -->
+            <h3 class="section-subheading">🌀 先天八卦基本元模組（二進制碼 000 ~ 111）</h3>
+            <div class="trigrams-cards-grid" id="baguaTrigramsList">
+                <!-- 由 JS 渲染八卦基本元 -->
+            </div>
+
+            <!-- 64 卦隨選速查器 -->
+            <div class="lookup-section glass-panel">
+                <h3 style="color: var(--gold-bright); margin-bottom: 12px;">📖 六十四卦高中白話決策手冊速查</h3>
+                <div class="lookup-selectors-row">
+                    <div class="form-group">
+                        <label for="lookupUpperTri">上卦（外在環境態勢）</label>
+                        <select id="lookupUpperTri"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lookupLowerTri">下卦（內在自我心境）</label>
+                        <select id="lookupLowerTri"></select>
+                    </div>
+                </div>
+                <div id="lookupResultBox">
+                    <!-- 由 JS 動態更新 64 卦解析 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ===============================================================
+             第四殿堂：天機大考驗（趣味闖關與每日靈籤）
+             =============================================================== -->
+        <section id="sec-quiz" class="mystic-section">
+            <div class="section-banner">
+                <h2>🪷 天機大考驗：融會貫通與每日靈光</h2>
+                <p>驗收你的玄學與現代生活思維！透過 10 道有趣的校園情境題，看你是否真正參透了紫微星性、相術微表情與易經動態決策之道。</p>
+            </div>
+
+            <div class="quiz-section-wrapper">
+                <!-- 互動問答容器 -->
+                <div id="quizContainer">
+                    <!-- 由 JS 渲染測驗題目 -->
+                </div>
+
+                <!-- 每日乾坤靈光籤 -->
+                <div class="oracle-stage glass-panel">
+                    <h3 style="font-family: var(--font-heading); color: var(--gold-bright); font-size: 24px; margin-bottom: 8px;">🎋 今日天機靈光籤</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">靜心默想當前心中所繫之事（段考？志願？人際迷茫？），抽取今日份的易理與心法指引。</p>
+                    <button class="btn btn-gold" id="drawOracleBtn">🎴 抽取今日靈光籤</button>
+                    <div id="oracleResultContainer"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===============================================================
+             第五殿堂：大師心法閣（現代哲學與總結）
+             =============================================================== -->
+        <section id="sec-philo" class="mystic-section">
+            <div class="section-banner">
+                <h2>📜 大師心法閣：知命而不認命的青年哲學</h2>
+                <p>「君子知命，是以不憂；君子知幾，是以不疑。」古老東方玄學對現代高中生而言，絕不是消極被動的宿命論，而是最頂級的自我認知與時間管理智慧！</p>
+            </div>
+
+            <div class="philosophy-grid">
+                <div class="philo-card glass-panel">
+                    <h3>💡 1. 什麼是真正的「知命」？</h3>
+                    <p>
+                        在現代心理學中，叫作<strong>「精確自我認知（Self-Awareness）」</strong>。
+                        紫微斗數讓你看清自己是『殺破狼』般的冒險開拓型，還是『機月同梁』般的冷靜策劃型；
+                        手相面相讓你看清自己的生理抗壓極限與專注節奏。
+                        知道自己擅長什麼、弱點在哪裡，就不會盲目跟著別人內耗卷題，找到最適合自己的主戰場！
+                    </p>
+                </div>
+
+                <div class="philo-card glass-panel">
+                    <h3>🛡️ 2. 為什麼說「不知易，不足以言大醫與名相」？</h3>
+                    <p>
+                        易經核心在於<strong>「變易（Change）」與「不易（Constant）」</strong>。
+                        高一高二覺得難如登天的題目，到了高三可能一眼看穿；今天成績排第一，若傲慢自滿明天就可能跌倒（亢龍有悔）；
+                        今天考砸了，只要找回自律的微習慣，明天就是重生的起點（地雷復）。
+                        懂得週期規律的人，面對挫折絕不崩潰，面對巔峰絕不狂妄，這就是最強大的抗壓心態！
+                    </p>
+                </div>
+
+                <div class="philo-card glass-panel">
+                    <h3>✨ 3. 命運到底掌握在誰手裡？</h3>
+                    <p>
+                        <strong>「天命有常，應之以治則吉，應之以亂則凶。」</strong>
+                        天盤與八字是發到你手裡的一副牌，但怎麼打這副牌，全憑你每一天的意志抉擇與行動！
+                        相由心生，境由心造。當你早睡早起、挺拔胸膛、以正向而堅定的心態面對每一次挑戰時，
+                        你的眼神、你的氣色、你的命運線條，就已經在悄然被你親手改寫！
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 頁腳 -->
+    <footer class="site-footer">
+        <p>天機玄學閣・現代青年白話典藏館 ｜ 融匯紫微斗數・相術乾坤・易道八卦</p>
+        <p class="seal-text">天行健，君子以自強不息；地勢坤，君子以厚德載物。</p>
+        <p style="font-size: 11px; opacity: 0.6; margin-top: 6px;">Tom Chen Project Hub 專屬典藏作品 ｜ 本地靜態運行專用</p>
+    </footer>
+
+    <!-- 模組腳本載入 -->
+    <script src="js/audio.js"></script>
+    <script src="js/ziwei.js"></script>
+    <script src="js/physiognomy.js"></script>
+    <script src="js/iching.js"></script>
+    <script src="js/quiz.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- 切換手相/面相按鈕交互腳本補全 -->
+    <script>
+        document.getElementById("btnShowPalm").addEventListener("click", function() {
+            document.getElementById("btnShowPalm").classList.add("active");
+            document.getElementById("btnShowFace").classList.remove("active");
+            document.getElementById("palmistryView").style.display = "block";
+            document.getElementById("physiognomyView").style.display = "none";
+            if (window.mysticAudio) window.mysticAudio.playStarGlitter();
+        });
+
+        document.getElementById("btnShowFace").addEventListener("click", function() {
+            document.getElementById("btnShowFace").classList.add("active");
+            document.getElementById("btnShowPalm").classList.remove("active");
+            document.getElementById("palmistryView").style.display = "none";
+            document.getElementById("physiognomyView").style.display = "block";
+            if (window.mysticAudio) window.mysticAudio.playStarGlitter();
+        });
+    </script>
+</body>
+</html>
