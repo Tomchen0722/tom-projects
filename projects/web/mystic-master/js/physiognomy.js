@@ -228,8 +228,307 @@ const PhysiognomySystem = {
             }
         },
 
+        // 電腦視覺手掌輪廓與暗紋掃描萃取器（Computer Vision Crease & Landmark Detector）
+        detectPalmFeaturesFromImage: function(ctx, w, h, preferredHandSide) {
+            const imgData = ctx.getImageData(0, 0, w, h);
+            const data = imgData.data;
+
+            // 1. 膚色空間判定（有效分離各類背景、坐墊與冷白日光環境）
+            const skinMask = new Uint8Array(w * h);
+            const gray = new Float32Array(w * h);
+            let skinCount = 0;
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    const r = data[idx];
+                    const g = data[idx + 1];
+                    const b = data[idx + 2];
+                    gray[y * w + x] = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                    // 膚色判定：手掌特徵為紅光顯著高於綠光，過濾綠黃坐墊
+                    const isSkin = ((r - g) >= 8) && (r > 60) && (b > 35);
+                    if (isSkin) {
+                        skinMask[y * w + x] = 1;
+                        skinCount++;
+                    }
+                }
+            }
+
+            // 2. 判定左手或右手 (Left Hand vs Right Hand Orientation)
+            // 比較上方兩側角落膚色比例：左手上方左側為虎口外緣空隙（低膚色），右上側為小指與掌緣（高膚色）
+            const cornerW = Math.max(10, Math.round(w * 0.25));
+            const cornerH = Math.max(10, Math.round(h * 0.25));
+            let tlSkin = 0, trSkin = 0;
+            for (let y = 0; y < cornerH; y++) {
+                for (let x = 0; x < cornerW; x++) {
+                    if (skinMask[y * w + x]) tlSkin++;
+                    if (skinMask[y * w + (w - 1 - x)]) trSkin++;
+                }
+            }
+
+            let isLeftHand = tlSkin <= trSkin;
+            if (preferredHandSide === "left") isLeftHand = true;
+            if (preferredHandSide === "right") isLeftHand = false;
+
+            // 3. 局部暗線微紋掃描取樣函式 (Local Dark Crease Valley Scanner)
+            const R = Math.max(3, Math.round(w / 55));
+            const findDarkestPointInBox = (x1, y1, x2, y2, defaultX, defaultY) => {
+                let bestX = defaultX;
+                let bestY = defaultY;
+                let maxScore = -999;
+                const step = 2;
+                const startX = Math.max(R + 1, Math.round(x1));
+                const endX = Math.min(w - R - 2, Math.round(x2));
+                const startY = Math.max(R + 1, Math.round(y1));
+                const endY = Math.min(h - R - 2, Math.round(y2));
+
+                for (let y = startY; y <= endY; y += step) {
+                    for (let x = startX; x <= endX; x += step) {
+                        const centerVal = gray[y * w + x];
+                        const avgNeighbor = (
+                            gray[(y - R) * w + x] + gray[(y + R) * w + x] +
+                            gray[y * w + (x - R)] + gray[y * w + (x + R)]
+                        ) / 4;
+                        const score = avgNeighbor - centerVal; // 越暗 score 越正
+                        if (score > maxScore && score > 2.0) {
+                            maxScore = score;
+                            bestX = x;
+                            bestY = y;
+                        }
+                    }
+                }
+                return { x: Math.round(bestX), y: Math.round(bestY), score: maxScore };
+            };
+
+            // 4. 根據解剖學掌骨比例與暗紋掃描定位主副線
+            let lines = {};
+            let mounts = [];
+
+            if (isLeftHand) {
+                // ===== 左手配置（大拇指在左側，小指在右側） =====
+                // 1. 感情線（天紋）：從小指下方外緣（右上側）橫向左延伸，微拱向食指與中指下方
+                const heartStart = findDarkestPointInBox(
+                    w * 0.78, h * 0.22, w * 0.94, h * 0.35,
+                    Math.round(w * 0.88), Math.round(h * 0.29)
+                );
+                const heartCp1 = findDarkestPointInBox(
+                    w * 0.58, h * 0.22, w * 0.74, h * 0.34,
+                    Math.round(w * 0.66), Math.round(h * 0.28)
+                );
+                const heartEnd = findDarkestPointInBox(
+                    w * 0.40, h * 0.14, w * 0.54, h * 0.26,
+                    Math.round(w * 0.47), Math.round(h * 0.20)
+                );
+
+                // 2. 智慧線（人紋）：從虎口（左側食指與拇指間）橫貫掌心向右下平緩微降
+                const headStart = findDarkestPointInBox(
+                    w * 0.28, h * 0.34, w * 0.40, h * 0.44,
+                    Math.round(w * 0.34), Math.round(h * 0.39)
+                );
+                const headCp1 = findDarkestPointInBox(
+                    w * 0.46, h * 0.40, w * 0.60, h * 0.52,
+                    Math.round(w * 0.53), Math.round(h * 0.46)
+                );
+                const headEnd = findDarkestPointInBox(
+                    w * 0.65, h * 0.45, w * 0.82, h * 0.58,
+                    Math.round(w * 0.74), Math.round(h * 0.51)
+                );
+
+                // 3. 生命線（地紋）：與智慧線同源於虎口，弧形向下環繞金星丘（拇指大魚際）
+                const lifeStart = { x: headStart.x, y: headStart.y };
+                const lifeCp1 = findDarkestPointInBox(
+                    w * 0.36, h * 0.50, w * 0.48, h * 0.64,
+                    Math.round(w * 0.42), Math.round(h * 0.57)
+                );
+                const lifeCp2 = findDarkestPointInBox(
+                    w * 0.32, h * 0.68, w * 0.44, h * 0.82,
+                    Math.round(w * 0.38), Math.round(h * 0.75)
+                );
+                const lifeEnd = findDarkestPointInBox(
+                    w * 0.24, h * 0.78, w * 0.36, h * 0.90,
+                    Math.round(w * 0.30), Math.round(h * 0.84)
+                );
+
+                // 4. 事業線（玉柱命運線）：由手腕掌底中央垂直升向中指下方土星丘
+                const fateStart = findDarkestPointInBox(
+                    w * 0.46, h * 0.74, w * 0.58, h * 0.88,
+                    Math.round(w * 0.52), Math.round(h * 0.80)
+                );
+                const fateCp1 = findDarkestPointInBox(
+                    w * 0.48, h * 0.40, w * 0.58, h * 0.52,
+                    Math.round(w * 0.53), Math.round(h * 0.46)
+                );
+                const fateEnd = findDarkestPointInBox(
+                    w * 0.46, h * 0.16, w * 0.56, h * 0.28,
+                    Math.round(w * 0.51), Math.round(h * 0.22)
+                );
+
+                // 5. 太陽線（六秀線）：無名指下方垂直下行
+                const sunStart = { x: Math.round(w * 0.65), y: Math.round(h * 0.45) };
+                const sunEnd = { x: Math.round(w * 0.65), y: Math.round(h * 0.22) };
+
+                lines = {
+                    life: { start: lifeStart, cp1: lifeCp1, cp2: lifeCp2, end: lifeEnd },
+                    head: { start: headStart, cp1: headCp1, end: headEnd },
+                    heart: { start: heartStart, cp1: heartCp1, end: heartEnd },
+                    fate: { start: fateStart, cp1: fateCp1, end: fateEnd },
+                    sun: { start: sunStart, end: sunEnd }
+                };
+
+                // 八大掌丘座標（左手）
+                mounts = [
+                    { id: "jupiter", name: "木星丘", x: Math.round(w * 0.36), y: Math.round(h * 0.21), r: Math.round(w * 0.08), element: "木", icon: "🌱", role: "統率雄心・權柄抱負", score: 95 },
+                    { id: "saturn", name: "土星丘", x: Math.round(w * 0.51), y: Math.round(h * 0.19), r: Math.round(w * 0.08), element: "土", icon: "⛰️", role: "深謀沉潛・風控紀律", score: 92 },
+                    { id: "apollo", name: "太陽丘", x: Math.round(w * 0.66), y: Math.round(h * 0.21), r: Math.round(w * 0.08), element: "火", icon: "☀️", role: "行業名望・無形資產", score: 94 },
+                    { id: "mercury", name: "水星丘", x: Math.round(w * 0.81), y: Math.round(h * 0.25), r: Math.round(w * 0.07), element: "水", icon: "💧", role: "財帛商機・合約談判", score: 91 },
+                    { id: "venus", name: "金星丘", x: Math.round(w * 0.26), y: Math.round(h * 0.58), r: Math.round(w * 0.14), element: "金", icon: "❤️", role: "元氣底蘊・生理抗壓", score: 96 },
+                    { id: "luna", name: "月丘", x: Math.round(w * 0.75), y: Math.round(h * 0.66), r: Math.round(w * 0.13), element: "水", icon: "🌙", role: "全球視野・戰略直覺", score: 93 },
+                    { id: "mars1", name: "第一火星丘", x: Math.round(w * 0.34), y: Math.round(h * 0.38), r: Math.round(w * 0.07), element: "火", icon: "⚔️", role: "進取魄力・開闢主帥", score: 90 },
+                    { id: "mars2", name: "第二火星丘", x: Math.round(w * 0.78), y: Math.round(h * 0.42), r: Math.round(w * 0.07), element: "火", icon: "🛡️", role: "危機防禦・抗壓堅守", score: 92 }
+                ];
+            } else {
+                // ===== 右手配置（大拇指在右側，小指在左側） =====
+                // 1. 感情線（天紋）：從小指下方外緣（左上側）橫向右延伸
+                const heartStart = findDarkestPointInBox(
+                    w * 0.06, h * 0.22, w * 0.22, h * 0.35,
+                    Math.round(w * 0.12), Math.round(h * 0.29)
+                );
+                const heartCp1 = findDarkestPointInBox(
+                    w * 0.26, h * 0.22, w * 0.42, h * 0.34,
+                    Math.round(w * 0.34), Math.round(h * 0.28)
+                );
+                const heartEnd = findDarkestPointInBox(
+                    w * 0.46, h * 0.14, w * 0.60, h * 0.26,
+                    Math.round(w * 0.53), Math.round(h * 0.20)
+                );
+
+                // 2. 智慧線（人紋）：從右側虎口橫貫掌心向左下微垂
+                const headStart = findDarkestPointInBox(
+                    w * 0.60, h * 0.34, w * 0.72, h * 0.44,
+                    Math.round(w * 0.66), Math.round(h * 0.39)
+                );
+                const headCp1 = findDarkestPointInBox(
+                    w * 0.40, h * 0.40, w * 0.54, h * 0.52,
+                    Math.round(w * 0.47), Math.round(h * 0.46)
+                );
+                const headEnd = findDarkestPointInBox(
+                    w * 0.18, h * 0.45, w * 0.35, h * 0.58,
+                    Math.round(w * 0.26), Math.round(h * 0.51)
+                );
+
+                // 3. 生命線（地紋）：右側虎口向下環繞金星丘
+                const lifeStart = { x: headStart.x, y: headStart.y };
+                const lifeCp1 = findDarkestPointInBox(
+                    w * 0.52, h * 0.50, w * 0.64, h * 0.64,
+                    Math.round(w * 0.58), Math.round(h * 0.57)
+                );
+                const lifeCp2 = findDarkestPointInBox(
+                    w * 0.56, h * 0.68, w * 0.68, h * 0.82,
+                    Math.round(w * 0.62), Math.round(h * 0.75)
+                );
+                const lifeEnd = findDarkestPointInBox(
+                    w * 0.64, h * 0.78, w * 0.76, h * 0.90,
+                    Math.round(w * 0.70), Math.round(h * 0.84)
+                );
+
+                // 4. 事業線：由手腕掌底中央升向中指下方
+                const fateStart = findDarkestPointInBox(
+                    w * 0.42, h * 0.74, w * 0.54, h * 0.88,
+                    Math.round(w * 0.48), Math.round(h * 0.80)
+                );
+                const fateCp1 = findDarkestPointInBox(
+                    w * 0.42, h * 0.40, w * 0.52, h * 0.52,
+                    Math.round(w * 0.47), Math.round(h * 0.46)
+                );
+                const fateEnd = findDarkestPointInBox(
+                    w * 0.44, h * 0.16, w * 0.54, h * 0.28,
+                    Math.round(w * 0.49), Math.round(h * 0.22)
+                );
+
+                // 5. 太陽線
+                const sunStart = { x: Math.round(w * 0.35), y: Math.round(h * 0.45) };
+                const sunEnd = { x: Math.round(w * 0.35), y: Math.round(h * 0.22) };
+
+                lines = {
+                    life: { start: lifeStart, cp1: lifeCp1, cp2: lifeCp2, end: lifeEnd },
+                    head: { start: headStart, cp1: headCp1, end: headEnd },
+                    heart: { start: heartStart, cp1: heartCp1, end: heartEnd },
+                    fate: { start: fateStart, cp1: fateCp1, end: fateEnd },
+                    sun: { start: sunStart, end: sunEnd }
+                };
+
+                // 八大掌丘座標（右手）
+                mounts = [
+                    { id: "jupiter", name: "木星丘", x: Math.round(w * 0.64), y: Math.round(h * 0.21), r: Math.round(w * 0.08), element: "木", icon: "🌱", role: "統率雄心・權柄抱負", score: 95 },
+                    { id: "saturn", name: "土星丘", x: Math.round(w * 0.49), y: Math.round(h * 0.19), r: Math.round(w * 0.08), element: "土", icon: "⛰️", role: "深謀沉潛・風控紀律", score: 92 },
+                    { id: "apollo", name: "太陽丘", x: Math.round(w * 0.34), y: Math.round(h * 0.21), r: Math.round(w * 0.08), element: "火", icon: "☀️", role: "行業名望・無形資產", score: 94 },
+                    { id: "mercury", name: "水星丘", x: Math.round(w * 0.19), y: Math.round(h * 0.25), r: Math.round(w * 0.07), element: "水", icon: "💧", role: "財帛商機・合約談判", score: 91 },
+                    { id: "venus", name: "金星丘", x: Math.round(w * 0.74), y: Math.round(h * 0.58), r: Math.round(w * 0.14), element: "金", icon: "❤️", role: "元氣底蘊・生理抗壓", score: 96 },
+                    { id: "luna", name: "月丘", x: Math.round(w * 0.25), y: Math.round(h * 0.66), r: Math.round(w * 0.13), element: "水", icon: "🌙", role: "全球視野・戰略直覺", score: 93 },
+                    { id: "mars1", name: "第一火星丘", x: Math.round(w * 0.66), y: Math.round(h * 0.38), r: Math.round(w * 0.07), element: "火", icon: "⚔️", role: "進取魄力・開闢主帥", score: 90 },
+                    { id: "mars2", name: "第二火星丘", x: Math.round(w * 0.22), y: Math.round(h * 0.42), r: Math.round(w * 0.07), element: "火", icon: "🛡️", role: "危機防禦・抗壓堅守", score: 92 }
+                ];
+            }
+
+            // 5. 計算流年節點
+            this.recalculateAges(lines);
+
+            return {
+                isLeftHand,
+                bounds: { w, h },
+                lines,
+                mounts
+            };
+        },
+
+        // 動態重算貝茲曲線沿線流年節點（支援拖曳後即時聯動）
+        recalculateAges: function(lines) {
+            const bezierPt = (p0, p1, p2, p3, t) => {
+                const mt = 1 - t;
+                return {
+                    x: Math.round(mt * mt * mt * p0.x + 3 * mt * mt * t * p1.x + 3 * mt * t * t * p2.x + t * t * t * p3.x),
+                    y: Math.round(mt * mt * mt * p0.y + 3 * mt * mt * t * p1.y + 3 * mt * t * t * p2.y + t * t * t * p3.y)
+                };
+            };
+
+            const quadPt = (p0, p1, p2, t) => {
+                const mt = 1 - t;
+                return {
+                    x: Math.round(mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x),
+                    y: Math.round(mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y)
+                };
+            };
+
+            if (lines.life) {
+                const p0 = lines.life.start;
+                const p1 = lines.life.cp1;
+                const p2 = lines.life.cp2;
+                const p3 = lines.life.end;
+                lines.life.ages = [
+                    { age: 20, ...bezierPt(p0, p1, p2, p3, 0.18), desc: "青年奠基・元氣充沛立身" },
+                    { age: 30, ...bezierPt(p0, p1, p2, p3, 0.34), desc: "立業搏擊・身心抗壓高峰" },
+                    { age: 40, ...bezierPt(p0, p1, p2, p3, 0.50), desc: "不惑厚重・自律調養關鍵" },
+                    { age: 50, ...bezierPt(p0, p1, p2, p3, 0.66), desc: "知命鼎盛・固本培元守成" },
+                    { age: 60, ...bezierPt(p0, p1, p2, p3, 0.80), desc: "耳順泰然・元氣綿長益壽" },
+                    { age: 70, ...bezierPt(p0, p1, p2, p3, 0.94), desc: "古稀享福・福澤深厚安祥" }
+                ];
+            }
+
+            if (lines.fate) {
+                const fp0 = lines.fate.start;
+                const fp1 = lines.fate.cp1;
+                const fp2 = lines.fate.end;
+                lines.fate.ages = [
+                    { age: 30, ...quadPt(fp0, fp1, fp2, 0.40), desc: "三十立志・主幹成形扎根" },
+                    { age: 35, ...quadPt(fp0, fp1, fp2, 0.58), desc: "交會人紋・重大戰略轉折破局" },
+                    { age: 50, ...quadPt(fp0, fp1, fp2, 0.80), desc: "交會天紋・基業鼎盛名望長青" }
+                ];
+            }
+        },
+
         // 分析圖像並生成座標、幾何與全息診斷報告
-        analyzeImage: function(canvas, imgElement, presetKey) {
+        analyzeImage: function(canvas, imgElement, presetKey, preferredHandSide) {
             const w = canvas.width;
             const h = canvas.height;
             const seed = presetKey || (imgElement ? (imgElement.src ? imgElement.src.length % 97 : 42) : 42);
@@ -241,92 +540,111 @@ const PhysiognomySystem = {
                 presetData = this.presets[presetKey];
             }
 
-            // 手掌核心幾何區域估算（基於手掌黃金比例標準解剖架構）
-            const cx = w * 0.48;
-            const cy = h * 0.54;
-            const palmW = w * 0.62;
-            const palmH = h * 0.56;
-            const wristY = cy + palmH * 0.44;
-            const knuckleY = cy - palmH * 0.44;
+            let geomResult;
 
-            // 1. 生命線（地紋）幾何曲線與流年歲數點
-            const lifeStart = { x: cx - palmW * 0.22, y: knuckleY + palmH * 0.28 };
-            const lifeCp1 = { x: cx - palmW * 0.05, y: cy - palmH * 0.05 };
-            const lifeCp2 = { x: cx - palmW * 0.06, y: cy + palmH * 0.28 };
-            const lifeEnd = isPreset && presetKey === "pioneer" 
-                ? { x: cx + palmW * 0.12, y: wristY - palmH * 0.02 } // 奔向月丘驛馬
-                : { x: cx - palmW * 0.15, y: wristY - palmH * 0.04 };
+            if (isPreset) {
+                // 預設經典範本掌相幾何
+                const cx = w * 0.48;
+                const cy = h * 0.54;
+                const palmW = w * 0.62;
+                const palmH = h * 0.56;
+                const wristY = cy + palmH * 0.44;
+                const knuckleY = cy - palmH * 0.44;
 
-            // 流年歲數刻度節點（20, 30, 40, 50, 60, 70歲）
-            const lifeAges = [
-                { age: 20, x: cx - palmW * 0.18, y: knuckleY + palmH * 0.38, desc: "青年立基期・精力充沛奠基" },
-                { age: 30, x: cx - palmW * 0.11, y: cy - palmH * 0.02, desc: "立業搏擊期・身心抗壓峰值" },
-                { age: 40, x: cx - palmW * 0.07, y: cy + palmH * 0.14, desc: "不惑厚重期・自律調養關鍵" },
-                { age: 50, x: cx - palmW * 0.08, y: cy + palmH * 0.26, desc: "知命鼎盛期・固本培元守成" },
-                { age: 60, x: cx - palmW * 0.11, y: cy + palmH * 0.35, desc: "耳順泰然期・元氣綿長益壽" },
-                { age: 70, x: cx - palmW * 0.14, y: wristY - palmH * 0.08, desc: "古稀享福期・福澤深厚安祥" }
-            ];
+                const lifeStart = { x: Math.round(cx - palmW * 0.22), y: Math.round(knuckleY + palmH * 0.28) };
+                const lifeCp1 = { x: Math.round(cx - palmW * 0.05), y: Math.round(cy - palmH * 0.05) };
+                const lifeCp2 = { x: Math.round(cx - palmW * 0.06), y: Math.round(cy + palmH * 0.28) };
+                const lifeEnd = presetKey === "pioneer" 
+                    ? { x: Math.round(cx + palmW * 0.12), y: Math.round(wristY - palmH * 0.02) }
+                    : { x: Math.round(cx - palmW * 0.15), y: Math.round(wristY - palmH * 0.04) };
 
-            // 2. 智慧線（人紋）幾何曲線
-            const headStart = { x: cx - palmW * 0.22, y: knuckleY + palmH * 0.30 };
-            const headCp1 = { x: cx - palmW * 0.04, y: cy + palmH * 0.02 };
-            const headEnd = isPreset && presetKey === "leader"
-                ? { x: cx + palmW * 0.34, y: cy + palmH * 0.06 } // 平直理性貫穿
-                : (isPreset && presetKey === "pioneer"
-                    ? { x: cx + palmW * 0.30, y: cy + palmH * 0.22 } // 燕尾下垂博弈
-                    : { x: cx + palmW * 0.28, y: cy + palmH * 0.16 }); // 溫潤下垂
+                const lifeAges = [
+                    { age: 20, x: Math.round(cx - palmW * 0.18), y: Math.round(knuckleY + palmH * 0.38), desc: "青年立基期・精力充沛奠基" },
+                    { age: 30, x: Math.round(cx - palmW * 0.11), y: Math.round(cy - palmH * 0.02), desc: "立業搏擊期・身心抗壓峰值" },
+                    { age: 40, x: Math.round(cx - palmW * 0.07), y: Math.round(cy + palmH * 0.14), desc: "不惑厚重期・自律調養關鍵" },
+                    { age: 50, x: Math.round(cx - palmW * 0.08), y: Math.round(cy + palmH * 0.26), desc: "知命鼎盛期・固本培元守成" },
+                    { age: 60, x: Math.round(cx - palmW * 0.11), y: Math.round(cy + palmH * 0.35), desc: "耳順泰然期・元氣綿長益壽" },
+                    { age: 70, x: Math.round(cx - palmW * 0.14), y: Math.round(wristY - palmH * 0.08), desc: "古稀享福期・福澤深厚安祥" }
+                ];
 
-            // 3. 感情線（天紋）幾何曲線
-            const heartStart = { x: cx + palmW * 0.38, y: knuckleY + palmH * 0.24 };
-            const heartCp1 = { x: cx + palmW * 0.08, y: knuckleY + palmH * 0.18 };
-            const heartEnd = isPreset && presetKey === "leader"
-                ? { x: cx - palmW * 0.14, y: knuckleY + palmH * 0.04 } // 直指木星丘
-                : { x: cx - palmW * 0.08, y: knuckleY + palmH * 0.08 }; // 指縫中庸
+                const headStart = { x: Math.round(cx - palmW * 0.22), y: Math.round(knuckleY + palmH * 0.30) };
+                const headCp1 = { x: Math.round(cx - palmW * 0.04), y: Math.round(cy + palmH * 0.02) };
+                const headEnd = presetKey === "leader"
+                    ? { x: Math.round(cx + palmW * 0.34), y: Math.round(cy + palmH * 0.06) }
+                    : (presetKey === "pioneer"
+                        ? { x: Math.round(cx + palmW * 0.30), y: Math.round(cy + palmH * 0.22) }
+                        : { x: Math.round(cx + palmW * 0.28), y: Math.round(cy + palmH * 0.16) });
 
-            // 4. 事業線 / 玉柱命運線（垂直貫穿）
-            const fateStart = isPreset && presetKey === "pioneer"
-                ? { x: cx + palmW * 0.20, y: wristY - palmH * 0.06 } // 自月丘起
-                : { x: cx + palmW * 0.02, y: wristY - palmH * 0.04 }; // 自掌底坎宮起
-            const fateCp1 = { x: cx + palmW * 0.01, y: cy + palmH * 0.18 };
-            const fateEnd = { x: cx - palmW * 0.02, y: knuckleY + palmH * 0.04 }; // 直奔土星丘
-            const fateAges = [
-                { age: 30, x: cx + palmW * 0.01, y: cy + palmH * 0.16, desc: "三十立志・主幹成形破土" },
-                { age: 35, x: cx, y: cy + palmH * 0.03, desc: "交會智慧線・重大戰略轉折與破局" },
-                { age: 50, x: cx - palmW * 0.01, y: knuckleY + palmH * 0.14, desc: "交會感情線・基業穩固與鼎盛榮耀" }
-            ];
+                const heartStart = { x: Math.round(cx + palmW * 0.38), y: Math.round(knuckleY + palmH * 0.24) };
+                const heartCp1 = { x: Math.round(cx + palmW * 0.08), y: Math.round(knuckleY + palmH * 0.18) };
+                const heartEnd = presetKey === "leader"
+                    ? { x: Math.round(cx - palmW * 0.14), y: Math.round(knuckleY + palmH * 0.04) }
+                    : { x: Math.round(cx - palmW * 0.08), y: Math.round(knuckleY + palmH * 0.08) };
 
-            // 5. 太陽線（成功名望線）
-            const sunStart = { x: cx + palmW * 0.15, y: cy + palmH * 0.10 };
-            const sunEnd = { x: cx + palmW * 0.14, y: knuckleY + palmH * 0.06 };
+                const fateStart = presetKey === "pioneer"
+                    ? { x: Math.round(cx + palmW * 0.20), y: Math.round(wristY - palmH * 0.06) }
+                    : { x: Math.round(cx + palmW * 0.02), y: Math.round(wristY - palmH * 0.04) };
+                const fateCp1 = { x: Math.round(cx + palmW * 0.01), y: Math.round(cy + palmH * 0.18) };
+                const fateEnd = { x: Math.round(cx - palmW * 0.02), y: Math.round(knuckleY + palmH * 0.04) };
+                const fateAges = [
+                    { age: 30, x: Math.round(cx + palmW * 0.01), y: Math.round(cy + palmH * 0.16), desc: "三十立志・主幹成形破土" },
+                    { age: 35, x: Math.round(cx), y: Math.round(cy + palmH * 0.03), desc: "交會智慧線・重大戰略轉折與破局" },
+                    { age: 50, x: Math.round(cx - palmW * 0.01), y: Math.round(knuckleY + palmH * 0.14), desc: "交會感情線・基業穩固與鼎盛榮耀" }
+                ];
 
-            // 6. 八大掌丘座標與能量
-            const mounts = [
-                { id: "jupiter", name: "木星丘", x: cx - palmW * 0.14, y: knuckleY + palmH * 0.06, r: palmW * 0.09, element: "木", icon: "🌱", role: "權柄統率・雄心壯志", score: 95 },
-                { id: "saturn", name: "土星丘", x: cx - palmW * 0.02, y: knuckleY + palmH * 0.04, r: palmW * 0.08, element: "土", icon: "⛰️", role: "深謀沉潛・風控紀律", score: 92 },
-                { id: "apollo", name: "太陽丘", x: cx + palmW * 0.14, y: knuckleY + palmH * 0.06, r: palmW * 0.08, element: "火", icon: "☀️", role: "行業名望・無形資產", score: 94 },
-                { id: "mercury", name: "水星丘", x: cx + palmW * 0.28, y: knuckleY + palmH * 0.12, r: palmW * 0.07, element: "水", icon: "💧", role: "財帛商機・合約談判", score: 91 },
-                { id: "venus", name: "金星丘", x: cx - palmW * 0.15, y: cy + palmH * 0.16, r: palmW * 0.14, element: "金", icon: "❤️", role: "元氣庫存・心理韌性", score: 96 },
-                { id: "luna", name: "月丘", x: cx + palmW * 0.22, y: cy + palmH * 0.24, r: palmW * 0.13, element: "水", icon: "🌙", role: "全球視野・戰略直覺", score: 93 },
-                { id: "mars1", name: "第一火星丘", x: cx - palmW * 0.16, y: cy - palmH * 0.06, r: palmW * 0.07, element: "火", icon: "⚔️", role: "進取魄力・開闢先鋒", score: 90 },
-                { id: "mars2", name: "第二火星丘", x: cx + palmW * 0.26, y: cy + palmH * 0.06, r: palmW * 0.07, element: "火", icon: "🛡️", role: "危機防禦・抗壓堅守", score: 92 }
-            ];
+                const sunStart = { x: Math.round(cx + palmW * 0.15), y: Math.round(cy + palmH * 0.10) };
+                const sunEnd = { x: Math.round(cx + palmW * 0.14), y: Math.round(knuckleY + palmH * 0.06) };
 
-            // 整合生成診斷數據
-            const score = presetData ? presetData.score : (88 + (seed % 10));
-            const auspiciousTier = presetData ? presetData.auspiciousTier : "上吉・乾健鼎盛格";
-            const handType = presetData ? presetData.handType : (
-                seed % 3 === 0 ? "金形掌（方正乾健）" : (seed % 3 === 1 ? "木形掌（修長雅致）" : "土形掌（厚重沉穩）")
+                const mounts = [
+                    { id: "jupiter", name: "木星丘", x: Math.round(cx - palmW * 0.14), y: Math.round(knuckleY + palmH * 0.06), r: palmW * 0.09, element: "木", icon: "🌱", role: "權柄統率・雄心壯志", score: 95 },
+                    { id: "saturn", name: "土星丘", x: Math.round(cx - palmW * 0.02), y: Math.round(knuckleY + palmH * 0.04), r: palmW * 0.08, element: "土", icon: "⛰️", role: "深謀沉潛・風控紀律", score: 92 },
+                    { id: "apollo", name: "太陽丘", x: Math.round(cx + palmW * 0.14), y: Math.round(knuckleY + palmH * 0.06), r: palmW * 0.08, element: "火", icon: "☀️", role: "行業名望・無形資產", score: 94 },
+                    { id: "mercury", name: "水星丘", x: Math.round(cx + palmW * 0.28), y: Math.round(knuckleY + palmH * 0.12), r: palmW * 0.07, element: "水", icon: "💧", role: "財帛商機・合約談判", score: 91 },
+                    { id: "venus", name: "金星丘", x: Math.round(cx - palmW * 0.15), y: Math.round(cy + palmH * 0.16), r: palmW * 0.14, element: "金", icon: "❤️", role: "元氣庫存・心理韌性", score: 96 },
+                    { id: "luna", name: "月丘", x: Math.round(cx + palmW * 0.22), y: Math.round(cy + palmH * 0.24), r: palmW * 0.13, element: "水", icon: "🌙", role: "全球視野・戰略直覺", score: 93 },
+                    { id: "mars1", name: "第一火星丘", x: Math.round(cx - palmW * 0.16), y: Math.round(cy - palmH * 0.06), r: palmW * 0.07, element: "火", icon: "⚔️", role: "進取魄力・開闢先鋒", score: 90 },
+                    { id: "mars2", name: "第二火星丘", x: Math.round(cx + palmW * 0.26), y: Math.round(cy + palmH * 0.06), r: palmW * 0.07, element: "火", icon: "🛡️", role: "危機防禦・抗壓堅守", score: 92 }
+                ];
+
+                geomResult = {
+                    isLeftHand: true,
+                    bounds: { cx, cy, palmW, palmH, wristY, knuckleY },
+                    lines: {
+                        life: { start: lifeStart, cp1: lifeCp1, cp2: lifeCp2, end: lifeEnd, ages: lifeAges },
+                        head: { start: headStart, cp1: headCp1, end: headEnd },
+                        heart: { start: heartStart, cp1: heartCp1, end: heartEnd },
+                        fate: { start: fateStart, cp1: fateCp1, end: fateEnd, ages: fateAges },
+                        sun: { start: sunStart, end: sunEnd }
+                    },
+                    mounts
+                };
+            } else {
+                // 真實照片電腦視覺動態辨識與掌紋暗線掃描
+                const ctx = canvas.getContext("2d");
+                geomResult = this.detectPalmFeaturesFromImage(ctx, w, h, preferredHandSide);
+            }
+
+            // 整合生成正統大師診斷數據
+            const score = presetData ? presetData.score : (89 + (seed % 9));
+            const auspiciousTier = presetData ? presetData.auspiciousTier : (
+                score >= 94 ? "上上吉・乾健鼎盛富貴格" : (score >= 90 ? "大吉・明珠出海破局格" : "吉格・厚積薄發長青格")
             );
+            const handType = presetData ? presetData.handType : (
+                seed % 3 === 0 ? "金形掌（方正乾健）" : (seed % 3 === 1 ? "木形掌（修長清秀）" : "土形掌（厚重沉雄）")
+            );
+            const handSideText = geomResult.isLeftHand ? "左手（先天命格・先天元氣秉賦）" : "右手（後天修為・事業實戰運籌）";
 
             const report = {
                 score: score,
                 auspiciousTier: auspiciousTier,
                 handType: handType,
-                title: presetData ? presetData.title : "天造英華・乾坤立命大吉掌相",
-                summary: `此掌相骨相清奇，肌理潤澤彈韌。掌心平原開闢如砥，乾兌艮巽八卦相生朝拱。三大主線深秀明澈，玉柱事業線縱貫乾坤，展現出「自律甚嚴、志向高遠、厚積薄發」之棟樑格局。`,
+                handSide: handSideText,
+                isLeftHand: geomResult.isLeftHand,
+                title: presetData ? presetData.title : `天造英華・${handSideText.split("（")[0]}相法大吉格`,
+                summary: `此掌相骨相清奇，肌理潤澤彈韌。電腦視覺精準捕捉掌心平原與三大主線深秀明澈之暗紋走勢，玉柱事業線縱貫乾坤，展現出「自律甚嚴、志向高遠、厚積薄發」之棟樑格局。`,
                 careerLine: {
                     name: "玉柱命運線（事業線）",
-                    startPoint: presetData ? (presetKey === "pioneer" ? "太陰丘斜升（貴人相助型）" : "掌底坎宮筆直直上（自主實業型）") : "掌底手腕上方挺拔貫頂",
+                    startPoint: geomResult.isLeftHand ? "掌底坎宮筆直挺拔貫頂" : "自掌底手腕上方長驅直上",
                     trend: "直指中指土星丘基底，中途穩健貫通智慧線與感情線",
                     analysis: presetData ? presetData.features.career : "玉柱線深秀直貫掌心，象徵自驅力極度充沛，行事目標明確、不為外界浮躁雜音所惑。35歲交會智慧線處紋理深秀，提示35歲前後將迎來事業重大戰略破局與自主掌舵窗口；50歲後更臻爐火純青，乃成大器、立長青基業之吉相。",
                     keyAges: [
@@ -360,17 +678,7 @@ const PhysiognomySystem = {
             };
 
             return {
-                geometry: {
-                    cx, cy, palmW, palmH, wristY, knuckleY,
-                    lines: {
-                        life: { start: lifeStart, cp1: lifeCp1, cp2: lifeCp2, end: lifeEnd, ages: lifeAges },
-                        head: { start: headStart, cp1: headCp1, end: headEnd },
-                        heart: { start: heartStart, cp1: heartCp1, end: heartEnd },
-                        fate: { start: fateStart, cp1: fateCp1, end: fateEnd, ages: fateAges },
-                        sun: { start: sunStart, end: sunEnd }
-                    },
-                    mounts: mounts
-                },
+                geometry: geomResult,
                 report: report
             };
         },
@@ -458,8 +766,8 @@ const PhysiognomySystem = {
             ctx.stroke();
         },
 
-        // 疊加繪製掃描線條、掌丘標籤與流年刻度
-        renderOverlays: function(canvas, analysis, layers, activeHighlight) {
+        // 疊加繪製掃描線條、線上深度解說標籤、掌丘標籤與流年刻度
+        renderOverlays: function(canvas, analysis, layers, activeHighlight, isCalibMode) {
             const ctx = canvas.getContext("2d");
             const geom = analysis.geometry;
             const lines = geom.lines;
@@ -477,9 +785,9 @@ const PhysiognomySystem = {
 
                 if (isGlow) {
                     ctx.shadowColor = color;
-                    ctx.shadowBlur = 14;
+                    ctx.shadowBlur = 16;
                 } else {
-                    ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
                     ctx.shadowBlur = 4;
                 }
 
@@ -495,108 +803,238 @@ const PhysiognomySystem = {
                 ctx.restore();
             };
 
+            // 輔助繪製精緻線上解說徽章標籤 (Callout Badge on Line)
+            const drawLineBadge = (x, y, text, subtext, color, bgColor) => {
+                ctx.save();
+                ctx.font = "bold 12px 'Noto Serif TC', sans-serif";
+                const textW = ctx.measureText(text).width;
+                ctx.font = "10px sans-serif";
+                const subW = subtext ? ctx.measureText(subtext).width : 0;
+                const boxW = Math.max(textW, subW) + 20;
+                const boxH = subtext ? 32 : 22;
+
+                let drawX = x;
+                let drawY = y - boxH / 2;
+                if (drawX + boxW > canvas.width - 10) drawX = canvas.width - boxW - 10;
+                if (drawX < 10) drawX = 10;
+                if (drawY < 10) drawY = 10;
+
+                // 膠囊底色
+                ctx.fillStyle = bgColor || "rgba(255, 255, 255, 0.92)";
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.6;
+                ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+                ctx.shadowBlur = 8;
+
+                ctx.beginPath();
+                ctx.roundRect(drawX, drawY, boxW, boxH, 8);
+                ctx.fill();
+                ctx.stroke();
+
+                // 主標題
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = color;
+                ctx.font = "bold 11.5px 'Noto Serif TC', sans-serif";
+                ctx.fillText(text, drawX + 10, drawY + (subtext ? 13 : 15));
+
+                // 副說明
+                if (subtext) {
+                    ctx.fillStyle = "#443831";
+                    ctx.font = "9.5px sans-serif";
+                    ctx.fillText(subtext, drawX + 10, drawY + 26);
+                }
+                ctx.restore();
+            };
+
+            // 輔助繪製可拖曳微調控制節點 (Draggable Anchor Pins)
+            const drawCalibHandle = (pt, color, label) => {
+                ctx.save();
+                ctx.fillStyle = "#ffffff";
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2.5;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (label) {
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = "#292524";
+                    ctx.font = "bold 10px sans-serif";
+                    ctx.fillText(label, pt.x + 9, pt.y + 4);
+                }
+                ctx.restore();
+            };
+
             // 1. 生命線（綠色）
             if (layers.all || layers.life) {
                 const hl = activeHighlight === "life";
-                drawGlowPath(lines.life, "#10b981", hl ? 5.5 : 4.0, false, hl);
+                drawGlowPath(lines.life, "#10b981", hl ? 6.0 : 4.5, false, hl);
                 
-                // 標註生命線文字標籤
-                ctx.fillStyle = "#047857";
-                ctx.font = "bold 13px 'Noto Serif TC', sans-serif";
-                ctx.fillText("🌿 生命線（地紋）", lines.life.end.x - 55, lines.life.end.y + 16);
+                // 線上解說標籤
+                drawLineBadge(
+                    lines.life.cp2.x - 110, lines.life.cp2.y,
+                    "🌿 地紋・生命線",
+                    "元氣庫存・心理抗壓韌性卓越",
+                    "#047857",
+                    "rgba(240, 253, 244, 0.95)"
+                );
 
-                // 繪製流年歲數刻度
+                // 繪製流年歲數刻度節點
                 if (layers.all || layers.ages || layers.life) {
                     lines.life.ages.forEach(item => {
                         ctx.save();
                         ctx.fillStyle = "#10b981";
                         ctx.strokeStyle = "#ffffff";
-                        ctx.lineWidth = 1.8;
+                        ctx.lineWidth = 2;
                         ctx.beginPath();
-                        ctx.arc(item.x, item.y, 4.5, 0, Math.PI * 2);
+                        ctx.arc(item.x, item.y, 5, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.stroke();
 
                         ctx.fillStyle = "#064e3b";
-                        ctx.font = "11px sans-serif";
-                        ctx.fillText(`${item.age}歲`, item.x - 26, item.y + 3);
+                        ctx.font = "bold 10.5px sans-serif";
+                        ctx.fillText(`${item.age}歲`, item.x - 26, item.y + 3.5);
                         ctx.restore();
                     });
+                }
+
+                // 微調手柄
+                if (isCalibMode) {
+                    drawCalibHandle(lines.life.start, "#10b981", "生命起點");
+                    drawCalibHandle(lines.life.cp1, "#10b981", "弧度1");
+                    drawCalibHandle(lines.life.cp2, "#10b981", "弧度2");
+                    drawCalibHandle(lines.life.end, "#10b981", "生命終點");
                 }
             }
 
             // 2. 智慧線（藍色）
             if (layers.all || layers.head) {
                 const hl = activeHighlight === "head";
-                drawGlowPath(lines.head, "#2563eb", hl ? 5.5 : 4.0, false, hl);
-                ctx.fillStyle = "#1d4ed8";
-                ctx.font = "bold 13px 'Noto Serif TC', sans-serif";
-                ctx.fillText("🧠 智慧線（人紋）", lines.head.end.x + 8, lines.head.end.y + 5);
+                drawGlowPath(lines.head, "#2563eb", hl ? 6.0 : 4.5, false, hl);
+                
+                // 線上解說標籤
+                drawLineBadge(
+                    lines.head.end.x - 20, lines.head.end.y + 12,
+                    "🧠 人紋・智慧線",
+                    "決策定力・量化因果與戰略洞察",
+                    "#1d4ed8",
+                    "rgba(239, 246, 255, 0.95)"
+                );
+
+                if (isCalibMode) {
+                    drawCalibHandle(lines.head.start, "#2563eb", "智慧起點");
+                    drawCalibHandle(lines.head.cp1, "#2563eb", "中段");
+                    drawCalibHandle(lines.head.end, "#2563eb", "智慧終點");
+                }
             }
 
             // 3. 感情線（洋紅色）
             if (layers.all || layers.heart) {
                 const hl = activeHighlight === "heart";
-                drawGlowPath(lines.heart, "#db2777", hl ? 5.5 : 4.0, false, hl);
-                ctx.fillStyle = "#be185d";
-                ctx.font = "bold 13px 'Noto Serif TC', sans-serif";
-                ctx.fillText("❤️ 感情線（天紋）", lines.heart.start.x + 8, lines.heart.start.y + 4);
+                drawGlowPath(lines.heart, "#db2777", hl ? 6.0 : 4.5, false, hl);
+                
+                // 線上解說標籤
+                drawLineBadge(
+                    lines.heart.cp1.x - 30, lines.heart.cp1.y - 32,
+                    "❤️ 天紋・感情線",
+                    "情商共振・守諾重信・人脈長青",
+                    "#be185d",
+                    "rgba(253, 242, 248, 0.95)"
+                );
+
+                if (isCalibMode) {
+                    drawCalibHandle(lines.heart.start, "#db2777", "感情起點");
+                    drawCalibHandle(lines.heart.cp1, "#db2777", "中段");
+                    drawCalibHandle(lines.heart.end, "#db2777", "感情終點");
+                }
             }
 
             // 4. 事業線（琥珀金）
             if (layers.all || layers.fate) {
                 const hl = activeHighlight === "fate";
-                drawGlowPath(lines.fate, "#d97706", hl ? 5.5 : 3.8, true, hl);
-                ctx.fillStyle = "#b45309";
-                ctx.font = "bold 13px 'Noto Serif TC', sans-serif";
-                ctx.fillText("💼 玉柱事業線", lines.fate.start.x - 38, lines.fate.start.y + 18);
+                drawGlowPath(lines.fate, "#d97706", hl ? 6.0 : 4.2, true, hl);
+                
+                // 線上解說標籤
+                drawLineBadge(
+                    lines.fate.start.x + 12, lines.fate.start.y - 10,
+                    "💼 玉柱・事業線",
+                    "終身成就軌跡・自律自驅主帥",
+                    "#b45309",
+                    "rgba(254, 243, 199, 0.95)"
+                );
 
-                // 事業線交會歲運節點（30, 35, 50歲）
+                // 事業線關鍵轉折節點
                 if (layers.all || layers.ages || layers.fate) {
                     lines.fate.ages.forEach(node => {
                         ctx.save();
                         ctx.fillStyle = "#d97706";
                         ctx.strokeStyle = "#ffffff";
-                        ctx.lineWidth = 1.8;
+                        ctx.lineWidth = 2;
                         ctx.beginPath();
-                        ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
+                        ctx.arc(node.x, node.y, 6, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.stroke();
 
                         ctx.fillStyle = "#78350f";
                         ctx.font = "bold 11px sans-serif";
-                        ctx.fillText(`⚡${node.age}歲`, node.x + 8, node.y + 3);
+                        ctx.fillText(`⚡${node.age}歲`, node.x + 8, node.y + 4);
                         ctx.restore();
                     });
+                }
+
+                if (isCalibMode) {
+                    drawCalibHandle(lines.fate.start, "#d97706", "事業起點");
+                    drawCalibHandle(lines.fate.cp1, "#d97706", "35歲轉折");
+                    drawCalibHandle(lines.fate.end, "#d97706", "事業終點");
                 }
             }
 
             // 5. 太陽線（山吹黃）
             if (layers.all || layers.sun) {
                 const hl = activeHighlight === "sun";
-                drawGlowPath(lines.sun, "#ca8a04", hl ? 4.8 : 3.2, true, hl);
-                ctx.fillStyle = "#854d0e";
-                ctx.font = "bold 12px 'Noto Serif TC', sans-serif";
-                ctx.fillText("☀️ 太陽線", lines.sun.end.x - 18, lines.sun.end.y - 8);
+                drawGlowPath(lines.sun, "#ca8a04", hl ? 5.2 : 3.5, true, hl);
+                
+                // 線上解說標籤
+                drawLineBadge(
+                    lines.sun.end.x - 30, lines.sun.end.y - 28,
+                    "☀️ 六秀・太陽線",
+                    "行業名望・貴人相助無形資產",
+                    "#854d0e",
+                    "rgba(254, 252, 232, 0.95)"
+                );
+
+                if (isCalibMode) {
+                    drawCalibHandle(lines.sun.start, "#ca8a04", "太陽起");
+                    drawCalibHandle(lines.sun.end, "#ca8a04", "太陽終");
+                }
             }
 
             // 6. 八大掌丘光環與文字
             if (layers.all || layers.mounts) {
                 mounts.forEach(m => {
                     ctx.save();
-                    ctx.strokeStyle = "rgba(180, 83, 42, 0.4)";
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+                    ctx.strokeStyle = "rgba(180, 83, 42, 0.45)";
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
                     ctx.setLineDash([3, 3]);
-                    ctx.lineWidth = 1.2;
+                    ctx.lineWidth = 1.4;
                     ctx.beginPath();
                     ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.stroke();
 
-                    ctx.fillStyle = "#443831";
-                    ctx.font = "11px 'Noto Serif TC', sans-serif";
-                    ctx.textAlign = "middle";
-                    ctx.fillText(m.name, m.x - 16, m.y + 4);
+                    // 掌丘名稱標籤
+                    ctx.fillStyle = "#78350f";
+                    ctx.font = "bold 11px 'Noto Serif TC', sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText(`${m.icon} ${m.name}`, m.x, m.y + 4);
                     ctx.restore();
                 });
             }

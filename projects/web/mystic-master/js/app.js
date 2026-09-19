@@ -597,9 +597,11 @@ function initPhysiognomyModule() {
 // 真人掌相照片上傳與智能辨識中心控制器
 function initPalmUploadStudio() {
     const fileInput = document.getElementById("palmFileInput");
+    const cameraInput = document.getElementById("palmCameraInput");
     const dropZone = document.getElementById("palmDropZone");
     const btnBrowse = document.getElementById("btnBrowsePalm");
     const btnCamera = document.getElementById("btnCameraPalm");
+    const btnPaste = document.getElementById("btnPastePalm");
     const presetBtns = document.querySelectorAll(".btn-preset-palm");
     const canvas = document.getElementById("palmInteractiveCanvas");
     const scannerBar = document.getElementById("palmScannerBar");
@@ -613,6 +615,14 @@ function initPalmUploadStudio() {
     let customImgElement = null;
     let currentAnalysis = null;
     let activeHighlight = null;
+    let isCalibMode = true; // 預設開啟微調錨點，方便隨時拖曳校準
+    let preferredHandSide = "auto"; // "auto", "left", "right"
+    let draggingAnchor = null;
+
+    const btnToggleCalibPins = document.getElementById("btnToggleCalibPins");
+    const btnAutoSnapCreases = document.getElementById("btnAutoSnapCreases");
+    const btnToggleHandSide = document.getElementById("btnToggleHandSide");
+    const handSideLabel = document.getElementById("handSideLabel");
 
     let activeLayers = {
         all: true,
@@ -625,6 +635,12 @@ function initPalmUploadStudio() {
         ages: false
     };
 
+    function updateHandSideDisplay(isLeft) {
+        if (handSideLabel) {
+            handSideLabel.textContent = isLeft ? "左手（先天）" : "右手（後天）";
+        }
+    }
+
     function refreshCanvasView() {
         if (!currentAnalysis) return;
         if (currentMode === "preset") {
@@ -634,7 +650,7 @@ function initPalmUploadStudio() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(customImgElement, 0, 0, canvas.width, canvas.height);
         }
-        window.PhysiognomySystem.palmAnalyzer.renderOverlays(canvas, currentAnalysis, activeLayers, activeHighlight);
+        window.PhysiognomySystem.palmAnalyzer.renderOverlays(canvas, currentAnalysis, activeLayers, activeHighlight, isCalibMode);
     }
 
     function triggerScanAnimation(callback) {
@@ -661,7 +677,8 @@ function initPalmUploadStudio() {
 
         triggerScanAnimation(() => {
             window.PhysiognomySystem.palmAnalyzer.drawPresetToCanvas(presetKey, canvas);
-            currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, null, presetKey);
+            currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, null, presetKey, preferredHandSide);
+            updateHandSideDisplay(currentAnalysis.geometry.isLeftHand);
             refreshCanvasView();
             renderPalmReport(currentAnalysis.report);
         });
@@ -691,7 +708,8 @@ function initPalmUploadStudio() {
                 triggerScanAnimation(() => {
                     const ctx = canvas.getContext("2d");
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, img, null);
+                    currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, img, null, preferredHandSide);
+                    updateHandSideDisplay(currentAnalysis.geometry.isLeftHand);
                     refreshCanvasView();
                     renderPalmReport(currentAnalysis.report);
                 });
@@ -788,31 +806,70 @@ function initPalmUploadStudio() {
         }
     }
 
-    // 事件監聽綁定
+    // 1. 選擇照片按鈕（直接開啟檔案選擇器）
     if (btnBrowse && fileInput) {
         btnBrowse.addEventListener("click", (e) => {
+            e.preventDefault();
             e.stopPropagation();
-            fileInput.removeAttribute("capture");
             fileInput.click();
         });
     }
 
-    if (btnCamera && fileInput) {
+    // 2. 拍照 / 開啟相機按鈕
+    if (btnCamera) {
         btnCamera.addEventListener("click", (e) => {
+            e.preventDefault();
             e.stopPropagation();
-            fileInput.setAttribute("capture", "environment");
-            fileInput.click();
+            if (cameraInput) {
+                cameraInput.click();
+            } else if (fileInput) {
+                fileInput.setAttribute("capture", "environment");
+                fileInput.click();
+            }
         });
     }
 
+    // 3. 剪貼簿貼上照片按鈕（直接讀取剪貼簿或提示 Ctrl+V）
+    if (btnPaste) {
+        btnPaste.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                if (navigator.clipboard && navigator.clipboard.read) {
+                    const items = await navigator.clipboard.read();
+                    let foundImage = false;
+                    for (const item of items) {
+                        const imgType = item.types.find(t => t.startsWith("image/"));
+                        if (imgType) {
+                            const blob = await item.getType(imgType);
+                            runCustomImageAnalysis(blob);
+                            foundImage = true;
+                            break;
+                        }
+                    }
+                    if (!foundImage) {
+                        alert("📋 剪貼簿內目前沒有圖片資料。\n您可以先在電腦上複製手掌照片，或直接在此頁面按下鍵盤 Ctrl + V 貼上！");
+                    }
+                } else {
+                    alert("請直接在鍵盤上按下 Ctrl + V（或 Mac 的 ⌘ + V）即可貼上手掌截圖！");
+                }
+            } catch (err) {
+                console.warn("Clipboard access warning:", err);
+                alert("瀏覽器安全設定限制讀取剪貼簿，請直接按下鍵盤的 Ctrl + V（或 Command + V）貼上照片即可！");
+            }
+        });
+    }
+
+    // 4. 點擊上傳拖曳區（點擊按鈕以外的空白處）
     if (dropZone && fileInput) {
-        dropZone.addEventListener("click", () => {
-            fileInput.removeAttribute("capture");
+        dropZone.addEventListener("click", (e) => {
+            if (e.target.closest("#dropzoneActionButtons")) return;
             fileInput.click();
         });
 
         dropZone.addEventListener("dragover", (e) => {
             e.preventDefault();
+            e.stopPropagation();
             dropZone.classList.add("drag-over");
         });
 
@@ -822,18 +879,73 @@ function initPalmUploadStudio() {
 
         dropZone.addEventListener("drop", (e) => {
             e.preventDefault();
+            e.stopPropagation();
             dropZone.classList.remove("drag-over");
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                 runCustomImageAnalysis(e.dataTransfer.files[0]);
-            }
-        });
-
-        fileInput.addEventListener("change", (e) => {
-            if (e.target.files && e.target.files.length > 0) {
-                runCustomImageAnalysis(e.target.files[0]);
+            } else if (e.dataTransfer.items) {
+                for (let i = 0; i < e.dataTransfer.items.length; i++) {
+                    if (e.dataTransfer.items[i].kind === 'file') {
+                        const file = e.dataTransfer.items[i].getAsFile();
+                        if (file) {
+                            runCustomImageAnalysis(file);
+                            break;
+                        }
+                    }
+                }
             }
         });
     }
+
+    // 5. 檔案選擇器選擇後處理
+    if (fileInput) {
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                runCustomImageAnalysis(e.target.files[0]);
+                fileInput.value = "";
+            }
+        });
+    }
+
+    if (cameraInput) {
+        cameraInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                runCustomImageAnalysis(e.target.files[0]);
+                cameraInput.value = "";
+            }
+        });
+    }
+
+    // 6. 全域 Ctrl + V 剪貼簿貼上事件（支援任何時刻直接貼上）
+    window.addEventListener("paste", (e) => {
+        if (e.target.tagName === "INPUT" && (e.target.type === "text" || e.target.type === "number")) return;
+        if (e.target.tagName === "TEXTAREA") return;
+
+        if (e.clipboardData && e.clipboardData.items) {
+            for (let i = 0; i < e.clipboardData.items.length; i++) {
+                const item = e.clipboardData.items[i];
+                if (item.type && item.type.startsWith("image/")) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        e.preventDefault();
+                        // 若未在手相殿堂，自動切換至手相分頁
+                        const physTab = document.querySelector('.nav-tab-btn[data-target="sec-phys"]');
+                        if (physTab && !physTab.classList.contains("active")) {
+                            physTab.click();
+                        }
+                        const palmSubBtn = document.getElementById("btnShowPalm");
+                        if (palmSubBtn && !palmSubBtn.classList.contains("active")) {
+                            palmSubBtn.click();
+                        }
+                        runCustomImageAnalysis(file);
+                        const ws = document.getElementById("palmAnalysisWorkspace");
+                        if (ws) ws.scrollIntoView({ behavior: "smooth" });
+                        return;
+                    }
+                }
+            }
+        }
+    });
 
     presetBtns.forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -861,6 +973,168 @@ function initPalmUploadStudio() {
             if (window.mysticAudio) window.mysticAudio.playWoodTap();
         });
     });
+
+    // ----------------------------------------------------
+    // 掌紋微調錨點拖曳互動與校準工具列
+    // ----------------------------------------------------
+    if (btnToggleCalibPins) {
+        btnToggleCalibPins.addEventListener("click", () => {
+            isCalibMode = !isCalibMode;
+            btnToggleCalibPins.classList.toggle("active", isCalibMode);
+            refreshCanvasView();
+            if (window.mysticAudio) window.mysticAudio.playWoodTap();
+        });
+    }
+
+    if (btnAutoSnapCreases) {
+        btnAutoSnapCreases.addEventListener("click", () => {
+            if (currentMode === "custom" && customImgElement) {
+                triggerScanAnimation(() => {
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(customImgElement, 0, 0, canvas.width, canvas.height);
+                    currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, customImgElement, null, preferredHandSide);
+                    updateHandSideDisplay(currentAnalysis.geometry.isLeftHand);
+                    refreshCanvasView();
+                    renderPalmReport(currentAnalysis.report);
+                });
+            } else {
+                runPresetAnalysis(currentPresetKey);
+            }
+        });
+    }
+
+    if (btnToggleHandSide) {
+        btnToggleHandSide.addEventListener("click", () => {
+            if (preferredHandSide === "left") {
+                preferredHandSide = "right";
+            } else if (preferredHandSide === "right") {
+                preferredHandSide = "left";
+            } else {
+                const curIsLeft = currentAnalysis ? currentAnalysis.geometry.isLeftHand : true;
+                preferredHandSide = curIsLeft ? "right" : "left";
+            }
+            if (currentMode === "custom" && customImgElement) {
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(customImgElement, 0, 0, canvas.width, canvas.height);
+                currentAnalysis = window.PhysiognomySystem.palmAnalyzer.analyzeImage(canvas, customImgElement, null, preferredHandSide);
+                updateHandSideDisplay(currentAnalysis.geometry.isLeftHand);
+                refreshCanvasView();
+                renderPalmReport(currentAnalysis.report);
+            } else {
+                updateHandSideDisplay(preferredHandSide === "left");
+            }
+            if (window.mysticAudio) window.mysticAudio.playStarGlitter();
+        });
+    }
+
+    // 取得畫布實體像素座標（克服 CSS 響應式縮放）
+    function getCanvasCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    // 搜尋所有可拖曳錨點中距離最近者
+    function getNearestAnchor(canvasX, canvasY, threshold = 24) {
+        if (!currentAnalysis || !currentAnalysis.geometry || !currentAnalysis.geometry.lines) return null;
+        const lines = currentAnalysis.geometry.lines;
+        const candidates = [];
+
+        const checkPoint = (pt, lineKey, pointKey) => {
+            if (!pt) return;
+            const dist = Math.hypot(pt.x - canvasX, pt.y - canvasY);
+            if (dist <= threshold) {
+                candidates.push({ pt, lineKey, pointKey, dist });
+            }
+        };
+
+        if (lines.life) {
+            checkPoint(lines.life.start, "life", "start");
+            checkPoint(lines.life.cp1, "life", "cp1");
+            checkPoint(lines.life.cp2, "life", "cp2");
+            checkPoint(lines.life.end, "life", "end");
+        }
+        if (lines.head) {
+            checkPoint(lines.head.start, "head", "start");
+            checkPoint(lines.head.cp1, "head", "cp1");
+            checkPoint(lines.head.end, "head", "end");
+        }
+        if (lines.heart) {
+            checkPoint(lines.heart.start, "heart", "start");
+            checkPoint(lines.heart.cp1, "heart", "cp1");
+            checkPoint(lines.heart.end, "heart", "end");
+        }
+        if (lines.fate) {
+            checkPoint(lines.fate.start, "fate", "start");
+            checkPoint(lines.fate.cp1, "fate", "cp1");
+            checkPoint(lines.fate.end, "fate", "end");
+        }
+        if (lines.sun) {
+            checkPoint(lines.sun.start, "sun", "start");
+            checkPoint(lines.sun.end, "sun", "end");
+        }
+
+        if (candidates.length === 0) return null;
+        candidates.sort((a, b) => a.dist - b.dist);
+        return candidates[0];
+    }
+
+    function onPointerDown(e) {
+        if (!isCalibMode) return;
+        const coords = getCanvasCoords(e);
+        const hit = getNearestAnchor(coords.x, coords.y);
+        if (hit) {
+            draggingAnchor = hit;
+            canvas.style.cursor = "grabbing";
+            if (e.cancelable) e.preventDefault();
+        }
+    }
+
+    function onPointerMove(e) {
+        const coords = getCanvasCoords(e);
+        if (draggingAnchor) {
+            if (e.cancelable) e.preventDefault();
+            draggingAnchor.pt.x = Math.round(coords.x);
+            draggingAnchor.pt.y = Math.round(coords.y);
+            if (draggingAnchor.lineKey === "head" && draggingAnchor.pointKey === "start") {
+                if (currentAnalysis.geometry.lines.life) {
+                    currentAnalysis.geometry.lines.life.start.x = draggingAnchor.pt.x;
+                    currentAnalysis.geometry.lines.life.start.y = draggingAnchor.pt.y;
+                }
+            } else if (draggingAnchor.lineKey === "life" && draggingAnchor.pointKey === "start") {
+                if (currentAnalysis.geometry.lines.head) {
+                    currentAnalysis.geometry.lines.head.start.x = draggingAnchor.pt.x;
+                    currentAnalysis.geometry.lines.head.start.y = draggingAnchor.pt.y;
+                }
+            }
+            window.PhysiognomySystem.palmAnalyzer.recalculateAges(currentAnalysis.geometry.lines);
+            refreshCanvasView();
+        } else if (isCalibMode) {
+            const hit = getNearestAnchor(coords.x, coords.y);
+            canvas.style.cursor = hit ? "grab" : "crosshair";
+        }
+    }
+
+    function onPointerUp() {
+        if (draggingAnchor) {
+            draggingAnchor = null;
+            canvas.style.cursor = isCalibMode ? "grab" : "crosshair";
+        }
+    }
+
+    canvas.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("mousemove", onPointerMove);
+    window.addEventListener("mouseup", onPointerUp);
+
+    canvas.addEventListener("touchstart", onPointerDown, { passive: false });
+    window.addEventListener("touchmove", onPointerMove, { passive: false });
+    window.addEventListener("touchend", onPointerUp);
 
     // 預設載入帝王實業型掌相範本
     runPresetAnalysis("leader");
