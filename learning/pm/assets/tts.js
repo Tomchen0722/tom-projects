@@ -1,9 +1,10 @@
 /**
- * PM 專案管理 × 產品管理完全指南 — 智慧英文發音引擎 (TTS)
- * 1. 提供全局 speakEn(text, btn)：透過瀏覽器 Web Speech API 朗讀標準美式英語（en-US），語速 0.85x 舒適清晰。
- * 2. 自動標註發音按鈕：自動掃描頁面所有括號專有名詞、粗體英文術語、標題、表格名詞，插入 🔊 發音按鈕。
- * 3. 劃詞選取即時朗讀：滑鼠選取任何含英文文字時，自動浮現「🔊 朗讀發音」氣泡按鈕。
- * 4. 點擊播放中按鈕即時停止，具備微光動態回饋。
+ * PM 專案管理 × 產品管理完全指南 — 全方位英文發音引擎 (TTS)
+ * 1. 徹底覆蓋全站所有英文單字、縮寫與專有名詞（不限於括號），為每一處英文精準附加 🔊 發音按鈕與點擊朗讀。
+ * 2. 採用 Web Speech API 標準美式發音 (en-US)，語速 0.85x，音質清晰自然。
+ * 3. 英文詞彙本身亦可點擊朗讀 (.en-term)。
+ * 4. 支援滑鼠劃詞選取任意文字即時彈出浮動「🔊 朗讀發音」氣泡按鈕。
+ * 5. 正在播放時具備微光動態回饋，再點一次可隨時停止。
  */
 (function () {
   'use strict';
@@ -12,25 +13,36 @@
   var style = document.createElement('style');
   style.id = 'pm-tts-engine-styles';
   style.textContent = `
-    /* 行內英文發音小按鈕 */
+    /* 行內英文詞彙：懸停提示可點擊朗讀 */
+    .en-term {
+      border-bottom: 1px dotted rgba(234, 88, 12, 0.45);
+      cursor: pointer;
+      transition: color 0.15s ease, border-color 0.15s ease;
+    }
+    .en-term:hover {
+      color: #c2410c;
+      border-bottom-color: #c2410c;
+    }
+
+    /* 行內英文發音小按鈕 🔊 */
     .spk-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-left: 4px;
-      margin-right: 2px;
-      padding: 1px 5px;
+      margin-left: 2px;
+      margin-right: 3px;
+      padding: 0 4px;
       font-size: 0.72em;
-      line-height: 1.2;
+      line-height: 1.25;
       color: #ea580c;
       background: #fff7ed;
       border: 1px solid #fdba74;
       border-radius: 4px;
       cursor: pointer;
       user-select: none;
-      vertical-align: middle;
+      vertical-align: baseline;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
       text-decoration: none !important;
     }
     .spk-btn:hover {
@@ -124,10 +136,9 @@
     var t = raw;
     // 移除中文字符
     t = t.replace(/[\u4e00-\u9fa5]+/g, ' ');
-    // 替換特殊分隔符為自然停頓
+    // 替換特定符號
     t = t.replace(/[\/|\\]+/g, ', ');
-    // 移除括號與特殊標點符號
-    t = t.replace(/[（）()「」、。，；：？！\-_+=*&^%$#@~`><\[\]{}]/g, ' ');
+    t = t.replace(/[（）()「」、。，；：？！\-_+=*&^%$#@~`><\[\]{}【】]/g, ' ');
     t = t.replace(/\s+/g, ' ').trim();
     return t;
   }
@@ -179,8 +190,8 @@
 
   // 3. 建立 🔊 發音按鈕 DOM 元素
   function createSpkButton(getText, title) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
+    var btn = document.createElement('span');
+    btn.setAttribute('role', 'button');
     btn.className = 'spk-btn';
     btn.setAttribute('aria-label', '朗讀英文');
     btn.title = title || '點擊朗讀英文發音（再按一次停止）';
@@ -194,109 +205,111 @@
     return btn;
   }
 
-  // 4. 自動掃描頁面並附加發音按鈕
+  // 判斷是否為合格英文詞彙
+  function shouldSpeak(term) {
+    if (!term) return false;
+    var letters = (term.match(/[A-Za-z]/g) || []).length;
+    if (letters < 2) return false;
+
+    // 過濾檔案後綴或網址代碼
+    if (/\.(html|js|css|json|py|md|png|jpg|svg|co)$/i.test(term)) return false;
+    if (/^(http|https|file|mailto|ftp):/i.test(term)) return false;
+
+    // 過濾貨幣符號連綴
+    if (/^(US|NT|TWD|USD|RMB)\$/i.test(term)) return false;
+
+    // 過濾佔位符
+    if (/^(XX|YY|ZZ|ABC)$/i.test(term)) return false;
+
+    return true;
+  }
+
+  // 4. 全自動掃描文字節點並附加發音按鈕
   function autoAttachSpeechButtons() {
     var candidateContainers = document.querySelectorAll(
-      '.container p, .container li, .container td, .container th, .container h1, .container h2, .container h3, .container h4, .card p, .card li, .card td, .card th, .card h2, .card h3, .dual-card, .trophy'
+      '.hero, .intro-banner, .dual, .path, .card, .container'
     );
 
-    // 匹配 (English Term)
-    var parenRegex = /([\(（]([A-Za-z][A-Za-z0-9\s\-_\/'.&]{1,60})[\)）])/g;
+    var textNodes = [];
 
     candidateContainers.forEach(function (container) {
-      if (container.closest('pre') || container.closest('code') || container.dataset.spkScanned) return;
-      container.dataset.spkScanned = '1';
+      if (container.dataset.spkProcessed) return;
+      container.dataset.spkProcessed = '1';
 
       var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
-      var textNodes = [];
       var node;
       while ((node = walker.nextNode())) {
-        if (node.parentNode && (node.parentNode.nodeName === 'CODE' || node.parentNode.nodeName === 'PRE' || node.parentNode.classList.contains('spk-btn') || node.parentNode.id === 'pm-tts-badge')) {
+        var parent = node.parentNode;
+        if (!parent) continue;
+        // 排除程式碼區塊、導覽按鈕列、頁首、頁尾、已有按鈕的容器
+        if (parent.closest('pre, code, .code-box, .sim-board, .topbar, .nav-btns, footer, script, style, .spk-btn, #pm-tts-badge, #tts-selection-bubble')) {
           continue;
         }
         textNodes.push(node);
       }
-
-      textNodes.forEach(function (textNode) {
-        var text = textNode.nodeValue;
-        if (!text) return;
-        parenRegex.lastIndex = 0;
-
-        if (parenRegex.test(text)) {
-          parenRegex.lastIndex = 0;
-          var frag = document.createDocumentFragment();
-          var lastIndex = 0;
-          var match;
-          var found = false;
-
-          while ((match = parenRegex.exec(text)) !== null) {
-            var fullMatch = match[1];
-            var engTerm = match[2].trim();
-
-            var letterCount = (engTerm.match(/[A-Za-z]/g) || []).length;
-            if (letterCount < 2) continue;
-
-            found = true;
-            var beforeText = text.substring(lastIndex, match.index + fullMatch.length);
-            frag.appendChild(document.createTextNode(beforeText));
-
-            var btn = createSpkButton(engTerm, '點擊朗讀 ' + engTerm);
-            frag.appendChild(btn);
-
-            lastIndex = match.index + fullMatch.length;
-          }
-
-          if (found) {
-            if (lastIndex < text.length) {
-              frag.appendChild(document.createTextNode(text.substring(lastIndex)));
-            }
-            if (textNode.parentNode) {
-              textNode.parentNode.replaceChild(frag, textNode);
-            }
-          }
-        }
-      });
     });
 
-    // (B) 處理 <strong> 或 <b> 或 .tag 中純英文專有名詞（如 Jira, Trello, Scrum, WBS, EVM, PMP, PRD, MVP 等）
-    var inlineStrong = document.querySelectorAll('.container strong, .container b, .card strong, .card b, .tag, th');
-    inlineStrong.forEach(function (el) {
-      if (el.dataset.spkAttached || el.querySelector('.spk-btn')) return;
-      var text = el.textContent.trim();
-      // 去除可能已有的括號
-      var clean = cleanForSpeech(text);
-      var letterCount = (clean.match(/[A-Za-z]/g) || []).length;
-      var totalCount = clean.length;
-      
-      // 如果文字中英文字母占 70% 以上，且長度在 2~40 字元之間
-      if (letterCount >= 2 && (letterCount / totalCount >= 0.7) && clean.length <= 40) {
-        // 檢查後面是否已經緊接著一個按鈕或帶有括號的英文
-        var nextSib = el.nextSibling;
-        if (nextSib && nextSib.nodeType === 3 && /^\s*[\(（]/.test(nextSib.nodeValue)) {
-          // 後面有括號英文，由 Pattern A 處理，此處跳過避免重複按鈕
-          return;
-        }
-        el.dataset.spkAttached = '1';
-        var btn = createSpkButton(clean, '點擊朗讀 ' + clean);
-        el.parentNode.insertBefore(btn, el.nextSibling);
-      }
-    });
+    // 匹配英文單詞或連續英文片語
+    var engRegex = /\b([A-Za-z][A-Za-z0-9]*(?:['’\-_/][A-Za-z0-9]+)*(?:\s+[A-Za-z][A-Za-z0-9]*(?:['’\-_/][A-Za-z0-9]+)*)*)\b/g;
 
-    // (C) 處理標題包含純英文的卡片（如 h2 中的 Jira, Trello, WBS, PMP, PMO, PRD 等）
-    var headings = document.querySelectorAll('.card h2, .hero h1, .feature-box h3');
-    headings.forEach(function (h) {
-      if (h.dataset.spkAttached) return;
-      var engMatches = h.textContent.match(/\b([A-Za-z][A-Za-z0-9\s\-_.]{1,30})\b/g);
-      if (engMatches) {
-        engMatches.forEach(function (term) {
-          term = term.trim();
-          if (term.length >= 2 && !h.querySelector('.spk-btn')) {
-            var btn = createSpkButton(term, '點擊朗讀 ' + term);
-            h.appendChild(btn);
-          }
-        });
+    textNodes.forEach(function (textNode) {
+      var text = textNode.nodeValue;
+      if (!text) return;
+
+      engRegex.lastIndex = 0;
+      if (!engRegex.test(text)) return;
+      engRegex.lastIndex = 0;
+
+      var frag = document.createDocumentFragment();
+      var lastIndex = 0;
+      var match;
+      var found = false;
+
+      while ((match = engRegex.exec(text)) !== null) {
+        var term = match[1].trim();
+        // 避開 US$555 的情況
+        if (text[match.index + match[0].length] === '$' && (term === 'US' || term === 'NT' || term === 'TWD')) {
+          continue;
+        }
+        if (!shouldSpeak(term)) continue;
+
+        found = true;
+        // 前置文字
+        var beforeText = text.substring(lastIndex, match.index);
+        if (beforeText) {
+          frag.appendChild(document.createTextNode(beforeText));
+        }
+
+        // 英文詞彙本體包裝（點擊亦可朗讀）
+        var termSpan = document.createElement('span');
+        termSpan.className = 'en-term';
+        termSpan.textContent = term;
+        termSpan.title = '點擊聽發音: ' + term;
+        
+        var btn = createSpkButton(term, '點擊朗讀 ' + term);
+
+        (function (t, b) {
+          termSpan.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.speakEn(t, b);
+          });
+        })(term, btn);
+
+        frag.appendChild(termSpan);
+        frag.appendChild(btn);
+
+        lastIndex = match.index + match[0].length;
       }
-      h.dataset.spkAttached = '1';
+
+      if (found) {
+        if (lastIndex < text.length) {
+          frag.appendChild(document.createTextNode(text.substring(lastIndex)));
+        }
+        if (textNode.parentNode) {
+          textNode.parentNode.replaceChild(frag, textNode);
+        }
+      }
     });
   }
 
@@ -315,7 +328,6 @@
         var text = selection.toString().trim();
         var letters = (text.match(/[A-Za-z]/g) || []).length;
 
-        // 若選取的文字包含至少 2 個英文字母
         if (text && letters >= 2 && selection.rangeCount > 0) {
           selectedText = text;
           var range = selection.getRangeAt(0);
@@ -358,13 +370,13 @@
     if (document.getElementById('pm-tts-badge')) return;
     var badge = document.createElement('div');
     badge.id = 'pm-tts-badge';
-    badge.innerHTML = '🔊 <span>英文發音已就緒 · 點擊喇叭或反白聽讀</span><span class="tts-close" title="隱藏提示">✕</span>';
+    badge.innerHTML = '🔊 <span>英文發音已就緒 · 點擊喇叭或詞彙聽讀</span><span class="tts-close" title="隱藏提示">✕</span>';
     badge.onclick = function (e) {
       if (e.target.classList.contains('tts-close')) {
         badge.style.display = 'none';
         return;
       }
-      window.speakEn('Welcome to the complete guide for Project Management and Product Management. Happy learning!', null);
+      window.speakEn('Welcome to the PM Complete Guide. All English terms now have audio pronunciation.', null);
     };
     document.body.appendChild(badge);
   }
