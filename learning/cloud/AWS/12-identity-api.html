@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cognito / API Gateway / Organizations SCP — AWS SAA-C03</title>
+<title>Cognito / API Gateway / Organizations SCP 完全指南 — AWS SAA-C03</title>
 <link rel="stylesheet" href="assets/lesson.css">
 <style>
 .arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
@@ -18,6 +18,8 @@
 .vsbox{border-radius:10px;padding:14px 16px;border:1px solid var(--border);}
 .vsbox h4{margin:0 0 8px;font-size:.88rem;color:var(--orange);}
 .vsbox ul{margin:0;padding-left:16px;font-size:.82rem;color:var(--muted);line-height:1.8;}
+.code-blk{background:#1E293B;color:#E2E8F0;border-radius:8px;padding:14px 18px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.6;overflow-x:auto;margin:12px 0;}
+.cmd{background:#0F172A;color:#38BDF8;padding:12px 16px;border-radius:6px;font-family:"Cascadia Code","Consolas",monospace;font-size:.84rem;margin:10px 0;overflow-x:auto;}
 </style>
 </head>
 <body>
@@ -28,9 +30,9 @@
 </div>
 
 <div class="hero c2">
-  <div class="badge">實作 12 · 身分與 API</div>
-  <h1><span>Cognito</span>、API Gateway、Organizations <span>SCP</span></h1>
-  <p>身分管理、API 授權、組織治理——SAA-C03 最容易混淆的三個主題。本章用對比表和陷阱警示幫你釘住。</p>
+  <div class="badge">實作 12 · 身分認證與組織治理</div>
+  <h1><span>Cognito</span>、API Gateway、Organizations <span>SCP</span> 完全指南</h1>
+  <p>身分鑑別 (AuthN)、資源授權 (AuthZ)、微服務 API 邊界與跨帳號組織治理——SAA-C03 最容易混淆且失分率最高的三大主題。本章以泳道圖、權限評估交集矩陣與實戰排錯完整釘住！</p>
 </div>
 
 <div class="container">
@@ -38,247 +40,504 @@
   <div class="toc">
     <h2>本章目錄</h2>
     <ol>
-      <li><a href="#cognito-overview">Cognito 兩個池的本質差異</a></li>
-      <li><a href="#user-pool">User Pool 深入</a></li>
-      <li><a href="#identity-pool">Identity Pool 深入</a></li>
-      <li><a href="#apigw-types">API Gateway 三種類型</a></li>
-      <li><a href="#apigw-auth">API Gateway 三種授權方式</a></li>
-      <li><a href="#scp">Organizations SCP 邏輯與陷阱</a></li>
-      <li><a href="#patterns">常見架構模式</a></li>
+      <li><a href="#cognito-overview">Cognito 兩個池：本質定位與核心差異</a></li>
+      <li><a href="#user-pool">Cognito User Pool：三種 JWT Token 與進階功能</a></li>
+      <li><a href="#identity-pool">Cognito Identity Pool：STS 臨時憑證與精細化授權</a></li>
+      <li><a href="#apigw-types">API Gateway 三大類型深度選型決策</a></li>
+      <li><a href="#apigw-endpoints">API Gateway 三種端點類型（Edge vs Regional vs Private）</a></li>
+      <li><a href="#apigw-auth">API Gateway 三種授權防護機制全解</a></li>
+      <li><a href="#apigw-traffic">流量控制與防護：Usage Plans、Throttling 與快取</a></li>
+      <li><a href="#scp">AWS Organizations 與 SCP 階層繼承樹</a></li>
+      <li><a href="#evaluation">AWS IAM 權限評估決策流（Evaluation Logic）全景</a></li>
+      <li><a href="#trouble">常見認證與 API Gateway 故障排查手冊</a></li>
+      <li><a href="#patterns">SAA-C03 經典四大跨服務架構組合</a></li>
+      <li><a href="#traps">考試陷阱速查與關鍵字對照</a></li>
+      <li><a href="#lab">實作 Lab：CLI 建立 User Pool 與 API Gateway 驗證</a></li>
     </ol>
   </div>
 
   <!-- 1 -->
   <div class="card" id="cognito-overview">
-    <h2>1. Cognito 兩個池：一句話區分</h2>
-
-    <div class="formula"><code><b>User Pool</b> = 「你是誰？」 → 身分驗證（Authentication）→ 發 JWT Token<br>
-<b>Identity Pool</b> = 「你能做什麼？」 → AWS 資源存取授權 → 發 STS 臨時憑證</code></div>
+    <h2>1. Cognito 兩個池：本質定位與核心差異</h2>
+    <div class="formula"><code><b>User Pool (用戶池)</b> = 「你是誰？」 → <b>身分驗證 (Authentication / AuthN)</b> → 發放 <b>JWT Token</b><br>
+<b>Identity Pool (身分池)</b> = 「你能做什麼？」 → <b>授權 (Authorization / AuthZ)</b> → 發放 <b>AWS STS 臨時憑證</b></code></div>
 
     <div class="vs">
       <div class="vsbox">
-        <h4>Cognito User Pool（身分提供者）</h4>
+        <h4>Cognito User Pool (IdP 身分提供者)</h4>
         <ul>
-          <li>管理使用者帳號（Email/密碼）</li>
-          <li>支援 Google、Facebook、SAML SSO 整合</li>
-          <li>MFA、帳號驗證、密碼政策</li>
-          <li>登入後發 <strong>JWT Token</strong>（ID / Access / Refresh）</li>
-          <li>常搭配 API Gateway Cognito Authorizer</li>
+          <li>使用者資料庫目錄（儲存 Email、帳號、密碼雜湊、自訂屬性）。</li>
+          <li>內建註冊、忘記密碼、MFA、信箱簡訊驗證機制。</li>
+          <li>支援外部第三方社交登入（Google、Apple、Facebook）及企業 SAML 2.0 / OIDC SSO。</li>
+          <li>登入成功後，客戶端取得 <strong>三種 JWT Token</strong>（ID / Access / Refresh Token）。</li>
+          <li><b>無法直接調用底層 AWS 原生 API</b>（如不能直接拿 JWT 去 <code>s3:PutObject</code>）。</li>
         </ul>
       </div>
       <div class="vsbox">
-        <h4>Cognito Identity Pool（聯合身分）</h4>
+        <h4>Cognito Identity Pool (聯合身分聯合器)</h4>
         <ul>
-          <li>不儲存使用者帳號</li>
-          <li>接受外部身分（User Pool JWT、Google、Facebook、SAML、未認證）</li>
-          <li>換取 <strong>STS 臨時 IAM 憑證</strong></li>
-          <li>直接 call AWS API（S3、DynamoDB、Kinesis）</li>
-          <li>常用：手機 App 直接上傳到 S3</li>
+          <li><b>不儲存任何使用者帳密</b>，沒有使用者目錄。</li>
+          <li>作為身分轉換器：接收外部 Token 並向 AWS STS 換取 <strong>IAM 臨時憑證</strong>（AccessKeyId, SecretAccessKey, SessionToken）。</li>
+          <li>支援來源：Cognito User Pool、Google、Facebook、SAML、OpenID Connect、甚至是<b>未認證匿名訪客 (Guest)</b>。</li>
+          <li>換出的憑證具備關聯的 IAM Role，可以直接呼叫 S3、DynamoDB、Kinesis。</li>
+          <li>支援精細化行級權限（Row-Level Security / Column-Level Security）。</li>
         </ul>
       </div>
     </div>
 
-    <div class="trap"><b>最常考的組合：User Pool + Identity Pool</b><br>
-    使用者 → 在 <b>User Pool 登入</b>拿 JWT → 把 JWT 丟給 <b>Identity Pool</b> 換 STS 臨時憑證 → 用 STS 憑證直接存取 S3 / DynamoDB</div>
+    <div class="trap"><b>考試絕對高頻組合題：</b><br>
+    題目問：「行動 App 需要讓使用者透過 Facebook 或 Email 登入，並能直接將個人自拍照上傳到專屬的 S3 資料夾，且不經過任何後端伺服器 EC2/Lambda 中轉？」<br>
+    → <b>標準答案：Cognito User Pool（負責身分鑑別）+ Cognito Identity Pool（換發 STS 憑證並綁定 S3 權限政策）</b>！</div>
   </div>
 
   <!-- 2 -->
   <div class="card" id="user-pool">
-    <h2>2. User Pool 深入</h2>
+    <h2>2. Cognito User Pool：三種 JWT Token 與進階功能</h2>
+    <p>當使用者在 User Pool 成功通過身分鑑別後，AWS 會向客戶端發回三種標準 JSON Web Tokens (JWT)：</p>
 
-    <div class="arch"><span class="c">用戶端（手機 App / SPA）</span>
-  ↓  帳密 / 第三方 SSO 登入
-<span class="y">Cognito User Pool</span>
-  ↓  回傳 3 個 Token
-  ├── <span class="o">ID Token</span>（JWT）：包含使用者身分資訊（email、sub、groups）
-  ├── <span class="o">Access Token</span>（JWT）：用於呼叫受保護的 API
-  └── <span class="o">Refresh Token</span>：刷新 Access Token（預設 30 天）
-
-<span class="c">API Gateway</span>（設定 Cognito Authorizer）
-  └── 驗證 Access Token 的簽章和有效期 → 通過才放行</div>
-
-    <h3>Hosted UI</h3>
-    <p>User Pool 內建一個託管的登入頁（Cognito Hosted UI），不用自己寫登入介面。支援 OAuth 2.0 標準流程（Authorization Code + PKCE），可以自訂網域（如 <code>auth.yourapp.com</code>）。</p>
-
-    <h3>Triggers（Lambda 觸發器）</h3>
     <div class="tbl-wrap">
       <table class="t">
-        <thead><tr><th>觸發時機</th><th>用途</th></tr></thead>
+        <thead><tr><th>Token 類型</th><th>格式與特性</th><th>包含酬載內容 (Claims)</th><th>核心用途與目標</th></tr></thead>
         <tbody>
-          <tr><td>Pre Sign-up</td><td>自訂驗證邏輯（如：只允許公司域名 Email）</td></tr>
-          <tr><td>Post Confirmation</td><td>使用者確認帳號後，把使用者資料寫入 DynamoDB</td></tr>
-          <tr><td>Pre Token Generation</td><td>在 JWT Token 裡加入自訂屬性（如：使用者的訂閱層級）</td></tr>
-          <tr><td>Custom Authentication</td><td>自訂挑戰（如：簡訊驗證碼 OTP）</td></tr>
+          <tr>
+            <td><b>ID Token</b></td>
+            <td>JWT (經 RSA 私鑰簽章)</td>
+            <td>使用者個人身份檔案（<code>sub</code>, <code>email</code>, <code>cognito:groups</code>, 自訂屬性等）。</td>
+            <td><b>前端客戶端消費</b>。App 根據裡面的名字或頭像渲染使用者介面。</td>
+          </tr>
+          <tr>
+            <td><b>Access Token</b></td>
+            <td>JWT (經 RSA 私鑰簽章)</td>
+            <td>授權範圍（<code>scope</code>）、權限組別（<code>cognito:groups</code>）、發行者（<code>iss</code>）。<b>不包含用戶隱私欄位</b>。</td>
+            <td><b>呼叫後端 API Gateway</b>。API Gateway 的 Cognito Authorizer 主要以此 Token 驗證權限。</td>
+          </tr>
+          <tr>
+            <td><b>Refresh Token</b></td>
+            <td>非 JWT 加密字串</td>
+            <td>長期有效憑證（預設 30 天，可設 1 小時至 10 年）。</td>
+            <td>用於向 User Pool 換取全新的 ID Token 與 Access Token，使使用者不需頻繁重複輸入密碼。</td>
+          </tr>
         </tbody>
       </table>
+    </div>
+
+    <h3>Lambda 觸發器（Lambda Triggers）四大核心時機</h3>
+    <p>User Pool 的生命週期各個階段均可掛載 Lambda 函式注入客製化邏輯：</p>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>觸發時機 (Trigger)</th><th>執行時機點</th><th>典型企業實戰場景</th></tr></thead>
+        <tbody>
+          <tr><td><b>Pre Sign-up</b></td><td>使用者送出註冊表單，尚未寫入資料庫前</td><td><b>白名單驗證</b>：只允許公司特定網域（如 <code>@company.com</code>）註冊，拒絕其餘公開信箱。</td></tr>
+          <tr><td><b>Post Confirmation</b></td><td>使用者點擊驗證信或輸入簡訊驗證碼後</td><td><b>資料同步</b>：自動在 DynamoDB 建立新使用者專屬的檔案記錄，或發送 Slack 迎新通知。</td></tr>
+          <tr><td><b>Pre Token Generation</b></td><td>即將簽發 JWT Token 之前</td><td><b>動態加料</b>：向關聯式資料庫查詢用戶的 VIP 訂閱等級或角色，動態注入至 JWT Claims 中。</td></tr>
+          <tr><td><b>Custom Message</b></td><td>系統準備寄送驗證碼信件或簡訊前</td><td>客製化郵件主旨、樣板風格與企業 Logo。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>進階安全功能 (Advanced Security Features - ASF)</h3>
+    <div class="cmprow">
+      <div class="cmp"><b>外洩憑證檢查 (Compromised Credentials)</b><span>自動比對網路上黑客洩漏的公開帳密字典庫，若用戶使用外洩密碼，強制要求其重設密碼。</span></div>
+      <div class="cmp"><b>自適應風險驗證 (Adaptive Authentication)</b><span>監控用戶登入的 IP 位置、裝置特徵與時間。若判定為高風險可疑登入，動態強制觸發 SMS / TOTP 二次驗證 (MFA)。</span></div>
     </div>
   </div>
 
   <!-- 3 -->
   <div class="card" id="identity-pool">
-    <h2>3. Identity Pool 深入</h2>
+    <h2>3. Cognito Identity Pool：STS 臨時憑證與精細化授權</h2>
+    <p>Identity Pool 是連接外部身分與 AWS IAM 雲端資源的樞紐。以下為標準憑證交換時序圖：</p>
 
-    <div class="arch"><span class="c">App</span> → User Pool 拿 JWT
-       ↓
-<span class="y">Identity Pool</span>（設定信任的 User Pool）
-       ↓ 呼叫 STS:AssumeRoleWithWebIdentity
-<span class="o">STS</span> → 回傳臨時憑證（最長 12 小時）
-       ↓
-<span class="c">App 直接 call AWS API</span>（S3 / DynamoDB / Kinesis）</div>
+    <div class="arch"><span class="c">使用者 App</span>
+   │ 1. 帳號密碼登入
+   ▼
+<span class="y">Cognito User Pool</span> (或 Google / Facebook / SAML)
+   │ 2. 驗證成功，發送 JWT ID / Access Token
+   ▼
+<span class="c">使用者 App</span>
+   │ 3. 攜帶 JWT Token 呼叫 Identity Pool
+   ▼
+<span class="y">Cognito Identity Pool</span>
+   │ 4. 驗證 JWT 合法性，呼叫 STS: <span class="o">AssumeRoleWithWebIdentity</span>
+   ▼
+<span class="c">AWS STS (Security Token Service)</span>
+   │ 5. 回傳 IAM 臨時金鑰 (AccessKeyId, SecretAccessKey, SessionToken，有效期 1~12 小時)
+   ▼
+<span class="c">使用者 App (持有 STS 憑證)</span>
+   │ 6. 直連 AWS 資源，無需後端伺服器！
+   ├── 直接 `s3:PutObject` 上傳圖片至 S3
+   └── 直接 `dynamodb:PutItem` 寫入遙測數據</div>
 
-    <h3>精細化授權（Row-Level Security）</h3>
-    <div class="formula"><code>IAM Policy 中可以用 Cognito Sub 當條件：<br><br>
-{<br>
-  "Effect": "Allow",<br>
-  "Action": "s3:GetObject",<br>
-  "Resource": "arn:aws:s3:::my-bucket/<b>${cognito-identity.amazonaws.com:sub}</b>/*"<br>
-}<br><br>
-→ 每個使用者只能存取 S3 自己的「資料夾」，其他人的看不到</code></div>
-
-    <div class="trap"><b>Guest Access（未認證存取）</b><br>
-    Identity Pool 可以允許未登入的匿名使用者，給他們一個受限的 IAM Role（如只能讀公開內容）。這是 "Unauthenticated identities" 設定。</div>
+    <h3>精細化行級安全 (Row-Level Security) 實務政策</h3>
+    <div class="code-blk">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::my-secure-app-bucket/home/${cognito-identity.amazonaws.com:sub}/*"
+      ]
+    }
+  ]
+}</div>
+    <div class="note" style="background:#E3F2FD;color:#0D47A1;">
+      <span>💡</span>
+      <span>變數 <code>${cognito-identity.amazonaws.com:sub}</code> 是每個使用者在 Identity Pool 中的全域唯一識別碼。如此一來，只需寫一份通用 IAM Policy，數百萬使用者即可完全隔離在各自的 S3 目錄，絕無越權風險！</span>
+    </div>
   </div>
 
   <!-- 4 -->
   <div class="card" id="apigw-types">
-    <h2>4. API Gateway 三種類型</h2>
+    <h2>4. API Gateway 三大類型深度選型決策</h2>
     <div class="tbl-wrap">
       <table class="t">
-        <thead><tr><th>類型</th><th>協議</th><th>適合場景</th><th>考試關鍵點</th></tr></thead>
+        <thead><tr><th>評估特性</th><th>REST API（標準全功能）</th><th>HTTP API（新一代輕量級）</th><th>WebSocket API（雙向長連線）</th></tr></thead>
         <tbody>
           <tr>
-            <td><b>REST API</b></td>
-            <td>HTTP/HTTPS</td>
-            <td>標準 RESTful API，功能最完整（快取、使用量計劃、WAF 整合）</td>
-            <td>支援 API Key、Usage Plan（限流）；較貴</td>
+            <td><b>支援通訊協定</b></td>
+            <td>HTTP/1.1、RESTful</td>
+            <td>HTTP/1.1、HTTP/2</td>
+            <td>WebSocket（全雙工雙向通訊）</td>
           </tr>
           <tr>
-            <td><b>HTTP API</b></td>
-            <td>HTTP/HTTPS</td>
-            <td>低延遲輕量 API（比 REST API 便宜 70%），適合 Lambda + OIDC/JWT 授權</td>
-            <td>不支援 AWS WAF；不支援 API Key；支援 OIDC/OAuth 2.0 JWT Authorizer</td>
+            <td><b>每百萬次請求成本</b></td>
+            <td>$3.50 美元起</td>
+            <td><b>$1.00 美元（大幅節省 71% 費用）</b></td>
+            <td>$1.00 / 百萬次請求 + $0.25 / 百萬連線分鐘</td>
           </tr>
           <tr>
-            <td><b>WebSocket API</b></td>
-            <td>WebSocket</td>
-            <td>雙向即時通訊（聊天室、即時通知、遊戲）</td>
-            <td>連線管理用 connection ID；後端可 push 到客戶端</td>
+            <td><b>端到端呼叫延遲</b></td>
+            <td>一般（中等開銷）</td>
+            <td><b>超低延遲（極簡架構優化）</b></td>
+            <td>即時長連線低延遲</td>
+          </tr>
+          <tr>
+            <td><b>原生 AWS WAF 整合</b></td>
+            <td>✅ <b>完全支援</b></td>
+            <td>❌ 不支援（需掛 CloudFront 才能加 WAF）</td>
+            <td>✅ 支援</td>
+          </tr>
+          <tr>
+            <td><b>內建快取 (Cache Cluster)</b></td>
+            <td>✅ <b>支援</b>（可配置 0.5GB 到 237GB 快取）</td>
+            <td>❌ 不支援（需依靠 CloudFront 或後端快取）</td>
+            <td>❌ 不適用</td>
+          </tr>
+          <tr>
+            <td><b>Usage Plans 與 API Keys</b></td>
+            <td>✅ <b>支援</b>（按客戶發配 Key 並配額限制）</td>
+            <td>❌ 不支援</td>
+            <td>❌ 不支援</td>
+          </tr>
+          <tr>
+            <td><b>雙向資料推播</b></td>
+            <td>❌ 只能單向 Request-Response</td>
+            <td>❌ 只能單向 Request-Response</td>
+            <td>✅ <b>後端可主動 Push 訊息至客戶端</b></td>
+          </tr>
+          <tr>
+            <td><b>雙向 TLS (mTLS)</b></td>
+            <td>✅ 支援</td>
+            <td>✅ 支援</td>
+            <td>❌ 不支援</td>
+          </tr>
+          <tr>
+            <td><b>考試情境關鍵字</b></td>
+            <td>「需要 API Key 限流」、「需要 WAF 防護」、「需要請求轉換」</td>
+            <td>「成本最低」、「低延遲 Lambda 後端」、「OIDC/JWT 授權」</td>
+            <td>「即時聊天室」、「股價即時跳動」、「連線推播」</td>
           </tr>
         </tbody>
       </table>
     </div>
-
-    <div class="trap"><b>REST API vs HTTP API 選擇關鍵</b><br>
-    需要 WAF、API Key 限流、Request/Response 轉換、Edge-Optimized → <b>REST API</b><br>
-    只需要低延遲 Lambda proxy + JWT 授權、成本敏感 → <b>HTTP API</b></div>
   </div>
 
   <!-- 5 -->
-  <div class="card" id="apigw-auth">
-    <h2>5. API Gateway 三種授權方式</h2>
-
+  <div class="card" id="apigw-endpoints">
+    <h2>5. API Gateway 三種端點類型（Edge vs Regional vs Private）</h2>
     <div class="cmprow">
       <div class="cmp">
-        <b>Cognito Authorizer</b>
-        <span>驗證 Cognito User Pool 發的 JWT Token。<br><br>優點：AWS 管理，零程式碼。<br>適合：使用者登入後呼叫的 API。</span>
+        <b>1. Edge-Optimized (邊緣最佳化)</b>
+        <span>請求由全球 <b>CloudFront Edge Locations</b> 就近接入，再透過 AWS 高速骨幹網路送達 API Gateway。<br><br><b>適用：</b>跨國全球用戶、分散式客戶端存取。<br><b>備註：</b>此端點自帶 CloudFront，不可在外層再套一層 CloudFront！</span>
       </div>
       <div class="cmp">
-        <b>Lambda Authorizer</b>
-        <span>你自己寫 Lambda 做驗證（Token 型或 Request 型）。<br><br>優點：完全自訂（第三方 OAuth、自建 JWT）。<br>成本：每次呼叫執行 Lambda（但有快取）。</span>
+        <b>2. Regional (區域端點)</b>
+        <span>端點位於特定 AWS 區域（如 ap-northeast-1）。請求直接打到該區域。<br><br><b>適用：</b>用戶集中在同一地理區域、或架構師<b>想自訂 CloudFront 分發（例如前置 WAF 或快取）</b>。</span>
       </div>
       <div class="cmp">
-        <b>IAM 授權</b>
-        <span>呼叫 API 需要有 AWS STS 臨時憑證，用 Signature Version 4 簽署請求。<br><br>優點：AWS 原生，適合服務間呼叫（S2S）。<br>適合：機器呼叫機器（不適合最終使用者）。</span>
+        <b>3. Private (私有端點)</b>
+        <span><b>完全不對網際網路開放！</b>只能從指定的 VPC 內部，透過 <b>Interface VPC Endpoint (AWS PrivateLink)</b> 存取。<br><br><b>適用：</b>金融內網、企業專有微服務、嚴格合規禁止外網暴露之系統。</span>
       </div>
     </div>
 
-    <div class="arch"><span class="w">Cognito Authorizer：</span>
-  App → API GW → 驗 JWT（User Pool 公鑰） → Lambda
-
-<span class="w">Lambda Authorizer：</span>
-  App → API GW → Lambda Authorizer（自訂邏輯） → IAM Policy → Lambda
-  （Lambda Authorizer 可快取授權結果 TTL 最長 3600 秒）
-
-<span class="w">IAM 授權：</span>
-  Service → STS 拿臨時憑證 → 用 SigV4 簽署請求 → API GW → Lambda</div>
-
-    <h3>Resource Policy</h3>
-    <p>API Gateway 還有 <strong>Resource Policy</strong>（資源政策），可以用 IP 白名單、VPC Endpoint 限制誰能存取 API，即使有認證也可以額外限制來源。</p>
+    <div class="trap"><b>考試避坑：CloudFront + API Gateway 的搭配禁忌</b><br>
+    如果題目要求在 API Gateway 前方部署自訂的 CloudFront 分發（用以自訂網域名稱、SSL 或自訂快取策略），API Gateway 端點類型<b>必須設定為 Regional，絕對不能設為 Edge-Optimized</b>（不能將 CloudFront 指向另一個由 AWS 全託管的 Edge CloudFront）！</div>
   </div>
 
   <!-- 6 -->
-  <div class="card" id="scp">
-    <h2>6. Organizations SCP：邏輯與陷阱</h2>
-
-    <div class="analogy">SCP（Service Control Policy）是 Organizations 組織層級的「硬上限」：即使帳號的 IAM Policy 允許某個操作，SCP 說「不行」就是不行。SCP 是守門員，IAM 是通行證——有通行證但守門員不讓過，還是進不去。</div>
-
-    <div class="arch"><span class="c">AWS Organizations 架構</span>
-├── <span class="o">Management Account（主管理帳號）</span>
-│   └── <span class="w">⚠️  SCP 不影響 Management Account！</span>
-│       <span class="w">Management Account 永遠有全部權限</span>
-├── <span class="y">OU（組織單位）</span>
-│   ├── SCP 套用到整個 OU，OU 下所有帳號都受限
-│   └── OU 可以嵌套，子 OU 繼承父 OU 的 SCP（更嚴格）
-└── <span class="c">Member Account（成員帳號）</span>
-    └── 同時受：帳號本身的 IAM Policy + 所在 OU 的 SCP</div>
-
-    <h3>SCP 評估邏輯</h3>
-    <div class="formula"><code>有效權限 = IAM 允許的 ∩ SCP 允許的<br><br>
-兩個都允許 → 可以執行<br>
-IAM 允許 但 SCP 拒絕 → 不能執行<br>
-IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
-明確 Deny（在任何地方）→ 永遠勝過任何 Allow</code></div>
+  <div class="card" id="apigw-auth">
+    <h2>6. API Gateway 三種授權防護機制全解</h2>
 
     <div class="tbl-wrap">
       <table class="t">
-        <thead><tr><th>SCP 常見用途</th><th>範例</th></tr></thead>
+        <thead><tr><th>授權方式</th><th>底層原理</th><th>快取支援 (Cache)</th><th>最佳應用場景</th></tr></thead>
         <tbody>
-          <tr><td>Region 限制</td><td>Deny 所有非 ap-northeast-1 的操作（只允許日本 Region）</td></tr>
-          <tr><td>禁止關閉 CloudTrail</td><td>Deny cloudtrail:DeleteTrail / StopLogging（防止稽核紀錄被刪）</td></tr>
-          <tr><td>禁止建立外部 IAM 使用者</td><td>Deny iam:CreateUser（強制用 SSO 登入，不允許長期憑證）</td></tr>
-          <tr><td>禁止離開組織</td><td>Deny organizations:LeaveOrganization（防止成員帳號自己脫離）</td></tr>
-          <tr><td>資源標籤強制</td><td>Deny 建立 EC2 / S3 但沒有 cost-center tag 的操作</td></tr>
+          <tr>
+            <td><b>Cognito User Pool Authorizer</b></td>
+            <td>API Gateway 原生解析並校驗 Cognito 簽發的 JWT Access/ID Token。無須自寫代碼。</td>
+            <td>由 AWS 託管驗證，高併發效能極佳。</td>
+            <td>終端使用者以手機 App 或瀏覽器登入後的 API 呼叫。</td>
+          </tr>
+          <tr>
+            <td><b>Lambda Authorizer<br>(自訂授權器)</b></td>
+            <td>API Gateway 收到請求後先呼叫自訂 Lambda 函式，由代碼解析 Token 或 Header，回傳一份 <b>IAM Allow/Deny Policy</b>。</td>
+            <td>✅ <b>支援快取</b>！可設定 TTL（預設 300 秒，最高 3600 秒），避免每次請求重複打 Lambda。</td>
+            <td>使用第三方 Auth0、Okta、自建 OAuth2 伺服器，或需要自訂多重簽名運算。</td>
+          </tr>
+          <tr>
+            <td><b>IAM 授權 (SigV4)</b></td>
+            <td>客戶端使用 AWS AccessKey/SecretKey，透過 <b>Signature Version 4</b> 演算法對 HTTP 請求進行數位簽署。</td>
+            <td>無需額外驗證步驟，AWS 原生支援。</td>
+            <td>微服務內部通訊、EC2 / Lambda 角色互相呼叫（Service-to-Service）。不適合前台用戶。</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="trap"><b>最重要的 SCP 陷阱：Management Account 不受 SCP 限制</b><br>
-    題目說「用 SCP 限制整個組織不能刪除 S3 Bucket」——但 Management Account 的使用者還是可以刪！SCP 對 Management Account 無效，這是 AWS 的設計（Management Account 是最後的緊急存取點）。解決方案：不要把工作資源放在 Management Account 裡。</div>
+    <h3>Resource Policy（API 資源政策）</h3>
+    <p>除了用戶身份授權外，API Gateway 還具備自身的 <b>Resource Policy</b>。即使客戶端持有合法的 JWT，若 Resource Policy 不允許其來源 IP 或來源 VPC Endpoint，請求同樣會被阻斷在最外層。</p>
+    <div class="code-blk">{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "execute-api:Invoke",
+      "Resource": "arn:aws:execute-api:ap-northeast-1:123456789012:abcdef123/*/*/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:sourceVpce": "vpce-0123456789abcdef0"
+        }
+      }
+    }
+  ]
+}</div>
   </div>
 
   <!-- 7 -->
-  <div class="card" id="patterns">
-    <h2>7. 常見架構模式</h2>
+  <div class="card" id="apigw-traffic">
+    <h2>7. 流量控制與防護：Usage Plans、Throttling 與快取</h2>
 
-    <h3>模式一：行動 App 用戶直接存取 S3</h3>
-    <div class="arch">手機 App
-  → Cognito User Pool 登入，拿 JWT
-  → Cognito Identity Pool 換 STS 臨時憑證
-  → 直接呼叫 S3 API（上傳/下載自己的檔案）
-  → S3 Bucket Policy + IAM Policy 控制存取（用 cognito sub 隔離）</div>
+    <div class="arch"><span class="c">客戶端請求流入</span>
+  ↓
+<span class="y">1. API Gateway 快取檢查 (Cache Cluster)</span> ──命中 (Hit)──→ 直接回傳資料（不打後端 Lambda / 節省成本）
+  ↓ 未命中 (Miss)
+<span class="y">2. Token Bucket 演算法限流 (Throttling)</span>
+  ├── Rate（速率）：穩定允許的每秒請求數 (RPS)
+  └── Burst（突發上限）：Token 桶容量，短時間內允許的最大爆發數
+  ↓ 超過閾值 → 即刻回傳 <span class="o">HTTP 429 Too Many Requests</span>
+<span class="y">3. Usage Plans (使用量計劃) 檢查</span>
+  └── 檢查 API Key 當月配額（例如 Basic 方案每月限 10,000 次）
+  ↓
+<span class="c">轉發至後端 Lambda / ECS / RDS</span></div>
 
-    <h3>模式二：API Gateway + Lambda 後端</h3>
-    <div class="arch">手機 App
-  → Cognito User Pool 登入，拿 JWT Access Token
-  → 呼叫 API Gateway（Header: Authorization: Bearer {JWT}）
-  → API Gateway Cognito Authorizer 驗 JWT
-  → 驗通過 → 呼叫 Lambda（context 裡有使用者資訊）
-  → Lambda 回傳結果</div>
+    <div class="trap"><b>快取金鑰 (Cache Keys) 與自訂覆寫</b><br>
+    在 API Gateway 啟用快取時，預設是以整條路徑為快取鍵。但如果你的 API 是 <code>/products?category=shoes</code>，必須在 Method Request 設定中將 <code>category</code> 查詢字串參數勾選為 <b>Cache Key</b>，否則查詢衣服與鞋子會回傳相同的快取結果！</div>
+  </div>
 
-    <h3>模式三：多帳號企業（Organizations）</h3>
-    <div class="arch">Organizations
-  ├── Management Account：只放 Billing、Organizations 管理
-  ├── Security OU：Security Tooling Account（GuardDuty、Security Hub 集中）
-  ├── Production OU：Production Account（SCP：禁止 Region 外操作）
-  └── Dev OU：Dev Account（SCP：禁止大型 EC2、禁止高費用服務）</div>
+  <!-- 8 -->
+  <div class="card" id="scp">
+    <h2>8. AWS Organizations 與 SCP 階層繼承樹</h2>
+    <div class="analogy">SCP（Service Control Policy）是整個企業集團的「公司最高憲章」：它不授予任何權限，它只設定「絕對邊界（Guardrails）」。就算某個子公司的 IT 總監擁有 AdministratorAccess，如果總公司的 SCP 寫了 <code>Deny ec2:*</code>，該總監也休想啟動任何一台 EC2！</div>
 
-    <div class="note" style="background:#E3F2FD;color:#0D47A1;">
-      <span>📋</span>
-      <span><b>考前速查：三個選擇題</b><br>
-      Q：要讓手機 App 登入並直接存取 S3？ → <b>Cognito User Pool + Identity Pool</b><br>
-      Q：要讓 API Gateway 驗 JWT 授權？ → <b>Cognito Authorizer</b>（User Pool 提供 JWT）<br>
-      Q：要禁止某個 OU 的所有帳號使用 EC2？ → <b>SCP Deny ec2:*</b>（記得 Management Account 不受限）</span>
+    <div class="arch"><span class="c">Root (根目錄)</span> ── 套用 [SCP-1: 禁止離開組織]
+  ├── <span class="o">Management Account</span>  <span class="w">⚠️ 核心考點：SCP 對 Management Account 完全無效！</span>
+  │
+  ├── <span class="y">Security OU</span> ── 套用 [SCP-2: 禁止關閉 CloudTrail]
+  │     └── Log Archive Account
+  │
+  └── <span class="y">Production OU</span> ── 套用 [SCP-3: 僅允許日本區域 ap-northeast-1]
+        ├── App-Prod-1 Account
+        └── <span class="y">Finance Sub-OU</span> ── 套用 [SCP-4: 嚴禁刪除 S3 Glacier]
+              └── Fin-Ledger Account (同時繼承 SCP-1 + SCP-3 + SCP-4)</div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>繼承與評估規則</th><th>運作機制細節</th><th>常見實務陷阱</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>白名單模式 vs 黑名單模式</b></td>
+            <td>預設所有 OU 都附帶 <code>FullAWSAccess</code>（允許所有）。黑名單模式即保留 FullAWSAccess，只附加特定 <code>Deny</code> 陳述句。</td>
+            <td>若意外移除了某節點的 <code>FullAWSAccess</code> 且未給予相應 Allow，該 OU 下所有帳號將失去一切權限！</td>
+          </tr>
+          <tr>
+            <td><b>Explicit Deny 絕對優先</b></td>
+            <td>在繼承路徑上的任何一層 OU 出現 <code>Deny</code>，子層級無論如何都無法覆寫或解除該阻斷。</td>
+            <td>父層 Deny S3，子層再怎麼 Allow S3 也無濟於事。</td>
+          </tr>
+          <tr>
+            <td><b>對 Root 使用者有效</b></td>
+            <td>SCP 能夠有效封鎖 Member Account 的 <b>Root 使用者</b>！</td>
+            <td>常考：防範成員帳號的 Root 帳密遭駭，唯一能在全組織層級限制其權限的就是 SCP。</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="evaluation">
+    <h2>9. AWS IAM 權限評估決策流（Evaluation Logic）全景</h2>
+    <p>當一個請求（例如使用者張三嘗試 <code>s3:DeleteBucket</code>）送達 AWS 時，系統是如何做出最終決策的？以下為六大權限防線的交集判定邏輯：</p>
+
+    <div class="arch">請求發起 (RequestContext)
+   │
+   ▼
+【步驟 1：Explicit Deny 檢查】── 只要任何一處有 Deny ──→ <span class="o">[DENY 拒絕]</span>
+   │ (SCP、Permissions Boundary、Identity Policy、Resource Policy 任一 Deny 立即終止)
+   ▼
+【步驟 2：Organizations SCP 檢查】── 是否屬於被允許範圍？ ── 否 ──→ <span class="o">[DENY 拒絕]</span>
+   │ 是
+   ▼
+【步驟 3：Permissions Boundary (權限邊界) 檢查】── 超出邊界？ ── 是 ──→ <span class="o">[DENY 拒絕]</span>
+   │ 落在邊界內
+   ▼
+【步驟 4：Identity-based Policy ∩ Resource-based Policy】
+   ├── 同帳號內部存取：兩者只要<b>任一者 Explicit Allow</b> 即可通行！
+   └── 跨帳號 (Cross-Account) 存取：<b>必須兩邊同時 Explicit Allow</b> 才能放行！
+   │
+   ▼
+所有檢查通過 ──→ <span class="c">[ALLOW 允許執行]</span></div>
+
+    <div class="trap"><b>權限交集核心公式：</b><br>
+    最終有效權限 = <b>SCP</b> ∩ <b>Permissions Boundary</b> ∩ <b>Identity-based Policy</b> ∩ <b>Session Policy</b><br>
+    任何一個集合沒有包含該操作，結果必定為 <b>Implicit Deny（隱式拒絕）</b>！</div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="trouble">
+    <h2>10. 常見認證與 API Gateway 故障排查手冊</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>狀態碼 / 錯誤訊息</th><th>根本原因診斷</th><th>標準排查措施</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>403 Forbidden: Missing Authentication Token</code></td>
+            <td>1. 呼叫的路徑 (Path) 或 HTTP Method 根本不存在。<br>2. 忘記在 API Gateway 進行 <b>Deploy API</b> 至對應的 Stage（如 prod）。</td>
+            <td>核對 URL 是否有拼錯字；檢查該變更是否已發布部署到 Stage。</td>
+          </tr>
+          <tr>
+            <td><code>401 Unauthorized</code></td>
+            <td>1. 未攜帶 <code>Authorization</code> Header。<br>2. JWT Token 已過期或簽章無效。<br>3. 誤傳了 ID Token 代替 Access Token。</td>
+            <td>檢查客戶端 Token 有效期限；確認 API Gateway Cognito Authorizer 的 Token Source Header 設定。</td>
+          </tr>
+          <tr>
+            <td><code>CORS Error: No 'Access-Control-Allow-Origin' header</code></td>
+            <td>前端瀏覽器跨域呼叫時，API Gateway 未針對 <b>OPTIONS</b> 預檢請求 (Preflight) 回傳相應的 CORS 標頭。</td>
+            <td>在 API Gateway 主控台點選 <b>Enable CORS</b>；在後端 Lambda 的回傳值字典中明確加上 <code>headers: {"Access-Control-Allow-Origin": "*"}</code>。</td>
+          </tr>
+          <tr>
+            <td><code>504 Gateway Timeout</code></td>
+            <td>後端整合服務（如 Lambda 或內部 EC2）處理時間超過了 API Gateway 的<b>最大硬性超時限制（29 秒）</b>。</td>
+            <td>將同步架構改為<b>異步解耦架構</b>：API Gateway 接收請求後直接丟入 SQS 佇列回傳 202 Accepted，由後台 Worker 非同步處理。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 11 -->
+  <div class="card" id="patterns">
+    <h2>11. SAA-C03 經典四大跨服務架構組合</h2>
+
+    <div class="cmprow">
+      <div class="cmp">
+        <b>模式一：App 直連 S3 安全架構</b>
+        <span>User Pool 驗證 → Identity Pool 換 STS → 透過 <code>${cognito-identity.amazonaws.com:sub}</code> 寫入專屬 S3 目錄。零伺服器開銷。</span>
+      </div>
+      <div class="cmp">
+        <b>模式二：B2B API 計費商業模式</b>
+        <span>REST API + Usage Plans + API Keys。將不同付費等級的企業客戶綁定至不同的 RPS 限流與每月呼叫額度。</span>
+      </div>
+      <div class="cmp">
+        <b>模式三：極致低成本微服務</b>
+        <span>HTTP API + JWT Authorizer (驗證 OIDC/Cognito) + Lambda Proxy + DynamoDB。比傳統 REST API 節省 70% 費用。</span>
+      </div>
+      <div class="cmp">
+        <b>模式四：大型多帳號安全登陸區</b>
+        <span>AWS Control Tower + Organizations。使用 SCP 強制封鎖非營運區域、強制啟用 CloudTrail、並將日誌集中至獨立審計帳號。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 -->
+  <div class="card" id="traps">
+    <h2>12. 考試陷阱速查與關鍵字對照</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>題目關鍵字描述</th><th>標準解法</th><th>常見干擾選項（避坑）</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>「匿名訪客需要下載公開範例檔案」</td>
+            <td><b>Cognito Identity Pool (Enable Unauthenticated Identities)</b></td>
+            <td>不要選建立公開的 IAM 使用者！</td>
+          </tr>
+          <tr>
+            <td>「阻止成員帳號的管理員擅自關閉 VPC Flow Logs」</td>
+            <td><b>Organizations SCP (Deny ec2:DeleteFlowLogs)</b></td>
+            <td>不要選在成員帳號設定 IAM Policy，因為該管理員可自行修改 IAM！</td>
+          </tr>
+          <tr>
+            <td>「微服務即時雙向聊天室通知」</td>
+            <td><b>API Gateway WebSocket API</b></td>
+            <td>不要選 HTTP 長輪詢 (Polling) 或 REST API！</td>
+          </tr>
+          <tr>
+            <td>「REST API 需要防禦 SQL 注入與 XSS 攻擊」</td>
+            <td><b>API Gateway REST API + AWS WAF WebACL</b></td>
+            <td>注意：HTTP API 原生不支援直接掛載 WAF！</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 13 -->
+  <div class="card" id="lab">
+    <h2>13. 實作 Lab：CLI 建立 User Pool 與 API Gateway 驗證</h2>
+
+    <div class="cmd"># 步驟 1：建立 Cognito User Pool 並開啟密碼強度規範與 Email 註冊
+aws cognito-idp create-user-pool \
+  --pool-name production-auth-pool \
+  --auto-verified-attributes email \
+  --policies '{"PasswordPolicy":{"MinimumLength":8,"RequireUppercase":true,"RequireLowercase":true,"RequireNumbers":true,"RequireSymbols":true}}'
+
+# 步驟 2：建立 User Pool Client（提供給手機 App 或前端 SPA 呼叫）
+aws cognito-idp create-user-pool-client \
+  --user-pool-id &lt;USER_POOL_ID&gt; \
+  --client-name web-spa-client \
+  --no-generate-secret \
+  --explicit-auth-flows ALLOW_USER_SRP_AUTH ALLOW_REFRESH_TOKEN_AUTH
+
+# 步驟 3：在 API Gateway 建立專屬 Cognito Authorizer 關聯
+aws apigateway create-authorizer \
+  --rest-api-id &lt;REST_API_ID&gt; \
+  --name "CognitoAuthorizer" \
+  --type COGNITO_USER_POOLS \
+  --provider-arns "arn:aws:cognito-idp:ap-northeast-1:123456789012:userpool/&lt;USER_POOL_ID&gt;" \
+  --identity-source "method.request.header.Authorization"
+
+# 步驟 4：發布 API Gateway 至生產 Stage
+aws apigateway create-deployment \
+  --rest-api-id &lt;REST_API_ID&gt; \
+  --stage-name prod \
+  --description "Production Deployment with Cognito Auth"</div>
   </div>
 
   <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
@@ -292,11 +551,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
 <script>
 (function(){
   if (document.getElementById('tom-hub-return')) return;
-  // 依所在環境決定回哪裡：
-  //   本機          → 本機的 Project Hub
-  //   作品集站台內  → 用相對路徑，換網域也不會壞
-  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
-  //                   只能用完整網址連回作品集
   var host = location.hostname;
   var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
   var onSite = host === 'tomchen0722.github.io';
@@ -317,8 +571,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
       + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
       + '#tom-hub-return:hover::after{opacity:0;}'
       + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
-      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
-      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
       + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
       + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
       + '@media print{ #tom-hub-return{display:none;}}';
@@ -345,22 +597,8 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
 <!-- portfolio-analytics:begin -->
 <script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
 <script data-project="aws">
-/* ═══════════════════════════════════════════════════════════
-   作品集瀏覽計數器 — 前端追蹤 + 顯示
-   ───────────────────────────────────────────────────────────
-   使用方式（在頁面底部加兩行）：
-
-     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
-     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
-
-   data-project 對應 projects.json 的 id，首頁請填 hub。
-   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
-
-   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
-   ═══════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-
   var CFG = window.ANALYTICS_CONFIG || {};
   var script = document.currentScript;
   var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
@@ -371,7 +609,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
   var LIVE = !!(CFG.url && CFG.key);
   var DEDUPE_MINUTES = 30;
 
-  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
   function visitorId() {
     var k = 'pf:vid', v;
     try {
@@ -386,18 +623,16 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
     return v;
   }
 
-  /* ── 短時間內重複整理不重複計數 ── */
   function shouldCount() {
     var k = 'pf:seen:' + PROJECT + ':' + PAGE;
     try {
       var last = +(sessionStorage.getItem(k) || 0);
       if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
       sessionStorage.setItem(k, Date.now());
-    } catch (e) { /* 隱私模式下就照常計數 */ }
+    } catch (e) { }
     return true;
   }
 
-  /* ── 本機備援計數（未設定 Supabase 時使用）── */
   function localBump() {
     var k = 'pf:count:' + PROJECT;
     try {
@@ -416,7 +651,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
     } catch (e) { return { total: 0, days: {} }; }
   }
 
-  /* ── 送出一筆瀏覽紀錄 ── */
   function track() {
     if (!shouldCount()) return Promise.resolve();
     if (!LIVE) { localBump(); return Promise.resolve(); }
@@ -438,7 +672,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
     }).catch(function () { localBump(); });
   }
 
-  /* ── 讀取某專案的統計摘要 ── */
   function summary(projectId) {
     projectId = projectId || PROJECT;
     if (!LIVE) {
@@ -462,7 +695,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
       .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
   }
 
-  /* ── 讀取全部專案的統計 ── */
   function allSummary() {
     if (!LIVE) return Promise.resolve([]);
     return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
@@ -470,7 +702,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 讀取每日趨勢（近 N 天）── */
   function daily(projectId, days) {
     if (!LIVE) return Promise.resolve([]);
     var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
@@ -480,7 +711,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 讀取每月統計 ── */
   function monthly(projectId) {
     if (!LIVE) return Promise.resolve([]);
     var q = '/rest/v1/v_views_monthly?order=month.asc';
@@ -489,7 +719,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 把數字填進 #view-counter ── */
   function paint() {
     var box = document.getElementById('view-counter');
     if (!box) return;
@@ -513,7 +742,6 @@ IAM 拒絕 但 SCP 允許 → 不能執行<br><br>
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
-
 </script>
 <!-- portfolio-analytics:end -->
 </body>
