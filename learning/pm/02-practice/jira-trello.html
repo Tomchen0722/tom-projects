@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jira & Trello 實戰全攻略 | PM 完全指南</title>
+<style>
+  :root{
+    --main:#ea580c;
+    --accent:#fdba74;
+    --jira:#0052cc;
+    --jira-light:#deebff;
+    --trello:#0079bf;
+    --trello-light:#e4f0f6;
+    --dark:#1e293b;
+    --card-bg:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:#fff7ed;min-height:100vh;color:#374151;}
+  .topbar{background:#ea580c;color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .topbar a{color:rgba(255,255,255,.85);text-decoration:none;font-size:.85rem;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#0c4a6e,#0284c7,#ea580c);color:#fff;padding:46px 24px 38px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(255,255,255,.2);color:#fff;padding:5px 16px;border-radius:20px;font-size:.82rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(255,255,255,.3);}
+  .hero h1{font-size:2rem;margin-bottom:12px;letter-spacing:-0.02em;}
+  .hero h1 span.j{color:#93c5fd;}
+  .hero h1 span.t{color:#67e8f9;}
+  .hero p{opacity:.9;max-width:640px;margin:0 auto;line-height:1.8;font-size:1rem;}
+  
+  .container{max-width:880px;margin:0 auto;padding:32px 16px 60px;}
+  .card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 3px 14px rgba(0,0,0,.07);margin-bottom:24px;border:1px solid #f1f5f9;}
+  .card h2{font-size:1.25rem;color:#1e293b;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .card p{color:#374151;line-height:1.9;font-size:.95rem;margin-bottom:12px;}
+  
+  .highlight{background:#fff7ed;border-left:4px solid var(--main);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#9a3412;line-height:1.8;}
+  .highlight-jira{background:#eff6ff;border-left:4px solid var(--jira);border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#1e40af;line-height:1.8;}
+  .highlight-trello{background:#f0fdfa;border-left:4px solid #0d9488;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#115e59;line-height:1.8;}
+  .warn{background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:.9rem;color:#b91c1c;line-height:1.8;}
+  
+  .table-wrap{overflow-x:auto;margin:14px 0;border-radius:8px;border:1px solid #e5e7eb;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;text-align:left;}
+  th{background:#f8fafc;color:#1e293b;padding:11px 14px;font-weight:700;border-bottom:2px solid #e2e8f0;}
+  td{padding:11px 14px;border-bottom:1px solid #e5e7eb;color:#374151;vertical-align:top;line-height:1.6;}
+  tr:nth-child(even) td{background:#fafafa;}
+  
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:16px 0;}
+  .feature-box{background:#f8fafc;border-radius:12px;padding:20px;border:1px solid #e2e8f0;transition:transform .2s;}
+  .feature-box:hover{transform:translateY(-2px);}
+  .feature-box h3{font-size:.98rem;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .feature-box p{font-size:.85rem;color:#475569;line-height:1.7;margin-bottom:0;}
+
+  /* Badge styling */
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600;}
+  .tag-epic{background:#ede9fe;color:#6d28d9;}
+  .tag-story{background:#dcfce7;color:#15803d;}
+  .tag-task{background:#e0f2fe;color:#0369a1;}
+  .tag-bug{background:#fee2e2;color:#b91c1c;}
+  .tag-trello{background:#ccfbf1;color:#0f766e;}
+  
+  /* Hierarchy Diagram */
+  .hierarchy{background:#f8fafc;border-radius:12px;padding:20px;margin:16px 0;border:1px solid #e2e8f0;}
+  .hier-node{border-radius:8px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  .hier-1{background:#f5f3ff;border-left:5px solid #8b5cf6;margin-left:0;}
+  .hier-2{background:#f0fdf4;border-left:5px solid #22c55e;margin-left:24px;}
+  .hier-3{background:#f0f9ff;border-left:5px solid #0ea5e9;margin-left:48px;}
+  .hier-sub{background:#fef2f2;border-left:5px solid #ef4444;margin-left:72px;}
+  
+  /* Interactive Board Simulator */
+  .interactive-sim{background:#0f172a;border-radius:14px;padding:20px;color:#fff;margin:18px 0;}
+  .sim-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:12px;}
+  .sim-title{font-size:1rem;font-weight:700;}
+  .sim-tabs{display:flex;gap:8px;}
+  .sim-tab-btn{background:rgba(255,255,255,.12);border:none;color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s;}
+  .sim-tab-btn.active{background:#ea580c;color:#fff;}
+  .sim-board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;overflow-x:auto;}
+  @media(max-width:720px){.sim-board{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:480px){.sim-board{grid-template-columns:1fr;}}
+  .sim-col{background:#1e293b;border-radius:8px;padding:10px;}
+  .sim-col-title{font-size:.8rem;font-weight:700;color:#94a3b8;margin-bottom:8px;display:flex;justify-content:space-between;}
+  .sim-card{background:#334155;border-radius:6px;padding:10px;font-size:.78rem;color:#f8fafc;margin-bottom:8px;cursor:pointer;transition:.2s;border-left:3px solid #38bdf8;}
+  .sim-card:hover{background:#475569;transform:translateY(-2px);}
+  .sim-card .card-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:.7rem;color:#94a3b8;}
+  .sim-hint{font-size:.75rem;color:#cbd5e1;opacity:.8;margin-top:10px;text-align:center;}
+
+  /* JQL Code Box */
+  .code-box{background:#1e293b;color:#e2e8f0;padding:14px 16px;border-radius:8px;font-family:Consolas,monospace;font-size:.85rem;line-height:1.6;margin:10px 0;overflow-x:auto;}
+  .code-box span.kw{color:#f472b6;font-weight:700;}
+  .code-box span.op{color:#38bdf8;}
+  .code-box span.str{color:#a3e635;}
+  .code-box span.fn{color:#fbbf24;}
+
+  .nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px;}
+  .btn{display:inline-block;padding:10px 22px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--main);color:#fff;}
+  .btn-next:hover{background:#c2410c;}
+  .btn-prev{background:#f1f5f9;color:#475569;}
+  .btn-prev:hover{background:#e2e8f0;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="../index.html">📋 PM 指南</a><span class="sep">/</span>
+  <span>模組二:專案管理實務</span><span class="sep">/</span><span>Jira & Trello 實戰全攻略</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🛠️ 實戰特輯 · 敏捷雙雄</div>
+  <h1><span class="j">Jira</span> 與 <span class="t">Trello</span> 實戰全攻略</h1>
+  <p>專案經理與敏捷團隊必備的兩大神器：從看板流轉、Scrum衝刺、Issue階層，到 JQL 與自動化機器人。</p>
+</div>
+
+<div class="container">
+
+  <!-- 1. 為什麼是 Jira 與 Trello -->
+  <div class="card">
+    <h2>🌐 為什麼現代 PM 繞不開 Jira 與 Trello？</h2>
+    <p>無論你走進新創科技公司、跨國外商、或是傳統產業的數位轉型團隊，幾乎 80% 以上的專案看板都在 <strong>Trello</strong> 或 <strong>Jira</strong> 上運作。兩者均隸屬於軟體巨頭 Atlassian 旗下，但定位各有乾坤：</p>
+    
+    <div class="grid2">
+      <div class="feature-box" style="border-top:4px solid #0079bf;">
+        <h3>📌 Trello：極致輕量的視覺化看板</h3>
+        <p><strong>精神：</strong>「把便利貼搬到雲端」。沒有複雜的規則與設定，開箱 3 分鐘即可上手。適合非工程團隊、跨部門協作、活動策劃或小型敏捷團隊。</p>
+      </div>
+      <div class="feature-box" style="border-top:4px solid #0052cc;">
+        <h3>⚡ Jira：為敏捷軟體工程而生的旗艦系統</h3>
+        <p><strong>精神：</strong>「全生命週期追蹤與嚴謹流程控制」。支援完整的 Epic/Story/Task 樹狀結構、Scrum 衝刺、燃盡圖、程式碼 Git 串接與強大自訂工作流。</p>
+      </div>
+    </div>
+    <div class="highlight">
+      💡 <strong>一句話選型：</strong>需要「直覺、靈活、人人不用培訓就會用」選 <strong>Trello</strong>；需要「嚴謹追蹤、Sprint 版本排程、缺陷分級與龐大跨組協調」選 <strong>Jira</strong>。
+    </div>
+  </div>
+
+  <!-- 2. 互動式體驗體驗 -->
+  <div class="card">
+    <h2>🎮 互動體驗：看板在軟體與商務專案中長怎樣？</h2>
+    <p>點擊切換兩種視圖，體驗卡片在敏捷開發（Jira 風格）與業務營運（Trello 風格）中的流轉流程：</p>
+
+    <div class="interactive-sim">
+      <div class="sim-header">
+        <div class="sim-title" id="simTitle">⚡ Jira Scrum 衝刺看板 (Sprint 12)</div>
+        <div class="sim-tabs">
+          <button class="sim-tab-btn active" id="btnJira" onclick="switchSim('jira')">Jira 敏捷軟體衝刺</button>
+          <button class="sim-tab-btn" id="btnTrello" onclick="switchSim('trello')">Trello 行銷專案看板</button>
+        </div>
+      </div>
+      
+      <div class="sim-board" id="boardColumns">
+        <!-- 動態渲染欄位與卡片 -->
+      </div>
+      <div class="sim-hint">💡 點擊任一卡片可模擬推進狀態（向右移動一欄，完成後循環重啟）</div>
+    </div>
+  </div>
+
+  <!-- 3. Trello 實戰精粹 -->
+  <div class="card">
+    <h2>📋 Trello 深度實戰：如何搭建高效率工作流？</h2>
+    <p>很多新手把 Trello 當成「加長版代辦清單」，卡片隨便塞，三週後看板就變成垃圾場。專業 PM 會運用以下架構搭建 Trello：</p>
+    
+    <div class="table-wrap">
+      <table>
+        <tr><th>核心構件</th><th>設計關鍵</th><th>實務規範</th></tr>
+        <tr><td><strong>Board（看板）</strong></td><td>定義單一明確邊界</td><td>一個專案一個看板，勿把「全公司所有事」塞在同一個看板</td></tr>
+        <tr><td><strong>List（狀態欄）</strong></td><td>必須反映「工作的實際流動」</td><td>標準流水線：📥 需求池 → 📋 準備動工 → 🔨 進行中 → 👀 審核驗收 → ✅ 已完成</td></tr>
+        <tr><td><strong>Card（卡片）</strong></td><td>最小可交付任務</td><td>標題必須包含「動詞+受詞」，如「【設計】製作雙 11 主視覺 Banner」</td></tr>
+        <tr><td><strong>Checklist（檢核清單）</strong></td><td>防呆清單（DoD）</td><td>將驗收條件拆成可打勾的細項，勾完才能拖到 Done</td></tr>
+        <tr><td><strong>Labels（標籤）</strong></td><td>全域分類維度</td><td>按「緊急程度」（紅/黃/綠）或「職能領域」（設計/文案/工程）統一編碼</td></tr>
+      </table>
+    </div>
+
+    <div class="highlight-trello">
+      🤖 <strong>Trello Butler（自動化小幫手）黃金 3 規則：</strong>
+      <ol style="margin-left:20px;line-height:1.8;font-size:.88rem;margin-top:6px;">
+        <li><strong>規則 1（驗收自動化）：</strong>當卡片被移動到「已完成」列表時，自動將所有 Checklist 打勾，並標註完成日期。</li>
+        <li><strong>規則 2（逾期預警）：</strong>在卡片到期前 24 小時，自動在卡片貼上「⏰ 即將逾期」紅色標籤，並 @專案負責人。</li>
+        <li><strong>規則 3（標準範本生成）：</strong>每週一早上 9:00，在「待辦」欄自動創建一張「週會決議事項追蹤」卡片並套用檢核範本。</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 4. Jira 核心概念：層級架構與 Issue 類型 -->
+  <div class="card">
+    <h2>⚡ Jira 核心架構：Epic、Story、Task 到底怎麼分？</h2>
+    <p>Jira 之所以強大，在於它將龐大模糊的商業目標拆解為清晰的<strong>樹狀工單結構（Issue Hierarchy）</strong>。許多團隊混亂的根源，就是大家把所有事情都建為 Task：</p>
+
+    <div class="hierarchy">
+      <div class="hier-node hier-1">
+        <div><span class="tag tag-epic">🟣 Epic (史詩)</span> <strong>用戶會員與支付系統改版</strong></div>
+        <span style="font-size:.78rem;color:#6b7280;">跨數週至數月的大商業目標</span>
+      </div>
+      <div class="hier-node hier-2">
+        <div><span class="tag tag-story">🟢 User Story (故事)</span> <strong>身為購物者，我能使用 LINE Pay 結帳以便快速付款</strong></div>
+        <span style="font-size:.78rem;color:#6b7280;">為用戶帶來價值的獨立功能 (1-3 天)</span>
+      </div>
+      <div class="hier-node hier-3">
+        <div><span class="tag tag-task">🔵 Task (技術任務)</span> <strong>串接 LINE Pay API SDK 與退款 Webhook 介面</strong></div>
+        <span style="font-size:.78rem;color:#6b7280;">工程師具體開發行動</span>
+      </div>
+      <div class="hier-node hier-sub">
+        <div><span class="tag tag-bug">🔴 Bug (缺陷)</span> <strong>當折價券折扣後金額為 0 時，LINE Pay 回傳錯誤代碼 400</strong></div>
+        <span style="font-size:.78rem;color:#6b7280;">測試階段或線上回報的臭蟲</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Issue 類型</th><th>誰來寫？</th><th>標準格式 / 範例</th><th>驗收標準 (AC)</th></tr>
+        <tr><td><strong>Epic 史詩</strong></td><td>產品經理 (Product Manager)</td><td>「【Q3】購物車轉化率提升 15%」</td><td>整體商業指標是否達標</td></tr>
+        <tr><td><strong>User Story 故事</strong></td><td>PM / 產品負責人 (PO)</td><td><strong>身為 [某角色]，我想要 [某功能]，以便 [獲得某價值]</strong></td><td>Given-When-Then 情境驗收條件</td></tr>
+        <tr><td><strong>Task 技術任務</strong></td><td>工程師 / 技術 Lead</td><td>「建立資料庫訂單索引」、「撰寫單元測試」</td><td>程式碼通過 Review 與 CI 構建</td></tr>
+        <tr><td><strong>Bug 軟體缺陷</strong></td><td>QA 測試人員 / 客服 / PM</td><td>重現步驟 (Steps to Reproduce)、預期 vs 實際結果、截圖</td><td>修復後回歸測試通過</td></tr>
+      </table>
+    </div>
+
+    <div class="highlight-jira">
+      💡 <strong>專業 PM 的標準故事寫法（User Story 實戰）：</strong><br>
+      • <strong>標題：</strong>【結帳】身為已綁定會員，我能儲存常用信用卡資訊，以便下次回購免重複輸入<br>
+      • <strong>驗收條件 (Acceptance Criteria)：</strong><br>
+      &nbsp;&nbsp;1. 支援 Visa, MasterCard, JCB 卡別驗證<br>
+      &nbsp;&nbsp;2. 符合 PCI-DSS 安全規範，後端不可儲存明文 CVV<br>
+      &nbsp;&nbsp;3. 使用者最多可儲存 5 張卡片，並可設定「預設扣款卡」
+    </div>
+  </div>
+
+  <!-- 5. Jira 工作流與狀態機 -->
+  <div class="card">
+    <h2>🔄 Jira 工作流（Workflow）：防範品質失控的防護網</h2>
+    <p>很多工程師抱怨「為什麼不能直接把卡片拉到 Done？」在成熟企業中，狀態跳轉代表責任與品質把關：</p>
+    
+    <div style="background:#f8fafc;border-radius:12px;padding:18px;border:1px solid #e2e8f0;margin:14px 0;line-height:2.2;font-size:.88rem;">
+      <span style="background:#e2e8f0;padding:4px 10px;border-radius:6px;font-weight:700;">To Do (待開發)</span> ➔ 
+      <span style="background:#dbeafe;color:#1e40af;padding:4px 10px;border-radius:6px;font-weight:700;">In Progress (開發中)</span> ➔ 
+      <span style="background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:6px;font-weight:700;">Code Review (同行代碼審核)</span> ➔ 
+      <span style="background:#ede9fe;color:#6d28d9;padding:4px 10px;border-radius:6px;font-weight:700;">In QA / Testing (測試環境驗證)</span> ➔ 
+      <span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:6px;font-weight:700;">Done / Closed (上線完成)</span>
+    </div>
+
+    <div class="warn">
+      ⚠️ <strong>實務陷阱（WIP 塞車）：</strong>如果「Code Review」或「Testing」欄位累積了 15 張卡片，而「In Progress」還在拼命開新卡，這叫<strong>管線堵塞</strong>！此時 PM 必須立刻阻止工程師接新任務，先全員協同把測試與 Code Review 的卡片清空，這就是敏捷中的「Stop Starting, Start Finishing」。
+    </div>
+  </div>
+
+  <!-- 6. JQL (Jira Query Language) 速查 -->
+  <div class="card">
+    <h2>🔍 PM 必學：JQL 高階過濾查詢語法</h2>
+    <p>當專案有上千張工單時，點滑鼠篩選根本找不完。學會 <strong>JQL (Jira Query Language)</strong>，就能像 SQL 一樣瞬間精確篩出關鍵數據：</p>
+
+    <div class="feature-box" style="margin-bottom:12px;">
+      <h3 style="color:#0052cc;">情境 1：找出現行衝刺中「指派給我且尚未完成」的任務</h3>
+      <div class="code-box">
+        <span class="kw">project</span> <span class="op">=</span> <span class="str">"SHOP"</span> <span class="kw">AND</span> <span class="kw">sprint</span> <span class="kw">in</span> <span class="fn">openSprints()</span> <span class="kw">AND</span> <span class="kw">assignee</span> <span class="op">=</span> <span class="fn">currentUser()</span> <span class="kw">AND</span> <span class="kw">status</span> <span class="op">!=</span> <span class="str">"Done"</span>
+      </div>
+    </div>
+
+    <div class="feature-box" style="margin-bottom:12px;">
+      <h3 style="color:#b91c1c;">情境 2：警報！已逾期或今天到期且狀態非 Done 的高優先級工單</h3>
+      <div class="code-box">
+        <span class="kw">project</span> <span class="op">=</span> <span class="str">"APP"</span> <span class="kw">AND</span> <span class="kw">duedate</span> <span class="op">&lt;=</span> <span class="fn">now()</span> <span class="kw">AND</span> <span class="kw">priority</span> <span class="kw">in</span> (<span class="str">"Highest"</span>, <span class="str">"High"</span>) <span class="kw">AND</span> <span class="kw">statusCategory</span> <span class="op">!=</span> <span class="str">Done</span>
+      </div>
+    </div>
+
+    <div class="feature-box">
+      <h3 style="color:#047857;">情境 3：抓出這週內被回報且尚未解決的線上 P0/P1 級 Bug</h3>
+      <div class="code-box">
+        <span class="kw">issuetype</span> <span class="op">=</span> <span class="str">"Bug"</span> <span class="kw">AND</span> <span class="kw">created</span> <span class="op">&gt;=</span> <span class="fn">startOfWeek()</span> <span class="kw">AND</span> <span class="kw">priority</span> <span class="op">=</span> <span class="str">"Blocker"</span> <span class="kw">AND</span> <span class="kw">resolution</span> <span class="op">=</span> <span class="kw">Unresolved</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 燃盡圖與 Velocity -->
+  <div class="card">
+    <h2>📈 Jira 核心報表：燃盡圖 (Burndown) 與速率 (Velocity)</h2>
+    <p>Jira 最為人稱道的是強大的自動化敏捷數據報表：</p>
+    
+    <div class="grid2">
+      <div class="feature-box">
+        <h3>🔥 燃盡圖 (Sprint Burndown Chart)</h3>
+        <p><strong>看什麼：</strong>橫軸是衝刺天數，縱軸是剩餘 Story Points。理想線是斜斜向下到底。<br>
+        • <strong>實際線高於理想線：</strong>進度落後，需評估是否在下半場砍範圍。<br>
+        • <strong>線條突然往上飆：</strong>中途有人塞入新需求（Scope Creep）！</p>
+      </div>
+      <div class="feature-box">
+        <h3>🚀 團隊速率圖 (Velocity Chart)</h3>
+        <p><strong>看什麼：</strong>過去 5-8 個 Sprint 中，團隊平均「承諾」多少點、「實際交付」多少點。<br>
+        • 若平均交付 35 點，下個 Sprint 規劃時就絕不能塞入 50 點！這讓專案排期建立在<strong>真實歷史數據</strong>而非拍腦袋保證。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 對比與選型矩陣 -->
+  <div class="card">
+    <h2>⚖️ Jira vs Trello 全方位對比矩陣</h2>
+    <p>兩大工具在各維度的深度比較：</p>
+    
+    <div class="table-wrap">
+      <table>
+        <tr><th>比較維度</th><th>📌 Trello</th><th>⚡ Jira (Software)</th></tr>
+        <tr><td><strong>主要定位</strong></td><td>輕量級任務與通用看板協作</td><td>專業軟體工程與敏捷專案管理</td></tr>
+        <tr><td><strong>上手學習曲線</strong></td><td>⭐ 極低（5 分鐘無痛上手）</td><td>⭐⭐⭐⭐ 較陡峭（需理解 Agile/權限體系）</td></tr>
+        <tr><td><strong>階層結構 (Hierarchy)</strong></td><td>單層（Board → List → Card）</td><td>完整多層（Epic → Story/Task → Subtask）</td></tr>
+        <tr><td><strong>敏捷報表 (Agile Reports)</strong></td><td>基本（需靠 Power-Ups 外掛）</td><td>極豐富（燃盡圖、燃起圖、速率圖、累積流動圖等）</td></tr>
+        <tr><td><strong>自動化能力</strong></td><td>Butler 簡單易懂、視覺化觸發</td><td>Jira Automation 強大、支援複雜條件分支與 Webhook</td></tr>
+        <tr><td><strong>工程開發串接</strong></td><td>基本通知</td><td>深度原生綁定 GitHub, GitLab, Bitbucket, CI/CD</td></tr>
+        <tr><td><strong>權限與稽核控管</strong></td><td>簡單（看板成員/訪客/管理員）</td><td>企業級（自訂權限方案、Issue 安全層級、Audit Log）</td></tr>
+        <tr><td><strong>適用團隊類型</strong></td><td>行銷、人資、營運、個人、小團隊</td><td>軟體工程團隊、中大型企業、跨團隊敏捷組織</td></tr>
+      </table>
+    </div>
+
+    <div class="highlight">
+      🤝 <strong>企業雙劍合璧實例：</strong>行銷與業務部門在 <strong>Trello</strong> 收集客戶意見與活動需求；當需求確定需要工程支援時，透過 Atlassian 連接器，將 Trello 卡片一鍵轉化為 <strong>Jira</strong> 的 User Story 進入研發排期。兩者各司其職，無需強迫非技術人員使用繁複的 Jira！
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <a href="tools.html" class="btn btn-prev">← 上一篇:工具與技巧</a>
+    <a href="certification.html" class="btn btn-next">下一篇:PMP 認證與 PMO →</a>
+  </div>
+
+</div>
+
+<footer>PM 專案管理 × 產品管理完全指南 · 僅供學習參考</footer>
+
+<!-- portfolio-analytics:begin -->
+<script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
+<script data-project="pm">
+(function () {
+  'use strict';
+  var CFG = window.ANALYTICS_CONFIG || {};
+  var script = document.currentScript;
+  var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
+  var PAGE = (function () {
+    var f = location.pathname.split('/').pop();
+    return f && f !== '' ? f : 'index.html';
+  })();
+  var LIVE = !!(CFG.url && CFG.key);
+  var DEDUPE_MINUTES = 30;
+
+  function visitorId() {
+    var k = 'pf:vid', v;
+    try {
+      v = localStorage.getItem(k);
+      if (!v) {
+        v = 'v' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem(k, v);
+      }
+    } catch (e) { v = 'anon'; }
+    return v;
+  }
+
+  function shouldCount() {
+    var k = 'pf:seen:' + PROJECT + ':' + PAGE;
+    try {
+      var last = +(sessionStorage.getItem(k) || 0);
+      if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
+      sessionStorage.setItem(k, Date.now());
+    } catch (e) { }
+    return true;
+  }
+
+  function track() {
+    if (!shouldCount()) return Promise.resolve();
+    if (!LIVE) return Promise.resolve();
+    return fetch(CFG.url + '/rest/v1/page_views', {
+      method: 'POST',
+      headers: {
+        'apikey': CFG.key,
+        'Authorization': 'Bearer ' + CFG.key,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        project_id: PROJECT,
+        page_path: PAGE,
+        visitor_id: visitorId(),
+        referrer: document.referrer ? document.referrer.slice(0, 300) : null
+      })
+    }).catch(function () {});
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', track);
+  else track();
+})();
+</script>
+<!-- portfolio-analytics:end -->
+
+<script>
+// Interactive Board Simulator Logic
+var simData = {
+  jira: {
+    title: '⚡ Jira Scrum 衝刺看板 (Sprint 12)',
+    columns: ['To Do 待開發', 'In Progress 進行中', 'Code Review 審核', 'Done 已交付'],
+    cards: [
+      { id: 'J-101', title: '【Story】會員支援 Apple Pay 快捷付款', col: 0, tag: 'Story', color: '#22c55e', pts: 5, user: 'Alex' },
+      { id: 'J-102', title: '【Task】重構訂單狀態狀態機模組', col: 1, tag: 'Task', color: '#38bdf8', pts: 3, user: 'Dev-Lin' },
+      { id: 'J-103', title: '【Bug】購物車優惠券折抵上限溢位修復', col: 2, tag: 'Bug', color: '#ef4444', pts: 2, user: 'QA-Ken' },
+      { id: 'J-104', title: '【Task】上線金流 Webhook 容錯與重試佇列', col: 3, tag: 'Task', color: '#38bdf8', pts: 8, user: 'Dev-Lin' }
+    ]
+  },
+  trello: {
+    title: '📌 Trello 行銷新功能發布推廣看板',
+    columns: ['📥 需求靈感池', '✍️ 內容撰寫中', '👀 總監審核驗收', '🚀 已發布上線'],
+    cards: [
+      { id: 'T-1', title: '【社群】雙 11 早鳥優惠 IG 9 宮格圖文', col: 0, tag: '社群', color: '#f59e0b', pts: '10/28', user: 'Emma' },
+      { id: 'T-2', title: '【電子報】11 月新功能亮點 EDM 稿件', col: 1, tag: 'EDM', color: '#06b6d4', pts: '10/25', user: 'Mark' },
+      { id: 'T-3', title: '【新聞稿】新一輪融資公關通稿審核', col: 2, tag: 'PR', color: '#ec4899', pts: '10/24', user: 'Boss' },
+      { id: 'T-4', title: '【官網】2026 全新首頁形象主視覺更換', col: 3, tag: '官網', color: '#10b981', pts: '已結案', user: 'Emma' }
+    ]
+  }
+};
+
+var currentMode = 'jira';
+
+function switchSim(mode) {
+  currentMode = mode;
+  document.getElementById('btnJira').classList.toggle('active', mode === 'jira');
+  document.getElementById('btnTrello').classList.toggle('active', mode === 'trello');
+  document.getElementById('simTitle').textContent = simData[mode].title;
+  renderBoard();
+}
+
+function advanceCard(cardId) {
+  var data = simData[currentMode];
+  var card = data.cards.find(function(c) { return c.id === cardId; });
+  if (card) {
+    card.col = (card.col + 1) % data.columns.length;
+    renderBoard();
+  }
+}
+
+function renderBoard() {
+  var data = simData[currentMode];
+  var board = document.getElementById('boardColumns');
+  board.innerHTML = '';
+
+  data.columns.forEach(function(colName, colIdx) {
+    var colDiv = document.createElement('div');
+    colDiv.className = 'sim-col';
+    
+    var colCards = data.cards.filter(function(c) { return c.col === colIdx; });
+    
+    var colHeader = document.createElement('div');
+    colHeader.className = 'sim-col-title';
+    colHeader.innerHTML = '<span>' + colName + '</span><span style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:10px;">' + colCards.length + '</span>';
+    colDiv.appendChild(colHeader);
+
+    colCards.forEach(function(c) {
+      var cardDiv = document.createElement('div');
+      cardDiv.className = 'sim-card';
+      cardDiv.style.borderLeftColor = c.color;
+      cardDiv.onclick = function() { advanceCard(c.id); };
+      
+      cardDiv.innerHTML = 
+        '<div style="font-weight:600;margin-bottom:4px;">' + c.title + '</div>' +
+        '<div class="card-meta">' +
+          '<span style="background:' + c.color + '22;color:' + c.color + ';padding:2px 5px;border-radius:4px;font-weight:700;">' + c.id + '</span>' +
+          '<span>👤 ' + c.user + ' · ' + (currentMode === 'jira' ? c.pts + ' pts' : c.pts) + '</span>' +
+        '</div>';
+      colDiv.appendChild(cardDiv);
+    });
+
+    board.appendChild(colDiv);
+  });
+}
+
+// Initial render
+renderBoard();
+</script>
+</body>
+</html>
