@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>資安服務家族 — AWS SAA-C03</title>
+<title>資安服務家族與密碼學完全指南 — AWS SAA-C03</title>
 <link rel="stylesheet" href="assets/lesson.css">
 <style>
 .arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
@@ -16,19 +16,21 @@
 .trap b{color:#B45309;}
 .biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
 .biz b{color:#6B21A8;}
+.code-blk{background:#1E293B;color:#E2E8F0;border-radius:8px;padding:14px 18px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.6;overflow-x:auto;margin:12px 0;}
+.cmd{background:#0F172A;color:#38BDF8;padding:12px 16px;border-radius:6px;font-family:"Cascadia Code","Consolas",monospace;font-size:.84rem;margin:10px 0;overflow-x:auto;}
 </style>
 </head>
 <body>
 <div class="topbar">
   <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
   <a href="index.html">實作篇</a><span class="sep">/</span>
-  <span class="cur">18 · 資安服務家族</span>
+  <span class="cur">18 · 資安服務家族與密碼學</span>
 </div>
 
 <div class="hero c2">
-  <div class="badge">實作 18 · 資安</div>
-  <h1><span>資安服務</span>家族全解</h1>
-  <p>GuardDuty、Inspector、Macie、Security Hub、WAF、Shield——名字都很像，但各看一個不同的面向。這一課把它們排進一張圖，讓你看到題目就知道該選誰。</p>
+  <div class="badge">實作 18 · 雲端資安與資料防護</div>
+  <h1><span>資安服務家族</span>與密碼學完全指南</h1>
+  <p>從 KMS 信封加密 (Envelope Encryption)、Secrets Manager 輪換，到 GuardDuty、Inspector、WAF、Shield 與自動化事件聯防。一站式建構企業級多層次縱深防禦體系。</p>
 </div>
 
 <div class="container">
@@ -36,283 +38,456 @@
   <div class="toc">
     <h2>本章目錄</h2>
     <ol>
-      <li><a href="#map">先建立地圖：六個服務各看什麼</a></li>
-      <li><a href="#guardduty">GuardDuty：威脅偵測</a></li>
-      <li><a href="#inspector">Inspector：漏洞掃描</a></li>
-      <li><a href="#macie">Macie：敏感資料發現</a></li>
-      <li><a href="#hub">Security Hub：集中儀表板</a></li>
-      <li><a href="#edge">邊界防禦：WAF、Shield、Network Firewall</a></li>
-      <li><a href="#respond">自動化應變</a></li>
-      <li><a href="#invest">調查與稽核：Detective / Audit Manager / Artifact</a></li>
-      <li><a href="#fms">Firewall Manager：跨帳號套用防護</a></li>
-      <li><a href="#traps">考試陷阱整理</a></li>
+      <li><a href="#map">AWS 縱深防禦全景：三大維度與服務對照</a></li>
+      <li><a href="#kms">AWS KMS 與信封加密（Envelope Encryption）底層機制</a></li>
+      <li><a href="#kms-types">KMS 金鑰類型與跨區域 / 跨帳號存取決策</a></li>
+      <li><a href="#secrets">Secrets Manager vs SSM Parameter Store 深度對比</a></li>
+      <li><a href="#waf-shield">邊界防護：AWS WAF 規則鏈與 Shield DDoS 防禦</a></li>
+      <li><a href="#guardduty">GuardDuty：基於日誌分析的無代理威脅偵測</a></li>
+      <li><a href="#inspector">Inspector：運算資源漏洞掃描 (CVE)</a></li>
+      <li><a href="#macie">Macie：S3 敏感資料與 PII 盤點</a></li>
+      <li><a href="#hub">Security Hub：合規儀表板與發現彙整</a></li>
+      <li><a href="#invest">事後調查與稽核：Detective、Audit Manager、Artifact</a></li>
+      <li><a href="#fms">Firewall Manager：多帳號組織級集中資安政策</a></li>
+      <li><a href="#respond">企業級 SecOps 自動化應變與事件聯防閉環</a></li>
+      <li><a href="#traps">SAA-C03 考試陷阱與高頻對照速查</a></li>
+      <li><a href="#lab">實作 Lab：KMS 信封加密與 WAF WebACL 配置實戰</a></li>
     </ol>
   </div>
 
+  <!-- 1 -->
   <div class="card" id="map">
-    <h2>1. 先建立地圖：六個服務各看什麼</h2>
-    <div class="analogy">把公司想成一棟大樓：<br>
-    <b>Shield / WAF</b> = 大門的警衛與門禁（擋外面的壞人）<br>
-    <b>GuardDuty</b> = 保全監視系統（發現有人在做奇怪的事）<br>
-    <b>Inspector</b> = 定期消防安檢（找出建築本身的缺陷）<br>
-    <b>Macie</b> = 資料室盤點（哪裡放了機密文件卻沒鎖）<br>
-    <b>Security Hub</b> = 保全中控室（把所有警報集中在一面牆上）</div>
+    <h2>1. AWS 縱深防禦全景：三大維度與服務對照</h2>
+    <div class="analogy">把企業雲端架構想成一座現代化金庫大樓：<br>
+    • <b>邊界警衛與外圍護城河 (WAF / Shield / Network Firewall)</b>：擋住門外的暴徒與網路癱瘓攻擊。<br>
+    • <b>主動保全監視器 (GuardDuty)</b>：AI 全天候監控誰在異常角落做可疑動作（挖礦、偷摸金庫）。<br>
+    • <b>結構消防安檢 (Inspector)</b>：檢查建築牆面有沒有偷工減料或已知的脆弱裂縫（CVE 漏洞）。<br>
+    • <b>金庫內帳冊盤點 (Macie)</b>：找出哪份機密顧客個資被亂扔在未上鎖的抽屜（S3 桶公開）。<br>
+    • <b>安全中控指揮室 (Security Hub)</b>：把所有警報統整呈現在一面大螢幕上並計算合規評分。<br>
+    • <b>密碼鎖與保險箱 (KMS / Secrets Manager)</b>：確保即使強盜攻破大門，拿到的也是一堆無法解讀的密文！</div>
 
-    <div class="tbl-wrap"><table class="t">
-      <thead><tr><th>服務</th><th>看什麼</th><th>資料來源</th><th>一句話關鍵字</th></tr></thead>
-      <tbody>
-        <tr><td><b>GuardDuty</b></td><td><b>行為</b>異常</td><td>CloudTrail、VPC Flow Logs、DNS 日誌</td><td>可疑<b>活動</b>、加密貨幣挖礦、外洩憑證</td></tr>
-        <tr><td><b>Inspector</b></td><td><b>漏洞</b></td><td>EC2、ECR 映像、Lambda</td><td>CVE、未修補的軟體</td></tr>
-        <tr><td><b>Macie</b></td><td><b>敏感資料</b></td><td>S3 物件內容</td><td>S3 裡有沒有<b>個資</b></td></tr>
-        <tr><td><b>Security Hub</b></td><td><b>彙整</b></td><td>上面全部 + 合規基準</td><td>統一儀表板、CIS/PCI 合規分數</td></tr>
-        <tr><td><b>WAF</b></td><td>第 7 層攻擊</td><td>HTTP 請求</td><td>SQL 注入、XSS、速率限制</td></tr>
-        <tr><td><b>Shield</b></td><td>DDoS</td><td>網路層流量</td><td>大流量攻擊</td></tr>
-      </tbody>
-    </table></div>
-
-    <div class="note" style="background:#E3F2FD;color:#0D47A1;"><span>📋</span><span><b>最重要的一組分辨：GuardDuty vs Inspector。</b><br>
-    • <b>Inspector</b> 問「<u>我的系統有沒有已知的弱點</u>」——這是<b>預防</b>，沒被攻擊也會有發現。<br>
-    • <b>GuardDuty</b> 問「<u>現在有沒有人正在做壞事</u>」——這是<b>偵測</b>，看的是實際發生的行為。<br>
-    考試把這兩個放同一題選項是常態。</span></div>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>防禦維度</th><th>核心服務</th><th>資料來源 / 作用對象</th><th>一句話考點關鍵字</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>資料靜態加密</b></td>
+            <td><b>AWS KMS</b></td>
+            <td>S3, EBS, RDS, DynamoDB</td>
+            <td>信封加密、4KB 限制、FIPS 140-2 密鑰合規</td>
+          </tr>
+          <tr>
+            <td><b>密鑰輪換管理</b></td>
+            <td><b>Secrets Manager</b></td>
+            <td>RDS, DocumentDB, API 金鑰</td>
+            <td>Lambda 自動定期輪換密碼、無停機更新</td>
+          </tr>
+          <tr>
+            <td><b>行為威脅偵測</b></td>
+            <td><b>GuardDuty</b></td>
+            <td>CloudTrail, VPC Flow Logs, DNS Logs</td>
+            <td><b>不需安裝 Agent</b>、惡意挖礦、外洩 IAM 憑證</td>
+          </tr>
+          <tr>
+            <td><b>已知漏洞檢查</b></td>
+            <td><b>Inspector</b></td>
+            <td>EC2, ECR 映像檔, Lambda 代碼</td>
+            <td><b>需 SSM Agent</b>、CVE 軟體漏洞、網路暴露性</td>
+          </tr>
+          <tr>
+            <td><b>機密個資探索</b></td>
+            <td><b>Macie</b></td>
+            <td>Amazon S3 儲存貯體物件</td>
+            <td>自然語言機器學習、PII 身份證/信用卡號識別</td>
+          </tr>
+          <tr>
+            <td><b>合規發現彙總</b></td>
+            <td><b>Security Hub</b></td>
+            <td>聚合所有資安服務發現 (ASFF)</td>
+            <td>單一玻璃窗儀表板、CIS / PCI-DSS 合規分數</td>
+          </tr>
+          <tr>
+            <td><b>第 7 層應用防禦</b></td>
+            <td><b>AWS WAF</b></td>
+            <td>ALB, CloudFront, API Gateway</td>
+            <td>SQL 注入、XSS、速率限制 (Rate-based)</td>
+          </tr>
+          <tr>
+            <td><b>DDoS 流量防護</b></td>
+            <td><b>AWS Shield</b></td>
+            <td>Route 53, CloudFront, ALB, EIP</td>
+            <td>L3/L4 防禦 (Standard 免費)、<b>帳單費用保護</b> (Advanced)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
+  <!-- 2 -->
+  <div class="card" id="kms">
+    <h2>2. AWS KMS 與信封加密（Envelope Encryption）底層機制</h2>
+    <p>在 SAA-C03 考試中，KMS 是資料加密的核心。必須理解：<b>KMS 本身的 API（<code>kms:Encrypt</code>）最多只能加密 4KB 大小的資料！</b>如何加密數十 GB 的資料庫備份或高解析影片？答案就是<b>信封加密 (Envelope Encryption)</b>。</p>
+
+    <div class="arch"><span class="c">【加密流程 (Encrypt Workflow)】</span>
+業務應用程式 (Application)
+  │
+  │ 1. 呼叫 KMS: <span class="y">GenerateDataKey</span>(KeyId="arn:aws:kms...CMK")
+  ▼
+<span class="y">AWS KMS 硬體安全模組 (HSM)</span>
+  │ 2. KMS 產生一把全新的資料金鑰 (Data Key, AES-256)，並回傳兩樣東西：
+  ├── <b>明文資料金鑰 (Plaintext Data Key)</b>
+  └── <b>密文資料金鑰 (Encrypted Data Key)</b>，由 KMS CMK 主金鑰加密包裹
+  ▼
+業務應用程式 (本地記憶體中)
+  │ 3. 使用【明文資料金鑰】在本地高速對 100GB 大檔案進行 AES-GCM 加密
+  │ 4. <b>立即從記憶體徹底抹除 (Wipe) 明文資料金鑰！</b>
+  ▼
+<span class="o">儲存至 Amazon S3 / 磁碟</span>
+  └── 儲存【加密後的資料本體】+【密文資料金鑰】（放在檔案頭部 metadata，像信封一樣）
+
+<span class="c">【解密流程 (Decrypt Workflow)】</span>
+業務應用程式讀取 S3 檔案
+  │ 1. 取出頭部的【密文資料金鑰】，呼叫 KMS: <span class="y">Decrypt</span>(CiphertextBlob)
+  ▼
+<span class="y">AWS KMS</span>
+  │ 2. KMS 內部使用 CMK 解密出【明文資料金鑰】，回傳給應用程式
+  ▼
+業務應用程式
+  │ 3. 在本地解密資料本體，使用完畢再次抹除記憶體中的明文金鑰！</div>
+
+    <div class="ok"><strong>為什麼必須使用信封加密？三大優勢：</strong>
+      <ul style="margin:8px 0 0">
+        <li><b>突破 4KB 限制</b>：無論檔案是 1MB 還是 5TB，皆可在本機加密。</li>
+        <li><b>極致網路效能</b>：無須將龐大的資料透過網路傳輸到 KMS 伺服器，只傳輸 256 位元的短金鑰。</li>
+        <li><b>最小化 KMS 呼叫成本與 API 配額消耗</b>。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card" id="kms-types">
+    <h2>3. KMS 金鑰類型與跨區域 / 跨帳號存取決策</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>金鑰類型</th><th>建立與管理方</th><th>能否輪換金鑰？</th><th>能否刪除金鑰？</th><th>典型使用場景</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>AWS Owned Key</b></td>
+            <td>AWS 內部全權擁有</td>
+            <td>由 AWS 自行維護</td>
+            <td>❌ 無法查看也無法刪除</td>
+            <td>DynamoDB 預設免費加密、S3 預設加密。</td>
+          </tr>
+          <tr>
+            <td><b>AWS Managed Key</b></td>
+            <td>AWS 代為建立（如 <code>aws/s3</code>、<code>aws/ebs</code>）</td>
+            <td>每 1 年（365 天）自動輪換</td>
+            <td>❌ 無法修改 Policy 也無法刪除</td>
+            <td>單一帳號內一般日常服務快速加密。</td>
+          </tr>
+          <tr>
+            <td><b>Customer Managed Key (CMK)</b></td>
+            <td><b>客戶自行建立與全權管理</b></td>
+            <td>可開關<b>自動每年輪換</b>，或手動建立新版本</td>
+            <td>✅ <b>支援設定 7~30 天等待期後刪除</b></td>
+            <td><b>需要跨帳號授權、需審計金鑰存取日誌、需隨時撤銷金鑰</b>（SAA 首選）。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>KMS Multi-Region Keys（跨區域多區域金鑰）</h3>
+    <p>傳統 KMS Key 是嚴格綁定在單一 Region 的（Region-bound）。如果使用 S3 Cross-Region Replication (CRR) 複製加密物件，目標區域必須重新使用目標區域的金鑰重加密。若使用 <b>KMS Multi-Region Key</b>，則可在主要區域（Primary）建立金鑰，並將其金鑰材料複製到多個副本區域（Replicas）。兩者擁有<b>相同的 Key ID 與金鑰材料</b>，在異地災難復原 (DR) 時可無縫直接解密！</p>
+
+    <div class="trap"><b>跨帳號存取 KMS CMK 的雙重授權必備條件：</b><br>
+    若帳號 A 的 EC2 想要使用帳號 B 的 KMS Key 解密 S3 物件：<br>
+    1. <b>帳號 B 的 KMS Key Policy</b> 必須明確 <code>Allow</code> 帳號 A 的 IAM Role 呼叫 <code>kms:Decrypt</code>。<br>
+    2. <b>帳號 A 的 IAM Role Policy</b> 亦必須明確 <code>Allow</code> 對帳號 B 的 KMS Key ARN 執行 <code>kms:Decrypt</code>。<br>
+    兩邊缺一不可！</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card" id="secrets">
+    <h2>4. Secrets Manager vs SSM Parameter Store 深度對比</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>比較指標</th><th>AWS Secrets Manager</th><th>Systems Manager Parameter Store</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>定位與核心強項</b></td>
+            <td><b>機密資訊生命週期管理與自動輪換 (Rotation)</b>。</td>
+            <td><b>通用系統組態參數與層級式鍵值儲存</b>。</td>
+          </tr>
+          <tr>
+            <td><b>自動輪換能力</b></td>
+            <td>✅ <b>內建支援</b>（開箱即用支援 RDS、Redshift、DocumentDB；自訂 Lambda 輪換其他 API Key）。</td>
+            <td>❌ 無原生內建輪換（需自己撰寫複雜的 EventBridge + Lambda 腳本）。</td>
+          </tr>
+          <tr>
+            <td><b>計費模型</b></td>
+            <td>每個 Secret 收費 <b>$0.40 美元/月</b> + API 呼叫費。成本較高。</td>
+            <td><b>Standard 方案完全免費</b>（上限 10,000 個參數）；Advanced 支援超大參數與政策。</td>
+          </tr>
+          <tr>
+            <td><b>跨帳號存取支援</b></td>
+            <td>✅ 原生支援 Resource Policy，跨帳號讀取非常直覺。</td>
+            <td>需透過 RAM 或跨帳號 STS AssumeRole。</td>
+          </tr>
+          <tr>
+            <td><b>考題情境秒選法</b></td>
+            <td>「<b>資料庫密碼需要定期自動更換且不中斷服務</b>」、「管理 RDS 憑證」。</td>
+            <td>「<b>無額外成本儲存授權字串</b>」、「微服務組態檔設定」、「免費儲存非機密參數」。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="waf-shield">
+    <h2>5. 邊界防護：AWS WAF 規則鏈與 Shield DDoS 防禦</h2>
+
+    <div class="arch"><span class="c">網際網路流量流入</span>
+  ↓
+<span class="y">1. AWS Shield Standard (免費自動啟用)</span>
+  └── 阻斷第 3/4 層 SYN Flood、UDP Reflection 等網路基礎設施攻擊
+  ↓
+<span class="y">2. AWS WAF WebACL (第 7 層檢查)</span>
+  ├── 規則 1：<b>IP 封鎖清單 (IP Sets)</b> ── 命中惡意 IP ──→ <span class="o">[BLOCK 403]</span>
+  ├── 規則 2：<b>AWS 受管規則組 (AWSManagedRulesCommonRuleSet)</b> ── 檢測 SQLi / XSS ──→ <span class="o">[BLOCK 403]</span>
+  ├── 規則 3：<b>Rate-based Rule (速率限制)</b> ── 5 分鐘內超過 2000 請求 ──→ <span class="o">[BLOCK 429/403]</span>
+  └── 規則 4：<b>Geo Match (地理位置)</b> ── 阻斷未營運國家 ──→ <span class="o">[BLOCK 403]</span>
+  ↓ 全部規則通過
+<span class="c">轉發至 CloudFront / ALB / API Gateway</span></div>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>防禦維度</th><th>AWS Shield Standard</th><th>AWS Shield Advanced</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>成本費用</b></td>
+            <td><b>完全免費</b>，自動啟用。</td>
+            <td>每月 <b>$3,000 美元固定基本月費</b>（需綁定 1 年合約）。</td>
+          </tr>
+          <tr>
+            <td><b>防護範圍</b></td>
+            <td>OSI 第 3 層（網路層）與第 4 層（傳輸層）。</td>
+            <td>涵蓋第 3、4、7 全層級 DDoS 攻擊。</td>
+          </tr>
+          <tr>
+            <td><b>專業專家支援</b></td>
+            <td>無。</td>
+            <td><b>24/7 Shield Response Team (SRT)</b> 專屬架構師介入減緩。</td>
+          </tr>
+          <tr>
+            <td><b>財務費用保護</b></td>
+            <td>❌ 無費用補償。被攻擊時 EC2 / ALB 擴容費用需自付。</td>
+            <td>✅ <b>DDoS Cost Protection</b>！攻擊期間因 Auto Scaling 暴增的運算費用由 AWS 補償抵免！</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 6 -->
   <div class="card" id="guardduty">
-    <h2>2. GuardDuty：威脅偵測</h2>
-    <p>GuardDuty 持續分析三種日誌，用機器學習與威脅情報找出異常行為。<b>它不需要你安裝任何代理程式</b>，開啟就開始看。</p>
+    <h2>6. GuardDuty：基於日誌分析的無代理威脅偵測</h2>
+    <p>GuardDuty 是 AWS 的核心威脅情報大腦。最關鍵的架構特點：<b>它完全不需要在虛擬機或容器上安裝任何 Agent 或 Daemon，對系統效能與網路頻寬造成零干擾！</b></p>
 
-    <div class="arch"><span class="c">GuardDuty 分析的三個來源</span>
-   CloudTrail 事件 ──→ 誰呼叫了什麼 API
-   VPC Flow Logs ──→ 誰跟誰在通訊
-   DNS 日誌      ──→ 查詢了什麼網域
+    <div class="arch"><span class="c">GuardDuty 四大核心日誌分析源 (無代理程式)</span>
+  ├── <span class="y">AWS CloudTrail 管理與資料事件</span>（偵測 API 異常、未授權憑證調用）
+  ├── <span class="y">VPC Flow Logs</span>（偵測異常連線、連接埠掃描、與黑客 C2 伺服器通訊）
+  ├── <span class="y">DNS Query Logs</span>（偵測惡意網域查詢、DNS 隧道資料竊取）
+  └── <span class="y">EKS 稽核日誌與控制台事件</span>
 
-<span class="c">典型的發現</span>
-   • EC2 正在與已知的<span class="o">挖礦礦池</span>通訊
-   • IAM 憑證從<span class="o">異常的國家</span>被使用
-   • EC2 對外進行<span class="o">連接埠掃描</span>
-   • 有人嘗試停用 CloudTrail（<span class="y">攻擊者在湮滅證據</span>）
-   • S3 資料被<span class="o">異常大量下載</span>
-
-<span class="c">可額外啟用的保護</span>
-   S3 Protection / EKS Protection / Malware Protection / RDS Protection</div>
-
-    <div class="ok">✅ <b>考試關鍵字：</b>「<b>不需安裝代理程式</b>」「<b>持續監控可疑活動</b>」「<b>偵測遭外洩的憑證</b>」→ GuardDuty。</div>
-
-    <div class="biz">
-      <b>企業實務：一定要開在 Organization 層級</b><br>
-      GuardDuty 支援指定一個<b>委派管理員帳號</b>，一次涵蓋組織下所有帳號，新開的帳號自動納管。<br>
-      <u>如果一個帳號一個帳號手動開，一定會漏</u>——而攻擊者最愛的就是那個被遺忘的測試帳號。<br><br>
-      同樣的原則適用於 Security Hub、Inspector、Config：<b>組織層級啟用 + 自動納管新帳號</b>。
-    </div>
+<span class="c">加值擴充防禦功能 (可一鍵開啟)</span>
+  ├── <b>S3 Protection</b>：監控 S3 API 異常資料外洩與不尋常讀寫
+  ├── <b>RDS Protection</b>：偵測資料庫密碼暴力破解與異常登入
+  ├── <b>Lambda Protection</b>：偵測 Serverless 函式遭惡意操控
+  └── <b>Malware Protection</b>：發現異常時，自動對 EC2 的 EBS 卷建立快照並進行無代理木馬病毒掃描！</div>
   </div>
 
+  <!-- 7 -->
   <div class="card" id="inspector">
-    <h2>3. Inspector：漏洞掃描</h2>
-    <p>Inspector 檢查你的運算資源有沒有<b>已知漏洞（CVE）</b>與不安全的網路暴露。</p>
-
+    <h2>7. Inspector：運算資源漏洞掃描 (CVE)</h2>
     <div class="cmprow">
-      <div class="cmp"><b>EC2 掃描</b><span>透過 <b>SSM Agent</b> 檢查安裝的套件版本，比對 CVE 資料庫。所以 EC2 要先被 Systems Manager 納管。</span></div>
-      <div class="cmp"><b>ECR 映像掃描</b><span>映像推上去就自動掃，找出基底映像與相依套件的漏洞。可設定持續重掃（新 CVE 公布時回頭比對）。</span></div>
-      <div class="cmp"><b>Lambda 掃描</b><span>檢查函式的相依套件與程式碼。</span></div>
-      <div class="cmp"><b>網路可達性</b><span>分析 SG/NACL/路由，找出「這台機器意外地能從網際網路直接連到」。</span></div>
+      <div class="cmp">
+        <b>EC2 執行個體掃描</b>
+        <span>透過 <b>AWS Systems Manager (SSM) Agent</b> 深入作業系統，盤點已安裝的應用套件，持續對照 CVE 漏洞庫。<br><br><b>必備：</b>EC2 需安裝 SSM Agent 且網路可連通 SSM。</span>
+      </div>
+      <div class="cmp">
+        <b>Amazon ECR 映像檔掃描</b>
+        <span>容器映像檔推送到 ECR 時自動觸發，亦支援<b>持續評估掃描 (Continuous Scanning)</b>。當外界新公布 CVE 時，回溯比對倉庫中的歷史映像檔。</span>
+      </div>
+      <div class="cmp">
+        <b>AWS Lambda 函式掃描</b>
+        <span>掃描 Lambda 函式代碼相依套件庫（如 Python pip, Node.js npm 套件中的已知安全漏洞）。</span>
+      </div>
     </div>
 
-    <div class="trap"><b>陷阱：Inspector 需要 SSM Agent</b><br>
-    EC2 掃描不是憑空發生的——<u>Inspector 透過 Systems Manager 的代理程式取得套件清單</u>。<br>
-    所以題目若說「Inspector 掃不到某些 EC2」，方向是：SSM Agent 沒裝、EC2 沒有 SSM 的 IAM 角色、或沒有到 SSM 端點的網路路徑（私有子網路要有 VPC Endpoint）。<br><br>
-    <b>對照記憶：GuardDuty 不需要代理程式（看日誌），Inspector 需要（看機器內部）。</b></div>
-
-    <div class="biz">
-      <b>企業實務：把掃描往左移</b><br>
-      等到 EC2 上線才掃漏洞，發現了也很難改。成熟做法是<b>在 CI 階段就掃</b>（第 17 課）：<br>
-      映像推上 ECR 時掃 → 有 critical 漏洞就<b>擋下管線</b>，不讓它進到正式環境。<br><br>
-      再搭配 <b>ECR 的持續重掃</b>：新 CVE 公布時，已經在跑的映像也會被重新標記——<u>因為「當時安全」不等於「現在安全」</u>。
-    </div>
+    <div class="trap"><b>秒殺考點：GuardDuty vs Inspector 究竟怎麼分？</b><br>
+    • <b>Inspector</b>：看的是<b>「靜態弱點」</b>（系統有沒有已知的軟體 CVE 漏洞，未發生攻擊也存在）。需要 SSM Agent。<br>
+    • <b>GuardDuty</b>：看的是<b>「動態行為」</b>（系統當前是不是正在做壞事，如挖礦、被遠端操控）。不需要 Agent。</div>
   </div>
 
+  <!-- 8 -->
   <div class="card" id="macie">
-    <h2>4. Macie：敏感資料發現</h2>
-    <p>Macie 專門掃 <b>S3 裡的物件內容</b>，找出個資與機密。它回答的問題是「<u>我到底把什麼東西放在哪裡了</u>」。</p>
-
-    <div class="tbl-wrap"><table class="t">
-      <thead><tr><th>Macie 能找出</th><th>例子</th></tr></thead>
-      <tbody>
-        <tr><td>個人識別資訊（PII）</td><td>姓名、地址、身分證字號、護照號碼</td></tr>
-        <tr><td>金融資料</td><td>信用卡號、銀行帳號</td></tr>
-        <tr><td>憑證與金鑰</td><td>不小心上傳的 API key、私鑰</td></tr>
-        <tr><td>儲存桶風險</td><td>哪些 bucket 是<b>公開的</b>、沒加密、與外部帳號共享</td></tr>
-      </tbody>
-    </table></div>
-
-    <div class="trap"><b>陷阱：Macie vs Comprehend 的 PII 偵測</b><br>
-    第 14 課提過 Comprehend 也能找個資，兩者差在<b>切入點</b>：<br>
-    • <b>Macie</b> = 從<u>資產面</u>掃描。「我的 S3 裡有沒有個資」，會自動探索 bucket、抽樣、評估風險。<br>
-    • <b>Comprehend</b> = 從<u>內容面</u>分析。你把一段文字丟給它，它告訴你裡面有哪些 PII 實體。<br><br>
-    題目說「<b>盤點 S3 中的敏感資料</b>」→ Macie。說「<b>在應用流程中即時遮蔽文字裡的個資</b>」→ Comprehend。</div>
-
-    <div class="biz">
-      <b>企業實務：Macie 是按掃描量計費的</b><br>
-      對著 PB 級的資料湖無差別全掃，帳單會很可觀。務實做法：<br>
-      ① 先讓 Macie 做<b>bucket 層級的盤點</b>（哪些公開、哪些沒加密）——這部分便宜且價值高<br>
-      ② 只對<b>可能有個資的 bucket</b> 開內容掃描<br>
-      ③ 用<b>抽樣</b>而非全量，並設定排程而非持續<br><br>
-      <u>這件事在導入前就要試算，不然第一張帳單會嚇到人。</u>
+    <h2>8. Macie：S3 敏感資料與 PII 盤點</h2>
+    <p>Amazon Macie 運用自然語言處理 (NLP) 與機器學習，專門掃描與識別儲存在 <b>Amazon S3</b> 中的機密資料：</p>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>識別範疇</th><th>涵蓋的具體敏感資訊</th></tr></thead>
+        <tbody>
+          <tr><td><b>個人身分識別資訊 (PII)</b></td><td>身分證字號、護照號碼、駕照號碼、姓名與聯絡地址。</td></tr>
+          <tr><td><b>金融財務資訊</b></td><td>信用卡卡號 (PCI)、銀行帳戶資訊、SWIFT 碼。</td></tr>
+          <tr><td><b>醫療健康機密 (HIPAA)</b></td><td>病歷號碼、健康檢查結果、保險檔案。</td></tr>
+          <tr><td><b>開發機敏憑證</b></td><td>私鑰、AWS Access Key / Secret Key、JWT 密鑰。</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
+  <!-- 9 -->
   <div class="card" id="hub">
-    <h2>5. Security Hub：集中儀表板</h2>
-    <p>前面每個服務都各自產生發現（findings）。服務一多，沒有人看得完。Security Hub 解決這個問題。</p>
+    <h2>9. Security Hub：合規儀表板與發現彙整</h2>
+    <p>Security Hub 是整個企業資安的「中控總儀表板」。它自己不發明威脅，而是扮演<b>收集器 (Aggregator)</b> 與 <b>評分員 (Auditor)</b>：</p>
 
-    <div class="arch"><span class="c">Security Hub 的兩個角色</span>
-
-<span class="w">① 聚合器</span>
-   GuardDuty ─┐
-   Inspector ─┤
-   Macie ─────┼──→ <span class="y">Security Hub</span> ──→ 統一格式（ASFF）
-   Config ────┤          │
-   IAM Access ┘          └─→ 依嚴重度排序、去重、跨帳號彙總
-   Analyzer
-
-<span class="w">② 合規檢查</span>
-   內建基準,自動打分數：
-   • AWS 基礎安全最佳實務
-   • CIS AWS Foundations Benchmark
-   • PCI DSS
-   → 產出「你有 87% 的檢查項目通過」這種可向管理層報告的數字</div>
-
-    <div class="ok">✅ <b>考試關鍵字：</b>「<b>跨帳號彙整所有資安發現</b>」「<b>統一檢視</b>」「<b>合規分數</b>」→ Security Hub。<br>
-    注意它<b>自己不做偵測</b>——它是把別人的發現集中起來。題目若問「誰去偵測威脅」，答案是 GuardDuty 不是 Security Hub。</div>
+    <div class="arch"><span class="y">收集輸入來源</span>
+  GuardDuty + Inspector + Macie + IAM Access Analyzer + AWS Config + 第三方廠商工具
+          │ 全部轉化為標準 AWS 安全發現格式 (ASFF)
+          ▼
+<span class="c">AWS Security Hub 集中彙整</span>
+  ├── 跨帳號、跨區域聚合
+  └── 自動對照業界合規基準打分數：
+        ├── <b>CIS AWS Foundations Benchmark</b>
+        ├── <b>PCI DSS (支付卡產業標準)</b>
+        └── <b>AWS Foundational Security Best Practices</b></div>
   </div>
 
-  <div class="card" id="edge">
-    <h2>6. 邊界防禦：WAF、Shield、Network Firewall</h2>
-    <div class="tbl-wrap"><table class="t">
-      <thead><tr><th>服務</th><th>OSI 層</th><th>擋什麼</th><th>掛在哪</th></tr></thead>
-      <tbody>
-        <tr><td><b>Shield Standard</b></td><td>3/4 層</td><td>常見 DDoS，<b>免費且自動啟用</b></td><td>全 AWS 自動</td></tr>
-        <tr><td><b>Shield Advanced</b></td><td>3/4/7 層</td><td>大規模 DDoS + <b>費用保護</b> + 24/7 應變團隊</td><td>需訂閱（月費高）</td></tr>
-        <tr><td><b>WAF</b></td><td><b>7 層</b></td><td>SQL 注入、XSS、惡意 Bot、地理封鎖、速率限制</td><td>CloudFront、ALB、API Gateway、AppSync</td></tr>
-        <tr><td><b>Network Firewall</b></td><td>3-7 層</td><td>VPC 層級的流量過濾、網域白名單、IPS</td><td>VPC（需專用子網路）</td></tr>
-      </tbody>
-    </table></div>
-
-    <div class="trap"><b>陷阱：WAF 不能掛在 EC2 或 NLB 上</b><br>
-    WAF 只能關聯到 <b>CloudFront、ALB、API Gateway、AppSync、Cognito User Pool</b>。<br>
-    <u>NLB 是第 4 層，看不到 HTTP 內容，所以掛不了 WAF。</u><br>
-    如果架構是「NLB → EC2」而需要 WAF，就要改成 ALB，或在前面加 CloudFront。</div>
-
-    <div class="trap"><b>陷阱：Shield Advanced 的隱藏價值是「費用保護」</b><br>
-    被 DDoS 攻擊時，就算服務沒掛，<u>自動擴展與流量費用會暴增</u>。Shield Advanced 提供這部分的費用抵免。<br>
-    題目若提到「<b>擔心 DDoS 造成的意外帳單</b>」→ 這是 Shield Advanced 的賣點之一，不只是防護能力。</div>
-
-    <div class="biz">
-      <b>企業實務：WAF 一定要先用「計數模式」</b><br>
-      直接把 WAF 規則開成封鎖，很可能<u>擋掉正常使用者</u>——尤其是託管規則組裡的一些規則對正常流量誤判率不低。<br><br>
-      正確流程：<br>
-      ① 規則先設為 <b>Count</b>（只計數不封鎖）<br>
-      ② 觀察一到兩週，看哪些規則會誤傷正常流量<br>
-      ③ 調整例外後，才改成 <b>Block</b><br><br>
-      <u>跳過這一步而在上線日直接開封鎖，是很典型的自己打自己。</u>
-    </div>
-  </div>
-
-  <div class="card" id="respond">
-    <h2>7. 自動化應變</h2>
-    <p>偵測到問題之後，人不可能 24 小時盯著儀表板。企業會把常見的處置自動化。</p>
-
-    <div class="arch"><span class="c">標準的自動應變架構</span>
-
-   GuardDuty 發現 ──→ <span class="y">EventBridge 規則</span> ──→ 動作
-                            │
-        ┌───────────────────┼───────────────────┐
-        ↓                   ↓                   ↓
-   <span class="o">Lambda</span>              <span class="o">SNS</span>              <span class="o">Systems Manager</span>
-   自動隔離主機        通知資安團隊         執行 Runbook
-   （換成隔離用 SG）    （或進 Slack）       （收集鑑識資料）
-
-<span class="c">常見的自動處置</span>
-   • 憑證外洩 → 立即撤銷該 IAM 使用者的金鑰
-   • EC2 被入侵 → 換成隔離 SG、建立快照留證、移出 ASG
-   • S3 意外公開 → 自動關閉公開存取並通知擁有者</div>
-
-    <div class="trap"><b>陷阱：自動處置要考慮誤判</b><br>
-    自動關機、自動撤銷憑證聽起來很帥，但<u>誤判一次就是自己造成的服務中斷</u>。<br>
-    實務上的分級：<br>
-    • <b>高信心且低風險</b>的處置才全自動（例如關閉 S3 公開存取）<br>
-    • <b>影響服務</b>的處置（隔離主機、撤銷憑證）先送通知 + 一鍵執行的 Runbook，由人按下去<br><br>
-    <b>「自動偵測 + 人工決策 + 一鍵處置」通常比全自動更實用。</b></div>
-  </div>
-
+  <!-- 10 -->
   <div class="card" id="invest">
-    <h2>8. 調查與稽核：Detective / Audit Manager / Artifact</h2>
-
-    <p>前面七節都在講「偵測」。但真實的資安工作在偵測之後才開始：<b>這件事怎麼發生的？影響範圍多大？稽核人員要的證明在哪？</b>這三個服務回答的就是這三題。</p>
+    <h2>10. 事後調查與稽核：Detective、Audit Manager、Artifact</h2>
 
     <div class="cmprow">
-      <div class="cmp"><b>Amazon Detective</b><span>把 <b>CloudTrail、VPC Flow Logs、GuardDuty 發現</b>自動關聯成行為圖，用來追<b>根本原因與影響範圍</b>。</span></div>
-      <div class="cmp"><b>AWS Audit Manager</b><span>持續蒐集<b>我自己環境</b>的證據，對應到 CIS／PCI DSS／GDPR／SOC 2 等框架，自動產生稽核報告。</span></div>
-      <div class="cmp"><b>AWS Artifact</b><span>下載 <b>AWS 自己</b>的第三方稽核報告（SOC、ISO、PCI），以及簽署 BAA、GDPR 資料處理附約。</span></div>
+      <div class="cmp">
+        <b>Amazon Detective</b>
+        <span><b>事件根本原因調查</b>。自動從 VPC Flow Logs、CloudTrail 與 GuardDuty 構建「行為圖形 (Graph Model)」，視覺化展示攻擊者在過去數週的滲透路徑。</span>
+      </div>
+      <div class="cmp">
+        <b>AWS Audit Manager</b>
+        <span><b>企業自身的合規稽核</b>。持續自動採集客戶 AWS 資源上的控制項證據（如備份記錄、加密狀態），一鍵導出合規評估報告。</span>
+      </div>
+      <div class="cmp">
+        <b>AWS Artifact</b>
+        <span><b>下載 AWS 自身的合規認證</b>。向外部審計師出示 AWS 資料中心的 SOC 1/2/3、ISO 27001、PCI 稽核報告，以及簽署 BAA 協議。</span>
+      </div>
     </div>
-
-    <div class="arch"><span class="w">   一次事件的完整流程</span>
-
-   <span class="y">GuardDuty</span>      「這台 EC2 在跟已知的中繼站通訊」   ← <span class="w">偵測：有事發生了</span>
-        │
-        ▼
-   <span class="o">Detective</span>      「它是三天前透過某個外洩的金鑰被存取的，
-                    同一組憑證還碰過另外兩個 S3 儲存貯體」  ← <span class="w">調查：怎麼發生、影響多大</span>
-        │
-        ▼
-   <span class="c">Security Hub</span>   把所有發現彙總成一張總表              ← <span class="w">彙整</span>
-        │
-        ▼
-   <span class="c">Audit Manager</span>  把處理過程與控制項證據收成稽核報告      ← <span class="w">交代</span></div>
-
-    <div class="ok"><strong>三個關鍵字直接對應答案：</strong><br>
-    「<b>調查根本原因</b>」「釐清事件範圍」「攻擊路徑」→ <b>Detective</b><br>
-    「<b>持續蒐集證據</b>」「對應合規框架」「產生稽核報告」→ <b>Audit Manager</b><br>
-    「稽核人員要求提供<b>AWS 的</b> SOC 2 / ISO 27001 報告」→ <b>Artifact</b></div>
-
-    <div class="trap"><b>陷阱：Detective 拿來做偵測</b><br>
-    名字誤導。<b>偵測是 GuardDuty</b>，Detective 是<b>事後的深度調查</b>。它本身不會告訴你「有攻擊」，而是在你已經知道有攻擊之後，幫你把散在各處的日誌串成一條時間軸。</div>
-
-    <div class="trap"><b>陷阱：Artifact 與 Audit Manager 搞混</b><br>
-    <b>Artifact = AWS 自己合規嗎</b>（下載 AWS 的報告，屬於責任共擔模型中 AWS 那一半）。<br>
-    <b>Audit Manager = 我的環境合規嗎</b>（蒐集我自己資源的證據，屬於客戶那一半）。<br>
-    題目說「向客戶／稽核方<b>證明雲端供應商</b>符合規範」→ Artifact。</div>
-
-    <div class="note"><b>Detective 的前提：</b>要先啟用 <b>GuardDuty 至少 48 小時</b>才能啟用 Detective，因為它需要足夠的行為基準資料。多帳號環境同樣走<b>委派管理員</b>模式。</div>
   </div>
 
+  <!-- 11 -->
   <div class="card" id="fms">
-    <h2>9. Firewall Manager：跨帳號套用防護</h2>
+    <h2>11. Firewall Manager：多帳號組織級集中資安政策</h2>
+    <div class="analogy">單一帳號的 WAF 只能保護自己帳號下的幾台 ALB；但當跨國集團擁有 100 個 AWS Member Accounts 時，如何確保<b>「所有帳號目前與未來新建的每一台 ALB 都強制掛上防 SQL 注入的 WAF」</b>？這必須依靠 <b>AWS Firewall Manager</b>！</div>
 
-    <div class="warn"><strong>單一帳號用 WAF 就夠了，但三十個帳號怎麼保證每個 ALB 都掛上同一組規則？</strong>更麻煩的是——<b>下週新開的帳號、明天新建的 ALB 怎麼辦？</b>人工檢查一定會漏。</div>
-
-    <div class="cmprow">
-      <div class="cmp"><b>能集中管什麼</b><span>WAF 規則群組、<b>Shield Advanced</b> 保護、<b>Security Group</b> 稽核與基準、Network Firewall、Route 53 DNS Firewall。</span></div>
-      <div class="cmp"><b>自動套用</b><span>政策可設成涵蓋「<b>所有現有與未來</b>的符合資源」——新建的 ALB 一出現就自動被保護。</span></div>
-      <div class="cmp"><b>前提條件</b><span>需要 <b>Organizations（全功能）</b>、啟用 <b>AWS Config</b>、指定<b>委派管理員帳號</b>。</span></div>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>必備三大前置條件</th><th>具體要求與功能</th></tr></thead>
+        <tbody>
+          <tr><td>1. AWS Organizations</td><td>必須開啟所有功能 (All Features)，而非僅開 Consolidated Billing。</td></tr>
+          <tr><td>2. 委派管理員</td><td>指定一個獨立的 Security Account 作為 Firewall Manager 的委派管理員。</td></tr>
+          <tr><td>3. AWS Config</td><td>組織下的<b>所有帳號必須啟用 AWS Config</b>，Firewall Manager 依賴 Config 發現新建立的資源。</td></tr>
+        </tbody>
+      </table>
     </div>
-
-    <div class="ok"><strong>考題句型幾乎固定：</strong>「確保<b>所有帳號</b>的<b>所有</b> ALB 都套用同一組 WAF 規則，<b>包括未來新建的</b>」→ <b>Firewall Manager</b>。<br>
-    只答「AWS WAF」是錯的——WAF 是<b>單一帳號、單一資源</b>的層次，做不到跨帳號自動涵蓋。這個「未來新建的」是最強的關鍵字。</div>
-
-    <div class="note"><b>Security Group 也能管：</b>Firewall Manager 可以做「稽核政策」（找出全帳號中有 <span class="inline-code">0.0.0.0/0</span> 開放 22 埠的 SG）與「共用政策」（把基準 SG 推到所有帳號）。<br>
-    考題問「如何在整個組織中偵測並修正過度開放的 Security Group」→ Firewall Manager 的 SG 稽核政策，或 Config 規則 + 自動修復，兩者都可能是答案，看題目強調「<b>跨帳號集中</b>」（Firewall Manager）還是「<b>組態合規</b>」（Config）。</div>
   </div>
 
-  <div class="card" id="traps">
-    <h2>10. 考試陷阱整理</h2>
-    <div class="trap"><b>陷阱 1：GuardDuty vs Inspector</b><br>行為異常（正在被攻擊）→ GuardDuty；已知漏洞（有弱點）→ Inspector。</div>
-    <div class="trap"><b>陷阱 2：Macie 只管 S3</b><br>它掃的是 S3 物件內容。要找 RDS 或 DynamoDB 裡的個資不是 Macie 的工作。</div>
-    <div class="trap"><b>陷阱 3：Security Hub 不做偵測</b><br>它只彙整。偵測是 GuardDuty/Inspector/Macie 的事。</div>
-    <div class="trap"><b>陷阱 4：WAF 掛不上 NLB</b><br>只能是 CloudFront / ALB / API Gateway / AppSync / Cognito。</div>
-    <div class="trap"><b>陷阱 5：Shield Standard 是免費且已經啟用的</b><br>題目問「如何取得基本 DDoS 防護」→ 已經有了，不用做任何事。要進階才需 Advanced。</div>
-    <div class="trap"><b>陷阱 6：Inspector 需要 SSM Agent</b><br>掃不到 EC2 → 檢查 SSM Agent、IAM 角色、VPC Endpoint。</div>
-    <div class="trap"><b>陷阱 7：組織層級啟用</b><br>多帳號環境的資安服務，答案幾乎都是「用委派管理員在 Organization 層級啟用並自動納管新帳號」。</div>
+  <!-- 12 -->
+  <div class="card" id="respond">
+    <h2>12. 企業級 SecOps 自動化應變與事件聯防閉環</h2>
+    <p>當 GuardDuty 偵測到有黑客正在暴力破解 SSH 或發起攻擊時，秒級全自動阻斷的標準雲端架構如下：</p>
 
-    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>看<b>行為</b>找 GuardDuty，看<b>漏洞</b>找 Inspector，看 <b>S3 個資</b>找 Macie，看<b>總表</b>找 Security Hub，擋 <b>7 層</b>找 WAF，擋 <b>DDoS</b> 找 Shield。</span></div>
+    <div class="arch">惡意黑客 IP 發動攻擊
+   │
+   ▼
+<span class="y">Amazon GuardDuty</span> ──偵測到異常行為，生成 Finding (例如: UnauthorizedAccess:EC2/SSHBruteForce)
+   │
+   ▼
+<span class="c">Amazon EventBridge</span> ──比對 Event Pattern 命中資安規則
+   │
+   ▼
+<span class="o">AWS Lambda 應變函式</span>
+   ├── 1. 解析事件中的攻擊者 IP (Malicious IP)
+   ├── 2. 調用 WAF API: <span class="y">UpdateIPSet</span>，將惡意 IP 加入封鎖黑名單
+   ├── 3. 調用 EC2 API: 修改遭感染 EC2 的 Security Group，替換為隔離隔離區 SG
+   └── 4. 發送緊急簡訊與 Slack 警報通知資安團隊 (SNS)</div>
+  </div>
+
+  <!-- 13 -->
+  <div class="card" id="traps">
+    <h2>13. SAA-C03 考試陷阱與高頻對照速查</h2>
+
+    <div class="trap"><b>陷阱 1：WAF 無法掛載至 NLB 或 EC2</b><br>
+    WAF 是第 7 層應用防火牆，只能掛載在 <b>CloudFront、ALB、API Gateway、AppSync、Cognito User Pool</b>。若題目架構為 NLB → EC2 且要求防禦 SQL 注入，標準解法是將 NLB 改為 <b>ALB</b>，或在 NLB 前置 <b>CloudFront + WAF</b>。</div>
+
+    <div class="trap"><b>陷阱 2：KMS Key 刪除的安全性</b><br>
+    KMS CMK <b>無法立即瞬間刪除</b>！AWS 強制要求設定 <b>7 到 30 天的等待期 (Waiting Period)</b>。在等待期內，金鑰狀態變更為 Pending Deletion，若發現誤刪尚可呼叫 <code>CancelKeyDeletion</code> 救援。</div>
+
+    <div class="trap"><b>陷阱 3：Artifact vs Audit Manager</b><br>
+    • <b>AWS Artifact</b>：證明「<b>AWS 雲端基礎設施</b>」是否合規（責任共擔模型中 AWS 的部分）。<br>
+    • <b>Audit Manager</b>：證明「<b>客戶自己託管在 AWS 的系統</b>」是否合規（責任共擔模型中客戶的部分）。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;">
+      <span>🎯</span>
+      <span><b>資安家族考前通關口訣：</b><br>
+      • 大檔案本地加密 → <b>KMS 信封加密 (GenerateDataKey)</b><br>
+      • 資料庫密碼定期自轉 → <b>Secrets Manager (自動輪換)</b><br>
+      • 實體/無代理行為偵測 → <b>Amazon GuardDuty</b><br>
+      • 主機 CVE 漏洞盤點 → <b>Amazon Inspector (搭配 SSM Agent)</b><br>
+      • S3 機密個資掃描 → <b>Amazon Macie</b><br>
+      • 全組織新舊資源強套 WAF → <b>AWS Firewall Manager</b></span>
+    </div>
+  </div>
+
+  <!-- 14 -->
+  <div class="card" id="lab">
+    <h2>14. 實作 Lab：KMS 信封加密與 WAF WebACL 配置實戰</h2>
+
+    <div class="cmd"># 步驟 1：建立客戶自管 KMS 主金鑰 (CMK) 並啟用自動每年輪換
+aws kms create-key --description "Prod-Data-Encryption-Key"
+aws kms enable-key-rotation --key-id &lt;KMS_KEY_ID&gt;
+
+# 步驟 2：執行信封加密——請求產生一組 Data Key (回傳明文與密文金鑰)
+aws kms generate-data-key \
+  --key-id &lt;KMS_KEY_ID&gt; \
+  --key-spec AES_256
+
+# 步驟 3：建立 WAF WebACL 規則並掛載至 ALB
+aws wafv2 create-web-acl \
+  --name "prod-app-protection" \
+  --scope REGIONAL \
+  --default-action Allow={} \
+  --visibility-config SampledRequestsEnabled=true,CloudWatchMetricsEnabled=true,MetricName=ProdWafMetric \
+  --rules '[
+    {
+      "Name": "AWS-AWSManagedRulesCommonRuleSet",
+      "Priority": 0,
+      "Statement": {
+        "ManagedRuleGroupStatement": {
+          "VendorName": "AWS",
+          "Name": "AWSManagedRulesCommonRuleSet"
+        }
+      },
+      "OverrideAction": { "None": {} },
+      "VisibilityConfig": { "SampledRequestsEnabled": true, "CloudWatchMetricsEnabled": true, "MetricName": "CRSMetric" }
+    }
+  ]'
+
+# 步驟 4：將 WAF WebACL 關聯到 Application Load Balancer
+aws wafv2 associate-web-acl \
+  --web-acl-arn &lt;WEB_ACL_ARN&gt; \
+  --resource-arn &lt;ALB_ARN&gt;</div>
   </div>
 
   <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
@@ -326,11 +501,6 @@
 <script>
 (function(){
   if (document.getElementById('tom-hub-return')) return;
-  // 依所在環境決定回哪裡：
-  //   本機          → 本機的 Project Hub
-  //   作品集站台內  → 用相對路徑，換網域也不會壞
-  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
-  //                   只能用完整網址連回作品集
   var host = location.hostname;
   var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
   var onSite = host === 'tomchen0722.github.io';
@@ -351,8 +521,6 @@
       + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
       + '#tom-hub-return:hover::after{opacity:0;}'
       + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
-      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
-      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
       + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
       + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
       + '@media print{ #tom-hub-return{display:none;}}';
@@ -379,22 +547,8 @@
 <!-- portfolio-analytics:begin -->
 <script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
 <script data-project="aws">
-/* ═══════════════════════════════════════════════════════════
-   作品集瀏覽計數器 — 前端追蹤 + 顯示
-   ───────────────────────────────────────────────────────────
-   使用方式（在頁面底部加兩行）：
-
-     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
-     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
-
-   data-project 對應 projects.json 的 id，首頁請填 hub。
-   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
-
-   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
-   ═══════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-
   var CFG = window.ANALYTICS_CONFIG || {};
   var script = document.currentScript;
   var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
@@ -405,7 +559,6 @@
   var LIVE = !!(CFG.url && CFG.key);
   var DEDUPE_MINUTES = 30;
 
-  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
   function visitorId() {
     var k = 'pf:vid', v;
     try {
@@ -420,18 +573,16 @@
     return v;
   }
 
-  /* ── 短時間內重複整理不重複計數 ── */
   function shouldCount() {
     var k = 'pf:seen:' + PROJECT + ':' + PAGE;
     try {
       var last = +(sessionStorage.getItem(k) || 0);
       if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
       sessionStorage.setItem(k, Date.now());
-    } catch (e) { /* 隱私模式下就照常計數 */ }
+    } catch (e) { }
     return true;
   }
 
-  /* ── 本機備援計數（未設定 Supabase 時使用）── */
   function localBump() {
     var k = 'pf:count:' + PROJECT;
     try {
@@ -450,7 +601,6 @@
     } catch (e) { return { total: 0, days: {} }; }
   }
 
-  /* ── 送出一筆瀏覽紀錄 ── */
   function track() {
     if (!shouldCount()) return Promise.resolve();
     if (!LIVE) { localBump(); return Promise.resolve(); }
@@ -472,7 +622,6 @@
     }).catch(function () { localBump(); });
   }
 
-  /* ── 讀取某專案的統計摘要 ── */
   function summary(projectId) {
     projectId = projectId || PROJECT;
     if (!LIVE) {
@@ -496,7 +645,6 @@
       .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
   }
 
-  /* ── 讀取全部專案的統計 ── */
   function allSummary() {
     if (!LIVE) return Promise.resolve([]);
     return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
@@ -504,7 +652,6 @@
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 讀取每日趨勢（近 N 天）── */
   function daily(projectId, days) {
     if (!LIVE) return Promise.resolve([]);
     var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
@@ -514,7 +661,6 @@
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 讀取每月統計 ── */
   function monthly(projectId) {
     if (!LIVE) return Promise.resolve([]);
     var q = '/rest/v1/v_views_monthly?order=month.asc';
@@ -523,7 +669,6 @@
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 把數字填進 #view-counter ── */
   function paint() {
     var box = document.getElementById('view-counter');
     if (!box) return;
@@ -547,7 +692,6 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
-
 </script>
 <!-- portfolio-analytics:end -->
 </body>
