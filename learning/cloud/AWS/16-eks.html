@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EKS 與容器選型 — AWS SAA-C03</title>
+<title>Amazon EKS 與 Kubernetes 容器架構完全指南 — AWS SAA-C03</title>
 <link rel="stylesheet" href="assets/lesson.css">
 <style>
 .arch{background:#0F1724;border-radius:10px;padding:18px 22px;margin:16px 0;overflow-x:auto;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.9;color:#8BE9FD;white-space:pre;}
@@ -16,19 +16,21 @@
 .trap b{color:#B45309;}
 .biz{background:#F3E8FF;border-left:4px solid #7E22CE;border-radius:0 10px 10px 0;padding:14px 18px;margin:14px 0;font-size:.87rem;color:#4C1D95;line-height:1.8;}
 .biz b{color:#6B21A8;}
+.code-blk{background:#1E293B;color:#E2E8F0;border-radius:8px;padding:14px 18px;font-family:"Cascadia Code","Consolas",monospace;font-size:.82rem;line-height:1.6;overflow-x:auto;margin:12px 0;}
+.cmd{background:#0F172A;color:#38BDF8;padding:12px 16px;border-radius:6px;font-family:"Cascadia Code","Consolas",monospace;font-size:.84rem;margin:10px 0;overflow-x:auto;}
 </style>
 </head>
 <body>
 <div class="topbar">
   <a href="index.html">AWS 學習中心</a><span class="sep">/</span>
   <a href="index.html">實作篇</a><span class="sep">/</span>
-  <span class="cur">16 · EKS 與容器選型</span>
+  <span class="cur">16 · EKS 與 Kubernetes 架構</span>
 </div>
 
 <div class="hero c2">
-  <div class="badge">實作 16 · Kubernetes</div>
-  <h1><span>EKS</span> 與容器平台選型</h1>
-  <p>第 11 課講完 ECS，這一課補上另一半：什麼時候該用 Kubernetes、EKS 幫你管了什麼、以及企業選型時真正該問的問題。</p>
+  <div class="badge">實作 16 · 企業級 Kubernetes</div>
+  <h1><span>Amazon EKS</span> 與 Kubernetes 架構完全指南</h1>
+  <p>從 Control Plane 隔離拓撲、AWS VPC CNI 與 IP 耗盡解法、IRSA 與 EKS Pod Identity，到 AWS Load Balancer Controller 與 Karpenter 極速彈性擴展。徹底掌握 SAA-C03 雲原生容器高分關鍵。</p>
 </div>
 
 <div class="container">
@@ -36,214 +38,399 @@
   <div class="toc">
     <h2>本章目錄</h2>
     <ol>
-      <li><a href="#why">先問：你真的需要 Kubernetes 嗎？</a></li>
-      <li><a href="#arch">EKS 架構：AWS 管什麼、你管什麼</a></li>
-      <li><a href="#node">三種節點模式</a></li>
-      <li><a href="#network">EKS 網路：VPC CNI 與 IP 耗盡</a></li>
-      <li><a href="#iam">IRSA：Pod 層級的 IAM 權限</a></li>
-      <li><a href="#scale">兩層擴展：HPA 與 Karpenter</a></li>
-      <li><a href="#cost">成本與企業選型</a></li>
-      <li><a href="#traps">考試陷阱整理</a></li>
+      <li><a href="#why">容器平台選型決策：ECS vs EKS vs App Runner</a></li>
+      <li><a href="#arch">EKS 架構拓撲：控制平面 (Control Plane) 與端點存取控制</a></li>
+      <li><a href="#node">資料平面三種節點模式：Self-managed vs Managed vs Fargate</a></li>
+      <li><a href="#network">EKS 網路架構：VPC CNI、Prefix Delegation 與次要 CIDR</a></li>
+      <li><a href="#iam">EKS 身份授權演進：IRSA 與 EKS Pod Identity</a></li>
+      <li><a href="#ingress">外部流量接入：AWS Load Balancer Controller 與 ALB/NLB</a></li>
+      <li><a href="#storage">EKS 儲存外掛整合：EBS CSI vs EFS CSI vs FSx</a></li>
+      <li><a href="#scale">兩層彈性擴展：HPA 與 Karpenter 極速節點調度</a></li>
+      <li><a href="#ops">EKS 叢集生命週期與無中斷版本升級</a></li>
+      <li><a href="#trouble">EKS 生產常見故障與診斷排查手冊</a></li>
+      <li><a href="#traps">SAA-C03 考試陷阱與關鍵字速查</a></li>
+      <li><a href="#lab">實作 Lab：eksctl 建立 EKS 叢集與部署 AWS LBC Ingress</a></li>
     </ol>
   </div>
 
+  <!-- 1 -->
   <div class="card" id="why">
-    <h2>1. 先問：你真的需要 Kubernetes 嗎？</h2>
-    <div class="analogy">ECS 像<b>自排車</b>——AWS 幫你決定大部分的事，上手快、夠用。<br>EKS 像<b>手排車</b>——控制權全給你，但你要懂離合器。開得好比自排快，開不好比自排慢很多。</div>
+    <h2>1. 容器平台選型決策：ECS vs EKS vs App Runner</h2>
+    <div class="analogy">• <b>App Runner</b> 像搭計程車：直接給代碼或映像檔，連伺服器都不用管，適合小型微服務。<br>
+    • <b>Amazon ECS</b> 像開自排車：AWS 幫你管定速巡航與變速箱，操作直覺、完全整合 AWS 生態，維運負擔極輕。<br>
+    • <b>Amazon EKS</b> 像開重型拖曳卡車：提供最大載重、跨廠牌（跨雲）零件通用，但需要專職技工每天保養與換檔。</div>
 
-    <p>SAA 考試與實務都會問「ECS 還是 EKS」。判斷點其實只有四個：</p>
-    <div class="tbl-wrap"><table class="t">
-      <thead><tr><th>判斷點</th><th>選 ECS</th><th>選 EKS</th></tr></thead>
-      <tbody>
-        <tr><td><b>團隊技能</b></td><td>沒有 K8s 經驗，人力有限</td><td>已有 K8s 團隊或專職平台工程師</td></tr>
-        <tr><td><b>可攜性需求</b></td><td>就長期待在 AWS</td><td>需要<b>多雲或混合雲</b>，或客戶要求不綁單一雲</td></tr>
-        <tr><td><b>生態系需求</b></td><td>內建功能夠用</td><td>要用 Helm、Istio、Argo CD、Prometheus 等 K8s 生態工具</td></tr>
-        <tr><td><b>複雜度</b></td><td>幾十個服務以內</td><td>大量微服務、多團隊共用平台</td></tr>
-      </tbody>
-    </table></div>
-
-    <div class="trap"><b>陷阱：考試最愛的一句話</b><br>
-    題目出現「<b>希望維持與地端 Kubernetes 一致</b>」「<b>避免供應商鎖定</b>」「<b>要用既有的 Helm chart</b>」→ <b>EKS</b>。<br>
-    出現「<b>團隊沒有 Kubernetes 經驗</b>」「<b>最少維運負擔</b>」「<b>最快上線</b>」→ <b>ECS</b>（甚至 App Runner）。<br><br>
-    AWS 官方立場其實很務實：<u>沒有特殊理由的話，ECS 更簡單</u>。EKS 的價值在可攜性與生態系，不在「比較厲害」。</div>
-
-    <div class="biz">
-      <b>企業實務：一個常見的誤判</b><br>
-      很多團隊選 EKS 的理由是「以後可能要多雲」。但實際上，只要你用了 ALB Ingress Controller、EBS CSI、IRSA、Route 53、ACM，<u>你的 K8s YAML 早就綁定 AWS 了</u>——真要搬到別的雲，改的量不會比 ECS 少太多。<br><br>
-      <b>可攜性是要刻意設計才有的，不是選了 K8s 就自動獲得。</b>如果多雲只是「以後可能」，這個理由撐不起 EKS 的維運成本。
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>架構考量維度</th><th>Amazon ECS</th><th>Amazon EKS (Kubernetes)</th><th>AWS App Runner</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>適用團隊背景</b></td>
+            <td>無 K8s 經驗，希望專注在業務邏輯與快速交付。</td>
+            <td>已有 Kubernetes 團隊、熟悉 <code>kubectl</code> 與 Helm 工具鏈。</td>
+            <td>前端/全端工程師、無基礎設施維運團隊。</td>
+          </tr>
+          <tr>
+            <td><b>多雲可攜性 (Portability)</b></td>
+            <td>深度綁定 AWS API。搬遷至其他公有雲需重寫配置。</td>
+            <td><b>高標準可攜性</b>。YAML 與 Helm Charts 可跨地端機房與多雲執行。</td>
+            <td>完全託管於 AWS。</td>
+          </tr>
+          <tr>
+            <td><b>開源生態工具相容性</b></td>
+            <td>主要依靠 AWS 原生工具（CloudWatch, X-Ray, ALB）。</td>
+            <td><b>極為龐大</b>：Istio, Prometheus, Grafana, ArgoCD, Linkerd, Cilium。</td>
+            <td>僅限內建功能。</td>
+          </tr>
+          <tr>
+            <td><b>控制平面計費</b></td>
+            <td><b>完全免費！</b>只收取底層 EC2 / Fargate 資源費。</td>
+            <td><b>每個叢集每小時收費 $0.10 美元</b>（約每月 $73 美元）。</td>
+            <td>無控制平面費用，按請求與記憶體收費。</td>
+          </tr>
+          <tr>
+            <td><b>考試情境秒選關鍵字</b></td>
+            <td>「最少維運開銷」、「快速上線」、「無伺服器容器」。</td>
+            <td>「<b>跨雲/地端混合遷移</b>」、「<b>現有 Helm charts</b>」、「<b>標準 Kubernetes API</b>」。</td>
+            <td>「直接從 GitHub 部署 Web App」、「完全無伺服器 Web 服務」。</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
+  <!-- 2 -->
   <div class="card" id="arch">
-    <h2>2. EKS 架構：AWS 管什麼、你管什麼</h2>
-    <div class="arch"><span class="c">控制平面 Control Plane</span>  <span class="w">← AWS 全託管</span>
-   ├── API Server（跨 3 個 AZ,自動修復）
-   ├── etcd（狀態資料庫,自動備份）
-   ├── Scheduler / Controller Manager
-   └── <span class="o">按小時計費,不管你有沒有跑 Pod</span>
+    <h2>2. EKS 架構拓撲：控制平面 (Control Plane) 與端點存取控制</h2>
+    <p>EKS 的控制平面由 AWS 全權代管。在背後，AWS 在專用的受管 VPC 內跨 3 個可用區 (AZ) 部署了至少 2 個 API Server 實例與 3 個 etcd 節點，保證 99.95% 的 SLA 可用性。</p>
 
-<span class="c">資料平面 Data Plane</span>  <span class="w">← 你管（或部分託管）</span>
-   ├── 節點（EC2 / Fargate）
-   ├── kubelet、容器執行環境
-   ├── <span class="y">版本升級要你自己排</span>
-   └── <span class="y">節點的作業系統修補要你負責</span>
+    <div class="arch"><span class="c">AWS 全託管 VPC (Control Plane)</span>
+  └── API Server (跨 3 AZ 高可用) + etcd 資料庫 (自動加密備份)
+             │
+             │ 透過跨帳號 ENI (Cross-Account Elastic Network Interfaces) 互聯
+             ▼
+<span class="y">客戶自管 VPC (Data Plane - 你的子網路)</span>
+  ├── <b>Public Subnet</b>：NAT Gateway、ALB / NLB 網際網路接入點
+  └── <b>Private Subnet</b>：EKS Worker Nodes (EC2 / Fargate Pods)</div>
 
-<span class="c">附加元件 Add-ons</span>
-   ├── VPC CNI（網路）
-   ├── CoreDNS（服務名稱解析）
-   ├── kube-proxy
-   └── EBS/EFS CSI Driver（儲存）
-       ↑ 這些可以用 <span class="o">EKS Managed Add-ons</span> 讓 AWS 幫你管版本</div>
-
-    <div class="note" style="background:#E3F2FD;color:#0D47A1;"><span>📋</span><span><b>責任分界是考試重點。</b>AWS 保證控制平面的高可用與 SLA，但<b>節點上的作業系統修補、K8s 版本升級的排程、應用的高可用設計，都是你的責任</b>。這是共同責任模型在 EKS 上的具體體現。</span></div>
-
-    <div class="trap"><b>陷阱：EKS 版本會過期</b><br>
-    Kubernetes 每年出多個版本，AWS 對每個版本的標準支援期有限（約 14 個月，之後進入延長支援並<b>額外收費</b>）。<br>
-    <u>「買了就不用管」在 EKS 不成立</u>——你必須定期升級，而升級要同時處理控制平面、節點、以及所有 add-on 的相容性。<br><br>
-    企業實務上這是 EKS 最被低估的長期成本：<b>每年至少要排 1-2 次升級演練</b>。</div>
-  </div>
-
-  <div class="card" id="node">
-    <h2>3. 三種節點模式</h2>
-    <div class="tbl-wrap"><table class="t">
-      <thead><tr><th>模式</th><th>誰管節點</th><th>適合</th><th>限制</th></tr></thead>
-      <tbody>
-        <tr><td><b>自管節點</b><br>Self-managed</td><td>你全包</td><td>需要特殊 AMI、GPU 驅動、自訂核心參數</td><td>維運負擔最重</td></tr>
-        <tr><td><b>Managed Node Group</b></td><td>AWS 協助建立與輪替</td><td><b>多數情況的預設選擇</b></td><td>仍需你決定升級時機</td></tr>
-        <tr><td><b>Fargate</b></td><td>完全不用管節點</td><td>不想碰機器、工作負載零散</td><td>不支援 GPU、DaemonSet、特權容器；單價較高</td></tr>
-      </tbody>
-    </table></div>
-
-    <div class="trap"><b>陷阱：EKS on Fargate 的限制比 ECS on Fargate 更多</b><br>
-    K8s 有很多功能預設依賴「節點」這個概念，在 Fargate 上不成立：<br>
-    • <b>DaemonSet 不能用</b>（沒有節點可以「每台跑一個」）→ 日誌收集要改用 sidecar 或 Fluent Bit 的 Fargate 日誌路由<br>
-    • <b>不支援 GPU</b><br>
-    • <b>不支援特權容器與 HostPath</b><br>
-    • 每個 Pod 都是獨立的微型 VM，<u>啟動比 EC2 節點上的 Pod 慢</u><br><br>
-    題目說「跑 GPU 推論的 Pod」→ 一定是 EC2 節點，不是 Fargate。</div>
-
-    <div class="biz">
-      <b>企業實務：混合配置是常態</b><br>
-      成熟的 EKS 叢集通常同時用兩種：<br>
-      • <b>Managed Node Group（含 Spot）</b> 跑無狀態、可中斷的工作負載——成本低<br>
-      • <b>Fargate</b> 跑少量但重要的系統元件，或是需要強隔離的租戶工作負載<br><br>
-      用 <b>節點親和性（nodeAffinity）</b> 與 <b>污點/容忍（taints/tolerations）</b> 決定哪個 Pod 落在哪裡。
-    </div>
-  </div>
-
-  <div class="card" id="network">
-    <h2>4. EKS 網路：VPC CNI 與 IP 耗盡</h2>
-    <p>這是 EKS 最容易在正式環境炸掉、而且純學理論不會遇到的問題。</p>
-
-    <div class="arch"><span class="c">AWS VPC CNI 的運作方式</span>
-   每個 Pod 都拿到一個 <span class="o">VPC 內的真實 IP</span>
-   （不是 overlay 網路的虛擬 IP）
-
-<span class="w">好處：</span>
-   Security Group、VPC Flow Logs、路由都能直接作用在 Pod 上
-   Pod 與 VPC 內其他資源可直接通訊,沒有額外封裝開銷
-
-<span class="w">代價：</span>
-   <span class="y">Pod 數量 = 消耗的 VPC IP 數量</span>
-   子網路 /24 只有約 251 個可用 IP
-   → 一個節點跑 30 個 Pod,8 台節點就把子網路吃光
-   → 新 Pod 卡在 Pending,錯誤訊息是 <span class="o">"failed to assign an IP address"</span></div>
-
-    <div class="trap"><b>陷阱：IP 耗盡的四個解法</b><br>
-    ① <b>規劃夠大的子網路</b>——EKS 的工作節點子網路建議 /19 以上，不要用 /24<br>
-    ② <b>Prefix Delegation</b>——讓每個節點一次配一段 /28，提高每節點可容納的 Pod 數與 IP 使用效率<br>
-    ③ <b>自訂網路（Custom Networking）</b>——把 Pod 放到<u>次要 CIDR</u>（例如 100.64.0.0/16 這類非路由的空間），節點本身留在主 CIDR<br>
-    ④ 極端情況才考慮換 CNI（Calico 等 overlay），但會失去「Pod 用 Security Group」的好處<br><br>
-    <u>考試看到「Pod 無法啟動、IP 不足」→ 想子網路規劃與 Prefix Delegation。</u></div>
-
-    <div class="biz">
-      <b>企業實務：這件事要在建 VPC 時就決定</b><br>
-      IP 規劃是<b>建立叢集前</b>的決策，事後幾乎無法補救——你不能把跑著的叢集搬到另一個子網路。<br>
-      實務建議：EKS 專用 VPC，節點子網路每個 AZ 至少 /19，並預留次要 CIDR 給未來的 Custom Networking。<br>
-      <u>這條規劃錯了，兩年後整個平台要重建。</u>
-    </div>
-  </div>
-
-  <div class="card" id="iam">
-    <h2>5. IRSA：Pod 層級的 IAM 權限</h2>
-    <p>這是 EKS 最重要的安全機制，也是必考題。</p>
-
-    <div class="arch"><span class="c">錯誤做法（很多團隊一開始都這樣）</span>
-   把 S3、DynamoDB 權限直接給<span class="y">節點的 Instance Profile</span>
-   → 節點上<span class="o">所有 Pod 都拿得到那些權限</span>
-   → 一個被入侵的 Pod = 整台節點的權限全洩漏
-
-<span class="c">正確做法：IRSA</span>
-   <span class="w">IAM Roles for Service Accounts</span>
-
-   K8s ServiceAccount ──綁定──→ IAM Role
-          ↑                          ↑
-      Pod 使用                  只給這個 Pod 需要的權限
-
-   原理:EKS 提供 OIDC 供應商,
-        Pod 用投影的 SA token 去 STS 換臨時憑證
-        （和第 10 課 CI/CD 用 OIDC 免金鑰是同一套機制）</div>
-
-    <div class="ok">✅ <b>考試關鍵字：</b>「<b>讓特定 Pod 存取 S3，但同節點其他 Pod 不能</b>」→ <b>IRSA</b>。不要選「加在節點的 IAM Role 上」——那是最小權限原則的反面教材。<br><br>
-    延伸：較新的 <b>EKS Pod Identity</b> 提供類似效果但設定更簡單，不需要為每個叢集管理 OIDC 供應商。看到兩者都出現時，先確認題目強調的是「跨叢集集中管理」（Pod Identity）還是通用相容性（IRSA）。</div>
-  </div>
-
-  <div class="card" id="scale">
-    <h2>6. 兩層擴展：HPA 與 Karpenter</h2>
-    <p>和 ECS 一樣，K8s 的擴展也分兩層，但名字不同：</p>
-
+    <h3>EKS API Server 存取端點三種安全拓撲</h3>
     <div class="cmprow">
-      <div class="cmp"><b>HPA（Pod 層）</b><span>Horizontal Pod Autoscaler。依 CPU/記憶體/自訂指標增減 <b>Pod 數量</b>。</span></div>
-      <div class="cmp"><b>VPA（Pod 層）</b><span>Vertical Pod Autoscaler。調整單一 Pod 的資源<b>規格</b>，而不是數量。</span></div>
-      <div class="cmp"><b>Cluster Autoscaler（節點層）</b><span>傳統方案。依 Node Group 增減<b>節點數量</b>，受限於預先定義的機型。</span></div>
-      <div class="cmp"><b>Karpenter（節點層）</b><span>AWS 開源的新一代。<b>直接依待調度 Pod 的實際需求挑機型並開機</b>，更快也更省。</span></div>
-    </div>
-
-    <div class="trap"><b>陷阱：Cluster Autoscaler vs Karpenter</b><br>
-    • <b>Cluster Autoscaler</b>：只能在你事先定義好的 Node Group 裡加減機器。如果 Pod 需要 GPU 但你沒建 GPU 的 Node Group，它幫不了你。<br>
-    • <b>Karpenter</b>：看到 Pending 的 Pod，<u>直接依它的 CPU/記憶體/GPU/架構需求去挑最合適也最便宜的機型開機</u>，不需要預先定義群組。<br><br>
-    題目強調「<b>更快的節點供應</b>」「<b>自動挑選最省成本的機型</b>」「<b>減少節點群組管理</b>」→ <b>Karpenter</b>。</div>
-
-    <div class="biz">
-      <b>企業實務：Karpenter + Spot 是目前的成本最佳解</b><br>
-      Karpenter 可以設定「優先用 Spot，沒有就退回 On-Demand」，並在 Spot 中斷通知時自動把 Pod 遷走。<br>
-      搭配 <b>PodDisruptionBudget</b> 確保遷移過程中每個服務至少留幾個副本活著，就能在不影響可用性的前提下大幅降低運算成本。<br><br>
-      <u>前提是你的應用要能容忍 Pod 隨時被殺掉——這是雲原生設計的基本要求，不是 Karpenter 的限制。</u>
+      <div class="cmp">
+        <b>1. Public Only (預設)</b>
+        <span>Kubernetes API 端點對網際網路開放。<code>kubectl</code> 呼叫從公網進入，節點亦透過公網與控制平面通訊。需嚴格保護 IAM 與憑證。</span>
+      </div>
+      <div class="cmp">
+        <b>2. Public and Private (折衷)</b>
+        <span>工作節點 (Worker Nodes) 與 API Server 透過私有 VPC ENI 溝通；外部維運工程師的 <code>kubectl</code> 仍可從公網透過身分驗證連線。</span>
+      </div>
+      <div class="cmp">
+        <b>3. Private Only (金融與軍規首選)</b>
+        <span><b>完全對網際網路隱形！</b>API Server 只能從 VPC 內部、VPN 或 Direct Connect 專線存取。徹底杜絕公網連線風險（SAA 高頻資安題）。</span>
+      </div>
     </div>
   </div>
 
-  <div class="card" id="cost">
-    <h2>7. 成本與企業選型</h2>
-    <div class="tbl-wrap"><table class="t">
-      <thead><tr><th>成本項目</th><th>ECS</th><th>EKS</th></tr></thead>
-      <tbody>
-        <tr><td>控制平面</td><td><b>免費</b></td><td><b>按小時計費（每叢集）</b></td></tr>
-        <tr><td>運算資源</td><td>EC2 或 Fargate 用量</td><td>同左</td></tr>
-        <tr><td>人力成本</td><td>低</td><td><b>高——通常是真正的大頭</b></td></tr>
-        <tr><td>升級維運</td><td>幾乎不用管</td><td>每年 1-2 次版本升級</td></tr>
-      </tbody>
-    </table></div>
+  <!-- 3 -->
+  <div class="card" id="node">
+    <h2>3. 資料平面三種節點模式：Self-managed vs Managed vs Fargate</h2>
 
-    <div class="trap"><b>多叢集的成本陷阱</b><br>
-    控制平面是<b>按叢集</b>計費的。如果你為 dev / test / staging / prod 各開一個叢集，控制平面費用就是四份。<br>
-    <u>小團隊常見的替代做法</u>：用 <b>namespace + ResourceQuota + NetworkPolicy</b> 在同一個叢集裡隔離環境，只有 prod 獨立叢集。<br><br>
-    但要注意：namespace 不是強隔離邊界。<b>如果是多租戶或有法規要求，還是要分叢集甚至分帳號。</b></div>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>節點架構模式</th><th>節點管理權限</th><th>核心優勢</th><th>主要限制與取捨</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Managed Node Groups<br>(EKS 受管節點群組)</b></td>
+            <td>由 AWS 代為佈建 Auto Scaling Group、打 OS 標籤與自動化節點排乾 (Drain)。</td>
+            <td><b>生產環境標準做法</b>。一鍵平滑升級 AMI，並自動處理 Kubernetes 污點與排水。</td>
+            <td>底層仍是 EC2，需配置容量預估；需定期安排 AMI 升級排程。</td>
+          </tr>
+          <tr>
+            <td><b>Self-managed Nodes<br>(自管 EC2 節點)</b></td>
+            <td>客戶自行維護 Launch Template、Auto Scaling Group 與節點加入腳本。</td>
+            <td>支援高度客製化 AMI、特殊客製化 Linux 核心模組、自訂儲存卷配置。</td>
+            <td><b>維運負擔沉重</b>。節點退役與排乾必須手動執行腳本處理。</td>
+          </tr>
+          <tr>
+            <td><b>AWS Fargate on EKS<br>(無伺服器 Pod)</b></td>
+            <td>完全無 EC2 實例。每個 Pod 獨佔一個輕量級 VM (microVM) 與專屬 ENI。</td>
+            <td><b>零節點維運</b>。無須打 OS 補丁、無須管理容積率；強隔離性，防容器逃逸。</td>
+            <td><b>不支援 GPU</b>、<b>不支援 DaemonSets</b>（如主機級日誌收集）、<b>不支援 HostPath 儲存</b>。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <div class="ok">✅ <b>選型的一句話總結：</b><br>
-    <b>「我們有沒有人願意也有能力長期照顧這個平台？」</b>——有，EKS 的彈性與生態系會回報你；沒有，ECS 或 App Runner 才是對的答案。<br><br>
-    技術選型失敗最常見的原因不是選錯工具，是<u>選了一個團隊養不起的工具</u>。</div>
+    <div class="trap"><b>考試必殺陷阱：EKS Fargate 不支援 DaemonSet！</b><br>
+    如果題目問：「需要在 EKS 叢集中部署日誌收集代理（如 Fluentd）或 APM 監控代理（如 Datadog），確保每台節點都自動運行一個副本，且期望底層採用無伺服器 Fargate 架構？」<br>
+    → <b>錯誤！</b>Fargate 上沒有實體節點概念，因此 DaemonSet 無法被調度。正確解法是：改用 <b>Sidecar 容器模式</b> 或使用 <b>Managed Node Group</b>！</div>
   </div>
 
+  <!-- 4 -->
+  <div class="card" id="network">
+    <h2>4. EKS 網路架構：VPC CNI、Prefix Delegation 與次要 CIDR</h2>
+    <p>傳統 Kubernetes 使用 Overlay 網路（如 Flannel/Calico），Pod 擁有內部虛擬 IP。但 EKS 預設採用 <b>AWS VPC CNI (aws-node)</b>，其核心理念是：<b>讓每個 Pod 直接成為 VPC 內部的公民，直接擁有 VPC 私有 IP！</b></p>
+
+    <div class="arch"><span class="c">AWS VPC CNI 運作機制</span>
+EC2 節點 (主 ENI: 10.0.1.50)
+  ├── 輔助 ENI 1 ── 分配次要 IP: <span class="y">10.0.1.51</span> → 賦予 Pod A
+  ├── 輔助 ENI 1 ── 分配次要 IP: <span class="y">10.0.1.52</span> → 賦予 Pod B
+  └── 輔助 ENI 2 ── 分配次要 IP: <span class="y">10.0.1.60</span> → 賦予 Pod C
+
+<span class="w">極大優勢：</span>
+1. Pod 與 RDS 資料庫、本機 EC2 通訊零 NAT 轉發損耗，效能極高。
+2. <b>Security Groups for Pods</b>：可以為特定 Pod 綁定專屬的 AWS 安全群組！
+
+<span class="o">致命隱患：VPC 私有 IP 迅速被耗盡！</span>
+一個 /24 的子網路只有 251 個可用 IP。若叢集有 10 台節點，每台節點跑 25 個 Pod，子網路瞬間被吃光！
+新 Pod 進入 Pending 狀態，報錯：<span class="y">"failed to assign an IP address"</span>。</div>
+
+    <h3>解決 IP 耗盡的四大架構處方</h3>
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>解決手段</th><th>原理與操作</th><th>考試核心結論</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>1. Prefix Delegation (前綴委派)</b></td>
+            <td>ENI 不再單個綁定 IP，而是一次綁定一段 <b>/28 前綴（16 個 IP）</b>。</td>
+            <td>大幅減少 ENI 佔用，顯著提高小型節點上的 Pod 密度上限。</td>
+          </tr>
+          <tr>
+            <td><b>2. Custom Networking (自訂網路)</b></td>
+            <td>在 VPC 擴充一組<b>次要 CIDR（例如保留網段 100.64.0.0/16 Carrier Grade NAT）</b>，將 Pod 專門排在次要網段，節點留在主要網段。</td>
+            <td><b>最推薦的企業架構解法</b>。保護核心業務 VPC IP 空間不受容器暴增侵蝕。</td>
+          </tr>
+          <tr>
+            <td><b>3. EKS 專用大子網路</b></td>
+            <td>建置 EKS 專用 VPC，子網路預先劃分為 <code>/19</code> 或更大（提供 8,000+ IP）。</td>
+            <td>規劃初期必備。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card" id="iam">
+    <h2>5. EKS 身份授權演進：IRSA 與 EKS Pod Identity</h2>
+
+    <div class="arch"><span class="c">【歷史做法（極度危險）】</span>
+EC2 節點綁定 IAM Role（包含 S3/DynamoDB 權限）
+  └── 跑在該節點上的所有 50 個 Pod 都能藉由 IMDS 拿到該權限，違反最小權限原則！
+
+<span class="c">【標準解法 1：IRSA (IAM Roles for Service Accounts)】</span>
+利用 OpenID Connect (OIDC) 聯合身分驗證：
+  1. 建立叢集的 OIDC Identity Provider
+  2. 建立 IAM Role，Trust Policy 限制只有特定 namespace 與 ServiceAccount 才能 AssumeRole
+  3. K8s ServiceAccount 標記註解: <span class="y">eks.amazonaws.com/role-arn: arn:aws:iam::...</span>
+  4. <b>只有掛載該 ServiceAccount 的 Pod 才能取得臨時憑證</b>，同主機其他 Pod 完全隔離！
+
+<span class="c">【最新解法 2：EKS Pod Identity (2024+ 新架構)】</span>
+無須手動配置 OIDC 供應商！直接在 EKS 控制台或 API 將 IAM Role 與 ServiceAccount 建立繫結關聯。
+更加簡潔，適合跨多個 EKS 叢集集中管理權限。</div>
+
+    <div class="ok">✅ <b>考題必勝句型：</b>「如何確保只有微服務 Payment Pod 能夠存取 S3 Bucket，而運行在同一台工作節點上的其他 Pod 無法存取？」→ <b>IRSA (IAM Roles for Service Accounts)</b>。</div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card" id="ingress">
+    <h2>6. 外部流量接入：AWS Load Balancer Controller 與 ALB/NLB</h2>
+    <p>Kubernetes 如何將外部網際網路流量引導至內部 Pod？有兩種截然不同的層次：</p>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>模式</th><th>Kubernetes 物件</th><th>對應 AWS 資源</th><th>轉發路徑與效能</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>傳統 Service 模式</b></td>
+            <td><code>type: LoadBalancer</code></td>
+            <td>Classic Load Balancer 或舊版 NLB</td>
+            <td>流量打到 EC2 <b>NodePort</b>，再由 kube-proxy 做二次轉發（增加躍點與延遲）。</td>
+          </tr>
+          <tr>
+            <td><b>AWS LBC<br>(Ingress 模式)</b></td>
+            <td><code>kind: Ingress</code></td>
+            <td><b>Application Load Balancer (ALB)</b></td>
+            <td><b>IP Target Mode 直通 Pod IP！</b>ALB 直接將流量路由到 Pod ENI，支援路徑分流、TLS 卸載與 AWS WAF。</td>
+          </tr>
+          <tr>
+            <td><b>AWS LBC<br>(NLB IP 模式)</b></td>
+            <td><code>type: LoadBalancer</code> (附帶 LBC 註解)</td>
+            <td><b>Network Load Balancer (NLB)</b></td>
+            <td>極低延遲、固定 IP、四層 TCP/UDP 流量直通 Pod。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="trap"><b>子網路標籤陷阱 (Subnet Tagging Requirement)</b><br>
+    AWS Load Balancer Controller 在自動建立 ALB/NLB 時，必須仰賴 VPC Subnet 上的特定標籤來識別放置位置：<br>
+    • 公開網際網路面向的 ALB 子網路：必須包含 <code>kubernetes.io/role/elb = 1</code><br>
+    • 私有內部面向的 ALB 子網路：必須包含 <code>kubernetes.io/role/internal-elb = 1</code><br>
+    缺少標籤會導致 Ingress 部署失敗！</div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card" id="storage">
+    <h2>7. EKS 儲存外掛整合：EBS CSI vs EFS CSI vs FSx</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>儲存 CSI 驅動</th><th>存取模式 (Access Mode)</th><th>跨 AZ 支援</th><th>典型 Kubernetes 應用場景</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>Amazon EBS CSI Driver</b></td>
+            <td><b>ReadWriteOnce (RWO)</b><br>（同一時間只能掛載給單一 Pod）</td>
+            <td>❌ 只能在單一 AZ 內部存取</td>
+            <td>單節點關聯式資料庫（PostgreSQL, MySQL Pod）、高效能低延遲磁碟需求。</td>
+          </tr>
+          <tr>
+            <td><b>Amazon EFS CSI Driver</b></td>
+            <td><b>ReadWriteMany (RWX)</b><br>（支援數千個 Pod 併發讀寫）</td>
+            <td>✅ <b>支援多 AZ 併發共享</b></td>
+            <td>內容管理系統（WordPress 上傳目錄）、共享設定檔、CI/CD 構建暫存。</td>
+          </tr>
+          <tr>
+            <td><b>FSx for Lustre CSI</b></td>
+            <td><b>ReadWriteMany (RWX)</b></td>
+            <td>✅ 支援跨節點高速平行存取</td>
+            <td>分散式機器學習模型訓練 (AI/ML)、巨量資料 HPC 批次分析。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card" id="scale">
+    <h2>8. 兩層彈性擴展：HPA 與 Karpenter 極速節點調度</h2>
+
+    <div class="arch"><span class="c">【層級 1：Pod 橫向擴展 (Horizontal Pod Autoscaler - HPA)】</span>
+依據 CPU / 記憶體使用率，或 Prometheus / SQS 佇列深度自訂指標，自動增加或減少 Deployment 的 Pod 副本數。
+
+<span class="c">【層級 2：節點層自動擴展 (Node Autoscaler)】</span>
+當 HPA 增加 Pod 導致節點資源不足，新 Pod 陷入 <span class="y">Pending</span> 狀態時：
+
+┌────────────────────────────┬────────────────────────────┐
+│ <b>傳統 Cluster Autoscaler (CAS)</b> │ <b>現代化 Karpenter (AWS 開源首選)</b> │
+├────────────────────────────┼────────────────────────────┤
+│ • 綁定 EC2 Auto Scaling Group   │ • <b>完全不依賴 Auto Scaling Group</b>   │
+│ • 只能在預設群組規格內加減機器    │ • 直接根據 Pending Pod 規格精準算力│
+│ • 供應節點需耗時 <b>3~5 分鐘</b>       │ • <b>40 秒內極速啟動</b> EC2 節點       │
+│ • 機型靈活性差，容易浪費閒置算力  │ • 自動動態組合 Spot/On-Demand 與 ARM│
+│ • 縮容排乾節點速度較慢           │ • 支援 <b>Consolidation</b> 主動將碎片重組 │
+└────────────────────────────┴────────────────────────────┘</div>
+  </div>
+
+  <!-- 9 -->
+  <div class="card" id="ops">
+    <h2>9. EKS 叢集生命週期與無中斷版本升級</h2>
+    <p>Kubernetes 版本更新頻繁（每年多個次版本）。EKS 升級是企業生產環境的標準必修課，標準零停機升級四部曲：</p>
+
+    <div class="arch">步驟 1：<b>升級 EKS 控制平面 (Control Plane)</b>
+  └── 透過主控台或 CLI 發起，AWS 自動在後台平滑更新 API Server 與 etcd，服務零中斷。
+         ▼
+步驟 2：<b>升級 EKS 受管附加元件 (Managed Add-ons)</b>
+  └── 依序升級 VPC CNI、CoreDNS、kube-proxy、EBS CSI Driver 相容版本。
+         ▼
+步驟 3：<b>滾動更新工作節點群組 (Managed Node Groups)</b>
+  └── AWS 建立新版 AMI 節點 ➔ 發送 Cordon 標記舊節點不可調度 ➔ Drain 排乾並驅逐舊 Pod ➔ 終止舊 EC2。
+         ▼
+步驟 4：<b>前置防護：配置 PodDisruptionBudget (PDB)</b>
+  └── 強制規定在升級排水過程中，服務至少保持 N 個（或 %）健康副本存活，防止全部被殺！</div>
+  </div>
+
+  <!-- 10 -->
+  <div class="card" id="trouble">
+    <h2>10. EKS 生產常見故障與診斷排查手冊</h2>
+
+    <div class="tbl-wrap">
+      <table class="t">
+        <thead><tr><th>錯誤代碼 / 現象</th><th>核心肇因剖析</th><th>標準診斷與解決措施</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>Unauthorized / access denied (kubectl)</code></td>
+            <td>IAM 使用者或 Role 未在 EKS 的 <code>aws-auth</code> ConfigMap 或 <b>EKS Access Entries</b> 中註冊。</td>
+            <td>使用建立叢集的原始 IAM 身分登入，建立 Access Entry 並賦予 <code>AmazonEKSClusterAdminPolicy</code>。</td>
+          </tr>
+          <tr>
+            <td><code>Pod 卡在 Pending: 0/N nodes available</code></td>
+            <td>1. 節點 CPU/RAM 資源被吃滿。<br>2. VPC CNI 的 IP 配額耗盡。<br>3. 節點的 Taints 與 Pod 的 Tolerations 不匹配。</td>
+            <td>執行 <code>kubectl describe pod &lt;name&gt;</code> 查看 Events；檢查節點子網路可用 IP 數量。</td>
+          </tr>
+          <tr>
+            <td><code>CrashLoopBackOff</code></td>
+            <td>容器啟動後立即崩潰。常見原因為缺少環境變數、配置檔錯誤、或 LivenessProbe 探針失敗。</td>
+            <td>執行 <code>kubectl logs &lt;pod&gt; --previous</code> 查看容器崩潰前的最後日誌輸出。</td>
+          </tr>
+          <tr>
+            <td><code>ImagePullBackOff / ErrImagePull</code></td>
+            <td>1. 映像檔 Tag 不存在。<br>2. 節點缺少拉取私有 ECR 映像檔的 IAM 權限 (AmazonEC2ContainerRegistryReadOnly)。</td>
+            <td>確認 ECR 倉庫名稱；檢查節點 Instance Profile 角色權限。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 11 -->
   <div class="card" id="traps">
-    <h2>8. 考試陷阱整理</h2>
-    <div class="trap"><b>陷阱 1：可攜性題目</b><br>「與地端 K8s 一致」「避免鎖定」「既有 Helm chart」→ EKS。「團隊沒經驗」「最少維運」→ ECS。</div>
-    <div class="trap"><b>陷阱 2：Pod 權限題目</b><br>「只讓某個 Pod 存取 S3」→ <b>IRSA</b>（或 EKS Pod Identity），不是節點 Instance Profile。</div>
-    <div class="trap"><b>陷阱 3：Pod Pending 且 IP 不足</b><br>→ VPC CNI 的 IP 耗盡。想 Prefix Delegation、次要 CIDR、子網路規劃。</div>
-    <div class="trap"><b>陷阱 4：EKS on Fargate 不支援 DaemonSet 與 GPU</b><br>要跑 GPU 或每節點一份的日誌代理 → 必須用 EC2 節點。</div>
-    <div class="trap"><b>陷阱 5：控制平面免費的是 ECS 不是 EKS</b><br>成本比較題常拿這點當差異。</div>
-    <div class="trap"><b>陷阱 6：節點擴展選 Karpenter</b><br>看到「自動挑最省的機型」「不想管 Node Group」→ Karpenter，不是 Cluster Autoscaler。</div>
+    <h2>11. SAA-C03 考試陷阱與關鍵字速查</h2>
 
-    <div class="note" style="background:#E8F5E9;color:#1B5E20;"><span>💡</span><span><b>一句話記憶：</b><br>要不要 K8s 看<b>團隊</b>，節點怎麼開看 <b>Karpenter</b>，Pod 權限看 <b>IRSA</b>，會不會炸看 <b>IP 規劃</b>。</span></div>
+    <div class="trap"><b>陷阱 1：EKS Fargate 不支援 EBS 持久儲存</b><br>
+    EKS on Fargate 只能使用 <b>Amazon EFS</b> 作為持久化儲存卷（透過 EFS CSI Driver），無法直接掛載 EBS 卷！</div>
+
+    <div class="trap"><b>陷阱 2：IRSA Trust Policy 的 OIDC Audience 限制</b><br>
+    設定 IRSA 的 IAM Role 時，條件必須明確限制 <code>aud: "sts.amazonaws.com"</code> 與特定的 ServiceAccount 名稱，否則 STS 會拒絕核發憑證。</div>
+
+    <div class="trap"><b>陷阱 3：控制平面是收費的</b><br>
+    ECS 叢集完全免費，而 EKS 每個叢集收取 $0.10/hr 控制平面費用。若題目強調「開發測試多環境成本極大化精簡」，避免每個專案開獨立 EKS 叢集。</div>
+
+    <div class="note" style="background:#E8F5E9;color:#1B5E20;">
+      <span>🎯</span>
+      <span><b>EKS 考題直覺反射：</b><br>
+      • 跨 Pod 共享持久化讀寫 → <b>Amazon EFS CSI Driver</b><br>
+      • Pod 安全取得 AWS API 權限 → <b>IRSA (IAM Roles for Service Accounts)</b><br>
+      • 極速節點自動擴展且省成本 → <b>Karpenter (搭配 Spot 實例)</b><br>
+      • VPC IP 耗盡問題解決 → <b>Prefix Delegation 或 Custom Networking (次要 CIDR)</b><br>
+      • ALB 直通 Pod 路由與 WAF 防禦 → <b>AWS Load Balancer Controller (Ingress IP Mode)</b></span>
+    </div>
+  </div>
+
+  <!-- 12 -->
+  <div class="card" id="lab">
+    <h2>12. 實作 Lab：eksctl 建立 EKS 叢集與部署 AWS LBC Ingress</h2>
+
+    <div class="cmd"># 步驟 1：使用 eksctl 快速建立具備 Managed Node Group 的生產級 EKS 叢集
+eksctl create cluster \
+  --name prod-cluster \
+  --region ap-northeast-1 \
+  --nodegroup-name standard-workers \
+  --node-type t3.medium \
+  --nodes 3 \
+  --nodes-min 1 \
+  --nodes-max 5 \
+  --managed \
+  --with-oidc
+
+# 步驟 2：為 AWS Load Balancer Controller 建立專屬 IRSA 服務帳號
+eksctl create iamserviceaccount \
+  --cluster=prod-cluster \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --role-name "AmazonEKSLoadBalancerControllerRole" \
+  --attach-policy-arn=arn:aws:iam::123456789012:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve
+
+# 步驟 3：使用 Helm 安裝 AWS Load Balancer Controller
+helm repo add eks https://aws.github.io/eks-charts
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=prod-cluster \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller
+
+# 步驟 4：檢查 Controller 運行狀態
+kubectl get deployment -n kube-system aws-load-balancer-controller</div>
   </div>
 
   <div class="nav-btns" style="display:flex;gap:12px;margin:24px 0;">
@@ -257,11 +444,6 @@
 <script>
 (function(){
   if (document.getElementById('tom-hub-return')) return;
-  // 依所在環境決定回哪裡：
-  //   本機          → 本機的 Project Hub
-  //   作品集站台內  → 用相對路徑，換網域也不會壞
-  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
-  //                   只能用完整網址連回作品集
   var host = location.hostname;
   var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
   var onSite = host === 'tomchen0722.github.io';
@@ -282,8 +464,6 @@
       + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
       + '#tom-hub-return:hover::after{opacity:0;}'
       + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
-      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
-      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
       + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
       + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
       + '@media print{ #tom-hub-return{display:none;}}';
@@ -310,22 +490,8 @@
 <!-- portfolio-analytics:begin -->
 <script>window.ANALYTICS_CONFIG={"url": "https://rkotktpmpatojxxnqlpj.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrb3RrdHBtcGF0b2p4eG5xbHBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgxMTAsImV4cCI6MjA5Njg3NDExMH0.GRs9u9t7pU5ERTtXkMYovCL0d1bqCcQGXvIdNxAtGqk"};</script>
 <script data-project="aws">
-/* ═══════════════════════════════════════════════════════════
-   作品集瀏覽計數器 — 前端追蹤 + 顯示
-   ───────────────────────────────────────────────────────────
-   使用方式（在頁面底部加兩行）：
-
-     <script>window.ANALYTICS_CONFIG={url:'https://xxx.supabase.co',key:'eyJ...'}<\/script>
-     <script src="路徑/analytics.js" data-project="ccna-ccnp"><\/script>
-
-   data-project 對應 projects.json 的 id，首頁請填 hub。
-   沒設定 url / key 時會自動退回本機 localStorage 計數，不會報錯。
-
-   顯示計數：在頁面放一個 <span id="view-counter"></span> 即可。
-   ═══════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-
   var CFG = window.ANALYTICS_CONFIG || {};
   var script = document.currentScript;
   var PROJECT = (script && script.getAttribute('data-project')) || 'unknown';
@@ -336,7 +502,6 @@
   var LIVE = !!(CFG.url && CFG.key);
   var DEDUPE_MINUTES = 30;
 
-  /* ── 匿名訪客 ID：隨機字串，不含任何個人資訊 ── */
   function visitorId() {
     var k = 'pf:vid', v;
     try {
@@ -351,18 +516,16 @@
     return v;
   }
 
-  /* ── 短時間內重複整理不重複計數 ── */
   function shouldCount() {
     var k = 'pf:seen:' + PROJECT + ':' + PAGE;
     try {
       var last = +(sessionStorage.getItem(k) || 0);
       if (Date.now() - last < DEDUPE_MINUTES * 60000) return false;
       sessionStorage.setItem(k, Date.now());
-    } catch (e) { /* 隱私模式下就照常計數 */ }
+    } catch (e) { }
     return true;
   }
 
-  /* ── 本機備援計數（未設定 Supabase 時使用）── */
   function localBump() {
     var k = 'pf:count:' + PROJECT;
     try {
@@ -381,7 +544,6 @@
     } catch (e) { return { total: 0, days: {} }; }
   }
 
-  /* ── 送出一筆瀏覽紀錄 ── */
   function track() {
     if (!shouldCount()) return Promise.resolve();
     if (!LIVE) { localBump(); return Promise.resolve(); }
@@ -403,7 +565,6 @@
     }).catch(function () { localBump(); });
   }
 
-  /* ── 讀取某專案的統計摘要 ── */
   function summary(projectId) {
     projectId = projectId || PROJECT;
     if (!LIVE) {
@@ -427,7 +588,6 @@
       .catch(function () { return { project_id: projectId, total_views: 0, today_views: 0, month_views: 0, error: true }; });
   }
 
-  /* ── 讀取全部專案的統計 ── */
   function allSummary() {
     if (!LIVE) return Promise.resolve([]);
     return fetch(CFG.url + '/rest/v1/v_views_summary?order=total_views.desc',
@@ -435,7 +595,6 @@
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 讀取每日趨勢（近 N 天）── */
   function daily(projectId, days) {
     if (!LIVE) return Promise.resolve([]);
     var since = new Date(Date.now() - (days || 30) * 86400000).toISOString().slice(0, 10);
@@ -445,7 +604,6 @@
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 讀取每月統計 ── */
   function monthly(projectId) {
     if (!LIVE) return Promise.resolve([]);
     var q = '/rest/v1/v_views_monthly?order=month.asc';
@@ -454,7 +612,6 @@
       .then(function (r) { return r.json(); }).catch(function () { return []; });
   }
 
-  /* ── 把數字填進 #view-counter ── */
   function paint() {
     var box = document.getElementById('view-counter');
     if (!box) return;
@@ -478,7 +635,6 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 })();
-
 </script>
 <!-- portfolio-analytics:end -->
 </body>
