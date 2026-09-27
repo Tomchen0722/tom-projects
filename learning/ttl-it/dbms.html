@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>專業科目二：資料庫管理及應用 | 台灣菸酒招考從業職員 資訊管理</title>
+  <meta name="description" content="台酒從業職員資料庫管理及應用精解：ANSI三層架構、ERD手繪轉換、正規化1NF~BCNF詳細推導、SQL高階查詢、交易ACID與並行控制2PL，全英文術語附發音與繁中翻譯。">
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗄️</text></svg>">
+</head>
+<body>
+
+  <!-- 頂部導覽列 -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="brand-logo-badge" title="回台酒資訊管理首頁">🍷</a>
+      <div class="brand-text-group">
+        <span class="brand-title">專業科目二 · 資料庫管理 <em>DBMS &amp; Applications</em></span>
+        <span class="brand-subtitle">TTL Database Systems &amp; SQL Mastery</span>
+      </div>
+    </div>
+
+    <nav class="nav-links" aria-label="核心章節導覽">
+      <a class="nav-link" href="index.html">總覽首頁</a>
+      <a class="nav-link" href="common-chinese.html">國文 (論文)</a>
+      <a class="nav-link" href="common-english.html">英文 (附發音)</a>
+      <a class="nav-link" href="comp-science.html">計算機概論</a>
+      <a class="nav-link active" href="dbms.html">資料庫管理</a>
+      <a class="nav-link" href="exam-bank.html">歷屆試題庫</a>
+      <a class="nav-link special" href="vocab-glossary.html">🔊 術語速查發音庫</a>
+    </nav>
+  </header>
+
+  <main class="container" style="margin-top:2.5rem;">
+
+    <!-- 考科方針 -->
+    <article class="card">
+      <div class="card-header-row">
+        <h2>🗄️ 資料庫管理及應用 考題形態與滿分關鍵</h2>
+        <span class="card-subtitle">SUBJECT FOCUS &amp; STRATEGY</span>
+      </div>
+
+      <p>
+        「資料庫管理及應用」占台灣菸酒第一試筆試總成績 45%，為全非選擇題型。
+        歷年命題重點非常鮮明：<strong>「ERD 實體關聯圖繪製與轉表」</strong>、<strong>「正規化推導（1NF 至 BCNF）」</strong>、<strong>「SQL 複雜子查詢與 JOIN 撰寫」</strong>以及<strong>「交易管理 ACID 與並行鎖定 2PL」</strong>四大台柱幾乎年年輪番上陣。
+      </p>
+
+      <div class="box-easy">
+        <div class="box-title">💡 資料庫高分三大心法</div>
+        <p><strong>1. ERD 標記要規範：</strong> 實體（矩形）、屬性（橢圓）、關聯（菱形）、主鍵（底線）、外來鍵（虛線或 FK 標示），基數比（1:1, 1:N, M:N）務必清晰標明。</p>
+        <p><strong>2. 正規化推導務必寫出「函數相依（FD）」：</strong> 證明為何違反 2NF（存在部分相依）或 3NF（存在遞移相依），列出候選鍵（Candidate Key），切忌直接寫答案。</p>
+        <p><strong>3. SQL 關鍵字使用大寫標準規範：</strong> 寫作 <code>SELECT, FROM, WHERE, GROUP BY, HAVING, ORDER BY</code>，條件與別名（Alias）排版乾淨俐落。</p>
+      </div>
+    </article>
+
+    <!-- 第一單元：資料庫系統概念與 ANSI 架構 -->
+    <article class="card">
+      <div class="card-header-row">
+        <h2>🏛️ 第一單元：資料庫架構與資料獨立性</h2>
+        <span class="card-subtitle">DATABASE SYSTEM ARCHITECTURE</span>
+      </div>
+
+      <p>
+        由 ANSI/SPARC 提出的資料庫三層綱要架構（Three-Schema Architecture）旨在達成<strong>資料獨立性（Data Independence）</strong>，降低應用程式與底層實體儲存之耦合度。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>架構層級</th>
+              <th>英文術語與發音</th>
+              <th>對應視圖與職責</th>
+              <th>資料獨立性保證</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>外部層 (External Level)</strong></td>
+              <td>
+                <span class="term-en" data-speak="External Schema">External Schema <button class="spk-btn" data-speak="External Schema">🔊</button></span><br>
+                <span class="term-en" data-speak="User View">User View <button class="spk-btn" data-speak="User View">🔊</button></span>
+              </td>
+              <td>各部門或特定使用者所見到的客製化局部資料視圖（View）。隱藏無權限之欄位，提供安全性。</td>
+              <td rowspan="2">
+                <strong>邏輯資料獨立性（<span class="term-en" data-speak="Logical Data Independence">Logical Data Independence <button class="spk-btn" data-speak="Logical Data Independence">🔊</button></span>）：</strong><br>
+                當概念層綱要變更（例如新增一個欄位或表格）時，現有外部層視圖或應用程式無需隨之改寫。
+              </td>
+            </tr>
+            <tr>
+              <td><strong>概念層 (Conceptual Level)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Conceptual Schema">Conceptual Schema <button class="spk-btn" data-speak="Conceptual Schema">🔊</button></span><br>
+                <span class="term-en" data-speak="Community View">Community View <button class="spk-btn" data-speak="Community View">🔊</button></span>
+              </td>
+              <td>整個資料庫的全局邏輯結構，描述所有實體、屬性、關聯、完整性限制條件（Integrity Constraints），不涉底層儲存硬體細節。</td>
+            </tr>
+            <tr>
+              <td><strong>內部層 (Internal Level)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Internal Schema">Internal Schema <button class="spk-btn" data-speak="Internal Schema">🔊</button></span><br>
+                <span class="term-en" data-speak="Physical Storage">Physical Storage <button class="spk-btn" data-speak="Physical Storage">🔊</button></span>
+              </td>
+              <td>描述資料在硬碟或儲存媒體中的實體儲存結構、記錄格式、B+ Tree 索引排列、壓縮與加密方式。</td>
+              <td>
+                <strong>實體資料獨立性（<span class="term-en" data-speak="Physical Data Independence">Physical Data Independence <button class="spk-btn" data-speak="Physical Data Independence">🔊</button></span>）：</strong><br>
+                變更內部層儲存結構（如建立新索引或更換硬碟路徑）時，概念層綱要維持不變。
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <!-- 第二單元：實體關聯圖 ERD 繪製與轉表實務 -->
+    <article class="card">
+      <div class="card-header-row">
+        <h2>📐 第二單元：實體關聯模型 (ER Model) 與轉表規範</h2>
+        <span class="card-subtitle">ERD MODELING &amp; RELATIONAL MAPPING</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>關聯型態</th>
+              <th>英文術語與發音</th>
+              <th>轉為關聯綱要（Table Schema）的外來鍵規則</th>
+              <th>台酒產銷實務範例</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>一對一 (1:1)</strong></td>
+              <td>
+                <span class="term-en" data-speak="One-to-One Relationship">One-to-One <button class="spk-btn" data-speak="One-to-One Relationship">🔊</button></span>
+              </td>
+              <td>將任一方的主鍵（Primary Key, PK）放入另一方作為外來鍵（Foreign Key, FK），並加上唯一性限制（UNIQUE）。通常偏向放入完全參與（Total Participation）的一方。</td>
+              <td>酒廠（Brewery）與 廠長（Plant_Manager）：每一酒廠由一位廠長負責。</td>
+            </tr>
+            <tr>
+              <td><strong>一對多 (1:N)</strong></td>
+              <td>
+                <span class="term-en" data-speak="One-to-Many Relationship">One-to-Many <button class="spk-btn" data-speak="One-to-Many Relationship">🔊</button></span>
+              </td>
+              <td><strong>「多端擺外來鍵」原則：</strong> 將 1 端實體的主鍵，放入 N 端實體的關聯表中作為外來鍵（FK）。</td>
+              <td>門市（Store）與 訂單（Orders）：一間門市可接收多筆訂單，訂單表記錄 <code>store_id (FK)</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>多對多 (M:N)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Many-to-Many Relationship">Many-to-Many <button class="spk-btn" data-speak="Many-to-Many Relationship">🔊</button></span>
+              </td>
+              <td><strong>「必須新增獨立中介關聯表」：</strong> 該中介表的主鍵由兩端實體的主鍵組合而成（Composite PK），同時各自作為指向兩端的外來鍵。</td>
+              <td>訂單（Orders）與 產品（Products）：一筆訂單包含多項產品，一種產品在多筆訂單中出現；中介表 <code>Order_Detail(order_id, product_id, quantity)</code>。</td>
+            </tr>
+            <tr>
+              <td><strong>多值屬性</strong></td>
+              <td>
+                <span class="term-en" data-speak="Multivalued Attribute">Multivalued Attribute <button class="spk-btn" data-speak="Multivalued Attribute">🔊</button></span>
+              </td>
+              <td>必須獨立建表，以實體原主鍵加上該多值屬性作為複合主鍵。</td>
+              <td>門市聯絡電話（一間門市可能有多組電話）：<code>Store_Phone(store_id, phone_number)</code>。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <!-- 第三單元：正規化理論 1NF 至 BCNF -->
+    <article class="card">
+      <div class="card-header-row">
+        <h2>🔍 第三單元：正規化理論 (Normalization 1NF ~ BCNF)</h2>
+        <span class="card-subtitle">FUNCTIONAL DEPENDENCY &amp; NORMAL FORMS</span>
+      </div>
+
+      <p>
+        正規化之目的乃在<strong>消除資料重複（Data Redundancy）</strong>，並根除<strong>新增異常（Insert Anomaly）</strong>、<strong>刪除異常（Delete Anomaly）</strong>與<strong>修改異常（Update Anomaly）</strong>。
+      </p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>正規形式</th>
+              <th>英文術語與發音</th>
+              <th>必須消除之相依性與條件</th>
+              <th>白話判定標準</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>第一正規化 (1NF)</strong></td>
+              <td>
+                <span class="term-en" data-speak="First Normal Form">1NF <button class="spk-btn" data-speak="First Normal Form">🔊</button></span><br>
+                <span class="term-en" data-speak="Atomic Value">Atomic Value <button class="spk-btn" data-speak="Atomic Value">🔊</button></span>
+              </td>
+              <td>每一個屬性的值域皆必須為<strong>原子值（Atomic / 單一不可再分）</strong>，且不存在重複群（Repeating Groups）。</td>
+              <td>一個欄位格子不能塞入多筆資料（如多個電話或逗號分隔的商品）。</td>
+            </tr>
+            <tr>
+              <td><strong>第二正規化 (2NF)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Second Normal Form">2NF <button class="spk-btn" data-speak="Second Normal Form">🔊</button></span><br>
+                <span class="term-en" data-speak="Partial Dependency">Partial Dependency <button class="spk-btn" data-speak="Partial Dependency">🔊</button></span>
+              </td>
+              <td>符合 1NF，且<strong>消除所有「部分函數相依」（Partial FD）</strong>。即非主鍵屬性必須完全依賴整個複合主鍵，不能只依賴主鍵的一部分。</td>
+              <td>若主鍵是單一欄位，則自動滿足 2NF！只有複合主鍵時才需檢查是否部分依賴。</td>
+            </tr>
+            <tr>
+              <td><strong>第三正規化 (3NF)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Third Normal Form">3NF <button class="spk-btn" data-speak="Third Normal Form">🔊</button></span><br>
+                <span class="term-en" data-speak="Transitive Dependency">Transitive Dependency <button class="spk-btn" data-speak="Transitive Dependency">🔊</button></span>
+              </td>
+              <td>符合 2NF，且<strong>消除所有「遞移函數相依」（Transitive FD）</strong>。即非主鍵屬性不得依賴另一個非主鍵屬性（若 <code>X ➔ Y</code> 且 <code>Y ➔ Z</code>，則必須拆表消除 <code>X ➔ Z</code>）。</td>
+              <td>不能有「隔層依賴」現象（例如：員工號 ➔ 部門號 ➔ 部門名稱，需將部門拆為獨立表）。</td>
+            </tr>
+            <tr>
+              <td><strong>BCNF (Boyce-Codd)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Boyce-Codd Normal Form">BCNF <button class="spk-btn" data-speak="Boyce-Codd Normal Form">🔊</button></span><br>
+                <span class="term-en" data-speak="Superkey">Superkey <button class="spk-btn" data-speak="Superkey">🔊</button></span>
+              </td>
+              <td>比 3NF 更嚴格：對於每個非平凡函數相依 <code>X ➔ Y</code>，<strong>其決定者 X 必須為超鍵（Superkey）</strong>。</td>
+              <td>消除主鍵屬性對非超鍵的依賴，徹底杜絕任何剩餘之冗餘。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <!-- 第四單元：SQL 實務指令與高階查詢 -->
+    <article class="card">
+      <div class="card-header-row">
+        <h2>💻 第四單元：SQL 實戰指令與高頻查詢模式</h2>
+        <span class="card-subtitle">SQL DDL, DML, JOINS &amp; WINDOW FUNCTIONS</span>
+      </div>
+
+      <p>
+        在台酒從業職員試卷上，SQL 題目要求考生精確手寫 SQL 語句。請注意標準語法、彙總與巢狀查詢：
+      </p>
+
+      <div class="box-easy">
+        <div class="box-title">【實戰範例】：台酒各門市酒品銷售量統計與查詢</div>
+        <p><strong>題目需求：</strong> 查詢 2025 年度總銷售金額超過 1,000,000 元之各門市名稱（store_name），及其銷售總額與平均訂單金額，並由高至低排序：</p>
+      </div>
+
+<pre><code>-- 台酒各門市年度營收統計與 HAVING 篩選實戰
+SELECT 
+    s.store_name,
+    COUNT(o.order_id) AS total_orders,
+    SUM(o.total_amount) AS total_revenue,
+    ROUND(AVG(o.total_amount), 2) AS avg_order_value
+FROM 
+    Stores s
+INNER JOIN 
+    Orders o ON s.store_id = o.store_id
+WHERE 
+    o.order_date BETWEEN '2025-01-01' AND '2025-12-31'
+GROUP BY 
+    s.store_id, s.store_name
+HAVING 
+    SUM(o.total_amount) &gt;= 1000000
+ORDER BY 
+    total_revenue DESC;</code></pre>
+
+      <div class="box-tip">
+        <strong>【SQL 執行順序口訣】：</strong><br>
+        <code>FROM ➔ ON ➔ JOIN ➔ WHERE ➔ GROUP BY ➔ HAVING ➔ SELECT ➔ DISTINCT ➔ ORDER BY ➔ LIMIT</code>。<br>
+        <strong>重點提醒：</strong> <code>WHERE</code> 是在分組前過濾單筆資料，不能使用彙總函數（如 <code>SUM</code>）；<code>HAVING</code> 是在分組後過濾群組結果！
+      </div>
+    </article>
+
+    <!-- 第五單元：交易管理 ACID 與並行控制 2PL -->
+    <article class="card">
+      <div class="card-header-row">
+        <h2>🔐 第五單元：交易管理 ACID 與並行控制 (2PL)</h2>
+        <span class="card-subtitle">TRANSACTION MANAGEMENT &amp; CONCURRENCY CONTROL</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>核心特徵</th>
+              <th>英文術語與發音</th>
+              <th>技術定義與達成機制</th>
+              <th>台酒常考考點</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Atomicity (原子性)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Atomicity">Atomicity <button class="spk-btn" data-speak="Atomicity">🔊</button></span>
+              </td>
+              <td>「All or Nothing」原則。交易內之所有操作要麼全部成功寫入，要麼任一失敗時全數回復（Rollback）至初始狀態。由復原管理員（Recovery Manager / WAL 日誌）確保。</td>
+              <td>轉帳交易中，扣款成功但入帳失敗時之回復機制。</td>
+            </tr>
+            <tr>
+              <td><strong>Consistency (一致性)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Consistency">Consistency <button class="spk-btn" data-speak="Consistency">🔊</button></span>
+              </td>
+              <td>交易執行前後，資料庫必須維持所有既定的完整性條件（如庫存不得為負數、外來鍵關聯存在）。</td>
+              <td>符合實體完整性與參照完整性限制。</td>
+            </tr>
+            <tr>
+              <td><strong>Isolation (隔離性)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Isolation">Isolation <button class="spk-btn" data-speak="Isolation">🔊</button></span>
+              </td>
+              <td>多個並行交易同時執行時，彼此互不干擾，其執行結果與按某種順序循序執行之結果完全相同。由並行控制（Concurrency Control / 鎖定機制）確保。</td>
+              <td><strong>四大隔離等級（Isolation Levels）：</strong><br>
+                1. Read Uncommitted（可能髒讀）<br>
+                2. Read Committed（防髒讀，不可重複讀仍可能）<br>
+                3. Repeatable Read（防不可重複讀，幻讀仍可能）<br>
+                4. Serializable（最嚴格，防範一切並行問題）
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Durability (持久性)</strong></td>
+              <td>
+                <span class="term-en" data-speak="Durability">Durability <button class="spk-btn" data-speak="Durability">🔊</button></span>
+              </td>
+              <td>交易一旦確認提交（Commit），其所產生的變更即永久寫入資料庫儲存媒體中，即使隨後發生斷電或系統當機亦絕不遺失。由預寫式日誌（WAL）與檢查點（Checkpoint）確保。</td>
+              <td>REDO 與 UNDO 復原流程。</td>
+            </tr>
+            <tr>
+              <td><strong>二階段鎖定協定</strong></td>
+              <td>
+                <span class="term-en" data-speak="Two-Phase Locking Protocol">Two-Phase Locking (2PL) <button class="spk-btn" data-speak="Two-Phase Locking Protocol">🔊</button></span>
+              </td>
+              <td>
+                <strong>1. 成長階段（Growing Phase）：</strong> 交易只能獲取鎖定（Lock），不可釋放任何鎖定。<br>
+                <strong>2. 縮減階段（Shrinking Phase）：</strong> 交易一旦釋放任一鎖定，即進入此階段，只能釋放鎖定，絕不可再獲取任何新鎖定。<br>
+                <strong>定理：</strong> 凡遵守 2PL 之排程，必保證為<strong>可循序化（Conflict Serializable）</strong>！
+              </td>
+              <td>
+                <strong>Strict 2PL（嚴格二階段鎖）：</strong> 所有排他鎖（X-Lock）必須維持至交易 Commit 或 Abort 時才一次性釋放。<strong>可徹底杜絕級聯回退（Cascading Rollback）！</strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <!-- 歷屆申論精解 -->
+    <article class="card">
+      <div class="card-header-row">
+        <h2>🎯 歷屆資料庫經典申論題精解</h2>
+        <span class="card-subtitle">PAST ESSAY QUESTIONS &amp; BENCHMARK SOLUTIONS</span>
+      </div>
+
+      <!-- 申論 1 -->
+      <div class="essay-qa-box">
+        <div class="essay-q-bar">
+          <span>📝 申論一：給定關聯綱要 R(A, B, C, D, E) 與函數相依集合 F = {A ➔ B, AB ➔ C, C ➔ D, D ➔ E}，試求 R 之候選鍵（Candidate Key），並依序推導其目前最高符合第幾正規化？若不符合 3NF，請進行無損分解。【台酒經典題】</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="essay-a-body">
+          <h4>【完整詳細推導過程】</h4>
+          <p>
+            <strong>步驟一：求屬性閉包（Attribute Closure）與候選鍵：</strong><br>
+            觀察相依集合 F：<br>
+            • 屬性 A 只出現在左邊，必為候選鍵之一部分。<br>
+            • 計算閉包 <code>A+</code>：<br>
+              1. 初始：{A}<br>
+              2. 依 A ➔ B，得 {A, B}<br>
+              3. 依 AB ➔ C，得 {A, B, C}<br>
+              4. 依 C ➔ D，得 {A, B, C, D}<br>
+              5. 依 D ➔ E，得 {A, B, C, D, E} = R 全部屬性！<br>
+            因此，<strong>唯一候選鍵（Candidate Key / 主鍵）為 A</strong>。主鍵屬性為 {A}，非主鍵屬性為 {B, C, D, E}。
+          </p>
+          <p>
+            <strong>步驟二：判斷最高符合第幾正規化：</strong><br>
+            1. <strong>1NF：</strong> 屬性皆為原子值，符合 1NF。<br>
+            2. <strong>2NF 檢驗：</strong> 主鍵為單一屬性 A，不存在任何真子集，故不存在「部分函數相依」，<strong>滿足 2NF</strong>！<br>
+            3. <strong>3NF 檢驗：</strong> 觀察相依 <code>C ➔ D</code> 與 <code>D ➔ E</code>：<br>
+               因 <code>A ➔ C</code> 且 <code>C ➔ D</code>，存在非主鍵屬性對非主鍵屬性之依賴，即<strong>存在「遞移函數相依（Transitive Dependency）」</strong>！<br>
+               因此，<strong>R 目前最高僅符合第二正規化（2NF），不符合 3NF</strong>。
+          </p>
+          <p>
+            <strong>步驟三：無損且保持相依之 3NF 分解：</strong><br>
+            依據 3NF 分解演算法，將產生遞移相依之屬性獨立拆解：<br>
+            1. 依 <code>D ➔ E</code> 拆出：<code>R1(D, E)</code>，主鍵為 D。<br>
+            2. 依 <code>C ➔ D</code> 拆出：<code>R2(C, D)</code>，主鍵為 C。<br>
+            3. 剩餘相依 <code>A ➔ B, C</code> 組成：<code>R3(A, B, C)</code>，主鍵為 A。<br>
+            <strong>最終 3NF 分解結果為：R1(<u>D</u>, E), R2(<u>C</u>, D), R3(<u>A</u>, B, C)</strong>，具備無損連接與相依性保持。
+          </p>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-title">臺灣菸酒從業職員 · 資訊管理 備考全攻略</div>
+      <p class="footer-desc">專業科目二：資料庫管理及應用篇 · ERD、正規化、SQL實務與交易ACID全攻略</p>
+      <div class="footer-links">
+        <a href="index.html">🏠 返回總覽首頁</a>
+        <a href="exam-bank.html">🎯 前往歷屆試題庫</a>
+        <a href="vocab-glossary.html">🔊 術語速查發音庫</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/tts.js"></script>
+  <script src="assets/app.js"></script>
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  // 依所在環境決定回哪裡：
+  //   本機          → 本機的 Project Hub
+  //   作品集站台內  → 用相對路徑，換網域也不會壞
+  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
+  //                   只能用完整網址連回作品集
+  var host = location.hostname;
+  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
+  var onSite = host === 'tomchen0722.github.io';
+  var href = local ? 'http://127.0.0.1:7000'
+           : (onSite ? '../../index.html' : 'https://tomchen0722.github.io/tom-projects/');
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

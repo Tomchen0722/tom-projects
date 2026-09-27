@@ -39,6 +39,8 @@ TARGETS = [
     "learning/realtor/*.html",
     "learning/land-agent/*.html",
     "learning/language/english-songs/*.html",
+    "learning/ttl-it/*.html",
+    "projects/web/mystic-master/*.html",
 ]
 
 SNIPPET_TEMPLATE = """
