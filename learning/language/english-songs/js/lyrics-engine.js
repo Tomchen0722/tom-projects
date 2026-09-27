@@ -1,20 +1,24 @@
 /**
- * 英文歌學習系統 - 歌詞同步與字詞互動引擎 (Lyrics Engine)
+ * 英文歌學習系統 - 歌詞同步與字詞動作互動引擎 (Lyrics Engine)
  * 支援：
  * 1. 毫秒級雙語字幕即時同步、平滑自動滾動置中、卡拉OK動態發光
- * 2. 歌詞單字即點即查 (Interactive Word Lookup) 與生字本收藏
- * 3. 英文原句、KK音標/IPA、繁體中文翻譯、發音連音與語法註解
- * 4. LRC 格式時間戳記解析器 (支援使用者自訂匯入任何英文歌)
+ * 2. 歌聲動作同步 (Singing Vocal Subtitle Motion)：
+ *    字幕單字跟隨歌聲節奏逐字彈跳、發光與行進（字幕跟著歌聲一起動作）
+ * 3. 歌詞單字即點即查 (Interactive Word Lookup) 與生字本收藏
+ * 4. 英文原句、KK音標/IPA、繁體中文翻譯、發音連音與語法註解
+ * 5. LRC 格式時間戳記解析器 (支援使用者自訂匯入任何英文歌)
  */
 
 class LyricsEngine {
-  constructor(containerElement, onWordClickCallback, onLineClickCallback) {
+  constructor(containerElement, onWordClickCallback, onLineClickCallback, onWordSungCallback) {
     this.container = containerElement;
     this.onWordClick = onWordClickCallback;
     this.onLineClick = onLineClickCallback;
+    this.onWordSung = onWordSungCallback;
 
     this.lyrics = [];
     this.currentLineIndex = -1;
+    this.currentWordIndex = -1;
     this.autoScrollEnabled = true;
     this.displayMode = "bilingual"; // "bilingual" | "en-only" | "zh-only"
     this.showPhonetics = true;
@@ -26,6 +30,7 @@ class LyricsEngine {
   setLyrics(lyricsArray) {
     this.lyrics = lyricsArray || [];
     this.currentLineIndex = -1;
+    this.currentWordIndex = -1;
     this.render();
   }
 
@@ -70,7 +75,7 @@ class LyricsEngine {
       // 時間標籤
       const timeStr = this._formatTime(line.start);
 
-      // 單字分詞 HTML (將每個英文單字包覆為可點擊 token)
+      // 單字分詞 HTML (將每個英文單字包覆為可點擊 token 並標註序號)
       const wordsHtml = this._tokenizeEnglishText(line.en, line.keyWords);
 
       // 繁體中文與註解 HTML
@@ -114,7 +119,6 @@ class LyricsEngine {
 
       // 綁定行點擊跳轉
       lineEl.addEventListener("click", (e) => {
-        // 如果點擊的是單字或按鈕，不觸發整行跳轉
         const wordToken = e.target.closest(".word-token");
         if (wordToken) {
           e.stopPropagation();
@@ -153,11 +157,10 @@ class LyricsEngine {
     let activeIndex = -1;
     for (let i = 0; i < this.lyrics.length; i++) {
       const line = this.lyrics[i];
-      if (currentTime >= line.start && currentTime <= (line.end + 0.3)) {
+      if (currentTime >= line.start && currentTime <= (line.end + 0.35)) {
         activeIndex = i;
         break;
       } else if (currentTime < line.start) {
-        // 尚未到下一行，保持上一行
         if (i > 0 && currentTime >= this.lyrics[i - 1].start) {
           activeIndex = i - 1;
         }
@@ -169,20 +172,25 @@ class LyricsEngine {
       activeIndex = this.lyrics.length - 1;
     }
 
+    // 行切換處理
     if (activeIndex !== this.currentLineIndex) {
-      // 移除舊的 active
+      // 清除舊行狀態
       if (this.currentLineIndex >= 0) {
         const oldEl = document.getElementById(`lyric-line-${this.currentLineIndex}`);
         if (oldEl) {
           oldEl.classList.remove("active");
           const oldBar = oldEl.querySelector(".line-progress-bar .fill");
           if (oldBar) oldBar.style.width = "0%";
+          oldEl.querySelectorAll(".word-token").forEach(t => {
+            t.classList.remove("sung", "singing-now");
+          });
         }
       }
 
       this.currentLineIndex = activeIndex;
+      this.currentWordIndex = -1;
 
-      // 設置新的 active
+      // 設置新 active 行
       if (activeIndex >= 0) {
         const newEl = document.getElementById(`lyric-line-${activeIndex}`);
         if (newEl) {
@@ -194,16 +202,45 @@ class LyricsEngine {
       }
     }
 
-    // 更新當前行的卡拉OK進度條
+    // 更新當前行的字幕動作（字詞逐字高亮與進度條）
     if (this.currentLineIndex >= 0 && this.currentLineIndex < this.lyrics.length) {
       const line = this.lyrics[this.currentLineIndex];
       const activeEl = document.getElementById(`lyric-line-${this.currentLineIndex}`);
       if (activeEl) {
         const duration = Math.max(0.1, line.end - line.start);
         const elapsed = Math.max(0, currentTime - line.start);
-        const percent = Math.min(100, Math.max(0, (elapsed / duration) * 100));
+        const progressRatio = Math.min(1.0, Math.max(0, elapsed / duration));
+
+        // 底線進度
         const fillBar = activeEl.querySelector(".line-progress-bar .fill");
-        if (fillBar) fillBar.style.width = `${percent}%`;
+        if (fillBar) fillBar.style.width = `${(progressRatio * 100).toFixed(1)}%`;
+
+        // 🌟 歌聲字幕動作 (Word-by-word dynamic motion tracking vocal singing)
+        const wordTokens = activeEl.querySelectorAll(".word-token");
+        if (wordTokens && wordTokens.length > 0) {
+          const totalWords = wordTokens.length;
+          // 計算當前演唱到的單字索引
+          const targetWordIdx = Math.min(totalWords - 1, Math.floor(progressRatio * totalWords));
+
+          if (targetWordIdx !== this.currentWordIndex) {
+            this.currentWordIndex = targetWordIdx;
+            wordTokens.forEach((tok, wIdx) => {
+              if (wIdx < targetWordIdx) {
+                tok.classList.add("sung");
+                tok.classList.remove("singing-now");
+              } else if (wIdx === targetWordIdx) {
+                tok.classList.add("sung", "singing-now");
+              } else {
+                tok.classList.remove("sung", "singing-now");
+              }
+            });
+
+            if (this.onWordSung) {
+              const sungWord = wordTokens[targetWordIdx]?.dataset?.word || "";
+              this.onWordSung(this.currentLineIndex, targetWordIdx, sungWord, line);
+            }
+          }
+        }
       }
     }
   }
@@ -225,17 +262,18 @@ class LyricsEngine {
     if (!text) return "";
     const cleanKeyWords = (keyWords || []).map(k => k.toLowerCase().trim());
 
-    // 匹配英文單詞（保留撇號如 I'll, don't, we're）與其他符號
+    // 匹配英文單詞（保留撇號如 I'll, don't, we're）與其他標點符號
     const regex = /([a-zA-Z'’]+|[^a-zA-Z'’\s]+|\s+)/g;
     const parts = text.match(regex) || [];
 
+    let wordIndex = 0;
     return parts.map(part => {
-      // 判斷是否為英文單字
       if (/^[a-zA-Z'’]+$/.test(part)) {
         const cleanWord = part.replace(/['’]/g, "").toLowerCase();
         const isKey = cleanKeyWords.includes(cleanWord) || cleanKeyWords.some(k => k.includes(cleanWord));
         const keyClass = isKey ? "keyword" : "";
-        return `<span class="word-token ${keyClass}" data-word="${this._escapeHtml(part)}" title="點擊查單字與音標">${this._escapeHtml(part)}</span>`;
+        const idx = wordIndex++;
+        return `<span class="word-token ${keyClass}" data-word="${this._escapeHtml(part)}" data-word-idx="${idx}" title="點擊查單字與音標">${this._escapeHtml(part)}</span>`;
       } else {
         return this._escapeHtml(part);
       }
@@ -246,7 +284,6 @@ class LyricsEngine {
     const cleanWord = (word || "").replace(/[^a-zA-Z]/g, "").toLowerCase();
     if (!cleanWord) return null;
 
-    // 先在內建單字庫搜尋
     if (SONG_DICTIONARY && SONG_DICTIONARY[cleanWord]) {
       return {
         word: cleanWord,
@@ -255,7 +292,6 @@ class LyricsEngine {
       };
     }
 
-    // 簡易詞形還原 (lemmatization) 查找
     const variations = [
       cleanWord.replace(/ing$/, ""),
       cleanWord.replace(/ed$/, ""),
@@ -275,7 +311,6 @@ class LyricsEngine {
       }
     }
 
-    // 若未在內建庫，回傳基礎結構供線上發音與筆記
     return {
       word: cleanWord,
       original: word,
@@ -295,10 +330,9 @@ class LyricsEngine {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
-    utterance.rate = rate; // 略慢一點，適合學習者
+    utterance.rate = rate;
     utterance.pitch = 1.0;
 
-    // 優先選取高品質美式/英式英語語音
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice = voices.find(v => v.lang.startsWith("en") && (v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("Samantha") || v.name.includes("Zira")));
     if (preferredVoice) {
@@ -350,7 +384,7 @@ class LyricsEngine {
   _escapeHtml(text) {
     return (text || "")
       .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
+      .replace(/&lt;/g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
@@ -358,7 +392,6 @@ class LyricsEngine {
 
   /**
    * LRC 格式歌詞解析器
-   * 支援標準 [mm:ss.xx] 格式，並自動解析英中雙語或純英文
    */
   static parseLRC(lrcText) {
     const lines = lrcText.split(/\r?\n/);
@@ -381,7 +414,6 @@ class LyricsEngine {
 
       const text = rawLine.replace(timeRegex, "").trim();
       if (text && timestamps.length > 0) {
-        // 檢查是否包含繁簡中文分離 (例如: "English Text | 中文翻譯" 或 "English Text / 中文")
         let en = text;
         let zh = "";
         if (text.includes("|")) {
@@ -397,7 +429,7 @@ class LyricsEngine {
         timestamps.forEach(ts => {
           parsedLines.push({
             start: ts,
-            end: ts + 4.5, // 稍後排序後修正 end
+            end: ts + 4.5,
             en: en,
             zh: zh,
             phonetic: "",
@@ -408,7 +440,6 @@ class LyricsEngine {
       }
     }
 
-    // 依時間排序並校正每句 end 時間
     parsedLines.sort((a, b) => a.start - b.start);
     for (let i = 0; i < parsedLines.length; i++) {
       if (i < parsedLines.length - 1) {

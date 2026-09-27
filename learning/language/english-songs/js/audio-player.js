@@ -1,13 +1,148 @@
 /**
- * 英文歌學習系統 - 音訊播放引擎 (Audio Engine)
- * 支援：
- * 1. 本地/自選音訊 (HTML5 Audio)，具備變速不變調 (preservesPitch)、微秒級精確跳轉
- * 2. 內建 Web Audio 和弦伴奏合成器 (零外部依賴，離線/開箱即享高品質原創伴奏音樂)
- * 3. A-B 單句循環 (Single Line Loop / Repeat) 專注聽寫訓練
- * 4. 0.5x ~ 2.0x 任意速度調整 (慢速聽細節、常速磨耳朵)
- * 5. Web Audio 頻譜分析儀 (動態 Canvas 視覺化波形)
+ * 英文歌學習系統 - 音訊與歌聲演唱播放引擎 (Audio & Vocal Singing Engine)
+ * 核心特色：
+ * 1. 歌聲伴唱 (Melodic Vocal Singer)：利用 Web Speech API 音樂調校技術，
+ *    在和弦伴奏進行時，逐句同步唱出標準純正的英文歌聲！
+ * 2. 伴奏音樂合成器 (Web Audio API Synthesizer)：原創吉他、鋼琴、貝斯與爵士和弦，離線開箱即聽。
+ * 3. 變速不變調 (Pitch-Preserving Speed Adjustment)：0.5x ~ 2.0x 慢速聽發音細節、高速鍛鍊耳朵。
+ * 4. A-B 單句循環 (Single Line Loop / Repeat) 專注影子聽寫。
+ * 5. 即時字幕動作同步 (Karaoke Syllable & Word Motion Tracking)。
+ * 6. 雙軌音量獨立調控：🎙️ 歌聲音量 + 🎹 伴奏音量。
  */
 
+/**
+ * 歌聲導唱引擎 (Vocal Singing Engine)
+ */
+class VocalSinger {
+  constructor() {
+    this.synth = window.speechSynthesis;
+    this.vocalsEnabled = true;
+    this.vocalVolume = 1.0;
+    this.vocalPitch = 1.08; // 微微上揚的旋律感音調
+    this.selectedVoice = null;
+    this.currentUtterance = null;
+    this.lastSungLineIndex = -1;
+
+    this.onWordBoundary = null; // (lineIndex, charIndex, wordIndex) => {}
+
+    this._initVoices();
+    if (this.synth && this.synth.onvoiceschanged !== undefined) {
+      this.synth.onvoiceschanged = () => this._initVoices();
+    }
+  }
+
+  _initVoices() {
+    if (!this.synth) return;
+    const voices = this.synth.getVoices();
+    if (!voices || voices.length === 0) return;
+
+    // 優先挑選最自然純正的英語人聲 (Natural, Google, Samantha, Jenny, Guy)
+    const preferredVoices = voices.filter(v => 
+      v.lang.startsWith("en") && 
+      (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Samantha") || v.name.includes("Jenny") || v.name.includes("Guy") || v.name.includes("Online"))
+    );
+
+    if (preferredVoices.length > 0) {
+      this.selectedVoice = preferredVoices[0];
+    } else {
+      // 備選任何英文人聲
+      const anyEn = voices.find(v => v.lang.startsWith("en"));
+      this.selectedVoice = anyEn || voices[0];
+    }
+  }
+
+  getAvailableVoices() {
+    if (!this.synth) return [];
+    return this.synth.getVoices().filter(v => v.lang.startsWith("en"));
+  }
+
+  setVoice(voiceUri) {
+    if (!this.synth) return;
+    const voices = this.synth.getVoices();
+    const found = voices.find(v => v.voiceURI === voiceUri || v.name === voiceUri);
+    if (found) this.selectedVoice = found;
+  }
+
+  setVocalsEnabled(enabled) {
+    this.vocalsEnabled = enabled;
+    if (!enabled) {
+      this.cancel();
+    }
+  }
+
+  setVolume(vol) {
+    this.vocalVolume = Math.max(0, Math.min(1.0, vol));
+    if (this.currentUtterance) {
+      this.currentUtterance.volume = this.vocalVolume;
+    }
+  }
+
+  setPitch(pitch) {
+    this.vocalPitch = Math.max(0.5, Math.min(2.0, pitch));
+  }
+
+  singLine(line, lineIndex, playbackRate = 1.0) {
+    if (!this.synth || !this.vocalsEnabled || !line || !line.en) return;
+    if (this.lastSungLineIndex === lineIndex) return;
+
+    this.lastSungLineIndex = lineIndex;
+    this.cancel();
+
+    const cleanText = line.en.trim();
+    if (!cleanText) return;
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    if (this.selectedVoice) {
+      utterance.voice = this.selectedVoice;
+    }
+    utterance.lang = (this.selectedVoice && this.selectedVoice.lang) || "en-US";
+
+    // 依據歌詞時長動態匹配語音歌唱節奏
+    const durationSec = Math.max(0.8, line.end - line.start);
+    const wordCount = cleanText.split(/\s+/).length;
+    // 基準英文朗讀速度約 2.4 字/秒
+    let targetRate = (wordCount / durationSec) / 2.2;
+    // 與播放器總變速結合
+    targetRate = targetRate * playbackRate;
+    utterance.rate = Math.max(0.65, Math.min(1.75, targetRate));
+
+    utterance.pitch = this.vocalPitch;
+    utterance.volume = this.vocalVolume;
+
+    // 單詞邊界即時通知（讓字幕動作與歌聲完全一致）
+    utterance.onboundary = (e) => {
+      if (e.name === "word" && this.onWordBoundary) {
+        this.onWordBoundary(lineIndex, e.charIndex);
+      }
+    };
+
+    utterance.onerror = (e) => {
+      // 忽略因 cancel 引起的被動中止
+      if (e.error !== "canceled" && e.error !== "interrupted") {
+        console.warn("歌聲引擎輸出提示:", e.error);
+      }
+    };
+
+    this.currentUtterance = utterance;
+    this.synth.speak(utterance);
+  }
+
+  cancel() {
+    if (this.synth) {
+      this.synth.cancel();
+      this.currentUtterance = null;
+    }
+  }
+
+  resetSungCache() {
+    this.lastSungLineIndex = -1;
+    this.cancel();
+  }
+}
+
+/**
+ * 英文歌曲主播放器 (English Song Player)
+ */
 class EnglishSongPlayer {
   constructor() {
     this.audioElement = new Audio();
@@ -20,6 +155,9 @@ class EnglishSongPlayer {
     this.sourceNode = null;
     this.synthEngine = null;
 
+    // 歌聲導唱模組
+    this.vocalSinger = new VocalSinger();
+
     this.isPlaying = false;
     this.playbackRate = 1.0;
     this.currentTime = 0;
@@ -28,7 +166,8 @@ class EnglishSongPlayer {
     // 播放模式
     this.sourceType = "synth"; // "synth" | "audio-file"
     this.loopCurrentLine = false;
-    this.currentLineRange = null; // { start, end }
+    this.currentLineRange = null; // { start, end, index }
+    this.currentSongConfig = null;
 
     // 回調函數
     this.onTimeUpdate = null;
@@ -67,6 +206,7 @@ class EnglishSongPlayer {
       if (this.sourceType === "audio-file") {
         this.currentTime = this.audioElement.currentTime;
         this._checkLoopBoundary();
+        this._syncVocalSinging();
         if (this.onTimeUpdate) this.onTimeUpdate(this.currentTime);
       }
     });
@@ -78,6 +218,7 @@ class EnglishSongPlayer {
 
     this.audioElement.addEventListener("pause", () => {
       this.isPlaying = false;
+      this.vocalSinger.cancel();
       if (this.onPlayStateChange) this.onPlayStateChange(false);
     });
 
@@ -88,6 +229,7 @@ class EnglishSongPlayer {
 
     this.audioElement.addEventListener("ended", () => {
       this.isPlaying = false;
+      this.vocalSinger.cancel();
       if (this.onEnded) this.onEnded();
       if (this.onPlayStateChange) this.onPlayStateChange(false);
     });
@@ -96,6 +238,7 @@ class EnglishSongPlayer {
   loadCustomAudio(fileOrUrl, totalDurationHint = 100) {
     this._initAudioContext();
     this.sourceType = "audio-file";
+    this.vocalSinger.resetSungCache();
     if (this.synthEngine) this.synthEngine.stop();
 
     if (typeof fileOrUrl === "string") {
@@ -111,6 +254,9 @@ class EnglishSongPlayer {
   loadSynthSong(songConfig) {
     this._initAudioContext();
     this.sourceType = "synth";
+    this.currentSongConfig = songConfig;
+    this.vocalSinger.resetSungCache();
+
     this.audioElement.pause();
     this.audioElement.src = "";
 
@@ -139,11 +285,17 @@ class EnglishSongPlayer {
         this._startSynthTimer();
       }
     }
+
+    // 觸發歌聲同步
+    this._syncVocalSinging();
+
     if (this.onPlayStateChange) this.onPlayStateChange(true);
   }
 
   pause() {
     this.isPlaying = false;
+    this.vocalSinger.cancel();
+
     if (this.sourceType === "audio-file") {
       this.audioElement.pause();
     } else {
@@ -166,6 +318,7 @@ class EnglishSongPlayer {
   seek(targetSeconds) {
     const clampedTime = Math.max(0, Math.min(targetSeconds, this.duration));
     this.currentTime = clampedTime;
+    this.vocalSinger.resetSungCache();
 
     if (this.sourceType === "audio-file") {
       this.audioElement.currentTime = clampedTime;
@@ -173,6 +326,10 @@ class EnglishSongPlayer {
       if (this.synthEngine) {
         this.synthEngine.seek(clampedTime, this.isPlaying);
       }
+    }
+
+    if (this.isPlaying) {
+      this._syncVocalSinging();
     }
 
     if (this.onTimeUpdate) this.onTimeUpdate(this.currentTime);
@@ -191,11 +348,18 @@ class EnglishSongPlayer {
       this.synthEngine.setRate(safeRate);
     }
 
+    // 若正在播放，重整當前句歌聲速度
+    if (this.isPlaying) {
+      this.vocalSinger.cancel();
+      this.vocalSinger.lastSungLineIndex = -1;
+      this._syncVocalSinging();
+    }
+
     if (this.onRateChange) this.onRateChange(safeRate);
   }
 
-  setLoopRange(start, end) {
-    this.currentLineRange = { start, end };
+  setLoopRange(start, end, index = -1) {
+    this.currentLineRange = { start, end, index };
   }
 
   clearLoopRange() {
@@ -204,12 +368,29 @@ class EnglishSongPlayer {
 
   setLoopMode(enable) {
     this.loopCurrentLine = enable;
+    if (!enable) {
+      this.clearLoopRange();
+    }
   }
 
   _checkLoopBoundary() {
     if (this.loopCurrentLine && this.currentLineRange) {
       if (this.currentTime >= this.currentLineRange.end) {
         this.seek(this.currentLineRange.start);
+      }
+    }
+  }
+
+  _syncVocalSinging() {
+    if (!this.isPlaying || !this.currentSongConfig || !this.currentSongConfig.lyrics) return;
+
+    const lyrics = this.currentSongConfig.lyrics;
+    for (let i = 0; i < lyrics.length; i++) {
+      const line = lyrics[i];
+      // 當播放時間進入此句範圍，且在該句的前半段啟動歌唱
+      if (this.currentTime >= line.start && this.currentTime < line.end) {
+        this.vocalSinger.singLine(line, i, this.playbackRate);
+        break;
       }
     }
   }
@@ -226,6 +407,7 @@ class EnglishSongPlayer {
 
       this.currentTime += delta * this.playbackRate;
       this._checkLoopBoundary();
+      this._syncVocalSinging();
 
       if (this.currentTime >= this.duration) {
         this.currentTime = this.duration;
@@ -252,12 +434,30 @@ class EnglishSongPlayer {
     this.analyser.getByteFrequencyData(dataArray);
     return dataArray;
   }
+
+  // 伴奏與歌聲音量控制介面
+  setBgmVolume(val) {
+    if (this.synthEngine) {
+      this.synthEngine.setVolume(val);
+    }
+    this.audioElement.volume = Math.max(0, Math.min(1.0, val));
+  }
+
+  setVocalVolume(val) {
+    this.vocalSinger.setVolume(val);
+  }
+
+  toggleVocals(enabled) {
+    this.vocalSinger.setVocalsEnabled(enabled);
+    if (enabled && this.isPlaying) {
+      this.vocalSinger.lastSungLineIndex = -1;
+      this._syncVocalSinging();
+    }
+  }
 }
 
 /**
  * 伴奏音樂合成器 (Web Audio API Synthesizer)
- * 利用振盪器 (Oscillator)、濾波器 (BiquadFilter)、增益節點 (GainNode)
- * 在純前端即時生成悅耳的吉他琶音、溫暖鋼琴和弦、貝斯與輕快節奏
  */
 class SongSynthesizer {
   constructor(audioContext, analyser) {
@@ -271,8 +471,14 @@ class SongSynthesizer {
 
     // 主音量總控
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.value = 0.45;
+    this.masterGain.gain.value = 0.40;
     this.masterGain.connect(this.analyser);
+  }
+
+  setVolume(vol) {
+    if (this.masterGain) {
+      this.masterGain.gain.value = Math.max(0, Math.min(1.0, vol * 0.45));
+    }
   }
 
   setupSong(songConfig) {
@@ -339,9 +545,7 @@ class SongSynthesizer {
   }
 
   _getChordProgression() {
-    // 依據歌曲風格提供動聽的和弦級數
     if (this.pattern === "disney-orchestral-ballad") {
-      // D - G - A - Bm - G - A - D (經典迪士尼神級和弦)
       return [
         { root: 293.66, notes: [293.66, 369.99, 440.00, 587.33] }, // D
         { root: 196.00, notes: [196.00, 246.94, 293.66, 392.00] }, // G
@@ -353,7 +557,6 @@ class SongSynthesizer {
         { root: 220.00, notes: [220.00, 277.18, 329.63, 440.00] }  // A
       ];
     } else if (this.pattern === "motown-bass-groove") {
-      // A - F#m - D - E (Stand By Me 經典五零年代摩城名曲輪迴)
       return [
         { root: 110.00, notes: [220.00, 277.18, 329.63, 440.00] }, // A
         { root: 110.00, notes: [220.00, 277.18, 329.63, 440.00] },
@@ -365,7 +568,6 @@ class SongSynthesizer {
         { root: 164.81, notes: [164.81, 207.65, 246.94, 329.63] }  // E
       ];
     } else if (this.pattern === "jazz-swing-piano") {
-      // Am7 - Dm7 - G7 - Cmaj7 - Fmaj7 - Bm7b5 - E7 - Am7 (Fly Me to the Moon 經典爵士循環)
       return [
         { root: 110.00, notes: [220.00, 261.63, 329.63, 392.00] }, // Am7
         { root: 146.83, notes: [293.66, 349.23, 440.00, 523.25] }, // Dm7
@@ -377,7 +579,6 @@ class SongSynthesizer {
         { root: 110.00, notes: [220.00, 261.63, 329.63, 392.00] }  // Am
       ];
     } else {
-      // 預設陽光木吉他輪迴 C - Em - F - G (Count On Me / Sunshine / Country Roads)
       return [
         { root: 130.81, notes: [261.63, 329.63, 392.00, 523.25] }, // C
         { root: 164.81, notes: [164.81, 196.00, 246.94, 329.63] }, // Em
@@ -397,10 +598,9 @@ class SongSynthesizer {
     const gain = this.ctx.createGain();
     const filter = this.ctx.createBiquadFilter();
 
-    // 依據子拍挑選音符打造溫柔琶音
     let freq;
     if (subBeat === 0) {
-      freq = chord.root; // 根音 Bass
+      freq = chord.root;
       osc.type = "triangle";
       gain.gain.setValueAtTime(0.55, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
@@ -413,7 +613,6 @@ class SongSynthesizer {
     }
 
     osc.frequency.setValueAtTime(freq, t);
-
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(1400, t);
 
@@ -446,7 +645,6 @@ class SongSynthesizer {
 
   _playSoftSnare() {
     const t = this.ctx.currentTime;
-    // 白色噪音模擬柔和沙鈴/小鼓
     const bufferSize = this.ctx.sampleRate * 0.08;
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
