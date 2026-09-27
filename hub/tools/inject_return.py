@@ -38,6 +38,7 @@ TARGETS = [
     "learning/autocad2024/modules/*.html",
     "learning/realtor/*.html",
     "learning/land-agent/*.html",
+    "learning/language/english-songs/*.html",
 ]
 
 SNIPPET_TEMPLATE = """

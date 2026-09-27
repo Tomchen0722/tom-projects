@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>英文歌學英語 English Song Learning — 聽歌學英文、雙語歌詞、慢速調速與聽力克漏字</title>
+  <meta name="description" content="沉浸式英文歌曲學英語系統：提供英文原文與繁體中文逐句翻譯、音標解析、慢速調速播放（0.5x~2.0x 變速不變調）、單句循環、即點即查單字庫、聽力克漏字與影子跟讀。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+</head>
+<body>
+
+  <!-- 頂部導覽列 (Top Header) -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-icon">🎵</div>
+        <div>
+          <h1 class="brand-title">英文歌學英語 Studio</h1>
+          <div class="brand-subtitle">English Learning with Songs &amp; Smart Lyrics</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- 歌曲挑選下拉 -->
+        <div class="song-selector-box">
+          <label for="song-select-dropdown">曲目：</label>
+          <select id="song-select-dropdown" class="song-select-dropdown" aria-label="挑選學習歌曲">
+            <!-- 由 app.js 動態渲染 -->
+          </select>
+        </div>
+
+        <!-- 回 Hub 按鈕 -->
+        <a href="../../../index.html" class="btn-hub-return" id="btn-return-hub" title="返回 Tom Chen 專案總控台">
+          <span>🏠</span>
+          <span>返回 Hub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容區 (Main Container) -->
+  <main class="main-wrapper">
+
+    <!-- 左側欄：黑膠唱片、播放器、速度控制、當前句解析 -->
+    <aside class="player-deck-panel">
+
+      <!-- 唱機卡片 -->
+      <section class="turntable-card" aria-label="黑膠音樂唱盤">
+        <!-- 旋轉黑膠唱片 -->
+        <div class="vinyl-container">
+          <div class="vinyl-disc" id="vinyl-record">
+            <div class="vinyl-grooves"></div>
+            <div class="vinyl-center" id="vinyl-center-art">
+              <div class="vinyl-spindle-hole"></div>
+              <span class="vinyl-emoji" id="vinyl-cover-emoji">🎵</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 歌曲資訊 -->
+        <div class="song-info-header">
+          <h2 class="song-title-main" id="current-song-title">Count On Me</h2>
+          <div class="song-artist-main" id="current-song-artist">Bruno Mars</div>
+          <span class="song-level-badge" id="current-song-level">初級 ~ 中級 (A2-B1)</span>
+        </div>
+
+        <!-- 音訊即時頻譜畫布 -->
+        <div class="spectrum-canvas-wrap">
+          <canvas id="canvas-spectrum" width="400" height="38"></canvas>
+        </div>
+
+        <!-- 進度條 -->
+        <div class="progress-area">
+          <div class="audio-progress-bar" id="audio-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0" title="點擊跳轉進度">
+            <div class="audio-progress-fill" id="audio-progress-fill"></div>
+          </div>
+          <div class="time-labels">
+            <span id="current-time-label">0:00</span>
+            <span id="total-duration-label">0:00</span>
+          </div>
+        </div>
+
+        <!-- 主播放控制鈕群組 -->
+        <div class="main-transport-controls">
+          <button class="btn-ctrl" id="btn-rewind-5" title="倒退 5 秒 (鍵盤 ←)" aria-label="倒退 5 秒">⏪</button>
+          <button class="btn-ctrl" id="btn-prev-line" title="上一句歌詞 (鍵盤 [)" aria-label="上一句歌詞">⏮️</button>
+          <button class="btn-ctrl btn-play-master" id="btn-play-pause" title="播放 / 暫停 (鍵盤空白鍵)" aria-label="播放或暫停">
+            <span id="play-pause-icon">▶️</span>
+          </button>
+          <button class="btn-ctrl" id="btn-next-line" title="下一句歌詞 (鍵盤 ])" aria-label="下一句歌詞">⏭️</button>
+          <button class="btn-ctrl" id="btn-forward-5" title="快轉 5 秒 (鍵盤 →)" aria-label="快轉 5 秒">⏩</button>
+          <button class="btn-ctrl" id="btn-loop-line" title="單句循環 A-B Loop (鍵盤 L)" aria-label="單句循環">🔂</button>
+        </div>
+
+        <!-- 變速控制器 (Playback Speed Deck) -->
+        <div class="speed-control-deck">
+          <div class="speed-deck-header">
+            <span class="speed-title">
+              <span>⚡ 播放速度調控</span>
+            </span>
+            <span class="speed-display-badge" id="speed-display-badge">1.00x</span>
+          </div>
+
+          <!-- 快速速度膠囊 -->
+          <div class="speed-pills-row">
+            <button class="btn-speed-pill" data-rate="0.5" title="極慢速：細聽弱化連音">0.5x</button>
+            <button class="btn-speed-pill" data-rate="0.75" title="慢速：初學跟讀首選">0.75x</button>
+            <button class="btn-speed-pill" data-rate="0.85" title="舒適慢速：清晰自然">0.85x</button>
+            <button class="btn-speed-pill active" data-rate="1.0" title="正常原速">1.0x</button>
+            <button class="btn-speed-pill" data-rate="1.25" title="微加速：挑戰耳力">1.25x</button>
+            <button class="btn-speed-pill" data-rate="1.5" title="快速：流利度挑戰">1.5x</button>
+          </div>
+
+          <!-- 無段微調滑動條 -->
+          <div class="speed-slider-wrap">
+            <span class="speed-min-max">0.5x</span>
+            <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.05" value="1.0" aria-label="無級速度滑動調整">
+            <span class="speed-min-max">2.0x</span>
+          </div>
+
+          <div class="pitch-preserve-note">
+            <span>✨ 音高鎖定保護 (Preserves Pitch)：減速不變調，歌聲不變機器人</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 當前單句聚焦解析卡片 -->
+      <section class="focused-sentence-card" id="focused-line-card" aria-label="當前聚焦單句解析">
+        <div class="card-label-small">
+          <span>🎯 當前朗讀句焦點</span>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">（點擊歌詞單字可查釋義）</span>
+        </div>
+        <div class="focused-phonetic-text" id="focused-phonetic"></div>
+        <div class="focused-en-text" id="focused-en">請播放歌曲以開始同步顯示</div>
+        <div class="focused-zh-text" id="focused-zh"></div>
+        <div class="focused-notes-text" id="focused-notes"></div>
+
+        <div class="focused-actions-row">
+          <button class="btn-focus-action" id="btn-focus-speak" title="慢速發音此句">🔊 單句慢讀</button>
+          <button class="btn-focus-action" id="btn-focus-loop" title="循環播放此句">🔂 本句循環</button>
+          <button class="btn-focus-action" id="btn-focus-shadow" title="切換到此句錄音跟讀">🎙️ 錄音跟讀</button>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- 右側欄：多元學習模式主空間 -->
+    <section class="study-area-panel" aria-label="學習互動主區域">
+
+      <!-- 標籤頁導覽 (Tabs) -->
+      <nav class="study-tabs-nav" aria-label="學習模式切換">
+        <button class="tab-nav-btn active" data-tab="lyrics" id="tab-btn-lyrics">
+          <span>📖</span> 雙語同步歌詞
+        </button>
+        <button class="tab-nav-btn" data-tab="cloze" id="tab-btn-cloze">
+          <span>🧩</span> 聽力克漏字填空
+        </button>
+        <button class="tab-nav-btn" data-tab="shadowing" id="tab-btn-shadowing">
+          <span>🎙️</span> 影子跟讀錄音室
+        </button>
+        <button class="tab-nav-btn" data-tab="flashcards" id="tab-btn-flashcards">
+          <span>🎴</span> 本曲精選單字卡
+        </button>
+        <button class="tab-nav-btn" data-tab="wordbook" id="tab-btn-wordbook">
+          <span>📚</span> 我的生字筆記本
+        </button>
+        <button class="tab-nav-btn" data-tab="custom" id="tab-btn-custom">
+          <span>➕</span> 匯入自訂歌曲
+        </button>
+      </nav>
+
+      <!-- 1. 雙語同步歌詞面板 -->
+      <div class="tab-content-panel active" id="panel-lyrics">
+        <!-- 歌詞檢視工具列 -->
+        <div class="study-toolbar">
+          <div class="toolbar-group">
+            <span style="font-size:0.8rem; color:var(--text-muted);">顯示模式：</span>
+            <button class="btn-view-mode active" data-mode="bilingual" id="mode-bilingual">雙語對照</button>
+            <button class="btn-view-mode" data-mode="en-only" id="mode-en-only">純英文浸潤</button>
+          </div>
+
+          <div class="toolbar-group">
+            <label class="toggle-label">
+              <input type="checkbox" id="toggle-phonetics" checked>
+              <span>顯示音標</span>
+            </label>
+            <label class="toggle-label" style="margin-left: 0.75rem;">
+              <input type="checkbox" id="toggle-autoscroll" checked>
+              <span>自動滾動置中</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 歌詞動態捲軸區 -->
+        <div class="lyrics-container" id="lyrics-container" role="region" aria-label="同步滾動歌詞清單">
+          <!-- 由 lyrics-engine.js 即時渲染 -->
+        </div>
+      </div>
+
+      <!-- 2. 聽力克漏字練習面板 -->
+      <div class="tab-content-panel" id="panel-cloze">
+        <div id="cloze-container">
+          <!-- 由 learning-modes.js 動態渲染 -->
+        </div>
+      </div>
+
+      <!-- 3. 影子跟讀錄音室面板 -->
+      <div class="tab-content-panel" id="panel-shadowing">
+        <div id="shadowing-container">
+          <!-- 由 learning-modes.js 動態渲染 -->
+        </div>
+      </div>
+
+      <!-- 4. 單曲單字卡面板 -->
+      <div class="tab-content-panel" id="panel-flashcards">
+        <div id="flashcards-container">
+          <!-- 由 learning-modes.js 動態渲染 -->
+        </div>
+      </div>
+
+      <!-- 5. 個人生字庫面板 -->
+      <div class="tab-content-panel" id="panel-wordbook">
+        <div id="wordbook-container">
+          <!-- 由 learning-modes.js 動態渲染 -->
+        </div>
+      </div>
+
+      <!-- 6. 自訂歌曲與 LRC 匯入器 -->
+      <div class="tab-content-panel" id="panel-custom">
+        <div class="cloze-quiz-card" style="max-width: 680px; margin: 1rem auto;">
+          <h3 style="margin-bottom: 0.5rem; color: var(--amber-light);">➕ 匯入自訂英文歌與歌詞</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            您可以貼上任何英文歌的 LRC 時間戳記歌詞，並選取本地 MP3 音訊檔案，打造專屬於您的學習歌單！
+          </p>
+
+          <div style="display:flex; gap:0.75rem; margin-bottom: 1rem;">
+            <input type="text" id="import-song-title" placeholder="歌曲名稱 (如：Yesterday)" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); padding:0.6rem 0.85rem; border-radius:var(--radius-sm); color:#fff;">
+            <input type="text" id="import-song-artist" placeholder="歌手名稱 (如：The Beatles)" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); padding:0.6rem 0.85rem; border-radius:var(--radius-sm); color:#fff;">
+          </div>
+
+          <div style="margin-bottom: 1rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.35rem;">
+              選擇音訊檔案 (MP3 / WAV / M4A；留空則使用系統內建和弦伴奏)：
+            </label>
+            <input type="file" id="import-audio-file" accept="audio/*" style="font-size:0.85rem; color:var(--text-secondary);">
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:0.35rem;">
+              貼上 LRC 時間戳記歌詞（支援 [mm:ss.xx] 格式，可用 "|" 隔開中英文）：
+            </label>
+            <textarea id="import-lrc-text" rows="8" placeholder="[00:01.00] Yesterday, all my troubles seemed so far away | 昨天，所有的煩惱憂愁似乎都那麼遙遠&#10;[00:08.50] Now it looks as though they're here to stay | 但如今，它們彷彿駐足在此不再離去" style="width:100%; background:rgba(0,0,0,0.4); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); color:#fff; padding:0.75rem; font-family:var(--font-mono); font-size:0.85rem; line-height:1.5;"></textarea>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <button class="btn btn-secondary" id="btn-import-sample">📋 帶入範例歌詞 (Yesterday)</button>
+            <button class="btn btn-primary" id="btn-parse-import">🚀 解析並載入歌曲</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- 單字即時查詢浮動彈窗 (Interactive Word Lookup Modal) -->
+  <div class="word-modal-backdrop" id="word-modal" role="dialog" aria-modal="true" aria-labelledby="modal-word">
+    <div class="word-modal-card">
+      <button class="btn-modal-close" id="btn-modal-close" title="關閉 (Esc)" aria-label="關閉彈窗">✕</button>
+      <div class="modal-header">
+        <h3 class="modal-word-title" id="modal-word">word</h3>
+        <span class="modal-pos-tag" id="modal-pos">noun</span>
+      </div>
+      <div class="modal-phonetic-text" id="modal-phonetic">/wɝd/</div>
+      <div class="modal-zh-text" id="modal-zh">中文釋義</div>
+      <div class="modal-desc-text" id="modal-desc">詳細說明與歌曲上下文解析。</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-modal-speak">🔊 聆聽發音</button>
+        <button class="btn btn-primary" id="btn-modal-save">⭐ 收藏至生字本</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 應用程式腳本載入 -->
+  <script src="js/songs-data.js"></script>
+  <script src="js/audio-player.js"></script>
+  <script src="js/lyrics-engine.js"></script>
+  <script src="js/learning-modes.js"></script>
+  <script src="js/app.js"></script>
+
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  // 依所在環境決定回哪裡：
+  //   本機          → 本機的 Project Hub
+  //   作品集站台內  → 用相對路徑，換網域也不會壞
+  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
+  //                   只能用完整網址連回作品集
+  var host = location.hostname;
+  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
+  var onSite = host === 'tomchen0722.github.io';
+  var href = local ? 'http://127.0.0.1:7000'
+           : (onSite ? '../../../index.html' : 'https://tomchen0722.github.io/tom-projects/');
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>
