@@ -1,7 +1,7 @@
 // ==========================================
 // 字根字首構詞辭典大庫 (EtymoRoots Master Dataset)
 // 包含 44 組核心字根字首、完整構詞公式、KK/IPA音標、文法微觀剖析與情境閱讀
-// 總收錄單字數：229 個精選核心衍生單字
+// 總收錄單字數：757 個精選核心衍生單字 (每組字根字首收錄 17-20 個高階衍生詞)
 // ==========================================
 
 const ETYMO_DATA = [
@@ -483,6 +483,650 @@ const ETYMO_DATA = [
             "【商務動詞】：address 在此為「處理、應對」之高頻用法，而非演講或地址。"
           ]
         }
+      },
+      {
+        "word": "telework",
+        "kk": "[ˈtɛləˌwɝk]",
+        "ipa": "/ˈtɛliwɜːrk/",
+        "pos": "n. / v.",
+        "meaning": "遠距辦公、遠端工作",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距離"
+            },
+            {
+              "text": "work",
+              "role": "base",
+              "meaning": "工作"
+            }
+          ],
+          "resultMeaning": "在遠離傳統辦公室之處利用通訊技術工作 ➔「遠距工作」"
+        },
+        "sentence": "Many multinational corporations adopted permanent telework arrangements to enhance employee flexibility.",
+        "sentenceZh": "許多跨國企業採納了永久性遠距辦公安排，以提升員工的工作彈性。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Many multinational corporations",
+              "role": "主詞 (Subject)",
+              "note": "複數名詞片語。"
+            },
+            {
+              "part": "adopted",
+              "role": "及物動詞 (Verb)",
+              "note": "過去式。"
+            },
+            {
+              "part": "permanent telework arrangements",
+              "role": "受詞 (Object)",
+              "note": "複合名詞片語。"
+            },
+            {
+              "part": "to enhance employee flexibility",
+              "role": "不定詞目的狀語",
+              "note": "enhance (增進)。"
+            }
+          ],
+          "keyPoints": [
+            "【商務詞彙】：telework 與 telecommuting 同義，指遠距居家工作。"
+          ]
+        }
+      },
+      {
+        "word": "telephoto",
+        "kk": "[ˈtɛləˌfoto]",
+        "ipa": "/ˈtɛlɪfoʊtoʊ/",
+        "pos": "adj. / n.",
+        "meaning": "望遠的；(n.) 望遠鏡頭、遠距照片",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距離"
+            },
+            {
+              "text": "photo",
+              "role": "root",
+              "meaning": "光、照片"
+            }
+          ],
+          "resultMeaning": "用以捕捉遠方景物之光學長焦鏡頭 ➔「望遠的、望遠鏡頭」"
+        },
+        "sentence": "Wildlife photographers rely on specialized telephoto lenses to capture crisp images of endangered birds.",
+        "sentenceZh": "野生動物攝影師仰賴專業望遠鏡頭來捕捉瀕危鳥類的清晰影像。",
+        "grammar": {
+          "pattern": "S + Vi (rely on O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Wildlife photographers",
+              "role": "主詞 (Subject)",
+              "note": "名詞片語。"
+            },
+            {
+              "part": "rely on",
+              "role": "不及物動詞片語",
+              "note": "依賴、仰仗。"
+            },
+            {
+              "part": "specialized telephoto lenses",
+              "role": "介系詞受詞",
+              "note": "telephoto 作形容詞修飾 lenses。"
+            },
+            {
+              "part": "to capture crisp images of endangered birds",
+              "role": "不定詞目的狀語",
+              "note": "crisp (鮮明清晰的)。"
+            }
+          ],
+          "keyPoints": [
+            "【攝影術語】：telephoto lens 專指相機「望遠/長焦鏡頭」。"
+          ]
+        }
+      },
+      {
+        "word": "telecommuting",
+        "kk": "[ˌtɛləkəˈmjutɪŋ]",
+        "ipa": "/ˌtɛlikəˈmjuːtɪŋ/",
+        "pos": "n.",
+        "meaning": "遠距通勤、居家電子辦公",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距"
+            },
+            {
+              "text": "commute",
+              "role": "root",
+              "meaning": "通勤"
+            },
+            {
+              "text": "-ing",
+              "role": "suffix",
+              "meaning": "動名詞字尾"
+            }
+          ],
+          "resultMeaning": "透過網路在家辦公以取代實體通勤 ➔「遠距通勤」"
+        },
+        "sentence": "Widespread telecommuting has significantly alleviated vehicular congestion in metropolitan downtown areas.",
+        "sentenceZh": "廣泛普及的遠距通勤大幅舒緩了大都會市中心區域的車輛擁塞現象。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Widespread telecommuting",
+              "role": "主詞 (Subject)",
+              "note": "widespread (普遍的)。"
+            },
+            {
+              "part": "has significantly alleviated",
+              "role": "動詞片語 (Verb)",
+              "note": "alleviate (減緩、舒緩)。"
+            },
+            {
+              "part": "vehicular congestion",
+              "role": "受詞 (Object)",
+              "note": "交通擁擠。"
+            },
+            {
+              "part": "in metropolitan downtown areas",
+              "role": "地點介系詞片語",
+              "note": "市中心區域。"
+            }
+          ],
+          "keyPoints": [
+            "【重要動詞】：alleviate congestion / poverty / pain 是高級學術常見搭配。"
+          ]
+        }
+      },
+      {
+        "word": "telekinesis",
+        "kk": "[ˌtɛləkəˈnisɪs]",
+        "ipa": "/ˌtɛlɪkɪˈniːsɪs/",
+        "pos": "n.",
+        "meaning": "念力遠程移動、隔空移物",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距"
+            },
+            {
+              "text": "kinesis",
+              "role": "root",
+              "meaning": "運動、移動 (希臘語 kinēsis)"
+            }
+          ],
+          "resultMeaning": "意念隔空促使遠方物體產生運動 ➔「念力移物」"
+        },
+        "sentence": "Science fiction novels often portray enigmatic characters endowed with telekinesis and superhuman psychic perception.",
+        "sentenceZh": "科幻小說常描繪被賦予念力移物與超人般心靈感知能力的神秘角色。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Participle Phrase (endowed with...)",
+          "breakdown": [
+            {
+              "part": "Science fiction novels",
+              "role": "主詞 (Subject)",
+              "note": "科幻小說。"
+            },
+            {
+              "part": "portray",
+              "role": "及物動詞 (Verb)",
+              "note": "描繪。"
+            },
+            {
+              "part": "enigmatic characters",
+              "role": "受詞 (Object)",
+              "note": "enigmatic (神秘莫測的)。"
+            },
+            {
+              "part": "endowed with telekinesis",
+              "role": "分詞片語修飾 characters",
+              "note": "be endowed with 表天賦擁有。"
+            }
+          ],
+          "keyPoints": [
+            "【片語】：be endowed with something 指「生來具備、天賦擁有某種能力」。"
+          ]
+        }
+      },
+      {
+        "word": "telethon",
+        "kk": "[ˈtɛləˌθɑn]",
+        "ipa": "/ˈtɛləθɑːn/",
+        "pos": "n.",
+        "meaning": "電視馬拉松募款節目",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "電視、遠距"
+            },
+            {
+              "text": "(mara)thon",
+              "role": "base",
+              "meaning": "馬拉松長跑 (長時間活動)"
+            }
+          ],
+          "resultMeaning": "長時間透過電視播送呼籲大眾捐款之慈善節目 ➔「電視募款馬拉松」"
+        },
+        "sentence": "The nationwide telethon raised tens of millions of dollars for pediatric cancer research over twenty-four hours.",
+        "sentenceZh": "這場全國性的電視馬拉松募款節目在二十四小時內為兒童癌症研究籌集了數千萬美元。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "The nationwide telethon",
+              "role": "主詞 (Subject)",
+              "note": "全國電視募款節目。"
+            },
+            {
+              "part": "raised",
+              "role": "及物動詞 (Verb)",
+              "note": "籌募款項。"
+            },
+            {
+              "part": "tens of millions of dollars",
+              "role": "受詞 (Object)",
+              "note": "數千萬美元。"
+            },
+            {
+              "part": "for pediatric cancer research",
+              "role": "目的介系詞片語",
+              "note": "兒童癌症研究。"
+            }
+          ],
+          "keyPoints": [
+            "【混成詞 Portmanteau】：television + marathon ➔ telethon。"
+          ]
+        }
+      },
+      {
+        "word": "telegenic",
+        "kk": "[ˌtɛləˈdʒɛnɪk]",
+        "ipa": "/ˌtɛlɪˈdʒɛnɪk/",
+        "pos": "adj.",
+        "meaning": "上鏡頭的、適合電視播出的",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "電視"
+            },
+            {
+              "text": "-genic",
+              "role": "suffix",
+              "meaning": "適合...的、產生...的"
+            }
+          ],
+          "resultMeaning": "在電視螢幕與攝影機鏡頭前顯得英俊美麗且具魅力的 ➔「上鏡的」"
+        },
+        "sentence": "Modern political campaigns heavily favor charismatic and telegenic candidates who perform naturally on camera.",
+        "sentenceZh": "現代政治競選活動極度偏愛富有個人魅力且在上鏡頭時表現自然的上鏡候選人。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Modern political campaigns",
+              "role": "主詞 (Subject)",
+              "note": "政治競選活動。"
+            },
+            {
+              "part": "favor",
+              "role": "及物動詞 (Verb)",
+              "note": "偏好、青睞。"
+            },
+            {
+              "part": "candidates",
+              "role": "受詞 (Object)",
+              "note": "由 charismatic 與 telegenic 修飾。"
+            },
+            {
+              "part": "who perform naturally on camera",
+              "role": "關係子句",
+              "note": "who 引導修飾 candidates。"
+            }
+          ],
+          "keyPoints": [
+            "【同綴字】：photogenic (照片上鏡的) ➔ telegenic (電視鏡頭前有魅力的)。"
+          ]
+        }
+      },
+      {
+        "word": "telecontrol",
+        "kk": "[ˌtɛləkənˈtrol]",
+        "ipa": "/ˌtɛlikənˈtroʊl/",
+        "pos": "n. / v.",
+        "meaning": "遠端遙控、遠端操縱",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距離"
+            },
+            {
+              "text": "control",
+              "role": "base",
+              "meaning": "控制"
+            }
+          ],
+          "resultMeaning": "自遠距離發送信號操縱機械 ➔「遠端遙控」"
+        },
+        "sentence": "Automated pipeline networks utilize wireless telecontrol systems to shut off valves instantly during sudden pressure drops.",
+        "sentenceZh": "自動化管線網絡利用無線遠端遙控系統，在壓力突降時立即關閉閥門。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Automated pipeline networks",
+              "role": "主詞 (Subject)",
+              "note": "管線網。"
+            },
+            {
+              "part": "utilize",
+              "role": "及物動詞 (Verb)",
+              "note": "利用。"
+            },
+            {
+              "part": "wireless telecontrol systems",
+              "role": "受詞 (Object)",
+              "note": "遙控系統。"
+            },
+            {
+              "part": "to shut off valves instantly",
+              "role": "不定詞目的狀語",
+              "note": "shut off 關閉。"
+            }
+          ],
+          "keyPoints": [
+            "【工程複合詞】：telecontrol = remote control，在工業自動化領域更顯專業。"
+          ]
+        }
+      },
+      {
+        "word": "teleprocessing",
+        "kk": "[ˌtɛləˈprɑsɛsɪŋ]",
+        "ipa": "/ˌtɛliˈprɑːsesɪŋ/",
+        "pos": "n.",
+        "meaning": "遠端資料處理",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距"
+            },
+            {
+              "text": "processing",
+              "role": "base",
+              "meaning": "處理"
+            }
+          ],
+          "resultMeaning": "透過電信網路傳輸並在中央主機處理遠端資料 ➔「遠端資訊處理」"
+        },
+        "sentence": "Early mainframe banking relied on secure teleprocessing protocols to clear interstate financial transactions.",
+        "sentenceZh": "早期的主機銀行業務仰賴安全的遠端處理通訊協定來結算跨州金融交易。",
+        "grammar": {
+          "pattern": "S + Vi (relied on O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Early mainframe banking",
+              "role": "主詞 (Subject)",
+              "note": "主機銀行業。"
+            },
+            {
+              "part": "relied on",
+              "role": "動詞片語",
+              "note": "仰賴。"
+            },
+            {
+              "part": "secure teleprocessing protocols",
+              "role": "介系詞受詞",
+              "note": "通訊協定。"
+            },
+            {
+              "part": "to clear interstate financial transactions",
+              "role": "不定詞目的狀語",
+              "note": "clear 在此為銀行術語「票據交換/結算」。"
+            }
+          ],
+          "keyPoints": [
+            "【金融動詞】：clear transactions 指「清算、結算交易」。"
+          ]
+        }
+      },
+      {
+        "word": "telemarketer",
+        "kk": "[ˌtɛləˈmɑrkɪtɚ]",
+        "ipa": "/ˌtɛliˈmɑːrkɪtər/",
+        "pos": "n.",
+        "meaning": "電話推銷員、電話行銷人員",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "電話、遠端"
+            },
+            {
+              "text": "market",
+              "role": "root",
+              "meaning": "市場、銷售"
+            },
+            {
+              "text": "-er",
+              "role": "suffix",
+              "meaning": "從業人員"
+            }
+          ],
+          "resultMeaning": "透過電話向遠方大眾推銷產品的人員 ➔「電話推銷員」"
+        },
+        "sentence": "Federal privacy regulations empower homeowners to register their mobile numbers on national do-not-call registries to block telemarketers.",
+        "sentenceZh": "聯邦隱私法規授權屋主將其手機號碼登記在全國禁撥清單上，以阻斷電話推銷員。",
+        "grammar": {
+          "pattern": "S + Vt + O + to-V (Infinitive Complement)",
+          "breakdown": [
+            {
+              "part": "Federal privacy regulations",
+              "role": "主詞 (Subject)",
+              "note": "隱私法規。"
+            },
+            {
+              "part": "empower",
+              "role": "及物動詞 (Verb)",
+              "note": "empower + O + to V (授權某人做某事)。"
+            },
+            {
+              "part": "homeowners",
+              "role": "受詞 (Object)",
+              "note": "屋主。"
+            },
+            {
+              "part": "to register their mobile numbers",
+              "role": "補語",
+              "note": "登記號碼。"
+            }
+          ],
+          "keyPoints": [
+            "【法規片語】：do-not-call registry 專指美國等國「禁止行銷電話呼叫的名冊」。"
+          ]
+        }
+      },
+      {
+        "word": "teleplay",
+        "kk": "[ˈtɛləˌple]",
+        "ipa": "/ˈtɛlipleɪ/",
+        "pos": "n.",
+        "meaning": "電視劇場劇本、電視連續劇",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "電視"
+            },
+            {
+              "text": "play",
+              "role": "base",
+              "meaning": "戲劇、劇本"
+            }
+          ],
+          "resultMeaning": "專門為電視螢幕播放而編寫創作的戲劇 ➔「電視劇場、電視劇本」"
+        },
+        "sentence": "The acclaimed playwright penned an evocative teleplay that dramatized the moral dilemmas of frontline medical workers.",
+        "sentenceZh": "這位備受讚譽的劇作家寫出了一部扣人心弦的電視劇本，將第一線醫護人員的道德困境生動戲劇化。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The acclaimed playwright",
+              "role": "主詞 (Subject)",
+              "note": "劇作家。"
+            },
+            {
+              "part": "penned",
+              "role": "及物動詞 (Verb)",
+              "note": "pen 作動詞「執筆撰寫」。"
+            },
+            {
+              "part": "an evocative teleplay",
+              "role": "受詞 (Object)",
+              "note": "evocative (扣人心弦的、喚起情感的)。"
+            },
+            {
+              "part": "that dramatized the moral dilemmas",
+              "role": "關係子句",
+              "note": "that 指 teleplay。"
+            }
+          ],
+          "keyPoints": [
+            "【文雅動詞】：pen a poem / a play，pen 作動詞比 write 更顯典雅文藝。"
+          ]
+        }
+      },
+      {
+        "word": "teleshopping",
+        "kk": "[ˈtɛləˌʃɑpɪŋ]",
+        "ipa": "/ˈtɛliʃɑːpɪŋ/",
+        "pos": "n.",
+        "meaning": "電視購物、電視選購",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "電視"
+            },
+            {
+              "text": "shop",
+              "role": "root",
+              "meaning": "購物"
+            },
+            {
+              "text": "-ing",
+              "role": "suffix",
+              "meaning": "活動"
+            }
+          ],
+          "resultMeaning": "透過觀看電視商品介紹並打電話下單之購物模式 ➔「電視購物」"
+        },
+        "sentence": "Before the advent of modern mobile ecommerce apps, late-night teleshopping channels dominated direct-to-consumer advertising.",
+        "sentenceZh": "在現代行動電子商務應用程式出現之前，深夜電視購物頻道主導了直接面對消費者的廣告市場。",
+        "grammar": {
+          "pattern": "Prep Phrase (Before the advent of...) + S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Before the advent of modern mobile ecommerce apps",
+              "role": "時間介系詞片語",
+              "note": "advent (出現、到來)。"
+            },
+            {
+              "part": "late-night teleshopping channels",
+              "role": "主詞 (Subject)",
+              "note": "電視購物頻道。"
+            },
+            {
+              "part": "dominated",
+              "role": "及物動詞 (Verb)",
+              "note": "主導、支配。"
+            },
+            {
+              "part": "direct-to-consumer advertising",
+              "role": "受詞 (Object)",
+              "note": "D2C 直效廣告。"
+            }
+          ],
+          "keyPoints": [
+            "【常用名詞】：the advent of something 指「某項重大創新/科技的降臨問世」。"
+          ]
+        }
+      },
+      {
+        "word": "telepathic",
+        "kk": "[ˌtɛləˈpæθɪk]",
+        "ipa": "/ˌtɛlɪˈpæθɪk/",
+        "pos": "adj.",
+        "meaning": "心靈感應的、傳心術的",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距離"
+            },
+            {
+              "text": "path (pathy)",
+              "role": "root",
+              "meaning": "感受、情感"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "能於遠距離跨越感官直接傳遞心靈思維的 ➔「心靈感應的」"
+        },
+        "sentence": "Identical twins often exhibit an uncanny telepathic connection, seemingly discerning each other's emotional states without exchanging words.",
+        "sentenceZh": "同卵雙胞胎常展現出不可思議的心靈感應連結，似乎無需言語交流便能洞悉彼此的情緒狀態。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Participle Phrase of Manner (seemingly discerning...)",
+          "breakdown": [
+            {
+              "part": "Identical twins",
+              "role": "主詞 (Subject)",
+              "note": "同卵雙胞胎。"
+            },
+            {
+              "part": "exhibit",
+              "role": "及物動詞 (Verb)",
+              "note": "展現。"
+            },
+            {
+              "part": "an uncanny telepathic connection",
+              "role": "受詞 (Object)",
+              "note": "uncanny (不可思議的)。"
+            },
+            {
+              "part": "seemingly discerning each other's emotional states",
+              "role": "分詞伴隨狀語",
+              "note": "discern (辨別洞察)。"
+            }
+          ],
+          "keyPoints": [
+            "【心靈字根】：telepathy (名詞：心靈感應) ➔ telepathic (形容詞)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -942,6 +1586,675 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【字根家族】：plasma (血漿、電漿)、plastic (可塑的、塑膠) 皆源自希臘語 plassein (塑造、成形)。",
             "【文法修飾】：streaming 與 living 皆為現在分詞作前置修飾語，表正在進行的生動狀態。"
+          ]
+        }
+      },
+      {
+        "word": "protohistory",
+        "kk": "[ˌprotoˈhɪstərɪ]",
+        "ipa": "/ˌproʊtoʊˈhɪstri/",
+        "pos": "n.",
+        "meaning": "原史時代 (介於史前與有文字記錄歷史之間的過渡期)",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "原始、第一"
+            },
+            {
+              "text": "history",
+              "role": "base",
+              "meaning": "歷史"
+            }
+          ],
+          "resultMeaning": "剛開始出現初步文獻但尚未形成完備歷史記載的原始過渡時代 ➔「原史時代」"
+        },
+        "sentence": "Archaeologists excavating the Bronze Age settlement unearthed burial artifacts that shed light on Mediterranean protohistory.",
+        "sentenceZh": "挖掘青銅時代聚落的考古學家出土了隨葬文物，為地中海原史時代提供了重要線索。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Archaeologists",
+              "role": "主詞 (Subject)",
+              "note": "考古學家。"
+            },
+            {
+              "part": "excavating the Bronze Age settlement",
+              "role": "現在分詞片語修飾主詞",
+              "note": "excavate (發掘)。"
+            },
+            {
+              "part": "unearthed",
+              "role": "及物動詞 (Verb)",
+              "note": "發掘出土。"
+            },
+            {
+              "part": "burial artifacts",
+              "role": "受詞 (Object)",
+              "note": "隨葬文物。"
+            },
+            {
+              "part": "that shed light on Mediterranean protohistory",
+              "role": "關係子句",
+              "note": "shed light on (提供線索、闡明)。"
+            }
+          ],
+          "keyPoints": [
+            "【高頻片語】：shed light on something 指「使某事變得清楚易懂、為...提供線索」。"
+          ]
+        }
+      },
+      {
+        "word": "protozoology",
+        "kk": "[ˌprotəzoˈɑlədʒɪ]",
+        "ipa": "/ˌproʊtoʊzoʊˈɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "原生動物學",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "最初、原始"
+            },
+            {
+              "text": "zo-",
+              "role": "root",
+              "meaning": "動物 (animal)"
+            },
+            {
+              "text": "-ology",
+              "role": "suffix",
+              "meaning": "學科"
+            }
+          ],
+          "resultMeaning": "研究單細胞原始動物生命型態與生態之學科 ➔「原生動物學」"
+        },
+        "sentence": "Advanced optical stains developed in protozoology allow researchers to track intracellular parasite motility in real time.",
+        "sentenceZh": "原生動物學中開發的高階光學染色劑，使研究人員得以即時追蹤細胞內寄生蟲的運動能力。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt (allow) + O + to-V",
+          "breakdown": [
+            {
+              "part": "Advanced optical stains",
+              "role": "主詞 (Subject)",
+              "note": "光學染色劑。"
+            },
+            {
+              "part": "developed in protozoology",
+              "role": "過去分詞片語修飾主詞",
+              "note": "被動修飾。"
+            },
+            {
+              "part": "allow",
+              "role": "及物動詞 (Verb)",
+              "note": "allow + O + to V。"
+            },
+            {
+              "part": "researchers",
+              "role": "受詞 (Object)",
+              "note": "研究人員。"
+            },
+            {
+              "part": "to track intracellular parasite motility",
+              "role": "受詞補語",
+              "note": "motility (自體運動性)。"
+            }
+          ],
+          "keyPoints": [
+            "【字根堆疊】：proto (原始) + zoo (動物) + logy (學問)。"
+          ]
+        }
+      },
+      {
+        "word": "protium",
+        "kk": "[ˈprotɪəm]",
+        "ipa": "/ˈproʊtiəm/",
+        "pos": "n.",
+        "meaning": "氕 (最常見且最輕的氫同位素，原子核僅含單一質子)",
+        "formula": {
+          "parts": [
+            {
+              "text": "prot-",
+              "role": "root",
+              "meaning": "第一、單一"
+            },
+            {
+              "text": "-ium",
+              "role": "suffix",
+              "meaning": "化學元素金屬字尾"
+            }
+          ],
+          "resultMeaning": "最基本、原子核僅含一顆質子的第一號元素同位素 ➔「氕」"
+        },
+        "sentence": "Unlike heavier isotopes such as deuterium and tritium, protium contains no neutrons in its atomic nucleus.",
+        "sentenceZh": "不同於氘和氚等較重的同位素，氕的原子核內不含任何中子。",
+        "grammar": {
+          "pattern": "Prep Phrase (Unlike...) + S + Vt (contains) + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Unlike heavier isotopes such as deuterium and tritium",
+              "role": "對比介系詞片語",
+              "note": "Unlike (不同於)。"
+            },
+            {
+              "part": "protium",
+              "role": "主詞 (Subject)",
+              "note": "氕元素。"
+            },
+            {
+              "part": "contains",
+              "role": "及物動詞 (Verb)",
+              "note": "包含。"
+            },
+            {
+              "part": "no neutrons",
+              "role": "受詞 (Object)",
+              "note": "中子（零中子）。"
+            },
+            {
+              "part": "in its atomic nucleus",
+              "role": "地點介系詞片語",
+              "note": "原子核。"
+            }
+          ],
+          "keyPoints": [
+            "【化學三兄弟】：protium (氕：1個質子), deuterium (氘：1質子1中子), tritium (氚：1質子2中子)。"
+          ]
+        }
+      },
+      {
+        "word": "protostome",
+        "kk": "[ˈprotəˌstom]",
+        "ipa": "/ˈproʊtəstoʊm/",
+        "pos": "n.",
+        "meaning": "原口動物 (胚胎發育時原口形成嘴的動物門類)",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "第一、原始"
+            },
+            {
+              "text": "stome",
+              "role": "root",
+              "meaning": "口、開口 (希臘語 stoma)"
+            }
+          ],
+          "resultMeaning": "胚孔在胚胎發育中最先發展為嘴巴的生物 ➔「原口動物」"
+        },
+        "sentence": "Evolutionary biologists distinguish a protostome from a deuterostome primarily by embryonic blastopore developmental pathways.",
+        "sentenceZh": "演化生物學家主要藉由胚胎胚孔的發育途徑，將原口動物與後口動物區分開來。",
+        "grammar": {
+          "pattern": "S + Vt (distinguish A from B) + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Evolutionary biologists",
+              "role": "主詞 (Subject)",
+              "note": "演化生物學家。"
+            },
+            {
+              "part": "distinguish",
+              "role": "及物動詞 (Verb)",
+              "note": "distinguish A from B 句型。"
+            },
+            {
+              "part": "a protostome",
+              "role": "受詞 A",
+              "note": "原口動物。"
+            },
+            {
+              "part": "from a deuterostome",
+              "role": "對比受詞 B",
+              "note": "後口動物。"
+            },
+            {
+              "part": "by embryonic blastopore developmental pathways",
+              "role": "手段介系詞片語",
+              "note": "胚胎發育途徑。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：distinguish A from B (辨別區分 A 與 B)。"
+          ]
+        }
+      },
+      {
+        "word": "protoplast",
+        "kk": "[ˈprotəˌplæst]",
+        "ipa": "/ˈproʊtəplæst/",
+        "pos": "n.",
+        "meaning": "原生質體 (去除細胞壁後的植物/細菌細胞)",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "原始、第一"
+            },
+            {
+              "text": "plast",
+              "role": "root",
+              "meaning": "成形物 (formed thing)"
+            }
+          ],
+          "resultMeaning": "移除外層細胞壁後保留完整代謝機能的原始細胞本體 ➔「原生質體」"
+        },
+        "sentence": "Enzymatic digestion of plant cell walls isolates a naked protoplast, providing a flexible platform for genetic transformation.",
+        "sentenceZh": "對植物細胞壁進行酵素消化可分離出裸露的原生質體，為基因轉殖提供了高度彈性的平台。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase of Result",
+          "breakdown": [
+            {
+              "part": "Enzymatic digestion of plant cell walls",
+              "role": "主詞 (Subject)",
+              "note": "酵素消化。"
+            },
+            {
+              "part": "isolates",
+              "role": "及物動詞 (Verb)",
+              "note": "分離出。"
+            },
+            {
+              "part": "a naked protoplast",
+              "role": "受詞 (Object)",
+              "note": "裸原生質體。"
+            },
+            {
+              "part": "providing a flexible platform for genetic transformation",
+              "role": "現在分詞結果狀語",
+              "note": "providing 引導伴隨結果。"
+            }
+          ],
+          "keyPoints": [
+            "【生物科技詞彙】：protoplast fusion (原生質體融合) 是現代作物育種的核心技術。"
+          ]
+        }
+      },
+      {
+        "word": "protolithic",
+        "kk": "[ˌprotəˈlɪθɪk]",
+        "ipa": "/ˌproʊtəˈlɪθɪk/",
+        "pos": "adj.",
+        "meaning": "原始石器時代的、原石器期的",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "最初、原始"
+            },
+            {
+              "text": "lith",
+              "role": "root",
+              "meaning": "石頭 (stone)"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "人類文明最早學會打製粗糙未打磨天然石器的 ➔「原石器時代的」"
+        },
+        "sentence": "The river gravels yielded crudely chipped protolithic scrapers crafted by early hominids over one million years ago.",
+        "sentenceZh": "河床礫石層中出土了一百多萬年前早期古人類打製的粗糙原石器時代刮削器。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (crafted by...)",
+          "breakdown": [
+            {
+              "part": "The river gravels",
+              "role": "主詞 (Subject)",
+              "note": "河床礫石層。"
+            },
+            {
+              "part": "yielded",
+              "role": "及物動詞 (Verb)",
+              "note": "產出、出土。"
+            },
+            {
+              "part": "crudely chipped protolithic scrapers",
+              "role": "受詞 (Object)",
+              "note": "粗製刮削器。"
+            },
+            {
+              "part": "crafted by early hominids",
+              "role": "分詞片語修飾 scrapers",
+              "note": "古人類打製。"
+            }
+          ],
+          "keyPoints": [
+            "【石頭字根】：lith / lithic (石頭)，如 Paleolithic (舊石器時代), Neolithic (新石器時代)。"
+          ]
+        }
+      },
+      {
+        "word": "protomorphic",
+        "kk": "[ˌprotəˈmɔrfɪk]",
+        "ipa": "/ˌproʊtəˈmɔːrfɪk/",
+        "pos": "adj.",
+        "meaning": "原始形態的、初始雛形的",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "第一、原始"
+            },
+            {
+              "text": "morph",
+              "role": "root",
+              "meaning": "形狀、型態 (shape)"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "保有生物演化或構造最初原始特徵形貌的 ➔「原始型態的」"
+        },
+        "sentence": "Fossils from the Cambrian explosion exhibit protomorphic bodily symmetries that diverge sharply from modern phyla.",
+        "sentenceZh": "寒武紀大爆發時期的化石展現了與現代門類截然不同的原始體型對稱結構。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Fossils from the Cambrian explosion",
+              "role": "主詞 (Subject)",
+              "note": "寒武紀化石。"
+            },
+            {
+              "part": "exhibit",
+              "role": "及物動詞 (Verb)",
+              "note": "展現。"
+            },
+            {
+              "part": "protomorphic bodily symmetries",
+              "role": "受詞 (Object)",
+              "note": "原始身體對稱性。"
+            },
+            {
+              "part": "that diverge sharply from modern phyla",
+              "role": "關係子句",
+              "note": "diverge from (偏離、不同於)。"
+            }
+          ],
+          "keyPoints": [
+            "【型態字根】：morph (形狀)，如 amorphous (無定形的), metamorphosis (蛻變)。"
+          ]
+        }
+      },
+      {
+        "word": "protogalaxy",
+        "kk": "[ˌprotoˈgæləksɪ]",
+        "ipa": "/ˌproʊtoʊˈɡæləksi/",
+        "pos": "n.",
+        "meaning": "原星系 (形成初期的原始星系)",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "原始、最初"
+            },
+            {
+              "text": "galaxy",
+              "role": "root",
+              "meaning": "星系"
+            }
+          ],
+          "resultMeaning": "大霹靂後處於重力塌縮孕育初期的原始氣體星系 ➔「原星系」"
+        },
+        "sentence": "Astronomers utilizing the space telescope detected a faint protogalaxy formed shortly after the dawn of the universe.",
+        "sentenceZh": "天文學家利用太空望遠鏡偵測到了在宇宙破曉初年形成的一個微弱原星系。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Astronomers utilizing the space telescope",
+              "role": "主詞 (含分詞修飾)",
+              "note": "天文學家。"
+            },
+            {
+              "part": "detected",
+              "role": "及物動詞 (Verb)",
+              "note": "偵測到。"
+            },
+            {
+              "part": "a faint protogalaxy",
+              "role": "受詞 (Object)",
+              "note": "微弱原星系。"
+            },
+            {
+              "part": "formed shortly after the dawn of the universe",
+              "role": "過去分詞片語後位修飾",
+              "note": "形成於宇宙破曉後不久。"
+            }
+          ],
+          "keyPoints": [
+            "【天文學字彙】：protogalaxy (原星系)、protostar (原恆星)。"
+          ]
+        }
+      },
+      {
+        "word": "proto-language",
+        "kk": "[ˌprotoˈlæŋgwɪdʒ]",
+        "ipa": "/ˌproʊtoʊˈlæŋɡwɪdʒ/",
+        "pos": "n.",
+        "meaning": "原始母語、祖語",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "最初、原始"
+            },
+            {
+              "text": "language",
+              "role": "base",
+              "meaning": "語言"
+            }
+          ],
+          "resultMeaning": "各語言體系歷史演化最初共同分化出的原始共同母語 ➔「祖語」"
+        },
+        "sentence": "Comparative linguists reconstruct Proto-Indo-European as the common ancestral proto-language of English, Sanskrit, and Latin.",
+        "sentenceZh": "比較語言學家重構了印歐祖語，將其視為英語、梵語與拉丁語的共同原始母語。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (as...)",
+          "breakdown": [
+            {
+              "part": "Comparative linguists",
+              "role": "主詞 (Subject)",
+              "note": "比較語言學家。"
+            },
+            {
+              "part": "reconstruct",
+              "role": "及物動詞 (Verb)",
+              "note": "重構。"
+            },
+            {
+              "part": "Proto-Indo-European",
+              "role": "直接受詞 (Object)",
+              "note": "印歐祖語。"
+            },
+            {
+              "part": "as the common ancestral proto-language",
+              "role": "介系詞受詞",
+              "note": "ancestral (祖先的)。"
+            }
+          ],
+          "keyPoints": [
+            "【語言學專名】：Proto-Indo-European (PIE) 是現代印歐語系最重要的原始母語研究對象。"
+          ]
+        }
+      },
+      {
+        "word": "proto-oncogene",
+        "kk": "[ˌprotoˈɑŋkəˌdʒin]",
+        "ipa": "/ˌproʊtoʊˈɑːŋkoʊdʒiːn/",
+        "pos": "n.",
+        "meaning": "原癌基因 (正常細胞中具轉變為癌基因潛力的正常基因)",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "原始、未變質"
+            },
+            {
+              "text": "onco-",
+              "role": "root",
+              "meaning": "腫瘤 (tumor)"
+            },
+            {
+              "text": "gene",
+              "role": "base",
+              "meaning": "基因"
+            }
+          ],
+          "resultMeaning": "未受突變之前調控正常細胞生長的原生基因 ➔「原癌基因」"
+        },
+        "sentence": "A point mutation in a normal proto-oncogene can transform it into an active oncogene that drives unregulated malignant cell division.",
+        "sentenceZh": "正常原癌基因中的單點突變可將其轉化為活躍的致癌基因，進而促使惡性細胞不受調控地分裂。",
+        "grammar": {
+          "pattern": "S + Modal + Vt (transform A into B) + Relative Clause",
+          "breakdown": [
+            {
+              "part": "A point mutation in a normal proto-oncogene",
+              "role": "主詞 (Subject)",
+              "note": "點突變。"
+            },
+            {
+              "part": "can transform",
+              "role": "動詞片語 (Verb)",
+              "note": "transform A into B。"
+            },
+            {
+              "part": "it",
+              "role": "受詞 A",
+              "note": "指代 proto-oncogene。"
+            },
+            {
+              "part": "into an active oncogene",
+              "role": "轉變結果 B",
+              "note": "致癌基因。"
+            },
+            {
+              "part": "that drives unregulated malignant cell division",
+              "role": "關係子句",
+              "note": "drive (驅動、促成)。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：transform A into B (將 A 轉變為 B)。"
+          ]
+        }
+      },
+      {
+        "word": "protostar",
+        "kk": "[ˈprotəˌstɑr]",
+        "ipa": "/ˈproʊtoʊstɑːr/",
+        "pos": "n.",
+        "meaning": "原恆星 (由星際氣體塵埃塌縮形成之恆星早期雛形)",
+        "formula": {
+          "parts": [
+            {
+              "text": "proto-",
+              "role": "prefix",
+              "meaning": "最初、原始"
+            },
+            {
+              "text": "star",
+              "role": "base",
+              "meaning": "恆星"
+            }
+          ],
+          "resultMeaning": "核融合尚未點燃之前的原始恆星氣體凝聚核 ➔「原恆星」"
+        },
+        "sentence": "Infrared space telescopes pierced through thick molecular clouds to photograph a glowing protostar in its nascent stage of gravitational collapse.",
+        "sentenceZh": "紅外線太空望遠鏡穿透厚重分子雲，拍下了一顆處於重力塌縮早期階段的發光原恆星。",
+        "grammar": {
+          "pattern": "S + V1 (pierced through O) + to-V (to photograph O)",
+          "breakdown": [
+            {
+              "part": "Infrared space telescopes",
+              "role": "主詞 (Subject)",
+              "note": "紅外太空望遠鏡。"
+            },
+            {
+              "part": "pierced through",
+              "role": "動詞片語 1",
+              "note": "穿透。"
+            },
+            {
+              "part": "thick molecular clouds",
+              "role": "介系詞受詞",
+              "note": "厚分子雲。"
+            },
+            {
+              "part": "to photograph a glowing protostar",
+              "role": "不定詞目的/結果狀語",
+              "note": "glowing (發光的)。"
+            }
+          ],
+          "keyPoints": [
+            "【天文學】：nascent stage (萌芽初期階段) 是科學描繪天體或技術初生的頂級詞彙。"
+          ]
+        }
+      },
+      {
+        "word": "protist",
+        "kk": "[ˈprotɪst]",
+        "ipa": "/ˈproʊtɪst/",
+        "pos": "n.",
+        "meaning": "原生生物 (包括單細胞藻類與原生動物等真核生物)",
+        "formula": {
+          "parts": [
+            {
+              "text": "prot-",
+              "role": "root",
+              "meaning": "第一、原始"
+            },
+            {
+              "text": "-ist",
+              "role": "suffix",
+              "meaning": "生物種類名詞字尾"
+            }
+          ],
+          "resultMeaning": "屬於生物演化樹基部的單細胞真核生物 ➔「原生生物」"
+        },
+        "sentence": "The microscopic drop of pond water teemed with diverse protists darting vigorously under darkfield illumination.",
+        "sentenceZh": "池塘水的一顆微小水滴中充滿了各式各樣的原生生物，在暗視野照明下敏捷地穿梭竄動。",
+        "grammar": {
+          "pattern": "S + Vi (teemed with O) + Participle Phrase of Manner (darting...)",
+          "breakdown": [
+            {
+              "part": "The microscopic drop of pond water",
+              "role": "主詞 (Subject)",
+              "note": "微小水滴。"
+            },
+            {
+              "part": "teemed with",
+              "role": "動詞片語 (Verb)",
+              "note": "teem with 表「充滿、充斥著」。"
+            },
+            {
+              "part": "diverse protists",
+              "role": "介系詞受詞",
+              "note": "原生生物。"
+            },
+            {
+              "part": "darting vigorously under darkfield illumination",
+              "role": "分詞片語修飾 protists",
+              "note": "dart (猛衝穿梭)。"
+            }
+          ],
+          "keyPoints": [
+            "【高階動詞】：teem with something (充滿許多生機盎然的生物)。"
           ]
         }
       }
@@ -1408,6 +2721,635 @@ const ETYMO_DATA = [
             "【詞源變體】：spect 與 spic 同源互換，如 despise (蔑視)、auspicious (吉兆的)。"
           ]
         }
+      },
+      {
+        "word": "circumspect",
+        "kk": "[ˈsɝkəmˌspɛkt]",
+        "ipa": "/ˈsɜːrkəmspɛkt/",
+        "pos": "adj.",
+        "meaning": "謹慎小心的、周到的",
+        "formula": {
+          "parts": [
+            {
+              "text": "circum-",
+              "role": "prefix",
+              "meaning": "環繞、周圍"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            }
+          ],
+          "resultMeaning": "四面八方全都細看審查 ➔「謹慎小心的」"
+        },
+        "sentence": "In unpredictable volatile markets, experienced venture capitalists remain remarkably circumspect before committing seed capital.",
+        "sentenceZh": "在瞬息萬變的動盪市場中，資深創投家在投入種子資金前依然格外謹慎周全。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Linking Verb + SC + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "In unpredictable volatile markets",
+              "role": "情境介系詞片語",
+              "note": "市場情境。"
+            },
+            {
+              "part": "experienced venture capitalists",
+              "role": "主詞 (Subject)",
+              "note": "創投家。"
+            },
+            {
+              "part": "remain",
+              "role": "連綴動詞",
+              "note": "保持。"
+            },
+            {
+              "part": "remarkably circumspect",
+              "role": "主詞補語",
+              "note": "審慎周全的。"
+            }
+          ],
+          "keyPoints": [
+            "【高階同義詞】：circumspect (謹慎考慮周到的) vs. cautious (小心的)。"
+          ]
+        }
+      },
+      {
+        "word": "introspect",
+        "kk": "[ˌɪntrəˈspɛkt]",
+        "ipa": "/ˌɪntroʊˈspɛkt/",
+        "pos": "v.",
+        "meaning": "內省、自我反思",
+        "formula": {
+          "parts": [
+            {
+              "text": "intro-",
+              "role": "prefix",
+              "meaning": "向內"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            }
+          ],
+          "resultMeaning": "朝內省視審查自己的思想感情 ➔「內省」"
+        },
+        "sentence": "Philosophers often withdraw into tranquil solitude to introspect on their core motivations and ethical convictions.",
+        "sentenceZh": "哲學家常退隱至寧靜的獨處中，以自我反思其核心動機與道德信念。",
+        "grammar": {
+          "pattern": "S + Adv + Vi + Prep Phrase + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Philosophers",
+              "role": "主詞 (Subject)",
+              "note": "哲學家。"
+            },
+            {
+              "part": "withdraw into tranquil solitude",
+              "role": "動詞片語",
+              "note": "退隱至獨處。"
+            },
+            {
+              "part": "to introspect on their core motivations",
+              "role": "不定詞目的狀語",
+              "note": "introspect on (對...內省)。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：introspect on / upon something。"
+          ]
+        }
+      },
+      {
+        "word": "prospective",
+        "kk": "[prəˈspɛktɪv]",
+        "ipa": "/prəˈspɛktɪv/",
+        "pos": "adj.",
+        "meaning": "預期的、未來的、潛在的",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "往前朝未來展望的 ➔「預期的、未來的」"
+        },
+        "sentence": "Admissions officers conduct comprehensive interviews to evaluate each prospective applicant's intellectual curiosity.",
+        "sentenceZh": "招生審查官進行全面的面試，以評估每位潛在申請者的求知欲。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Admissions officers",
+              "role": "主詞 (Subject)",
+              "note": "招生官。"
+            },
+            {
+              "part": "conduct",
+              "role": "及物動詞 (Verb)",
+              "note": "實施進行。"
+            },
+            {
+              "part": "comprehensive interviews",
+              "role": "受詞 (Object)",
+              "note": "全面性面試。"
+            },
+            {
+              "part": "to evaluate each prospective applicant's intellectual curiosity",
+              "role": "目的狀語",
+              "note": "prospective (未來的/潛在的)。"
+            }
+          ],
+          "keyPoints": [
+            "【商務常用】：prospective clients / buyers / students (潛在客戶/買家/學生)。"
+          ]
+        }
+      },
+      {
+        "word": "spectacular",
+        "kk": "[spɛkˈtækjəlɚ]",
+        "ipa": "/spɛkˈtækjələr/",
+        "pos": "adj.",
+        "meaning": "壯觀的、令人嘆為觀止的",
+        "formula": {
+          "parts": [
+            {
+              "text": "spectacle",
+              "role": "base",
+              "meaning": "奇觀、壯麗景象"
+            },
+            {
+              "text": "-ar",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "如盛大奇景般引人注目驚嘆的 ➔「壯觀的」"
+        },
+        "sentence": "The solar eclipse presented a spectacular celestial display that left thousands of observers in breathless awe.",
+        "sentenceZh": "這場日食呈現了令人嘆為觀止的天體景觀，使成千上萬的觀看者屏息敬畏。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The solar eclipse",
+              "role": "主詞 (Subject)",
+              "note": "日食。"
+            },
+            {
+              "part": "presented",
+              "role": "及物動詞 (Verb)",
+              "note": "展現。"
+            },
+            {
+              "part": "a spectacular celestial display",
+              "role": "受詞 (Object)",
+              "note": "天體奇觀。"
+            },
+            {
+              "part": "that left observers in awe",
+              "role": "關係子句",
+              "note": "leave + O + in awe (使受詞讚嘆)。"
+            }
+          ],
+          "keyPoints": [
+            "【成語搭配】：leave someone in breathless awe (使人屏息驚嘆)。"
+          ]
+        }
+      },
+      {
+        "word": "perspective",
+        "kk": "[pɚˈspɛktɪv]",
+        "ipa": "/pərˈspɛktɪv/",
+        "pos": "n.",
+        "meaning": "觀點、透視法、遠景",
+        "formula": {
+          "parts": [
+            {
+              "text": "per-",
+              "role": "prefix",
+              "meaning": "穿過、完全"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "穿透事物表面看到全局全貌的眼光 ➔「觀點、視角」"
+        },
+        "sentence": "Traveling abroad challenges rigid preconceptions and grants travelers a broader global perspective on cultural diversity.",
+        "sentenceZh": "出國旅行能挑戰僵化的成見，並賦予旅行者對文化多樣性更廣闊的全球視野。",
+        "grammar": {
+          "pattern": "S (Gerund Phrase) + V1 (challenges O) + and + V2 (grants IO + DO)",
+          "breakdown": [
+            {
+              "part": "Traveling abroad",
+              "role": "動名詞片語主詞",
+              "note": "單數主詞。"
+            },
+            {
+              "part": "challenges rigid preconceptions",
+              "role": "第一謂語",
+              "note": "挑戰偏見。"
+            },
+            {
+              "part": "and grants travelers a broader global perspective",
+              "role": "第二對等授與動詞片語",
+              "note": "grant 人 物。"
+            }
+          ],
+          "keyPoints": [
+            "【重要片語】：put things in perspective (客觀公正地審視事物)。"
+          ]
+        }
+      },
+      {
+        "word": "suspect",
+        "kk": "[səˈspɛkt]",
+        "ipa": "/səˈspɛkt/",
+        "pos": "v. / n. / adj.",
+        "meaning": "懷疑；(n.) 嫌疑犯；(adj.) 可疑的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sus- (sub-)",
+              "role": "prefix",
+              "meaning": "在下方、暗地"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            }
+          ],
+          "resultMeaning": "自底下暗中斜眼窺視察看 ➔「懷疑；嫌疑犯」"
+        },
+        "sentence": "Detectives suspect that the fire was deliberately set by arsonists to destroy incriminating accounting ledgers.",
+        "sentenceZh": "偵探懷疑這場大火是縱火犯故意引燃的，目的是銷毀有罪的會計帳簿。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "Detectives",
+              "role": "主詞 (Subject)",
+              "note": "警探。"
+            },
+            {
+              "part": "suspect",
+              "role": "及物動詞 (Verb)",
+              "note": "動詞重音在第二音節 [səˈspɛkt]。"
+            },
+            {
+              "part": "that the fire was deliberately set",
+              "role": "受詞名詞子句",
+              "note": "set a fire 被動態。"
+            },
+            {
+              "part": "to destroy incriminating accounting ledgers",
+              "role": "目的狀語",
+              "note": "incriminating (定罪的)。"
+            }
+          ],
+          "keyPoints": [
+            "【重音規則】：名詞 suspect [ˈsʌspɛkt] vs. 動詞 suspect [səˈspɛkt]。"
+          ]
+        }
+      },
+      {
+        "word": "aspect",
+        "kk": "[ˈæspɛkt]",
+        "ipa": "/ˈæspɛkt/",
+        "pos": "n.",
+        "meaning": "方面、層面、朝向",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (a-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            }
+          ],
+          "resultMeaning": "朝著某個方向看過去所呈現的面貌 ➔「方面、視角」"
+        },
+        "sentence": "The interdisciplinary research team scrutinized every subtle aspect of the archaeological discovery.",
+        "sentenceZh": "這支跨學科研究團隊仔細審視了該考古發現的每一個細微層面。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "The interdisciplinary research team",
+              "role": "主詞 (Subject)",
+              "note": "跨學科團隊。"
+            },
+            {
+              "part": "scrutinized",
+              "role": "及物動詞 (Verb)",
+              "note": "審視。"
+            },
+            {
+              "part": "every subtle aspect of the archaeological discovery",
+              "role": "直接受詞 (Object)",
+              "note": "subtle aspect (細微層面)。"
+            }
+          ],
+          "keyPoints": [
+            "【學術搭配】：scrutinize every aspect of... (仔細審視...的每一層面)。"
+          ]
+        }
+      },
+      {
+        "word": "retrospective",
+        "kk": "[ˌrɛtrəˈspɛktɪv]",
+        "ipa": "/ˌrɛtrəˈspɛktɪv/",
+        "pos": "adj. / n.",
+        "meaning": "回顧的、追溯的；(n.) 回顧展",
+        "formula": {
+          "parts": [
+            {
+              "text": "retro-",
+              "role": "prefix",
+              "meaning": "向後"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞/名詞字尾"
+            }
+          ],
+          "resultMeaning": "轉身向後審視過往歷史的 ➔「回顧的、回顧展」"
+        },
+        "sentence": "The national art museum mounted a major retrospective showcasing the painter's six-decade artistic trajectory.",
+        "sentenceZh": "國立美術館策劃了一場大型回顧展，展示該畫家六十年來的藝術發展軌跡。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (showcasing O)",
+          "breakdown": [
+            {
+              "part": "The national art museum",
+              "role": "主詞 (Subject)",
+              "note": "美術館。"
+            },
+            {
+              "part": "mounted",
+              "role": "及物動詞 (Verb)",
+              "note": "mount an exhibition (策辦展覽)。"
+            },
+            {
+              "part": "a major retrospective",
+              "role": "受詞 (Object)",
+              "note": "回顧展。"
+            },
+            {
+              "part": "showcasing the painter's artistic trajectory",
+              "role": "分詞片語修飾 retrospective",
+              "note": "showcase (展出)。"
+            }
+          ],
+          "keyPoints": [
+            "【藝文動詞】：mount a retrospective exhibition (舉辦回顧展)。"
+          ]
+        }
+      },
+      {
+        "word": "inspector",
+        "kk": "[ɪnˈspɛktɚ]",
+        "ipa": "/ɪnˈspɛktər/",
+        "pos": "n.",
+        "meaning": "檢查員、督察、視察員",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "向內"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "執行者"
+            }
+          ],
+          "resultMeaning": "深入事物內部徹底審核確認的人 ➔「檢查員、督察」"
+        },
+        "sentence": "A certified building inspector verified that all seismic reinforcement columns satisfied safety codes.",
+        "sentenceZh": "一名經認證的建築檢查員核實了所有抗震加固支柱均符合安全法規。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "A certified building inspector",
+              "role": "主詞 (Subject)",
+              "note": "建築檢查員。"
+            },
+            {
+              "part": "verified",
+              "role": "及物動詞 (Verb)",
+              "note": "核實。"
+            },
+            {
+              "part": "that all seismic reinforcement columns satisfied safety codes",
+              "role": "受詞子句",
+              "note": "satisfy codes (符合法規)。"
+            }
+          ],
+          "keyPoints": [
+            "【法規搭配】：satisfy / comply with safety codes (符合安全標準)。"
+          ]
+        }
+      },
+      {
+        "word": "disrespect",
+        "kk": "[ˌdɪsrɪˈspɛkt]",
+        "ipa": "/ˌdɪsrɪˈspɛkt/",
+        "pos": "n. / v.",
+        "meaning": "不敬、無禮、輕視；(v.) 對...不敬",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "否定、相反"
+            },
+            {
+              "text": "respect",
+              "role": "base",
+              "meaning": "尊敬"
+            }
+          ],
+          "resultMeaning": "完全缺乏對他人的尊重與敬意 ➔「無禮、不敬」"
+        },
+        "sentence": "Showing blatant disrespect toward courtroom magistrates can immediately trigger contempt charges.",
+        "sentenceZh": "對法庭法官表現出明目張膽的無禮行為，可能會立即引發藐視法庭罪的指控。",
+        "grammar": {
+          "pattern": "S (Gerund Phrase) + Modal + Adv + Vt + O",
+          "breakdown": [
+            {
+              "part": "Showing blatant disrespect toward courtroom magistrates",
+              "role": "動名詞片語主詞",
+              "note": "blatant (公然的、放肆的)。"
+            },
+            {
+              "part": "can immediately trigger",
+              "role": "動詞片語 (Verb)",
+              "note": "trigger (觸發)。"
+            },
+            {
+              "part": "contempt charges",
+              "role": "受詞 (Object)",
+              "note": "藐視法庭罪名。"
+            }
+          ],
+          "keyPoints": [
+            "【司法名詞】：contempt of court (藐視法庭罪)。"
+          ]
+        }
+      },
+      {
+        "word": "introspection",
+        "kk": "[ˌɪntrəˈspɛkʃən]",
+        "ipa": "/ˌɪntroʊˈspɛkʃn/",
+        "pos": "n.",
+        "meaning": "內省、反省、內心審視",
+        "formula": {
+          "parts": [
+            {
+              "text": "intro-",
+              "role": "prefix",
+              "meaning": "向內"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "向內深入探索自我思緒與動機之過程 ➔「內省、反思」"
+        },
+        "sentence": "Psychological counseling encourages mindful introspection to help patients untangle suppressed childhood trauma.",
+        "sentenceZh": "心理諮商鼓勵正念內省，以協助病患解開被壓抑的童年創傷。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Psychological counseling",
+              "role": "主詞 (Subject)",
+              "note": "心理諮商。"
+            },
+            {
+              "part": "encourages",
+              "role": "及物動詞 (Verb)",
+              "note": "鼓勵。"
+            },
+            {
+              "part": "mindful introspection",
+              "role": "受詞 (Object)",
+              "note": "正念內省。"
+            },
+            {
+              "part": "to help patients untangle suppressed childhood trauma",
+              "role": "目的狀語",
+              "note": "untangle (解開)。"
+            }
+          ],
+          "keyPoints": [
+            "【心理學】：introspection 是認知心理學自我探索的基本機制。"
+          ]
+        }
+      },
+      {
+        "word": "circumspection",
+        "kk": "[ˌsɝkəmˈspɛkʃən]",
+        "ipa": "/ˌsɜːrkəmˈspɛkʃn/",
+        "pos": "n.",
+        "meaning": "慎重、周到、謹小慎微",
+        "formula": {
+          "parts": [
+            {
+              "text": "circum-",
+              "role": "prefix",
+              "meaning": "環顧"
+            },
+            {
+              "text": "spect",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "對周遭可能危險面面俱到的深思熟慮 ➔「慎重、周慮」"
+        },
+        "sentence": "Diplomatic envoys must navigate delicate ceasefire negotiations with exceptional circumspection.",
+        "sentenceZh": "外交使節必須以非凡的審慎周密來進行微妙的停火談判。",
+        "grammar": {
+          "pattern": "S + Modal + Vt + O + Prep Phrase of Manner",
+          "breakdown": [
+            {
+              "part": "Diplomatic envoys",
+              "role": "主詞 (Subject)",
+              "note": "外交使節。"
+            },
+            {
+              "part": "must navigate",
+              "role": "及物動詞 (Verb)",
+              "note": "引導處理。"
+            },
+            {
+              "part": "delicate ceasefire negotiations",
+              "role": "受詞 (Object)",
+              "note": "停火談判。"
+            },
+            {
+              "part": "with exceptional circumspection",
+              "role": "方式狀語片語",
+              "note": "極度審慎。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：with circumspection (審慎地)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -1788,6 +3730,630 @@ const ETYMO_DATA = [
             "【同義延伸】：devote A to B, commit oneself to B 具完全相同文法規則。"
           ]
         }
+      },
+      {
+        "word": "addict",
+        "kk": "[ˈædɪkt]",
+        "ipa": "/ˈædɪkt/",
+        "pos": "n. / v.",
+        "meaning": "成癮者、沉迷者；(v.) 使沉溺成癮",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad-",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "宣告、判給"
+            }
+          ],
+          "resultMeaning": "古羅馬法律將債務人宣判判給債權人服役 ➔ 引申為「被某物牢牢束縛成癮者」"
+        },
+        "sentence": "Substance abuse treatment programs support recovering addicts through behavioral therapy and community networks.",
+        "sentenceZh": "物質濫用戒治計畫透過行為療法與社區網絡協助康復中的成癮者。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Substance abuse treatment programs",
+              "role": "主詞 (Subject)",
+              "note": "戒治計畫。"
+            },
+            {
+              "part": "support",
+              "role": "及物動詞 (Verb)",
+              "note": "支援扶持。"
+            },
+            {
+              "part": "recovering addicts",
+              "role": "受詞 (Object)",
+              "note": "康復中成癮者。"
+            },
+            {
+              "part": "through behavioral therapy",
+              "role": "手段介系詞片語",
+              "note": "行為療法。"
+            }
+          ],
+          "keyPoints": [
+            "【重音對比】：名詞 addict [ˈædɪkt] vs. 動詞 addict [əˈdɪkt] (常用被動 be addicted to)。"
+          ]
+        }
+      },
+      {
+        "word": "indict",
+        "kk": "[ɪnˈdaɪt]",
+        "ipa": "/ɪnˈdaɪt/",
+        "pos": "v.",
+        "meaning": "起訴、告發、控告",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "向內、朝向"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "宣告、說話"
+            }
+          ],
+          "resultMeaning": "正式在法庭上宣讀罪狀予以指控 ➔「起訴」"
+        },
+        "sentence": "The grand jury voted decisively to indict the rogue corporate executive on multiple counts of securities fraud.",
+        "sentenceZh": "大陪審團果斷投票決定以多項證券詐欺罪名起訴這名不法企業高管。",
+        "grammar": {
+          "pattern": "S + Vi + Adv + Infinitive (to indict O on...)",
+          "breakdown": [
+            {
+              "part": "The grand jury",
+              "role": "主詞 (Subject)",
+              "note": "大陪審團。"
+            },
+            {
+              "part": "voted",
+              "role": "及物動詞 (Verb)",
+              "note": "投票決定。"
+            },
+            {
+              "part": "to indict the corporate executive",
+              "role": "不定詞片語",
+              "note": "indict 意為正式起訴。"
+            },
+            {
+              "part": "on multiple counts of securities fraud",
+              "role": "罪名片語",
+              "note": "證券詐欺罪名。"
+            }
+          ],
+          "keyPoints": [
+            "【發音大陷阱】：indict 發音為 [ɪnˈdaɪt]，字母 c 完全不發音！"
+          ]
+        }
+      },
+      {
+        "word": "edict",
+        "kk": "[ˈidɪkt]",
+        "ipa": "/ˈiːdɪkt/",
+        "pos": "n.",
+        "meaning": "法令、敕令、官方命令",
+        "formula": {
+          "parts": [
+            {
+              "text": "e- (ex-)",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "宣布、說話"
+            }
+          ],
+          "resultMeaning": "統治者向外正式宣告頒布之命令 ➔「法令、敕令」"
+        },
+        "sentence": "The emperor issued an imperial edict granting complete religious tolerance throughout all provinces.",
+        "sentenceZh": "皇帝頒布了一道皇家敕令，准許全帝國境內所有省分完全的宗教寬容。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (granting O)",
+          "breakdown": [
+            {
+              "part": "The emperor",
+              "role": "主詞 (Subject)",
+              "note": "皇帝。"
+            },
+            {
+              "part": "issued",
+              "role": "及物動詞 (Verb)",
+              "note": "頒布。"
+            },
+            {
+              "part": "an imperial edict",
+              "role": "受詞 (Object)",
+              "note": "帝國敕令。"
+            },
+            {
+              "part": "granting religious tolerance",
+              "role": "分詞片語修飾 edict",
+              "note": "准予寬容。"
+            }
+          ],
+          "keyPoints": [
+            "【同義法源詞】：edict (統治者法令), decree (法令), statute (成文法)。"
+          ]
+        }
+      },
+      {
+        "word": "valediction",
+        "kk": "[ˌvæləˈdɪkʃən]",
+        "ipa": "/ˌvælɪˈdɪkʃn/",
+        "pos": "n.",
+        "meaning": "告別詞、告別贈言",
+        "formula": {
+          "parts": [
+            {
+              "text": "vale",
+              "role": "root",
+              "meaning": "再會、保重 (拉丁語 vale)"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "說"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "向眾人宣告保重致意之話語 ➔「告別詞」"
+        },
+        "sentence": "The graduating class president delivered a poignant valediction reflecting on enduring friendships forged during college.",
+        "sentenceZh": "畢業班代表發表了一篇深情動人的告別演說，反思了大學期間結下的深厚友誼。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (reflecting on O)",
+          "breakdown": [
+            {
+              "part": "The graduating class president",
+              "role": "主詞 (Subject)",
+              "note": "畢業生代表。"
+            },
+            {
+              "part": "delivered",
+              "role": "及物動詞 (Verb)",
+              "note": "發表演說。"
+            },
+            {
+              "part": "a poignant valediction",
+              "role": "受詞 (Object)",
+              "note": "令人動容的告別辭。"
+            },
+            {
+              "part": "reflecting on enduring friendships",
+              "role": "分詞片語修飾 valediction",
+              "note": "反思友誼。"
+            }
+          ],
+          "keyPoints": [
+            "【名校詞彙】：valedictorian 專指名校畢業典禮上代表致告別詞的「第一名優秀畢業生」。"
+          ]
+        }
+      },
+      {
+        "word": "malediction",
+        "kk": "[ˌmæləˈdɪkʃən]",
+        "ipa": "/ˌmælɪˈdɪkʃn/",
+        "pos": "n.",
+        "meaning": "詛咒、咒罵、壞話",
+        "formula": {
+          "parts": [
+            {
+              "text": "male-",
+              "role": "prefix",
+              "meaning": "壞、惡"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "說"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "說出邪惡毀滅的言詞 ➔「詛咒、咒罵」"
+        },
+        "sentence": "In Shakespeare's tragedies, distraught monarchs frequently utter bitter maledictions upon their betrayers.",
+        "sentenceZh": "在莎士比亞悲劇中，心碎發狂的君王常對背叛他們的人發出咬牙切齒的惡毒詛咒。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Adv + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "In Shakespeare's tragedies",
+              "role": "地點介系詞片語",
+              "note": "莎劇。"
+            },
+            {
+              "part": "distraught monarchs",
+              "role": "主詞 (Subject)",
+              "note": "心碎君王。"
+            },
+            {
+              "part": "frequently utter",
+              "role": "及物動詞片語",
+              "note": "發出言語。"
+            },
+            {
+              "part": "bitter maledictions",
+              "role": "受詞 (Object)",
+              "note": "惡毒詛咒。"
+            }
+          ],
+          "keyPoints": [
+            "【對照語意】：benediction (祝福) vs. malediction (詛咒)。"
+          ]
+        }
+      },
+      {
+        "word": "vindicate",
+        "kk": "[ˈvɪndəˌket]",
+        "ipa": "/ˈvɪndɪkeɪt/",
+        "pos": "v.",
+        "meaning": "證明...正確無辜、為...平反",
+        "formula": {
+          "parts": [
+            {
+              "text": "vindex",
+              "role": "root",
+              "meaning": "維護者、保護者"
+            },
+            {
+              "text": "dic (dict)",
+              "role": "root",
+              "meaning": "宣告"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "在法庭公開宣告事實以洗刷冤屈 ➔「證明無辜、平反」"
+        },
+        "sentence": "Newly unsealed DNA evidence fully vindicated the wrongfully imprisoned inmate after twenty years behind bars.",
+        "sentenceZh": "最新解密的 DNA 證據徹底洗清了這名被冤屈入獄二十年之囚犯的清白。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "Newly unsealed DNA evidence",
+              "role": "主詞 (Subject)",
+              "note": "新解密證據。"
+            },
+            {
+              "part": "fully vindicated",
+              "role": "及物動詞片語",
+              "note": "完全平反。"
+            },
+            {
+              "part": "the inmate",
+              "role": "受詞 (Object)",
+              "note": "囚犯。"
+            },
+            {
+              "part": "after twenty years behind bars",
+              "role": "時間介系詞片語",
+              "note": "鐵窗歲月。"
+            }
+          ],
+          "keyPoints": [
+            "【高階字彙】：vindicate someone's honor (洗刷某人名譽)。"
+          ]
+        }
+      },
+      {
+        "word": "abdicate",
+        "kk": "[ˈæbdəˌket]",
+        "ipa": "/ˈæbdɪkeɪt/",
+        "pos": "v.",
+        "meaning": "退位、放棄(王位/責任)",
+        "formula": {
+          "parts": [
+            {
+              "text": "ab-",
+              "role": "prefix",
+              "meaning": "離開、放棄"
+            },
+            {
+              "text": "dic (dict)",
+              "role": "root",
+              "meaning": "宣告"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "公開宣告放棄自身崇高王位與職權 ➔「正式退位、放棄責任」"
+        },
+        "sentence": "Facing insurmountable public unrest, the aging sovereign made the solemn decision to abdicate the throne.",
+        "sentenceZh": "面對無法平息的公眾動盪，年邁的君主做出了退位的莊嚴決定。",
+        "grammar": {
+          "pattern": "Participle Phrase + S + Vt + O + Infinitive to abdicate O",
+          "breakdown": [
+            {
+              "part": "Facing insurmountable public unrest",
+              "role": "分詞片語表原因",
+              "note": "面對動盪。"
+            },
+            {
+              "part": "the aging sovereign",
+              "role": "主詞 (Subject)",
+              "note": "年邁君主。"
+            },
+            {
+              "part": "made the decision to abdicate the throne",
+              "role": "謂語動詞與不定詞補語",
+              "note": "決定退位。"
+            }
+          ],
+          "keyPoints": [
+            "【王室動詞】：abdicate the throne (退位)；abdicate responsibility (放棄責任)。"
+          ]
+        }
+      },
+      {
+        "word": "interdict",
+        "kk": "[ˌɪntɚˈdɪkt]",
+        "ipa": "/ˌɪntərˈdɪkt/",
+        "pos": "v. / n.",
+        "meaning": "阻截、封鎖、禁止；(n.) 禁令",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在中間"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "說、判決"
+            }
+          ],
+          "resultMeaning": "在兩者之間插話宣告強行禁止 ➔「阻截、禁令」"
+        },
+        "sentence": "Naval task forces were deployed to interdict illegal contraband moving through maritime corridors.",
+        "sentenceZh": "海軍特遣部隊被部署以攔截穿行於海上通道的非法違禁品。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Infinitive of Purpose (to interdict O)",
+          "breakdown": [
+            {
+              "part": "Naval task forces",
+              "role": "主詞 (Subject)",
+              "note": "海軍特遣隊。"
+            },
+            {
+              "part": "were deployed",
+              "role": "被動態謂語",
+              "note": "被部署。"
+            },
+            {
+              "part": "to interdict illegal contraband",
+              "role": "目的狀語",
+              "note": "攔截違禁物。"
+            }
+          ],
+          "keyPoints": [
+            "【軍事術語】：air/maritime interdiction 指「空中/海上武裝攔截阻斷」。"
+          ]
+        }
+      },
+      {
+        "word": "jurisdiction",
+        "kk": "[ˌdʒʊrɪsˈdɪkʃən]",
+        "ipa": "/ˌdʒʊrɪsˈdɪkʃn/",
+        "pos": "n.",
+        "meaning": "司法管轄權、審判權、管轄區域",
+        "formula": {
+          "parts": [
+            {
+              "text": "juris",
+              "role": "root",
+              "meaning": "法律 (law)"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "說 (say)"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "對法律具有發言裁定權威的範疇 ➔「管轄權」"
+        },
+        "sentence": "The territorial dispute fell strictly outside the maritime jurisdiction of the municipal tribunal.",
+        "sentenceZh": "該領土爭端嚴格超出了該市法庭的海事司法管轄範圍。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase (outside the jurisdiction of...)",
+          "breakdown": [
+            {
+              "part": "The territorial dispute",
+              "role": "主詞 (Subject)",
+              "note": "領土爭端。"
+            },
+            {
+              "part": "fell",
+              "role": "不及物動詞 (Verb)",
+              "note": "落在...範疇。"
+            },
+            {
+              "part": "outside the maritime jurisdiction",
+              "role": "介系詞受詞",
+              "note": "管轄之外。"
+            }
+          ],
+          "keyPoints": [
+            "【法學核心詞】：under the jurisdiction of... (受...的司法管轄)。"
+          ]
+        }
+      },
+      {
+        "word": "dictator",
+        "kk": "[ˈdɪkˌtetɚ]",
+        "ipa": "/ˈdɪkteɪtər/",
+        "pos": "n.",
+        "meaning": "獨裁者、專制暴君",
+        "formula": {
+          "parts": [
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "說、口述命令"
+            },
+            {
+              "text": "-ator",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "說出的話即為不可違背之法律命令者 ➔「獨裁者」"
+        },
+        "sentence": "The brutal dictator dissolved the national parliament and suppressed freedom of the press.",
+        "sentenceZh": "這位殘暴的獨裁者解散了國民議會並打壓新聞自由。",
+        "grammar": {
+          "pattern": "S + V1 (dissolved O) + and + V2 (suppressed O)",
+          "breakdown": [
+            {
+              "part": "The brutal dictator",
+              "role": "主詞 (Subject)",
+              "note": "獨裁者。"
+            },
+            {
+              "part": "dissolved the national parliament",
+              "role": "第一謂語",
+              "note": "解散國會。"
+            },
+            {
+              "part": "and suppressed freedom of the press",
+              "role": "第二對等謂語",
+              "note": "打壓新聞自由。"
+            }
+          ],
+          "keyPoints": [
+            "【政治學詞彙】：dictatorship (獨裁政權)。"
+          ]
+        }
+      },
+      {
+        "word": "diction",
+        "kk": "[ˈdɪkʃən]",
+        "ipa": "/ˈdɪkʃn/",
+        "pos": "n.",
+        "meaning": "措辭、發音吐字",
+        "formula": {
+          "parts": [
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "言詞、說話"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "選擇單字言詞之表達風格與發音清晰度 ➔「措辭、咬字」"
+        },
+        "sentence": "The orator's impeccable diction ensured that every syllable reached listeners in the highest balcony.",
+        "sentenceZh": "這位演說家完美無瑕的咬字吐音，確保了每一個音節都能傳到最高層看台的聽眾耳中。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "The orator's impeccable diction",
+              "role": "主詞 (Subject)",
+              "note": "演說家措辭咬字。"
+            },
+            {
+              "part": "ensured",
+              "role": "及物動詞 (Verb)",
+              "note": "確保。"
+            },
+            {
+              "part": "that every syllable reached listeners",
+              "role": "受詞子句",
+              "note": "syllable (音節)。"
+            }
+          ],
+          "keyPoints": [
+            "【修辭術語】：poetic diction (詩意措辭)。"
+          ]
+        }
+      },
+      {
+        "word": "indictment",
+        "kk": "[ɪnˈdaɪtmənt]",
+        "ipa": "/ɪnˈdaɪtmənt/",
+        "pos": "n.",
+        "meaning": "起訴書、嚴厲指控",
+        "formula": {
+          "parts": [
+            {
+              "text": "indict",
+              "role": "base",
+              "meaning": "起訴"
+            },
+            {
+              "text": "-ment",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "正式列舉罪名予以控訴的起訴狀 ➔「起訴書、譴責」"
+        },
+        "sentence": "The investigative report served as a scathing indictment of corporate negligence surrounding the oil spill.",
+        "sentenceZh": "該調查報告成為對該起漏油事故中企業疏職怠惰的嚴厲指控。",
+        "grammar": {
+          "pattern": "S + Vi (served as SC) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The investigative report",
+              "role": "主詞 (Subject)",
+              "note": "調查報告。"
+            },
+            {
+              "part": "served as",
+              "role": "片語動詞",
+              "note": "充當、作為。"
+            },
+            {
+              "part": "a scathing indictment",
+              "role": "補語",
+              "note": "嚴厲控訴。"
+            },
+            {
+              "part": "of corporate negligence",
+              "role": "介系詞片語",
+              "note": "企業過失。"
+            }
+          ],
+          "keyPoints": [
+            "【高階片語】：a scathing indictment of... (對...的嚴厲控訴)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -2111,6 +4677,615 @@ const ETYMO_DATA = [
             "【多重語義】：support 可表物理支撐、金錢扶養 (support a family)、精神論點支持 (support a theory)。"
           ]
         }
+      },
+      {
+        "word": "deport",
+        "kk": "[dɪˈport]",
+        "ipa": "/dɪˈpɔːrt/",
+        "pos": "v.",
+        "meaning": "驅逐出境",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "離開"
+            },
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "運送"
+            }
+          ],
+          "resultMeaning": "強行將外籍人員運送離境 ➔「驅逐出境」"
+        },
+        "sentence": "Immigration authorities moved to deport the felon following the completion of his prison sentence.",
+        "sentenceZh": "移民當局在該重罪犯服刑期滿後採取行動將其驅逐出境。",
+        "grammar": {
+          "pattern": "S + Vi + to-V (to deport O) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Immigration authorities",
+              "role": "主詞 (Subject)",
+              "note": "移民當局。"
+            },
+            {
+              "part": "moved",
+              "role": "不及物動詞 (Verb)",
+              "note": "採取行動。"
+            },
+            {
+              "part": "to deport the felon",
+              "role": "不定詞目的狀語",
+              "note": "deport 驅逐。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：deportation (驅逐出境)。"
+          ]
+        }
+      },
+      {
+        "word": "portfolio",
+        "kk": "[portˈfolɪˌo]",
+        "ipa": "/pɔːrtˈfoʊlioʊ/",
+        "pos": "n.",
+        "meaning": "投資組合、作品集、公事包",
+        "formula": {
+          "parts": [
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "攜帶"
+            },
+            {
+              "text": "folio",
+              "role": "root",
+              "meaning": "紙張、頁冊"
+            }
+          ],
+          "resultMeaning": "可攜帶之成疊重要文件或金融資產集 ➔「投資組合、作品集」"
+        },
+        "sentence": "Financial advisors recommend maintaining a well-diversified equity portfolio to weather market downturns.",
+        "sentenceZh": "財務顧問建議維持多元化的股票投資組合，以抵禦市場低迷時期。",
+        "grammar": {
+          "pattern": "S + Vt + Gerund Phrase (maintaining O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Financial advisors",
+              "role": "主詞 (Subject)",
+              "note": "財務顧問。"
+            },
+            {
+              "part": "recommend",
+              "role": "及物動詞 (Verb)",
+              "note": "recommend 後接動名詞 (maintaining)。"
+            },
+            {
+              "part": "a well-diversified equity portfolio",
+              "role": "受詞 (Object)",
+              "note": "多元化股票投資組合。"
+            },
+            {
+              "part": "to weather market downturns",
+              "role": "目的狀語",
+              "note": "weather (安然度過)。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞用法】：weather the storm / downturn (度過難關)。"
+          ]
+        }
+      },
+      {
+        "word": "porter",
+        "kk": "[ˈportɚ]",
+        "ipa": "/ˈpɔːrtər/",
+        "pos": "n.",
+        "meaning": "行李搬運工、守門人",
+        "formula": {
+          "parts": [
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "搬運"
+            },
+            {
+              "text": "-er",
+              "role": "suffix",
+              "meaning": "人員"
+            }
+          ],
+          "resultMeaning": "受僱在飯店或火車站專門搬運沉重行李的服務人員 ➔「行李搬運工」"
+        },
+        "sentence": "The hotel porter promptly assisted the arriving guests with their heavy luggage.",
+        "sentenceZh": "飯店行李員迅速協助剛抵達的房客搬運沉重的行李。",
+        "grammar": {
+          "pattern": "S + Adv + Vt (assisted) + O + Prep Phrase (with...)",
+          "breakdown": [
+            {
+              "part": "The hotel porter",
+              "role": "主詞 (Subject)",
+              "note": "行李員。"
+            },
+            {
+              "part": "assisted",
+              "role": "及物動詞 (Verb)",
+              "note": "assist someone with something。"
+            },
+            {
+              "part": "the arriving guests",
+              "role": "受詞 (Object)",
+              "note": "抵達房客。"
+            },
+            {
+              "part": "with their heavy luggage",
+              "role": "介系詞片語",
+              "note": "行李 (不可數)。"
+            }
+          ],
+          "keyPoints": [
+            "【不可數名詞】：luggage / baggage 為不可數名詞，不可加 -s。"
+          ]
+        }
+      },
+      {
+        "word": "comport",
+        "kk": "[kəmˈport]",
+        "ipa": "/kəmˈpɔːrt/",
+        "pos": "v.",
+        "meaning": "行為表現、舉止相稱 (與 with 連用)",
+        "formula": {
+          "parts": [
+            {
+              "text": "com-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "持重、攜帶 (bear)"
+            }
+          ],
+          "resultMeaning": "展現出自身行為舉止相稱之儀態 ➔「舉止表現、相符」"
+        },
+        "sentence": "Ambassadors are expected to comport themselves with consummate dignity at international state banquets.",
+        "sentenceZh": "大使在國際國宴上必須表現出無可挑剔的莊重儀態。",
+        "grammar": {
+          "pattern": "S + Passive Verb + to-V (to comport oneself) + Prep Phrase of Manner",
+          "breakdown": [
+            {
+              "part": "Ambassadors",
+              "role": "主詞 (Subject)",
+              "note": "大使。"
+            },
+            {
+              "part": "are expected to comport themselves",
+              "role": "動詞與反身代名詞受詞",
+              "note": "comport oneself (舉止自持)。"
+            },
+            {
+              "part": "with consummate dignity",
+              "role": "方式介系詞片語",
+              "note": "consummate (極致的、完美的)。"
+            }
+          ],
+          "keyPoints": [
+            "【反身動詞】：comport oneself with dignity (端莊自持)。"
+          ]
+        }
+      },
+      {
+        "word": "disport",
+        "kk": "[dɪˈsport]",
+        "ipa": "/dɪˈspɔːrt/",
+        "pos": "v. / n.",
+        "meaning": "嬉戲、玩樂；(n.) 娛樂 (sport 源頭)",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "遠離 (工作)"
+            },
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "搬運、自持"
+            }
+          ],
+          "resultMeaning": "自沉重工作搬離身心轉向歡樂玩耍 ➔「嬉戲、運動 (sport 之古源詞)」"
+        },
+        "sentence": "Vacationers disported themselves along the sun-drenched Mediterranean beaches all afternoon.",
+        "sentenceZh": "度假者整個下午都在陽光普照的地中海沙灘上盡情嬉戲玩樂。",
+        "grammar": {
+          "pattern": "S + Vt (disported) + Reflexive O (themselves) + Prep Phrase of Place + Adv of Time",
+          "breakdown": [
+            {
+              "part": "Vacationers",
+              "role": "主詞 (Subject)",
+              "note": "度假者。"
+            },
+            {
+              "part": "disported themselves",
+              "role": "動詞與反身受詞",
+              "note": "玩樂嬉戲。"
+            },
+            {
+              "part": "along the beaches",
+              "role": "地點狀語",
+              "note": "沿海灘。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源寶藏】：現代英語單字 sport (運動) 正是自 disport 簡化脫落 prefix 而來！"
+          ]
+        }
+      },
+      {
+        "word": "rapport",
+        "kk": "[ræˈpor]",
+        "ipa": "/ræˈpɔːr/",
+        "pos": "n.",
+        "meaning": "融洽和睦關係、親善投緣",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "ad-",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "攜帶 (帶回感情)"
+            }
+          ],
+          "resultMeaning": "法語借詞，將心靈感受互相帶給彼此 ➔「融洽關係」"
+        },
+        "sentence": "The pediatric nurse established an immediate warm rapport with the apprehensive young patient.",
+        "sentenceZh": "這位小兒科護理師立即與這位焦慮不安的小病患建立了溫暖融洽的信任關係。",
+        "grammar": {
+          "pattern": "S + Vt + O (rapport) + Prep Phrase (with...)",
+          "breakdown": [
+            {
+              "part": "The pediatric nurse",
+              "role": "主詞 (Subject)",
+              "note": "兒科護理師。"
+            },
+            {
+              "part": "established",
+              "role": "及物動詞 (Verb)",
+              "note": "建立。"
+            },
+            {
+              "part": "an immediate warm rapport",
+              "role": "受詞 (Object)",
+              "note": "融洽關係 (發音 t 不發音 [ræˈpor])。"
+            },
+            {
+              "part": "with the patient",
+              "role": "對象介系詞片語",
+              "note": "apprehensive (憂慮的)。"
+            }
+          ],
+          "keyPoints": [
+            "【發音提醒】：法語借詞，字尾 t 不發音，念作 /ræˈpɔːr/。"
+          ]
+        }
+      },
+      {
+        "word": "insupportable",
+        "kk": "[ˌɪnsəˈportəb!]",
+        "ipa": "/ˌɪnsəˈpɔːrtəbl/",
+        "pos": "adj.",
+        "meaning": "難以忍受的、不能容忍的、無法支持的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "support",
+              "role": "base",
+              "meaning": "支持、承受 (sub + port)"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "沉重巨大到身心完全無法支撐承受的 ➔「難以忍受的」"
+        },
+        "sentence": "Working sixteen consecutive hours in sweltering heat became an insupportable physical ordeal for laborers.",
+        "sentenceZh": "在高溫酷暑下連續工作十六個小時，對勞工而言成為了一場難以忍受的肉體折磨。",
+        "grammar": {
+          "pattern": "Gerund Phrase (Subject) + Linking Verb + SC",
+          "breakdown": [
+            {
+              "part": "Working sixteen consecutive hours in sweltering heat",
+              "role": "動名詞片語當主詞",
+              "note": "酷暑工作。"
+            },
+            {
+              "part": "became",
+              "role": "連綴動詞",
+              "note": "變成。"
+            },
+            {
+              "part": "an insupportable physical ordeal",
+              "role": "主詞補語 (名詞片語)",
+              "note": "無法忍受的折磨。"
+            },
+            {
+              "part": "for laborers",
+              "role": "對象介系詞片語",
+              "note": "對勞工。"
+            }
+          ],
+          "keyPoints": [
+            "【修辭替換】：insupportable 比 unbearable 更具文學色彩。"
+          ]
+        }
+      },
+      {
+        "word": "purport",
+        "kk": "[pɚˈport]",
+        "ipa": "/pərˈpɔːrt/",
+        "pos": "v. / n.",
+        "meaning": "聲稱、意旨；(n.) 大意、主旨",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro- (pur-)",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "攜帶 (bear)"
+            }
+          ],
+          "resultMeaning": "向前攜帶傳遞出表面所宣稱的意向 ➔「聲稱、意旨」"
+        },
+        "sentence": "The viral conspiracy document purported to contain classified government blueprints for weather modification.",
+        "sentenceZh": "這份在網路上瘋傳的陰謀論文件聲稱內含政府氣候改造的機密藍圖。",
+        "grammar": {
+          "pattern": "S + Vt + to-V (to contain O)",
+          "breakdown": [
+            {
+              "part": "The viral conspiracy document",
+              "role": "主詞 (Subject)",
+              "note": "瘋傳陰謀論文件。"
+            },
+            {
+              "part": "purported to contain",
+              "role": "及物動詞與不定詞",
+              "note": "purport to V (聲稱...)。"
+            },
+            {
+              "part": "classified government blueprints for weather modification",
+              "role": "受詞 (Object)",
+              "note": "機密藍圖。"
+            }
+          ],
+          "keyPoints": [
+            "【法律/新聞】：purport to be... (聲稱是...，隱含可能為假之懷疑態度)。"
+          ]
+        }
+      },
+      {
+        "word": "portage",
+        "kk": "[ˈportɪdʒ]",
+        "ipa": "/ˈpɔːrtɪdʒ/",
+        "pos": "n. / v.",
+        "meaning": "陸上搬運 (將獨木舟扛過陸路)；(v.) 陸運舟艇",
+        "formula": {
+          "parts": [
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "搬運、攜帶"
+            },
+            {
+              "text": "-age",
+              "role": "suffix",
+              "meaning": "名詞字尾 (行為/費用)"
+            }
+          ],
+          "resultMeaning": "在無法通航的河段將船隻扛在肩上陸行搬運 ➔「陸運獨木舟」"
+        },
+        "sentence": "Adventurers completed an arduous three-mile portage through dense marshland between interconnected river systems.",
+        "sentenceZh": "探險家們在相互貫通的河流系統之間，完成了穿越茂密沼澤地長達三英里的艱苦陸運獨木舟旅程。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Adventurers",
+              "role": "主詞 (Subject)",
+              "note": "探險家。"
+            },
+            {
+              "part": "completed an arduous portage",
+              "role": "動詞與受詞",
+              "note": "完成艱苦陸運。"
+            },
+            {
+              "part": "through dense marshland between river systems",
+              "role": "地點狀語",
+              "note": "穿過沼澤。"
+            }
+          ],
+          "keyPoints": [
+            "【戶外探險名詞】：canoe portage (扛獨木舟過陸路)。"
+          ]
+        }
+      },
+      {
+        "word": "opportune",
+        "kk": "[ˌɑpɚˈtun]",
+        "ipa": "/ˌɑːpərˈtuːn/",
+        "pos": "adj.",
+        "meaning": "恰好的、適時的、時機合宜的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ob- (op-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "港口 (portus)"
+            }
+          ],
+          "resultMeaning": "乘風順勢正好朝向港口安全駛入的 ➔「時機合宜的」"
+        },
+        "sentence": "The unexpected arrival of angel investment capital provided opportune relief for the struggling biotech startup.",
+        "sentenceZh": "天使投資資金的意外降臨，為陷入困境的生技新創公司提供了及時恰好的救濟。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (for...)",
+          "breakdown": [
+            {
+              "part": "The unexpected arrival of investment capital",
+              "role": "主詞 (Subject)",
+              "note": "注資到來。"
+            },
+            {
+              "part": "provided",
+              "role": "及物動詞 (Verb)",
+              "note": "提供。"
+            },
+            {
+              "part": "opportune relief",
+              "role": "受詞 (Object)",
+              "note": "適時的救濟。"
+            },
+            {
+              "part": "for the struggling biotech startup",
+              "role": "對象狀語",
+              "note": "困境中的新創。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：inopportune (不合時宜的、不湊巧的)。"
+          ]
+        }
+      },
+      {
+        "word": "importunate",
+        "kk": "[ɪmˈpɔrtʃənɪt]",
+        "ipa": "/ɪmˈpɔːrtʃənət/",
+        "pos": "adj.",
+        "meaning": "糾纏不休的、強求的、一再催逼的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in- (im-)",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "port",
+              "role": "root",
+              "meaning": "港口、避風港 (portus)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "猶如船隻被狂風擋於港外無法安歇持續叩關 ➔「糾纏不休的、強求的」"
+        },
+        "sentence": "The beleaguered senator ignored importunate phone calls from corporate lobbyists seeking special legislative carve-outs.",
+        "sentenceZh": "這位深陷困境的參議員不予理會企業遊說者尋求特殊立法豁免的連番奪命連環叩。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "The beleaguered senator",
+              "role": "主詞 (Subject)",
+              "note": "四面楚歌的參議員。"
+            },
+            {
+              "part": "ignored",
+              "role": "及物動詞 (Verb)",
+              "note": "忽視。"
+            },
+            {
+              "part": "importunate phone calls from lobbyists",
+              "role": "受詞 (Object)",
+              "note": "遊說團體奪命電話。"
+            },
+            {
+              "part": "seeking special legislative carve-outs",
+              "role": "現在分詞片語修飾 lobbyists",
+              "note": "尋求立法豁免。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞形式】：importune (及物動詞：糾纏強求某人)。"
+          ]
+        }
+      },
+      {
+        "word": "apportion",
+        "kk": "[əˈporʃən]",
+        "ipa": "/əˈpɔːrʃn/",
+        "pos": "v.",
+        "meaning": "分攤、分配、按比例分派",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (ap-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "portion (port)",
+              "role": "root",
+              "meaning": "份額、部分"
+            }
+          ],
+          "resultMeaning": "按比例將責任、預算或席次劃分成份額分發給各方 ➔「分配、分攤」"
+        },
+        "sentence": "International climate funds apportion mitigation grants based on national carbon-reduction commitments.",
+        "sentenceZh": "國際氣候基金依據各國的減碳承諾比例分派減緩撥款補助金。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (based on...)",
+          "breakdown": [
+            {
+              "part": "International climate funds",
+              "role": "主詞 (Subject)",
+              "note": "國際氣候基金。"
+            },
+            {
+              "part": "apportion mitigation grants",
+              "role": "及物動詞與受詞",
+              "note": "分派減碳補助。"
+            },
+            {
+              "part": "based on national carbon-reduction commitments",
+              "role": "依據條件狀語",
+              "note": "依據減碳承諾。"
+            }
+          ],
+          "keyPoints": [
+            "【政治名詞】：apportionment of congressional seats (國會席位按人口分配)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -2422,6 +5597,630 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【動詞搭配】：exert ... on ... 為高級學術英文搭配，表示「對...施加(壓力、影響)」。",
             "【地球圈層】：atmosphere (大氣圈)、hydrosphere (水圈)、lithosphere (岩石圈)、biosphere (生物圈)。"
+          ]
+        }
+      },
+      {
+        "word": "biopsy",
+        "kk": "[ˈbaɪˌɑpsɪ]",
+        "ipa": "/ˈbaɪɑːpsi/",
+        "pos": "n. / v.",
+        "meaning": "切片檢查、活組織檢驗",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生命、活體"
+            },
+            {
+              "text": "opsy",
+              "role": "root",
+              "meaning": "看、視檢 (view)"
+            }
+          ],
+          "resultMeaning": "自活體取樣進行顯微切片視檢 ➔「活體切片檢查」"
+        },
+        "sentence": "A needle biopsy confirmed that the localized tumor was entirely noncancerous.",
+        "sentenceZh": "穿刺切片檢查證實該局部腫瘤完全屬於良性非癌變。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "A needle biopsy",
+              "role": "主詞 (Subject)",
+              "note": "穿刺切片。"
+            },
+            {
+              "part": "confirmed",
+              "role": "及物動詞 (Verb)",
+              "note": "證實。"
+            },
+            {
+              "part": "that the tumor was noncancerous",
+              "role": "受詞名詞子句",
+              "note": "非癌腫瘤。"
+            }
+          ],
+          "keyPoints": [
+            "【對比檢驗】：biopsy (活體切片) vs. autopsy (驗屍、死體解剖)。"
+          ]
+        }
+      },
+      {
+        "word": "biodegradable",
+        "kk": "[ˌbaɪodɪˈgredəb!]",
+        "ipa": "/ˌbaɪoʊdɪˈɡreɪdəbl/",
+        "pos": "adj.",
+        "meaning": "可生物降解的、能自然分解的",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "degrade",
+              "role": "base",
+              "meaning": "降解、分解"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "能被微生物自然分解回歸土壤的 ➔「可生物分解的」"
+        },
+        "sentence": "Eco-friendly supermarkets replaced plastic grocery bags with certified biodegradable alternatives made from cornstarch.",
+        "sentenceZh": "環保超市以玉米澱粉製成的認證可生物降解替代品取代了塑膠提袋。",
+        "grammar": {
+          "pattern": "S + Vt (replaced A with B) + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Eco-friendly supermarkets",
+              "role": "主詞 (Subject)",
+              "note": "環保超市。"
+            },
+            {
+              "part": "replaced",
+              "role": "及物動詞 (Verb)",
+              "note": "replace A with B 句型。"
+            },
+            {
+              "part": "plastic grocery bags",
+              "role": "受詞 A",
+              "note": "塑膠袋。"
+            },
+            {
+              "part": "with certified biodegradable alternatives",
+              "role": "替代物 B",
+              "note": "可降解替代物。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：replace A with B (用 B 取代 A)。"
+          ]
+        }
+      },
+      {
+        "word": "biome",
+        "kk": "[ˈbaɪom]",
+        "ipa": "/ˈbaɪoʊm/",
+        "pos": "n.",
+        "meaning": "生物群系、大型生態系",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "-ome",
+              "role": "suffix",
+              "meaning": "總體、群落"
+            }
+          ],
+          "resultMeaning": "具有相似氣候與植被特徵之全球生物大群體 ➔「生物群系」"
+        },
+        "sentence": "The Arctic tundra biome supports hardy flora specially adapted to permafrost soil conditions.",
+        "sentenceZh": "北極凍原生物群系孕育著特別適應永凍土環境的耐寒植物群。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (adapted to...)",
+          "breakdown": [
+            {
+              "part": "The Arctic tundra biome",
+              "role": "主詞 (Subject)",
+              "note": "北極苔原群系。"
+            },
+            {
+              "part": "supports",
+              "role": "及物動詞 (Verb)",
+              "note": "維持支撐。"
+            },
+            {
+              "part": "hardy flora",
+              "role": "受詞 (Object)",
+              "note": "耐寒植物群。"
+            },
+            {
+              "part": "specially adapted to permafrost soil conditions",
+              "role": "分詞片語修飾 flora",
+              "note": "適應凍土。"
+            }
+          ],
+          "keyPoints": [
+            "【生物名詞】：flora (植物群) 與 fauna (動物群)。"
+          ]
+        }
+      },
+      {
+        "word": "biometrics",
+        "kk": "[ˌbaɪoˈmɛtrɪks]",
+        "ipa": "/ˌbaɪoʊˈmɛtrɪks/",
+        "pos": "n.",
+        "meaning": "生物辨識技術、生物特徵識別",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生命、生物"
+            },
+            {
+              "text": "metrics",
+              "role": "base",
+              "meaning": "測量計量"
+            }
+          ],
+          "resultMeaning": "對人類指紋、虹膜、臉部等生物特徵進行度量辨識 ➔「生物辨識」"
+        },
+        "sentence": "International airports utilize facial biometrics to expedite customs clearance while bolstering border security.",
+        "sentenceZh": "國際機場利用面部生物識別技術加快通關速度，同時強化邊境安全。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Adv Clause (while bolstering...)",
+          "breakdown": [
+            {
+              "part": "International airports",
+              "role": "主詞 (Subject)",
+              "note": "國際機場。"
+            },
+            {
+              "part": "utilize",
+              "role": "及物動詞 (Verb)",
+              "note": "利用。"
+            },
+            {
+              "part": "facial biometrics",
+              "role": "受詞 (Object)",
+              "note": "面部生物識別。"
+            },
+            {
+              "part": "to expedite customs clearance",
+              "role": "目的狀語",
+              "note": "加速清關。"
+            }
+          ],
+          "keyPoints": [
+            "【科技單詞】：biometric authentication (生物辨識認證)。"
+          ]
+        }
+      },
+      {
+        "word": "symbiosis",
+        "kk": "[ˌsɪmbaɪˈosɪs]",
+        "ipa": "/ˌsɪmbaɪˈoʊsɪs/",
+        "pos": "n.",
+        "meaning": "共生關係、互利共榮",
+        "formula": {
+          "parts": [
+            {
+              "text": "sym- (syn-)",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "bio",
+              "role": "root",
+              "meaning": "生命"
+            },
+            {
+              "text": "-osis",
+              "role": "suffix",
+              "meaning": "狀態"
+            }
+          ],
+          "resultMeaning": "兩種不同生命有機體生活在一起互相依託 ➔「共生」"
+        },
+        "sentence": "Corals and microscopic algae share a delicate symbiosis critical to maintaining vibrant reef ecosystems.",
+        "sentenceZh": "珊瑚與顯微藻類共享一種對維繫生氣蓬勃的礁岩生態系統至關重要的微妙共生關係。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (critical to...)",
+          "breakdown": [
+            {
+              "part": "Corals and microscopic algae",
+              "role": "主詞 (Subject)",
+              "note": "珊瑚與微藻。"
+            },
+            {
+              "part": "share",
+              "role": "及物動詞 (Verb)",
+              "note": "共享。"
+            },
+            {
+              "part": "a delicate symbiosis",
+              "role": "受詞 (Object)",
+              "note": "共生關係。"
+            },
+            {
+              "part": "critical to maintaining reef ecosystems",
+              "role": "形容詞片語後位修飾",
+              "note": "critical to (對...至關重要)。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：critical to / vital to + 動名詞 (V-ing) 或名詞。"
+          ]
+        }
+      },
+      {
+        "word": "bionics",
+        "kk": "[baɪˈɑnɪks]",
+        "ipa": "/baɪˈɑːnɪks/",
+        "pos": "n.",
+        "meaning": "仿生學、仿生工程",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "-onics",
+              "role": "suffix",
+              "meaning": "工程電子學"
+            }
+          ],
+          "resultMeaning": "模仿生物機能與結構應用於人造工程技術 ➔「仿生學」"
+        },
+        "sentence": "Breakthroughs in modern bionics allow amputees to control robotic prosthetic limbs via neural impulses.",
+        "sentenceZh": "現代仿生學的突破使截肢者能藉由神經脈衝操縱機器義肢。",
+        "grammar": {
+          "pattern": "S + Vt (allow) + O + to-V (to control O) + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Breakthroughs in modern bionics",
+              "role": "主詞 (Subject)",
+              "note": "仿生學突破。"
+            },
+            {
+              "part": "allow",
+              "role": "及物動詞 (Verb)",
+              "note": "allow + O + to V。"
+            },
+            {
+              "part": "amputees",
+              "role": "受詞 (Object)",
+              "note": "截肢者。"
+            },
+            {
+              "part": "to control robotic prosthetic limbs",
+              "role": "補語",
+              "note": "義肢。"
+            }
+          ],
+          "keyPoints": [
+            "【科技字彙】：bionic arm (仿生機械手臂)。"
+          ]
+        }
+      },
+      {
+        "word": "bioethics",
+        "kk": "[ˌbaɪoˈɛθɪks]",
+        "ipa": "/ˌbaɪoʊˈeθɪks/",
+        "pos": "n.",
+        "meaning": "生命倫理學、生物醫學倫理",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生命、生物"
+            },
+            {
+              "text": "ethics",
+              "role": "base",
+              "meaning": "倫理道德學"
+            }
+          ],
+          "resultMeaning": "探討基因編輯、克隆及安樂死等醫學生態議題之道德準則學問 ➔「生命倫理學」"
+        },
+        "sentence": "Advancements in CRISPR gene-editing ignited heated bioethics debates concerning human germline modifications.",
+        "sentenceZh": "CRISPR 基因編輯技術的進展引發了關於人類生殖細胞基因修改的激烈生命倫理學辯論。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (concerning...)",
+          "breakdown": [
+            {
+              "part": "Advancements in CRISPR gene-editing",
+              "role": "主詞 (Subject)",
+              "note": "基因編輯進展。"
+            },
+            {
+              "part": "ignited",
+              "role": "及物動詞 (Verb)",
+              "note": "點燃引發。"
+            },
+            {
+              "part": "heated bioethics debates",
+              "role": "受詞 (Object)",
+              "note": "熱烈倫理辯論。"
+            },
+            {
+              "part": "concerning human germline modifications",
+              "role": "介系詞分詞修飾 debates",
+              "note": "關於生殖系改造。"
+            }
+          ],
+          "keyPoints": [
+            "【交叉學科】：bioethics committee (生物倫理審查委員會，IRB 核心)。"
+          ]
+        }
+      },
+      {
+        "word": "bioluminescence",
+        "kk": "[ˌbaɪoˌluməˈnɛsəns]",
+        "ipa": "/ˌbaɪoʊˌluːmɪˈnesns/",
+        "pos": "n.",
+        "meaning": "生物發光現象",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "lumin",
+              "role": "root",
+              "meaning": "光 (light)"
+            },
+            {
+              "text": "-escence",
+              "role": "suffix",
+              "meaning": "開始展現狀態"
+            }
+          ],
+          "resultMeaning": "生物體內化學酵素反應自行釋放冷光之現象 ➔「生物發光」"
+        },
+        "sentence": "Deep-sea anglerfish utilize bioluminescence to lure unsuspecting prey through the pitch-black abyssal trenches.",
+        "sentenceZh": "深海琵琶魚利用生物自體發光，在漆黑一片的深海海溝中誘捕毫無防備的獵物。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Deep-sea anglerfish",
+              "role": "主詞 (Subject)",
+              "note": "深海鮟鱇魚。"
+            },
+            {
+              "part": "utilize bioluminescence",
+              "role": "及物動詞與受詞",
+              "note": "利用生物發光。"
+            },
+            {
+              "part": "to lure unsuspecting prey",
+              "role": "目的狀語",
+              "note": "誘惑獵物。"
+            },
+            {
+              "part": "through the pitch-black abyssal trenches",
+              "role": "地點狀語",
+              "note": "穿過漆黑海溝。"
+            }
+          ],
+          "keyPoints": [
+            "【發光酵素】：luciferin (螢光素) 與 luciferase (螢光素酶)。"
+          ]
+        }
+      },
+      {
+        "word": "biochemistry",
+        "kk": "[ˌbaɪoˈkɛmɪstrɪ]",
+        "ipa": "/ˌbaɪoʊˈkemɪstri/",
+        "pos": "n.",
+        "meaning": "生物化學",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "chemistry",
+              "role": "base",
+              "meaning": "化學"
+            }
+          ],
+          "resultMeaning": "研究生物體內蛋白質、核酸等分子化學反應與代謝途徑的科學 ➔「生物化學」"
+        },
+        "sentence": "Mastering cellular biochemistry is foundational for pharmacologists developing targeted immunotherapy drugs.",
+        "sentenceZh": "精通細胞生物化學是藥理學家開發標靶免疫治療藥物的基石。",
+        "grammar": {
+          "pattern": "Gerund Phrase (Subject) + Linking Verb + SC + Prep Phrase + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Mastering cellular biochemistry",
+              "role": "動名詞當主詞",
+              "note": "精通生化。"
+            },
+            {
+              "part": "is",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "foundational",
+              "role": "主詞補語 (形容詞)",
+              "note": "基礎的。"
+            },
+            {
+              "part": "for pharmacologists developing targeted immunotherapy drugs",
+              "role": "介系詞對象與分詞修飾",
+              "note": "研發免疫藥物的學者。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學基礎課】：biochemical pathway (生化代謝途徑)。"
+          ]
+        }
+      },
+      {
+        "word": "biophysics",
+        "kk": "[ˌbaɪoˈfɪzɪks]",
+        "ipa": "/ˌbaɪoʊˈfɪzɪks/",
+        "pos": "n.",
+        "meaning": "生物物理學",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "physics",
+              "role": "base",
+              "meaning": "物理學"
+            }
+          ],
+          "resultMeaning": "運用熱力學、量子力學等物理原理研究生命體機制的交叉科學 ➔「生物物理學」"
+        },
+        "sentence": "Researchers applied biophysics to decipher how membrane ion channels regulate electrical heart rhythms.",
+        "sentenceZh": "研究人員應用生物物理學來破譯細胞膜離子通道是如何調控心臟電生理節律的。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose (to decipher How Clause)",
+          "breakdown": [
+            {
+              "part": "Researchers",
+              "role": "主詞 (Subject)",
+              "note": "研究員。"
+            },
+            {
+              "part": "applied biophysics",
+              "role": "及物動詞與受詞",
+              "note": "應用生物物理學。"
+            },
+            {
+              "part": "to decipher how membrane ion channels regulate electrical heart rhythms",
+              "role": "目的狀語 (含 how 名詞子句)",
+              "note": "破譯心臟電信號。"
+            }
+          ],
+          "keyPoints": [
+            "【跨學科領域】：cryo-electron microscopy (冷凍電顯) 是現代生物物理學重大突破。"
+          ]
+        }
+      },
+      {
+        "word": "biomass",
+        "kk": "[ˈbaɪoˌmæs]",
+        "ipa": "/ˈbaɪoʊmæs/",
+        "pos": "n.",
+        "meaning": "生物質、生質能、生物量",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "mass",
+              "role": "base",
+              "meaning": "質量、總量"
+            }
+          ],
+          "resultMeaning": "特定區域內植物動物有機物質之總質量或能源燃料來源 ➔「生物量、生質能」"
+        },
+        "sentence": "Agricultural waste products such as sugarcane bagasse are converted into combustible biomass pellets.",
+        "sentenceZh": "甘蔗渣等農業廢棄物被加工轉化為可燃燒的生質顆粒燃料。",
+        "grammar": {
+          "pattern": "S + Prep Phrase (such as...) + Passive Verb + Prep Phrase (into...)",
+          "breakdown": [
+            {
+              "part": "Agricultural waste products",
+              "role": "主詞 (Subject)",
+              "note": "農廢產物。"
+            },
+            {
+              "part": "such as sugarcane bagasse",
+              "role": "舉例介系詞片語",
+              "note": "如蔗渣。"
+            },
+            {
+              "part": "are converted into combustible biomass pellets",
+              "role": "被動態謂語",
+              "note": "convert into (轉化為)。"
+            }
+          ],
+          "keyPoints": [
+            "【綠能詞彙】：biomass energy (生質能)。"
+          ]
+        }
+      },
+      {
+        "word": "biocide",
+        "kk": "[ˈbaɪoˌsaɪd]",
+        "ipa": "/ˈbaɪoʊsaɪd/",
+        "pos": "n.",
+        "meaning": "殺生物劑、殺菌劑、滅藻殺蟲毒劑",
+        "formula": {
+          "parts": [
+            {
+              "text": "bio-",
+              "role": "root",
+              "meaning": "生物"
+            },
+            {
+              "text": "-cide",
+              "role": "root",
+              "meaning": "殺死 (kill)"
+            }
+          ],
+          "resultMeaning": "專門用於滅殺微生物或有害生物的劇毒化學藥劑 ➔「殺生物劑」"
+        },
+        "sentence": "Water treatment plants carefully calibrate biocide concentrations to eliminate harmful pathogens without corroding pipelines.",
+        "sentenceZh": "自來水處理廠精準校準殺生物劑濃度，以消除有害病原體而不致腐蝕輸送管線。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Infinitive of Purpose + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Water treatment plants",
+              "role": "主詞 (Subject)",
+              "note": "水處理廠。"
+            },
+            {
+              "part": "carefully calibrate biocide concentrations",
+              "role": "動詞與受詞",
+              "note": "精準校準藥劑濃度。"
+            },
+            {
+              "part": "to eliminate harmful pathogens",
+              "role": "目的狀語",
+              "note": "消滅病原體。"
+            },
+            {
+              "part": "without corroding pipelines",
+              "role": "伴隨條件狀語",
+              "note": "不腐蝕管線。"
+            }
+          ],
+          "keyPoints": [
+            "【字尾 -cide】：pesticide (殺蟲劑), herbicide (除草劑), biocide (殺生物劑)。"
           ]
         }
       }
@@ -2747,6 +6546,625 @@ const ETYMO_DATA = [
             "【工業史名詞】：automobile industry (汽車工業)。"
           ]
         }
+      },
+      {
+        "word": "autobiography",
+        "kk": "[ˌɔtəbaɪˈɑgrəfɪ]",
+        "ipa": "/ˌɔːtəbaɪˈɑːɡrəfi/",
+        "pos": "n.",
+        "meaning": "自傳",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "bio",
+              "role": "root",
+              "meaning": "生命"
+            },
+            {
+              "text": "graphy",
+              "role": "root",
+              "meaning": "寫述"
+            }
+          ],
+          "resultMeaning": "自己親筆撰寫記錄自身生平一生的著作 ➔「自傳」"
+        },
+        "sentence": "In her candid autobiography, the former premier revealed the intense geopolitical pressures behind historic treaties.",
+        "sentenceZh": "在前總理坦率的自傳中，她揭露了歷史性條約背後激烈的地緣政治壓力。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt + O",
+          "breakdown": [
+            {
+              "part": "In her candid autobiography",
+              "role": "地點介系詞片語",
+              "note": "自傳。"
+            },
+            {
+              "part": "the former premier",
+              "role": "主詞 (Subject)",
+              "note": "前總理。"
+            },
+            {
+              "part": "revealed",
+              "role": "及物動詞 (Verb)",
+              "note": "揭露。"
+            },
+            {
+              "part": "the intense geopolitical pressures",
+              "role": "受詞 (Object)",
+              "note": "地緣政治壓力。"
+            }
+          ],
+          "keyPoints": [
+            "【字源拆解】：auto (自己) + bio (生命) + graphy (書寫)。"
+          ]
+        }
+      },
+      {
+        "word": "autocracy",
+        "kk": "[ɔˈtɑkrəsɪ]",
+        "ipa": "/ɔːˈtɑːkrəsi/",
+        "pos": "n.",
+        "meaning": "專制統治、獨裁體制",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "-cracy",
+              "role": "root",
+              "meaning": "統治權力 (希臘語 kratos)"
+            }
+          ],
+          "resultMeaning": "統治權力全歸一人獨攬掌控的政體 ➔「專制獨裁政治」"
+        },
+        "sentence": "Democratic nations formed defensive coalitions to deter expansionist aggression spearheaded by an aggressive autocracy.",
+        "sentenceZh": "民主國家組建了防禦聯盟，以遏阻由侵略性專制政權帶頭發起的擴張主義行徑。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Democratic nations",
+              "role": "主詞 (Subject)",
+              "note": "民主國。"
+            },
+            {
+              "part": "formed",
+              "role": "及物動詞 (Verb)",
+              "note": "籌組。"
+            },
+            {
+              "part": "defensive coalitions",
+              "role": "受詞 (Object)",
+              "note": "防禦聯盟。"
+            },
+            {
+              "part": "to deter aggression",
+              "role": "目的狀語",
+              "note": "deter (遏阻)。"
+            }
+          ],
+          "keyPoints": [
+            "【統治字尾】：-cracy，如 democracy (民主), aristocracy (貴族統治), autocracy (專制)。"
+          ]
+        }
+      },
+      {
+        "word": "autocrat",
+        "kk": "[ˈɔtəˌkræt]",
+        "ipa": "/ˈɔːtəkræt/",
+        "pos": "n.",
+        "meaning": "獨裁統治者、專制君主",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "-crat",
+              "role": "suffix",
+              "meaning": "統治者"
+            }
+          ],
+          "resultMeaning": "獨攬一人專斷大權的暴君統治者 ➔「獨裁專制者」"
+        },
+        "sentence": "The defiant opposition leader was jailed after denouncing the ruling autocrat as a corrupt usurper.",
+        "sentenceZh": "這位反抗的在野黨領袖在痛斥執政獨裁者為腐敗篡位者後隨即被捕入獄。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase of Time (after denouncing A as B)",
+          "breakdown": [
+            {
+              "part": "The defiant opposition leader",
+              "role": "主詞 (Subject)",
+              "note": "在野領袖。"
+            },
+            {
+              "part": "was jailed",
+              "role": "被動態謂語",
+              "note": "入獄。"
+            },
+            {
+              "part": "after denouncing the autocrat as a usurper",
+              "role": "時間狀語",
+              "note": "denounce A as B (痛斥 A 為 B)。"
+            }
+          ],
+          "keyPoints": [
+            "【重要句型】：denounce A as B (公開譴責 A 為 B)。"
+          ]
+        }
+      },
+      {
+        "word": "automaton",
+        "kk": "[ɔˈtɑmətɑn]",
+        "ipa": "/ɔːˈtɑːmətɑn/",
+        "pos": "n.",
+        "meaning": "自動機器人、行屍走肉般盲從的人",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "-maton",
+              "role": "root",
+              "meaning": "思想運作者"
+            }
+          ],
+          "resultMeaning": "如機械發條般盲目重複運作之人或機器 ➔「自動機器、機器人」"
+        },
+        "sentence": "Burnout in monotonous assembly line jobs can reduce creative workers into unthinking automatons.",
+        "sentenceZh": "單調乏味的裝配線工作所導致的職業倦怠，會使富創造力的勞工退化為無思維的機械人。",
+        "grammar": {
+          "pattern": "S + Modal + Vt (reduce A into B)",
+          "breakdown": [
+            {
+              "part": "Burnout in monotonous jobs",
+              "role": "主詞 (Subject)",
+              "note": "職業倦怠。"
+            },
+            {
+              "part": "can reduce",
+              "role": "動詞片語 (Verb)",
+              "note": "reduce A into B (使 A 淪落為 B)。"
+            },
+            {
+              "part": "creative workers",
+              "role": "受詞 A",
+              "note": "勞工。"
+            },
+            {
+              "part": "into unthinking automatons",
+              "role": "淪落結果 B",
+              "note": "自動機械人。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：reduce someone to tears / into an automaton (使某人陷入某劣境)。"
+          ]
+        }
+      },
+      {
+        "word": "autopsy",
+        "kk": "[ˈɔˌtɑpsɪ]",
+        "ipa": "/ˈɔːtɑːpsi/",
+        "pos": "n. / v.",
+        "meaning": "驗屍、死體解剖；(v.) 進行屍檢",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "opsy",
+              "role": "root",
+              "meaning": "看、眼見 (view)"
+            }
+          ],
+          "resultMeaning": "法醫親眼用自己的雙眼視檢內部死因 ➔「驗屍、死體解剖」"
+        },
+        "sentence": "A forensic pathologist conducted a thorough autopsy to ascertain the exact cause and timeline of death.",
+        "sentenceZh": "法醫病理學家進行了徹底的驗屍解剖，以查明確切的死因與死亡時間軸。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "A forensic pathologist",
+              "role": "主詞 (Subject)",
+              "note": "法醫病理學家。"
+            },
+            {
+              "part": "conducted",
+              "role": "及物動詞 (Verb)",
+              "note": "conduct an autopsy (進行驗屍)。"
+            },
+            {
+              "part": "a thorough autopsy",
+              "role": "受詞 (Object)",
+              "note": "徹底屍檢。"
+            },
+            {
+              "part": "to ascertain the exact cause of death",
+              "role": "目的狀語",
+              "note": "ascertain (查明)。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源真義】：auto (自己) + opsy (看)，親自看清真實死因！"
+          ]
+        }
+      },
+      {
+        "word": "autodidact",
+        "kk": "[ˌɔtodɪˈdækt]",
+        "ipa": "/ˌɔːtoʊdaɪˈdækt/",
+        "pos": "n.",
+        "meaning": "自學者、無師自通者",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "didact",
+              "role": "root",
+              "meaning": "教導 (希臘語 didaktos)"
+            }
+          ],
+          "resultMeaning": "未受學校正規教育、全憑自我教導鑽研有成者 ➔「自學者」"
+        },
+        "sentence": "The mathematical genius was an extraordinary autodidact who mastered advanced calculus from discarded textbooks.",
+        "sentenceZh": "這位數學天才是一位非凡的自學者，他透過廢棄的教科書自學精通了高等微積分。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The mathematical genius",
+              "role": "主詞 (Subject)",
+              "note": "數學天才。"
+            },
+            {
+              "part": "was",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "an extraordinary autodidact",
+              "role": "主詞補語",
+              "note": "自學者。"
+            },
+            {
+              "part": "who mastered advanced calculus from discarded textbooks",
+              "role": "關係子句",
+              "note": "精通微積分。"
+            }
+          ],
+          "keyPoints": [
+            "【教導字根】：didactic (說教的、教學的) ➔ autodidact (自學者)。"
+          ]
+        }
+      },
+      {
+        "word": "autoimmune",
+        "kk": "[ˌɔtoɪˈmjun]",
+        "ipa": "/ˌɔːtoʊɪˈmjuːn/",
+        "pos": "adj.",
+        "meaning": "自體免疫的 (免疫系統攻擊自身組織的)",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自身"
+            },
+            {
+              "text": "immune",
+              "role": "base",
+              "meaning": "免疫的"
+            }
+          ],
+          "resultMeaning": "人體免疫細胞誤將自身器官視為外敵展開自我攻擊的 ➔「自體免疫的」"
+        },
+        "sentence": "Lupus and rheumatoid arthritis are complex autoimmune disorders where antibodies mistakenly attack healthy cartilage.",
+        "sentenceZh": "紅斑性狼瘡與類風濕性關節炎是複雜的自體免疫疾病，其抗體會錯誤地攻擊健康軟骨。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Relative Adverb Clause (where...)",
+          "breakdown": [
+            {
+              "part": "Lupus and rheumatoid arthritis",
+              "role": "主詞 (Subject)",
+              "note": "狼瘡與關節炎。"
+            },
+            {
+              "part": "are complex autoimmune disorders",
+              "role": "連綴動詞與補語",
+              "note": "是自體免疫失調。"
+            },
+            {
+              "part": "where antibodies mistakenly attack healthy cartilage",
+              "role": "關係副詞子句修飾 disorders",
+              "note": "抗體攻擊組織。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專詞】：autoimmune response (自體免疫反應)。"
+          ]
+        }
+      },
+      {
+        "word": "autonomous",
+        "kk": "[ɔˈtɑnəməs]",
+        "ipa": "/ɔːˈtɑːnəməs/",
+        "pos": "adj.",
+        "meaning": "自治的、獨立自主的、自動駕駛自主運作的",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "nom",
+              "role": "root",
+              "meaning": "法則、法律 (law)"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "自立法律規範自主決定行動不受外力操縱的 ➔「自主自治的」"
+        },
+        "sentence": "Autonomous freight trucks equipped with lidar and radar traversed cross-country highway networks safely.",
+        "sentenceZh": "配備光學雷達與毫米波雷達的自駕貨運卡車安全穿越了橫貫全國的高速公路網。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + Adv",
+          "breakdown": [
+            {
+              "part": "Autonomous freight trucks",
+              "role": "主詞 (Subject)",
+              "note": "自動駕駛卡車。"
+            },
+            {
+              "part": "equipped with lidar and radar",
+              "role": "過去分詞片語修飾 trucks",
+              "note": "配備雷達。"
+            },
+            {
+              "part": "traversed highway networks safely",
+              "role": "及物動詞、受詞與副詞",
+              "note": "安全穿越公路網。"
+            }
+          ],
+          "keyPoints": [
+            "【科技焦點】：autonomous vehicle (自駕車)。"
+          ]
+        }
+      },
+      {
+        "word": "autonomic",
+        "kk": "[ˌɔtəˈnɑmɪk]",
+        "ipa": "/ˌɔːtəˈnɑːmɪk/",
+        "pos": "adj.",
+        "meaning": "自律神經的、非自主不由意志控制的",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "nom",
+              "role": "root",
+              "meaning": "規律、管理"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "由神經系統自動運作維持呼吸心跳不經大腦意識指令的 ➔「自律神經的」"
+        },
+        "sentence": "The human autonomic nervous system regulates baseline physiological functions such as blood pressure and digestion.",
+        "sentenceZh": "人體自律神經系統調控著諸如血壓與消化等基礎生理機能。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (such as...)",
+          "breakdown": [
+            {
+              "part": "The human autonomic nervous system",
+              "role": "主詞 (Subject)",
+              "note": "人體自律神經系統。"
+            },
+            {
+              "part": "regulates",
+              "role": "及物動詞 (Verb)",
+              "note": "調控。"
+            },
+            {
+              "part": "baseline physiological functions",
+              "role": "受詞 (Object)",
+              "note": "基準生理機能。"
+            },
+            {
+              "part": "such as blood pressure and digestion",
+              "role": "舉例介系詞片語",
+              "note": "血壓與消化。"
+            }
+          ],
+          "keyPoints": [
+            "【解剖學】：ANS = Autonomic Nervous System (自律神經系統，包含交感與副交感)。"
+          ]
+        }
+      },
+      {
+        "word": "autocatalytic",
+        "kk": "[ˌɔtokætəˈlɪtɪk]",
+        "ipa": "/ˌɔːtoʊkætəˈlɪtɪk/",
+        "pos": "adj.",
+        "meaning": "自動催化的、自體催化加速的",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自己"
+            },
+            {
+              "text": "catalytic",
+              "role": "base",
+              "meaning": "催化的"
+            }
+          ],
+          "resultMeaning": "反應產物本身能回過頭來進一步加速自身反應速率的 ➔「自動催化的」"
+        },
+        "sentence": "Origin-of-life chemists hypothesize that primitive RNA molecules engaged in self-sustaining autocatalytic cycles.",
+        "sentenceZh": "生命起源化學家假定，原始 RNA 分子曾參與了自我維持的自動催化循環反應。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Vi + Prep Phrase)",
+          "breakdown": [
+            {
+              "part": "Origin-of-life chemists",
+              "role": "主詞 (Subject)",
+              "note": "生命起源學者。"
+            },
+            {
+              "part": "hypothesize",
+              "role": "及物動詞 (Verb)",
+              "note": "提出假說。"
+            },
+            {
+              "part": "that primitive RNA molecules engaged in cycles",
+              "role": "受詞名詞子句",
+              "note": "engage in (參與)。"
+            }
+          ],
+          "keyPoints": [
+            "【生化學術】：autocatalytic reaction (自身催化反應)。"
+          ]
+        }
+      },
+      {
+        "word": "autologous",
+        "kk": "[ɔˈtɑləgəs]",
+        "ipa": "/ɔːˈtɑːləɡəs/",
+        "pos": "adj.",
+        "meaning": "自體的、取自患者自身的 (如自體骨髓移植)",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自身"
+            },
+            {
+              "text": "log",
+              "role": "root",
+              "meaning": "關係、來源 (ratio/relation)"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "組織器官完全取材於病患自身免除免疫排斥風險的 ➔「自體的」"
+        },
+        "sentence": "Surgeons performed an autologous stem cell transplant using cells harvested from the patient's own bone marrow.",
+        "sentenceZh": "外科醫師利用從病患自身骨髓提取的細胞，進行了自體幹細胞移植手術。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Surgeons",
+              "role": "主詞 (Subject)",
+              "note": "外科醫師。"
+            },
+            {
+              "part": "performed an autologous stem cell transplant",
+              "role": "動詞與受詞",
+              "note": "執行自體移植。"
+            },
+            {
+              "part": "using cells harvested from the patient's marrow",
+              "role": "分詞片語表方式",
+              "note": "提取自患者骨髓。"
+            }
+          ],
+          "keyPoints": [
+            "【移植對比】：autologous (自體的) vs. allogeneic (異體的)。"
+          ]
+        }
+      },
+      {
+        "word": "autorotation",
+        "kk": "[ˌɔtoroˈteʃən]",
+        "ipa": "/ˌɔːtoʊroʊˈteɪʃn/",
+        "pos": "n.",
+        "meaning": "自轉、自轉降落 (直升機失去引擎動力時利用氣流驅動旋翼安全著陸)",
+        "formula": {
+          "parts": [
+            {
+              "text": "auto-",
+              "role": "prefix",
+              "meaning": "自動、自己"
+            },
+            {
+              "text": "rotation",
+              "role": "base",
+              "meaning": "旋轉"
+            }
+          ],
+          "resultMeaning": "不靠引擎動力完全仰賴相對氣流推動旋翼維持升力的自轉運作 ➔「自轉旋降」"
+        },
+        "sentence": "When the helicopter engine failed, the skilled pilot utilized autorotation to glide safely down into a farm field.",
+        "sentenceZh": "當直升機引擎失效時，熟練的機師利用旋翼自轉滑翔技術安全迫降在一片農田之中。",
+        "grammar": {
+          "pattern": "Adv Clause of Time (When...) + S + Vt + O + Infinitive of Purpose + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "When the helicopter engine failed",
+              "role": "時間副詞子句",
+              "note": "引擎故障時。"
+            },
+            {
+              "part": "the skilled pilot",
+              "role": "主詞 (Subject)",
+              "note": "熟練機師。"
+            },
+            {
+              "part": "utilized autorotation",
+              "role": "動詞與受詞",
+              "note": "利用自轉降落。"
+            },
+            {
+              "part": "to glide safely down into a field",
+              "role": "目的狀語",
+              "note": "滑翔迫降。"
+            }
+          ],
+          "keyPoints": [
+            "【飛行安全】：autorotation 是所有直升機飛行員必經的特情應急課目。"
+          ]
+        }
       }
     ],
     "article": {
@@ -3058,6 +7476,655 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【形容詞派生】：anachronistic (時代倒置的、落伍的)。",
             "【文法動名詞主詞】：動名詞片語作主詞時，謂語動詞一律視為第三人稱單數 (is)。"
+          ]
+        }
+      },
+      {
+        "word": "chronometer",
+        "kk": "[krəˈnɑmətɚ]",
+        "ipa": "/krəˈnɑːmɪtər/",
+        "pos": "n.",
+        "meaning": "精密航海天文鐘、高精度計時器",
+        "formula": {
+          "parts": [
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "meter",
+              "role": "root",
+              "meaning": "測量儀器"
+            }
+          ],
+          "resultMeaning": "在顛簸船艦上仍能精確保持時間以測定經度之儀器 ➔「精密計時器」"
+        },
+        "sentence": "In the eighteenth century, John Harrison invented the marine chronometer, enabling navigators to calculate precise longitude at sea.",
+        "sentenceZh": "十八世紀，約翰·哈里森發明了航海精密計時器，使航海家得以在海上精確計算經度。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt + O + Participle Phrase (enabling O to-V)",
+          "breakdown": [
+            {
+              "part": "In the eighteenth century",
+              "role": "時間狀語",
+              "note": "18世紀。"
+            },
+            {
+              "part": "John Harrison",
+              "role": "主詞 (Subject)",
+              "note": "發明家。"
+            },
+            {
+              "part": "invented the marine chronometer",
+              "role": "謂語動詞與受詞",
+              "note": "發明精密航海鐘。"
+            },
+            {
+              "part": "enabling navigators to calculate longitude",
+              "role": "分詞片語表結果",
+              "note": "enable + O + to V。"
+            }
+          ],
+          "keyPoints": [
+            "【科技歷史】：marine chronometer 解決了歷史著名的「經度難題 (Longitude Problem)」。"
+          ]
+        }
+      },
+      {
+        "word": "synchronous",
+        "kk": "[ˈsɪŋkrənəs]",
+        "ipa": "/ˈsɪŋkrənəs/",
+        "pos": "adj.",
+        "meaning": "同步的、同時發生的",
+        "formula": {
+          "parts": [
+            {
+              "text": "syn-",
+              "role": "prefix",
+              "meaning": "共同、相同"
+            },
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "在同一個時間點完全一致協同發生的 ➔「同步的」"
+        },
+        "sentence": "Geostationary satellites orbit at a synchronous angular velocity that precisely matches the rotation of the Earth.",
+        "sentenceZh": "地球同步衛星以精確匹配地球自轉的同步角速度在軌道上運行。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Geostationary satellites",
+              "role": "主詞 (Subject)",
+              "note": "地球同步衛星。"
+            },
+            {
+              "part": "orbit",
+              "role": "不及物動詞 (Verb)",
+              "note": "沿軌道運行。"
+            },
+            {
+              "part": "at a synchronous angular velocity",
+              "role": "速率狀語片語",
+              "note": "同步角速度。"
+            },
+            {
+              "part": "that precisely matches the rotation of the Earth",
+              "role": "關係子句修飾 velocity",
+              "note": "match (匹配)。"
+            }
+          ],
+          "keyPoints": [
+            "【電腦/工程】：synchronous (同步) vs. asynchronous (非同步，如 AJAX)。"
+          ]
+        }
+      },
+      {
+        "word": "asynchronous",
+        "kk": "[eˈsɪŋkrənəs]",
+        "ipa": "/eɪˈsɪŋkrənəs/",
+        "pos": "adj.",
+        "meaning": "非同步的、不同時的",
+        "formula": {
+          "parts": [
+            {
+              "text": "a-",
+              "role": "prefix",
+              "meaning": "無、非"
+            },
+            {
+              "text": "syn",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "毋須在同一時間等待對齊而能各自獨立運行的 ➔「非同步的」"
+        },
+        "sentence": "Distributed remote teams favor asynchronous communication channels to collaborate seamlessly across diverse international time zones.",
+        "sentenceZh": "分散式遠距團隊偏好非同步溝通管道，以在不同國際時區之間無縫協作。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Distributed remote teams",
+              "role": "主詞 (Subject)",
+              "note": "分散式團隊。"
+            },
+            {
+              "part": "favor",
+              "role": "及物動詞 (Verb)",
+              "note": "偏好。"
+            },
+            {
+              "part": "asynchronous communication channels",
+              "role": "受詞 (Object)",
+              "note": "非同步管道。"
+            },
+            {
+              "part": "to collaborate seamlessly across time zones",
+              "role": "目的狀語",
+              "note": "seamlessly (無縫地)。"
+            }
+          ],
+          "keyPoints": [
+            "【軟體開發】：async / await 是現代 JavaScript 處理非同步的核心語法。"
+          ]
+        }
+      },
+      {
+        "word": "chronobiology",
+        "kk": "[ˌkrɑnobaɪˈɑlədʒɪ]",
+        "ipa": "/ˌkrɑːnoʊbaɪˈɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "時間生物學、生物時鐘學",
+        "formula": {
+          "parts": [
+            {
+              "text": "chrono-",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "bio",
+              "role": "root",
+              "meaning": "生命"
+            },
+            {
+              "text": "-logy",
+              "role": "suffix",
+              "meaning": "學科"
+            }
+          ],
+          "resultMeaning": "研究生命有機體內部週期律動與生物時鐘之科學 ➔「時間生物學」"
+        },
+        "sentence": "Pioneering discoveries in chronobiology unveiled the molecular feedback loops governing human circadian rhythms.",
+        "sentenceZh": "時間生物學的開創性發現揭示了調控人類生理晝夜節律的分子回饋迴路。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Pioneering discoveries in chronobiology",
+              "role": "主詞 (Subject)",
+              "note": "時間生物學發現。"
+            },
+            {
+              "part": "unveiled",
+              "role": "及物動詞 (Verb)",
+              "note": "揭示。"
+            },
+            {
+              "part": "the molecular feedback loops",
+              "role": "受詞 (Object)",
+              "note": "分子回饋環。"
+            },
+            {
+              "part": "governing human circadian rhythms",
+              "role": "分詞片語修飾 loops",
+              "note": "govern (統治調控)；circadian rhythms (晝夜節律)。"
+            }
+          ],
+          "keyPoints": [
+            "【生理醫學】：circadian rhythm (晝夜生理時鐘) 源自 circa (大約) + diem (一天)。"
+          ]
+        }
+      },
+      {
+        "word": "chronicler",
+        "kk": "[ˈkrɑnɪklɚ]",
+        "ipa": "/ˈkrɑːnɪklər/",
+        "pos": "n.",
+        "meaning": "編年史編纂者、歷史記錄者",
+        "formula": {
+          "parts": [
+            {
+              "text": "chronicle",
+              "role": "base",
+              "meaning": "編年史"
+            },
+            {
+              "text": "-er",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "按時間先後忠實記錄重大歷史事跡之學者 ➔「編年史官」"
+        },
+        "sentence": "The court chronicler faithfully documented every royal decree, military expedition, and diplomatic marriage.",
+        "sentenceZh": "宮廷編年史官忠實記錄了每一道皇家詔令、軍事遠征與外交聯姻。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + Compound Object",
+          "breakdown": [
+            {
+              "part": "The court chronicler",
+              "role": "主詞 (Subject)",
+              "note": "宮廷史官。"
+            },
+            {
+              "part": "faithfully documented",
+              "role": "及物動詞片語",
+              "note": "忠實記錄。"
+            },
+            {
+              "part": "every decree, expedition, and marriage",
+              "role": "複合受詞 (A, B, and C)",
+              "note": "三項名詞並列。"
+            }
+          ],
+          "keyPoints": [
+            "【並列對等結構】：A, B, and C 句型。"
+          ]
+        }
+      },
+      {
+        "word": "geochronology",
+        "kk": "[ˌdʒiokrəˈnɑlədʒɪ]",
+        "ipa": "/ˌdʒiːoʊkrəˈnɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "地質年代學、地球年代測定學",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "prefix",
+              "meaning": "大地"
+            },
+            {
+              "text": "chrono-",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "-logy",
+              "role": "suffix",
+              "meaning": "學問"
+            }
+          ],
+          "resultMeaning": "測定地球岩石與地層形成歷史年齡之學門 ➔「地質年代學」"
+        },
+        "sentence": "Radiometric decay measurement is the foundational tool in geochronology for dating ancient continental cratons.",
+        "sentenceZh": "放射性同位素衰變測量是地質年代學中測定古代大陸克拉通岩體年齡的基石工具。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Prep Phrase (for V-ing O)",
+          "breakdown": [
+            {
+              "part": "Radiometric decay measurement",
+              "role": "主詞 (Subject)",
+              "note": "放射衰變測量。"
+            },
+            {
+              "part": "is",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "the foundational tool",
+              "role": "主詞補語",
+              "note": "基礎工具。"
+            },
+            {
+              "part": "in geochronology for dating cratons",
+              "role": "目的介系詞片語",
+              "note": "dating (定年)。"
+            }
+          ],
+          "keyPoints": [
+            "【地質字根疊加】：geo (地) + chrono (時間) + logy (學問)。"
+          ]
+        }
+      },
+      {
+        "word": "chronograph",
+        "kk": "[ˈkrɑnəˌgræf]",
+        "ipa": "/ˈkrɑːnəɡræf/",
+        "pos": "n.",
+        "meaning": "計時碼錶、精密計時儀器",
+        "formula": {
+          "parts": [
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "記錄、描畫"
+            }
+          ],
+          "resultMeaning": "專門精準測量並標記記錄微小時間間隔的秒錶機械 ➔「精密計時碼錶」"
+        },
+        "sentence": "The Swiss luxury watchmaker unveiled a titanium chronograph capable of timing intervals down to hundredths of a second.",
+        "sentenceZh": "瑞士頂級鐘錶商推出了一款鈦金屬計時碼錶，計時精準度可達百分之一秒。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (capable of V-ing)",
+          "breakdown": [
+            {
+              "part": "The Swiss luxury watchmaker",
+              "role": "主詞 (Subject)",
+              "note": "瑞士製錶商。"
+            },
+            {
+              "part": "unveiled a titanium chronograph",
+              "role": "及物動詞與受詞",
+              "note": "發表鈦金碼錶。"
+            },
+            {
+              "part": "capable of timing intervals to hundredths of a second",
+              "role": "後位形容詞片語",
+              "note": "能精確至百分秒。"
+            }
+          ],
+          "keyPoints": [
+            "【精品鐘錶】：chronograph 具備獨立啟動/暫停計時按把。"
+          ]
+        }
+      },
+      {
+        "word": "dendrochronology",
+        "kk": "[ˌdɛndrokrəˈnɑlədʒɪ]",
+        "ipa": "/ˌdendroʊkrəˈnɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "樹輪年代學、樹木年代測定法",
+        "formula": {
+          "parts": [
+            {
+              "text": "dendro-",
+              "role": "root",
+              "meaning": "樹木 (希臘語 dendron)"
+            },
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "-ology",
+              "role": "suffix",
+              "meaning": "學科"
+            }
+          ],
+          "resultMeaning": "透過樹木年輪寬窄與碳同位素定年古代氣候歷史的科學 ➔「樹輪年代學」"
+        },
+        "sentence": "Archaeologists applied dendrochronology to pin timbers from the Viking longhouse to the year 912 AD.",
+        "sentenceZh": "考古學家應用樹輪年代學，將維京長屋的建築木材精確斷代至西元 912 年。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose (to pin O to Prep Phrase)",
+          "breakdown": [
+            {
+              "part": "Archaeologists",
+              "role": "主詞 (Subject)",
+              "note": "考古學家。"
+            },
+            {
+              "part": "applied dendrochronology",
+              "role": "動詞與受詞",
+              "note": "應用樹輪學。"
+            },
+            {
+              "part": "to pin timbers to the year 912 AD",
+              "role": "目的狀語",
+              "note": "pin to (定年至)。"
+            }
+          ],
+          "keyPoints": [
+            "【考古科技】：dendrochronology 是古氣候重建最精準的年輪校正基準。"
+          ]
+        }
+      },
+      {
+        "word": "chronometric",
+        "kk": "[ˌkrɑnəˈmɛtrɪk]",
+        "ipa": "/ˌkrɑːnəˈmetrɪk/",
+        "pos": "adj.",
+        "meaning": "精密測時的、測時學的",
+        "formula": {
+          "parts": [
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "metr",
+              "role": "root",
+              "meaning": "測量 (measure)"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "以最高嚴格標準度量時間流逝之物理精確度的 ➔「精密測時的」"
+        },
+        "sentence": "Atomic fountains achieve unprecedented chronometric precision by cooling cesium atoms near absolute zero.",
+        "sentenceZh": "原子噴泉鐘透過將銫原子冷卻至接近絕對零度，實現了前所未有的精密測時精準度。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means (by V-ing O)",
+          "breakdown": [
+            {
+              "part": "Atomic fountains",
+              "role": "主詞 (Subject)",
+              "note": "原子噴泉鐘。"
+            },
+            {
+              "part": "achieve chronometric precision",
+              "role": "動詞與受詞",
+              "note": "達成測時精準度。"
+            },
+            {
+              "part": "by cooling cesium atoms near absolute zero",
+              "role": "方式狀語",
+              "note": "冷卻銫原子。"
+            }
+          ],
+          "keyPoints": [
+            "【科學名詞】：chronometric accuracy (測時精準度)。"
+          ]
+        }
+      },
+      {
+        "word": "synchronicity",
+        "kk": "[ˌsɪŋkrəˈnɪsətɪ]",
+        "ipa": "/ˌsɪŋkrəˈnɪsəti/",
+        "pos": "n.",
+        "meaning": "共時性、有意義的巧合 (榮格心理學概念)",
+        "formula": {
+          "parts": [
+            {
+              "text": "syn-",
+              "role": "prefix",
+              "meaning": "同時"
+            },
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "在時間上同時發生且具有深層心靈關聯但無因果關係的巧合 ➔「共時性」"
+        },
+        "sentence": "Psychologist Carl Jung coined the term synchronicity to describe meaningful coincidences lacking causal connections.",
+        "sentenceZh": "心理學家卡爾·榮格創造了「共時性」一詞，用以描述缺乏因果關聯但富有意義的巧合現象。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Psychologist Carl Jung",
+              "role": "主詞 (Subject)",
+              "note": "榮格。"
+            },
+            {
+              "part": "coined the term synchronicity",
+              "role": "動詞與受詞",
+              "note": "coin the term (造出術語)。"
+            },
+            {
+              "part": "to describe meaningful coincidences",
+              "role": "目的狀語",
+              "note": "描述巧合。"
+            },
+            {
+              "part": "lacking causal connections",
+              "role": "現在分詞片語修飾 coincidences",
+              "note": "缺乏因果關聯。"
+            }
+          ],
+          "keyPoints": [
+            "【心理學史】：Jung 與物理學家 Pauli 曾共同探討 synchronicity 原理。"
+          ]
+        }
+      },
+      {
+        "word": "synchronizer",
+        "kk": "[ˈsɪŋkrəˌnaɪzɚ]",
+        "ipa": "/ˈsɪŋkrənaɪzər/",
+        "pos": "n.",
+        "meaning": "同步器、同步裝置、協調器",
+        "formula": {
+          "parts": [
+            {
+              "text": "synchronize",
+              "role": "base",
+              "meaning": "使同步"
+            },
+            {
+              "text": "-er",
+              "role": "suffix",
+              "meaning": "裝置工具"
+            }
+          ],
+          "resultMeaning": "強制使兩組獨立機械或電子信號維持完全相同步調的裝置 ➔「同步器」"
+        },
+        "sentence": "Manual automotive transmissions incorporate brass synchronizers to match gear speeds seamlessly during shifting.",
+        "sentenceZh": "手排汽車變速箱內建黃銅同步齒輪，以便在換檔過程中無縫匹配齒輪轉速。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "Manual automotive transmissions",
+              "role": "主詞 (Subject)",
+              "note": "手排變速箱。"
+            },
+            {
+              "part": "incorporate brass synchronizers",
+              "role": "動詞與受詞",
+              "note": "包含同步器。"
+            },
+            {
+              "part": "to match gear speeds seamlessly",
+              "role": "目的狀語",
+              "note": "無縫匹配齒輪速度。"
+            },
+            {
+              "part": "during shifting",
+              "role": "時間狀語",
+              "note": "換檔期間。"
+            }
+          ],
+          "keyPoints": [
+            "【汽車工程】：synchromesh (同步嚙合裝置)。"
+          ]
+        }
+      },
+      {
+        "word": "isochronous",
+        "kk": "[aɪˈsɑkrənəs]",
+        "ipa": "/aɪˈsɑːkrənəs/",
+        "pos": "adj.",
+        "meaning": "等時的、週期相同的、同步勻速的",
+        "formula": {
+          "parts": [
+            {
+              "text": "iso-",
+              "role": "prefix",
+              "meaning": "相同、相等 (equal)"
+            },
+            {
+              "text": "chron",
+              "role": "root",
+              "meaning": "時間"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "擺動振盪經歷之時間長度完全恆定相同的 ➔「等時的」"
+        },
+        "sentence": "Galileo observed the isochronous property of pendulums, noting each swing took equal time regardless of amplitude.",
+        "sentenceZh": "伽利略觀察到了鐘擺的等時性特質，注意到無論振幅大小如何，每次擺動耗費的時間完全相等。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participial Clause (noting That Clause)",
+          "breakdown": [
+            {
+              "part": "Galileo",
+              "role": "主詞 (Subject)",
+              "note": "伽利略。"
+            },
+            {
+              "part": "observed the isochronous property of pendulums",
+              "role": "動詞與受詞",
+              "note": "觀察單擺等時性。"
+            },
+            {
+              "part": "noting each swing took equal time",
+              "role": "伴隨分詞子句",
+              "note": "注意到擺動時間均等。"
+            }
+          ],
+          "keyPoints": [
+            "【物理定律】：isochronism of the pendulum (單擺等時性原理)。"
           ]
         }
       }
@@ -3378,6 +8445,620 @@ const ETYMO_DATA = [
             "【字根字尾】：-ory 表感覺器官形容詞，如 auditory (聽覺的)、sensory (感官的)、olfactory (嗅覺的)。"
           ]
         }
+      },
+      {
+        "word": "inaudible",
+        "kk": "[ɪnˈɔdəb!]",
+        "ipa": "/ɪnˈɔːdəbl/",
+        "pos": "adj.",
+        "meaning": "聽不見的、微弱無聲的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、非"
+            },
+            {
+              "text": "audi",
+              "role": "root",
+              "meaning": "聽"
+            },
+            {
+              "text": "-ible",
+              "role": "suffix",
+              "meaning": "能夠被...的"
+            }
+          ],
+          "resultMeaning": "聲音頻率或音量超出耳朵感知極限而無法聽見的 ➔「聽不見的」"
+        },
+        "sentence": "Dog whistles emit high-frequency ultrasonic vibrations that are completely inaudible to human ears.",
+        "sentenceZh": "犬笛能發出高頻超音波震動，這對人類耳朵而言是完全聽不見的。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Dog whistles",
+              "role": "主詞 (Subject)",
+              "note": "犬笛。"
+            },
+            {
+              "part": "emit",
+              "role": "及物動詞 (Verb)",
+              "note": "散發。"
+            },
+            {
+              "part": "high-frequency ultrasonic vibrations",
+              "role": "受詞 (Object)",
+              "note": "超音波震動。"
+            },
+            {
+              "part": "that are completely inaudible to human ears",
+              "role": "關係子句",
+              "note": "inaudible to (對...聽不見)。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：audible / inaudible to someone (對某人可聽見/不可聽見)。"
+          ]
+        }
+      },
+      {
+        "word": "audiovisual",
+        "kk": "[ˌɔdɪoˈvɪʒʊəl]",
+        "ipa": "/ˌɔːdioʊˈvɪʒuəl/",
+        "pos": "adj. / n.",
+        "meaning": "視聽的；(n.) 視聽教材器材",
+        "formula": {
+          "parts": [
+            {
+              "text": "audio-",
+              "role": "root",
+              "meaning": "聽覺聲音"
+            },
+            {
+              "text": "visual",
+              "role": "base",
+              "meaning": "視覺圖像"
+            }
+          ],
+          "resultMeaning": "結合耳朵聆聽與眼睛觀看雙重感官體驗的 ➔「視聽的」"
+        },
+        "sentence": "Modern lecture halls are equipped with advanced audiovisual apparatus to facilitate immersive remote learning.",
+        "sentenceZh": "現代演講廳配備了先進的視聽器材，以促進沉浸式的遠距學習。",
+        "grammar": {
+          "pattern": "S + Passive Verb (are equipped with O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Modern lecture halls",
+              "role": "主詞 (Subject)",
+              "note": "演講廳。"
+            },
+            {
+              "part": "are equipped with",
+              "role": "動詞片語被動態",
+              "note": "配備有...。"
+            },
+            {
+              "part": "advanced audiovisual apparatus",
+              "role": "介系詞受詞",
+              "note": "視聽設備 (apparatus 單複同形)。"
+            },
+            {
+              "part": "to facilitate remote learning",
+              "role": "目的狀語",
+              "note": "facilitate (促進)。"
+            }
+          ],
+          "keyPoints": [
+            "【感官疊合】：audio (聽) + visual (視) ➔ audiovisual (AV 視聽)。"
+          ]
+        }
+      },
+      {
+        "word": "audiology",
+        "kk": "[ɔdɪˈɑlədʒɪ]",
+        "ipa": "/ɔːdiˈɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "聽力學、聽覺學",
+        "formula": {
+          "parts": [
+            {
+              "text": "audio-",
+              "role": "root",
+              "meaning": "聽覺"
+            },
+            {
+              "text": "-logy",
+              "role": "suffix",
+              "meaning": "學科"
+            }
+          ],
+          "resultMeaning": "診斷聽力障礙與平衡器官病變之臨床醫學 ➔「聽力學」"
+        },
+        "sentence": "Clinical specialists in audiology utilize pure-tone audiometry to detect subtle cochlear hearing impairment.",
+        "sentenceZh": "聽力學臨床專家利用純音聽力檢查技術，來檢測細微的耳蝸聽力損傷。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Clinical specialists in audiology",
+              "role": "主詞 (Subject)",
+              "note": "聽力學專家。"
+            },
+            {
+              "part": "utilize",
+              "role": "及物動詞 (Verb)",
+              "note": "利用。"
+            },
+            {
+              "part": "pure-tone audiometry",
+              "role": "受詞 (Object)",
+              "note": "純音聽力測量。"
+            },
+            {
+              "part": "to detect cochlear hearing impairment",
+              "role": "目的狀語",
+              "note": "impairment (損傷)。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專科】：audiologist (聽力師)。"
+          ]
+        }
+      },
+      {
+        "word": "audiophile",
+        "kk": "[ˈɔdɪoˌfaɪl]",
+        "ipa": "/ˈɔːdioʊfaɪl/",
+        "pos": "n.",
+        "meaning": "發燒友、高傳真音響狂熱者",
+        "formula": {
+          "parts": [
+            {
+              "text": "audio-",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "-phile",
+              "role": "suffix",
+              "meaning": "熱愛者 (希臘語 philos)"
+            }
+          ],
+          "resultMeaning": "對錄音音質與音響硬體重現度極度狂熱追求的人 ➔「音響發燒友」"
+        },
+        "sentence": "The devoted audiophile invested fortunes in gold-plated vacuum tube amplifiers and acoustic dampening panels.",
+        "sentenceZh": "這位忠實的音響發燒友在鍍金真空管擴大機與聲學吸音板上投入了巨資。",
+        "grammar": {
+          "pattern": "S + Vt (invested O in...)",
+          "breakdown": [
+            {
+              "part": "The devoted audiophile",
+              "role": "主詞 (Subject)",
+              "note": "發燒友。"
+            },
+            {
+              "part": "invested fortunes",
+              "role": "及物動詞與受詞",
+              "note": "投資重金。"
+            },
+            {
+              "part": "in vacuum tube amplifiers and dampening panels",
+              "role": "介系詞受詞",
+              "note": "真空管擴大機。"
+            }
+          ],
+          "keyPoints": [
+            "【愛好字尾】：-phile 表熱愛者，如 bibliophile (愛書狂), cinephile (影癡)。"
+          ]
+        }
+      },
+      {
+        "word": "audiometer",
+        "kk": "[ˌɔdɪˈɑmətɚ]",
+        "ipa": "/ˌɔːdiˈɑːmɪtər/",
+        "pos": "n.",
+        "meaning": "聽力計、聽力測量儀",
+        "formula": {
+          "parts": [
+            {
+              "text": "audio-",
+              "role": "root",
+              "meaning": "聽覺"
+            },
+            {
+              "text": "meter",
+              "role": "root",
+              "meaning": "測量儀"
+            }
+          ],
+          "resultMeaning": "精確校準人耳對不同頻率聲音響應之醫療測量器 ➔「聽力計」"
+        },
+        "sentence": "During the pre-employment physical screening, a calibrated audiometer measured the pilot's auditory threshold.",
+        "sentenceZh": "在職前體檢篩檢中，一台經過校準的聽力計量測了該飛行員的聽力閾值。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt + O",
+          "breakdown": [
+            {
+              "part": "During the physical screening",
+              "role": "時間介系詞片語",
+              "note": "體檢篩檢。"
+            },
+            {
+              "part": "a calibrated audiometer",
+              "role": "主詞 (Subject)",
+              "note": "校準聽力計。"
+            },
+            {
+              "part": "measured",
+              "role": "及物動詞 (Verb)",
+              "note": "測量。"
+            },
+            {
+              "part": "the pilot's auditory threshold",
+              "role": "受詞 (Object)",
+              "note": "聽覺閾值。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學名詞】：auditory threshold (聽力門檻值)。"
+          ]
+        }
+      },
+      {
+        "word": "auditor",
+        "kk": "[ˈɔdɪtɚ]",
+        "ipa": "/ˈɔːdɪtər/",
+        "pos": "n.",
+        "meaning": "審計員、查帳員、旁聽生",
+        "formula": {
+          "parts": [
+            {
+              "text": "audit",
+              "role": "root",
+              "meaning": "查核、聽"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "原指坐在法庭聆聽口頭財務陳述之人，現指正式查帳會計專家 ➔「審計員」"
+        },
+        "sentence": "Independent external auditors discovered significant discrepancy between reported inventory and actual warehouse stock.",
+        "sentenceZh": "獨立外部審計員發現通報的存貨與實際倉庫庫存之間存在重大出入。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (between A and B)",
+          "breakdown": [
+            {
+              "part": "Independent external auditors",
+              "role": "主詞 (Subject)",
+              "note": "外部審計員。"
+            },
+            {
+              "part": "discovered",
+              "role": "及物動詞 (Verb)",
+              "note": "發現。"
+            },
+            {
+              "part": "significant discrepancy",
+              "role": "受詞 (Object)",
+              "note": "重大出入差異。"
+            },
+            {
+              "part": "between reported inventory and actual warehouse stock",
+              "role": "介系詞受詞",
+              "note": "存貨對比。"
+            }
+          ],
+          "keyPoints": [
+            "【會計審計】：discrepancy between A and B (A 與 B 之間的不符之處)。"
+          ]
+        }
+      },
+      {
+        "word": "audition",
+        "kk": "[ɔˈdɪʃən]",
+        "ipa": "/ɔːˈdɪʃn/",
+        "pos": "n. / v.",
+        "meaning": "試鏡、試音、試演；(v.) 參加試演",
+        "formula": {
+          "parts": [
+            {
+              "text": "audi",
+              "role": "root",
+              "meaning": "聽 (hear)"
+            },
+            {
+              "text": "-ition",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "評審傾聽鑑賞演員演奏歌唱水準之現場選拔 ➔「試鏡、試音」"
+        },
+        "sentence": "Hundreds of aspiring vocalists queued outside the studio hoping to secure an audition for the Broadway musical.",
+        "sentenceZh": "數百名心懷抱負的歌手在錄音室外大排長龍，希望能獲得百老匯音樂劇的試演機會。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase of Place + Participle Phrase of Purpose",
+          "breakdown": [
+            {
+              "part": "Hundreds of aspiring vocalists",
+              "role": "主詞 (Subject)",
+              "note": "有抱負的歌手。"
+            },
+            {
+              "part": "queued",
+              "role": "不及物動詞 (Verb)",
+              "note": "排隊。"
+            },
+            {
+              "part": "outside the studio",
+              "role": "地點狀語",
+              "note": "在工作室外。"
+            },
+            {
+              "part": "hoping to secure an audition",
+              "role": "現在分詞伴隨期望",
+              "note": "希望獲得試鏡。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用搭配】：audition for a role (參加某角色試鏡)。"
+          ]
+        }
+      },
+      {
+        "word": "auditing",
+        "kk": "[ˈɔdɪtɪŋ]",
+        "ipa": "/ˈɔːdɪtɪŋ/",
+        "pos": "n.",
+        "meaning": "審計查帳、稽核業務",
+        "formula": {
+          "parts": [
+            {
+              "text": "audit",
+              "role": "base",
+              "meaning": "旁聽、審計"
+            },
+            {
+              "text": "-ing",
+              "role": "suffix",
+              "meaning": "名詞字尾 (行為過程)"
+            }
+          ],
+          "resultMeaning": "由獨立審計師聆聽答辯檢驗帳冊真實性之查核 ➔「審計稽核」"
+        },
+        "sentence": "Rigorous forensic auditing exposed systemic accounting irregularities hidden inside the conglomerate's offshore subsidiaries.",
+        "sentenceZh": "嚴格的鑑識會計審計揭發了隱藏在該跨國集團離岸子公司內部的結構性會計違規問題。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Rigorous forensic auditing",
+              "role": "主詞 (Subject)",
+              "note": "鑑識會計審計。"
+            },
+            {
+              "part": "exposed",
+              "role": "及物動詞 (Verb)",
+              "note": "揭發。"
+            },
+            {
+              "part": "systemic accounting irregularities",
+              "role": "受詞 (Object)",
+              "note": "會計舞弊不正規行為。"
+            },
+            {
+              "part": "hidden inside offshore subsidiaries",
+              "role": "過去分詞片語修飾 irregularities",
+              "note": "隱蔽於子公司。"
+            }
+          ],
+          "keyPoints": [
+            "【財會名詞】：internal auditing (內部稽核), forensic auditing (鑑識審計)。"
+          ]
+        }
+      },
+      {
+        "word": "audiogram",
+        "kk": "[ˈɔdɪoˌgræm]",
+        "ipa": "/ˈɔːdioʊɡræm/",
+        "pos": "n.",
+        "meaning": "聽力圖 (顯示各音頻聽力閾值的圖表)",
+        "formula": {
+          "parts": [
+            {
+              "text": "audi",
+              "role": "root",
+              "meaning": "聽力"
+            },
+            {
+              "text": "gram",
+              "role": "root",
+              "meaning": "圖表、字圖"
+            }
+          ],
+          "resultMeaning": "將耳朵在各個頻率能聽到的最小分貝數描畫記錄成圖 ➔「聽力圖」"
+        },
+        "sentence": "The otolaryngologist reviewed the patient's audiogram, noting significant sensorineural hearing loss at high frequencies.",
+        "sentenceZh": "耳鼻喉科醫師檢視了病患的聽力圖，注意到高頻部分有顯著的感音神經性聽力損失。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participial Clause (noting O)",
+          "breakdown": [
+            {
+              "part": "The otolaryngologist",
+              "role": "主詞 (Subject)",
+              "note": "耳鼻喉科醫師。"
+            },
+            {
+              "part": "reviewed the patient's audiogram",
+              "role": "動詞與受詞",
+              "note": "檢閱聽力圖。"
+            },
+            {
+              "part": "noting significant hearing loss at high frequencies",
+              "role": "伴隨分詞狀語",
+              "note": "注意到高頻聽損。"
+            }
+          ],
+          "keyPoints": [
+            "【醫療專詞】：pure-tone audiogram (純音聽力圖)。"
+          ]
+        }
+      },
+      {
+        "word": "audiometry",
+        "kk": "[ˌɔdɪˈɑmətrɪ]",
+        "ipa": "/ˌɔːdiˈɑːmətri/",
+        "pos": "n.",
+        "meaning": "聽力測定法、聽力檢查學",
+        "formula": {
+          "parts": [
+            {
+              "text": "audi",
+              "role": "root",
+              "meaning": "聽力"
+            },
+            {
+              "text": "-metry",
+              "role": "suffix",
+              "meaning": "測量法 (measure)"
+            }
+          ],
+          "resultMeaning": "使用專用儀器精確量測人體聽力敏感度閾值之診斷技術 ➔「聽力檢查測定」"
+        },
+        "sentence": "Routine industrial audiometry helps safety compliance officers detect early noise-induced hearing damage among miners.",
+        "sentenceZh": "例行性工業聽力測定有助於安全法規官員提早察覺礦工因噪音引起的早期聽力損傷。",
+        "grammar": {
+          "pattern": "S + Vt (helps) + O + Bare Infinitive (detect O)",
+          "breakdown": [
+            {
+              "part": "Routine industrial audiometry",
+              "role": "主詞 (Subject)",
+              "note": "常規工業聽力檢測。"
+            },
+            {
+              "part": "helps safety compliance officers detect",
+              "role": "help + O + (to) V 結構",
+              "note": "協助官員察覺。"
+            },
+            {
+              "part": "early noise-induced hearing damage",
+              "role": "受詞 (Object)",
+              "note": "噪音性聽損。"
+            }
+          ],
+          "keyPoints": [
+            "【職業健康】：impedance audiometry (阻抗聽力檢查)。"
+          ]
+        }
+      },
+      {
+        "word": "audiogenic",
+        "kk": "[ˌɔdɪoˈdʒɛnɪk]",
+        "ipa": "/ˌɔːdioʊˈdʒenɪk/",
+        "pos": "adj.",
+        "meaning": "聲音誘發的、聲源引起的 (如聲源性癲癇)",
+        "formula": {
+          "parts": [
+            {
+              "text": "audi",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "產生、引起"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "完全由特定音量或頻率之刺耳聲音刺激所直接誘發的 ➔「聲源誘發的」"
+        },
+        "sentence": "Laboratory mice with specific genetic mutations demonstrated susceptibility to audiogenic seizures triggered by high-pitched sirens.",
+        "sentenceZh": "帶有特定基因突變的實驗室小鼠對高頻警報聲所誘發的聲源性癲癇展現出易感性。",
+        "grammar": {
+          "pattern": "S + Prep Phrase + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Laboratory mice with genetic mutations",
+              "role": "主詞 (Subject)",
+              "note": "突變小鼠。"
+            },
+            {
+              "part": "demonstrated",
+              "role": "及物動詞 (Verb)",
+              "note": "展現出。"
+            },
+            {
+              "part": "susceptibility to audiogenic seizures",
+              "role": "受詞 (Object)",
+              "note": "對聲誘發癲癇的易感性。"
+            },
+            {
+              "part": "triggered by high-pitched sirens",
+              "role": "過去分詞片語修飾 seizures",
+              "note": "由警報聲觸發。"
+            }
+          ],
+          "keyPoints": [
+            "【神經科學】：audiogenic seizure (聲源性癲癇發作)。"
+          ]
+        }
+      },
+      {
+        "word": "audiologist",
+        "kk": "[ˌɔdɪˈɑlədʒɪst]",
+        "ipa": "/ˌɔːdiˈɑːlədʒɪst/",
+        "pos": "n.",
+        "meaning": "聽力學家、聽力治療師",
+        "formula": {
+          "parts": [
+            {
+              "text": "audiology",
+              "role": "base",
+              "meaning": "聽力學"
+            },
+            {
+              "text": "-ist",
+              "role": "suffix",
+              "meaning": "專業人士"
+            }
+          ],
+          "resultMeaning": "專門評估診斷與復健聽力障礙之醫療專門醫師 ➔「聽力專家」"
+        },
+        "sentence": "The certified audiologist customized and programmed digital hearing aids to match the elderly veteran's unique frequency needs.",
+        "sentenceZh": "這位執業聽力師訂製並調整了數位助聽器，以完美匹配這位高齡退伍軍人獨特的音頻需求。",
+        "grammar": {
+          "pattern": "S + Vt1 + and + Vt2 + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The certified audiologist",
+              "role": "主詞 (Subject)",
+              "note": "執照聽力師。"
+            },
+            {
+              "part": "customized and programmed digital hearing aids",
+              "role": "對等動詞與受詞",
+              "note": "客製並程式化助聽器。"
+            },
+            {
+              "part": "to match unique frequency needs",
+              "role": "目的狀語",
+              "note": "符合頻率需求。"
+            }
+          ],
+          "keyPoints": [
+            "【醫療執照】：Audiologist 是合格聽力與平衡系統專家。"
+          ]
+        }
       }
     ],
     "article": {
@@ -3689,6 +9370,640 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【介系詞 + V-ing】：before, after, while 後接動名詞是英文極常使用的時間緊縮結構。",
             "【演講搭配】：deliver a lecture / give a speech / make a presentation 皆為道地演講動詞搭配。"
+          ]
+        }
+      },
+      {
+        "word": "microwave",
+        "kk": "[ˈmaɪkrəˌwev]",
+        "ipa": "/ˈmaɪkrəweɪv/",
+        "pos": "n. / v.",
+        "meaning": "微波、微波爐；(v.) 微波加熱",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "wave",
+              "role": "base",
+              "meaning": "波長、電磁波"
+            }
+          ],
+          "resultMeaning": "波長介於公釐至公尺間之高頻電磁短波 ➔「微波、微波爐」"
+        },
+        "sentence": "Satellite communications utilize electromagnetic microwave frequencies to transmit weather radar data through cloud cover.",
+        "sentenceZh": "人造衛星通訊利用電磁微波頻率穿透雲層傳輸氣象雷達數據。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Satellite communications",
+              "role": "主詞 (Subject)",
+              "note": "衛星通訊。"
+            },
+            {
+              "part": "utilize",
+              "role": "及物動詞 (Verb)",
+              "note": "利用。"
+            },
+            {
+              "part": "electromagnetic microwave frequencies",
+              "role": "受詞 (Object)",
+              "note": "微波頻率。"
+            },
+            {
+              "part": "to transmit weather radar data",
+              "role": "目的狀語",
+              "note": "傳輸雷達數據。"
+            }
+          ],
+          "keyPoints": [
+            "【生活雙關】：microwave 作名詞可表「微波爐」，亦可作動詞「微波食品」。"
+          ]
+        }
+      },
+      {
+        "word": "microbiology",
+        "kk": "[ˌmaɪkrobaɪˈɑlədʒɪ]",
+        "ipa": "/ˌmaɪkroʊbaɪˈɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "微生物學",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "bio",
+              "role": "root",
+              "meaning": "生命"
+            },
+            {
+              "text": "-logy",
+              "role": "suffix",
+              "meaning": "學科"
+            }
+          ],
+          "resultMeaning": "研究細菌、病毒與真菌等微小肉眼不可見生物之學門 ➔「微生物學」"
+        },
+        "sentence": "Courses in clinical microbiology provide medical students with hands-on training in identifying resistant pathogens.",
+        "sentenceZh": "臨床微生物學課程為醫學生提供了辨識抗藥性病原體的實作訓練。",
+        "grammar": {
+          "pattern": "S + Vt (provide A with B)",
+          "breakdown": [
+            {
+              "part": "Courses in clinical microbiology",
+              "role": "主詞 (Subject)",
+              "note": "微生物學課程。"
+            },
+            {
+              "part": "provide",
+              "role": "及物動詞 (Verb)",
+              "note": "provide someone with something。"
+            },
+            {
+              "part": "medical students",
+              "role": "受詞 A",
+              "note": "醫學生。"
+            },
+            {
+              "part": "with hands-on training in identifying pathogens",
+              "role": "受詞 B",
+              "note": "實作訓練。"
+            }
+          ],
+          "keyPoints": [
+            "【句型搭配】：provide someone with something (提供某人某物)。"
+          ]
+        }
+      },
+      {
+        "word": "microprocessor",
+        "kk": "[ˌmaɪkroˈprɑsɛsɚ]",
+        "ipa": "/ˌmaɪkroʊˈprɑːsesər/",
+        "pos": "n.",
+        "meaning": "微處理器、晶片中央運算核心",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微型"
+            },
+            {
+              "text": "processor",
+              "role": "base",
+              "meaning": "處理器"
+            }
+          ],
+          "resultMeaning": "將中央處理器 (CPU) 所有邏輯運算電路整合於單一微型晶片上 ➔「微處理器」"
+        },
+        "sentence": "The latest silicon microprocessor architecture incorporates billions of microscopic transistors onto a nanometer-scale die.",
+        "sentenceZh": "最新的矽微處理器架構將數十億顆微型電晶體整合在奈米級別的晶粒上。",
+        "grammar": {
+          "pattern": "S + Vt (incorporates A onto B)",
+          "breakdown": [
+            {
+              "part": "The latest silicon microprocessor architecture",
+              "role": "主詞 (Subject)",
+              "note": "微處理器架構。"
+            },
+            {
+              "part": "incorporates",
+              "role": "及物動詞 (Verb)",
+              "note": "納入整合。"
+            },
+            {
+              "part": "billions of microscopic transistors",
+              "role": "直接受詞 (Object)",
+              "note": "數十億電晶體。"
+            },
+            {
+              "part": "onto a nanometer-scale die",
+              "role": "介系詞片語",
+              "note": "奈米晶粒。"
+            }
+          ],
+          "keyPoints": [
+            "【半導體核心】：die 在半導體製造中專指自晶圓切割下的「單顆晶片晶粒」。"
+          ]
+        }
+      },
+      {
+        "word": "microclimate",
+        "kk": "[ˈmaɪkroˌklaɪmɪt]",
+        "ipa": "/ˈmaɪkroʊklaɪmət/",
+        "pos": "n.",
+        "meaning": "微氣候、局部小氣候",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "climate",
+              "role": "base",
+              "meaning": "氣候"
+            }
+          ],
+          "resultMeaning": "小範圍局地區域所特有的獨特局部溫濕度氣候 ➔「微氣候」"
+        },
+        "sentence": "Surrounded by rolling coastal hills, the sheltered valley produces a unique Mediterranean microclimate ideal for premium viticulture.",
+        "sentenceZh": "在綿延海岸山丘環抱下，這座庇護的山谷產生了獨特的地中海微氣候，非常適合頂級葡萄種植。",
+        "grammar": {
+          "pattern": "Participle Phrase + S + Vt + O + Adj Phrase (ideal for...)",
+          "breakdown": [
+            {
+              "part": "Surrounded by rolling coastal hills",
+              "role": "過去分詞片語修飾主詞",
+              "note": "被環抱。"
+            },
+            {
+              "part": "the sheltered valley",
+              "role": "主詞 (Subject)",
+              "note": "受庇護山谷。"
+            },
+            {
+              "part": "produces",
+              "role": "及物動詞 (Verb)",
+              "note": "產生。"
+            },
+            {
+              "part": "a unique Mediterranean microclimate",
+              "role": "受詞 (Object)",
+              "note": "地中海微氣候。"
+            },
+            {
+              "part": "ideal for premium viticulture",
+              "role": "形容詞片語後位修飾",
+              "note": "viticulture (葡萄栽種學)。"
+            }
+          ],
+          "keyPoints": [
+            "【農業詞彙】：viticulture (葡萄種植釀造學)。"
+          ]
+        }
+      },
+      {
+        "word": "microcomputer",
+        "kk": "[ˈmaɪkro-kəmˌpjutɚ]",
+        "ipa": "/ˈmaɪkroʊkəmˈpjuːtər/",
+        "pos": "n.",
+        "meaning": "微型電腦、個人電腦 (早年 PC 統稱)",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "computer",
+              "role": "base",
+              "meaning": "電腦"
+            }
+          ],
+          "resultMeaning": "基於微處理器技術打造的桌上型小型個人運算機 ➔「微型電腦」"
+        },
+        "sentence": "The introduction of the commercial microcomputer in the late 1970s decentralized computing power away from corporate mainframes.",
+        "sentenceZh": "1970 年代後期商用微型電腦的推出，將運算能力從企業大型主機中去中心化分散開來。",
+        "grammar": {
+          "pattern": "S + Prep Phrase + Vt (decentralized A away from B)",
+          "breakdown": [
+            {
+              "part": "The introduction of the microcomputer",
+              "role": "主詞 (Subject)",
+              "note": "微電腦推出。"
+            },
+            {
+              "part": "in the late 1970s",
+              "role": "時間狀語",
+              "note": "70年代末。"
+            },
+            {
+              "part": "decentralized computing power",
+              "role": "動詞與受詞",
+              "note": "分散運算力。"
+            },
+            {
+              "part": "away from corporate mainframes",
+              "role": "介系詞受詞",
+              "note": "脫離主機。"
+            }
+          ],
+          "keyPoints": [
+            "【電腦史】：mainframe (大型主機) ➔ minicomputer (迷你機) ➔ microcomputer (微電腦/PC)。"
+          ]
+        }
+      },
+      {
+        "word": "microfilm",
+        "kk": "[ˈmaɪkrəˌfɪlm]",
+        "ipa": "/ˈmaɪkrəfɪlm/",
+        "pos": "n. / v.",
+        "meaning": "縮微膠卷、縮影底片；(v.) 拍攝縮微膠片",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "film",
+              "role": "base",
+              "meaning": "膠卷、底片"
+            }
+          ],
+          "resultMeaning": "將大量圖書檔案縮小拍攝於微型膠片上以長久典藏 ➔「縮微膠卷」"
+        },
+        "sentence": "National archives preserved century-old newspapers on durable microfilm to protect fragile cellulose paper from deterioration.",
+        "sentenceZh": "國家檔案館將百年歷史的舊報紙保存於耐用的微縮膠卷上，以保護脆弱的纖維紙張免於劣化毀損。",
+        "grammar": {
+          "pattern": "S + Vt (preserved A on B) + Infinitive of Purpose (to protect O from...)",
+          "breakdown": [
+            {
+              "part": "National archives",
+              "role": "主詞 (Subject)",
+              "note": "國家檔案館。"
+            },
+            {
+              "part": "preserved century-old newspapers",
+              "role": "動詞與受詞",
+              "note": "保存報紙。"
+            },
+            {
+              "part": "on durable microfilm",
+              "role": "介系詞片語",
+              "note": "於縮微膠片。"
+            },
+            {
+              "part": "to protect fragile paper from deterioration",
+              "role": "目的狀語",
+              "note": "protect A from B。"
+            }
+          ],
+          "keyPoints": [
+            "【圖書館檔案學】：microfilm 是數位化普及前最核心的歷史典藏載體。"
+          ]
+        }
+      },
+      {
+        "word": "microscopic",
+        "kk": "[ˌmaɪkrəˈskɑpɪk]",
+        "ipa": "/ˌmaɪkrəˈskɑːpɪk/",
+        "pos": "adj.",
+        "meaning": "微觀的、肉眼不可見的、極微小的",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "scop",
+              "role": "root",
+              "meaning": "看 (look)"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "小到必須依賴顯微鏡放大鏡頭方能肉眼看見的 ➔「微觀的」"
+        },
+        "sentence": "Forensic investigators discovered microscopic glass shards lodged inside the suspect's leather boot treads.",
+        "sentenceZh": "鑑識調查人員在嫌疑人皮靴鞋底凹槽中發現了卡入其中的微小碎玻璃渣。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Forensic investigators",
+              "role": "主詞 (Subject)",
+              "note": "鑑識調查人員。"
+            },
+            {
+              "part": "discovered",
+              "role": "及物動詞 (Verb)",
+              "note": "發現。"
+            },
+            {
+              "part": "microscopic glass shards",
+              "role": "受詞 (Object)",
+              "note": "微觀玻璃碎片。"
+            },
+            {
+              "part": "lodged inside the boot treads",
+              "role": "過去分詞片語修飾 shards",
+              "note": "卡在鞋底紋路中。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：macroscopic (宏觀的、肉眼可見的)。"
+          ]
+        }
+      },
+      {
+        "word": "microfiber",
+        "kk": "[ˈmaɪkroˌfaɪbɚ]",
+        "ipa": "/ˈmaɪkroʊfaɪbər/",
+        "pos": "n.",
+        "meaning": "超細纖維、超微纖維織物",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微細"
+            },
+            {
+              "text": "fiber",
+              "role": "base",
+              "meaning": "纖維"
+            }
+          ],
+          "resultMeaning": "直徑細於一般絲綢或頭髮數十倍的人造高密度纖維 ➔「超細纖維」"
+        },
+        "sentence": "Cleaning optical lenses requires specialized lint-free microfiber cloths to prevent micro-abrasions.",
+        "sentenceZh": "清潔光學鏡片需要專門的不起毛球超細纖維布，以防止產生微細磨損刮痕。",
+        "grammar": {
+          "pattern": "Gerund Phrase (Subject) + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Cleaning optical lenses",
+              "role": "動名詞當主詞",
+              "note": "清潔光學鏡片。"
+            },
+            {
+              "part": "requires",
+              "role": "及物動詞 (Verb)",
+              "note": "需要。"
+            },
+            {
+              "part": "lint-free microfiber cloths",
+              "role": "受詞 (Object)",
+              "note": "不起毛屑超細纖維布。"
+            },
+            {
+              "part": "to prevent micro-abrasions",
+              "role": "目的狀語",
+              "note": "防止微磨損。"
+            }
+          ],
+          "keyPoints": [
+            "【日常用品】：microfiber towel (超細纖維吸水毛巾)。"
+          ]
+        }
+      },
+      {
+        "word": "micromanage",
+        "kk": "[ˌmaɪkroˈmænɪdʒ]",
+        "ipa": "/ˌmaɪkroʊˈmænɪdʒ/",
+        "pos": "v.",
+        "meaning": "事無巨細微觀管理、過度干預細節",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小細節"
+            },
+            {
+              "text": "manage",
+              "role": "base",
+              "meaning": "管理"
+            }
+          ],
+          "resultMeaning": "身居高位卻連瑣碎小節都緊抓不放嚴苛干預 ➔「微觀過度管理」"
+        },
+        "sentence": "Insecure supervisors who micromanage employee tasks extinguish morale and undermine workplace autonomy.",
+        "sentenceZh": "缺乏安全感且事無巨細微觀管控員工任務的主管，會抹滅團隊士氣並破壞職場自主性。",
+        "grammar": {
+          "pattern": "S + Relative Clause + Vt1 + O1 + and + Vt2 + O2",
+          "breakdown": [
+            {
+              "part": "Insecure supervisors",
+              "role": "主詞 (Subject)",
+              "note": "缺乏安全感的主管。"
+            },
+            {
+              "part": "who micromanage employee tasks",
+              "role": "關係子句修飾 supervisors",
+              "note": "過度管控細節。"
+            },
+            {
+              "part": "extinguish morale",
+              "role": "動詞與受詞 1",
+              "note": "抹滅士氣。"
+            },
+            {
+              "part": "and undermine workplace autonomy",
+              "role": "對等動詞與受詞 2",
+              "note": "破壞自主權。"
+            }
+          ],
+          "keyPoints": [
+            "【職場術語】：micromanagement (過度微觀管理，負面貶義詞)。"
+          ]
+        }
+      },
+      {
+        "word": "microsurgery",
+        "kk": "[ˌmaɪkroˈsɝdʒərɪ]",
+        "ipa": "/ˌmaɪkroʊˈsɜːrdʒəri/",
+        "pos": "n.",
+        "meaning": "顯微手術 (在手術顯微鏡下進行的手術)",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "顯微"
+            },
+            {
+              "text": "surgery",
+              "role": "base",
+              "meaning": "外科手術"
+            }
+          ],
+          "resultMeaning": "使用高倍率顯微鏡與微型手術刀縫合微血管神經之精細外科 ➔「顯微手術」"
+        },
+        "sentence": "Pioneering plastic surgeons utilized reconstructive microsurgery to reattach severed digits and restore nerve function.",
+        "sentenceZh": "開創性的整型外科醫師利用重建顯微手術，成功接駁斷指並恢復了神經功能。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Pioneering plastic surgeons",
+              "role": "主詞 (Subject)",
+              "note": "先驅整型外科醫師。"
+            },
+            {
+              "part": "utilized reconstructive microsurgery",
+              "role": "動詞與受詞",
+              "note": "利用重建顯微手術。"
+            },
+            {
+              "part": "to reattach severed digits and restore nerve function",
+              "role": "對等不定詞目的狀語",
+              "note": "接駁斷指並復原神經。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專長】：microsurgical anastomosis (顯微血管吻合術)。"
+          ]
+        }
+      },
+      {
+        "word": "microbiome",
+        "kk": "[ˌmaɪkroˈbaɪom]",
+        "ipa": "/ˌmaɪkroʊˈbaɪoʊm/",
+        "pos": "n.",
+        "meaning": "微生物組、微生態菌群總體",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "biome",
+              "role": "root",
+              "meaning": "生物群系"
+            }
+          ],
+          "resultMeaning": "人體腸道或特定環境中共生之全體微生物生態系統 ➔「微生態菌群」"
+        },
+        "sentence": "Nutritional scientists emphasize that dietary fiber nourishes a diverse gut microbiome essential for immune resilience.",
+        "sentenceZh": "營養學家強調，膳食纖維能滋養多元的腸道微生物菌群，這對免疫韌性至關重要。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Vt + O + Adj Phrase)",
+          "breakdown": [
+            {
+              "part": "Nutritional scientists",
+              "role": "主詞 (Subject)",
+              "note": "營養學家。"
+            },
+            {
+              "part": "emphasize",
+              "role": "及物動詞 (Verb)",
+              "note": "強調。"
+            },
+            {
+              "part": "that dietary fiber nourishes a gut microbiome",
+              "role": "受詞名詞子句",
+              "note": "膳食纖維滋養腸道菌。"
+            },
+            {
+              "part": "essential for immune resilience",
+              "role": "形容詞片語後位修飾",
+              "note": "對免疫力至關重要。"
+            }
+          ],
+          "keyPoints": [
+            "【生命科學前沿】：gut microbiome (腸道微生態、人體第二大基因庫)。"
+          ]
+        }
+      },
+      {
+        "word": "microscale",
+        "kk": "[ˌmaɪkroˈskel]",
+        "ipa": "/ˌmaɪkroʊˈskeɪl/",
+        "pos": "adj. / n.",
+        "meaning": "微觀尺度的、微型的；(n.) 微觀規模",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小"
+            },
+            {
+              "text": "scale",
+              "role": "base",
+              "meaning": "尺度、規模"
+            }
+          ],
+          "resultMeaning": "尺寸大小位在微米等級之微小度量範圍 ➔「微觀尺度的」"
+        },
+        "sentence": "Microfluidic lab-on-a-chip chips manipulate chemical reactions at a microscale using tiny capillary channels.",
+        "sentenceZh": "微流控晶片實驗室利用微型微血管通道，在微觀尺度下精確操控化學反應。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Microfluidic lab-on-a-chip chips",
+              "role": "主詞 (Subject)",
+              "note": "微流控晶片。"
+            },
+            {
+              "part": "manipulate chemical reactions",
+              "role": "及物動詞與受詞",
+              "note": "操控化學反應。"
+            },
+            {
+              "part": "at a microscale",
+              "role": "尺度介系詞片語",
+              "note": "在微觀尺度下。"
+            },
+            {
+              "part": "using tiny capillary channels",
+              "role": "方式分詞狀語",
+              "note": "使用毛細通道。"
+            }
+          ],
+          "keyPoints": [
+            "【尺度名詞】：microscale (微觀尺度) vs. nanoscale (奈米尺度) vs. macroscale (宏觀尺度)。"
           ]
         }
       }
@@ -4009,6 +10324,630 @@ const ETYMO_DATA = [
             "【介系詞搭配】：subscribe to a magazine (訂閱雜誌)；subscribe to a belief (贊同某種理念)。"
           ]
         }
+      },
+      {
+        "word": "inscribe",
+        "kk": "[ɪnˈskraɪb]",
+        "ipa": "/ɪnˈskraɪb/",
+        "pos": "v.",
+        "meaning": "題字、雕刻銘記、銘刻於心",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "在...之上、向內"
+            },
+            {
+              "text": "scribe",
+              "role": "root",
+              "meaning": "書寫、雕鑿"
+            }
+          ],
+          "resultMeaning": "在金石碑銘表面深深刻下字跡以垂永久 ➔「題字、銘刻」"
+        },
+        "sentence": "Stone masons inscribed the fallen soldiers' names onto the polished granite memorial wall.",
+        "sentenceZh": "石匠將陣亡將士的姓名銘刻在拋光的花崗岩紀念碑牆上。",
+        "grammar": {
+          "pattern": "S + Vt (inscribed A onto B)",
+          "breakdown": [
+            {
+              "part": "Stone masons",
+              "role": "主詞 (Subject)",
+              "note": "石匠。"
+            },
+            {
+              "part": "inscribed",
+              "role": "及物動詞 (Verb)",
+              "note": "inscribe A onto B (將 A 刻在 B 上)。"
+            },
+            {
+              "part": "the fallen soldiers' names",
+              "role": "直接受詞 (Object)",
+              "note": "陣亡士兵姓名。"
+            },
+            {
+              "part": "onto the polished granite memorial wall",
+              "role": "介系詞受詞",
+              "note": "花崗岩紀念牆。"
+            }
+          ],
+          "keyPoints": [
+            "【高雅詞彙】：fallen soldiers 專指「陣亡將士犧牲者」。"
+          ]
+        }
+      },
+      {
+        "word": "transcribe",
+        "kk": "[trænˈskraɪb]",
+        "ipa": "/trænˈskraɪb/",
+        "pos": "v.",
+        "meaning": "轉錄、聽寫謄抄、改編樂曲、(生科) 轉錄",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "轉換、跨越"
+            },
+            {
+              "text": "scribe",
+              "role": "root",
+              "meaning": "寫"
+            }
+          ],
+          "resultMeaning": "跨越媒介將口說聲音轉換記錄為書面文字 ➔「謄寫、轉錄」"
+        },
+        "sentence": "The court stenographer diligently transcribed every testimony during the cross-examination.",
+        "sentenceZh": "法庭速記員在交互詰問過程中勤奮地謄寫了每一句證詞。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "The court stenographer",
+              "role": "主詞 (Subject)",
+              "note": "法庭速記員。"
+            },
+            {
+              "part": "diligently",
+              "role": "情狀副詞",
+              "note": "勤奮地。"
+            },
+            {
+              "part": "transcribed",
+              "role": "及物動詞 (Verb)",
+              "note": "轉錄謄抄。"
+            },
+            {
+              "part": "every testimony",
+              "role": "直接受詞 (Object)",
+              "note": "證詞。"
+            },
+            {
+              "part": "during the cross-examination",
+              "role": "時間狀語",
+              "note": "交互詰問。"
+            }
+          ],
+          "keyPoints": [
+            "【生物學】：DNA transcription (DNA 轉錄成 RNA)。"
+          ]
+        }
+      },
+      {
+        "word": "conscript",
+        "kk": "[kənˈskrɪpt]",
+        "ipa": "/kənˈskrɪpt/",
+        "pos": "v. / n.",
+        "meaning": "徵兵、強制徵召；(n.) 應徵入伍者",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "script",
+              "role": "root",
+              "meaning": "寫名冊"
+            }
+          ],
+          "resultMeaning": "共同將全國適齡男子的名字登記在兵役冊上強行服役 ➔「徵兵、應徵者」"
+        },
+        "sentence": "During wartime mobilization, the military was authorized to conscript able-bodied citizens for defensive duties.",
+        "sentenceZh": "在戰時總動員期間，軍方獲授權徵召身體健全的公民承擔防禦任務。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Passive Verb + to-V (to conscript O)",
+          "breakdown": [
+            {
+              "part": "During wartime mobilization",
+              "role": "時間介系詞片語",
+              "note": "戰時動員。"
+            },
+            {
+              "part": "the military",
+              "role": "主詞 (Subject)",
+              "note": "軍方。"
+            },
+            {
+              "part": "was authorized to conscript",
+              "role": "被動態謂語",
+              "note": "authorize + O + to V 的被動。"
+            },
+            {
+              "part": "able-bodied citizens",
+              "role": "受詞 (Object)",
+              "note": "身強力壯的公民。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：conscription (徵兵制) vs. volunteer military (志願募兵制)。"
+          ]
+        }
+      },
+      {
+        "word": "proscribe",
+        "kk": "[proˈskraɪb]",
+        "ipa": "/proʊˈskraɪb/",
+        "pos": "v.",
+        "meaning": "嚴禁、禁止、剝奪公權",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前、公開"
+            },
+            {
+              "text": "scribe",
+              "role": "root",
+              "meaning": "寫下名字"
+            }
+          ],
+          "resultMeaning": "古羅馬將判處死刑或剝奪財產之叛徒名單公佈寫在牆上 ➔「嚴厲禁止、放逐」"
+        },
+        "sentence": "Strict ethical regulations strictly proscribe clinicians from accepting lavish promotional gifts from pharmaceutical sales representatives.",
+        "sentenceZh": "嚴格的倫理規範嚴禁臨床醫師接受製藥業業務代表的奢華促銷禮物。",
+        "grammar": {
+          "pattern": "S + Adv + Vt (proscribe A from V-ing)",
+          "breakdown": [
+            {
+              "part": "Strict ethical regulations",
+              "role": "主詞 (Subject)",
+              "note": "倫理規範。"
+            },
+            {
+              "part": "proscribe",
+              "role": "及物動詞 (Verb)",
+              "note": "proscribe A from B 句型。"
+            },
+            {
+              "part": "clinicians",
+              "role": "受詞 A",
+              "note": "臨床醫師。"
+            },
+            {
+              "part": "from accepting lavish gifts",
+              "role": "禁止事項 B",
+              "note": "奢華禮物。"
+            }
+          ],
+          "keyPoints": [
+            "【易混淆極品對比】：prescribe (開藥方/規定) vs. proscribe (嚴禁/剝奪權利)！"
+          ]
+        }
+      },
+      {
+        "word": "scribble",
+        "kk": "[ˈskrɪb!]",
+        "ipa": "/ˈskrɪbl/",
+        "pos": "v. / n.",
+        "meaning": "潦草書寫、塗鴉；(n.) 潦草字跡",
+        "formula": {
+          "parts": [
+            {
+              "text": "scrib",
+              "role": "root",
+              "meaning": "寫"
+            },
+            {
+              "text": "-le",
+              "role": "suffix",
+              "meaning": "反覆指小動作 (frequentative)"
+            }
+          ],
+          "resultMeaning": "手腕快速反覆滑動胡亂寫字 ➔「潦草塗寫」"
+        },
+        "sentence": "The hurried journalist scribbled fragmented notes into her pocket notebook while running after the spokesperson.",
+        "sentenceZh": "匆忙的記者在追趕發言人的同時，將零碎的筆記潦草塗寫在她的口袋筆記本上。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Adv Clause (while running after O)",
+          "breakdown": [
+            {
+              "part": "The hurried journalist",
+              "role": "主詞 (Subject)",
+              "note": "匆忙記者。"
+            },
+            {
+              "part": "scribbled",
+              "role": "及物動詞 (Verb)",
+              "note": "潦草書寫。"
+            },
+            {
+              "part": "fragmented notes",
+              "role": "受詞 (Object)",
+              "note": "零星筆記。"
+            },
+            {
+              "part": "while running after the spokesperson",
+              "role": "分詞省略狀語",
+              "note": "追趕發言人。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞短語】：run after (追逐、追趕)。"
+          ]
+        }
+      },
+      {
+        "word": "postscript",
+        "kk": "[ˈpostˌskrɪpt]",
+        "ipa": "/ˈpoʊstskrɪpt/",
+        "pos": "n.",
+        "meaning": "附言、後記 (信末簡稱 P.S.)",
+        "formula": {
+          "parts": [
+            {
+              "text": "post-",
+              "role": "prefix",
+              "meaning": "在...之後 (after)"
+            },
+            {
+              "text": "script",
+              "role": "root",
+              "meaning": "寫 (written)"
+            }
+          ],
+          "resultMeaning": "信函正文寫完簽名之後附帶寫下的補充文字 ➔「附言 (P.S.)」"
+        },
+        "sentence": "In a heartfelt handwritten postscript, the grandmother reminded her grandson to visit during the winter holidays.",
+        "sentenceZh": "在一則感人至深的親筆附言中，祖母提醒孫子在寒假期間務必回家探望。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt + O + to-V (Infinitive Complement)",
+          "breakdown": [
+            {
+              "part": "In a heartfelt handwritten postscript",
+              "role": "情境介系詞片語",
+              "note": "附言。"
+            },
+            {
+              "part": "the grandmother",
+              "role": "主詞 (Subject)",
+              "note": "祖母。"
+            },
+            {
+              "part": "reminded",
+              "role": "及物動詞 (Verb)",
+              "note": "remind + O + to V (提醒某人做某事)。"
+            },
+            {
+              "part": "her grandson",
+              "role": "受詞 (Object)",
+              "note": "孫子。"
+            },
+            {
+              "part": "to visit during holidays",
+              "role": "補語",
+              "note": "探望。"
+            }
+          ],
+          "keyPoints": [
+            "【拉丁縮寫】：P.S. 的全寫即為 Post Scriptum (postscript)。"
+          ]
+        }
+      },
+      {
+        "word": "ascribe",
+        "kk": "[əˈskraɪb]",
+        "ipa": "/əˈskraɪb/",
+        "pos": "v.",
+        "meaning": "把...歸因於、認為是...所寫 (與 to 連用)",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (as-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "scrib",
+              "role": "root",
+              "meaning": "寫作 (write)"
+            }
+          ],
+          "resultMeaning": "在帳本或名冊上記寫到某人名下 ➔「歸因於、歸功於」"
+        },
+        "sentence": "Art historians ascribe the unsigned Renaissance portrait to a master painter from Leonardo da Vinci's inner circle.",
+        "sentenceZh": "藝術史學家將這幅無簽名的文藝復興肖像畫歸功於達文西核心圈內的一位大師級畫家。",
+        "grammar": {
+          "pattern": "S + Vt (ascribe A to B)",
+          "breakdown": [
+            {
+              "part": "Art historians",
+              "role": "主詞 (Subject)",
+              "note": "藝術史學家。"
+            },
+            {
+              "part": "ascribe the unsigned portrait",
+              "role": "動詞與受詞 A",
+              "note": "ascribe A to B 句型。"
+            },
+            {
+              "part": "to a master painter from Leonardo's circle",
+              "role": "歸因對象 B",
+              "note": "歸於達文西弟子。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：ascribe something to someone/something (把...歸因於...)。"
+          ]
+        }
+      },
+      {
+        "word": "circumscribe",
+        "kk": "[ˌsɝkəmˈskraɪb]",
+        "ipa": "/ˌsɜːrkəmˈskraɪb/",
+        "pos": "v.",
+        "meaning": "限制、約束、在...周圍劃線",
+        "formula": {
+          "parts": [
+            {
+              "text": "circum-",
+              "role": "prefix",
+              "meaning": "圓周、周圍"
+            },
+            {
+              "text": "scrib",
+              "role": "root",
+              "meaning": "劃線、書寫"
+            }
+          ],
+          "resultMeaning": "在周圍劃下一道界線圈住不准逾越 ➔「限制、劃定界限」"
+        },
+        "sentence": "The constitutional bill of rights strictly circumscribes governmental surveillance powers over private citizens.",
+        "sentenceZh": "憲政人權法案嚴格限制約束了政府對一般平民私權的監控權限。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The constitutional bill of rights",
+              "role": "主詞 (Subject)",
+              "note": "憲法人權法案。"
+            },
+            {
+              "part": "strictly circumscribes",
+              "role": "及物動詞片語",
+              "note": "嚴格限制。"
+            },
+            {
+              "part": "governmental surveillance powers",
+              "role": "受詞 (Object)",
+              "note": "政府監控權力。"
+            },
+            {
+              "part": "over private citizens",
+              "role": "介系詞受詞",
+              "note": "對私人公民。"
+            }
+          ],
+          "keyPoints": [
+            "【幾何與政治】：幾何上指「外接圓」；社政上指「劃線嚴加限制」。"
+          ]
+        }
+      },
+      {
+        "word": "superscript",
+        "kk": "[ˈsupɚˌskrɪpt]",
+        "ipa": "/ˈsuːpərskrɪpt/",
+        "pos": "n. / adj.",
+        "meaning": "上標字；(adj.) 上標的 (如 x²)",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在...之上"
+            },
+            {
+              "text": "script (scrib)",
+              "role": "root",
+              "meaning": "文字、書寫"
+            }
+          ],
+          "resultMeaning": "寫在一般常規基準行文字右上方的微小符號或數字 ➔「上標字」"
+        },
+        "sentence": "Typographers insert tiny superscript numerals to link citation references in technical academic papers.",
+        "sentenceZh": "排版師插入微小的上標數字，以在專業學術論文中連結引文註釋。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Typographers",
+              "role": "主詞 (Subject)",
+              "note": "排版師。"
+            },
+            {
+              "part": "insert tiny superscript numerals",
+              "role": "及物動詞與受詞",
+              "note": "插入微小上標數字。"
+            },
+            {
+              "part": "to link citation references in academic papers",
+              "role": "目的狀語",
+              "note": "連結引用出處。"
+            }
+          ],
+          "keyPoints": [
+            "【排版對比】：superscript (上標) vs. subscript (下標)。"
+          ]
+        }
+      },
+      {
+        "word": "subscript",
+        "kk": "[ˈsʌbˌskrɪpt]",
+        "ipa": "/ˈsʌbskrɪpt/",
+        "pos": "n. / adj.",
+        "meaning": "下標字；(adj.) 下標的 (如 H₂O)",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之下"
+            },
+            {
+              "text": "script (scrib)",
+              "role": "root",
+              "meaning": "文字、書寫"
+            }
+          ],
+          "resultMeaning": "印製在字元基線下方的小型符號或數值 ➔「下標字」"
+        },
+        "sentence": "Chemical molecular formulas utilize numeric subscripts to designate the exact atomic count within a compound.",
+        "sentenceZh": "化學分子式利用數值下標來標明化合物內部的確切原子數目。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Chemical molecular formulas",
+              "role": "主詞 (Subject)",
+              "note": "化學分子式。"
+            },
+            {
+              "part": "utilize numeric subscripts",
+              "role": "及物動詞與受詞",
+              "note": "利用數字下標。"
+            },
+            {
+              "part": "to designate the exact atomic count",
+              "role": "目的狀語",
+              "note": "標定原子數量。"
+            }
+          ],
+          "keyPoints": [
+            "【化學實例】：如 H₂O 中的 \"2\" 即為典型的 subscript。"
+          ]
+        }
+      },
+      {
+        "word": "nondescript",
+        "kk": "[ˌnɑndɪˈskrɪpt]",
+        "ipa": "/ˌnɑːndɪˈskrɪpt/",
+        "pos": "adj.",
+        "meaning": "毫無特色的、面目模糊平凡不起眼的",
+        "formula": {
+          "parts": [
+            {
+              "text": "non-",
+              "role": "prefix",
+              "meaning": "不、非"
+            },
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "完全"
+            },
+            {
+              "text": "script (scrib)",
+              "role": "root",
+              "meaning": "描述、寫述"
+            }
+          ],
+          "resultMeaning": "平凡普通到讓人連動筆描述外觀特點都無從下筆的 ➔「毫無特色的、不起眼的」"
+        },
+        "sentence": "The covert safehouse operated out of a nondescript gray suburban warehouse that drew zero suspicion.",
+        "sentenceZh": "該秘密安全屋設在一處不起眼的灰色郊區倉庫中運作，未引起外界任何懷疑。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase (out of...) + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The covert safehouse",
+              "role": "主詞 (Subject)",
+              "note": "秘密安全屋。"
+            },
+            {
+              "part": "operated",
+              "role": "不及物動詞 (Verb)",
+              "note": "運作。"
+            },
+            {
+              "part": "out of a nondescript gray warehouse",
+              "role": "地點介系詞片語",
+              "note": "設在不起眼倉庫。"
+            },
+            {
+              "part": "that drew zero suspicion",
+              "role": "關係子句修飾 warehouse",
+              "note": "沒引起絲毫懷疑。"
+            }
+          ],
+          "keyPoints": [
+            "【寫作生動詞彙】：nondescript building / person (面目模糊無特徵的建築或人)。"
+          ]
+        }
+      },
+      {
+        "word": "rescript",
+        "kk": "[ˈriˌskrɪpt]",
+        "ipa": "/ˈriːskrɪpt/",
+        "pos": "n.",
+        "meaning": "詔書、皇帝或教宗的敕令覆函、重寫文本",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後回覆、再次"
+            },
+            {
+              "text": "script (scrib)",
+              "role": "root",
+              "meaning": "書寫"
+            }
+          ],
+          "resultMeaning": "古代羅馬皇帝或教宗書面正式回覆請願臣民之法律詔書 ➔「敕令詔書」"
+        },
+        "sentence": "The imperial rescript granted tax exemptions and religious protections to the frontier garrison towns.",
+        "sentenceZh": "皇帝御筆敕令詔書賜予了邊陲要塞駐軍城鎮免稅待遇與宗教信仰保護。",
+        "grammar": {
+          "pattern": "S + Vt + IO + DO",
+          "breakdown": [
+            {
+              "part": "The imperial rescript",
+              "role": "主詞 (Subject)",
+              "note": "皇帝敕令。"
+            },
+            {
+              "part": "granted",
+              "role": "授與動詞 (Verb)",
+              "note": "賜予 (雙賓語)。"
+            },
+            {
+              "part": "the frontier garrison towns",
+              "role": "間接受詞 (IO)",
+              "note": "邊境衛所城鎮。"
+            },
+            {
+              "part": "tax exemptions and religious protections",
+              "role": "直接受詞 (DO)",
+              "note": "免稅與保護。"
+            }
+          ],
+          "keyPoints": [
+            "【羅馬法律史】：imperial rescript (皇帝批覆詔令，具最高法律效力)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -4325,6 +11264,635 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【不規則動詞】：weave (編織) 的三態變化為 weave - wove - woven。",
             "【機能運動俚語】：wick away moisture (排汗吸濕) 是戶外與運動機能紡織的核心專業術語。"
+          ]
+        }
+      },
+      {
+        "word": "polytechnic",
+        "kk": "[ˌpɑlɪˈtɛknɪk]",
+        "ipa": "/ˌpɑːliˈtɛknɪk/",
+        "pos": "adj. / n.",
+        "meaning": "工藝的、多種工藝技術的；(n.) 理工學院",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多種"
+            },
+            {
+              "text": "technic",
+              "role": "root",
+              "meaning": "技術工藝"
+            }
+          ],
+          "resultMeaning": "教授多種工程技術與實用工藝之高等院校 ➔「理工學院、多種工藝的」"
+        },
+        "sentence": "Graduates from the prestigious polytechnic institute were rapidly recruited by semiconductor fabrication plants.",
+        "sentenceZh": "這所享譽盛名的理工學院畢業生迅速被半導體製造廠延攬聘用。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase of Agent",
+          "breakdown": [
+            {
+              "part": "Graduates from the institute",
+              "role": "主詞 (Subject)",
+              "note": "理工學院畢業生。"
+            },
+            {
+              "part": "were rapidly recruited",
+              "role": "被動態謂語",
+              "note": "被延攬招募。"
+            },
+            {
+              "part": "by semiconductor plants",
+              "role": "施事者介系詞片語",
+              "note": "半導體廠。"
+            }
+          ],
+          "keyPoints": [
+            "【教育體系】：polytechnic institute / university (理工技術大學)。"
+          ]
+        }
+      },
+      {
+        "word": "polymath",
+        "kk": "[ˈpɑlɪˌmæθ]",
+        "ipa": "/ˈpɑːlimæθ/",
+        "pos": "n.",
+        "meaning": "博學家、通曉多門學科的大師",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多種"
+            },
+            {
+              "text": "math (mathein)",
+              "role": "root",
+              "meaning": "學習、知識 (希臘語 manthanein)"
+            }
+          ],
+          "resultMeaning": "在多門完全不同領域皆掌握極深學問的博學者 ➔「博學家」"
+        },
+        "sentence": "Leonardo da Vinci exemplified the quintessential Renaissance polymath, excelling in anatomy, engineering, and painting.",
+        "sentenceZh": "達文西體現了文藝復興時期典型的博學大師風範，在解剖學、工程學與繪畫領域皆登峰造極。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase of Elaboration (excelling in...)",
+          "breakdown": [
+            {
+              "part": "Leonardo da Vinci",
+              "role": "主詞 (Subject)",
+              "note": "達文西。"
+            },
+            {
+              "part": "exemplified",
+              "role": "及物動詞 (Verb)",
+              "note": "作為...之典範。"
+            },
+            {
+              "part": "the quintessential polymath",
+              "role": "受詞 (Object)",
+              "note": "典型博學者。"
+            },
+            {
+              "part": "excelling in anatomy, engineering, and painting",
+              "role": "分詞片語詳細說明",
+              "note": "excel in (精通擅長)。"
+            }
+          ],
+          "keyPoints": [
+            "【高階字彙】：quintessential (典型的、最精髓的)。"
+          ]
+        }
+      },
+      {
+        "word": "polytheism",
+        "kk": "[ˈpɑlɪθiˌɪzəm]",
+        "ipa": "/ˈpɑːliθiɪzəm/",
+        "pos": "n.",
+        "meaning": "多神論、多神信仰",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多個"
+            },
+            {
+              "text": "the (theos)",
+              "role": "root",
+              "meaning": "神 (god)"
+            },
+            {
+              "text": "-ism",
+              "role": "suffix",
+              "meaning": "信仰體系"
+            }
+          ],
+          "resultMeaning": "信仰崇拜許多不同掌管自然神祇之宗教觀 ➔「多神論」"
+        },
+        "sentence": "Ancient Greco-Roman religion was characterized by vibrant polytheism that worshiped diverse departmental deities.",
+        "sentenceZh": "古希臘羅馬宗教以繁盛的多神信仰為特徵，崇拜各司其職的各路神祇。",
+        "grammar": {
+          "pattern": "S + Passive Verb (was characterized by O) + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Ancient Greco-Roman religion",
+              "role": "主詞 (Subject)",
+              "note": "希臘羅馬宗教。"
+            },
+            {
+              "part": "was characterized by vibrant polytheism",
+              "role": "被動態謂語與介系詞受詞",
+              "note": "以多神論為特徵。"
+            },
+            {
+              "part": "that worshiped diverse departmental deities",
+              "role": "關係子句",
+              "note": "崇拜司能神祇。"
+            }
+          ],
+          "keyPoints": [
+            "【宗教比較】：polytheism (多神教) vs. monotheism (一神教) vs. atheism (無神論)。"
+          ]
+        }
+      },
+      {
+        "word": "polygraph",
+        "kk": "[ˈpɑlɪˌgræf]",
+        "ipa": "/ˈpɑːliɡræf/",
+        "pos": "n. / v.",
+        "meaning": "測謊機、多導生理記錄儀；(v.) 對...進行測謊",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多重"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "記錄圖像"
+            }
+          ],
+          "resultMeaning": "同時連續記錄心跳、脈搏、皮電等多重生理數據的測謊儀 ➔「測謊機」"
+        },
+        "sentence": "Defense attorneys argued that polygraph test results were inadmissible as definitive criminal trial evidence.",
+        "sentenceZh": "辯護律師主張測謊測試結果不可作為刑事審判的確鑿證據。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "Defense attorneys",
+              "role": "主詞 (Subject)",
+              "note": "辯護律師。"
+            },
+            {
+              "part": "argued",
+              "role": "及物動詞 (Verb)",
+              "note": "辯駁主張。"
+            },
+            {
+              "part": "that polygraph test results were inadmissible",
+              "role": "受詞子句",
+              "note": "inadmissible (不可採信的)。"
+            }
+          ],
+          "keyPoints": [
+            "【司法名詞】：inadmissible evidence (法庭不可採納之證據)。"
+          ]
+        }
+      },
+      {
+        "word": "polymorphic",
+        "kk": "[ˌpɑlɪˈmɔrfɪk]",
+        "ipa": "/ˌpɑːliˈmɔːrfɪk/",
+        "pos": "adj.",
+        "meaning": "多態的、具有多種形態的",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多種"
+            },
+            {
+              "text": "morph",
+              "role": "root",
+              "meaning": "型態形狀"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "同一物體在不同階段或環境呈現多種不同構造型態 ➔「多態的」"
+        },
+        "sentence": "Object-oriented software systems exploit polymorphic classes to process diverse data types through uniform interfaces.",
+        "sentenceZh": "物件導向軟體系統利用多態類別，透過統一的介面來處理多樣化的資料型別。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Object-oriented software systems",
+              "role": "主詞 (Subject)",
+              "note": "物件導向軟體系統。"
+            },
+            {
+              "part": "exploit",
+              "role": "及物動詞 (Verb)",
+              "note": "善加利用。"
+            },
+            {
+              "part": "polymorphic classes",
+              "role": "受詞 (Object)",
+              "note": "多態類別。"
+            },
+            {
+              "part": "to process diverse data types",
+              "role": "目的狀語",
+              "note": "處理資料。"
+            }
+          ],
+          "keyPoints": [
+            "【資訊軟體三大特徵】：encapsulation (封裝), inheritance (繼承), polymorphism (多態性)。"
+          ]
+        }
+      },
+      {
+        "word": "polysyllabic",
+        "kk": "[ˌpɑlɪsəˈlæbɪk]",
+        "ipa": "/ˌpɑːlisɪˈlæbɪk/",
+        "pos": "adj.",
+        "meaning": "多音節的",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多個"
+            },
+            {
+              "text": "syllable",
+              "role": "base",
+              "meaning": "音節"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "包含三個或以上音節之單字 ➔「多音節的」"
+        },
+        "sentence": "Language teachers instruct young learners to segment complex polysyllabic words into recognizable root morphemes.",
+        "sentenceZh": "語言教師指導年幼學習者將複雜的多音節單字切分拆解為可辨識的詞根語素。",
+        "grammar": {
+          "pattern": "S + Vt (instruct) + O + to-V (to segment A into B)",
+          "breakdown": [
+            {
+              "part": "Language teachers",
+              "role": "主詞 (Subject)",
+              "note": "語言教師。"
+            },
+            {
+              "part": "instruct",
+              "role": "及物動詞 (Verb)",
+              "note": "instruct + O + to V。"
+            },
+            {
+              "part": "young learners",
+              "role": "受詞 (Object)",
+              "note": "學習者。"
+            },
+            {
+              "part": "to segment polysyllabic words into morphemes",
+              "role": "補語",
+              "note": "segment A into B。"
+            }
+          ],
+          "keyPoints": [
+            "【構詞學】：monosyllabic (單音節) vs. disyllabic (雙音節) vs. polysyllabic (多音節)。"
+          ]
+        }
+      },
+      {
+        "word": "polyphonic",
+        "kk": "[ˌpɑlɪˈfɑnɪk]",
+        "ipa": "/ˌpɑːliˈfɑːnɪk/",
+        "pos": "adj.",
+        "meaning": "複音的、多聲部的、多音調的",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多"
+            },
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "由多條獨立旋律線條和諧交織發聲的 ➔「複音的」"
+        },
+        "sentence": "Renaissance choral motets are renowned for their intricate polyphonic counterpoint and ethereal harmonies.",
+        "sentenceZh": "文藝復興時期的合唱經文歌因其錯綜複雜的複音對位法與空靈和聲而享譽於世。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC (renowned for...) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Renaissance choral motets",
+              "role": "主詞 (Subject)",
+              "note": "文藝復興合唱曲。"
+            },
+            {
+              "part": "are",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "renowned for their polyphonic counterpoint",
+              "role": "主詞補語 (含介系詞片語)",
+              "note": "因複音對位聞名。"
+            },
+            {
+              "part": "and ethereal harmonies",
+              "role": "對等介系詞受詞",
+              "note": "空靈和聲。"
+            }
+          ],
+          "keyPoints": [
+            "【音樂術語】：polyphonic texture (複音音樂織體) vs. homophonic (主音的)。"
+          ]
+        }
+      },
+      {
+        "word": "polygamy",
+        "kk": "[pəˈlɪgəmɪ]",
+        "ipa": "/pəˈlɪɡəmi/",
+        "pos": "n.",
+        "meaning": "一夫多妻制或一妻多夫制、多配偶制度",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多個"
+            },
+            {
+              "text": "gam",
+              "role": "root",
+              "meaning": "婚姻 (希臘語 gamos)"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "同時擁有兩名或兩名以上法定配偶之婚制 ➔「多配偶制」"
+        },
+        "sentence": "Civil legal codes across most democratic jurisdictions strictly prohibit polygamy to safeguard marital equality.",
+        "sentenceZh": "大多數民主司法管轄區的民法法典均嚴格禁止重婚與多配偶制，以保障婚姻平等。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Civil legal codes across democratic jurisdictions",
+              "role": "主詞 (含修飾語)",
+              "note": "民法典。"
+            },
+            {
+              "part": "strictly prohibit polygamy",
+              "role": "動詞與受詞",
+              "note": "嚴格禁止多偶制。"
+            },
+            {
+              "part": "to safeguard marital equality",
+              "role": "目的狀語",
+              "note": "捍衛婚姻平等。"
+            }
+          ],
+          "keyPoints": [
+            "【人類學對比】：monogamy (一夫一妻制), polygamy (多配偶制), polyandry (一妻多夫制)。"
+          ]
+        }
+      },
+      {
+        "word": "polyatomic",
+        "kk": "[ˌpɑlɪəˈtɑmɪk]",
+        "ipa": "/ˌpɑːliəˈtɑːmɪk/",
+        "pos": "adj.",
+        "meaning": "多原子的 (由三個或更多原子組成的)",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多"
+            },
+            {
+              "text": "atom",
+              "role": "base",
+              "meaning": "原子"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "分子結構由多個化學原子以共價鍵緊密鍵結而成的 ➔「多原子的」"
+        },
+        "sentence": "Carbonate and sulfate ions are common polyatomic ions encountered throughout general chemistry laboratory experiments.",
+        "sentenceZh": "碳酸根與硫酸根離子是普通化學實驗室實驗中最常遇到的多原子離子。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Carbonate and sulfate ions",
+              "role": "主詞 (Subject)",
+              "note": "碳酸根與硫酸根。"
+            },
+            {
+              "part": "are",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "common polyatomic ions",
+              "role": "主詞補語 (名詞片語)",
+              "note": "常見多原子離子。"
+            },
+            {
+              "part": "encountered throughout chemistry experiments",
+              "role": "過去分詞片語修飾 ions",
+              "note": "在實驗中遇到。"
+            }
+          ],
+          "keyPoints": [
+            "【化學概念】：polyatomic ion (多原子離子、原子團)。"
+          ]
+        }
+      },
+      {
+        "word": "polypropylene",
+        "kk": "[ˌpɑlɪˈproplˌin]",
+        "ipa": "/ˌpɑːliˈproʊpɪliːn/",
+        "pos": "n.",
+        "meaning": "聚丙烯 (耐熱堅韌熱塑性塑膠)",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "聚合、多"
+            },
+            {
+              "text": "propylene",
+              "role": "base",
+              "meaning": "丙烯"
+            }
+          ],
+          "resultMeaning": "由數萬個丙烯單體經催化聚合而成之高分子塑料 ➔「聚丙烯」"
+        },
+        "sentence": "Laboratory equipment manufacturers utilize chemically resistant polypropylene to mold sterilizable centrifuge tubes.",
+        "sentenceZh": "實驗室設備製造商利用耐化學腐蝕的聚丙烯來模塑可高壓滅菌的離心管。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Laboratory equipment manufacturers",
+              "role": "主詞 (Subject)",
+              "note": "實驗器材商。"
+            },
+            {
+              "part": "utilize polypropylene",
+              "role": "及物動詞與受詞",
+              "note": "利用聚丙烯。"
+            },
+            {
+              "part": "to mold sterilizable centrifuge tubes",
+              "role": "目的狀語",
+              "note": "模塑滅菌離心管。"
+            }
+          ],
+          "keyPoints": [
+            "【塑膠回收標誌】：回收標誌 5 號即為 PP (Polypropylene)。"
+          ]
+        }
+      },
+      {
+        "word": "polypeptide",
+        "kk": "[ˌpɑlɪˈpɛpˌtaɪd]",
+        "ipa": "/ˌpɑːliˈpeptaɪd/",
+        "pos": "n.",
+        "meaning": "多肽、多肽鏈 (蛋白質前驅大分子)",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多個"
+            },
+            {
+              "text": "peptide",
+              "role": "base",
+              "meaning": "肽、氨基酸縮合物"
+            }
+          ],
+          "resultMeaning": "由許多氨基酸藉由肽鍵首尾相連串成之分子長鏈 ➔「多肽鏈」"
+        },
+        "sentence": "Ribosomes translate genetic mRNA code into a linear polypeptide chain that folds into an active enzyme.",
+        "sentenceZh": "核糖體將遺傳 mRNA 密碼轉譯為一條線性多肽鏈，隨後摺疊形成具活性之酵素。",
+        "grammar": {
+          "pattern": "S + Vt (translate A into B) + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Ribosomes",
+              "role": "主詞 (Subject)",
+              "note": "核糖體。"
+            },
+            {
+              "part": "translate mRNA code into a polypeptide chain",
+              "role": "動詞句型 translate A into B",
+              "note": "轉譯為多肽鏈。"
+            },
+            {
+              "part": "that folds into an active enzyme",
+              "role": "關係子句修飾 chain",
+              "note": "摺疊成酵素。"
+            }
+          ],
+          "keyPoints": [
+            "【分子生物學】：polypeptide chain (多肽鏈，蛋白質一級結構)。"
+          ]
+        }
+      },
+      {
+        "word": "polysemy",
+        "kk": "[pəˈlɪsəmɪ]",
+        "ipa": "/pəˈlɪsəmi/",
+        "pos": "n.",
+        "meaning": "一詞多義現象、多義性",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多"
+            },
+            {
+              "text": "sem",
+              "role": "root",
+              "meaning": "意義、信號 (希臘語 sema)"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "單一單字在語言歷史演化中承載多重關聯意義之現象 ➔「一詞多義」"
+        },
+        "sentence": "Computational linguists develop contextual transformer models to resolve word ambiguity arising from pervasive polysemy.",
+        "sentenceZh": "計算語言學家開發情境轉換器模型，以化解普遍存在的一詞多義現象所帶來的字詞歧義。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Computational linguists",
+              "role": "主詞 (Subject)",
+              "note": "計算語言學家。"
+            },
+            {
+              "part": "develop contextual transformer models",
+              "role": "動詞與受詞",
+              "note": "開發語境模型。"
+            },
+            {
+              "part": "to resolve word ambiguity",
+              "role": "目的狀語",
+              "note": "解決歧義。"
+            },
+            {
+              "part": "arising from pervasive polysemy",
+              "role": "現在分詞片語修飾 ambiguity",
+              "note": "源於多義性。"
+            }
+          ],
+          "keyPoints": [
+            "【語言學術語】：polysemy (多義詞，意義有衍生關聯) vs. homonymy (同形異義詞，純粹巧合)。"
           ]
         }
       }
@@ -4655,6 +12223,650 @@ const ETYMO_DATA = [
             "【介系詞搭配】：beneficial 後習慣接介系詞 to (如 beneficial to health)，不可混用 for。"
           ]
         }
+      },
+      {
+        "word": "benediction",
+        "kk": "[ˌbɛnəˈdɪkʃən]",
+        "ipa": "/ˌbɛnɪˈdɪkʃn/",
+        "pos": "n.",
+        "meaning": "祝福、賜福、謝飯禱告",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "良好"
+            },
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "說"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "說出仁愛恩惠與吉祥的誓願話語 ➔「祝福、賜福」"
+        },
+        "sentence": "At the conclusion of the solemn cathedral mass, the venerable archbishop pronounced a formal benediction upon the congregation.",
+        "sentenceZh": "在莊嚴的大教堂彌撒結束之際，德高望重的總主教對會眾宣告了正式的祝福祈禱。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt (pronounced) + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "At the conclusion of the mass",
+              "role": "時間介系詞片語",
+              "note": "彌撒尾聲。"
+            },
+            {
+              "part": "the venerable archbishop",
+              "role": "主詞 (Subject)",
+              "note": "總主教。"
+            },
+            {
+              "part": "pronounced a formal benediction",
+              "role": "及物動詞與受詞",
+              "note": "宣告賜福。"
+            },
+            {
+              "part": "upon the congregation",
+              "role": "施予對象",
+              "note": "會眾。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞搭配】：pronounce / give a benediction (宣告祝福)。"
+          ]
+        }
+      },
+      {
+        "word": "beneficiary",
+        "kk": "[ˌbɛnəˈfɪʃɪˌɛrɪ]",
+        "ipa": "/ˌbɛnɪˈfɪʃieri/",
+        "pos": "n.",
+        "meaning": "受益人、受惠者",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好處、利益"
+            },
+            {
+              "text": "fic",
+              "role": "root",
+              "meaning": "做、產生"
+            },
+            {
+              "text": "-ary",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "合法受贈信託或保險合約好處利益的人 ➔「受益人」"
+        },
+        "sentence": "The testator designated his lifelong charitable foundation as the primary beneficiary of his estate.",
+        "sentenceZh": "立遺囑人指定他終身創辦的慈善基金會作為其遺產的主要受益人。",
+        "grammar": {
+          "pattern": "S + Vt (designated A as B)",
+          "breakdown": [
+            {
+              "part": "The testator",
+              "role": "主詞 (Subject)",
+              "note": "立遺囑人。"
+            },
+            {
+              "part": "designated",
+              "role": "及物動詞 (Verb)",
+              "note": "指定 designate A as B。"
+            },
+            {
+              "part": "his lifelong charitable foundation",
+              "role": "受詞 A",
+              "note": "慈善基金會。"
+            },
+            {
+              "part": "as the primary beneficiary of his estate",
+              "role": "身份補語 B",
+              "note": "主要受益人。"
+            }
+          ],
+          "keyPoints": [
+            "【法律契約】：primary beneficiary (第一順位受益人)。"
+          ]
+        }
+      },
+      {
+        "word": "beneficence",
+        "kk": "[bəˈnɛfəsəns]",
+        "ipa": "/bəˈnɛfɪsns/",
+        "pos": "n.",
+        "meaning": "行善、善行、仁慈慈悲",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "善、好"
+            },
+            {
+              "text": "fic",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "持續不斷以行動施惠濟世的仁慈德行 ➔「行善、善行」"
+        },
+        "sentence": "In clinical ethics, the principle of beneficence obligates physicians to act in the best therapeutic interest of their patients.",
+        "sentenceZh": "在臨床倫理學中，行善原則要求醫師必須以符合病患最佳治療利益的方式行事。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt (obligates) + O + to-V",
+          "breakdown": [
+            {
+              "part": "In clinical ethics",
+              "role": "領域介系詞片語",
+              "note": "臨床倫理學。"
+            },
+            {
+              "part": "the principle of beneficence",
+              "role": "主詞 (Subject)",
+              "note": "行善原則。"
+            },
+            {
+              "part": "obligates physicians",
+              "role": "及物動詞與受詞",
+              "note": "迫使/課予義務。"
+            },
+            {
+              "part": "to act in the best therapeutic interest",
+              "role": "補語",
+              "note": "最佳利益。"
+            }
+          ],
+          "keyPoints": [
+            "【生命倫理四大原則】：autonomy (自主), non-maleficence (不傷害), beneficence (行善), justice (正義)。"
+          ]
+        }
+      },
+      {
+        "word": "beneficent",
+        "kk": "[bəˈnɛfəsənt]",
+        "ipa": "/bəˈnɛfɪsnt/",
+        "pos": "adj.",
+        "meaning": "行善的、仁慈濟世的、有益的",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好"
+            },
+            {
+              "text": "fic",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "主動從事慈善慷慨助人行為的 ➔「慈善仁愛的」"
+        },
+        "sentence": "The community celebrated the beneficent monarch whose land reforms lifted impoverished peasants out of servitude.",
+        "sentenceZh": "社區民眾讚頌這位推行土地改革使赤貧農民擺脫奴役的仁慈君王。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The community",
+              "role": "主詞 (Subject)",
+              "note": "社區。"
+            },
+            {
+              "part": "celebrated",
+              "role": "及物動詞 (Verb)",
+              "note": "慶祝讚揚。"
+            },
+            {
+              "part": "the beneficent monarch",
+              "role": "受詞 (Object)",
+              "note": "仁愛君主。"
+            },
+            {
+              "part": "whose land reforms lifted peasants out of servitude",
+              "role": "關係代名詞所有格子句",
+              "note": "whose 指代 monarch。"
+            }
+          ],
+          "keyPoints": [
+            "【關係詞所有格】：whose + 名詞引導關係子句修飾人。"
+          ]
+        }
+      },
+      {
+        "word": "benefaction",
+        "kk": "[ˌbɛnəˈfækʃən]",
+        "ipa": "/ˌbɛnɪˈfækʃn/",
+        "pos": "n.",
+        "meaning": "善行、捐贈物、恩惠",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好"
+            },
+            {
+              "text": "fact",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "親手做出的慷慨善舉或捐贈款物 ➔「恩惠、善行」"
+        },
+        "sentence": "The historic campus library stands as an enduring monument to the generous benefaction of local civic leaders.",
+        "sentenceZh": "這座歷史悠久的校園圖書館矗立著，作為當地民間領袖慷慨捐贈善舉的永恆紀念碑。",
+        "grammar": {
+          "pattern": "S + Vi (stands as SC) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The historic campus library",
+              "role": "主詞 (Subject)",
+              "note": "校園圖書館。"
+            },
+            {
+              "part": "stands as",
+              "role": "片語動詞",
+              "note": "作為、矗立為。"
+            },
+            {
+              "part": "an enduring monument",
+              "role": "主詞補語",
+              "note": "不朽紀念碑。"
+            },
+            {
+              "part": "to the generous benefaction of local civic leaders",
+              "role": "介系詞受詞",
+              "note": "市民領袖捐贈。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞片語】：stand as a monument to something (作為...的永恆見證/紀念碑)。"
+          ]
+        }
+      },
+      {
+        "word": "benignly",
+        "kk": "[bɪˈnaɪnlɪ]",
+        "ipa": "/bɪˈnaɪnli/",
+        "pos": "adv.",
+        "meaning": "仁慈地、和藹地、良性地",
+        "formula": {
+          "parts": [
+            {
+              "text": "benign",
+              "role": "base",
+              "meaning": "良性、仁慈"
+            },
+            {
+              "text": "-ly",
+              "role": "suffix",
+              "meaning": "副詞字尾"
+            }
+          ],
+          "resultMeaning": "以溫和無害且充盈慈愛的方式 ➔「和藹仁慈地」"
+        },
+        "sentence": "The elderly village elder smiled benignly as excited neighborhood children clamored around his wooden workbench.",
+        "sentenceZh": "當興奮的鄰舍孩童圍繞在他的木製工作台旁喧鬧時，年邁的村莊長老和藹地微笑著。",
+        "grammar": {
+          "pattern": "S + Vi + Adv (smiled benignly) + Adv Clause of Time (as...)",
+          "breakdown": [
+            {
+              "part": "The elderly village elder",
+              "role": "主詞 (Subject)",
+              "note": "村長者。"
+            },
+            {
+              "part": "smiled benignly",
+              "role": "不及物動詞與情狀副詞",
+              "note": "和藹地微笑。"
+            },
+            {
+              "part": "as excited children clamored around workbench",
+              "role": "時間狀語子句",
+              "note": "clamor (喧鬧叫嚷)。"
+            }
+          ],
+          "keyPoints": [
+            "【生動情態】：smile benignly (慈眉善目地微笑)。"
+          ]
+        }
+      },
+      {
+        "word": "benevolence",
+        "kk": "[bəˈnɛvələns]",
+        "ipa": "/bəˈnevələns/",
+        "pos": "n.",
+        "meaning": "仁慈、善心善意、慈惠行善",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好、善"
+            },
+            {
+              "text": "vol",
+              "role": "root",
+              "meaning": "意願、想 (will)"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "滿心只想著如何造福他人奉獻愛心的純良品質 ➔「仁慈善心」"
+        },
+        "sentence": "The philanthropic foundation was established upon principles of universal benevolence toward underprivileged communities.",
+        "sentenceZh": "該慈善基金會建立在對弱勢社群展現普世仁慈關懷的崇高原則之上。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase (upon...) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The philanthropic foundation",
+              "role": "主詞 (Subject)",
+              "note": "慈善基金會。"
+            },
+            {
+              "part": "was established upon principles",
+              "role": "被動態謂語",
+              "note": "奠基於原則。"
+            },
+            {
+              "part": "of universal benevolence toward underprivileged communities",
+              "role": "所有格修飾語",
+              "note": "對弱勢社群的普世仁愛。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞搭配】：pure benevolence (純粹的善意)。"
+          ]
+        }
+      },
+      {
+        "word": "benefic",
+        "kk": "[bəˈnɛfɪk]",
+        "ipa": "/bəˈnefɪk/",
+        "pos": "adj.",
+        "meaning": "行善的、帶來福祿吉祥的、有益健康的",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好"
+            },
+            {
+              "text": "fic (fac)",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "主動做出吉祥好事帶來喜慶安泰之影響的 ➔「行善有益的」"
+        },
+        "sentence": "Ancient astrologers considered Jupiter and Venus to be benefic celestial bodies heralding peace and prosperous harvests.",
+        "sentenceZh": "古代占星學家認為木星與金星是預示和平與五穀豐登的吉慶天體。",
+        "grammar": {
+          "pattern": "S + Vt (considered) + O + to be + SC + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Ancient astrologers",
+              "role": "主詞 (Subject)",
+              "note": "古代占星家。"
+            },
+            {
+              "part": "considered Jupiter and Venus to be benefic celestial bodies",
+              "role": "consider + O + to be + C 結構",
+              "note": "視為吉祥吉星。"
+            },
+            {
+              "part": "heralding peace and prosperous harvests",
+              "role": "現在分詞伴隨預示",
+              "note": "herald (預示昭示)。"
+            }
+          ],
+          "keyPoints": [
+            "【天文占星術語】：benefic planet (吉星，如木星與金星)。"
+          ]
+        }
+      },
+      {
+        "word": "beneficially",
+        "kk": "[ˌbɛnəˈfɪʃəlɪ]",
+        "ipa": "/ˌbenɪˈfɪʃəli/",
+        "pos": "adv.",
+        "meaning": "有益地、受益地、有利地",
+        "formula": {
+          "parts": [
+            {
+              "text": "beneficial",
+              "role": "base",
+              "meaning": "有益的"
+            },
+            {
+              "text": "-ly",
+              "role": "suffix",
+              "meaning": "副詞字尾"
+            }
+          ],
+          "resultMeaning": "對事態進程或身心健康帶來積極正面好效果地 ➔「有益地」"
+        },
+        "sentence": "Regular cardiovascular aerobic exercise beneficially modulates resting heart rate and insulin sensitivity.",
+        "sentenceZh": "規律的有氧心肺運動能對靜態心率與胰島素敏感度產生有益的調控效果。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O1 and O2",
+          "breakdown": [
+            {
+              "part": "Regular cardiovascular aerobic exercise",
+              "role": "主詞 (Subject)",
+              "note": "規律有氧運動。"
+            },
+            {
+              "part": "beneficially modulates",
+              "role": "及物動詞片語",
+              "note": "有益地調控。"
+            },
+            {
+              "part": "resting heart rate and insulin sensitivity",
+              "role": "對等受詞",
+              "note": "靜態心率與胰島素敏銳度。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學論述】：beneficially influence / affect (產生有益積極的影響)。"
+          ]
+        }
+      },
+      {
+        "word": "benefactive",
+        "kk": "[ˌbɛnəˈfæktɪv]",
+        "ipa": "/ˌbenɪˈfæktɪv/",
+        "pos": "adj. / n.",
+        "meaning": "受益格的、為他人利益所做的；(n.) 受益格",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好"
+            },
+            {
+              "text": "fact",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "在語法結構中標記行動乃是為他人利益謀福利者 ➔「受益格的」"
+        },
+        "sentence": "Linguists analyze benefactive verb affixes in indigenous tongues that denote actions performed for another's welfare.",
+        "sentenceZh": "語言學家分析本土語言中標記為他人福祉而採取行動的受益格動詞詞綴。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Linguists",
+              "role": "主詞 (Subject)",
+              "note": "語言學家。"
+            },
+            {
+              "part": "analyze benefactive verb affixes",
+              "role": "動詞與受詞",
+              "note": "分析受益格詞綴。"
+            },
+            {
+              "part": "in indigenous tongues",
+              "role": "地點狀語",
+              "note": "在原民語言中。"
+            },
+            {
+              "part": "that denote actions performed for another's welfare",
+              "role": "關係子句修飾 affixes",
+              "note": "表示為他人利益的行動。"
+            }
+          ],
+          "keyPoints": [
+            "【語法術語】：benefactive case (受益格)。"
+          ]
+        }
+      },
+      {
+        "word": "benignant",
+        "kk": "[bəˈnɪgnənt]",
+        "ipa": "/bəˈnɪɡnənt/",
+        "pos": "adj.",
+        "meaning": "慈祥和藹的、仁厚的、良性有益的",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好"
+            },
+            {
+              "text": "gen (gn)",
+              "role": "root",
+              "meaning": "天性、產生"
+            },
+            {
+              "text": "-ant",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "天性純善待人如同春風拂面般溫煦仁厚的 ➔「慈祥仁厚的」"
+        },
+        "sentence": "The elderly village physician was beloved for his benignant bedside manner and selfless community devotion.",
+        "sentenceZh": "這位鄉村老醫師因其慈祥溫暖的探病態度與無私的社區奉獻深受愛戴。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase of Reason (for his...)",
+          "breakdown": [
+            {
+              "part": "The elderly village physician",
+              "role": "主詞 (Subject)",
+              "note": "老村醫。"
+            },
+            {
+              "part": "was beloved",
+              "role": "被動態謂語",
+              "note": "深受愛戴。"
+            },
+            {
+              "part": "for his benignant bedside manner",
+              "role": "原因狀語",
+              "note": "慈祥親切的看診態度。"
+            },
+            {
+              "part": "and selfless community devotion",
+              "role": "對等原因受詞",
+              "note": "無私奉獻。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：malignant (惡毒的、惡性的)。"
+          ]
+        }
+      },
+      {
+        "word": "benignity",
+        "kk": "[bəˈnɪgnətɪ]",
+        "ipa": "/bəˈnɪɡnəti/",
+        "pos": "n.",
+        "meaning": "溫和仁慈、善舉、和藹親切",
+        "formula": {
+          "parts": [
+            {
+              "text": "benign",
+              "role": "base",
+              "meaning": "和藹良善的"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "從容寬厚對待眾人之崇高和善氣度 ➔「溫和仁慈」"
+        },
+        "sentence": "The abbey's serene courtyard radiated an aura of spiritual calm, gentle welcome, and boundless benignity.",
+        "sentenceZh": "修道院寧靜的庭院散發著一股心靈平靜、溫柔歡迎與無盡仁慈的祥和氣息。",
+        "grammar": {
+          "pattern": "S + Vt + O (an aura of O1, O2, and O3)",
+          "breakdown": [
+            {
+              "part": "The abbey's serene courtyard",
+              "role": "主詞 (Subject)",
+              "note": "修道院庭院。"
+            },
+            {
+              "part": "radiated",
+              "role": "及物動詞 (Verb)",
+              "note": "散發射出。"
+            },
+            {
+              "part": "an aura of calm, welcome, and boundless benignity",
+              "role": "受詞 (Object)",
+              "note": "寧靜與仁慈氣息。"
+            }
+          ],
+          "keyPoints": [
+            "【典雅書面語】：act of benignity (慈悲善舉)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -4966,6 +13178,650 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【雙寫字母規則】：transmit 過去式與現在分詞需雙寫 t：transmitted, transmitting。",
             "【字根字首】：trans- (跨越) + mit (送出)，同根字有 emit (發出)、admit (承認)、submit (提交)。"
+          ]
+        }
+      },
+      {
+        "word": "transcend",
+        "kk": "[trænˈsɛnd]",
+        "ipa": "/trænˈsend/",
+        "pos": "v.",
+        "meaning": "超越、凌駕、超出...的極限",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越"
+            },
+            {
+              "text": "scend",
+              "role": "root",
+              "meaning": "攀爬 (climb)"
+            }
+          ],
+          "resultMeaning": "向上攀爬跨越原本的藩籬極限 ➔「超越、凌駕」"
+        },
+        "sentence": "Masterpieces of classical music transcend linguistic and geographic boundaries to evoke shared human emotions.",
+        "sentenceZh": "古典音樂傑作超越了語言與地理的疆界，喚起全人類共有的情感。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Masterpieces of classical music",
+              "role": "主詞 (Subject)",
+              "note": "古典音樂傑作。"
+            },
+            {
+              "part": "transcend",
+              "role": "及物動詞 (Verb)",
+              "note": "跨越超越。"
+            },
+            {
+              "part": "linguistic and geographic boundaries",
+              "role": "受詞 (Object)",
+              "note": "疆界。"
+            },
+            {
+              "part": "to evoke shared human emotions",
+              "role": "目的狀語",
+              "note": "evoke (喚起)。"
+            }
+          ],
+          "keyPoints": [
+            "【哲學名詞】：transcendence (超越性)、transcendental (超驗的、卓越的)。"
+          ]
+        }
+      },
+      {
+        "word": "translucent",
+        "kk": "[trænsˈlusnt]",
+        "ipa": "/trænzˈluːsnt/",
+        "pos": "adj.",
+        "meaning": "半透明的、微透光的",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "穿過"
+            },
+            {
+              "text": "luc",
+              "role": "root",
+              "meaning": "光 (light)"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "光線能夠部分穿透射出但無法清晰透視的 ➔「半透明的」"
+        },
+        "sentence": "The architect selected frosted translucent glass panels to diffuse blinding midday sunlight across the gallery atrium.",
+        "sentenceZh": "建築師選用了磨砂半透明玻璃板，以將正午刺眼的陽光均勻漫射至美術館中庭。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The architect",
+              "role": "主詞 (Subject)",
+              "note": "建築師。"
+            },
+            {
+              "part": "selected",
+              "role": "及物動詞 (Verb)",
+              "note": "挑選。"
+            },
+            {
+              "part": "frosted translucent glass panels",
+              "role": "受詞 (Object)",
+              "note": "磨砂半透明玻璃。"
+            },
+            {
+              "part": "to diffuse blinding sunlight",
+              "role": "目的狀語",
+              "note": "diffuse (漫射擴散)。"
+            }
+          ],
+          "keyPoints": [
+            "【光學三兄弟】：transparent (完全透明) vs. translucent (半透明透光) vs. opaque (不透明)。"
+          ]
+        }
+      },
+      {
+        "word": "transient",
+        "kk": "[ˈtrænʃənt]",
+        "ipa": "/ˈtrænziənt/",
+        "pos": "adj. / n.",
+        "meaning": "短暫的、轉瞬即逝的；(n.) 短期居留者",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "穿過、跨越"
+            },
+            {
+              "text": "i (ire)",
+              "role": "root",
+              "meaning": "行走 (go)"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "一走而過、停留極短時間的 ➔「短暫的、過客」"
+        },
+        "sentence": "Poets often reflect upon the transient beauty of spring cherry blossoms that wither within a few days.",
+        "sentenceZh": "詩人常感嘆春天櫻花轉瞬即逝的美麗，短短數日內便已凋零。",
+        "grammar": {
+          "pattern": "S + Adv + Vi (reflect upon O) + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Poets",
+              "role": "主詞 (Subject)",
+              "note": "詩人。"
+            },
+            {
+              "part": "reflect upon",
+              "role": "片語動詞",
+              "note": "深思感嘆。"
+            },
+            {
+              "part": "the transient beauty of cherry blossoms",
+              "role": "受詞",
+              "note": "櫻花短暫之美。"
+            },
+            {
+              "part": "that wither within a few days",
+              "role": "關係子句修飾 blossoms",
+              "note": "wither (枯萎凋零)。"
+            }
+          ],
+          "keyPoints": [
+            "【文雅近義詞】：transient = fleeting = ephemeral (朝生暮死的/短暫的)。"
+          ]
+        }
+      },
+      {
+        "word": "transatlantic",
+        "kk": "[ˌtrænzətˈlæntɪk]",
+        "ipa": "/ˌtrænzətˈlæntɪk/",
+        "pos": "adj.",
+        "meaning": "橫跨大西洋的、跨大西洋的",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "橫越"
+            },
+            {
+              "text": "Atlantic",
+              "role": "base",
+              "meaning": "大西洋"
+            }
+          ],
+          "resultMeaning": "橫越整個大西洋連接歐美兩大洲的 ➔「橫跨大西洋的」"
+        },
+        "sentence": "Charles Lindbergh achieved international renown in 1927 by completing the first solo nonstop transatlantic flight.",
+        "sentenceZh": "查爾斯·林白於 1927 年因完成人類首次獨自不著陸橫跨大西洋飛行而名揚全球。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Time + Prep Phrase of Means (by completing O)",
+          "breakdown": [
+            {
+              "part": "Charles Lindbergh",
+              "role": "主詞 (Subject)",
+              "note": "林白飛行員。"
+            },
+            {
+              "part": "achieved international renown",
+              "role": "及物動詞與受詞",
+              "note": "獲得世界聲譽。"
+            },
+            {
+              "part": "by completing the transatlantic flight",
+              "role": "手段狀語",
+              "note": "完成跨洋飛行。"
+            }
+          ],
+          "keyPoints": [
+            "【航空史詞彙】：transatlantic flight (跨大西洋航班)。"
+          ]
+        }
+      },
+      {
+        "word": "transition",
+        "kk": "[trænˈzɪʃən]",
+        "ipa": "/trænˈzɪʃn/",
+        "pos": "n. / v.",
+        "meaning": "過渡、轉變、交接；(v.) 轉換",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越"
+            },
+            {
+              "text": "it (ire)",
+              "role": "root",
+              "meaning": "走"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "從一種狀態跨步走到另一種新狀態的過渡過程 ➔「過渡、轉型」"
+        },
+        "sentence": "Global economies are accelerating the strategic transition from fossil fuels to renewable wind and solar energy.",
+        "sentenceZh": "全球經濟體正加速推動從化石燃料過渡至再生風能與太陽能的戰略轉型。",
+        "grammar": {
+          "pattern": "S + Aux + Vt + O (transition from A to B)",
+          "breakdown": [
+            {
+              "part": "Global economies",
+              "role": "主詞 (Subject)",
+              "note": "全球經濟體。"
+            },
+            {
+              "part": "are accelerating",
+              "role": "現在進行式謂語",
+              "note": "加速。"
+            },
+            {
+              "part": "the strategic transition",
+              "role": "直接受詞 (Object)",
+              "note": "戰略轉型。"
+            },
+            {
+              "part": "from fossil fuels to renewable energy",
+              "role": "轉變介系詞片語 (from A to B)",
+              "note": "從化石能源至綠能。"
+            }
+          ],
+          "keyPoints": [
+            "【固定句型】：transition from A to B (從 A 轉型至 B)。"
+          ]
+        }
+      },
+      {
+        "word": "transfer",
+        "kk": "[trænsˈfɝ]",
+        "ipa": "/trænsˈfɜːr/",
+        "pos": "v. / n.",
+        "meaning": "轉移、調職、轉車、轉帳",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越、移換"
+            },
+            {
+              "text": "fer",
+              "role": "root",
+              "meaning": "帶來、攜帶 (bear, carry)"
+            }
+          ],
+          "resultMeaning": "將人或資金從此處攜帶移轉至彼處 ➔「轉移、轉帳」"
+        },
+        "sentence": "The multinational enterprise approved the senior engineer's request to transfer to its European research division.",
+        "sentenceZh": "這家跨國企業批准了該資深工程師調職至其歐洲研發部門的請求。",
+        "grammar": {
+          "pattern": "S + Vt + O (request) + Infinitive (to transfer to...)",
+          "breakdown": [
+            {
+              "part": "The multinational enterprise",
+              "role": "主詞 (Subject)",
+              "note": "跨國公司。"
+            },
+            {
+              "part": "approved",
+              "role": "及物動詞 (Verb)",
+              "note": "批准。"
+            },
+            {
+              "part": "the senior engineer's request",
+              "role": "受詞 (Object)",
+              "note": "工程師請求。"
+            },
+            {
+              "part": "to transfer to its European research division",
+              "role": "不定詞後位修飾 request",
+              "note": "調職。"
+            }
+          ],
+          "keyPoints": [
+            "【前名後動重音】：名詞 transfer [ˈtrænsfɚ] vs. 動詞 transfer [trænsˈfɝ]。"
+          ]
+        }
+      },
+      {
+        "word": "transfigure",
+        "kk": "[trænsˈfɪgjɚ]",
+        "ipa": "/trænsˈfɪɡjər/",
+        "pos": "v.",
+        "meaning": "使改觀、使美化、使容光煥發蛻變",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越改變"
+            },
+            {
+              "text": "figure",
+              "role": "root",
+              "meaning": "外形外貌"
+            }
+          ],
+          "resultMeaning": "讓容貌神態跨越凡塵蛻變得神聖煥發 ➔「使容光煥發、改觀」"
+        },
+        "sentence": "Golden sunset rays transfigured the bleak industrial dockyard into a canvas of shimmering amber majesty.",
+        "sentenceZh": "金黃色的落日餘暉使蕭瑟陰暗的工業造船廠煥然改觀，化為一幅波光粼粼的琥珀色雄偉畫卷。",
+        "grammar": {
+          "pattern": "S + Vt (transfigured A into B)",
+          "breakdown": [
+            {
+              "part": "Golden sunset rays",
+              "role": "主詞 (Subject)",
+              "note": "金色夕陽光芒。"
+            },
+            {
+              "part": "transfigured the bleak industrial dockyard",
+              "role": "動詞與受詞 A",
+              "note": "使船廠容貌改觀。"
+            },
+            {
+              "part": "into a canvas of amber majesty",
+              "role": "蛻變結果介系詞片語 B",
+              "note": "化為宏偉畫布。"
+            }
+          ],
+          "keyPoints": [
+            "【宗教/文學】：The Transfiguration (耶穌顯聖容事件)。"
+          ]
+        }
+      },
+      {
+        "word": "transgress",
+        "kk": "[trænsˈgrɛs]",
+        "ipa": "/trænsˈɡres/",
+        "pos": "v.",
+        "meaning": "越界、違反法令規範、逾越道德界線",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越"
+            },
+            {
+              "text": "gress",
+              "role": "root",
+              "meaning": "走、邁步 (step)"
+            }
+          ],
+          "resultMeaning": "邁步跨過禁止通行的紅線或法律界限 ➔「越界、犯法」"
+        },
+        "sentence": "Officers who deliberately transgress statutory evidentiary rules jeopardize the courtroom integrity of criminal prosecutions.",
+        "sentenceZh": "蓄意逾越法定證據法則的執法人員，會危害刑事起訴在法庭上的公正誠信。",
+        "grammar": {
+          "pattern": "S + Relative Clause + Vt + O",
+          "breakdown": [
+            {
+              "part": "Officers",
+              "role": "主詞 (Subject)",
+              "note": "執法人員。"
+            },
+            {
+              "part": "who deliberately transgress statutory rules",
+              "role": "關係子句修飾 officers",
+              "note": "逾越法定規則。"
+            },
+            {
+              "part": "jeopardize",
+              "role": "及物動詞 (Verb)",
+              "note": "危害。"
+            },
+            {
+              "part": "the courtroom integrity of prosecutions",
+              "role": "受詞 (Object)",
+              "note": "起訴公正性。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：transgression (違法行徑、越軌犯罪)。"
+          ]
+        }
+      },
+      {
+        "word": "transfusion",
+        "kk": "[trænsˈfjuʒən]",
+        "ipa": "/trænsˈfjuːʒn/",
+        "pos": "n.",
+        "meaning": "輸血、血液輸送、注入 (資金或新活力)",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "從一處轉移到另一處"
+            },
+            {
+              "text": "fus",
+              "role": "root",
+              "meaning": "傾倒、注入 (pour)"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將健康血液由捐贈者倒入注入傷者血管之中 ➔「輸血、注入」"
+        },
+        "sentence": "Trauma surgeons administered an emergency blood transfusion to stabilize the critically injured accident victim.",
+        "sentenceZh": "外傷外科醫師實施了緊急輸血，以穩定這名傷勢危急的意外事故傷患的生命徵象。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Trauma surgeons",
+              "role": "主詞 (Subject)",
+              "note": "創傷外科醫師。"
+            },
+            {
+              "part": "administered an emergency blood transfusion",
+              "role": "動詞與受詞",
+              "note": "實施緊急輸血。"
+            },
+            {
+              "part": "to stabilize the critically injured victim",
+              "role": "目的狀語",
+              "note": "穩定重傷傷患。"
+            }
+          ],
+          "keyPoints": [
+            "【商務比喻】：a fresh transfusion of venture capital (創投資金的及時注入)。"
+          ]
+        }
+      },
+      {
+        "word": "transmutation",
+        "kk": "[ˌtrænsmjuˈteʃən]",
+        "ipa": "/ˌtrænsmjuːˈteɪʃn/",
+        "pos": "n.",
+        "meaning": "蛻變、質變、元素轉變 (如鍊金術或核嬗變)",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越改變"
+            },
+            {
+              "text": "mut",
+              "role": "root",
+              "meaning": "改變 (change)"
+            },
+            {
+              "text": "-ation",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "根本化學結構或本質經歷跨越性形態根本質變 ➔「嬗變、轉變」"
+        },
+        "sentence": "Medieval alchemists pursued the elusive transmutation of base lead into incorruptible gold.",
+        "sentenceZh": "中世紀鍊金術士苦苦追尋將低賤鉛金屬轉化為永不腐朽純金的縹緲嬗變秘術。",
+        "grammar": {
+          "pattern": "S + Vt + O (transmutation of A into B)",
+          "breakdown": [
+            {
+              "part": "Medieval alchemists",
+              "role": "主詞 (Subject)",
+              "note": "中世紀鍊金術士。"
+            },
+            {
+              "part": "pursued",
+              "role": "及物動詞 (Verb)",
+              "note": "追求。"
+            },
+            {
+              "part": "the elusive transmutation",
+              "role": "受詞 (Object)",
+              "note": "難以捉摸的蛻變。"
+            },
+            {
+              "part": "of base lead into incorruptible gold",
+              "role": "介系詞受詞",
+              "note": "將劣鉛變為純金。"
+            }
+          ],
+          "keyPoints": [
+            "【核物理學】：nuclear transmutation (核嬗變，如鈾蛻變為鉛)。"
+          ]
+        }
+      },
+      {
+        "word": "transversal",
+        "kk": "[trænsˈvɝsəl]",
+        "ipa": "/trænsˈvɜːrsl/",
+        "pos": "adj. / n.",
+        "meaning": "橫斷的、橫貫的；(n.) 截線、橫切線",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "穿過、橫跨"
+            },
+            {
+              "text": "vers (vert)",
+              "role": "root",
+              "meaning": "轉向 (turn)"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "直線條橫向穿切橫貫過兩條或多條平行線 ➔「橫切線、截線」"
+        },
+        "sentence": "In Euclidean plane geometry, a transversal intersecting two parallel lines creates congruent alternate interior angles.",
+        "sentenceZh": "在歐幾里得平面幾何學中，穿截兩條平行線的橫截線會產生全等的內錯角。",
+        "grammar": {
+          "pattern": "Prep Phrase + S (transversal + Participle Phrase) + Vt + O",
+          "breakdown": [
+            {
+              "part": "In Euclidean plane geometry",
+              "role": "領域狀語",
+              "note": "在歐氏幾何中。"
+            },
+            {
+              "part": "a transversal intersecting two parallel lines",
+              "role": "主詞 (含現在分詞修飾)",
+              "note": "相交截線。"
+            },
+            {
+              "part": "creates",
+              "role": "及物動詞 (Verb)",
+              "note": "產生。"
+            },
+            {
+              "part": "congruent alternate interior angles",
+              "role": "受詞 (Object)",
+              "note": "全等內錯角。"
+            }
+          ],
+          "keyPoints": [
+            "【幾何術語】：alternate interior angles (內錯角)。"
+          ]
+        }
+      },
+      {
+        "word": "transcendental",
+        "kk": "[ˌtrænsɛnˈdɛnt!]",
+        "ipa": "/ˌtrænsenˈdentl/",
+        "pos": "adj.",
+        "meaning": "超驗的、卓越超群的、先驗哲學的",
+        "formula": {
+          "parts": [
+            {
+              "text": "transcend",
+              "role": "base",
+              "meaning": "超越"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "超越物質感官經驗純憑理性心靈領悟的 ➔「超驗的」"
+        },
+        "sentence": "American transcendental authors like Ralph Waldo Emerson advocated finding divine truth through communion with untamed nature.",
+        "sentenceZh": "如愛默生等美國超驗主義作家主張透過與原始自然的交流心領神會來探尋神聖真理。",
+        "grammar": {
+          "pattern": "S + Prep Phrase (like...) + Vt + Gerund Phrase",
+          "breakdown": [
+            {
+              "part": "American transcendental authors",
+              "role": "主詞 (Subject)",
+              "note": "超驗主義作家。"
+            },
+            {
+              "part": "like Ralph Waldo Emerson",
+              "role": "舉例介系詞片語",
+              "note": "如愛默生。"
+            },
+            {
+              "part": "advocated finding divine truth",
+              "role": "動詞與動名詞受詞",
+              "note": "提倡尋求真理。"
+            },
+            {
+              "part": "through communion with untamed nature",
+              "role": "方式狀語",
+              "note": "透過親近自然。"
+            }
+          ],
+          "keyPoints": [
+            "【哲學思潮】：Transcendentalism (超驗主義運動，梭羅《湖濱散記》亦屬之)。"
           ]
         }
       }
@@ -5349,6 +14205,630 @@ const ETYMO_DATA = [
             "【動詞句型】：instruct / advise / urge + O + to V (指示/建議/敦促某人做某事)。"
           ]
         }
+      },
+      {
+        "word": "invisible",
+        "kk": "[ɪnˈvɪzəb!]",
+        "ipa": "/ɪnˈvɪzəbl/",
+        "pos": "adj.",
+        "meaning": "看不見的、隱形的、無形的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ible",
+              "role": "suffix",
+              "meaning": "可被...的"
+            }
+          ],
+          "resultMeaning": "肉眼完全無法看見偵測的 ➔「看不見的、隱形的」"
+        },
+        "sentence": "Microscopic bacteria and airborne viral droplets remain invisible to the naked eye without optical magnification.",
+        "sentenceZh": "顯微鏡下的細菌與空氣中的病毒飛沫在沒有光學放大的情況下肉眼是看不見的。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Microscopic bacteria and droplets",
+              "role": "主詞 (Subject)",
+              "note": "細菌飛沫。"
+            },
+            {
+              "part": "remain",
+              "role": "連綴動詞",
+              "note": "依然是。"
+            },
+            {
+              "part": "invisible to the naked eye",
+              "role": "主詞補語 (形容詞片語)",
+              "note": "肉眼不可見。"
+            },
+            {
+              "part": "without optical magnification",
+              "role": "條件介系詞片語",
+              "note": "缺乏光學放大。"
+            }
+          ],
+          "keyPoints": [
+            "【核心短語】：invisible to the naked eye (肉眼不可見的)。"
+          ]
+        }
+      },
+      {
+        "word": "visualize",
+        "kk": "[ˈvɪʒʊəˌlaɪz]",
+        "ipa": "/ˈvɪʒuəlaɪz/",
+        "pos": "v.",
+        "meaning": "想像、設想、使視覺化",
+        "formula": {
+          "parts": [
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ual",
+              "role": "suffix",
+              "meaning": "形容詞"
+            },
+            {
+              "text": "-ize",
+              "role": "suffix",
+              "meaning": "使成為 (動詞)"
+            }
+          ],
+          "resultMeaning": "在腦海中形成清晰的影像畫面 ➔「使視覺化、想像」"
+        },
+        "sentence": "Sports psychologists train elite gymnasts to visualize executing flawless routines before stepping onto the mat.",
+        "sentenceZh": "運動心理學家訓練頂尖體操選手在踏上墊子前於腦海中清晰想像執行完美動作的過程。",
+        "grammar": {
+          "pattern": "S + Vt (train) + O + to-V (to visualize V-ing O)",
+          "breakdown": [
+            {
+              "part": "Sports psychologists",
+              "role": "主詞 (Subject)",
+              "note": "運動心理學家。"
+            },
+            {
+              "part": "train gymnasts",
+              "role": "動詞與受詞",
+              "note": "train + O + to V。"
+            },
+            {
+              "part": "to visualize executing flawless routines",
+              "role": "補語",
+              "note": "visualize 後接動名詞 (executing)。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞受詞】：visualize doing something (想像做某事)，後接動名詞。"
+          ]
+        }
+      },
+      {
+        "word": "advisor",
+        "kk": "[ædˈvaɪzɚ]",
+        "ipa": "/ədˈvaɪzər/",
+        "pos": "n.",
+        "meaning": "顧問、指導老師",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad-",
+              "role": "prefix",
+              "meaning": "向著"
+            },
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看、審查"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "站在身旁協助看清全局並提供指引的人 ➔「顧問、導師」"
+        },
+        "sentence": "The cabinet consulted a senior economic advisor before enacting fiscal stimulus legislation.",
+        "sentenceZh": "內閣在頒布財政刺激法案前諮詢了一位資深經濟顧問。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "The cabinet",
+              "role": "主詞 (Subject)",
+              "note": "內閣。"
+            },
+            {
+              "part": "consulted",
+              "role": "及物動詞 (Verb)",
+              "note": "諮詢。"
+            },
+            {
+              "part": "a senior economic advisor",
+              "role": "受詞 (Object)",
+              "note": "經濟顧問。"
+            },
+            {
+              "part": "before enacting legislation",
+              "role": "介系詞接動名詞",
+              "note": "enact (制定頒布)。"
+            }
+          ],
+          "keyPoints": [
+            "【拼寫辨析】：advisor 與 adviser 皆為標準通用拼法。"
+          ]
+        }
+      },
+      {
+        "word": "vista",
+        "kk": "[ˈvɪstə]",
+        "ipa": "/ˈvɪstə/",
+        "pos": "n.",
+        "meaning": "遠景、狹長景色、前景展望",
+        "formula": {
+          "parts": [
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ta",
+              "role": "suffix",
+              "meaning": "景觀 (義大利語借詞)"
+            }
+          ],
+          "resultMeaning": "極目遠眺所展開的遼闊壯麗風光 ➔「遠景、展望」"
+        },
+        "sentence": "Reaching the summit rewarded the exhausted hikers with an awe-inspiring panoramic vista of snow-capped peaks.",
+        "sentenceZh": "登上頂峰以雪山山巔令人敬畏的壯麗全景遠景回報了疲憊不堪的登山客。",
+        "grammar": {
+          "pattern": "S (Gerund Phrase) + Vt (rewarded A with B)",
+          "breakdown": [
+            {
+              "part": "Reaching the summit",
+              "role": "動名詞片語主詞",
+              "note": "登頂。"
+            },
+            {
+              "part": "rewarded the hikers",
+              "role": "動詞與受詞",
+              "note": "reward someone with something。"
+            },
+            {
+              "part": "with an awe-inspiring vista",
+              "role": "回報事物",
+              "note": "壯美遠景。"
+            }
+          ],
+          "keyPoints": [
+            "【文雅名詞】：panoramic vista (全景遠眺風光)。"
+          ]
+        }
+      },
+      {
+        "word": "provisional",
+        "kk": "[prəˈvɪʒən!]",
+        "ipa": "/prəˈvɪʒənl/",
+        "pos": "adj.",
+        "meaning": "臨時的、暫定的",
+        "formula": {
+          "parts": [
+            {
+              "text": "provision",
+              "role": "base",
+              "meaning": "預備、防備"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "針對眼前情況預備暫時採取的 ➔「臨時的、暫時的」"
+        },
+        "sentence": "Following the collapse of the regime, political factions formed a provisional government to organize democratic elections.",
+        "sentenceZh": "政權崩解後，各政治派系組成了臨時政府以籌辦民主選舉。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt + O (provisional government) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Following the collapse of the regime",
+              "role": "介系詞片語狀語",
+              "note": "政權垮台後。"
+            },
+            {
+              "part": "political factions",
+              "role": "主詞 (Subject)",
+              "note": "各派系。"
+            },
+            {
+              "part": "formed a provisional government",
+              "role": "動詞與受詞",
+              "note": "組建臨時政府。"
+            },
+            {
+              "part": "to organize democratic elections",
+              "role": "目的狀語",
+              "note": "籌辦大選。"
+            }
+          ],
+          "keyPoints": [
+            "【歷史政治】：provisional government 專指政權交替期的「臨時政府」。"
+          ]
+        }
+      },
+      {
+        "word": "visor",
+        "kk": "[ˈvaɪzɚ]",
+        "ipa": "/ˈvaɪzər/",
+        "pos": "n.",
+        "meaning": "遮陽帽舌、面罩遮片",
+        "formula": {
+          "parts": [
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看、眼"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "器物"
+            }
+          ],
+          "resultMeaning": "遮擋在眼睛上方防護強光之面罩帽舌 ➔「遮陽板、帽舌」"
+        },
+        "sentence": "The astronaut lowered her gold-tinted helmet visor to shield her eyes from intense solar radiation.",
+        "sentenceZh": "太空人拉下了她的鍍金頭盔遮陽板，以保護雙眼免受強烈太陽輻射傷害。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose (to shield O from...)",
+          "breakdown": [
+            {
+              "part": "The astronaut",
+              "role": "主詞 (Subject)",
+              "note": "太空人。"
+            },
+            {
+              "part": "lowered",
+              "role": "及物動詞 (Verb)",
+              "note": "放下拉下。"
+            },
+            {
+              "part": "her gold-tinted helmet visor",
+              "role": "受詞 (Object)",
+              "note": "鍍金頭盔遮片。"
+            },
+            {
+              "part": "to shield her eyes from solar radiation",
+              "role": "目的狀語",
+              "note": "shield A from B。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：shield / protect A from B (保護 A 免受 B 傷害)。"
+          ]
+        }
+      },
+      {
+        "word": "provident",
+        "kk": "[ˈprɑvədənt]",
+        "ipa": "/ˈprɑːvɪdənt/",
+        "pos": "adj.",
+        "meaning": "深謀遠慮的、有遠見的、節儉精打細算的",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "vid (vis)",
+              "role": "root",
+              "meaning": "看 (look ahead)"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "目光長遠能提早預見未雨綢繆防備未來變局的 ➔「有遠見的、節儉的」"
+        },
+        "sentence": "Provident households build robust emergency cash cushions to weather sudden medical crises or layoffs.",
+        "sentenceZh": "具有遠見未雨綢繆的家庭會建立穩健的應急現金緩衝儲備，以抵禦突發醫療危機或裁員風險。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Provident households",
+              "role": "主詞 (Subject)",
+              "note": "未雨綢繆的家庭。"
+            },
+            {
+              "part": "build robust emergency cash cushions",
+              "role": "動詞與受詞",
+              "note": "建構應急緩衝資金。"
+            },
+            {
+              "part": "to weather sudden medical crises or layoffs",
+              "role": "目的狀語",
+              "note": "度過危機。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：providence (天意、天佑、上帝眷顧)。"
+          ]
+        }
+      },
+      {
+        "word": "improvise",
+        "kk": "[ˈɪmprəˌvaɪz]",
+        "ipa": "/ˈɪmprəvaɪz/",
+        "pos": "v.",
+        "meaning": "即興創作、臨時湊合應急處理",
+        "formula": {
+          "parts": [
+            {
+              "text": "in- (im-)",
+              "role": "prefix",
+              "meaning": "未、不"
+            },
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "預先"
+            },
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看見"
+            }
+          ],
+          "resultMeaning": "事先完全沒有先看過譜排練過現場直接靈光應變發揮 ➔「即興創作、湊合」"
+        },
+        "sentence": "When key cooking ingredients were missing, the head chef improvised a delightful fusion sauce using citrus rind.",
+        "sentenceZh": "當關鍵烹飪食材短缺時，主廚利用柑橘皮屑即興調配出了一道令人驚豔的融合風味醬汁。",
+        "grammar": {
+          "pattern": "Adv Clause of Time (When...) + S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "When key cooking ingredients were missing",
+              "role": "時間副詞子句",
+              "note": "食材遺漏時。"
+            },
+            {
+              "part": "the head chef",
+              "role": "主詞 (Subject)",
+              "note": "主廚。"
+            },
+            {
+              "part": "improvised a delightful fusion sauce",
+              "role": "動詞與受詞",
+              "note": "即興發明醬汁。"
+            },
+            {
+              "part": "using citrus rind",
+              "role": "方式分詞狀語",
+              "note": "使用果皮。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：improvisation (即興表演，爵士樂與喜劇核心)。"
+          ]
+        }
+      },
+      {
+        "word": "envision",
+        "kk": "[ɪnˈvɪʒən]",
+        "ipa": "/ɪnˈvɪʒn/",
+        "pos": "v.",
+        "meaning": "設想、展望前景、預想未來",
+        "formula": {
+          "parts": [
+            {
+              "text": "en-",
+              "role": "prefix",
+              "meaning": "進入、置於心內"
+            },
+            {
+              "text": "vision (vis)",
+              "role": "root",
+              "meaning": "看見、視野"
+            }
+          ],
+          "resultMeaning": "在腦海視野中心中描摹擘劃出未來美好藍圖 ➔「展望、預想」"
+        },
+        "sentence": "Urban planners envision a carbon-neutral metropolitan future featuring elevated bicycle skyways and zero-emission tramways.",
+        "sentenceZh": "都市規劃師展望一個以高架自行車空中走廊與零排放輕軌電車為特色的碳中和大都會未來。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Urban planners",
+              "role": "主詞 (Subject)",
+              "note": "都市規劃師。"
+            },
+            {
+              "part": "envision a carbon-neutral future",
+              "role": "動詞與受詞",
+              "note": "展望未來。"
+            },
+            {
+              "part": "featuring elevated bicycle skyways and tramways",
+              "role": "現在分詞片語修飾 future",
+              "note": "以輕軌高架道為特色。"
+            }
+          ],
+          "keyPoints": [
+            "【商務演說】：envision a brighter tomorrow (展望更加光明的明日)。"
+          ]
+        }
+      },
+      {
+        "word": "visage",
+        "kk": "[ˈvɪzɪdʒ]",
+        "ipa": "/ˈvɪzɪdʒ/",
+        "pos": "n.",
+        "meaning": "面容、臉龐容貌、外表表象",
+        "formula": {
+          "parts": [
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看、眼見"
+            },
+            {
+              "text": "-age",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "展現於眾人眼簾供人注視瞻仰之面龐形貌 ➔「面容、臉相」"
+        },
+        "sentence": "Centuries of weathering eroded the stone visage of the monumental Egyptian sphinx at Giza.",
+        "sentenceZh": "數個世紀的風吹雨打侵蝕了吉薩巨大埃及獅身人面像的石質面容。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Centuries of weathering",
+              "role": "主詞 (Subject)",
+              "note": "數世紀風化。"
+            },
+            {
+              "part": "eroded",
+              "role": "及物動詞 (Verb)",
+              "note": "侵蝕。"
+            },
+            {
+              "part": "the stone visage of the sphinx",
+              "role": "受詞 (Object)",
+              "note": "石像面容。"
+            },
+            {
+              "part": "at Giza",
+              "role": "地點狀語",
+              "note": "在吉薩。"
+            }
+          ],
+          "keyPoints": [
+            "【文學高雅字彙】：visage 是 face 極具史詩詩意的美化替換詞。"
+          ]
+        }
+      },
+      {
+        "word": "visual",
+        "kk": "[ˈvɪʒʊəl]",
+        "ipa": "/ˈvɪʒuəl/",
+        "pos": "adj. / n.",
+        "meaning": "視覺的、光學的；(n.) 視覺資料、畫面圖像",
+        "formula": {
+          "parts": [
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看見"
+            },
+            {
+              "text": "-ual",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "完全仰賴雙眼光學光線接收感知的 ➔「視覺的」"
+        },
+        "sentence": "Compelling visual infographics help general audiences grasp complex epidemiological transmission models intuitively.",
+        "sentenceZh": "引人入勝的視覺圖表資訊圖表幫助一般大眾直觀理解複雜的流行病學傳播模型。",
+        "grammar": {
+          "pattern": "S + Vt (help) + O + Bare Infinitive (grasp O) + Adv",
+          "breakdown": [
+            {
+              "part": "Compelling visual infographics",
+              "role": "主詞 (Subject)",
+              "note": "生動視覺圖表。"
+            },
+            {
+              "part": "help general audiences grasp models",
+              "role": "help + O + V 原型結構",
+              "note": "幫助受眾理解模型。"
+            },
+            {
+              "part": "intuitively",
+              "role": "方式副詞",
+              "note": "直觀地。"
+            }
+          ],
+          "keyPoints": [
+            "【職場技能】：visual presentation (視覺簡報能力)。"
+          ]
+        }
+      },
+      {
+        "word": "supervision",
+        "kk": "[ˌsupɚˈvɪʒən]",
+        "ipa": "/ˌsuːpərˈvɪʒn/",
+        "pos": "n.",
+        "meaning": "監督、指導管理、監護督察",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在上方"
+            },
+            {
+              "text": "vis",
+              "role": "root",
+              "meaning": "看"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "居於上位者隨時在旁密切監看審視指導 ➔「監督指導」"
+        },
+        "sentence": "Apprentice electricians work under direct master supervision until obtaining official journeyman certification.",
+        "sentenceZh": "學徒電工必須在大師的直接監督指導下工作，直至取得正式熟練工認證為止。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase (under supervision) + Adv Clause of Time (until...)",
+          "breakdown": [
+            {
+              "part": "Apprentice electricians",
+              "role": "主詞 (Subject)",
+              "note": "學徒電工。"
+            },
+            {
+              "part": "work under direct master supervision",
+              "role": "動詞與介系詞片語",
+              "note": "在監督下工作。"
+            },
+            {
+              "part": "until obtaining official certification",
+              "role": "時間副詞狀語",
+              "note": "直到取得證照。"
+            }
+          ],
+          "keyPoints": [
+            "【成語片語】：under the close supervision of... (在...嚴格督導之下)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -5665,6 +15145,625 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【名詞單複數】：geopolitics 形式雖有 -s，但作學科或單一現象時視為「單數名詞」！",
             "【連綴動詞】：remain + Noun / remain + Adj.，表「依然保持為...」。"
+          ]
+        }
+      },
+      {
+        "word": "geocentric",
+        "kk": "[ˌdʒioˈsɛntrɪk]",
+        "ipa": "/ˌdʒiːoʊˈsentrɪk/",
+        "pos": "adj.",
+        "meaning": "地心說的、以地球為中心的",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "prefix",
+              "meaning": "地球"
+            },
+            {
+              "text": "centric",
+              "role": "root",
+              "meaning": "中心的"
+            }
+          ],
+          "resultMeaning": "古代天文學認為地球居於全宇宙中心不動的 ➔「地心說的」"
+        },
+        "sentence": "Copernicus dismantled the ancient geocentric cosmology by proving that planets orbit the Sun.",
+        "sentenceZh": "哥白尼藉由證明行星繞太陽運行，推翻了古代的地心說宇宙論。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means (by proving that...)",
+          "breakdown": [
+            {
+              "part": "Copernicus",
+              "role": "主詞 (Subject)",
+              "note": "哥白尼。"
+            },
+            {
+              "part": "dismantled",
+              "role": "及物動詞 (Verb)",
+              "note": "拆解推翻。"
+            },
+            {
+              "part": "the ancient geocentric cosmology",
+              "role": "受詞 (Object)",
+              "note": "地心說宇宙論。"
+            },
+            {
+              "part": "by proving that planets orbit the Sun",
+              "role": "手段狀語與名詞子句",
+              "note": "證明行星繞日。"
+            }
+          ],
+          "keyPoints": [
+            "【天文學史】：geocentric (地心說) vs. heliocentric (日心說，helio- 太陽)。"
+          ]
+        }
+      },
+      {
+        "word": "geophysics",
+        "kk": "[ˌdʒioˈfɪzɪks]",
+        "ipa": "/ˌdʒiːoʊˈfɪzɪks/",
+        "pos": "n.",
+        "meaning": "地球物理學",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "prefix",
+              "meaning": "地球"
+            },
+            {
+              "text": "physics",
+              "role": "base",
+              "meaning": "物理學"
+            }
+          ],
+          "resultMeaning": "運用物理學原理解析地球內部構造、磁場與重力之科學 ➔「地球物理學」"
+        },
+        "sentence": "Exploration geophysics utilizes seismic wave refraction to map subterranean hydrocarbon reservoirs.",
+        "sentenceZh": "探勘地球物理學利用地震波折射來繪製地下碳氫化合物儲油層的分佈圖。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Exploration geophysics",
+              "role": "主詞 (Subject)",
+              "note": "探勘地球物理學 (單數名詞)。"
+            },
+            {
+              "part": "utilizes",
+              "role": "及物動詞 (Verb)",
+              "note": "利用。"
+            },
+            {
+              "part": "seismic wave refraction",
+              "role": "受詞 (Object)",
+              "note": "地震波折射。"
+            },
+            {
+              "part": "to map subterranean reservoirs",
+              "role": "目的狀語",
+              "note": "map (繪製地圖)。"
+            }
+          ],
+          "keyPoints": [
+            "【學科單數】：geophysics 作學科名稱時謂語動詞用單數 (utilizes)。"
+          ]
+        }
+      },
+      {
+        "word": "geomorphology",
+        "kk": "[ˌdʒiomɔrˈfɑlədʒɪ]",
+        "ipa": "/ˌdʒiːoʊmɔːrˈfɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "地形學、地貌學",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "prefix",
+              "meaning": "地球"
+            },
+            {
+              "text": "morph",
+              "role": "root",
+              "meaning": "形態"
+            },
+            {
+              "text": "-ology",
+              "role": "suffix",
+              "meaning": "學問"
+            }
+          ],
+          "resultMeaning": "研究地球表面各種地形地貌起源與演化營力之學科 ➔「地形學」"
+        },
+        "sentence": "Glacial geomorphology investigates how massive ice sheets carve deep U-shaped valleys through solid bedrock.",
+        "sentenceZh": "冰河地形學探討巨大的冰原如何穿過堅硬的基岩刻蝕出深邃的 U 型谷地。",
+        "grammar": {
+          "pattern": "S + Vt + Wh- Noun Clause",
+          "breakdown": [
+            {
+              "part": "Glacial geomorphology",
+              "role": "主詞 (Subject)",
+              "note": "冰河地形學。"
+            },
+            {
+              "part": "investigates",
+              "role": "及物動詞 (Verb)",
+              "note": "探究。"
+            },
+            {
+              "part": "how massive ice sheets carve deep U-shaped valleys",
+              "role": "受詞名詞子句",
+              "note": "carve (雕鑿)。"
+            }
+          ],
+          "keyPoints": [
+            "【自然地理名詞】：U-shaped valley (冰蝕U型谷)。"
+          ]
+        }
+      },
+      {
+        "word": "geostationary",
+        "kk": "[ˌdʒioˈsteʃənˌɛrɪ]",
+        "ipa": "/ˌdʒiːoʊˈsteɪʃəneri/",
+        "pos": "adj.",
+        "meaning": "地球同步靜止的 (軌道)",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "prefix",
+              "meaning": "地球"
+            },
+            {
+              "text": "stationary",
+              "role": "base",
+              "meaning": "靜止不動的"
+            }
+          ],
+          "resultMeaning": "自地面觀看相對固定懸停於赤道上空同一位置的 ➔「地球靜止同步軌道的」"
+        },
+        "sentence": "Meteorological agencies place weather-monitoring satellites in a geostationary orbit to continuously observe storm formations.",
+        "sentenceZh": "氣象機構將氣象監測衛星安置於地球同步靜止軌道，以持續觀測風暴的生成。",
+        "grammar": {
+          "pattern": "S + Vt (place A in B) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Meteorological agencies",
+              "role": "主詞 (Subject)",
+              "note": "氣象機構。"
+            },
+            {
+              "part": "place satellites",
+              "role": "動詞與受詞",
+              "note": "安置衛星。"
+            },
+            {
+              "part": "in a geostationary orbit",
+              "role": "地點介系詞片語",
+              "note": "同步軌道。"
+            },
+            {
+              "part": "to continuously observe storm formations",
+              "role": "目的狀語",
+              "note": "觀察風暴。"
+            }
+          ],
+          "keyPoints": [
+            "【太空術語】：geostationary orbit (GEO) 位於赤道上空約 35,786 公里。"
+          ]
+        }
+      },
+      {
+        "word": "geodesic",
+        "kk": "[ˌdʒioˈdɛsɪk]",
+        "ipa": "/ˌdʒiːoʊˈdesɪk/",
+        "pos": "adj. / n.",
+        "meaning": "測地學的、短程線的、圓頂網格的；(n.) 短程線",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "prefix",
+              "meaning": "地球"
+            },
+            {
+              "text": "daio (desic)",
+              "role": "root",
+              "meaning": "分割 (希臘語 daiesthai)"
+            }
+          ],
+          "resultMeaning": "依地球曲面曲度最有效分割測量距離的 ➔「測地線的、測地穹頂的」"
+        },
+        "sentence": "Architect Buckminster Fuller popularized the geodesic dome, which maximizes structural volume while minimizing material weight.",
+        "sentenceZh": "建築大師巴克敏斯特·富勒推廣了測地線圓頂結構，其在大幅降低材料重量的同時實現了結構容積的最大化。",
+        "grammar": {
+          "pattern": "S + Vt + O + Non-restrictive Relative Clause",
+          "breakdown": [
+            {
+              "part": "Architect Buckminster Fuller",
+              "role": "主詞 (Subject)",
+              "note": "建築大師。"
+            },
+            {
+              "part": "popularized",
+              "role": "及物動詞 (Verb)",
+              "note": "推廣普及。"
+            },
+            {
+              "part": "the geodesic dome",
+              "role": "受詞 (Object)",
+              "note": "測地線圓頂。"
+            },
+            {
+              "part": "which maximizes volume while minimizing weight",
+              "role": "非限定關係子句",
+              "note": "對比結構。"
+            }
+          ],
+          "keyPoints": [
+            "【建築結構】：geodesic dome (測地圓頂網格結構)。"
+          ]
+        }
+      },
+      {
+        "word": "geologist",
+        "kk": "[dʒɪˈɑlədʒɪst]",
+        "ipa": "/dʒiˈɑːlədʒɪst/",
+        "pos": "n.",
+        "meaning": "地質學家",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "prefix",
+              "meaning": "地球"
+            },
+            {
+              "text": "log",
+              "role": "root",
+              "meaning": "學問"
+            },
+            {
+              "text": "-ist",
+              "role": "suffix",
+              "meaning": "專家學者"
+            }
+          ],
+          "resultMeaning": "專門鑽研地球岩石構造與地質演變的科學家 ➔「地質學家」"
+        },
+        "sentence": "Field geologists gathered mineral samples from the volcanic caldera to reconstruct the timeline of prehistoric eruptions.",
+        "sentenceZh": "野外地質學家從火山破火山口採集礦物樣本，以重建史前火山爆發的時間軸。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Field geologists",
+              "role": "主詞 (Subject)",
+              "note": "野外地質學家。"
+            },
+            {
+              "part": "gathered mineral samples",
+              "role": "動詞與受詞",
+              "note": "採集礦物樣本。"
+            },
+            {
+              "part": "from the volcanic caldera",
+              "role": "來源介系詞片語",
+              "note": "caldera (破火山口)。"
+            },
+            {
+              "part": "to reconstruct the timeline",
+              "role": "目的狀語",
+              "note": "重建時間線。"
+            }
+          ],
+          "keyPoints": [
+            "【地質名詞】：volcanic caldera (火山巨穴破火山口)。"
+          ]
+        }
+      },
+      {
+        "word": "geochemical",
+        "kk": "[ˌdʒioˈkɛmɪk!]",
+        "ipa": "/ˌdʒiːoʊˈkemɪkl/",
+        "pos": "adj.",
+        "meaning": "地球化學的、地質化學成分的",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "root",
+              "meaning": "地球、地質"
+            },
+            {
+              "text": "chemical",
+              "role": "base",
+              "meaning": "化學的"
+            }
+          ],
+          "resultMeaning": "探討地殼與地函內部化學元素分佈與遷移規律的 ➔「地球化學的」"
+        },
+        "sentence": "Geochemical surveys identified anomalous lithium concentrations within subterranean brine reservoirs.",
+        "sentenceZh": "地球化學勘探在地下鹵水水層中發現了異常高濃度的鋰金屬蘊藏量。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Geochemical surveys",
+              "role": "主詞 (Subject)",
+              "note": "地化勘探。"
+            },
+            {
+              "part": "identified",
+              "role": "及物動詞 (Verb)",
+              "note": "辨別發現。"
+            },
+            {
+              "part": "anomalous lithium concentrations",
+              "role": "受詞 (Object)",
+              "note": "異常鋰濃度。"
+            },
+            {
+              "part": "within subterranean brine reservoirs",
+              "role": "地點狀語",
+              "note": "在地下鹵水層中。"
+            }
+          ],
+          "keyPoints": [
+            "【礦產勘探】：geochemical anomaly (地球化學異常指標，探礦關鍵)。"
+          ]
+        }
+      },
+      {
+        "word": "geosphere",
+        "kk": "[ˈdʒioˌsfɪr]",
+        "ipa": "/ˈdʒiːoʊsfɪr/",
+        "pos": "n.",
+        "meaning": "岩石圈、固體地球界、地圈",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "root",
+              "meaning": "地球"
+            },
+            {
+              "text": "sphere",
+              "role": "root",
+              "meaning": "球體、圈層"
+            }
+          ],
+          "resultMeaning": "地球從地表岩石至地心金屬核之固體圈層總體 ➔「地圈、固體地球」"
+        },
+        "sentence": "The dynamic carbon cycle continuously transfers carbon atoms between the geosphere, oceans, and atmosphere.",
+        "sentenceZh": "動態的碳循環在地圈、海洋與大氣層之間持續傳遞與置換碳原子。",
+        "grammar": {
+          "pattern": "S + Adv + Vt (transfers A between B)",
+          "breakdown": [
+            {
+              "part": "The dynamic carbon cycle",
+              "role": "主詞 (Subject)",
+              "note": "動態碳循環。"
+            },
+            {
+              "part": "continuously transfers carbon atoms",
+              "role": "動詞與受詞 A",
+              "note": "持續轉移碳原子。"
+            },
+            {
+              "part": "between the geosphere, oceans, and atmosphere",
+              "role": "介系詞對象群 B",
+              "note": "在圈層之間。"
+            }
+          ],
+          "keyPoints": [
+            "【地球系統科學】：四大圈層包含 geosphere (地圈), hydrosphere (水圈), atmosphere (大氣圈), biosphere (生物圈)。"
+          ]
+        }
+      },
+      {
+        "word": "geostrophic",
+        "kk": "[ˌdʒioˈstrɑfɪk]",
+        "ipa": "/ˌdʒiːoʊˈstrɑːfɪk/",
+        "pos": "adj.",
+        "meaning": "地轉的 (受科氏力與氣壓梯度力平衡所驅動的風或海流)",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "root",
+              "meaning": "地球"
+            },
+            {
+              "text": "stroph",
+              "role": "root",
+              "meaning": "轉動、旋轉 (turn)"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "因地球自轉偏向力驅動旋轉而形成的大規模風系或洋流 ➔「地轉的」"
+        },
+        "sentence": "Geostrophic winds blow parallel to isobars high above the planetary boundary friction layer.",
+        "sentenceZh": "地轉風在行星邊界摩擦層高空平行於等壓線吹拂。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase of Direction + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Geostrophic winds",
+              "role": "主詞 (Subject)",
+              "note": "地轉風。"
+            },
+            {
+              "part": "blow parallel to isobars",
+              "role": "不及物動詞與方向狀語",
+              "note": "平行等壓線吹拂。"
+            },
+            {
+              "part": "high above the planetary boundary layer",
+              "role": "地點狀語",
+              "note": "高於摩擦層。"
+            }
+          ],
+          "keyPoints": [
+            "【大氣物理】：geostrophic balance (地轉平衡)。"
+          ]
+        }
+      },
+      {
+        "word": "geosynchronous",
+        "kk": "[ˌdʒioˈsɪŋkrənəs]",
+        "ipa": "/ˌdʒiːoʊˈsɪŋkrənəs/",
+        "pos": "adj.",
+        "meaning": "地球同步軌道的 (公轉週期與地球自轉一致的)",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "root",
+              "meaning": "地球"
+            },
+            {
+              "text": "synchronous",
+              "role": "base",
+              "meaning": "同步的 (syn + chron)"
+            }
+          ],
+          "resultMeaning": "衛星軌道運行週期剛好與地球自轉 24 小時完全同步吻合的 ➔「地球同步的」"
+        },
+        "sentence": "Telecommunications satellites stationed in geosynchronous orbit maintain stationary relative coordinates over equator receivers.",
+        "sentenceZh": "進駐地球同步軌道的電信通訊衛星在赤道接收站上空保持相對靜止坐標。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Telecommunications satellites",
+              "role": "主詞 (Subject)",
+              "note": "通訊衛星。"
+            },
+            {
+              "part": "stationed in geosynchronous orbit",
+              "role": "過去分詞片語修飾 satellites",
+              "note": "進駐同步軌道。"
+            },
+            {
+              "part": "maintain stationary relative coordinates",
+              "role": "及物動詞與受詞",
+              "note": "維持靜止坐標。"
+            },
+            {
+              "part": "over equator receivers",
+              "role": "地點狀語",
+              "note": "在赤道上方。"
+            }
+          ],
+          "keyPoints": [
+            "【航太概念】：GSO = Geosynchronous Orbit (地球同步軌道，高度約 35,786 公里)。"
+          ]
+        }
+      },
+      {
+        "word": "geomagnetic",
+        "kk": "[ˌdʒiomægˈnɛtɪk]",
+        "ipa": "/ˌdʒiːoʊmæɡˈnetɪk/",
+        "pos": "adj.",
+        "meaning": "地磁的、地球磁場的",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "root",
+              "meaning": "地球"
+            },
+            {
+              "text": "magnetic",
+              "role": "base",
+              "meaning": "磁性的"
+            }
+          ],
+          "resultMeaning": "由地球液態外地核鐵鎳金屬對流發電機效應所產生之磁場的 ➔「地磁的」"
+        },
+        "sentence": "Intense solar coronal mass ejections trigger severe geomagnetic storms capable of disrupting terrestrial power grids.",
+        "sentenceZh": "強烈的太陽日冕物質拋射會引發嚴重的地磁風暴，足以癱瘓地面電力電網。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (capable of V-ing)",
+          "breakdown": [
+            {
+              "part": "Intense solar coronal mass ejections",
+              "role": "主詞 (Subject)",
+              "note": "日冕拋射 (CME)。"
+            },
+            {
+              "part": "trigger severe geomagnetic storms",
+              "role": "動詞與受詞",
+              "note": "引發地磁風暴。"
+            },
+            {
+              "part": "capable of disrupting terrestrial power grids",
+              "role": "形容詞片語後位修飾",
+              "note": "足以破壞電網。"
+            }
+          ],
+          "keyPoints": [
+            "【太空氣象】：geomagnetic reversal (地磁倒轉，南北極反轉)。"
+          ]
+        }
+      },
+      {
+        "word": "geodesy",
+        "kk": "[dʒɪˈɑdəsɪ]",
+        "ipa": "/dʒiˈɑːdəsi/",
+        "pos": "n.",
+        "meaning": "大地測量學 (測定地球形狀大小與重力場的科學)",
+        "formula": {
+          "parts": [
+            {
+              "text": "geo-",
+              "role": "root",
+              "meaning": "地球"
+            },
+            {
+              "text": "daiein (des)",
+              "role": "root",
+              "meaning": "分割、測量 (divide)"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "學科"
+            }
+          ],
+          "resultMeaning": "精確度量測繪地球三維曲率、自轉運動與重力勢位之高階幾何科學 ➔「大地測量學」"
+        },
+        "sentence": "Satellite geodesy measures subtle continental plate drift with millimeter-level mathematical precision.",
+        "sentenceZh": "衛星大地測量學能以毫米級的數學精確度測量大陸板塊的微妙漂移運動。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Manner",
+          "breakdown": [
+            {
+              "part": "Satellite geodesy",
+              "role": "主詞 (Subject)",
+              "note": "衛星大地測量學。"
+            },
+            {
+              "part": "measures continental plate drift",
+              "role": "及物動詞與受詞",
+              "note": "測量板塊漂移。"
+            },
+            {
+              "part": "with millimeter-level precision",
+              "role": "方式介系詞片語",
+              "note": "毫米級精度。"
+            }
+          ],
+          "keyPoints": [
+            "【測繪科學】：GPS 衛星定位之底層基礎正是基於 geodesy (大地測量學)。"
           ]
         }
       }
@@ -5995,6 +16094,625 @@ const ETYMO_DATA = [
             "【字根疊合】：hydro- (水) + electro- (電)，現代永續能源領域最關鍵之複合詞根。"
           ]
         }
+      },
+      {
+        "word": "hydrate",
+        "kk": "[ˈhaɪdret]",
+        "ipa": "/ˈhaɪdreɪt/",
+        "pos": "v. / n.",
+        "meaning": "使水合、補充水分；(n.) 水合物",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydr-",
+              "role": "root",
+              "meaning": "水"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞/化學名詞字尾"
+            }
+          ],
+          "resultMeaning": "使分子或身體內部充分吸收並結合水分 ➔「補水、水合物」"
+        },
+        "sentence": "Endurance marathon runners must hydrate methodically before races to avoid debilitating heat exhaustion.",
+        "sentenceZh": "耐力馬拉松跑者在比賽前必須有計畫地補充水分，以避免令人衰弱的中暑虛脫。",
+        "grammar": {
+          "pattern": "S + Modal + Vi + Adv + Prep Phrase + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Endurance marathon runners",
+              "role": "主詞 (Subject)",
+              "note": "馬拉松跑者。"
+            },
+            {
+              "part": "must hydrate",
+              "role": "動詞片語 (Verb)",
+              "note": "必須補充水分。"
+            },
+            {
+              "part": "methodically",
+              "role": "情狀副詞",
+              "note": "有條不紊地。"
+            },
+            {
+              "part": "to avoid heat exhaustion",
+              "role": "目的狀語",
+              "note": "熱衰竭。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：hydration (水分補充), dehydration (脫水)。"
+          ]
+        }
+      },
+      {
+        "word": "hydroponics",
+        "kk": "[ˌhaɪdrəˈpɑnɪks]",
+        "ipa": "/ˌhaɪdrəˈpɑːnɪks/",
+        "pos": "n.",
+        "meaning": "水耕栽培學、無土種植法",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "prefix",
+              "meaning": "水"
+            },
+            {
+              "text": "ponics",
+              "role": "root",
+              "meaning": "勞動工作 (希臘語 ponos)"
+            }
+          ],
+          "resultMeaning": "利用富含礦物養分的水溶液代替土壤種植作物 ➔「水耕栽培」"
+        },
+        "sentence": "Urban vertical farms leverage automated hydroponics to cultivate organic leafy greens with ninety percent less water.",
+        "sentenceZh": "都市垂直農場利用自動化水耕栽培技術，以少九成的水資源培育有機綠葉蔬菜。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Urban vertical farms",
+              "role": "主詞 (Subject)",
+              "note": "垂直農場。"
+            },
+            {
+              "part": "leverage",
+              "role": "及物動詞 (Verb)",
+              "note": "充分利用。"
+            },
+            {
+              "part": "automated hydroponics",
+              "role": "受詞 (Object)",
+              "note": "自動水耕。"
+            },
+            {
+              "part": "to cultivate organic greens",
+              "role": "目的狀語",
+              "note": "栽種。"
+            }
+          ],
+          "keyPoints": [
+            "【現代農業】：hydroponics (水耕) vs. aquaponics (魚菜共生)。"
+          ]
+        }
+      },
+      {
+        "word": "hydrophobia",
+        "kk": "[ˌhaɪdrəˈfobɪə]",
+        "ipa": "/ˌhaɪdrəˈfoʊbiə/",
+        "pos": "n.",
+        "meaning": "恐水症、狂犬病恐水性痙攣",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "prefix",
+              "meaning": "水"
+            },
+            {
+              "text": "phobia",
+              "role": "root",
+              "meaning": "恐懼恐懼症"
+            }
+          ],
+          "resultMeaning": "狂犬病毒引發咽喉痙攣導致見水即抽搐恐懼 ➔「恐水症」"
+        },
+        "sentence": "In advanced clinical rabies, painful pharyngeal spasms trigger intense hydrophobia whenever swallowing fluids is attempted.",
+        "sentenceZh": "在狂犬病晚期臨床症狀中，每當嘗試吞嚥液體時，劇痛的咽喉痙攣就會引發強烈的恐水症。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt + O + Adv Clause of Time",
+          "breakdown": [
+            {
+              "part": "In advanced clinical rabies",
+              "role": "情境狀語",
+              "note": "狂犬病晚期。"
+            },
+            {
+              "part": "painful pharyngeal spasms",
+              "role": "主詞 (Subject)",
+              "note": "咽喉痙攣。"
+            },
+            {
+              "part": "trigger",
+              "role": "及物動詞 (Verb)",
+              "note": "觸發。"
+            },
+            {
+              "part": "intense hydrophobia",
+              "role": "受詞 (Object)",
+              "note": "恐水症。"
+            }
+          ],
+          "keyPoints": [
+            "【恐懼字尾】：-phobia 表病態恐懼，如 claustrophobia (幽閉恐懼症)。"
+          ]
+        }
+      },
+      {
+        "word": "hydrology",
+        "kk": "[haɪˈdrɑlədʒɪ]",
+        "ipa": "/haɪˈdrɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "水文學 (地球水資源分布循環學門)",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "prefix",
+              "meaning": "水"
+            },
+            {
+              "text": "-logy",
+              "role": "suffix",
+              "meaning": "學問"
+            }
+          ],
+          "resultMeaning": "研究地球水圈降水、蒸發、地下水與河川流動之科學 ➔「水文學」"
+        },
+        "sentence": "Researchers in watershed hydrology build computational models to simulate flood risk under extreme rainfall events.",
+        "sentenceZh": "流域水文學研究人員建構計算模型，以模擬極端降雨事件下的洪患風險。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Researchers in watershed hydrology",
+              "role": "主詞 (Subject)",
+              "note": "水文學研究員。"
+            },
+            {
+              "part": "build",
+              "role": "及物動詞 (Verb)",
+              "note": "建構。"
+            },
+            {
+              "part": "computational models",
+              "role": "受詞 (Object)",
+              "note": "計算模型。"
+            },
+            {
+              "part": "to simulate flood risk",
+              "role": "目的狀語",
+              "note": "模擬洪水風險。"
+            }
+          ],
+          "keyPoints": [
+            "【地球科學】：hydrology (水文學) ➔ hydrologist (水文學家)。"
+          ]
+        }
+      },
+      {
+        "word": "hydrothermal",
+        "kk": "[ˌhaɪdroˈθɝməl]",
+        "ipa": "/ˌhaɪdroʊˈθɜːrml/",
+        "pos": "adj.",
+        "meaning": "熱液的、熱水的、水熱的",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "prefix",
+              "meaning": "水"
+            },
+            {
+              "text": "therm",
+              "role": "root",
+              "meaning": "熱"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "地殼深處高溫高壓地下熱水作用的 ➔「水熱的、深海熱泉的」"
+        },
+        "sentence": "Deep-sea submersibles discovered teeming ecosystems flourishing around sulfurous hydrothermal vents on the ocean floor.",
+        "sentenceZh": "深海潛水艇發現洋底含硫熱液噴口周圍繁衍著生氣盎然的獨特生態系統。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Deep-sea submersibles",
+              "role": "主詞 (Subject)",
+              "note": "深海潛水艇。"
+            },
+            {
+              "part": "discovered",
+              "role": "及物動詞 (Verb)",
+              "note": "發現。"
+            },
+            {
+              "part": "teeming ecosystems",
+              "role": "受詞 (Object)",
+              "note": "豐富生態系。"
+            },
+            {
+              "part": "flourishing around hydrothermal vents",
+              "role": "分詞片語修飾 ecosystems",
+              "note": "繁榮生長。"
+            }
+          ],
+          "keyPoints": [
+            "【海洋地質】：hydrothermal vent 專指深海「海底黑煙囪/熱液噴口」。"
+          ]
+        }
+      },
+      {
+        "word": "hydrodynamics",
+        "kk": "[ˌhaɪdrodaɪˈnæmɪks]",
+        "ipa": "/ˌhaɪdroʊdaɪˈnæmɪks/",
+        "pos": "n.",
+        "meaning": "流體動力學、水動力學",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "prefix",
+              "meaning": "水"
+            },
+            {
+              "text": "dynamics",
+              "role": "base",
+              "meaning": "動力學"
+            }
+          ],
+          "resultMeaning": "研究水與其他不可壓縮液體在流動運動中所受外力與流速之學科 ➔「水動力學」"
+        },
+        "sentence": "Naval architects apply hydrodynamics to sculpt submarine hulls that glide with minimal acoustic turbulence.",
+        "sentenceZh": "造船工程師應用流體動力學雕塑潛水艇船體，使其能以最小的聲學湍流滑行。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Naval architects",
+              "role": "主詞 (Subject)",
+              "note": "造船工程師。"
+            },
+            {
+              "part": "apply hydrodynamics",
+              "role": "及物動詞與受詞",
+              "note": "應用流體動力學。"
+            },
+            {
+              "part": "to sculpt submarine hulls",
+              "role": "目的狀語",
+              "note": "船體外型。"
+            },
+            {
+              "part": "that glide with minimal turbulence",
+              "role": "關係子句",
+              "note": "滑行。"
+            }
+          ],
+          "keyPoints": [
+            "【工程學科】：hydrodynamics (水動力學) vs. aerodynamics (空氣動力學)。"
+          ]
+        }
+      },
+      {
+        "word": "hydrocarbon",
+        "kk": "[ˌhaɪdrəˈkɑrbən]",
+        "ipa": "/ˌhaɪdrəˈkɑːrbən/",
+        "pos": "n.",
+        "meaning": "碳氫化合物、烴 (石化石油核心分子)",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "root",
+              "meaning": "氫、水"
+            },
+            {
+              "text": "carbon",
+              "role": "base",
+              "meaning": "碳"
+            }
+          ],
+          "resultMeaning": "分子結構完全由碳和氫兩種原子鍵結構成之有機化合物 ➔「碳氫化合物、烴」"
+        },
+        "sentence": "Petrochemical refineries process crude fossil deposits into versatile hydrocarbon fractions like ethylene and propane.",
+        "sentenceZh": "石化煉油廠將原油化石沉積物提煉加工為如乙烯和丙烷等多種碳氫化合物餾分。",
+        "grammar": {
+          "pattern": "S + Vt (process A into B) + Prep Phrase (like...)",
+          "breakdown": [
+            {
+              "part": "Petrochemical refineries",
+              "role": "主詞 (Subject)",
+              "note": "石化煉油廠。"
+            },
+            {
+              "part": "process crude fossil deposits into hydrocarbon fractions",
+              "role": "及物動詞結構 process A into B",
+              "note": "將原油煉成烴分餾物。"
+            },
+            {
+              "part": "like ethylene and propane",
+              "role": "舉例介系詞片語",
+              "note": "如乙烯與丙烷。"
+            }
+          ],
+          "keyPoints": [
+            "【能源名詞】：aromatic hydrocarbon (芳香烴)。"
+          ]
+        }
+      },
+      {
+        "word": "hydrophilic",
+        "kk": "[ˌhaɪdrəˈfɪlɪk]",
+        "ipa": "/ˌhaɪdrəˈfɪlɪk/",
+        "pos": "adj.",
+        "meaning": "親水的、易溶於水或吸水的",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "root",
+              "meaning": "水"
+            },
+            {
+              "text": "phil",
+              "role": "root",
+              "meaning": "喜愛 (love)"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "分子電極性強極度渴望與水分子形成氫鍵相融的 ➔「親水的」"
+        },
+        "sentence": "Cell membranes comprise a lipid bilayer with hydrophilic exterior heads and nonpolar interior tails.",
+        "sentenceZh": "細胞膜由脂質雙分子層構成，具有親水性的外側頭部與非極性的內側尾部。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (with...)",
+          "breakdown": [
+            {
+              "part": "Cell membranes",
+              "role": "主詞 (Subject)",
+              "note": "細胞膜。"
+            },
+            {
+              "part": "comprise a lipid bilayer",
+              "role": "及物動詞與受詞",
+              "note": "由脂質雙層構成。"
+            },
+            {
+              "part": "with hydrophilic heads and interior tails",
+              "role": "伴隨特徵介系詞片語",
+              "note": "親水頭部與疏水尾部。"
+            }
+          ],
+          "keyPoints": [
+            "【生化對偶詞】：hydrophilic (親水的) vs. hydrophobic (疏水的)。"
+          ]
+        }
+      },
+      {
+        "word": "hydrophobic",
+        "kk": "[ˌhaɪdrəˈfobɪk]",
+        "ipa": "/ˌhaɪdrəˈfoʊbɪk/",
+        "pos": "adj.",
+        "meaning": "疏水的、排斥水的、抗水不親水的",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "root",
+              "meaning": "水"
+            },
+            {
+              "text": "phob",
+              "role": "root",
+              "meaning": "恐懼、排斥 (fear)"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "分子無極性因而與水分子相互推斥不溶的 ➔「疏水的、恐水的」"
+        },
+        "sentence": "Lotus leaves showcase exceptional super-hydrophobic nanostructures causing water droplets to roll off clean without wetting.",
+        "sentenceZh": "蓮葉展現出非凡的超疏水奈米微結構，使水滴圓滾滾地滑落而不沾濕葉面。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (causing O to-V)",
+          "breakdown": [
+            {
+              "part": "Lotus leaves",
+              "role": "主詞 (Subject)",
+              "note": "蓮葉。"
+            },
+            {
+              "part": "showcase super-hydrophobic nanostructures",
+              "role": "動詞與受詞",
+              "note": "展現超疏水結構。"
+            },
+            {
+              "part": "causing water droplets to roll off clean",
+              "role": "分詞因果片語 (cause + O + to V)",
+              "note": "使水滴滾落。"
+            }
+          ],
+          "keyPoints": [
+            "【仿生名詞】：Lotus effect (蓮花效應，超疏水自清潔表面)。"
+          ]
+        }
+      },
+      {
+        "word": "hydroplane",
+        "kk": "[ˈhaɪdrəˌplen]",
+        "ipa": "/ˈhaɪdrəpleɪn/",
+        "pos": "v. / n.",
+        "meaning": "(車輛高速在積水路面) 水漂打滑、滑水；(n.) 水上飛機、高速水翼滑艇",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "root",
+              "meaning": "水"
+            },
+            {
+              "text": "plane",
+              "role": "root",
+              "meaning": "滑行、滑翔翼面"
+            }
+          ],
+          "resultMeaning": "車胎失去與路面直接接觸完全在水膜頂部滑翔失控 ➔「水漂打滑」"
+        },
+        "sentence": "Worn tire treads can cause a speeding car to hydroplane uncontrollably on rain-slicked highway curves.",
+        "sentenceZh": "磨損的輪胎胎紋會導致高速行駛的汽車在雨天濕滑的公路彎道上失控水漂打滑。",
+        "grammar": {
+          "pattern": "S + Modal + Vt (cause) + O + to-V (to hydroplane) + Adv + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Worn tire treads",
+              "role": "主詞 (Subject)",
+              "note": "磨損胎紋。"
+            },
+            {
+              "part": "can cause a car to hydroplane",
+              "role": "cause + O + to V 句型",
+              "note": "使車輛水漂打滑。"
+            },
+            {
+              "part": "uncontrollably",
+              "role": "副詞修飾 hydroplane",
+              "note": "失控地。"
+            },
+            {
+              "part": "on rain-slicked highway curves",
+              "role": "地點狀語",
+              "note": "雨天濕滑彎道。"
+            }
+          ],
+          "keyPoints": [
+            "【行車安全】：aquaplaning (英式英語) 與 hydroplaning (美式英語) 均指水漂現象。"
+          ]
+        }
+      },
+      {
+        "word": "hydrolysis",
+        "kk": "[haɪˈdrɑləsɪs]",
+        "ipa": "/haɪˈdrɑːlɪsɪs/",
+        "pos": "n.",
+        "meaning": "水解作用 (化合物與水分子反應而分解)",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "root",
+              "meaning": "水"
+            },
+            {
+              "text": "lysis",
+              "role": "root",
+              "meaning": "分解、溶解 (希臘語 lusis)"
+            }
+          ],
+          "resultMeaning": "藉由水分子之插入使化學複合鍵斷裂拆解 ➔「水解」"
+        },
+        "sentence": "Enzymatic hydrolysis in the small intestine cleaves complex starches into readily absorbable glucose monomers.",
+        "sentenceZh": "小腸內的酵素水解作用將複雜澱粉分解為易於吸收的葡萄糖單體。",
+        "grammar": {
+          "pattern": "S + Prep Phrase + Vt + O + Prep Phrase (into...)",
+          "breakdown": [
+            {
+              "part": "Enzymatic hydrolysis",
+              "role": "主詞 (Subject)",
+              "note": "酵素水解。"
+            },
+            {
+              "part": "in the small intestine",
+              "role": "地點狀語",
+              "note": "在小腸內。"
+            },
+            {
+              "part": "cleaves complex starches",
+              "role": "動詞與受詞",
+              "note": "裂解複合澱粉。"
+            },
+            {
+              "part": "into readily absorbable glucose monomers",
+              "role": "結果介系詞片語",
+              "note": "轉化為葡萄糖單體。"
+            }
+          ],
+          "keyPoints": [
+            "【化學詞尾 -lysis】：dialysis (透析), electrolysis (電解), hydrolysis (水解)。"
+          ]
+        }
+      },
+      {
+        "word": "hydrosphere",
+        "kk": "[ˈhaɪdrəˌsfɪr]",
+        "ipa": "/ˈhaɪdrəsfɪr/",
+        "pos": "n.",
+        "meaning": "水圈、水界 (地球全部地表水與地下水總體)",
+        "formula": {
+          "parts": [
+            {
+              "text": "hydro-",
+              "role": "root",
+              "meaning": "水"
+            },
+            {
+              "text": "sphere",
+              "role": "root",
+              "meaning": "圈層、球體"
+            }
+          ],
+          "resultMeaning": "包含大洋、冰川、湖泊與大氣水氣之地球全體水資源圈層 ➔「水圈」"
+        },
+        "sentence": "Oceans account for approximately ninety-seven percent of the entire planetary hydrosphere's total water volume.",
+        "sentenceZh": "海洋佔據了整個地球水圈全部水體體積的大約百分之九十七。",
+        "grammar": {
+          "pattern": "S + Vi (account for) + O",
+          "breakdown": [
+            {
+              "part": "Oceans",
+              "role": "主詞 (Subject)",
+              "note": "海洋。"
+            },
+            {
+              "part": "account for",
+              "role": "動詞片語 (Verb)",
+              "note": "佔...比例。"
+            },
+            {
+              "part": "ninety-seven percent of total water volume",
+              "role": "受詞 (Object)",
+              "note": "97% 水量。"
+            }
+          ],
+          "keyPoints": [
+            "【地學常識】：地球表面超過 71% 被 hydrosphere 所覆蓋。"
+          ]
+        }
       }
     ],
     "article": {
@@ -6308,6 +17026,625 @@ const ETYMO_DATA = [
             "【科學動詞】：tend to + 原形動詞，表自然法則的普遍傾向。"
           ]
         }
+      },
+      {
+        "word": "exothermic",
+        "kk": "[ˌɛksoˈθɝmɪk]",
+        "ipa": "/ˌɛksoʊˈθɜːrmɪk/",
+        "pos": "adj.",
+        "meaning": "放熱的、釋放熱量的",
+        "formula": {
+          "parts": [
+            {
+              "text": "exo-",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "therm",
+              "role": "root",
+              "meaning": "熱"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "化學反應過程中向外釋放熱能的 ➔「放熱的」"
+        },
+        "sentence": "Combustion is a rapid exothermic reaction that converts molecular bond energy into radiant heat and light.",
+        "sentenceZh": "燃燒是一種快速放熱反應，將分子鍵能量轉化為輻射熱與光芒。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Combustion",
+              "role": "主詞 (Subject)",
+              "note": "燃燒作用。"
+            },
+            {
+              "part": "is",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "a rapid exothermic reaction",
+              "role": "主詞補語",
+              "note": "快速放熱反應。"
+            },
+            {
+              "part": "that converts bond energy into heat",
+              "role": "關係子句",
+              "note": "convert A into B。"
+            }
+          ],
+          "keyPoints": [
+            "【化學對比】：exothermic (放熱) vs. endothermic (吸熱，endo- 向內)。"
+          ]
+        }
+      },
+      {
+        "word": "endothermic",
+        "kk": "[ˌɛndoˈθɝmɪk]",
+        "ipa": "/ˌɛndoʊˈθɜːrmɪk/",
+        "pos": "adj.",
+        "meaning": "吸熱的、恆溫的 (溫血動物)",
+        "formula": {
+          "parts": [
+            {
+              "text": "endo-",
+              "role": "prefix",
+              "meaning": "向內"
+            },
+            {
+              "text": "therm",
+              "role": "root",
+              "meaning": "熱"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "自外界吸收熱量方能進行的反應，或自身產熱維持恆溫的 ➔「吸熱的、恆溫的」"
+        },
+        "sentence": "Mammals are endothermic organisms that regulate stable internal core body temperatures regardless of ambient cold.",
+        "sentenceZh": "哺乳動物是恆溫生物，無論外界寒冷如何皆能調節穩定的體內核心體溫。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Relative Clause + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Mammals",
+              "role": "主詞 (Subject)",
+              "note": "哺乳類。"
+            },
+            {
+              "part": "are endothermic organisms",
+              "role": "連綴動詞與補語",
+              "note": "恆溫生物。"
+            },
+            {
+              "part": "that regulate body temperatures",
+              "role": "關係子句",
+              "note": "調節體溫。"
+            },
+            {
+              "part": "regardless of ambient cold",
+              "role": "讓步介系詞片語",
+              "note": "不論外界低溫。"
+            }
+          ],
+          "keyPoints": [
+            "【生物生理學】：endotherm (恆溫動物，溫血) vs. ectotherm (變溫動物，冷血)。"
+          ]
+        }
+      },
+      {
+        "word": "isothermal",
+        "kk": "[ˌaɪsəˈθɝməl]",
+        "ipa": "/ˌaɪsoʊˈθɜːrml/",
+        "pos": "adj.",
+        "meaning": "等溫的、恆溫過程的",
+        "formula": {
+          "parts": [
+            {
+              "text": "iso-",
+              "role": "prefix",
+              "meaning": "相等、等同"
+            },
+            {
+              "text": "therm",
+              "role": "root",
+              "meaning": "熱"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "物理狀態或熱力學膨脹過程中整體溫度保持恆定相等的 ➔「等溫的」"
+        },
+        "sentence": "In an ideal isothermal expansion, gas absorbs external heat while performing mechanical work without changing temperature.",
+        "sentenceZh": "在理想的等溫膨脹中，氣體在吸收外界熱量的同時對外作功，而溫度保持不變。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt + O + Adv Clause of Concurrent Action",
+          "breakdown": [
+            {
+              "part": "In an ideal isothermal expansion",
+              "role": "情境介系詞片語",
+              "note": "等溫膨脹。"
+            },
+            {
+              "part": "gas",
+              "role": "主詞 (Subject)",
+              "note": "氣體。"
+            },
+            {
+              "part": "absorbs external heat",
+              "role": "謂語動詞與受詞",
+              "note": "吸收外界熱。"
+            },
+            {
+              "part": "while performing mechanical work",
+              "role": "伴隨動作狀語",
+              "note": "同時作功。"
+            }
+          ],
+          "keyPoints": [
+            "【相等字根】：iso- (相等)，如 isotope (同位素), isometric (等距的)。"
+          ]
+        }
+      },
+      {
+        "word": "thermonuclear",
+        "kk": "[ˌθɝmoˈnjuklɪɚ]",
+        "ipa": "/ˌθɜːrmoʊˈnuːkliər/",
+        "pos": "adj.",
+        "meaning": "熱核的、熱核反應的 (氫彈)",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "prefix",
+              "meaning": "高溫熱"
+            },
+            {
+              "text": "nuclear",
+              "role": "base",
+              "meaning": "原子核的"
+            }
+          ],
+          "resultMeaning": "在數千萬度極高溫度下誘發輕原子核融合聚變的 ➔「熱核的」"
+        },
+        "sentence": "Stars sustain their luminosity for billions of years through thermonuclear fusion occurring deep within their cores.",
+        "sentenceZh": "恆星藉由其核心深處發生的熱核融合反應，維持了數十億年的光輝。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Time + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Stars",
+              "role": "主詞 (Subject)",
+              "note": "恆星。"
+            },
+            {
+              "part": "sustain their luminosity",
+              "role": "動詞與受詞",
+              "note": "維持光度。"
+            },
+            {
+              "part": "for billions of years",
+              "role": "時間介系詞片語",
+              "note": "數十億年。"
+            },
+            {
+              "part": "through thermonuclear fusion",
+              "role": "手段介系詞片語",
+              "note": "熱核融合。"
+            }
+          ],
+          "keyPoints": [
+            "【物理專有名詞】：thermonuclear weapon (熱核武器/氫彈)。"
+          ]
+        }
+      },
+      {
+        "word": "thermosphere",
+        "kk": "[ˈθɝməˌsfɪr]",
+        "ipa": "/ˈθɜːrmoʊsfɪr/",
+        "pos": "n.",
+        "meaning": "熱氣層、熱成層 (地球大氣高溫層)",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "prefix",
+              "meaning": "熱"
+            },
+            {
+              "text": "sphere",
+              "role": "root",
+              "meaning": "球層"
+            }
+          ],
+          "resultMeaning": "大氣層高處因強烈吸收太陽 X 射線而溫度驟升之大氣層圈 ➔「熱氣層」"
+        },
+        "sentence": "The International Space Station orbits Earth within the rarefied upper boundary of the thermosphere.",
+        "sentenceZh": "國際太空站在熱氣層空氣稀薄的上邊界內繞地球運行。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "The International Space Station",
+              "role": "主詞 (Subject)",
+              "note": "國際太空站。"
+            },
+            {
+              "part": "orbits",
+              "role": "及物動詞 (Verb)",
+              "note": "繞軌道運行。"
+            },
+            {
+              "part": "Earth",
+              "role": "直接受詞 (Object)",
+              "note": "地球。"
+            },
+            {
+              "part": "within the thermosphere",
+              "role": "地點介系詞片語",
+              "note": "熱氣層內。"
+            }
+          ],
+          "keyPoints": [
+            "【大氣圈層】：troposphere (對流層) ➔ stratosphere (平流層) ➔ mesosphere (中氣層) ➔ thermosphere (熱成層)。"
+          ]
+        }
+      },
+      {
+        "word": "thermocouple",
+        "kk": "[ˈθɝməˌkʌp!]",
+        "ipa": "/ˈθɜːrmoʊkʌpl/",
+        "pos": "n.",
+        "meaning": "熱電偶 (高溫測量感溫器)",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "prefix",
+              "meaning": "熱"
+            },
+            {
+              "text": "couple",
+              "role": "base",
+              "meaning": "成對 (兩種金屬成對結合)"
+            }
+          ],
+          "resultMeaning": "由兩種不同金屬線焊接相接利用溫差產生電壓測溫之感測元件 ➔「熱電偶」"
+        },
+        "sentence": "Industrial furnaces rely on a platinum thermocouple to monitor extreme melt temperatures exceeding one thousand degrees.",
+        "sentenceZh": "工業高爐仰賴白金熱電偶來監控超過一千度的極高熔煉溫度。",
+        "grammar": {
+          "pattern": "S + Vi (rely on O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Industrial furnaces",
+              "role": "主詞 (Subject)",
+              "note": "工業高爐。"
+            },
+            {
+              "part": "rely on",
+              "role": "動詞片語",
+              "note": "仰賴。"
+            },
+            {
+              "part": "a platinum thermocouple",
+              "role": "介系詞受詞",
+              "note": "白金熱電偶。"
+            },
+            {
+              "part": "to monitor extreme melt temperatures",
+              "role": "目的狀語",
+              "note": "監控溫度。"
+            }
+          ],
+          "keyPoints": [
+            "【工業儀器】：thermocouple 是冶金與航太最普及耐高溫的感溫元件。"
+          ]
+        }
+      },
+      {
+        "word": "thermoelectric",
+        "kk": "[ˌθɝmoɪˈlɛktrɪk]",
+        "ipa": "/ˌθɜːrmoʊɪˈlektrɪk/",
+        "pos": "adj.",
+        "meaning": "熱電的 (熱能直接轉換為電能的)",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "root",
+              "meaning": "熱"
+            },
+            {
+              "text": "electric",
+              "role": "base",
+              "meaning": "電的"
+            }
+          ],
+          "resultMeaning": "依據溫差塞貝克效應直接產生電位差電能的 ➔「熱電的」"
+        },
+        "sentence": "Deep space probes harness thermoelectric generators that convert decay heat from plutonium pellets into electric power.",
+        "sentenceZh": "深太空探測器利用熱電發電機，將鈽金屬粒的衰變熱能直接轉化為電力。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Deep space probes",
+              "role": "主詞 (Subject)",
+              "note": "深空探測器。"
+            },
+            {
+              "part": "harness thermoelectric generators",
+              "role": "動詞與受詞",
+              "note": "利用熱電發電機。"
+            },
+            {
+              "part": "that convert decay heat into electric power",
+              "role": "關係子句修飾 generators",
+              "note": "convert A into B。"
+            }
+          ],
+          "keyPoints": [
+            "【航太科技】：RTG = Radioisotope Thermoelectric Generator (放射性同位素熱電機)。"
+          ]
+        }
+      },
+      {
+        "word": "thermophile",
+        "kk": "[ˈθɝməˌfaɪl]",
+        "ipa": "/ˈθɜːrməfaɪl/",
+        "pos": "n.",
+        "meaning": "嗜熱生物、耐高溫微生物 (如黃石公園嗜熱菌)",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "root",
+              "meaning": "熱"
+            },
+            {
+              "text": "phil",
+              "role": "root",
+              "meaning": "喜愛 (love)"
+            }
+          ],
+          "resultMeaning": "偏好並繁衍於攝氏 50 至 120 度極端沸水高溫環境中之古菌生物 ➔「嗜熱菌」"
+        },
+        "sentence": "Biochemists isolated heat-stable polymerase enzymes from a deep-sea volcanic vent thermophile.",
+        "sentenceZh": "生物化學家從深海火山噴口嗜熱古菌中分離出了具極高耐熱穩定性的聚合酶。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (from...)",
+          "breakdown": [
+            {
+              "part": "Biochemists",
+              "role": "主詞 (Subject)",
+              "note": "生化學家。"
+            },
+            {
+              "part": "isolated heat-stable polymerase enzymes",
+              "role": "動詞與受詞",
+              "note": "分離耐熱聚合酶。"
+            },
+            {
+              "part": "from a volcanic vent thermophile",
+              "role": "出處來源介系詞片語",
+              "note": "源自嗜熱生物。"
+            }
+          ],
+          "keyPoints": [
+            "【生技革命】：PCR 聚合酶鏈鎖反應使用的 Taq 聚合酶正來自黃石公園嗜熱菌 (Thermus aquaticus)。"
+          ]
+        }
+      },
+      {
+        "word": "thermoplastic",
+        "kk": "[ˌθɝməˈplæstɪk]",
+        "ipa": "/ˌθɜːrməˈplæstɪk/",
+        "pos": "adj. / n.",
+        "meaning": "熱塑性的、受熱可塑的；(n.) 熱塑性塑膠",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "root",
+              "meaning": "熱"
+            },
+            {
+              "text": "plastic",
+              "role": "root",
+              "meaning": "可塑的 (希臘語 plastikos)"
+            }
+          ],
+          "resultMeaning": "受熱便變軟可反覆重新塑形冷卻固化的環保塑料 ➔「熱塑性塑膠」"
+        },
+        "sentence": "Industrial 3D printers deposit extruded layers of molten thermoplastic filaments to construct intricate prototypes.",
+        "sentenceZh": "工業級 3D 列印機沉積擠出熔融的熱塑性塑料纖絲，以建構錯綜複雜的樣品原型。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Industrial 3D printers",
+              "role": "主詞 (Subject)",
+              "note": "工業 3D 列印機。"
+            },
+            {
+              "part": "deposit extruded layers of filaments",
+              "role": "動詞與受詞",
+              "note": "沉積擠壓層。"
+            },
+            {
+              "part": "to construct intricate prototypes",
+              "role": "目的狀語",
+              "note": "建構複雜模型。"
+            }
+          ],
+          "keyPoints": [
+            "【材料對比】：thermoplastic (熱塑性，可反覆熔融回收) vs. thermoset (熱固性，加熱碳化不可逆)。"
+          ]
+        }
+      },
+      {
+        "word": "thermoregulation",
+        "kk": "[ˌθɝmorɛgjəˈleʃən]",
+        "ipa": "/ˌθɜːrmoʊreɡjuˈleɪʃn/",
+        "pos": "n.",
+        "meaning": "體溫調節、溫度恆定調控",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "root",
+              "meaning": "熱、體溫"
+            },
+            {
+              "text": "regulation",
+              "role": "base",
+              "meaning": "調節、規範"
+            }
+          ],
+          "resultMeaning": "生物體神經內分泌中樞自動維持核心體溫恆定之生理機制 ➔「體溫調節」"
+        },
+        "sentence": "Sweating and peripheral vasodilation serve as primary physiological mechanisms for human thermoregulation in hot climates.",
+        "sentenceZh": "排汗與周邊血管擴張是炎熱氣候下人體進行體溫調節的核心生理機制。",
+        "grammar": {
+          "pattern": "S1 and S2 + Vi (serve as) + SC + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Sweating and peripheral vasodilation",
+              "role": "主詞 (Subject)",
+              "note": "流汗與血管擴張。"
+            },
+            {
+              "part": "serve as",
+              "role": "動詞片語 (Verb)",
+              "note": "充當、發揮作用。"
+            },
+            {
+              "part": "primary physiological mechanisms",
+              "role": "主詞補語",
+              "note": "主要生理機制。"
+            },
+            {
+              "part": "for human thermoregulation in hot climates",
+              "role": "介系詞對象與環境",
+              "note": "在炎熱環境下的體溫調節。"
+            }
+          ],
+          "keyPoints": [
+            "【生理學樞紐】：下視丘 (hypothalamus) 是大腦的體溫調節中樞 (thermostat)。"
+          ]
+        }
+      },
+      {
+        "word": "thermohaline",
+        "kk": "[ˌθɝmoˈhelɪn]",
+        "ipa": "/ˌθɜːrmoʊˈheɪlaɪn/",
+        "pos": "adj.",
+        "meaning": "溫鹽的、溫鹽環流的 (由溫度與鹽度密度差驅動的全球大洋傳送帶)",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "root",
+              "meaning": "溫度、熱"
+            },
+            {
+              "text": "hal",
+              "role": "root",
+              "meaning": "鹽分 (希臘語 hals)"
+            },
+            {
+              "text": "-ine",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "大洋深層水因溫度寒冷與高鹽度造成密度劇增向下沉降驅動之環流 ➔「溫鹽環流的」"
+        },
+        "sentence": "Climatologists monitor the Atlantic thermohaline circulation, warning meltwater influx could weaken global heat conveyor belts.",
+        "sentenceZh": "氣候學家密切監控大西洋溫鹽環流，警告冰川融水的大量湧入可能會削弱全球大洋熱能輸送帶。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participial Clause (warning That Clause)",
+          "breakdown": [
+            {
+              "part": "Climatologists",
+              "role": "主詞 (Subject)",
+              "note": "氣候學家。"
+            },
+            {
+              "part": "monitor the Atlantic thermohaline circulation",
+              "role": "及物動詞與受詞",
+              "note": "監控大西洋溫鹽環流。"
+            },
+            {
+              "part": "warning meltwater influx could weaken conveyor belts",
+              "role": "現在分詞伴隨警告",
+              "note": "警告輸送帶可能減弱。"
+            }
+          ],
+          "keyPoints": [
+            "【氣候危機】：AMOC (大西洋經向翻轉環流) 是 thermohaline circulation 的核心支柱。"
+          ]
+        }
+      },
+      {
+        "word": "thermogram",
+        "kk": "[ˈθɝməˌgræm]",
+        "ipa": "/ˈθɜːrməɡræm/",
+        "pos": "n.",
+        "meaning": "熱成像圖、紅外線溫度分佈圖",
+        "formula": {
+          "parts": [
+            {
+              "text": "thermo-",
+              "role": "root",
+              "meaning": "熱、溫度"
+            },
+            {
+              "text": "gram",
+              "role": "root",
+              "meaning": "圖表、影像記錄"
+            }
+          ],
+          "resultMeaning": "利用紅外線熱感相機捕捉不同溫度輻射分佈並轉化為色譜之圖像 ➔「熱成像圖」"
+        },
+        "sentence": "Building inspectors analyzed the infrared thermogram to detect hidden thermal leaks across the building's facade.",
+        "sentenceZh": "建築檢驗人員分析了紅外線熱成像圖，以查明大樓建築立面隱蔽的熱量散失洩漏點。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Building inspectors",
+              "role": "主詞 (Subject)",
+              "note": "房屋檢驗人員。"
+            },
+            {
+              "part": "analyzed the infrared thermogram",
+              "role": "動詞與受詞",
+              "note": "分析紅外熱成像。"
+            },
+            {
+              "part": "to detect hidden thermal leaks",
+              "role": "目的狀語",
+              "note": "偵測隱藏熱洩漏。"
+            }
+          ],
+          "keyPoints": [
+            "【科技檢測】：thermography (紅外線熱成像檢測法)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -6619,6 +17956,610 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【同源字尾】：-gram (寫成的文本，如 diagram, telegram, program) vs. -graph (寫出的工具或過程，如 telegraph, photograph)。",
             "【不定詞後位修飾】：the way to do something 是固定形容詞用法，修飾 way。"
+          ]
+        }
+      },
+      {
+        "word": "calligraphy",
+        "kk": "[kəˈlɪgrəfɪ]",
+        "ipa": "/kəˈlɪɡrəfi/",
+        "pos": "n.",
+        "meaning": "書法、優美筆跡",
+        "formula": {
+          "parts": [
+            {
+              "text": "calli-",
+              "role": "prefix",
+              "meaning": "美麗、優雅 (希臘語 kallos)"
+            },
+            {
+              "text": "graphy",
+              "role": "root",
+              "meaning": "書寫"
+            }
+          ],
+          "resultMeaning": "以優雅筆觸與藝術結構書寫文字之藝術 ➔「書法」"
+        },
+        "sentence": "Traditional Chinese calligraphy elevates written characters into a sublime manifestation of poetic rhythm.",
+        "sentenceZh": "中國傳統書法將文字昇華為詩意韻律的崇高體現。",
+        "grammar": {
+          "pattern": "S + Vt (elevates A into B)",
+          "breakdown": [
+            {
+              "part": "Traditional Chinese calligraphy",
+              "role": "主詞 (Subject)",
+              "note": "中國傳統書法。"
+            },
+            {
+              "part": "elevates",
+              "role": "及物動詞 (Verb)",
+              "note": "elevate A into B (將 A 提升為 B)。"
+            },
+            {
+              "part": "written characters",
+              "role": "受詞 A",
+              "note": "書寫字元。"
+            },
+            {
+              "part": "into a sublime manifestation",
+              "role": "結果 B",
+              "note": "崇高體現。"
+            }
+          ],
+          "keyPoints": [
+            "【希臘字首】：calli- (美麗)，如 callisthenics (健美操)。"
+          ]
+        }
+      },
+      {
+        "word": "bibliography",
+        "kk": "[ˌbɪblɪˈɑgrəfɪ]",
+        "ipa": "/ˌbɪbliˈɑːɡrəfi/",
+        "pos": "n.",
+        "meaning": "參考書目、文獻目錄",
+        "formula": {
+          "parts": [
+            {
+              "text": "biblio-",
+              "role": "prefix",
+              "meaning": "書本 (希臘語 biblion)"
+            },
+            {
+              "text": "graphy",
+              "role": "root",
+              "meaning": "編寫記述"
+            }
+          ],
+          "resultMeaning": "研究論文末尾對所援引所有參考圖書文獻之系統編錄 ➔「參考書目」"
+        },
+        "sentence": "Academic dissertations require a meticulously formatted bibliography conforming to institutional citation guidelines.",
+        "sentenceZh": "學術學位論文需要有一份符合學術機構引註規範且格式縝密的參考書目。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (conforming to...)",
+          "breakdown": [
+            {
+              "part": "Academic dissertations",
+              "role": "主詞 (Subject)",
+              "note": "學位論文。"
+            },
+            {
+              "part": "require",
+              "role": "及物動詞 (Verb)",
+              "note": "需要。"
+            },
+            {
+              "part": "a formatted bibliography",
+              "role": "受詞 (Object)",
+              "note": "參考書目。"
+            },
+            {
+              "part": "conforming to citation guidelines",
+              "role": "分詞片語修飾 bibliography",
+              "note": "conform to (符合)。"
+            }
+          ],
+          "keyPoints": [
+            "【書本字根】：biblio (書)，如 bibliophile (藏書家), Bible (聖經)。"
+          ]
+        }
+      },
+      {
+        "word": "choreography",
+        "kk": "[ˌkorɪˈɑgrəfɪ]",
+        "ipa": "/ˌkɔːriˈɑːɡrəfi/",
+        "pos": "n.",
+        "meaning": "編舞、舞蹈設計、精心策劃的協調行動",
+        "formula": {
+          "parts": [
+            {
+              "text": "choreo-",
+              "role": "root",
+              "meaning": "跳舞 (希臘語 khoreia)"
+            },
+            {
+              "text": "graphy",
+              "role": "root",
+              "meaning": "記錄、繪寫"
+            }
+          ],
+          "resultMeaning": "將肢體舞蹈動作編寫記錄設計為舞台表演 ➔「編舞」"
+        },
+        "sentence": "The theatrical musical mesmerized the audience with electrifying choreography coordinated across fifty dancers.",
+        "sentenceZh": "這齣音樂劇以五十名舞者同步展現的震撼編舞，讓全場觀眾看得如癡如醉。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "The theatrical musical",
+              "role": "主詞 (Subject)",
+              "note": "劇場音樂劇。"
+            },
+            {
+              "part": "mesmerized",
+              "role": "及物動詞 (Verb)",
+              "note": "使入迷著魔。"
+            },
+            {
+              "part": "the audience",
+              "role": "直接受詞 (Object)",
+              "note": "觀眾。"
+            },
+            {
+              "part": "with electrifying choreography",
+              "role": "手段介系詞片語",
+              "note": "electrifying (令人觸電震撼的)。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：choreographer (編舞家)。"
+          ]
+        }
+      },
+      {
+        "word": "cartography",
+        "kk": "[kɑrˈtɑgrəfɪ]",
+        "ipa": "/kɑːrˈtɑːɡrəfi/",
+        "pos": "n.",
+        "meaning": "地圖學、製圖法",
+        "formula": {
+          "parts": [
+            {
+              "text": "carto-",
+              "role": "root",
+              "meaning": "地圖、圖卡 (card, chart)"
+            },
+            {
+              "text": "graphy",
+              "role": "root",
+              "meaning": "繪寫、描製"
+            }
+          ],
+          "resultMeaning": "測量大地並描製為精確地圖之專業學問 ➔「地圖繪製學」"
+        },
+        "sentence": "The Renaissance Age of Discovery stimulated revolutionary advances in maritime cartography and navigational charting.",
+        "sentenceZh": "文藝復興大航海時代促進了海事地圖學與航海圖繪製技術的革命性進步。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The Renaissance Age of Discovery",
+              "role": "主詞 (Subject)",
+              "note": "大航海時代。"
+            },
+            {
+              "part": "stimulated",
+              "role": "及物動詞 (Verb)",
+              "note": "促進推動。"
+            },
+            {
+              "part": "revolutionary advances",
+              "role": "受詞 (Object)",
+              "note": "革命性進展。"
+            },
+            {
+              "part": "in maritime cartography",
+              "role": "領域介系詞片語",
+              "note": "海洋地圖學。"
+            }
+          ],
+          "keyPoints": [
+            "【地圖專業】：cartographer (地圖繪製家)。"
+          ]
+        }
+      },
+      {
+        "word": "seismograph",
+        "kk": "[ˈsaɪzməˌgræf]",
+        "ipa": "/ˈsaɪzməɡræf/",
+        "pos": "n.",
+        "meaning": "地震儀、地震記錄計",
+        "formula": {
+          "parts": [
+            {
+              "text": "seismo-",
+              "role": "root",
+              "meaning": "地震 (希臘語 seismos)"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "畫、記錄儀"
+            }
+          ],
+          "resultMeaning": "將地殼震動幅度即時繪畫記錄在滾筒紙或數位記憶體之儀器 ➔「地震儀」"
+        },
+        "sentence": "Sensitive seismographs deployed near the volcanic caldera registered tremors preceding the magma eruption.",
+        "sentenceZh": "部署在火山破火山口附近的靈敏地震儀，記錄到了岩漿爆發前的地殼微震。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Sensitive seismographs",
+              "role": "主詞 (Subject)",
+              "note": "靈敏地震儀。"
+            },
+            {
+              "part": "deployed near the caldera",
+              "role": "過去分詞片語修飾主詞",
+              "note": "被部署。"
+            },
+            {
+              "part": "registered",
+              "role": "及物動詞 (Verb)",
+              "note": "記錄測得。"
+            },
+            {
+              "part": "tremors preceding the eruption",
+              "role": "受詞與分詞修飾",
+              "note": "先於爆發之微震。"
+            }
+          ],
+          "keyPoints": [
+            "【地震學】：seismology (地震學) ➔ seismologist (地震學家)。"
+          ]
+        }
+      },
+      {
+        "word": "typography",
+        "kk": "[taɪˈpɑgrəfɪ]",
+        "ipa": "/taɪˈpɑːɡrəfi/",
+        "pos": "n.",
+        "meaning": "排版學、字體排印設計",
+        "formula": {
+          "parts": [
+            {
+              "text": "typo-",
+              "role": "root",
+              "meaning": "活字、打印 (type)"
+            },
+            {
+              "text": "graphy",
+              "role": "root",
+              "meaning": "文字記錄"
+            }
+          ],
+          "resultMeaning": "對活字字體字型、行距與版面編排美感之藝術 ➔「字體排印設計」"
+        },
+        "sentence": "Editorial graphic designers select clean minimalist typography to enhance digital reading comprehension.",
+        "sentenceZh": "出版編輯平面設計師挑選乾淨俐落的極簡字體排印，以增進數位閱讀理解體驗。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Editorial graphic designers",
+              "role": "主詞 (Subject)",
+              "note": "平面設計師。"
+            },
+            {
+              "part": "select",
+              "role": "及物動詞 (Verb)",
+              "note": "挑選。"
+            },
+            {
+              "part": "clean minimalist typography",
+              "role": "受詞 (Object)",
+              "note": "極簡排版字體。"
+            },
+            {
+              "part": "to enhance digital reading comprehension",
+              "role": "目的狀語",
+              "note": "提升閱讀體驗。"
+            }
+          ],
+          "keyPoints": [
+            "【設計詞彙】：typeface (字體字樣) 與 typography (排印學)。"
+          ]
+        }
+      },
+      {
+        "word": "epigraph",
+        "kk": "[ˈɛpəˌgræf]",
+        "ipa": "/ˈepɪɡræf/",
+        "pos": "n.",
+        "meaning": "銘文、碑文、書頭題詞引句",
+        "formula": {
+          "parts": [
+            {
+              "text": "epi-",
+              "role": "prefix",
+              "meaning": "在...之上"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "雕刻、書寫"
+            }
+          ],
+          "resultMeaning": "刻在石碑牌匾頂部或印在小說正文篇首之格言題句 ➔「銘文、題詞」"
+        },
+        "sentence": "The novelist chose a haunting quote from Dante's Inferno to serve as the somber epigraph of her wartime chronicle.",
+        "sentenceZh": "這位小說家選用了但丁《地獄篇》中一段令人難忘的引句，作為她這部戰時紀事小說沉鬱的篇首題詞。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + to-V (to serve as SC)",
+          "breakdown": [
+            {
+              "part": "The novelist",
+              "role": "主詞 (Subject)",
+              "note": "小說家。"
+            },
+            {
+              "part": "chose a haunting quote from Dante's Inferno",
+              "role": "及物動詞與受詞",
+              "note": "挑選但丁引言。"
+            },
+            {
+              "part": "to serve as the somber epigraph of her chronicle",
+              "role": "不定詞目的/功能狀語",
+              "note": "充當篇首題詞。"
+            }
+          ],
+          "keyPoints": [
+            "【易混辨析】：epigraph (篇首題詞) vs. epitaph (墓誌銘) vs. epigram (詼諧警句)。"
+          ]
+        }
+      },
+      {
+        "word": "monograph",
+        "kk": "[ˈmɑnəˌgræf]",
+        "ipa": "/ˈmɑːnəɡræf/",
+        "pos": "n.",
+        "meaning": "專題學術論文、專著",
+        "formula": {
+          "parts": [
+            {
+              "text": "mono-",
+              "role": "prefix",
+              "meaning": "單一"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "論述、撰寫"
+            }
+          ],
+          "resultMeaning": "針對單一學術主題進行極度詳盡透徹考證鑽研之專題著作 ➔「學術專著」"
+        },
+        "sentence": "The distinguished professor published an exhaustive monograph exploring diplomatic trade routes during the Song Dynasty.",
+        "sentenceZh": "這位傑出教授發表了一本詳盡的學術專著，深入探討宋朝時期的外交貿易路線。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "The distinguished professor",
+              "role": "主詞 (Subject)",
+              "note": "傑出教授。"
+            },
+            {
+              "part": "published an exhaustive monograph",
+              "role": "動詞與受詞",
+              "note": "出版詳盡專著。"
+            },
+            {
+              "part": "exploring diplomatic trade routes during Song Dynasty",
+              "role": "現在分詞片語修飾 monograph",
+              "note": "探討宋代貿易路線。"
+            }
+          ],
+          "keyPoints": [
+            "【學術出版】：scholarly monograph (學術專題著作，教授升等考核核心)。"
+          ]
+        }
+      },
+      {
+        "word": "pictograph",
+        "kk": "[ˈpɪktəˌgræf]",
+        "ipa": "/ˈpɪktəɡræf/",
+        "pos": "n.",
+        "meaning": "象形文字、象形圖符號",
+        "formula": {
+          "parts": [
+            {
+              "text": "picto-",
+              "role": "root",
+              "meaning": "圖畫 (picture)"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "描畫、文字"
+            }
+          ],
+          "resultMeaning": "以簡化生動之物體外形輪廓直接表達概念之圖畫文字 ➔「象形文字、圖符」"
+        },
+        "sentence": "Ancient Sumerian clay tablets transitioned from realistic pictographs into stylized cuneiform wedge symbols.",
+        "sentenceZh": "古蘇美人的泥板文字從寫實的象形圖符逐步過渡為風格化的楔形文字符號。",
+        "grammar": {
+          "pattern": "S + Vi (transitioned from A into B)",
+          "breakdown": [
+            {
+              "part": "Ancient Sumerian clay tablets",
+              "role": "主詞 (Subject)",
+              "note": "蘇美泥板。"
+            },
+            {
+              "part": "transitioned",
+              "role": "不及物動詞 (Verb)",
+              "note": "過渡轉變。"
+            },
+            {
+              "part": "from realistic pictographs into stylized symbols",
+              "role": "起訖介系詞片語",
+              "note": "由象形文字轉為楔形。"
+            }
+          ],
+          "keyPoints": [
+            "【古文字學】：甲骨文 (oracle bone script) 與埃及聖書體最初均由 pictograph 起步。"
+          ]
+        }
+      },
+      {
+        "word": "orthography",
+        "kk": "[ɔrˈθɑgrəfɪ]",
+        "ipa": "/ɔːrˈθɑːɡrəfi/",
+        "pos": "n.",
+        "meaning": "正字法、正確拼寫體系、規範拼寫學",
+        "formula": {
+          "parts": [
+            {
+              "text": "ortho-",
+              "role": "prefix",
+              "meaning": "正確、正統 (correct)"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "書寫"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "學問"
+            }
+          ],
+          "resultMeaning": "規範詞彙文字正確拼寫筆順與語音對應規則之系統標準 ➔「正字法」"
+        },
+        "sentence": "English orthography is notoriously irregular due to centuries of heavy lexical borrowing from French and Norse.",
+        "sentenceZh": "英語的正字拼寫體系因數世紀以來大量吸收法語與古諾斯語的外來詞而極其不規則。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Prep Phrase of Reason (due to...)",
+          "breakdown": [
+            {
+              "part": "English orthography",
+              "role": "主詞 (Subject)",
+              "note": "英語正字法。"
+            },
+            {
+              "part": "is notoriously irregular",
+              "role": "連綴動詞與形容詞補語",
+              "note": "惡名昭彰的不規則。"
+            },
+            {
+              "part": "due to centuries of lexical borrowing",
+              "role": "原因狀語",
+              "note": "因為數百年字彙借用。"
+            }
+          ],
+          "keyPoints": [
+            "【詞根聯想】：orthodontist (齒顎矯正醫師), orthodox (正統的)。"
+          ]
+        }
+      },
+      {
+        "word": "hagiography",
+        "kk": "[ˌhægɪˈɑgrəfɪ]",
+        "ipa": "/ˌhæɡiˈɑːɡrəfi/",
+        "pos": "n.",
+        "meaning": "聖徒傳記；(貶義) 盲目崇拜粉飾美化的極端吹捧傳記",
+        "formula": {
+          "parts": [
+            {
+              "text": "hagio-",
+              "role": "root",
+              "meaning": "聖潔的 (希臘語 hagios)"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "寫作"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將傳主描摹得如神聖完人毫無缺點之阿諛吹捧著述 ➔「美化吹捧傳記」"
+        },
+        "sentence": "The critical biographer avoided hagiography, presenting the founder with all his visionary brilliance and petty vindictiveness.",
+        "sentenceZh": "這位富批判精神的傳記作家拒絕粉飾吹捧，將創辦人遠見卓識的才華與狹隘報復的私心一併真實呈現。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (presenting O with...)",
+          "breakdown": [
+            {
+              "part": "The critical biographer",
+              "role": "主詞 (Subject)",
+              "note": "嚴肅傳記家。"
+            },
+            {
+              "part": "avoided hagiography",
+              "role": "動詞與受詞",
+              "note": "避免過度粉飾吹捧。"
+            },
+            {
+              "part": "presenting the founder with his brilliance and vindictiveness",
+              "role": "現在分詞伴隨狀語",
+              "note": "並列展現才華與缺點。"
+            }
+          ],
+          "keyPoints": [
+            "【書評常用貶義詞】：Dismissed as mere hagiography (被批為純屬吹捧神化的諂媚之作)。"
+          ]
+        }
+      },
+      {
+        "word": "holograph",
+        "kk": "[ˈhɑləˌgræf]",
+        "ipa": "/ˈhɑːləɡræf/",
+        "pos": "n. / adj.",
+        "meaning": "親筆文件、親筆遺囑；(adj.) 親手手寫的",
+        "formula": {
+          "parts": [
+            {
+              "text": "holo-",
+              "role": "root",
+              "meaning": "完整、全部 (whole)"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "親手書寫"
+            }
+          ],
+          "resultMeaning": "由當事人從頭到尾全文親自親筆手書簽署的文件 ➔「親筆書函、親筆遺囑」"
+        },
+        "sentence": "Probate courts upheld the handwritten holographic will because the testator drafted and signed the entire document in private.",
+        "sentenceZh": "遺囑檢驗法庭裁定該份親筆手寫遺囑有效，因為立遺囑人完全是私下親筆撰寫並親自簽署整份文件。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adv Clause of Reason (because...)",
+          "breakdown": [
+            {
+              "part": "Probate courts",
+              "role": "主詞 (Subject)",
+              "note": "遺產檢驗法院。"
+            },
+            {
+              "part": "upheld the holographic will",
+              "role": "及物動詞與受詞",
+              "note": "支持親筆遺囑效力。"
+            },
+            {
+              "part": "because the testator drafted and signed the document in private",
+              "role": "原因副詞子句",
+              "note": "立遺囑人親筆起草。"
+            }
+          ],
+          "keyPoints": [
+            "【民法專名】：holographic will (自書遺囑，完全親筆書寫始生法效)。"
           ]
         }
       }
@@ -6949,6 +18890,620 @@ const ETYMO_DATA = [
             "【生動分詞修飾】：blaring horns (鳴響的喇叭) 與 screeching brakes (尖叫刺耳的剎車)。"
           ]
         }
+      },
+      {
+        "word": "homophone",
+        "kk": "[ˈhɑməˌfon]",
+        "ipa": "/ˈhɑːməfoʊn/",
+        "pos": "n.",
+        "meaning": "同音異義字 (發音相同但拼寫與語義不同)",
+        "formula": {
+          "parts": [
+            {
+              "text": "homo-",
+              "role": "prefix",
+              "meaning": "相同"
+            },
+            {
+              "text": "phone",
+              "role": "root",
+              "meaning": "聲音"
+            }
+          ],
+          "resultMeaning": "讀音完全相同但字義相異的單字 ➔「同音異義字」"
+        },
+        "sentence": "English learners often confuse homophones such as 'their', 'there', and 'they're' in written compositions.",
+        "sentenceZh": "英語學習者在書面寫作中經常混淆如 'their'、'there' 與 'they're' 等同音異義字。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase (such as A, B, and C) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "English learners",
+              "role": "主詞 (Subject)",
+              "note": "學習者。"
+            },
+            {
+              "part": "often confuse",
+              "role": "動詞片語 (Verb)",
+              "note": "經常混淆。"
+            },
+            {
+              "part": "homophones",
+              "role": "受詞 (Object)",
+              "note": "同音字。"
+            },
+            {
+              "part": "such as 'their', 'there', and 'they're'",
+              "role": "列舉說明",
+              "note": "舉例。"
+            }
+          ],
+          "keyPoints": [
+            "【語言學對照】：homophone (同音異義字) vs. homonym (同音同形異義字)。"
+          ]
+        }
+      },
+      {
+        "word": "euphony",
+        "kk": "[ˈjufənɪ]",
+        "ipa": "/ˈjuːfəni/",
+        "pos": "n.",
+        "meaning": "悅耳的聲音、和諧動聽的音調",
+        "formula": {
+          "parts": [
+            {
+              "text": "eu-",
+              "role": "prefix",
+              "meaning": "優良、美好 (good)"
+            },
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "和諧悅耳令人身心舒暢的優美聲音 ➔「悅耳之音」"
+        },
+        "sentence": "Romantic poets carefully arranged vowels and consonants to achieve melodic euphony in lyrical stanzas.",
+        "sentenceZh": "浪漫派詩人精心編排母音與子音，以在抒情詩節中達到如歌般悅耳動聽的和諧音韻。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Romantic poets",
+              "role": "主詞 (Subject)",
+              "note": "浪漫派詩人。"
+            },
+            {
+              "part": "carefully arranged",
+              "role": "及物動詞片語",
+              "note": "精心編排。"
+            },
+            {
+              "part": "vowels and consonants",
+              "role": "受詞 (Object)",
+              "note": "母音與子音。"
+            },
+            {
+              "part": "to achieve melodic euphony",
+              "role": "目的狀語",
+              "note": "達成悅耳音韻。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：cacophony (刺耳雜音) vs. euphony (悅耳音調)。"
+          ]
+        }
+      },
+      {
+        "word": "phoneme",
+        "kk": "[ˈfonim]",
+        "ipa": "/ˈfoʊniːm/",
+        "pos": "n.",
+        "meaning": "音位、音素 (語言中區別意義的最小語音單位)",
+        "formula": {
+          "parts": [
+            {
+              "text": "phon-",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "-eme",
+              "role": "suffix",
+              "meaning": "基本結構單元"
+            }
+          ],
+          "resultMeaning": "語言體系中能用以區分單字意義之最小基本聲音元素 ➔「音素、音位」"
+        },
+        "sentence": "A single phoneme substitution, such as changing /b/ to /p/, transforms the English word 'bat' into 'pat'.",
+        "sentenceZh": "單一音位的替換（例如將 /b/ 改為 /p/）就能將英語單字 'bat' 轉變為 'pat'。",
+        "grammar": {
+          "pattern": "S + Prep Phrase + Vt (transforms A into B)",
+          "breakdown": [
+            {
+              "part": "A single phoneme substitution",
+              "role": "主詞 (Subject)",
+              "note": "音位替換。"
+            },
+            {
+              "part": "such as changing /b/ to /p/",
+              "role": "舉例介系詞片語",
+              "note": "舉例。"
+            },
+            {
+              "part": "transforms",
+              "role": "及物動詞 (Verb)",
+              "note": "transform A into B。"
+            },
+            {
+              "part": "the English word 'bat' into 'pat'",
+              "role": "受詞與結果",
+              "note": "單字轉變。"
+            }
+          ],
+          "keyPoints": [
+            "【語言學術語】：phoneme (音位) ➔ morpheme (語素/詞素)。"
+          ]
+        }
+      },
+      {
+        "word": "phonology",
+        "kk": "[fəˈnɑlədʒɪ]",
+        "ipa": "/fəˈnɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "音韻學、語音體系",
+        "formula": {
+          "parts": [
+            {
+              "text": "phon-",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "-ology",
+              "role": "suffix",
+              "meaning": "學科"
+            }
+          ],
+          "resultMeaning": "研究特定語言中語音排列組合規則與重音演變之學門 ➔「音韻學」"
+        },
+        "sentence": "Historical phonology investigates how vowel shifts altered pronunciation across consecutive centuries of Middle English.",
+        "sentenceZh": "歷史音韻學探討母音推移如何在中古英語連續幾個世紀中改變了發音。",
+        "grammar": {
+          "pattern": "S + Vt + Wh- Noun Clause",
+          "breakdown": [
+            {
+              "part": "Historical phonology",
+              "role": "主詞 (Subject)",
+              "note": "歷史音韻學。"
+            },
+            {
+              "part": "investigates",
+              "role": "及物動詞 (Verb)",
+              "note": "探討。"
+            },
+            {
+              "part": "how vowel shifts altered pronunciation",
+              "role": "受詞名詞子句",
+              "note": "母音大推移。"
+            }
+          ],
+          "keyPoints": [
+            "【英語史大事】：Great Vowel Shift (母音大推移) 是現代英語發音與拼寫脫節的歷史主因。"
+          ]
+        }
+      },
+      {
+        "word": "headphone",
+        "kk": "[ˈhɛdˌfon]",
+        "ipa": "/ˈhɛdfoʊn/",
+        "pos": "n.",
+        "meaning": "頭戴式耳機、耳麥",
+        "formula": {
+          "parts": [
+            {
+              "text": "head",
+              "role": "base",
+              "meaning": "頭部"
+            },
+            {
+              "text": "phone",
+              "role": "root",
+              "meaning": "發聲裝置"
+            }
+          ],
+          "resultMeaning": "戴在頭部兩側將音訊直接傳入雙耳的播放裝置 ➔「耳機」"
+        },
+        "sentence": "The sound engineer wore noise-canceling headphones to detect subtle distortions during studio vocal mastering.",
+        "sentenceZh": "錄音工程師戴上降噪耳機，以在錄音室人聲母帶後製期間察覺細微失真。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The sound engineer",
+              "role": "主詞 (Subject)",
+              "note": "錄音師。"
+            },
+            {
+              "part": "wore",
+              "role": "及物動詞 (Verb)",
+              "note": "佩戴。"
+            },
+            {
+              "part": "noise-canceling headphones",
+              "role": "直接受詞 (Object)",
+              "note": "降噪耳機。"
+            },
+            {
+              "part": "to detect subtle distortions",
+              "role": "目的狀語",
+              "note": "察覺失真。"
+            }
+          ],
+          "keyPoints": [
+            "【常態複數】：headphones / earphones 通常以複數形態出現。"
+          ]
+        }
+      },
+      {
+        "word": "francophone",
+        "kk": "[ˈfræŋkəˌfon]",
+        "ipa": "/ˈfræŋkəfoʊn/",
+        "pos": "adj. / n.",
+        "meaning": "法語區的、講法語的；(n.) 講法語的人",
+        "formula": {
+          "parts": [
+            {
+              "text": "Franco-",
+              "role": "prefix",
+              "meaning": "法國 (French)"
+            },
+            {
+              "text": "phone",
+              "role": "root",
+              "meaning": "聲音、語言"
+            }
+          ],
+          "resultMeaning": "使用法語作為官方或母語溝通的人群或地區 ➔「講法語的、法語國家」"
+        },
+        "sentence": "Quebec represents the principal francophone province within the predominantly anglophone Canadian confederation.",
+        "sentenceZh": "魁北克代表了主要為英語區的加拿大聯邦境內最主要的法語省份。",
+        "grammar": {
+          "pattern": "S + Vt (represents) + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Quebec",
+              "role": "主詞 (Subject)",
+              "note": "魁北克。"
+            },
+            {
+              "part": "represents",
+              "role": "及物動詞 (Verb)",
+              "note": "代表、象徵。"
+            },
+            {
+              "part": "the principal francophone province",
+              "role": "受詞 (Object)",
+              "note": "法語省。"
+            },
+            {
+              "part": "within the Canadian confederation",
+              "role": "範疇介系詞片語",
+              "note": "聯邦境內。"
+            }
+          ],
+          "keyPoints": [
+            "【語言區對比】：francophone (法語區) vs. anglophone (英語區) vs. sinophone (華語區)。"
+          ]
+        }
+      },
+      {
+        "word": "phonograph",
+        "kk": "[ˈfonəˌgræf]",
+        "ipa": "/ˈfoʊnəɡræf/",
+        "pos": "n.",
+        "meaning": "留聲機、電唱機",
+        "formula": {
+          "parts": [
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "graph",
+              "role": "root",
+              "meaning": "記錄、刻劃"
+            }
+          ],
+          "resultMeaning": "將聲波振動刻在蠟筒或黑膠唱片上並能重新發聲播放之機械 ➔「留聲機」"
+        },
+        "sentence": "Thomas Edison's 1877 mechanical phonograph permanently revolutionized acoustic entertainment worldwide.",
+        "sentenceZh": "湯瑪斯·愛迪生於 1877 年發明的機械留聲機徹底改變了全球聲音娛樂產業。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O",
+          "breakdown": [
+            {
+              "part": "Thomas Edison's 1877 mechanical phonograph",
+              "role": "主詞 (Subject)",
+              "note": "愛迪生留聲機。"
+            },
+            {
+              "part": "permanently revolutionized",
+              "role": "動詞片語",
+              "note": "永遠顛覆了。"
+            },
+            {
+              "part": "acoustic entertainment worldwide",
+              "role": "受詞 (Object)",
+              "note": "全球聲學娛樂。"
+            }
+          ],
+          "keyPoints": [
+            "【科技發明史】：Edison 最初在錫箔滾筒上錄下的第一句話是 \"Mary had a little lamb\"。"
+          ]
+        }
+      },
+      {
+        "word": "dictaphone",
+        "kk": "[ˈdɪktəˌfon]",
+        "ipa": "/ˈdɪktəfoʊn/",
+        "pos": "n.",
+        "meaning": "口述錄音機、聽寫記錄機",
+        "formula": {
+          "parts": [
+            {
+              "text": "dict",
+              "role": "root",
+              "meaning": "口述、說出"
+            },
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音"
+            }
+          ],
+          "resultMeaning": "專供主管口述公文由秘書播放聽寫打字之辦公專用錄音機 ➔「口述錄音機」"
+        },
+        "sentence": "The novelist paced across his study, dictating spontaneous chapters into a handheld vintage Dictaphone.",
+        "sentenceZh": "這位小說家在書房中踱步，對著手持復古口述錄音機口授出即興章節。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase + Participle Phrase of Concurrent Action",
+          "breakdown": [
+            {
+              "part": "The novelist",
+              "role": "主詞 (Subject)",
+              "note": "小說家。"
+            },
+            {
+              "part": "paced across his study",
+              "role": "不及物動詞與地點",
+              "note": "在書房踱步。"
+            },
+            {
+              "part": "dictating spontaneous chapters into a handheld Dictaphone",
+              "role": "現在分詞伴隨動作",
+              "note": "口述錄音。"
+            }
+          ],
+          "keyPoints": [
+            "【品牌商品化】：Dictaphone 原為 Columbia Graphophone 註冊之著名辦公品牌。"
+          ]
+        }
+      },
+      {
+        "word": "phonics",
+        "kk": "[ˈfɑnɪks]",
+        "ipa": "/ˈfɑːnɪks/",
+        "pos": "n.",
+        "meaning": "自然發音法、聲音對應教學法",
+        "formula": {
+          "parts": [
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音、語音"
+            },
+            {
+              "text": "-ics",
+              "role": "suffix",
+              "meaning": "學科、方法"
+            }
+          ],
+          "resultMeaning": "教導孩童直接將英文字母與其標準發音建立直接對應之拼讀法 ➔「自然發音法」"
+        },
+        "sentence": "Elementary literacy curricula emphasizing systematic phonics accelerate early childhood reading proficiency dramatically.",
+        "sentenceZh": "強調系統性自然發音法的初等語文課程能顯著加速幼童早期閱讀流暢能力的建立。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + Adv",
+          "breakdown": [
+            {
+              "part": "Elementary literacy curricula",
+              "role": "主詞 (Subject)",
+              "note": "小學識字課程。"
+            },
+            {
+              "part": "emphasizing systematic phonics",
+              "role": "現在分詞片語修飾 curricula",
+              "note": "強調自然拼讀。"
+            },
+            {
+              "part": "accelerate early childhood reading proficiency",
+              "role": "及物動詞與受詞",
+              "note": "加速閱讀熟練度。"
+            },
+            {
+              "part": "dramatically",
+              "role": "程度副詞",
+              "note": "劇烈地。"
+            }
+          ],
+          "keyPoints": [
+            "【美語教學】：phonics (自然拼讀法) 著重音形對應規律。"
+          ]
+        }
+      },
+      {
+        "word": "allophone",
+        "kk": "[ˈæləˌfon]",
+        "ipa": "/ˈæləfoʊn/",
+        "pos": "n.",
+        "meaning": "同位音、音位變體 (同一音位在不同語境的具體發音差異)",
+        "formula": {
+          "parts": [
+            {
+              "text": "allo-",
+              "role": "prefix",
+              "meaning": "別的、相異 (other)"
+            },
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音"
+            }
+          ],
+          "resultMeaning": "同一心理音位因前後語音環境不同而產生之不同具體發音 ➔「同位音」"
+        },
+        "sentence": "In English linguistics, the aspirated [pʰ] in 'pin' and the unaspirated [p] in 'spin' are positional allophones of the phoneme /p/.",
+        "sentenceZh": "在英語語言學中，'pin' 中的送氣音 [pʰ] 與 'spin' 中的不送氣音 [p] 均為音位 /p/ 的位置同位音。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Linking Verb + SC + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "In English linguistics",
+              "role": "領域狀語",
+              "note": "在英語語言學中。"
+            },
+            {
+              "part": "the aspirated [pʰ] and unaspirated [p]",
+              "role": "主詞 (Subject)",
+              "note": "送氣音與不送氣音。"
+            },
+            {
+              "part": "are positional allophones",
+              "role": "連綴動詞與補語",
+              "note": "是位置音位變體。"
+            },
+            {
+              "part": "of the phoneme /p/",
+              "role": "所屬音位修飾語",
+              "note": "音位 /p/。"
+            }
+          ],
+          "keyPoints": [
+            "【語言學核心】：phoneme (音位，具有區分詞義功能) vs. allophone (同位音，純發音變體不改變詞義)。"
+          ]
+        }
+      },
+      {
+        "word": "telephony",
+        "kk": "[təˈlɛfənɪ]",
+        "ipa": "/təˈlefəni/",
+        "pos": "n.",
+        "meaning": "電話通訊技術、電話系統學",
+        "formula": {
+          "parts": [
+            {
+              "text": "tele-",
+              "role": "prefix",
+              "meaning": "遠距離"
+            },
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "技術學問"
+            }
+          ],
+          "resultMeaning": "透過電線、光纖或無線電波傳遞遠方聲音信號之通訊工程 ➔「電話通訊技術」"
+        },
+        "sentence": "The migration from analog landline telephony to internet-protocol cloud telephony slashed enterprise telecommunication costs.",
+        "sentenceZh": "從類比陸上固網電話通訊向 IP 網路雲端通訊系統的轉型大幅削減了企業通訊成本。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "The migration from analog to cloud telephony",
+              "role": "主詞 (Subject)",
+              "note": "通訊轉型。"
+            },
+            {
+              "part": "slashed",
+              "role": "及物動詞 (Verb)",
+              "note": "大幅削減。"
+            },
+            {
+              "part": "enterprise telecommunication costs",
+              "role": "受詞 (Object)",
+              "note": "企業通訊支出。"
+            }
+          ],
+          "keyPoints": [
+            "【科技縮寫】：VoIP = Voice over Internet Protocol (網路電話通訊)。"
+          ]
+        }
+      },
+      {
+        "word": "quadraphonic",
+        "kk": "[ˌkwɑdrəˈfɑnɪk]",
+        "ipa": "/ˌkwɑːdrəˈfɑːnɪk/",
+        "pos": "adj.",
+        "meaning": "四聲道的、四聲道立體環繞音效的",
+        "formula": {
+          "parts": [
+            {
+              "text": "quadra-",
+              "role": "prefix",
+              "meaning": "四 (four)"
+            },
+            {
+              "text": "phon",
+              "role": "root",
+              "meaning": "聲音"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "使用四個獨立立體聲喇叭營造 360 度空間沉浸包圍感的 ➔「四聲道的」"
+        },
+        "sentence": "Audiophiles restored classic vinyl amplifiers to experience Pink Floyd's experimental quadraphonic surround mix.",
+        "sentenceZh": "發燒音響迷修復了經典黑膠擴大機，以體驗平克·佛洛伊德樂團前衛的四聲道立體環繞混音。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Audiophiles",
+              "role": "主詞 (Subject)",
+              "note": "發燒友。"
+            },
+            {
+              "part": "restored classic vinyl amplifiers",
+              "role": "動詞與受詞",
+              "note": "修復黑膠擴大機。"
+            },
+            {
+              "part": "to experience quadraphonic surround mix",
+              "role": "目的狀語",
+              "note": "體驗四聲道混音。"
+            }
+          ],
+          "keyPoints": [
+            "【音響技術史】：Quadraphonic sound 是 1970 年代現代 5.1 環繞聲的先驅先導技術。"
+          ]
+        }
       }
     ],
     "article": {
@@ -7262,6 +19817,630 @@ const ETYMO_DATA = [
             "【介系詞搭配】：extract something from somewhere 固定搭配介系詞 from。"
           ]
         }
+      },
+      {
+        "word": "subtract",
+        "kk": "[səbˈtrækt]",
+        "ipa": "/səbˈtrækt/",
+        "pos": "v.",
+        "meaning": "減去、扣除",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "從下方、抽走"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、抽取"
+            }
+          ],
+          "resultMeaning": "自總量底下拉走一部分數額 ➔「減去、扣除」"
+        },
+        "sentence": "Accountants subtract allowable business expenditures from gross revenue to calculate net taxable income.",
+        "sentenceZh": "會計師自總營收中扣除允許的營業支出，以計算淨應稅所得。",
+        "grammar": {
+          "pattern": "S + Vt (subtract A from B) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Accountants",
+              "role": "主詞 (Subject)",
+              "note": "會計師。"
+            },
+            {
+              "part": "subtract expenditures",
+              "role": "動詞與受詞 A",
+              "note": "扣除支出。"
+            },
+            {
+              "part": "from gross revenue",
+              "role": "來源 B",
+              "note": "總收益。"
+            },
+            {
+              "part": "to calculate net taxable income",
+              "role": "目的狀語",
+              "note": "淨應稅收入。"
+            }
+          ],
+          "keyPoints": [
+            "【數學句型】：subtract A from B (從 B 減去 A)。"
+          ]
+        }
+      },
+      {
+        "word": "retract",
+        "kk": "[rɪˈtrækt]",
+        "ipa": "/rɪˈtrækt/",
+        "pos": "v.",
+        "meaning": "撤回、收回(聲明/指控)、縮回",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "往回"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、扯"
+            }
+          ],
+          "resultMeaning": "將已說出口的話或伸出的爪子往回拉 ➔「收回、撤回」"
+        },
+        "sentence": "Under cross-examination, the unreliable witness was forced to retract his sensational accusations.",
+        "sentenceZh": "在交互詰問下，這名不可靠的證人被迫撤回他那聳人聽聞的指控。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Passive Verb + to-V (to retract O)",
+          "breakdown": [
+            {
+              "part": "Under cross-examination",
+              "role": "情境介系詞片語",
+              "note": "交互詰問。"
+            },
+            {
+              "part": "the unreliable witness",
+              "role": "主詞 (Subject)",
+              "note": "不可靠證人。"
+            },
+            {
+              "part": "was forced to retract",
+              "role": "被動態謂語",
+              "note": "被迫撤回。"
+            },
+            {
+              "part": "his sensational accusations",
+              "role": "受詞 (Object)",
+              "note": "聳動指控。"
+            }
+          ],
+          "keyPoints": [
+            "【學術出版】：retract a paper (撤回已發表的學術論文)。"
+          ]
+        }
+      },
+      {
+        "word": "protract",
+        "kk": "[proˈtrækt]",
+        "ipa": "/proʊˈtrækt/",
+        "pos": "v.",
+        "meaning": "延長、拖延、使延宕",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉"
+            }
+          ],
+          "resultMeaning": "向前不斷拉長時間軸拖延不決 ➔「拖延、延長」"
+        },
+        "sentence": "Bureaucratic infighting protracted the international infrastructure project by more than five years.",
+        "sentenceZh": "官僚內鬥將這項國際基礎建設專案拖延了五年以上。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (by more than...)",
+          "breakdown": [
+            {
+              "part": "Bureaucratic infighting",
+              "role": "主詞 (Subject)",
+              "note": "官僚內鬥。"
+            },
+            {
+              "part": "protracted",
+              "role": "及物動詞 (Verb)",
+              "note": "拖延拉長。"
+            },
+            {
+              "part": "the project",
+              "role": "受詞 (Object)",
+              "note": "基礎建設專案。"
+            },
+            {
+              "part": "by more than five years",
+              "role": "幅度介系詞片語",
+              "note": "拖延達五年。"
+            }
+          ],
+          "keyPoints": [
+            "【形容詞衍生】：protracted conflict / legal battle (曠日廢時的衝突/法律戰)。"
+          ]
+        }
+      },
+      {
+        "word": "intractable",
+        "kk": "[ɪnˈtræktəb!]",
+        "ipa": "/ɪnˈtræktəbl/",
+        "pos": "adj.",
+        "meaning": "棘手的、難對付的、倔強不馴的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、難以"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、牽引"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "怎樣拉動也拉不動、頑固難以駕馭對付的 ➔「棘手的、倔強的」"
+        },
+        "sentence": "Economists struggled to resolve the intractable problem of chronic structural unemployment in post-industrial cities.",
+        "sentenceZh": "經濟學家竭力試圖解決後工業城市中長期結構性失業的棘手難題。",
+        "grammar": {
+          "pattern": "S + Vi (struggled to-V) + O",
+          "breakdown": [
+            {
+              "part": "Economists",
+              "role": "主詞 (Subject)",
+              "note": "經濟學家。"
+            },
+            {
+              "part": "struggled to resolve",
+              "role": "動詞片語",
+              "note": "奮力解決。"
+            },
+            {
+              "part": "the intractable problem",
+              "role": "受詞 (Object)",
+              "note": "棘手難題。"
+            },
+            {
+              "part": "of structural unemployment",
+              "role": "同位語介系詞片語",
+              "note": "結構性失業。"
+            }
+          ],
+          "keyPoints": [
+            "【高階搭配】：intractable dilemma / disease / conflict (棘手的困境/頑疾/衝突)。"
+          ]
+        }
+      },
+      {
+        "word": "traction",
+        "kk": "[ˈtrækʃən]",
+        "ipa": "/ˈtrækʃn/",
+        "pos": "n.",
+        "meaning": "牽引力、附著摩擦力、推動力",
+        "formula": {
+          "parts": [
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、拖"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "車輪與地面摩擦產生的前進拉扯牽引力量 ➔「牽引力、廣受支持」"
+        },
+        "sentence": "Winter studded tires provide superior traction on icy asphalt to prevent catastrophic skidding.",
+        "sentenceZh": "冬季鑲釘輪胎在結冰的瀝青路面上提供卓越的抓地牽引力，以防止災難性的打滑。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Winter studded tires",
+              "role": "主詞 (Subject)",
+              "note": "鑲釘雪胎。"
+            },
+            {
+              "part": "provide superior traction",
+              "role": "動詞與受詞",
+              "note": "提供優異抓地力。"
+            },
+            {
+              "part": "on icy asphalt",
+              "role": "地點介系詞片語",
+              "note": "結冰柏油路。"
+            },
+            {
+              "part": "to prevent skidding",
+              "role": "目的狀語",
+              "note": "防打滑。"
+            }
+          ],
+          "keyPoints": [
+            "【創投新創術語】：gain traction 意為「產品在市場上取得突破性推動力/獲得用戶支持」。"
+          ]
+        }
+      },
+      {
+        "word": "tractor",
+        "kk": "[ˈtræktɚ]",
+        "ipa": "/ˈtræktər/",
+        "pos": "n.",
+        "meaning": "拖拉機、牽引機",
+        "formula": {
+          "parts": [
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、牽引"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "機器、工具"
+            }
+          ],
+          "resultMeaning": "具備強大扭力專門在農田牽引沉重犁耙機具之動力車 ➔「拖拉機」"
+        },
+        "sentence": "The farmer hitched a heavy multi-row plow behind the diesel tractor to cultivate the spring fields.",
+        "sentenceZh": "農夫在柴油拖拉機後方掛上一部沉重的多行犁，以翻耕春季農田。",
+        "grammar": {
+          "pattern": "S + Vt (hitched A behind B) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The farmer",
+              "role": "主詞 (Subject)",
+              "note": "農夫。"
+            },
+            {
+              "part": "hitched a heavy plow",
+              "role": "動詞與受詞 A",
+              "note": "hitch (掛載鉤住)。"
+            },
+            {
+              "part": "behind the tractor",
+              "role": "地點 B",
+              "note": "拖拉機後。"
+            },
+            {
+              "part": "to cultivate the spring fields",
+              "role": "目的狀語",
+              "note": "翻耕農田。"
+            }
+          ],
+          "keyPoints": [
+            "【農耕動詞】：hitch (掛載連接機具)。"
+          ]
+        }
+      },
+      {
+        "word": "retraction",
+        "kk": "[rɪˈtrækʃən]",
+        "ipa": "/rɪˈtrækʃn/",
+        "pos": "n.",
+        "meaning": "撤銷收回 (聲明或言論)、縮回收縮、論文撤稿",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、牽引"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將已經說出口或發表的錯誤內容向後拉回作廢 ➔「撤銷收回、撤稿」"
+        },
+        "sentence": "The prestigious scientific journal issued an unconditional retraction after data fabrication was verified.",
+        "sentenceZh": "在造假數據被查實證實後，這家聲譽卓著的科學期刊發布了無條件撤稿聲明。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adv Clause of Time (after...)",
+          "breakdown": [
+            {
+              "part": "The prestigious scientific journal",
+              "role": "主詞 (Subject)",
+              "note": "頂尖期刊。"
+            },
+            {
+              "part": "issued an unconditional retraction",
+              "role": "動詞與受詞",
+              "note": "發布撤稿聲明。"
+            },
+            {
+              "part": "after data fabrication was verified",
+              "role": "時間副詞子句",
+              "note": "數據造假被證實後。"
+            }
+          ],
+          "keyPoints": [
+            "【學術誠信】：paper retraction (撤稿)。"
+          ]
+        }
+      },
+      {
+        "word": "detract",
+        "kk": "[dɪˈtrækt]",
+        "ipa": "/dɪˈtrækt/",
+        "pos": "v.",
+        "meaning": "減損、貶低、損害 (與 from 連用)",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "向下、遠離"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、拉扯"
+            }
+          ],
+          "resultMeaning": "向下硬拉拉垮降低某事物之價值或光芒 ➔「減損貶低」"
+        },
+        "sentence": "Minor typographic typos in the introduction do not detract from the landmark value of her research.",
+        "sentenceZh": "序言中微小的排版打印錯誤絲毫無損於她該項研究的劃時代里程碑價值。",
+        "grammar": {
+          "pattern": "S + Modal + Neg + Vi (detract from) + O",
+          "breakdown": [
+            {
+              "part": "Minor typographic typos in the introduction",
+              "role": "主詞 (Subject)",
+              "note": "微小錯字。"
+            },
+            {
+              "part": "do not detract from",
+              "role": "動詞片語 (Verb)",
+              "note": "無損於、不貶低。"
+            },
+            {
+              "part": "the landmark value of her research",
+              "role": "受詞 (Object)",
+              "note": "里程碑價值。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用搭配】：detract from something (減損...的價值)。"
+          ]
+        }
+      },
+      {
+        "word": "distraction",
+        "kk": "[dɪˈstrækʃən]",
+        "ipa": "/dɪˈstrækʃn/",
+        "pos": "n.",
+        "meaning": "分心、令人分心的事物、心煩意亂",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "分開、偏離"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將專注力強行拉離正軌轉向無關瑣事 ➔「分心、干擾物」"
+        },
+        "sentence": "Constant smartphone push notifications are insidious distractions that derail deep cognitive workflow.",
+        "sentenceZh": "智慧型手機接二連三的推播通知是潛移默化破壞深層認知工作流的干擾源泉。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Constant smartphone push notifications",
+              "role": "主詞 (Subject)",
+              "note": "持續推播。"
+            },
+            {
+              "part": "are insidious distractions",
+              "role": "連綴動詞與補語",
+              "note": "是潛伏干擾物。"
+            },
+            {
+              "part": "that derail deep cognitive workflow",
+              "role": "關係子句修飾 distractions",
+              "note": "derail (使脫軌)。"
+            }
+          ],
+          "keyPoints": [
+            "【心流狀態】：Eliminate digital distractions (消除數位分心干擾)。"
+          ]
+        }
+      },
+      {
+        "word": "contractor",
+        "kk": "[ˈkɑntrækˌtɚ]",
+        "ipa": "/ˈkɑːntræktər/",
+        "pos": "n.",
+        "meaning": "承包商、合約包商、承辦人",
+        "formula": {
+          "parts": [
+            {
+              "text": "contract",
+              "role": "base",
+              "meaning": "合約 (con + tract)"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人員"
+            }
+          ],
+          "resultMeaning": "白紙黑字簽訂具約束力法律契約負責履約之廠商 ➔「承包商」"
+        },
+        "sentence": "The municipal authority hired an independent general contractor to oversee subway tunnel boring operations.",
+        "sentenceZh": "市政府聘請了一家獨立總承包商來督導地鐵隧道盾構鑽掘工程作業。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The municipal authority",
+              "role": "主詞 (Subject)",
+              "note": "市府主管機關。"
+            },
+            {
+              "part": "hired an independent general contractor",
+              "role": "及物動詞與受詞",
+              "note": "聘請總承包商。"
+            },
+            {
+              "part": "to oversee subway tunnel boring operations",
+              "role": "目的狀語",
+              "note": "督導地鐵鑽掘工程。"
+            }
+          ],
+          "keyPoints": [
+            "【工程術語】：general contractor (總承包商), subcontractor (分包商、下游包商)。"
+          ]
+        }
+      },
+      {
+        "word": "extractable",
+        "kk": "[ɪkˈstræktəb!]",
+        "ipa": "/ɪkˈstræktəbl/",
+        "pos": "adj.",
+        "meaning": "可提取的、可提煉萃取的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ex-",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拔出、拉出"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "可藉由化學溶劑或物理外力自原料中完整拉拔提煉出的 ➔「可萃取的」"
+        },
+        "sentence": "Mining geologists estimated that eighty percent of the shale deposit's natural gas reserves were commercially extractable.",
+        "sentenceZh": "採礦地質學家估計，該頁岩沉積層中百分之八十的天然氣儲量具備商業開採提取可行性。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Linking Verb + SC)",
+          "breakdown": [
+            {
+              "part": "Mining geologists",
+              "role": "主詞 (Subject)",
+              "note": "採礦地質學家。"
+            },
+            {
+              "part": "estimated",
+              "role": "及物動詞 (Verb)",
+              "note": "估算。"
+            },
+            {
+              "part": "that 80% of reserves were commercially extractable",
+              "role": "受詞名詞子句",
+              "note": "具商業可提取性。"
+            }
+          ],
+          "keyPoints": [
+            "【資源開發】：extractable reserves (可開採儲量)。"
+          ]
+        }
+      },
+      {
+        "word": "intractability",
+        "kk": "[ɪnˌtræktəˈbɪlətɪ]",
+        "ipa": "/ɪnˌtræktəˈbɪləti/",
+        "pos": "n.",
+        "meaning": "棘手難辦、頑固倔強、難以駕馭",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "tract",
+              "role": "root",
+              "meaning": "拉、牽引"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能...的"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "無論用盡多大拉力都拉不動無法馴服擺平之頑冥特質 ➔「難駕馭、棘手」"
+        },
+        "sentence": "The sheer computational intractability of calculating non-polynomial algorithms frustrates cybersecurity cryptographers.",
+        "sentenceZh": "計算非多項式演算法在運算上的極度棘手難解性，令網路安全密碼學家大為苦惱。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "The sheer computational intractability of non-polynomial algorithms",
+              "role": "主詞 (含修飾語)",
+              "note": "運算上的棘手性。"
+            },
+            {
+              "part": "frustrates",
+              "role": "及物動詞 (Verb)",
+              "note": "使苦惱挫敗。"
+            },
+            {
+              "part": "cybersecurity cryptographers",
+              "role": "受詞 (Object)",
+              "note": "資安密碼學家。"
+            }
+          ],
+          "keyPoints": [
+            "【電腦科學理論】：NP-hard 命題即代表 computational intractability (運算難解性)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -7568,6 +20747,630 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【反義詞對】：construct (建造) vs. destruct / destroy (毀滅)。",
             "【常見複合名詞】：self-destruct button (自毀按鈕)、destructive behavior (破壞性行為)。"
+          ]
+        }
+      },
+      {
+        "word": "obstruct",
+        "kk": "[əbˈstrʌkt]",
+        "ipa": "/əbˈstrʌkt/",
+        "pos": "v.",
+        "meaning": "妨礙、阻礙、阻塞",
+        "formula": {
+          "parts": [
+            {
+              "text": "ob-",
+              "role": "prefix",
+              "meaning": "對抗、對向"
+            },
+            {
+              "text": "struct",
+              "role": "root",
+              "meaning": "建造、堆砌"
+            }
+          ],
+          "resultMeaning": "在通道正前方堆起路障石塊擋住出路 ➔「阻擋、妨礙」"
+        },
+        "sentence": "A fallen pine tree obstructed traffic along the mountain highway until emergency crews cleared the debris.",
+        "sentenceZh": "一棵倒塌的松樹阻斷了山區公路上的交通，直到緊急應變小組清除殘骸為止。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Adv Clause of Time (until...)",
+          "breakdown": [
+            {
+              "part": "A fallen pine tree",
+              "role": "主詞 (Subject)",
+              "note": "倒塌松樹。"
+            },
+            {
+              "part": "obstructed traffic",
+              "role": "及物動詞與受詞",
+              "note": "阻斷交通。"
+            },
+            {
+              "part": "along the mountain highway",
+              "role": "地點介系詞片語",
+              "note": "公路沿線。"
+            },
+            {
+              "part": "until emergency crews cleared debris",
+              "role": "時間副詞子句",
+              "note": "直到清除。"
+            }
+          ],
+          "keyPoints": [
+            "【司法罪名】：obstruction of justice (妨害司法公正罪)。"
+          ]
+        }
+      },
+      {
+        "word": "reconstruct",
+        "kk": "[ˌrikənˈstrʌkt]",
+        "ipa": "/ˌriːkənˈstrʌkt/",
+        "pos": "v.",
+        "meaning": "重建、重構、還原(現場)",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "struct",
+              "role": "root",
+              "meaning": "建造"
+            }
+          ],
+          "resultMeaning": "倒塌毀損後重新再一步步拼湊築起 ➔「重建、還原重現」"
+        },
+        "sentence": "Crash investigators gathered black box flight data to reconstruct the aircraft's final aerodynamic trajectory.",
+        "sentenceZh": "失事調查人員收集黑盒子飛行數據，以還原該飛機最後的空氣動力飛行軌跡。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Crash investigators",
+              "role": "主詞 (Subject)",
+              "note": "空難調查官。"
+            },
+            {
+              "part": "gathered flight data",
+              "role": "動詞與受詞",
+              "note": "收集數據。"
+            },
+            {
+              "part": "to reconstruct the trajectory",
+              "role": "目的狀語",
+              "note": "還原飛行軌跡。"
+            }
+          ],
+          "keyPoints": [
+            "【刑偵術語】：reconstruct the crime scene (還原犯罪現場)。"
+          ]
+        }
+      },
+      {
+        "word": "superstructure",
+        "kk": "[ˈsupɚˌstrʌktʃɚ]",
+        "ipa": "/ˈsuːpərstrʌktʃər/",
+        "pos": "n.",
+        "meaning": "上層建築、船艛、上部構造",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在上面"
+            },
+            {
+              "text": "structure",
+              "role": "base",
+              "meaning": "結構建築"
+            }
+          ],
+          "resultMeaning": "建造於地基或船舶甲板之上的主體建築構造 ➔「上層構造、上層建築」"
+        },
+        "sentence": "Marine engineers reinforced the cruise ship's aluminum superstructure to resist hurricane-force oceanic gales.",
+        "sentenceZh": "海事工程師強化了郵輪的鋁合金上層結構，以抵禦颶風級別的海洋狂風。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Marine engineers",
+              "role": "主詞 (Subject)",
+              "note": "造船工程師。"
+            },
+            {
+              "part": "reinforced",
+              "role": "及物動詞 (Verb)",
+              "note": "加固強化。"
+            },
+            {
+              "part": "the cruise ship's superstructure",
+              "role": "受詞 (Object)",
+              "note": "郵輪上層建築。"
+            },
+            {
+              "part": "to resist hurricane-force gales",
+              "role": "目的狀語",
+              "note": "抵禦強風。"
+            }
+          ],
+          "keyPoints": [
+            "【工程與社會學】：superstructure (上層建築) vs. infrastructure (底層基礎設施)。"
+          ]
+        }
+      },
+      {
+        "word": "instruction",
+        "kk": "[ɪnˈstrʌkʃən]",
+        "ipa": "/ɪnˈstrʌkʃn/",
+        "pos": "n.",
+        "meaning": "指引、指示、說明書、教學",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "向內"
+            },
+            {
+              "text": "struct",
+              "role": "root",
+              "meaning": "構築"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "在學員大腦中構築知識與步驟規律 ➔「指令、教學、指引」"
+        },
+        "sentence": "Operators must meticulously adhere to manufacturer operating instructions to avoid catastrophic industrial accidents.",
+        "sentenceZh": "操作人員必須嚴格遵守製造商的操作指示說明，以避免災難性的工業事故。",
+        "grammar": {
+          "pattern": "S + Modal + Adv + Vi (adhere to O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Operators",
+              "role": "主詞 (Subject)",
+              "note": "操作員。"
+            },
+            {
+              "part": "must adhere to",
+              "role": "動詞片語 (Verb)",
+              "note": "遵守堅持。"
+            },
+            {
+              "part": "manufacturer operating instructions",
+              "role": "介系詞受詞",
+              "note": "操作指示。"
+            },
+            {
+              "part": "to avoid industrial accidents",
+              "role": "目的狀語",
+              "note": "避免事故。"
+            }
+          ],
+          "keyPoints": [
+            "【片語搭配】：adhere to instructions / rules / guidelines (嚴格遵守指示)。"
+          ]
+        }
+      },
+      {
+        "word": "structural",
+        "kk": "[ˈstrʌktʃərəl]",
+        "ipa": "/ˈstrʌktʃərəl/",
+        "pos": "adj.",
+        "meaning": "結構的、骨架的、深層結構性的",
+        "formula": {
+          "parts": [
+            {
+              "text": "structure",
+              "role": "base",
+              "meaning": "結構"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "攸關支撐骨架或深層體制格局的 ➔「結構性的」"
+        },
+        "sentence": "The economic report warned that monetary stimulus alone cannot rectify deep structural deficits.",
+        "sentenceZh": "該經濟報告警告，單靠貨幣刺激政策無法糾正深層的結構性財政赤字。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "The economic report",
+              "role": "主詞 (Subject)",
+              "note": "經濟報告。"
+            },
+            {
+              "part": "warned",
+              "role": "及物動詞 (Verb)",
+              "note": "警告。"
+            },
+            {
+              "part": "that monetary stimulus alone cannot rectify deficits",
+              "role": "受詞名詞子句",
+              "note": "rectify (矯正糾正)。"
+            }
+          ],
+          "keyPoints": [
+            "【經濟詞彙】：structural reform (結構性改革), structural unemployment (結構性失業)。"
+          ]
+        }
+      },
+      {
+        "word": "indestructible",
+        "kk": "[ˌɪndɪˈstrʌktəb!]",
+        "ipa": "/ˌɪndɪˈstrʌktəbl/",
+        "pos": "adj.",
+        "meaning": "不可毀滅的、堅不可摧的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不"
+            },
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "瓦解"
+            },
+            {
+              "text": "struct",
+              "role": "root",
+              "meaning": "建造"
+            },
+            {
+              "text": "-ible",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "無論受到何等外力衝擊都無法被拆毀擊垮的 ➔「堅不可摧的」"
+        },
+        "sentence": "Material scientists engineered an indestructible diamond-infused ceramic composite suited for hypersonic missile cones.",
+        "sentenceZh": "材料科學家研製出一種適用於極音速飛彈前端錐體、堅不可摧的金剛石浸潤陶瓷複合材料。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (suited for...)",
+          "breakdown": [
+            {
+              "part": "Material scientists",
+              "role": "主詞 (Subject)",
+              "note": "材料科學家。"
+            },
+            {
+              "part": "engineered",
+              "role": "及物動詞 (Verb)",
+              "note": "研發設計。"
+            },
+            {
+              "part": "an indestructible ceramic composite",
+              "role": "受詞 (Object)",
+              "note": "複合材料。"
+            },
+            {
+              "part": "suited for hypersonic missile cones",
+              "role": "分詞片語修飾 composite",
+              "note": "適用於高超音速錐頭。"
+            }
+          ],
+          "keyPoints": [
+            "【字根前綴】：in- (不) + de- (向下拆解) + struct (造) + -ible (可被) ➔ 堅不可摧。"
+          ]
+        }
+      },
+      {
+        "word": "destruction",
+        "kk": "[dɪˈstrʌkʃən]",
+        "ipa": "/dɪˈstrʌkʃn/",
+        "pos": "n.",
+        "meaning": "破壞、毀滅、徹底摧毀",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "向下、拆解"
+            },
+            {
+              "text": "struct",
+              "role": "root",
+              "meaning": "建造"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將原已耗時建造完成之結構從根本瓦解夷平 ➔「毀滅、破壞」"
+        },
+        "sentence": "The inland category-five tornado left widespread trail of structural destruction across agricultural counties.",
+        "sentenceZh": "內陸五級強烈龍捲風在農業郡縣境內留下了觸目驚心的大規模建築毀壞痕跡。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "The inland category-five tornado",
+              "role": "主詞 (Subject)",
+              "note": "五級龍捲風。"
+            },
+            {
+              "part": "left a widespread trail of destruction",
+              "role": "動詞與受詞",
+              "note": "留下毀滅痕跡。"
+            },
+            {
+              "part": "across agricultural counties",
+              "role": "地點狀語",
+              "note": "橫跨各郡。"
+            }
+          ],
+          "keyPoints": [
+            "【國際名詞】：weapons of mass destruction (WMD，大規模毀滅性武器)。"
+          ]
+        }
+      },
+      {
+        "word": "obstructive",
+        "kk": "[əbˈstrʌktɪv]",
+        "ipa": "/əbˈstrʌktɪv/",
+        "pos": "adj.",
+        "meaning": "阻礙的、妨礙性的、造成阻塞的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ob-",
+              "role": "prefix",
+              "meaning": "對抗、橫亙"
+            },
+            {
+              "text": "struct",
+              "role": "root",
+              "meaning": "建構"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "蓄意在道路中線築起屏障阻撓通行 ➔「阻礙妨礙的」"
+        },
+        "sentence": "Continuous positive airway pressure machines relieve chronic symptoms of obstructive sleep apnea effectively.",
+        "sentenceZh": "持續正壓呼吸器能有效緩解阻塞型睡眠呼吸中止症的慢性症狀。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adv",
+          "breakdown": [
+            {
+              "part": "Continuous positive airway pressure machines",
+              "role": "主詞 (Subject)",
+              "note": "CPAP 呼吸機。"
+            },
+            {
+              "part": "relieve",
+              "role": "及物動詞 (Verb)",
+              "note": "緩解。"
+            },
+            {
+              "part": "chronic symptoms of obstructive sleep apnea",
+              "role": "受詞 (Object)",
+              "note": "阻塞性睡眠中止症。"
+            },
+            {
+              "part": "effectively",
+              "role": "方式副詞",
+              "note": "有效地。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專詞】：OSA = Obstructive Sleep Apnea (阻塞型睡眠呼吸中止症)。"
+          ]
+        }
+      },
+      {
+        "word": "substructure",
+        "kk": "[ˈsʌbˌstrʌktʃɚ]",
+        "ipa": "/ˈsʌbstrʌktʃər/",
+        "pos": "n.",
+        "meaning": "下部結構、基礎地基、底層支撐構件",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之下"
+            },
+            {
+              "text": "structure",
+              "role": "base",
+              "meaning": "結構"
+            }
+          ],
+          "resultMeaning": "深埋於地表之下承受整座宏偉建築自重的地基 ➔「下部結構、地基」"
+        },
+        "sentence": "Deep bedrock pilings anchor the bridge pier substructure against scouring turbulent tidal currents.",
+        "sentenceZh": "深達基岩的基樁將橋墩下部結構牢牢錨固，以抵禦洶湧潮汐水流的沖刷淘刷。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (against...)",
+          "breakdown": [
+            {
+              "part": "Deep bedrock pilings",
+              "role": "主詞 (Subject)",
+              "note": "深層基岩樁。"
+            },
+            {
+              "part": "anchor the bridge pier substructure",
+              "role": "及物動詞與受詞",
+              "note": "錨固橋墩地基。"
+            },
+            {
+              "part": "against scouring turbulent tidal currents",
+              "role": "抵禦對象介系詞片語",
+              "note": "抵禦淘刷水流。"
+            }
+          ],
+          "keyPoints": [
+            "【建築工程】：substructure (地下基礎結構) vs. superstructure (地上上部結構)。"
+          ]
+        }
+      },
+      {
+        "word": "constructive",
+        "kk": "[kənˈstrʌktɪv]",
+        "ipa": "/kənˈstrʌktɪv/",
+        "pos": "adj.",
+        "meaning": "建設性的、積極有益的、富提振作用的",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "struct",
+              "role": "root",
+              "meaning": "建造"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "著眼於解決問題攜手共同建構更佳結果的 ➔「建設性的」"
+        },
+        "sentence": "Peer reviewers offered constructive feedback that strengthened the empirical methodology of the clinical study.",
+        "sentenceZh": "同儕審查專家提出了富建設性的回饋意見，強化了該項臨床研究的實證方法論。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Peer reviewers",
+              "role": "主詞 (Subject)",
+              "note": "同儕審稿人。"
+            },
+            {
+              "part": "offered constructive feedback",
+              "role": "及物動詞與受詞",
+              "note": "提供建設性反饋。"
+            },
+            {
+              "part": "that strengthened the empirical methodology",
+              "role": "關係子句修飾 feedback",
+              "note": "強化實證方法。"
+            }
+          ],
+          "keyPoints": [
+            "【職場必備】：constructive criticism (建設性批評)。"
+          ]
+        }
+      },
+      {
+        "word": "restructure",
+        "kk": "[ˌriˈstrʌktʃɚ]",
+        "ipa": "/ˌriːˈstrʌktʃər/",
+        "pos": "v.",
+        "meaning": "重組架構、調整組織體系、債務重整",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "structure",
+              "role": "base",
+              "meaning": "結構"
+            }
+          ],
+          "resultMeaning": "打碎舊有僵化部門架構重新設計建立高效體系 ➔「重組架構」"
+        },
+        "sentence": "The indebted conglomerate initiated emergency bankruptcy proceedings to restructure its multi-billion-dollar liabilities.",
+        "sentenceZh": "負債累累的跨國集團啟動了緊急破產程序，以重組其數十億美元的龐大債務包袱。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The indebted conglomerate",
+              "role": "主詞 (Subject)",
+              "note": "負債集團。"
+            },
+            {
+              "part": "initiated emergency bankruptcy proceedings",
+              "role": "及物動詞與受詞",
+              "note": "啟動破產程序。"
+            },
+            {
+              "part": "to restructure its multi-billion-dollar liabilities",
+              "role": "目的狀語",
+              "note": "重組數十億債務。"
+            }
+          ],
+          "keyPoints": [
+            "【企業管理】：corporate restructuring (企業組織架構重整)。"
+          ]
+        }
+      },
+      {
+        "word": "instructor",
+        "kk": "[ɪnˈstrʌktɚ]",
+        "ipa": "/ɪnˈstrʌktər/",
+        "pos": "n.",
+        "meaning": "講師、教練、指導教官",
+        "formula": {
+          "parts": [
+            {
+              "text": "instruct",
+              "role": "base",
+              "meaning": "指導教導 (in + struct)"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人員"
+            }
+          ],
+          "resultMeaning": "將知識技能有條不紊地在學員腦海中建構搭建傳授的人 ➔「講師、教練」"
+        },
+        "sentence": "The certified flight instructor demonstrated stall recovery maneuvers before allowing the cadet to take the controls.",
+        "sentenceZh": "執照飛行教官在允許學員接手操縱舵之前，先行示範了失速改出特情處置動作。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adv Clause of Time (before V-ing O)",
+          "breakdown": [
+            {
+              "part": "The certified flight instructor",
+              "role": "主詞 (Subject)",
+              "note": "飛行教官。"
+            },
+            {
+              "part": "demonstrated stall recovery maneuvers",
+              "role": "及物動詞與受詞",
+              "note": "示範失速改出動作。"
+            },
+            {
+              "part": "before allowing the cadet to take the controls",
+              "role": "時間狀語",
+              "note": "允許接管前。"
+            }
+          ],
+          "keyPoints": [
+            "【身分稱謂】：flight instructor (飛行教官), fitness instructor (健身教練)。"
           ]
         }
       }
@@ -7888,6 +21691,635 @@ const ETYMO_DATA = [
             "【重音變化】：名詞/形容詞 subject [ˈsʌbdʒɪkt] vs. 及物動詞 subject [səbˈdʒɛkt] (如 subject someone to torture)。"
           ]
         }
+      },
+      {
+        "word": "object",
+        "kk": "[əbˈdʒɛkt]",
+        "ipa": "/əbˈdʒɛkt/",
+        "pos": "v. / n.",
+        "meaning": "反對、抗議；(n.) 物體、受詞、目標",
+        "formula": {
+          "parts": [
+            {
+              "text": "ob-",
+              "role": "prefix",
+              "meaning": "對著、對向"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投擲"
+            }
+          ],
+          "resultMeaning": "朝著對方面對面拋出反對言論 ➔「反對；(n.) 物件」"
+        },
+        "sentence": "Defense counsel stood immediately to object to the prosecutor's leading questions.",
+        "sentenceZh": "辯護律師立即起立，對檢察官的誘導性提問提出抗議反對。",
+        "grammar": {
+          "pattern": "S + Vi + Adv + to-V (to object to O)",
+          "breakdown": [
+            {
+              "part": "Defense counsel",
+              "role": "主詞 (Subject)",
+              "note": "辯護律師。"
+            },
+            {
+              "part": "stood immediately",
+              "role": "動詞與副詞",
+              "note": "立刻起立。"
+            },
+            {
+              "part": "to object to the leading questions",
+              "role": "不定詞目的狀語",
+              "note": "object to + N (反對...)。"
+            }
+          ],
+          "keyPoints": [
+            "【重音規則】：名詞 object [ˈɑbdʒɪkt] (物體) vs. 及物/不及物動詞 to object [əbˈdʒɛkt] (反對，接 to + N)！"
+          ]
+        }
+      },
+      {
+        "word": "interject",
+        "kk": "[ˌɪntɚˈdʒɛkt]",
+        "ipa": "/ˌɪntərˈdʒɛkt/",
+        "pos": "v.",
+        "meaning": "插話、插嘴、突然插入",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在中間"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "拋出"
+            }
+          ],
+          "resultMeaning": "在他人談話中間突然拋出一句評論 ➔「插嘴、插話」"
+        },
+        "sentence": "The moderator politely requested panel members not to interject while others delivered opening remarks.",
+        "sentenceZh": "主持人禮貌地請求小組成員在他人發表開場白時不要插嘴打斷。",
+        "grammar": {
+          "pattern": "S + Adv + Vt (requested) + O + not to-V + Adv Clause of Time",
+          "breakdown": [
+            {
+              "part": "The moderator",
+              "role": "主詞 (Subject)",
+              "note": "主持人。"
+            },
+            {
+              "part": "politely requested panel members",
+              "role": "動詞與受詞",
+              "note": "request + O + to V。"
+            },
+            {
+              "part": "not to interject",
+              "role": "否定不定詞受詞補語",
+              "note": "不要插嘴。"
+            },
+            {
+              "part": "while others delivered remarks",
+              "role": "時間狀語子句",
+              "note": "他人發言時。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：interjection (感嘆詞、插話)。"
+          ]
+        }
+      },
+      {
+        "word": "dejected",
+        "kk": "[dɪˈdʒɛktɪd]",
+        "ipa": "/dɪˈdʒɛktɪd/",
+        "pos": "adj.",
+        "meaning": "沮喪的、失魂落魄的、垂頭喪氣的",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "向下"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "拋、摔"
+            },
+            {
+              "text": "-ed",
+              "role": "suffix",
+              "meaning": "形容詞"
+            }
+          ],
+          "resultMeaning": "心靈被沉重拋摔至低谷 ➔「垂頭喪氣的」"
+        },
+        "sentence": "The candidate slumped into her armchair looking completely dejected after concession speeches concluded.",
+        "sentenceZh": "在敗選演說結束後，候選人癱坐在扶手椅上，神情顯得徹底沮喪落寞。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase + Participle Phrase (looking SC) + Adv Clause",
+          "breakdown": [
+            {
+              "part": "The candidate",
+              "role": "主詞 (Subject)",
+              "note": "候選人。"
+            },
+            {
+              "part": "slumped into her armchair",
+              "role": "不及物動詞片語",
+              "note": "癱坐。"
+            },
+            {
+              "part": "looking completely dejected",
+              "role": "分詞伴隨狀語",
+              "note": "看起來沮喪。"
+            }
+          ],
+          "keyPoints": [
+            "【文學描摹】：look / feel dejected (顯得心灰意冷)。"
+          ]
+        }
+      },
+      {
+        "word": "conjecture",
+        "kk": "[kənˈdʒɛktʃɚ]",
+        "ipa": "/kənˈdʒɛktʃər/",
+        "pos": "n. / v.",
+        "meaning": "推測、猜測、臆測",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投、拋"
+            },
+            {
+              "text": "-ure",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將各種未經證實的線索隨意拋投拼湊 ➔「推測、猜測」"
+        },
+        "sentence": "Without verified radar telemetry, any claim regarding the aircraft's fate remains pure conjecture.",
+        "sentenceZh": "在缺乏經過驗證的雷達遙測數據前，任何關於該飛機下落的說法都純屬捕風捉影的猜測。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Linking Verb (remains) + SC (pure conjecture)",
+          "breakdown": [
+            {
+              "part": "Without verified radar telemetry",
+              "role": "條件狀語",
+              "note": "缺乏遙測。"
+            },
+            {
+              "part": "any claim regarding the aircraft's fate",
+              "role": "主詞 (Subject)",
+              "note": "關於飛機命運的說法。"
+            },
+            {
+              "part": "remains",
+              "role": "連綴動詞",
+              "note": "依然是。"
+            },
+            {
+              "part": "pure conjecture",
+              "role": "主詞補語",
+              "note": "純屬臆測。"
+            }
+          ],
+          "keyPoints": [
+            "【高階同義詞】：conjecture = speculation = surmise (推測、猜想)。"
+          ]
+        }
+      },
+      {
+        "word": "projectile",
+        "kk": "[prəˈdʒɛkt!]",
+        "ipa": "/prəˈdʒɛktaɪl/",
+        "pos": "n. / adj.",
+        "meaning": "拋射體、砲彈、飛彈；(adj.) 投射的",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投、擲"
+            },
+            {
+              "text": "-ile",
+              "role": "suffix",
+              "meaning": "可被...的"
+            }
+          ],
+          "resultMeaning": "受到推進力向前飛擲拋射出的物體 ➔「拋射體、飛彈」"
+        },
+        "sentence": "Military defense domes intercept incoming ballistic projectiles before they strike populated urban centers.",
+        "sentenceZh": "軍事防禦穹頂在來襲的彈道拋射武器擊中人口稠密的都市中心前將其攔截摧毀。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adv Clause of Time (before...)",
+          "breakdown": [
+            {
+              "part": "Military defense domes",
+              "role": "主詞 (Subject)",
+              "note": "防禦穹頂。"
+            },
+            {
+              "part": "intercept",
+              "role": "及物動詞 (Verb)",
+              "note": "攔截。"
+            },
+            {
+              "part": "incoming ballistic projectiles",
+              "role": "直接受詞 (Object)",
+              "note": "來襲彈道飛彈/拋射物。"
+            },
+            {
+              "part": "before they strike urban centers",
+              "role": "時間狀語子句",
+              "note": "strike (擊中打擊)。"
+            }
+          ],
+          "keyPoints": [
+            "【物理軍事】：ballistic projectile (彈道拋射物)。"
+          ]
+        }
+      },
+      {
+        "word": "subjective",
+        "kk": "[səbˈdʒɛktɪv]",
+        "ipa": "/səbˈdʒɛktɪv/",
+        "pos": "adj.",
+        "meaning": "主觀的、個人的、自覺的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在下方"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投擲"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "出自個人內心認知受自我情感投射影響的 ➔「主觀的」"
+        },
+        "sentence": "Literary critiques inevitably incorporate subjective taste, whereas factual metrics require objective standardization.",
+        "sentenceZh": "文學評論不可避免地摻雜個人主觀品味，而事實數據指標則要求客觀標準化。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Coordinate Clause (whereas...)",
+          "breakdown": [
+            {
+              "part": "Literary critiques",
+              "role": "主詞 (Subject)",
+              "note": "文學評論。"
+            },
+            {
+              "part": "incorporate subjective taste",
+              "role": "動詞與受詞",
+              "note": "包含主觀品味。"
+            },
+            {
+              "part": "whereas factual metrics require objective standardization",
+              "role": "對比連接詞子句",
+              "note": "whereas 表對比 (然而)。"
+            }
+          ],
+          "keyPoints": [
+            "【哲學大對比】：subjective (主觀的) vs. objective (客觀的)。"
+          ]
+        }
+      },
+      {
+        "word": "abject",
+        "kk": "[ˈæbdʒɛkt]",
+        "ipa": "/ˈæbdʒekt/",
+        "pos": "adj.",
+        "meaning": "絕望淒慘的、卑劣低賤的、屈辱無尊嚴的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ab-",
+              "role": "prefix",
+              "meaning": "離開、向下拋棄"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投擲、拋出"
+            }
+          ],
+          "resultMeaning": "如同遭人唾棄拋入泥潭般毫無尊嚴境遇悲慘的 ➔「淒慘絕望的」"
+        },
+        "sentence": "Refugees endured abject poverty in squalid transit camps, lacking clean sanitation and winter blankets.",
+        "sentenceZh": "難民在骯髒簡陋的過境營地中忍受著赤貧之苦，缺乏乾淨的衛生設施與禦寒冬毯。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Refugees",
+              "role": "主詞 (Subject)",
+              "note": "難民。"
+            },
+            {
+              "part": "endured abject poverty",
+              "role": "及物動詞與受詞",
+              "note": "忍受赤貧。"
+            },
+            {
+              "part": "in squalid transit camps",
+              "role": "地點狀語",
+              "note": "在骯髒過境營。"
+            },
+            {
+              "part": "lacking clean sanitation and winter blankets",
+              "role": "現在分詞伴隨狀語",
+              "note": "缺乏衛生與毯子。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用搭配】：abject poverty (赤貧), abject failure (徹底慘敗)。"
+          ]
+        }
+      },
+      {
+        "word": "rejection",
+        "kk": "[rɪˈdʒɛkʃən]",
+        "ipa": "/rɪˈdʒekʃn/",
+        "pos": "n.",
+        "meaning": "拒絕、駁回、器官排斥反應",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後、倒退"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "扔、投"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將他人提議或外來組織反手扔回去不予接受 ➔「拒絕、排斥」"
+        },
+        "sentence": "Organ transplant recipients take immunosuppressive medications to prevent chronic allograft rejection.",
+        "sentenceZh": "器官移植受贈者必須服用免疫抑制藥物，以預防慢性同種異體移植物排斥反應。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Organ transplant recipients",
+              "role": "主詞 (Subject)",
+              "note": "器官移植受贈者。"
+            },
+            {
+              "part": "take immunosuppressive medications",
+              "role": "動詞與受詞",
+              "note": "服用免疫抑制劑。"
+            },
+            {
+              "part": "to prevent chronic allograft rejection",
+              "role": "目的狀語",
+              "note": "預防慢性排斥。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專詞】：acute rejection (急性排斥) vs. chronic rejection (慢性排斥)。"
+          ]
+        }
+      },
+      {
+        "word": "projection",
+        "kk": "[prəˈdʒɛkʃən]",
+        "ipa": "/prəˈdʒekʃn/",
+        "pos": "n.",
+        "meaning": "預測推估、投影映射、凸出物、心理投射",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投擲"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將光影或數據數據向前方長遠處投擲映現 ➔「預測、投影」"
+        },
+        "sentence": "Financial analysts adjusted their revenue projection following unanticipated third-quarter semiconductor supply shortages.",
+        "sentenceZh": "在第三季度出現意料之外的半導體供應短缺後，財務分析師下調了營收預測值。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Time (following...)",
+          "breakdown": [
+            {
+              "part": "Financial analysts",
+              "role": "主詞 (Subject)",
+              "note": "財務分析師。"
+            },
+            {
+              "part": "adjusted their revenue projection",
+              "role": "及物動詞與受詞",
+              "note": "調整營收推估。"
+            },
+            {
+              "part": "following supply shortages",
+              "role": "時間介系詞片語",
+              "note": "晶片短缺之後。"
+            }
+          ],
+          "keyPoints": [
+            "【心理學】：psychological projection (心理投射作用)。"
+          ]
+        }
+      },
+      {
+        "word": "trajectory",
+        "kk": "[trəˈdʒɛktərɪ]",
+        "ipa": "/trəˈdʒektəri/",
+        "pos": "n.",
+        "meaning": "彈道軌道、飛行軌跡、人生/事業發展歷程",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans- (tra-)",
+              "role": "prefix",
+              "meaning": "跨越橫越"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投擲"
+            },
+            {
+              "text": "-ory",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "物體被拋射投擲於空中在空間中劃出之弧線路徑 ➔「彈道、軌跡」"
+        },
+        "sentence": "Winning the prestigious international design award fundamentally altered the young architect's career trajectory.",
+        "sentenceZh": "榮獲這項權威國際設計大獎從根本上改變了這位年輕建築師的職業生涯發展軌跡。",
+        "grammar": {
+          "pattern": "Gerund Phrase (Subject) + Adv + Vt + O",
+          "breakdown": [
+            {
+              "part": "Winning the prestigious international design award",
+              "role": "動名詞片語當主詞",
+              "note": "榮獲國際大獎。"
+            },
+            {
+              "part": "fundamentally altered",
+              "role": "動詞片語",
+              "note": "根本改變。"
+            },
+            {
+              "part": "the young architect's career trajectory",
+              "role": "受詞 (Object)",
+              "note": "職涯軌跡。"
+            }
+          ],
+          "keyPoints": [
+            "【航太與人生】：missile trajectory (飛彈彈道), growth trajectory (成長趨勢軌道)。"
+          ]
+        }
+      },
+      {
+        "word": "ejection",
+        "kk": "[ɪˈdʒɛkʃən]",
+        "ipa": "/ɪˈdʒekʃn/",
+        "pos": "n.",
+        "meaning": "彈射、驅逐離場、噴射排出",
+        "formula": {
+          "parts": [
+            {
+              "text": "e- (ex-)",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "扔、拋"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "自機艙或賽場內將人強力向外彈出驅離 ➔「彈射、逐出」"
+        },
+        "sentence": "The fighter pilot survived supersonic jet failure thanks to the rocket-assisted cockpit ejection seat.",
+        "sentenceZh": "得益於火箭助推駕駛艙彈射座椅，該戰鬥機飛行員在超音速噴射機失事中大難不死順利生還。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase (thanks to O)",
+          "breakdown": [
+            {
+              "part": "The fighter pilot",
+              "role": "主詞 (Subject)",
+              "note": "戰鬥機飛官。"
+            },
+            {
+              "part": "survived supersonic jet failure",
+              "role": "動詞與受詞",
+              "note": "失事中生還。"
+            },
+            {
+              "part": "thanks to the ejection seat",
+              "role": "介系詞原因狀語",
+              "note": "多虧彈射座椅。"
+            }
+          ],
+          "keyPoints": [
+            "【體育名詞】：automatic ejection (被裁判驅逐出場)。"
+          ]
+        }
+      },
+      {
+        "word": "adjective",
+        "kk": "[ˈædʒɪktɪv]",
+        "ipa": "/ˈædʒɪktɪv/",
+        "pos": "n.",
+        "meaning": "形容詞 (加在名詞旁的詞類)",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad-",
+              "role": "prefix",
+              "meaning": "朝向、添加"
+            },
+            {
+              "text": "ject",
+              "role": "root",
+              "meaning": "投、拋放"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "名詞/形容詞字尾"
+            }
+          ],
+          "resultMeaning": "添加拋放在名詞旁邊用以修飾限定性質的詞彙 ➔「形容詞」"
+        },
+        "sentence": "Vivid sensory adjectives infuse descriptive narrative passages with memorable emotional resonance.",
+        "sentenceZh": "生動的感官形容詞為描述性敘事篇章注入了令人難以忘懷的情感共鳴。",
+        "grammar": {
+          "pattern": "S + Vt (infuse A with B)",
+          "breakdown": [
+            {
+              "part": "Vivid sensory adjectives",
+              "role": "主詞 (Subject)",
+              "note": "生動感官形容詞。"
+            },
+            {
+              "part": "infuse descriptive narrative passages",
+              "role": "動詞與受詞 A",
+              "note": "infuse A with B。"
+            },
+            {
+              "part": "with memorable emotional resonance",
+              "role": "介系詞受詞 B",
+              "note": "注入情感共鳴。"
+            }
+          ],
+          "keyPoints": [
+            "【詞性源頭】：adjective 字源即是「扔在名詞旁的詞彙」。"
+          ]
+        }
       }
     ],
     "article": {
@@ -8204,6 +22636,615 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【邏輯哲學】：deduction (演繹法：由普遍到特殊) vs. induction (歸納法：由個別到普遍)。",
             "【分詞後位修飾】：residues (which were) left at the scene，後位分詞使句子簡潔凝鍊。"
+          ]
+        }
+      },
+      {
+        "word": "reduce",
+        "kk": "[rɪˈdjus]",
+        "ipa": "/rɪˈduːs/",
+        "pos": "v.",
+        "meaning": "減少、縮減、降低、淪落",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "往回、向後"
+            },
+            {
+              "text": "duce",
+              "role": "root",
+              "meaning": "引導、帶領"
+            }
+          ],
+          "resultMeaning": "往回引導縮小規模或使數量下降 ➔「減少、縮減」"
+        },
+        "sentence": "Implementing aerodynamic winglets on commercial jets reduces carbon emissions by five percent annually.",
+        "sentenceZh": "在商用客機上安裝空氣動力翼端帆，每年可減少百分之五的碳排放量。",
+        "grammar": {
+          "pattern": "S (Gerund Phrase) + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Implementing winglets on jets",
+              "role": "動名詞片語主詞",
+              "note": "安裝小翼。"
+            },
+            {
+              "part": "reduces",
+              "role": "及物動詞 (Verb)",
+              "note": "減少。"
+            },
+            {
+              "part": "carbon emissions",
+              "role": "受詞 (Object)",
+              "note": "碳排放。"
+            },
+            {
+              "part": "by five percent annually",
+              "role": "幅度介系詞片語",
+              "note": "減少達5%。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：reduction (減少、縮減)。"
+          ]
+        }
+      },
+      {
+        "word": "induce",
+        "kk": "[ɪnˈdjus]",
+        "ipa": "/ɪnˈduːs/",
+        "pos": "v.",
+        "meaning": "引起、導致、誘使、(醫) 催產",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "向內"
+            },
+            {
+              "text": "duce",
+              "role": "root",
+              "meaning": "引導"
+            }
+          ],
+          "resultMeaning": "將某種思想或生理狀態引導促成發生 ➔「誘發、導致」"
+        },
+        "sentence": "Chronic sensory deprivation can induce vivid auditory hallucinations within isolated subjects.",
+        "sentenceZh": "長期的感官剝奪會在被隔離的受試者身上誘發逼真的幻聽現象。",
+        "grammar": {
+          "pattern": "S + Modal + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Chronic sensory deprivation",
+              "role": "主詞 (Subject)",
+              "note": "感官剝奪。"
+            },
+            {
+              "part": "can induce",
+              "role": "動詞片語 (Verb)",
+              "note": "誘發引發。"
+            },
+            {
+              "part": "vivid auditory hallucinations",
+              "role": "受詞 (Object)",
+              "note": "逼真幻聽。"
+            },
+            {
+              "part": "within isolated subjects",
+              "role": "地點介系詞片語",
+              "note": "受試者身上。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專名】：induce labor (催生催產)。"
+          ]
+        }
+      },
+      {
+        "word": "seduce",
+        "kk": "[sɪˈdjus]",
+        "ipa": "/sɪˈduːs/",
+        "pos": "v.",
+        "meaning": "誘惑、引誘、誘使做壞事",
+        "formula": {
+          "parts": [
+            {
+              "text": "se-",
+              "role": "prefix",
+              "meaning": "分離、偏離 (apart, away)"
+            },
+            {
+              "text": "duce",
+              "role": "root",
+              "meaning": "帶領、引導"
+            }
+          ],
+          "resultMeaning": "帶領某人偏離正道走向墮落迷途 ➔「誘惑、引誘」"
+        },
+        "sentence": "The promise of exorbitant financial returns seduces unsuspecting investors into fraudulent Ponzi schemes.",
+        "sentenceZh": "暴利報酬的承諾誘使毫無防備的投資人陷入龐氏騙局的詐欺陷阱。",
+        "grammar": {
+          "pattern": "S + Vt (seduces A into B)",
+          "breakdown": [
+            {
+              "part": "The promise of exorbitant returns",
+              "role": "主詞 (Subject)",
+              "note": "暴利承諾。"
+            },
+            {
+              "part": "seduces",
+              "role": "及物動詞 (Verb)",
+              "note": "seduce A into B 句型。"
+            },
+            {
+              "part": "unsuspecting investors",
+              "role": "受詞 A",
+              "note": "單純投資人。"
+            },
+            {
+              "part": "into fraudulent Ponzi schemes",
+              "role": "受誘陷阱 B",
+              "note": "龐氏騙局。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞/形容詞】：seduction (誘惑), seductive (極具吸引力誘人的)。"
+          ]
+        }
+      },
+      {
+        "word": "conducive",
+        "kk": "[kənˈdjusɪv]",
+        "ipa": "/kənˈduːsɪv/",
+        "pos": "adj.",
+        "meaning": "有助於...的、有益於...的 (常接 to)",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "duc",
+              "role": "root",
+              "meaning": "帶領"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "齊心協力引導走向良好成果的 ➔「有助於...的」"
+        },
+        "sentence": "A tranquil ergonomic workstation is profoundly conducive to sustained intellectual focus.",
+        "sentenceZh": "一個寧靜且合乎人體工學的工作站極有助於維持長時間的心智專注。",
+        "grammar": {
+          "pattern": "S + Linking Verb + Adv + SC (conducive to...)",
+          "breakdown": [
+            {
+              "part": "A tranquil ergonomic workstation",
+              "role": "主詞 (Subject)",
+              "note": "人體工學工作區。"
+            },
+            {
+              "part": "is",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "profoundly conducive to sustained focus",
+              "role": "主詞補語 (形容詞片語)",
+              "note": "conducive to + N (有助於...)。"
+            }
+          ],
+          "keyPoints": [
+            "【重要搭配】：be conducive to health / learning / peace，to 必接名詞或動名詞！"
+          ]
+        }
+      },
+      {
+        "word": "deduction",
+        "kk": "[dɪˈdʌkʃən]",
+        "ipa": "/dɪˈdʌkʃn/",
+        "pos": "n.",
+        "meaning": "扣除、推論演繹法",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "自...向下"
+            },
+            {
+              "text": "duct",
+              "role": "root",
+              "meaning": "引導"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "自一般原理引導推向具體結論；或自總薪資向下扣除款項 ➔「演繹法、扣除額」"
+        },
+        "sentence": "Sherlock Holmes employed brilliant logical deduction to solve crimes that completely baffled Scotland Yard.",
+        "sentenceZh": "夏洛克·福爾摩斯運用精湛的邏輯演繹推理，偵破了讓蘇格蘭場完全束手無策的罪案。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Sherlock Holmes",
+              "role": "主詞 (Subject)",
+              "note": "福爾摩斯。"
+            },
+            {
+              "part": "employed logical deduction",
+              "role": "動詞與受詞",
+              "note": "運用演繹法。"
+            },
+            {
+              "part": "to solve crimes",
+              "role": "目的狀語",
+              "note": "破案。"
+            },
+            {
+              "part": "that completely baffled Scotland Yard",
+              "role": "關係子句",
+              "note": "baffle (難倒)。"
+            }
+          ],
+          "keyPoints": [
+            "【邏輯雙雄】：deduction (演繹法) vs. induction (歸納法)。"
+          ]
+        }
+      },
+      {
+        "word": "duct",
+        "kk": "[dʌkt]",
+        "ipa": "/dʌkt/",
+        "pos": "n.",
+        "meaning": "管道、導管、輸送管",
+        "formula": {
+          "parts": [
+            {
+              "text": "duct",
+              "role": "root",
+              "meaning": "引導輸送"
+            }
+          ],
+          "resultMeaning": "引導水流、氣體或線路穿行的管線通道 ➔「導管、通風管」"
+        },
+        "sentence": "Heating and air conditioning systems circulate purified air throughout the building via insulated aluminum ducts.",
+        "sentenceZh": "暖通空調系統透過隔熱鋁製風管將淨化空氣循環配送至整座大樓。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "HVAC systems",
+              "role": "主詞 (Subject)",
+              "note": "空調系統。"
+            },
+            {
+              "part": "circulate purified air",
+              "role": "動詞與受詞",
+              "note": "循環空氣。"
+            },
+            {
+              "part": "throughout the building",
+              "role": "地點狀語",
+              "note": "大樓各處。"
+            },
+            {
+              "part": "via insulated ducts",
+              "role": "管道狀語",
+              "note": "經由風管。"
+            }
+          ],
+          "keyPoints": [
+            "【解剖學】：tear duct (淚腺管), bile duct (膽管)。"
+          ]
+        }
+      },
+      {
+        "word": "abduct",
+        "kk": "[æbˈdʌkt]",
+        "ipa": "/æbˈdʌkt/",
+        "pos": "v.",
+        "meaning": "綁架、誘拐劫持、外展 (肌肉向外拉伸)",
+        "formula": {
+          "parts": [
+            {
+              "text": "ab-",
+              "role": "prefix",
+              "meaning": "離開、遠離"
+            },
+            {
+              "text": "duct",
+              "role": "root",
+              "meaning": "引導、帶走"
+            }
+          ],
+          "resultMeaning": "使用暴力手段強行將人從身邊帶走 ➔「綁架、劫持」"
+        },
+        "sentence": "Federal tactical teams mobilized rapidly to locate the kidnapped heiress who was abducted from her residence.",
+        "sentenceZh": "聯邦戰術小組迅速集結動員，以搜救從住所遭到綁架劫持的富家女繼承人。",
+        "grammar": {
+          "pattern": "S + Vi + Adv + Infinitive of Purpose + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Federal tactical teams",
+              "role": "主詞 (Subject)",
+              "note": "聯邦特警隊。"
+            },
+            {
+              "part": "mobilized rapidly",
+              "role": "動詞與副詞",
+              "note": "迅速動員。"
+            },
+            {
+              "part": "to locate the kidnapped heiress",
+              "role": "目的狀語",
+              "note": "搜救女繼承人。"
+            },
+            {
+              "part": "who was abducted from her residence",
+              "role": "關係子句修飾 heiress",
+              "note": "從住所遭綁架。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學對比】：abduct (使外展) vs. adduct (使內收)。"
+          ]
+        }
+      },
+      {
+        "word": "reproduce",
+        "kk": "[ˌriprəˈdjus]",
+        "ipa": "/ˌriːprəˈduːs/",
+        "pos": "v.",
+        "meaning": "繁衍生育、重現複製、翻印",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "produce",
+              "role": "base",
+              "meaning": "產出 (pro + duc)"
+            }
+          ],
+          "resultMeaning": "生命再次產出延續下一代生命或完整重現原作 ➔「繁殖、重現」"
+        },
+        "sentence": "Independent research laboratories struggled to reproduce the controversial cold fusion experimental outcomes.",
+        "sentenceZh": "數家獨立研究實驗室歷經波折，仍無法重現引發巨大爭議的冷融合實驗結果。",
+        "grammar": {
+          "pattern": "S + Vi (struggled to-V) + O",
+          "breakdown": [
+            {
+              "part": "Independent research laboratories",
+              "role": "主詞 (Subject)",
+              "note": "獨立實驗室。"
+            },
+            {
+              "part": "struggled to reproduce",
+              "role": "動詞片語與不定詞",
+              "note": "艱難重現。"
+            },
+            {
+              "part": "the controversial cold fusion experimental outcomes",
+              "role": "受詞 (Object)",
+              "note": "冷融合實驗結果。"
+            }
+          ],
+          "keyPoints": [
+            "【科學金律】：reproducibility (實驗可重現性) 是科學真理的基石。"
+          ]
+        }
+      },
+      {
+        "word": "viaduct",
+        "kk": "[ˈvaɪəˌdʌkt]",
+        "ipa": "/ˈvaɪədʌkt/",
+        "pos": "n.",
+        "meaning": "高架橋、跨谷高架鐵路陸橋",
+        "formula": {
+          "parts": [
+            {
+              "text": "via",
+              "role": "root",
+              "meaning": "道路 (way)"
+            },
+            {
+              "text": "duct",
+              "role": "root",
+              "meaning": "引導、引領"
+            }
+          ],
+          "resultMeaning": "引領道路穿越深邃峽谷山谷之長跨距拱橋 ➔「跨谷高架橋」"
+        },
+        "sentence": "The steam locomotive traversed the soaring stone viaduct overlooking the misty Scottish glens.",
+        "sentenceZh": "蒸汽火車頭駛過高聳入雲、俯瞰著蘇格蘭薄霧峽谷的宏偉石造高架橋。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "The steam locomotive",
+              "role": "主詞 (Subject)",
+              "note": "蒸汽機車。"
+            },
+            {
+              "part": "traversed the soaring stone viaduct",
+              "role": "及物動詞與受詞",
+              "note": "橫跨高架石橋。"
+            },
+            {
+              "part": "overlooking the misty Scottish glens",
+              "role": "現在分詞片語修飾 viaduct",
+              "note": "俯瞰峽谷。"
+            }
+          ],
+          "keyPoints": [
+            "【建築對比】：aqueduct (引水高架渠) vs. viaduct (通車高架橋)。"
+          ]
+        }
+      },
+      {
+        "word": "aqueduct",
+        "kk": "[ˈækwəˌdʌkt]",
+        "ipa": "/ˈækwɪdʌkt/",
+        "pos": "n.",
+        "meaning": "高架引水道、輸水古渠",
+        "formula": {
+          "parts": [
+            {
+              "text": "aqui- (aqua)",
+              "role": "root",
+              "meaning": "水"
+            },
+            {
+              "text": "duct",
+              "role": "root",
+              "meaning": "引導、導流"
+            }
+          ],
+          "resultMeaning": "自高山清泉引導流水穿越數十里注入都會蓄水庫的石造高架渠 ➔「高架輸水道」"
+        },
+        "sentence": "Ancient Roman engineers constructed grand arched aqueducts that transported alpine mountain water to urban bathhouses.",
+        "sentenceZh": "古羅馬工程師建造了宏偉的拱門高架引水道，將高山泉水輸送至城市浴場之中。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Ancient Roman engineers",
+              "role": "主詞 (Subject)",
+              "note": "古羅馬工程師。"
+            },
+            {
+              "part": "constructed grand arched aqueducts",
+              "role": "動詞與受詞",
+              "note": "建造拱門引水道。"
+            },
+            {
+              "part": "that transported alpine water to bathhouses",
+              "role": "關係子句修飾 aqueducts",
+              "note": "輸送泉水。"
+            }
+          ],
+          "keyPoints": [
+            "【工程典範】：加爾橋 (Pont du Gard) 是保存最完好的古羅馬 aqueduct。"
+          ]
+        }
+      },
+      {
+        "word": "productive",
+        "kk": "[prəˈdʌktɪv]",
+        "ipa": "/prəˈdʌktɪv/",
+        "pos": "adj.",
+        "meaning": "多產的、富有成效的、積極推進的",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "duct",
+              "role": "root",
+              "meaning": "引導、產出"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "源源不絕向前產出豐碩具體實質成果的 ➔「富有成效的」"
+        },
+        "sentence": "Bilateral trade delegations engaged in productive negotiations that culminated in a milestone tariff-reduction pact.",
+        "sentenceZh": "雙邊貿易代表團進行了富有成效的談判，最終促成簽署具有里程碑意義的減免關稅協定。",
+        "grammar": {
+          "pattern": "S + Vi (engaged in) + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Bilateral trade delegations",
+              "role": "主詞 (Subject)",
+              "note": "雙邊貿易代表團。"
+            },
+            {
+              "part": "engaged in productive negotiations",
+              "role": "動詞片語與受詞",
+              "note": "參與高效協商。"
+            },
+            {
+              "part": "that culminated in a milestone tariff-reduction pact",
+              "role": "關係子句修飾 negotiations",
+              "note": "culminate in (最終促成)。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：productivity (生產力)。"
+          ]
+        }
+      },
+      {
+        "word": "introduction",
+        "kk": "[ˌɪntrəˈdʌkʃən]",
+        "ipa": "/ˌɪntrəˈdʌkʃn/",
+        "pos": "n.",
+        "meaning": "介紹、引進採用、前言序論",
+        "formula": {
+          "parts": [
+            {
+              "text": "intro-",
+              "role": "prefix",
+              "meaning": "向內"
+            },
+            {
+              "text": "duct",
+              "role": "root",
+              "meaning": "引導"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將新人或嶄新技術引導進入新領域公諸於世 ➔「介紹、引進、序言」"
+        },
+        "sentence": "The sudden introduction of invasive predatory species wreaked havoc across fragile island ecosystems.",
+        "sentenceZh": "外來掠食性物種的突如其來引入，對脆弱的島嶼生態系統造成了毀滅性浩劫。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "The sudden introduction of invasive predatory species",
+              "role": "主詞 (含修飾語)",
+              "note": "外來物種引入。"
+            },
+            {
+              "part": "wreaked havoc",
+              "role": "動詞片語 (Verb)",
+              "note": "wreak havoc (造成浩劫)。"
+            },
+            {
+              "part": "across fragile island ecosystems",
+              "role": "地點狀語",
+              "note": "橫跨脆弱島嶼生態。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用成語】：wreak havoc (造成嚴重破壞浩劫)。"
           ]
         }
       }
@@ -8534,6 +23575,640 @@ const ETYMO_DATA = [
             "【近義詞辨析】：vulnerable to (易脆弱受傷的)、prone to (傾向於...的)。"
           ]
         }
+      },
+      {
+        "word": "captive",
+        "kk": "[ˈkæptɪv]",
+        "ipa": "/ˈkæptɪv/",
+        "pos": "n. / adj.",
+        "meaning": "俘虜、被監禁者；(adj.) 被俘的、受制於人的",
+        "formula": {
+          "parts": [
+            {
+              "text": "capt",
+              "role": "root",
+              "meaning": "抓取"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "具有...狀態的人/形容詞"
+            }
+          ],
+          "resultMeaning": "被敵方活捉拘禁失去人身自由的人 ➔「俘虜、受制於人的」"
+        },
+        "sentence": "International humanitarian conventions guarantee that military captives must be treated humanely.",
+        "sentenceZh": "國際人道公約保證軍事戰俘必須獲得人道對待。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause with Passive Verb",
+          "breakdown": [
+            {
+              "part": "International conventions",
+              "role": "主詞 (Subject)",
+              "note": "國際公約。"
+            },
+            {
+              "part": "guarantee",
+              "role": "及物動詞 (Verb)",
+              "note": "保證。"
+            },
+            {
+              "part": "that captives must be treated humanely",
+              "role": "受詞名詞子句",
+              "note": "俘虜獲人道對待。"
+            }
+          ],
+          "keyPoints": [
+            "【行銷術語】：captive audience (跑不掉的被動受眾/被迫聽講者)。"
+          ]
+        }
+      },
+      {
+        "word": "perceive",
+        "kk": "[pɚˈsiv]",
+        "ipa": "/pərˈsiːv/",
+        "pos": "v.",
+        "meaning": "察覺、感知、理解視為",
+        "formula": {
+          "parts": [
+            {
+              "text": "per-",
+              "role": "prefix",
+              "meaning": "徹底、完全"
+            },
+            {
+              "text": "ceive (cap)",
+              "role": "root",
+              "meaning": "領悟、抓取"
+            }
+          ],
+          "resultMeaning": "以五官感官徹底抓取外在資訊並在心靈中理解 ➔「察覺、感知」"
+        },
+        "sentence": "Bats perceive their pitch-black surroundings by interpreting high-frequency sonar echo delays.",
+        "sentenceZh": "蝙蝠透過解讀高頻聲納回音延遲，在漆黑環境中感知周遭環境。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means (by interpreting O)",
+          "breakdown": [
+            {
+              "part": "Bats",
+              "role": "主詞 (Subject)",
+              "note": "蝙蝠。"
+            },
+            {
+              "part": "perceive their surroundings",
+              "role": "及物動詞與受詞",
+              "note": "感知周遭。"
+            },
+            {
+              "part": "by interpreting echo delays",
+              "role": "手段狀語",
+              "note": "解讀回波。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：perception (知覺、洞察力), perceptive (有洞察力的)。"
+          ]
+        }
+      },
+      {
+        "word": "conceive",
+        "kk": "[kənˈsiv]",
+        "ipa": "/kənˈsiːv/",
+        "pos": "v.",
+        "meaning": "構想、設想、懷孕",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同、完全"
+            },
+            {
+              "text": "ceive (cap)",
+              "role": "root",
+              "meaning": "抓住、領受"
+            }
+          ],
+          "resultMeaning": "在大腦中完全孕育構想出一個新點子；或受孕接納新生命 ➔「構想、懷孕」"
+        },
+        "sentence": "Albert Einstein conceived the general theory of relativity by conducting daring thought experiments.",
+        "sentenceZh": "愛因斯坦藉由進行大膽的思想實驗，構想出了廣義相對論。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Albert Einstein",
+              "role": "主詞 (Subject)",
+              "note": "愛因斯坦。"
+            },
+            {
+              "part": "conceived",
+              "role": "及物動詞 (Verb)",
+              "note": "構想出。"
+            },
+            {
+              "part": "the general theory of relativity",
+              "role": "直接受詞 (Object)",
+              "note": "廣義相對論。"
+            },
+            {
+              "part": "by conducting thought experiments",
+              "role": "手段狀語",
+              "note": "思想實驗。"
+            }
+          ],
+          "keyPoints": [
+            "【多義動詞】：conceive an idea (構想出點子) vs. conceive a child (懷胎懷孕)。"
+          ]
+        }
+      },
+      {
+        "word": "deceive",
+        "kk": "[dɪˈsiv]",
+        "ipa": "/dɪˈsiːv/",
+        "pos": "v.",
+        "meaning": "欺騙、蒙蔽、哄騙",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "偏離、壞"
+            },
+            {
+              "text": "ceive (cap)",
+              "role": "root",
+              "meaning": "拿取、捉弄"
+            }
+          ],
+          "resultMeaning": "用卑劣手法引誘他人落入圈套加以捉弄 ➔「欺騙、瞞騙」"
+        },
+        "sentence": "Camouflaged chameleons deceive predatory birds by blending seamlessly into leafy foliage.",
+        "sentenceZh": "具保護色的變色龍藉由天衣無縫地融入枝葉中，來欺瞞捕食性猛禽。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means (by blending...)",
+          "breakdown": [
+            {
+              "part": "Camouflaged chameleons",
+              "role": "主詞 (Subject)",
+              "note": "變色龍。"
+            },
+            {
+              "part": "deceive",
+              "role": "及物動詞 (Verb)",
+              "note": "欺騙。"
+            },
+            {
+              "part": "predatory birds",
+              "role": "受詞 (Object)",
+              "note": "捕食鳥類。"
+            },
+            {
+              "part": "by blending seamlessly into foliage",
+              "role": "手段狀語",
+              "note": "融入枝葉。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：deception (欺騙), deceitful (詭詐的)。"
+          ]
+        }
+      },
+      {
+        "word": "captivate",
+        "kk": "[ˈkæptəˌvet]",
+        "ipa": "/ˈkæptɪveɪt/",
+        "pos": "v.",
+        "meaning": "深深吸引、迷住、使著迷",
+        "formula": {
+          "parts": [
+            {
+              "text": "capt",
+              "role": "root",
+              "meaning": "抓取"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "俘虜"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "使成為"
+            }
+          ],
+          "resultMeaning": "將他人的心意與注意力牢牢俘獲擄走 ➔「深深迷住、吸引」"
+        },
+        "sentence": "The soprano captivated the opera house with her breathtaking vocal virtuosity and dramatic presence.",
+        "sentenceZh": "這位女高音以其令人屏息的精湛歌唱技巧與舞台戲劇張力深深征服了整座歌劇院。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "The soprano",
+              "role": "主詞 (Subject)",
+              "note": "女高音。"
+            },
+            {
+              "part": "captivated the opera house",
+              "role": "動詞與受詞",
+              "note": "迷住全場。"
+            },
+            {
+              "part": "with her vocal virtuosity",
+              "role": "手段介系詞片語",
+              "note": "超凡技藝。"
+            }
+          ],
+          "keyPoints": [
+            "【生動搭配】：captivate the audience / hearts of millions。"
+          ]
+        }
+      },
+      {
+        "word": "inception",
+        "kk": "[ɪnˈsɛpʃən]",
+        "ipa": "/ɪnˈsɛpʃn/",
+        "pos": "n.",
+        "meaning": "開端、創始、初期",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "在最初"
+            },
+            {
+              "text": "cept",
+              "role": "root",
+              "meaning": "抓取、動手"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "萬物剛開始動手著手建構的創始開端 ➔「開端、創立」"
+        },
+        "sentence": "Since its inception in 2005, the open-source initiative has transformed modern cloud computing.",
+        "sentenceZh": "自 2005 年創立以來，這項開源倡議徹底重塑了現代雲端運算的面貌。",
+        "grammar": {
+          "pattern": "Prep Phrase (Since its inception in...) + S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Since its inception in 2005",
+              "role": "時間介系詞片語",
+              "note": "自創立起。"
+            },
+            {
+              "part": "the open-source initiative",
+              "role": "主詞 (Subject)",
+              "note": "開源倡議。"
+            },
+            {
+              "part": "has transformed",
+              "role": "現在完成式動詞",
+              "note": "變革重塑。"
+            },
+            {
+              "part": "modern cloud computing",
+              "role": "受詞 (Object)",
+              "note": "雲端運算。"
+            }
+          ],
+          "keyPoints": [
+            "【常用片語】：since its inception (自其創立伊始)。"
+          ]
+        }
+      },
+      {
+        "word": "receptive",
+        "kk": "[rɪˈsɛptɪv]",
+        "ipa": "/rɪˈseptɪv/",
+        "pos": "adj.",
+        "meaning": "樂於接納的、善於感受接受新觀念的",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "回來、再次"
+            },
+            {
+              "text": "cept (capt)",
+              "role": "root",
+              "meaning": "抓取、接收"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "張開雙手心胸隨時樂意抓取接受嶄新見解的 ➔「樂於接納的」"
+        },
+        "sentence": "The open-minded venture board proved highly receptive to disruptive decarbonization technologies.",
+        "sentenceZh": "思想開明的創投董事會被證實對顛覆性的低碳脫碳技術高度樂於接納。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC (receptive to...)",
+          "breakdown": [
+            {
+              "part": "The open-minded venture board",
+              "role": "主詞 (Subject)",
+              "note": "開明創投董事會。"
+            },
+            {
+              "part": "proved",
+              "role": "連綴動詞",
+              "note": "證明是。"
+            },
+            {
+              "part": "highly receptive to disruptive decarbonization technologies",
+              "role": "形容詞片語當補語",
+              "note": "be receptive to (對...開放接納)。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：be receptive to new ideas / suggestions (樂於傾聽新觀點)。"
+          ]
+        }
+      },
+      {
+        "word": "perceptive",
+        "kk": "[pɚˈsɛptɪv]",
+        "ipa": "/pərˈseptɪv/",
+        "pos": "adj.",
+        "meaning": "洞察力敏銳的、觀察入微的、感知力強的",
+        "formula": {
+          "parts": [
+            {
+              "text": "per-",
+              "role": "prefix",
+              "meaning": "完全、徹頭徹尾"
+            },
+            {
+              "text": "cept (capt)",
+              "role": "root",
+              "meaning": "抓取"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "能完全瞬間抓住他人言行背後微妙弦外之音的 ➔「洞察敏銳的」"
+        },
+        "sentence": "The perceptive clinical psychologist discerned subtle micro-expressions betraying concealed trauma.",
+        "sentenceZh": "這位敏銳的臨床心理學家察覺到了透露出隱蔽心理創傷的微妙微表情。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "The perceptive clinical psychologist",
+              "role": "主詞 (Subject)",
+              "note": "洞察敏銳的心理學家。"
+            },
+            {
+              "part": "discerned",
+              "role": "及物動詞 (Verb)",
+              "note": "辨別看出。"
+            },
+            {
+              "part": "subtle micro-expressions",
+              "role": "受詞 (Object)",
+              "note": "微妙微表情。"
+            },
+            {
+              "part": "betraying concealed trauma",
+              "role": "現在分詞片語修飾 expressions",
+              "note": "betray (不經意洩露)。"
+            }
+          ],
+          "keyPoints": [
+            "【心理動詞】：betray 此處作及物動詞表「不自覺流露出秘密」。"
+          ]
+        }
+      },
+      {
+        "word": "emancipate",
+        "kk": "[ɪˈmænsəˌpet]",
+        "ipa": "/ɪˈmænsɪpeɪt/",
+        "pos": "v.",
+        "meaning": "解放 (奴隸或受壓迫者)、給予自由",
+        "formula": {
+          "parts": [
+            {
+              "text": "e- (ex-)",
+              "role": "prefix",
+              "meaning": "向外、脫離"
+            },
+            {
+              "text": "man (manus)",
+              "role": "root",
+              "meaning": "手"
+            },
+            {
+              "text": "cip (capt)",
+              "role": "root",
+              "meaning": "抓取、掌控"
+            }
+          ],
+          "resultMeaning": "古羅馬法律中將被雙手緊緊掌控之奴隸鬆開雙手釋放 ➔「解放」"
+        },
+        "sentence": "President Abraham Lincoln issued the Emancipation Proclamation to emancipate enslaved millions across rebellious southern territories.",
+        "sentenceZh": "亞伯拉罕·林肯總統發布《解放奴隸宣言》，以解放叛亂南部領土上數以百萬計的受奴役黑人。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "President Abraham Lincoln",
+              "role": "主詞 (Subject)",
+              "note": "林肯總統。"
+            },
+            {
+              "part": "issued the Emancipation Proclamation",
+              "role": "及物動詞與受詞",
+              "note": "發布解放宣言。"
+            },
+            {
+              "part": "to emancipate enslaved millions",
+              "role": "目的狀語",
+              "note": "解放數百萬受奴役者。"
+            },
+            {
+              "part": "across rebellious southern territories",
+              "role": "地點狀語",
+              "note": "南部叛亂領地。"
+            }
+          ],
+          "keyPoints": [
+            "【歷史文獻】：Emancipation Proclamation (解放奴隸宣言，1863 年生效)。"
+          ]
+        }
+      },
+      {
+        "word": "caption",
+        "kk": "[ˈkæpʃən]",
+        "ipa": "/ˈkæpʃn/",
+        "pos": "n. / v.",
+        "meaning": "圖片說明、文字標題、字幕；(v.) 加上說明文字",
+        "formula": {
+          "parts": [
+            {
+              "text": "capt",
+              "role": "root",
+              "meaning": "抓取 (捕捉要點)"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "精確捕捉影像核心內涵扼要標出之文字說明 ➔「圖說、標題、字幕」"
+        },
+        "sentence": "Archival curators appended a detailed historical caption identifying every soldier standing in the daguerreotype.",
+        "sentenceZh": "檔案館館員附加了一段詳盡的歷史圖片說明，指認出了銀版相片中站立的每位士兵。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Archival curators",
+              "role": "主詞 (Subject)",
+              "note": "檔案管理員。"
+            },
+            {
+              "part": "appended a detailed historical caption",
+              "role": "動詞與受詞",
+              "note": "附加詳細圖說。"
+            },
+            {
+              "part": "identifying every soldier standing in the daguerreotype",
+              "role": "現在分詞片語修飾 caption",
+              "note": "標明相片中士兵。"
+            }
+          ],
+          "keyPoints": [
+            "【影音科技】：closed captioning (隱藏式字幕，CC)。"
+          ]
+        }
+      },
+      {
+        "word": "exceptional",
+        "kk": "[ɪkˈsɛpʃən!]",
+        "ipa": "/ɪkˈsepʃənl/",
+        "pos": "adj.",
+        "meaning": "非凡卓越的、優秀拔尖的、例外的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ex-",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "cept (capt)",
+              "role": "root",
+              "meaning": "抓取、取出"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "從大眾水準中特別取出鶴立雞群出類拔萃的 ➔「非凡卓越的」"
+        },
+        "sentence": "The cellist possessed exceptional virtuosity, effortlessly executing punishing concertos without technical hesitation.",
+        "sentenceZh": "這位大提琴家擁有非凡卓絕的演奏功力，能毫無技術遲疑地輕鬆駕馭極其艱難的協奏曲。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase of Manner",
+          "breakdown": [
+            {
+              "part": "The cellist",
+              "role": "主詞 (Subject)",
+              "note": "大提琴家。"
+            },
+            {
+              "part": "possessed exceptional virtuosity",
+              "role": "及物動詞與受詞",
+              "note": "擁有卓越琴藝。"
+            },
+            {
+              "part": "effortlessly executing punishing concertos",
+              "role": "現在分詞方式狀語",
+              "note": "演繹艱澀協奏曲。"
+            },
+            {
+              "part": "without technical hesitation",
+              "role": "伴隨介系詞片語",
+              "note": "毫無遲疑。"
+            }
+          ],
+          "keyPoints": [
+            "【職場讚譽】：exceptional performance (卓越非凡的績效表現)。"
+          ]
+        }
+      },
+      {
+        "word": "anticipate",
+        "kk": "[ænˈtɪsəˌpet]",
+        "ipa": "/ænˈtɪsɪpeɪt/",
+        "pos": "v.",
+        "meaning": "預期、預料到、先發制人先一步行動",
+        "formula": {
+          "parts": [
+            {
+              "text": "anti- (ante-)",
+              "role": "prefix",
+              "meaning": "在...之前"
+            },
+            {
+              "text": "cip (capt)",
+              "role": "root",
+              "meaning": "抓取"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "在事情尚未發生之前提早抓住先機 ➔「預期、搶先」"
+        },
+        "sentence": "Experienced chess grandmasters anticipate opponent counter-strategies dozens of moves in advance.",
+        "sentenceZh": "經驗豐富的國際西洋棋特級大師能提前幾十步預判對手的反制走法。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "Experienced chess grandmasters",
+              "role": "主詞 (Subject)",
+              "note": "西洋棋特級大師。"
+            },
+            {
+              "part": "anticipate opponent counter-strategies",
+              "role": "及物動詞與受詞",
+              "note": "預料對手策略。"
+            },
+            {
+              "part": "dozens of moves in advance",
+              "role": "時間程度狀語",
+              "note": "提前數十步。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：anticipation (期待、預期)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -8850,6 +24525,635 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【副詞衍生】：exceedingly (極其、非常，如 exceedingly difficult)。",
             "【及物動詞】：exceed 直接加受詞，不可加 than。"
+          ]
+        }
+      },
+      {
+        "word": "succeed",
+        "kk": "[səkˈsid]",
+        "ipa": "/səkˈsiːd/",
+        "pos": "v.",
+        "meaning": "成功；接續、繼承(王位/職位)",
+        "formula": {
+          "parts": [
+            {
+              "text": "suc- (sub-)",
+              "role": "prefix",
+              "meaning": "在下方、隨後"
+            },
+            {
+              "text": "ceed",
+              "role": "root",
+              "meaning": "走"
+            }
+          ],
+          "resultMeaning": "跟在他人身後順利走上去接替位置 ➔「繼任；成功」"
+        },
+        "sentence": "The crown prince succeeded to the throne following the abdication of his father.",
+        "sentenceZh": "在父親退位之後，王儲順利繼承了王位。",
+        "grammar": {
+          "pattern": "S + Vi (succeeded to O) + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "The crown prince",
+              "role": "主詞 (Subject)",
+              "note": "王儲。"
+            },
+            {
+              "part": "succeeded to the throne",
+              "role": "動詞片語 (Verb)",
+              "note": "succeed to (繼承)。"
+            },
+            {
+              "part": "following the abdication of his father",
+              "role": "時間狀語",
+              "note": "父親退位後。"
+            }
+          ],
+          "keyPoints": [
+            "【雙義動詞】：succeed in V-ing (成功做某事) vs. succeed to the throne (繼承王位)。"
+          ]
+        }
+      },
+      {
+        "word": "concede",
+        "kk": "[kənˈsid]",
+        "ipa": "/kənˈsiːd/",
+        "pos": "v.",
+        "meaning": "承認、讓步、承認失敗(認輸)",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "完全"
+            },
+            {
+              "text": "cede",
+              "role": "root",
+              "meaning": "退讓、行走"
+            }
+          ],
+          "resultMeaning": "在事實面前完全退讓一步不再頑抗 ➔「承認、讓步、認輸」"
+        },
+        "sentence": "After all ballots were tallied, the rival politician phoned to concede defeat graciously.",
+        "sentenceZh": "在所有選票計票完畢後，競爭對手政客致電大度體面地承認敗選。",
+        "grammar": {
+          "pattern": "Adv Clause + S + Vi + Infinitive (to concede defeat graciously)",
+          "breakdown": [
+            {
+              "part": "After all ballots were tallied",
+              "role": "時間副詞子句",
+              "note": "計票完成後。"
+            },
+            {
+              "part": "the rival politician",
+              "role": "主詞 (Subject)",
+              "note": "政客對手。"
+            },
+            {
+              "part": "phoned to concede defeat",
+              "role": "動詞與目的狀語",
+              "note": "承認敗選。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：concession (讓步、認輸、特許權)。"
+          ]
+        }
+      },
+      {
+        "word": "recede",
+        "kk": "[rɪˈsid]",
+        "ipa": "/rɪˈsiːd/",
+        "pos": "v.",
+        "meaning": "後退、減弱、倒退、髮際線後移",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "往後"
+            },
+            {
+              "text": "cede",
+              "role": "root",
+              "meaning": "走"
+            }
+          ],
+          "resultMeaning": "大水或事物一步步往後倒退離去 ➔「退去、後退」"
+        },
+        "sentence": "Coastal floodwaters began to recede slowly as low tide returned to the bay.",
+        "sentenceZh": "隨著海灣迎來退潮，沿海洪水開始緩慢退去。",
+        "grammar": {
+          "pattern": "S + Vt (began to recede) + Adv + Adv Clause of Time",
+          "breakdown": [
+            {
+              "part": "Coastal floodwaters",
+              "role": "主詞 (Subject)",
+              "note": "洪水。"
+            },
+            {
+              "part": "began to recede slowly",
+              "role": "動詞片語與副詞",
+              "note": "開始退去。"
+            },
+            {
+              "part": "as low tide returned",
+              "role": "時間狀語子句",
+              "note": "退潮。"
+            }
+          ],
+          "keyPoints": [
+            "【常見搭配】：floodwaters recede (洪水消退), receding hairline (後退的髮際線)。"
+          ]
+        }
+      },
+      {
+        "word": "precedence",
+        "kk": "[ˈprɛsədəns]",
+        "ipa": "/ˈprɛsɪdəns/",
+        "pos": "n.",
+        "meaning": "優先權、領先地位、重要性居首",
+        "formula": {
+          "parts": [
+            {
+              "text": "pre-",
+              "role": "prefix",
+              "meaning": "在前面"
+            },
+            {
+              "text": "ced",
+              "role": "root",
+              "meaning": "走"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "走在所有人最前頭享有的優先特權 ➔「優先權」"
+        },
+        "sentence": "Emergency medical triage dictates that critically injured trauma patients take precedence over stable cases.",
+        "sentenceZh": "急診檢傷分類原則規定，重傷創傷病患的救治順序優先於病情穩定者。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "Emergency medical triage",
+              "role": "主詞 (Subject)",
+              "note": "急診檢傷。"
+            },
+            {
+              "part": "dictates",
+              "role": "及物動詞 (Verb)",
+              "note": "規定要求。"
+            },
+            {
+              "part": "that trauma patients take precedence over stable cases",
+              "role": "受詞子句",
+              "note": "take precedence over (優先於)。"
+            }
+          ],
+          "keyPoints": [
+            "【重要片語】：take precedence over something (比某事更具優先順位)。"
+          ]
+        }
+      },
+      {
+        "word": "antecedent",
+        "kk": "[ˌæntəˈsidnt]",
+        "ipa": "/ˌæntɪˈsiːdnt/",
+        "pos": "n. / adj.",
+        "meaning": "先行詞、前情、先例；(adj.) 在先的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ante-",
+              "role": "prefix",
+              "meaning": "在...之前"
+            },
+            {
+              "text": "ced",
+              "role": "root",
+              "meaning": "走"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "名詞/形容詞字尾"
+            }
+          ],
+          "resultMeaning": "在語法或歷史時間序列中走在前面者 ➔「先行詞、前因」"
+        },
+        "sentence": "In English grammar, a relative pronoun must agree in number and gender with its grammatical antecedent.",
+        "sentenceZh": "在英語語法中，關係代名詞在單複數與性別上必須與其語法先行詞保持一致。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Modal + Vi (agree with O) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "In English grammar",
+              "role": "領域狀語",
+              "note": "語法領域。"
+            },
+            {
+              "part": "a relative pronoun",
+              "role": "主詞 (Subject)",
+              "note": "關係代名詞。"
+            },
+            {
+              "part": "must agree with its antecedent",
+              "role": "謂語動詞與受詞",
+              "note": "與先行詞一致。"
+            },
+            {
+              "part": "in number and gender",
+              "role": "範疇介系詞片語",
+              "note": "數與性別。"
+            }
+          ],
+          "keyPoints": [
+            "【語法核心】：antecedent 專指關係子句所修飾的「先行詞」。"
+          ]
+        }
+      },
+      {
+        "word": "procession",
+        "kk": "[prəˈsɛʃən]",
+        "ipa": "/prəˈsɛʃn/",
+        "pos": "n.",
+        "meaning": "遊行隊伍、行列、前進過程",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "cess",
+              "role": "root",
+              "meaning": "走"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "井然有序向前徐徐前行之長隊 ➔「遊行行列」"
+        },
+        "sentence": "Thousands lined the boulevard to observe the solemn funeral procession honoring the late statesman.",
+        "sentenceZh": "成千上萬的民眾佇立在大道兩側，瞻仰向已故政治家致敬的莊嚴葬禮出殯隊伍。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Thousands",
+              "role": "主詞 (Subject)",
+              "note": "成千上萬人。"
+            },
+            {
+              "part": "lined the boulevard",
+              "role": "及物動詞與受詞",
+              "note": "排滿大道兩側。"
+            },
+            {
+              "part": "to observe the funeral procession",
+              "role": "目的狀語",
+              "note": "出殯行列。"
+            },
+            {
+              "part": "honoring the late statesman",
+              "role": "分詞修飾 procession",
+              "note": "緬懷已故政要。"
+            }
+          ],
+          "keyPoints": [
+            "【字彙區辨】：procession (遊行隊伍) vs. parade (慶典大遊行)。"
+          ]
+        }
+      },
+      {
+        "word": "accede",
+        "kk": "[ækˈsid]",
+        "ipa": "/ækˈsiːd/",
+        "pos": "v.",
+        "meaning": "同意、答應請求 (與 to 連用)；就任即位",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (ac-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "ced",
+              "role": "root",
+              "meaning": "邁步、走去 (go)"
+            }
+          ],
+          "resultMeaning": "邁步走向對方的立場並給予同意支持 ➔「答應、同意、即位」"
+        },
+        "sentence": "The embattled university president refused to accede to radical student demands regarding curriculum abolition.",
+        "sentenceZh": "四面楚歌的大學校長拒絕同意答應學生關於廢除課程的激進要求。",
+        "grammar": {
+          "pattern": "S + Vt (refused to-V) + Prep Phrase (to O) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The embattled university president",
+              "role": "主詞 (Subject)",
+              "note": "受圍攻的校長。"
+            },
+            {
+              "part": "refused to accede",
+              "role": "動詞與不定詞",
+              "note": "拒絕答應。"
+            },
+            {
+              "part": "to radical student demands",
+              "role": "accede to 介系詞對象",
+              "note": "同意學生訴求。"
+            },
+            {
+              "part": "regarding curriculum abolition",
+              "role": "介系詞修飾 demands",
+              "note": "廢除課綱。"
+            }
+          ],
+          "keyPoints": [
+            "【歷史用法】：accede to the throne (繼承王位、即位)；外交上表 accede to a treaty (加入條約)。"
+          ]
+        }
+      },
+      {
+        "word": "intercede",
+        "kk": "[ˌɪntɚˈsid]",
+        "ipa": "/ˌɪntərˈsiːd/",
+        "pos": "v.",
+        "meaning": "居間調停、求情代禱、說項調解",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "ced",
+              "role": "root",
+              "meaning": "走、邁步"
+            }
+          ],
+          "resultMeaning": "挺身走到兩造爭端之間出面說情排除紛擾 ➔「求情、調停」"
+        },
+        "sentence": "The defense attorney pleaded with the appellate judge to intercede on behalf of her remorseful client.",
+        "sentenceZh": "辯護律師懇請上訴法官代表她那悔不當初的委託人出面求情寬恕。",
+        "grammar": {
+          "pattern": "S + Vi (pleaded with O) + to-V (to intercede) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The defense attorney",
+              "role": "主詞 (Subject)",
+              "note": "辯護律師。"
+            },
+            {
+              "part": "pleaded with the appellate judge",
+              "role": "不及物動詞與對象",
+              "note": "懇求上訴法官。"
+            },
+            {
+              "part": "to intercede",
+              "role": "目的狀語",
+              "note": "求情調解。"
+            },
+            {
+              "part": "on behalf of her remorseful client",
+              "role": "代表對象介系詞片語",
+              "note": "代表悔過客戶。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：intercede with someone for/on behalf of someone (向某人為某人求情)。"
+          ]
+        }
+      },
+      {
+        "word": "secede",
+        "kk": "[sɪˈsid]",
+        "ipa": "/sɪˈsiːd/",
+        "pos": "v.",
+        "meaning": "正式退出、宣告脫離組織/聯邦獨立",
+        "formula": {
+          "parts": [
+            {
+              "text": "se-",
+              "role": "prefix",
+              "meaning": "分開、遠離 (apart)"
+            },
+            {
+              "text": "ced",
+              "role": "root",
+              "meaning": "走、邁步"
+            }
+          ],
+          "resultMeaning": "自母國或聯盟邁步分開遠走宣告自立 ➔「脫離、退出」"
+        },
+        "sentence": "Following the election, eleven southern states voted to secede from the Union, triggering the Civil War.",
+        "sentenceZh": "大選結束後，南部十一州投票決定脫離聯邦獨立，進而觸發了南北戰爭。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vt (voted to-V) + Prep Phrase + Participle Phrase of Result",
+          "breakdown": [
+            {
+              "part": "Following the election",
+              "role": "時間介系詞片語",
+              "note": "大選之後。"
+            },
+            {
+              "part": "eleven southern states",
+              "role": "主詞 (Subject)",
+              "note": "南部十一州。"
+            },
+            {
+              "part": "voted to secede from the Union",
+              "role": "動詞結構",
+              "note": "投票退出聯邦。"
+            },
+            {
+              "part": "triggering the Civil War",
+              "role": "現在分詞結果狀語",
+              "note": "引發內戰。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：secession (退出、分離獨立行動)。"
+          ]
+        }
+      },
+      {
+        "word": "incessant",
+        "kk": "[ɪnˈsɛsnt]",
+        "ipa": "/ɪnˈsesnt/",
+        "pos": "adj.",
+        "meaning": "不停的、連續不斷的、沒完沒了的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "cess (ced)",
+              "role": "root",
+              "meaning": "停止、停步 (cease)"
+            },
+            {
+              "text": "-ant",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "腳步毫不停歇一刻也不曾停頓的 ➔「連續不斷的」"
+        },
+        "sentence": "Incessant drilling noise from the high-rise skyscraper construction site made focused remote work impossible.",
+        "sentenceZh": "來自高層摩天大樓建築工地沒完沒了的鑽地噪音，讓專心進行遠端辦公變得毫無可能。",
+        "grammar": {
+          "pattern": "S + Vt + O + OC",
+          "breakdown": [
+            {
+              "part": "Incessant drilling noise from the construction site",
+              "role": "主詞 (Subject)",
+              "note": "工地的連續噪音。"
+            },
+            {
+              "part": "made",
+              "role": "使役動詞 (Verb)",
+              "note": "使得。"
+            },
+            {
+              "part": "focused remote work",
+              "role": "受詞 (Object)",
+              "note": "專注遠端工作。"
+            },
+            {
+              "part": "impossible",
+              "role": "受詞補語 (形容詞)",
+              "note": "不可能。"
+            }
+          ],
+          "keyPoints": [
+            "【同義字對比】：incessant 通常指惱人且不斷重複的事物 (如 noise, rain)。"
+          ]
+        }
+      },
+      {
+        "word": "concession",
+        "kk": "[kənˈsɛʃən]",
+        "ipa": "/kənˈseʃn/",
+        "pos": "n.",
+        "meaning": "讓步妥協、特許經營權、承認敗選聲明",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "cess (ced)",
+              "role": "root",
+              "meaning": "讓步、走退"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "談判雙方各自向後退一步達成共識 ➔「讓步、特許權」"
+        },
+        "sentence": "The defeated candidate delivered a gracious concession speech calling on supporters to unite behind the victor.",
+        "sentenceZh": "敗選的候選人發表了風度翩翩的承認敗選演說，呼籲支持者團結在勝選者身後。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (calling on O to-V)",
+          "breakdown": [
+            {
+              "part": "The defeated candidate",
+              "role": "主詞 (Subject)",
+              "note": "敗選候選人。"
+            },
+            {
+              "part": "delivered a gracious concession speech",
+              "role": "動詞與受詞",
+              "note": "發表敗選感言。"
+            },
+            {
+              "part": "calling on supporters to unite behind the victor",
+              "role": "分詞伴隨呼籲",
+              "note": "呼籲支持者團結。"
+            }
+          ],
+          "keyPoints": [
+            "【政治用語】：concession speech (承認敗選演說)。"
+          ]
+        }
+      },
+      {
+        "word": "accessible",
+        "kk": "[ækˈsɛsəb!]",
+        "ipa": "/ækˈsesəbl/",
+        "pos": "adj.",
+        "meaning": "可存取的、易接近的、無障礙的、平易近人的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (ac-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "cess (ced)",
+              "role": "root",
+              "meaning": "走"
+            },
+            {
+              "text": "-ible",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "人人皆能順利走近使用毫無門檻障礙的 ➔「可通達的、易接近的」"
+        },
+        "sentence": "Municipal public transport systems must be fully accessible to wheelchair users and visually impaired passengers.",
+        "sentenceZh": "市政大眾運輸系統必須做到讓輪椅使用者與視障乘客完全無障礙暢行。",
+        "grammar": {
+          "pattern": "S + Modal + Linking Verb + SC + Prep Phrase (to...)",
+          "breakdown": [
+            {
+              "part": "Municipal public transport systems",
+              "role": "主詞 (Subject)",
+              "note": "市政大眾交通。"
+            },
+            {
+              "part": "must be",
+              "role": "連綴動詞",
+              "note": "必須是。"
+            },
+            {
+              "part": "fully accessible",
+              "role": "主詞補語 (形容詞)",
+              "note": "完全可通達無障礙。"
+            },
+            {
+              "part": "to wheelchair users and visually impaired passengers",
+              "role": "介系詞對象群",
+              "note": "對身障朋友。"
+            }
+          ],
+          "keyPoints": [
+            "【無障礙法規】：ADA compliance mandates accessible facilities (強制無障礙設施)。"
           ]
         }
       }
@@ -9175,6 +25479,635 @@ const ETYMO_DATA = [
             "【名詞衍生】：admission (入場費、准許入學、自白坦承)。"
           ]
         }
+      },
+      {
+        "word": "emit",
+        "kk": "[ɪˈmɪt]",
+        "ipa": "/ɪˈmɪt/",
+        "pos": "v.",
+        "meaning": "發出、排放(氣體/輻射/光熱)",
+        "formula": {
+          "parts": [
+            {
+              "text": "e- (ex-)",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "mit",
+              "role": "root",
+              "meaning": "發送、放行"
+            }
+          ],
+          "resultMeaning": "自源頭向外發射排放出氣體或波譜 ➔「排放、發出」"
+        },
+        "sentence": "Modern electric vehicles emit zero direct tailpipe pollutants during urban commuter driving.",
+        "sentenceZh": "現代電動車在市區通勤駕駛過程中直接排放零尾氣污染。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Modern electric vehicles",
+              "role": "主詞 (Subject)",
+              "note": "電動車。"
+            },
+            {
+              "part": "emit",
+              "role": "及物動詞 (Verb)",
+              "note": "排放。"
+            },
+            {
+              "part": "zero tailpipe pollutants",
+              "role": "受詞 (Object)",
+              "note": "尾氣污染物。"
+            },
+            {
+              "part": "during urban driving",
+              "role": "時間狀語",
+              "note": "駕駛時。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：emission (排放物，如 carbon emission 碳排放)。"
+          ]
+        }
+      },
+      {
+        "word": "permit",
+        "kk": "[pɚˈmɪt]",
+        "ipa": "/pərˈmɪt/",
+        "pos": "v. / n.",
+        "meaning": "准許、允許；(n.) 許可證、執照",
+        "formula": {
+          "parts": [
+            {
+              "text": "per-",
+              "role": "prefix",
+              "meaning": "完全、穿過"
+            },
+            {
+              "text": "mit",
+              "role": "root",
+              "meaning": "放行、發送"
+            }
+          ],
+          "resultMeaning": "完全放行讓人通過大門 ➔「允許、許可證」"
+        },
+        "sentence": "Inclement blizzard conditions did not permit rescue helicopters to airlift stranded mountaineers.",
+        "sentenceZh": "惡劣的暴風雪天候不允許救援直升機起飛空運撤離受困登山客。",
+        "grammar": {
+          "pattern": "S + Aux + Neg + Vt (permit) + O + to-V",
+          "breakdown": [
+            {
+              "part": "Inclement blizzard conditions",
+              "role": "主詞 (Subject)",
+              "note": "惡劣天候。"
+            },
+            {
+              "part": "did not permit helicopters",
+              "role": "及物動詞與受詞",
+              "note": "permit + O + to V。"
+            },
+            {
+              "part": "to airlift stranded mountaineers",
+              "role": "受詞補語",
+              "note": "空運撤離。"
+            }
+          ],
+          "keyPoints": [
+            "【前名後動重音】：動詞 permit [pɚˈmɪt] vs. 名詞 a permit (執照) [ˈpɝmɪt]。"
+          ]
+        }
+      },
+      {
+        "word": "commit",
+        "kk": "[kəˈmɪt]",
+        "ipa": "/kəˈmɪt/",
+        "pos": "v.",
+        "meaning": "承諾、致力於、犯下(罪行)",
+        "formula": {
+          "parts": [
+            {
+              "text": "com-",
+              "role": "prefix",
+              "meaning": "共同、完全"
+            },
+            {
+              "text": "mit",
+              "role": "root",
+              "meaning": "交託、送出"
+            }
+          ],
+          "resultMeaning": "完全將自身心力交託出去、或犯下過失 ➔「承諾、犯罪、致力」"
+        },
+        "sentence": "The democratic coalition pledged to commit substantial financial reserves toward renewable energy infrastructure.",
+        "sentenceZh": "該民主聯盟承諾將提撥龐大財政儲備用於再生能源基礎設施建設。",
+        "grammar": {
+          "pattern": "S + Vt + to-V (to commit A toward B)",
+          "breakdown": [
+            {
+              "part": "The democratic coalition",
+              "role": "主詞 (Subject)",
+              "note": "聯盟。"
+            },
+            {
+              "part": "pledged to commit",
+              "role": "承諾致力",
+              "note": "pledge to V。"
+            },
+            {
+              "part": "substantial reserves",
+              "role": "受詞 A",
+              "note": "大筆儲備。"
+            },
+            {
+              "part": "toward renewable infrastructure",
+              "role": "投入目標 B",
+              "note": "綠能建設。"
+            }
+          ],
+          "keyPoints": [
+            "【重要搭配】：commit a crime (犯罪)；commit oneself to + N (致力於...)。"
+          ]
+        }
+      },
+      {
+        "word": "omit",
+        "kk": "[oˈmɪt]",
+        "ipa": "/oʊˈmɪt/",
+        "pos": "v.",
+        "meaning": "遺漏、疏忽、省略",
+        "formula": {
+          "parts": [
+            {
+              "text": "ob- (o-)",
+              "role": "prefix",
+              "meaning": "略過、丟棄"
+            },
+            {
+              "text": "mit",
+              "role": "root",
+              "meaning": "放行、送出"
+            }
+          ],
+          "resultMeaning": "丟在一邊不予送出入冊 ➔「遺漏、省略」"
+        },
+        "sentence": "Please ensure that you do not inadvertently omit crucial contact details when submitting your visa application.",
+        "sentenceZh": "請確保在提交簽證申請時，切勿無意中遺漏關鍵的聯絡資訊。",
+        "grammar": {
+          "pattern": "Imperative Clause + That Clause with Adv (inadvertently)",
+          "breakdown": [
+            {
+              "part": "Please ensure",
+              "role": "祈使句謂語",
+              "note": "請確保。"
+            },
+            {
+              "part": "that you do not omit crucial contact details",
+              "role": "受詞子句",
+              "note": "不遺漏資訊。"
+            },
+            {
+              "part": "when submitting your application",
+              "role": "時間狀語片語",
+              "note": "提交時。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：omission (遺漏、省略)。"
+          ]
+        }
+      },
+      {
+        "word": "remit",
+        "kk": "[rɪˈmɪt]",
+        "ipa": "/rɪˈmɪt/",
+        "pos": "v. / n.",
+        "meaning": "匯款、減免(刑期)、職責權限",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "回去"
+            },
+            {
+              "text": "mit",
+              "role": "root",
+              "meaning": "送出"
+            }
+          ],
+          "resultMeaning": "將資金匯送回去原籍地；或將懲罰免除送回 ➔「匯款、減免」"
+        },
+        "sentence": "Expatriate guest workers regularly remit a substantial portion of their monthly earnings to family members back home.",
+        "sentenceZh": "外籍移工定期將其每月收入的相當大一部分匯款回鄉給家人。",
+        "grammar": {
+          "pattern": "S + Adv + Vt (remit A to B)",
+          "breakdown": [
+            {
+              "part": "Expatriate guest workers",
+              "role": "主詞 (Subject)",
+              "note": "外籍移工。"
+            },
+            {
+              "part": "regularly remit",
+              "role": "動詞片語 (Verb)",
+              "note": "定期匯款。"
+            },
+            {
+              "part": "a portion of earnings",
+              "role": "受詞 A",
+              "note": "所得份額。"
+            },
+            {
+              "part": "to family members",
+              "role": "對象 B",
+              "note": "給家人。"
+            }
+          ],
+          "keyPoints": [
+            "【金融詞彙】：remittance (海外匯款)。"
+          ]
+        }
+      },
+      {
+        "word": "intermittent",
+        "kk": "[ˌɪntɚˈmɪtnt]",
+        "ipa": "/ˌɪntərˈmɪtnt/",
+        "pos": "adj.",
+        "meaning": "間歇的、斷斷續續的、時有時無的",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在中間"
+            },
+            {
+              "text": "mit",
+              "role": "root",
+              "meaning": "發送"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "時而送出、時而在中途停頓中斷 ➔「間歇斷續的」"
+        },
+        "sentence": "Engineers resolved intermittent electrical faults that were causing unpredictable telemetry transmission blackouts.",
+        "sentenceZh": "工程師排除了導致不可預測的遙測數據傳輸中斷的間歇性電氣故障。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Engineers",
+              "role": "主詞 (Subject)",
+              "note": "工程師。"
+            },
+            {
+              "part": "resolved",
+              "role": "及物動詞 (Verb)",
+              "note": "解決排除。"
+            },
+            {
+              "part": "intermittent electrical faults",
+              "role": "受詞 (Object)",
+              "note": "間歇性故障。"
+            },
+            {
+              "part": "that were causing blackouts",
+              "role": "關係子句",
+              "note": "導致斷訊。"
+            }
+          ],
+          "keyPoints": [
+            "【生活常見】：intermittent fasting (間歇性斷食法)。"
+          ]
+        }
+      },
+      {
+        "word": "remittance",
+        "kk": "[rɪˈmɪtns]",
+        "ipa": "/rɪˈmɪtns/",
+        "pos": "n.",
+        "meaning": "匯款、海外勞工匯回本國之款項",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後、送回"
+            },
+            {
+              "text": "mit",
+              "role": "root",
+              "meaning": "發送、送出 (send)"
+            },
+            {
+              "text": "-ance",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將勞動所得款項遠距離送回故鄉家人手中 ➔「匯款」"
+        },
+        "sentence": "Worker remittances from diaspora communities abroad constitute a vital economic lifeline for developing economies.",
+        "sentenceZh": "來自海外僑胞社群的勞工匯款構成了許多發展中經濟體至關重要的經濟命脈。",
+        "grammar": {
+          "pattern": "S + Prep Phrase + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Worker remittances",
+              "role": "主詞 (Subject)",
+              "note": "勞工匯款。"
+            },
+            {
+              "part": "from diaspora communities abroad",
+              "role": "來源介系詞片語",
+              "note": "來自海外社群。"
+            },
+            {
+              "part": "constitute",
+              "role": "及物動詞 (Verb)",
+              "note": "構成。"
+            },
+            {
+              "part": "a vital economic lifeline",
+              "role": "受詞 (Object)",
+              "note": "關鍵生命線。"
+            }
+          ],
+          "keyPoints": [
+            "【總體經濟】：remittance inflow (外匯匯入款)。"
+          ]
+        }
+      },
+      {
+        "word": "transmission",
+        "kk": "[trænsˈmɪʃən]",
+        "ipa": "/trænsˈmɪʃn/",
+        "pos": "n.",
+        "meaning": "傳播、傳送、變速箱 (汽車齒輪傳動系統)",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越"
+            },
+            {
+              "text": "miss (mit)",
+              "role": "root",
+              "meaning": "發送"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將動能、電訊或病毒自一端跨越輸送至另一端 ➔「傳播、變速箱」"
+        },
+        "sentence": "High-voltage transmission power lines transport renewable electricity across thousands of miles from rural wind corridors.",
+        "sentenceZh": "高壓輸電線路將再生能源電力從鄉村風力走廊跨越數千英里輸送至各處。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Distance + Prep Phrase of Origin",
+          "breakdown": [
+            {
+              "part": "High-voltage transmission power lines",
+              "role": "主詞 (Subject)",
+              "note": "高壓輸電線路。"
+            },
+            {
+              "part": "transport renewable electricity",
+              "role": "動詞與受詞",
+              "note": "輸送綠電。"
+            },
+            {
+              "part": "across thousands of miles",
+              "role": "距離狀語",
+              "note": "跨越數千英里。"
+            },
+            {
+              "part": "from rural wind corridors",
+              "role": "起點狀語",
+              "note": "源自風力走廊。"
+            }
+          ],
+          "keyPoints": [
+            "【汽車與醫學】：automatic transmission (自排變速箱); viral transmission (病毒傳播)。"
+          ]
+        }
+      },
+      {
+        "word": "dismissal",
+        "kk": "[dɪsˈmɪsəl]",
+        "ipa": "/dɪsˈmɪsl/",
+        "pos": "n.",
+        "meaning": "解僱開除、不予理會、法官駁回訴訟",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "離開、分開"
+            },
+            {
+              "text": "miss (mit)",
+              "role": "root",
+              "meaning": "打發、送走"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "強行打發他人離開崗位或將無理訴求掃地出門 ➔「解僱、駁回」"
+        },
+        "sentence": "The supreme court justice ordered an immediate dismissal of the lawsuit for lack of actionable legal standing.",
+        "sentenceZh": "最高法院大法官以缺乏訴訟法益與原告當事人適格為由，裁令立即駁回該起訴訟。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Reason (for lack of...)",
+          "breakdown": [
+            {
+              "part": "The supreme court justice",
+              "role": "主詞 (Subject)",
+              "note": "大法官。"
+            },
+            {
+              "part": "ordered an immediate dismissal of the lawsuit",
+              "role": "及物動詞與受詞",
+              "note": "裁令駁回訴訟。"
+            },
+            {
+              "part": "for lack of actionable legal standing",
+              "role": "原因介系詞片語",
+              "note": "因欠缺當事人資格。"
+            }
+          ],
+          "keyPoints": [
+            "【勞動爭議】：wrongful dismissal (非法解雇、不當開除)。"
+          ]
+        }
+      },
+      {
+        "word": "permission",
+        "kk": "[pɚˈmɪʃən]",
+        "ipa": "/pərˈmɪʃn/",
+        "pos": "n.",
+        "meaning": "允許、許可、同意准許",
+        "formula": {
+          "parts": [
+            {
+              "text": "per-",
+              "role": "prefix",
+              "meaning": "完全、穿過"
+            },
+            {
+              "text": "miss (mit)",
+              "role": "root",
+              "meaning": "放行、送出"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "給予綠燈完全放行讓其通行過關 ➔「許可、准許」"
+        },
+        "sentence": "Mobile applications must solicit explicit user permission before accessing onboard camera and location sensors.",
+        "sentenceZh": "行動應用程式在存取裝置內建相機與定位感測器之前，必須徵得明確的使用者授權許可。",
+        "grammar": {
+          "pattern": "S + Modal + Vt + O + Prep Phrase of Time (before V-ing O)",
+          "breakdown": [
+            {
+              "part": "Mobile applications",
+              "role": "主詞 (Subject)",
+              "note": "手機 App。"
+            },
+            {
+              "part": "must solicit explicit user permission",
+              "role": "動詞與受詞",
+              "note": "徵求明確許可。"
+            },
+            {
+              "part": "before accessing camera and sensors",
+              "role": "時間狀語",
+              "note": "存取相機前。"
+            }
+          ],
+          "keyPoints": [
+            "【成語搭配】：with/without someone's permission (在獲得/未獲得某人允許下)。"
+          ]
+        }
+      },
+      {
+        "word": "omission",
+        "kk": "[oˈmɪʃən]",
+        "ipa": "/oʊˈmɪʃn/",
+        "pos": "n.",
+        "meaning": "遺漏、疏忽未做、刪除之處",
+        "formula": {
+          "parts": [
+            {
+              "text": "ob- (o-)",
+              "role": "prefix",
+              "meaning": "一旁、忽略"
+            },
+            {
+              "text": "miss (mit)",
+              "role": "root",
+              "meaning": "發送、放行"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "擺在路旁不予理會未納入清單之中 ➔「疏漏、遺漏」"
+        },
+        "sentence": "A glaring omission in the historical documentary was its total failure to mention prominent female astronomers.",
+        "sentenceZh": "這部歷史紀錄片中一個顯而易見的重大遺漏，在於它完全沒有提及傑出的女性天文學家。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC (noun phrase)",
+          "breakdown": [
+            {
+              "part": "A glaring omission in the documentary",
+              "role": "主詞 (Subject)",
+              "note": "紀錄片刺眼遺漏。"
+            },
+            {
+              "part": "was",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "its total failure to mention female astronomers",
+              "role": "主詞補語",
+              "note": "完全未提及女科學家。"
+            }
+          ],
+          "keyPoints": [
+            "【法律原則】：sins of omission (不作為之罪、因疏忽未做所犯之罪)。"
+          ]
+        }
+      },
+      {
+        "word": "permissive",
+        "kk": "[pɚˈmɪsɪv]",
+        "ipa": "/pərˈmɪsɪv/",
+        "pos": "adj.",
+        "meaning": "寬容放任的、縱容的、自由開放的",
+        "formula": {
+          "parts": [
+            {
+              "text": "per-",
+              "role": "prefix",
+              "meaning": "完全"
+            },
+            {
+              "text": "miss (mit)",
+              "role": "root",
+              "meaning": "放行、准許"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "幾乎毫無限制一律准許放行的管教風格 ➔「放任寬鬆的」"
+        },
+        "sentence": "Child psychologists caution that overly permissive parenting styles can hinder a child's emotional self-regulation.",
+        "sentenceZh": "兒童心理學家告誡，過度放任縱容的教養方式可能會阻礙孩子情緒自我調控能力的發展。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Modal + Vt + O)",
+          "breakdown": [
+            {
+              "part": "Child psychologists",
+              "role": "主詞 (Subject)",
+              "note": "兒童心理學家。"
+            },
+            {
+              "part": "caution",
+              "role": "及物動詞 (Verb)",
+              "note": "警告告誡。"
+            },
+            {
+              "part": "that overly permissive parenting can hinder self-regulation",
+              "role": "受詞名詞子句",
+              "note": "縱容教養阻礙自律。"
+            }
+          ],
+          "keyPoints": [
+            "【教養類型】：permissive parenting (放任型教養) vs. authoritative (權威民主型)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -9486,6 +26419,610 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【高頻搭配】：give credit to someone (將功勞歸於某人)；credit A with B (將 B 歸功於 A)。",
             "【介系詞受詞】：insist on 後接動名詞 (giving)。"
+          ]
+        }
+      },
+      {
+        "word": "credulous",
+        "kk": "[ˈkrɛdʒələs]",
+        "ipa": "/ˈkrɛdʒələs/",
+        "pos": "adj.",
+        "meaning": "輕信的、易受騙的",
+        "formula": {
+          "parts": [
+            {
+              "text": "cred",
+              "role": "root",
+              "meaning": "相信"
+            },
+            {
+              "text": "-ulous",
+              "role": "suffix",
+              "meaning": "充滿...過度傾向的"
+            }
+          ],
+          "resultMeaning": "缺乏思辨能力而過度容易相信他人謊言的 ➔「輕信的」"
+        },
+        "sentence": "Con artists prey upon credulous senior citizens by peddling worthless fraudulent health remedies.",
+        "sentenceZh": "騙徒藉由兜售毫無價值的詐欺健康補品，專門坑騙容易輕信的老年人。",
+        "grammar": {
+          "pattern": "S + Vi (prey upon O) + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Con artists",
+              "role": "主詞 (Subject)",
+              "note": "騙徒騙子。"
+            },
+            {
+              "part": "prey upon",
+              "role": "片語動詞 (Verb)",
+              "note": "掠奪坑騙。"
+            },
+            {
+              "part": "credulous senior citizens",
+              "role": "介系詞受詞",
+              "note": "輕信的老年人。"
+            },
+            {
+              "part": "by peddling worthless remedies",
+              "role": "手段介系詞片語",
+              "note": "兜售假藥。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：credulity (易受騙性) vs. incredulity (懷疑不信)。"
+          ]
+        }
+      },
+      {
+        "word": "discredit",
+        "kk": "[dɪsˈkrɛdɪt]",
+        "ipa": "/dɪsˈkrɛdɪt/",
+        "pos": "v. / n.",
+        "meaning": "使懷疑、敗壞名聲；(n.) 名譽受損",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "去除、否定"
+            },
+            {
+              "text": "credit",
+              "role": "base",
+              "meaning": "信用、名望"
+            }
+          ],
+          "resultMeaning": "剝奪消滅他人原有的信任與名望 ➔「敗壞名譽、使不可信」"
+        },
+        "sentence": "Partisan operatives orchestrated a disinformation smear campaign to discredit the whistleblowing scientist.",
+        "sentenceZh": "黨派特工策劃了一場假訊息抹黑宣傳，企圖敗壞該揭弊科學家的名聲與可信度。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Partisan operatives",
+              "role": "主詞 (Subject)",
+              "note": "黨派幹將。"
+            },
+            {
+              "part": "orchestrated a smear campaign",
+              "role": "及物動詞與受詞",
+              "note": "策劃抹黑。"
+            },
+            {
+              "part": "to discredit the whistleblowing scientist",
+              "role": "目的狀語",
+              "note": "敗壞聲譽。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞搭配】：discredit a rumor / theory / person (打破謠言/推翻理論/使人聲名狼藉)。"
+          ]
+        }
+      },
+      {
+        "word": "credibility",
+        "kk": "[ˌkrɛdəˈbɪlətɪ]",
+        "ipa": "/ˌkrɛdəˈbɪləti/",
+        "pos": "n.",
+        "meaning": "可信度、信譽、可靠性",
+        "formula": {
+          "parts": [
+            {
+              "text": "cred",
+              "role": "root",
+              "meaning": "相信"
+            },
+            {
+              "text": "-ible",
+              "role": "suffix",
+              "meaning": "能夠"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "足以讓人信服並產生信賴的特質 ➔「可信度」"
+        },
+        "sentence": "Repeated factual retractions severely undermined the prestigious news agency's journalistic credibility.",
+        "sentenceZh": "反覆的事實更正撤稿嚴重削弱了這家權威通訊社的新聞可信度。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O",
+          "breakdown": [
+            {
+              "part": "Repeated factual retractions",
+              "role": "主詞 (Subject)",
+              "note": "更正撤回。"
+            },
+            {
+              "part": "severely undermined",
+              "role": "動詞片語 (Verb)",
+              "note": "嚴重破壞削弱。"
+            },
+            {
+              "part": "the news agency's journalistic credibility",
+              "role": "受詞 (Object)",
+              "note": "新聞公信力。"
+            }
+          ],
+          "keyPoints": [
+            "【經典術語】：credibility gap (信任落差、信用危機)。"
+          ]
+        }
+      },
+      {
+        "word": "creditor",
+        "kk": "[ˈkrɛdɪtɚ]",
+        "ipa": "/ˈkrɛdɪtər/",
+        "pos": "n.",
+        "meaning": "債權人、貸方",
+        "formula": {
+          "parts": [
+            {
+              "text": "credit",
+              "role": "base",
+              "meaning": "賒借信用"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "基於信用評估向借款人提供資金並持有索債權的人 ➔「債權人」"
+        },
+        "sentence": "The bankrupt company entered formal negotiations with international creditors to restructure outstanding bond debt.",
+        "sentenceZh": "這家破產公司與國際債權人展開正式談判，以重組未償還的債券債務。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The bankrupt company",
+              "role": "主詞 (Subject)",
+              "note": "破產公司。"
+            },
+            {
+              "part": "entered negotiations",
+              "role": "展開談判",
+              "note": "enter into negotiations。"
+            },
+            {
+              "part": "with international creditors",
+              "role": "談判對象",
+              "note": "債權人。"
+            },
+            {
+              "part": "to restructure debt",
+              "role": "目的狀語",
+              "note": "重組債務。"
+            }
+          ],
+          "keyPoints": [
+            "【商務對比】：creditor (債權人) vs. debtor (債務人)。"
+          ]
+        }
+      },
+      {
+        "word": "credence",
+        "kk": "[ˈkridns]",
+        "ipa": "/ˈkriːdns/",
+        "pos": "n.",
+        "meaning": "信任、相信、可信度 (常與 give 連用)",
+        "formula": {
+          "parts": [
+            {
+              "text": "cred",
+              "role": "root",
+              "meaning": "相信"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "在心中認可並接納其為真實的信念 ➔「信任、採信」"
+        },
+        "sentence": "Sensible scholars refuse to lend credence to unverified rumors circulating on anonymous internet forums.",
+        "sentenceZh": "明智的學者拒絕採信匿名網路論壇上流傳的未經查證之謠言。",
+        "grammar": {
+          "pattern": "S + Vt (refuse to-V) + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Sensible scholars",
+              "role": "主詞 (Subject)",
+              "note": "明智學者。"
+            },
+            {
+              "part": "refuse to lend credence to rumors",
+              "role": "動詞片語與受詞",
+              "note": "lend credence to (採信/予以信任)。"
+            },
+            {
+              "part": "circulating on internet forums",
+              "role": "分詞片語修飾 rumors",
+              "note": "流傳。"
+            }
+          ],
+          "keyPoints": [
+            "【高階慣用語】：give / lend credence to something (使某事更可信/採信某事)。"
+          ]
+        }
+      },
+      {
+        "word": "incredulous",
+        "kk": "[ɪnˈkrɛdʒələs]",
+        "ipa": "/ɪnˈkrɛdʒələs/",
+        "pos": "adj.",
+        "meaning": "懷疑的、不肯輕信的、驚訝懷疑的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不"
+            },
+            {
+              "text": "cred",
+              "role": "root",
+              "meaning": "相信"
+            },
+            {
+              "text": "-ulous",
+              "role": "suffix",
+              "meaning": "傾向"
+            }
+          ],
+          "resultMeaning": "因難以置信而滿臉露出懷疑不信神態的 ➔「懷疑的」"
+        },
+        "sentence": "Jurors exchanged incredulous glances as the defendant offered an absurd alibi lacking forensic substantiation.",
+        "sentenceZh": "當被告提出缺乏鑑識證據支持的荒唐不在場證明時，陪審員們互相交換了懷疑不信的眼神。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adv Clause of Time (as...)",
+          "breakdown": [
+            {
+              "part": "Jurors",
+              "role": "主詞 (Subject)",
+              "note": "陪審員。"
+            },
+            {
+              "part": "exchanged incredulous glances",
+              "role": "及物動詞與受詞",
+              "note": "交換狐疑眼神。"
+            },
+            {
+              "part": "as the defendant offered an alibi",
+              "role": "時間狀語子句",
+              "note": "提出不在場證明。"
+            }
+          ],
+          "keyPoints": [
+            "【生動情態】：incredulous smile / look (懷疑不信的笑/神情)。"
+          ]
+        }
+      },
+      {
+        "word": "accredit",
+        "kk": "[əˈkrɛdɪt]",
+        "ipa": "/əˈkredɪt/",
+        "pos": "v.",
+        "meaning": "認證核准、委派大使、歸功於",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (ac-)",
+              "role": "prefix",
+              "meaning": "朝向、給予"
+            },
+            {
+              "text": "credit (cred)",
+              "role": "root",
+              "meaning": "信任、信任資格"
+            }
+          ],
+          "resultMeaning": "以權威機構官方身份賦予信用認證資質 ➔「認證、授權」"
+        },
+        "sentence": "The regional board voted to accredit the medical university after rigorous clinical curriculum inspections.",
+        "sentenceZh": "區域教育委員會在對臨床醫學課綱進行嚴格審查後，投票決定認證核准該醫科大學的辦學資質。",
+        "grammar": {
+          "pattern": "S + Vt (voted to-V) + O + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "The regional board",
+              "role": "主詞 (Subject)",
+              "note": "區域委員會。"
+            },
+            {
+              "part": "voted to accredit the medical university",
+              "role": "及物動詞結構",
+              "note": "投票給予認證。"
+            },
+            {
+              "part": "after rigorous curriculum inspections",
+              "role": "時間狀語",
+              "note": "在嚴格審查後。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：accreditation (官方資格認證)。"
+          ]
+        }
+      },
+      {
+        "word": "credulity",
+        "kk": "[krɪˈdjulətɪ]",
+        "ipa": "/krɪˈdjuːləti/",
+        "pos": "n.",
+        "meaning": "輕信、易受騙、盲從相信",
+        "formula": {
+          "parts": [
+            {
+              "text": "cred",
+              "role": "root",
+              "meaning": "相信"
+            },
+            {
+              "text": "-ul-",
+              "role": "suffix",
+              "meaning": "傾向"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "未加思索考證便盲目將信任交付他人的性格 ➔「輕信」"
+        },
+        "sentence": "Sophisticated financial fraudsters exploit the naive credulity of retirees through fraudulent high-yield schemes.",
+        "sentenceZh": "老練的金融詐騙犯透過虛假的高收益投資騙局，肆意利用退休族群的天真輕信。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Sophisticated financial fraudsters",
+              "role": "主詞 (Subject)",
+              "note": "老練金融詐徒。"
+            },
+            {
+              "part": "exploit",
+              "role": "及物動詞 (Verb)",
+              "note": "利用剝削。"
+            },
+            {
+              "part": "the naive credulity of retirees",
+              "role": "受詞 (Object)",
+              "note": "退休族的天真輕信。"
+            },
+            {
+              "part": "through fraudulent high-yield schemes",
+              "role": "方式介系詞片語",
+              "note": "透過高收益騙局。"
+            }
+          ],
+          "keyPoints": [
+            "【成語搭配】：strain someone's credulity (挑戰某人的相信底線、難以令人信服)。"
+          ]
+        }
+      },
+      {
+        "word": "incredulity",
+        "kk": "[ˌɪnkrɪˈdjulətɪ]",
+        "ipa": "/ˌɪnkrɪˈdjuːləti/",
+        "pos": "n.",
+        "meaning": "懷疑、不信、難以置信的驚詫",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "credulity",
+              "role": "base",
+              "meaning": "輕信"
+            }
+          ],
+          "resultMeaning": "完全無法相信眼前所見所聞之懷疑震驚神態 ➔「不信、懷疑」"
+        },
+        "sentence": "The courtroom gasped in stunned incredulity as the star defendant confessed to the long-unsolved murder.",
+        "sentenceZh": "當主要被告坦承犯下這樁多年未破的謀殺案時，全法庭陷入了震驚難以置信的倒抽一口氣。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase of Manner + Adv Clause of Time (as...)",
+          "breakdown": [
+            {
+              "part": "The courtroom",
+              "role": "主詞 (Subject)",
+              "note": "全法庭眾人。"
+            },
+            {
+              "part": "gasped in stunned incredulity",
+              "role": "不及物動詞與方式片語",
+              "note": "震驚不信地倒抽涼氣。"
+            },
+            {
+              "part": "as the defendant confessed to the murder",
+              "role": "時間狀語子句",
+              "note": "被告招認時。"
+            }
+          ],
+          "keyPoints": [
+            "【形容詞形式】：incredulous (懷疑不信的，不同於 incredible 難以置信的)。"
+          ]
+        }
+      },
+      {
+        "word": "creditable",
+        "kk": "[ˈkrɛdɪtəb!]",
+        "ipa": "/ˈkredɪtəbl/",
+        "pos": "adj.",
+        "meaning": "值得稱道的、光彩的、令人讚賞的",
+        "formula": {
+          "parts": [
+            {
+              "text": "credit",
+              "role": "base",
+              "meaning": "讚揚、信任"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "表現優異完全值得給予掌聲與名譽認可的 ➔「值得讚賞的」"
+        },
+        "sentence": "Despite severe resource constraints, the rookie robotics squad mounted a highly creditable championship showing.",
+        "sentenceZh": "儘管面臨嚴重的資源匱乏，這支菜鳥機器人戰隊依然在錦標賽中展現出令人大加讚賞的優異表現。",
+        "grammar": {
+          "pattern": "Prep Phrase of Concession (Despite...) + S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Despite severe resource constraints",
+              "role": "讓步介系詞片語",
+              "note": "儘管資源受限。"
+            },
+            {
+              "part": "the rookie robotics squad",
+              "role": "主詞 (Subject)",
+              "note": "菜鳥機器人隊。"
+            },
+            {
+              "part": "mounted",
+              "role": "及物動詞 (Verb)",
+              "note": "展現出。"
+            },
+            {
+              "part": "a highly creditable championship showing",
+              "role": "受詞 (Object)",
+              "note": "令人讚許的賽場表現。"
+            }
+          ],
+          "keyPoints": [
+            "【正面褒義】：a creditable effort / achievement (值得稱許的努力/成就)。"
+          ]
+        }
+      },
+      {
+        "word": "miscreant",
+        "kk": "[ˈmɪskrɪənt]",
+        "ipa": "/ˈmɪskriənt/",
+        "pos": "n. / adj.",
+        "meaning": "惡棍、歹徒、不法之徒；(adj.) 邪惡的",
+        "formula": {
+          "parts": [
+            {
+              "text": "mis-",
+              "role": "prefix",
+              "meaning": "錯誤、惡劣"
+            },
+            {
+              "text": "creant (cred)",
+              "role": "root",
+              "meaning": "相信信仰 (法語 mescreant)"
+            }
+          ],
+          "resultMeaning": "拋棄正確道德良知投身違法勾當之作惡之徒 ➔「惡棍、歹徒」"
+        },
+        "sentence": "Cybercrime task forces apprehended international miscreants responsible for sabotaging municipal power distribution systems.",
+        "sentenceZh": "網路犯罪特遣隊逮捕了涉嫌蓄意破壞市鎮配電系統的跨國犯罪惡棍。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (responsible for V-ing O)",
+          "breakdown": [
+            {
+              "part": "Cybercrime task forces",
+              "role": "主詞 (Subject)",
+              "note": "網路犯罪特遣隊。"
+            },
+            {
+              "part": "apprehended",
+              "role": "及物動詞 (Verb)",
+              "note": "逮捕。"
+            },
+            {
+              "part": "international miscreants",
+              "role": "受詞 (Object)",
+              "note": "跨國不法分子。"
+            },
+            {
+              "part": "responsible for sabotaging power distribution systems",
+              "role": "形容詞片語後位修飾",
+              "note": "對破壞配電負責。"
+            }
+          ],
+          "keyPoints": [
+            "【歷史典故】：古代原指「異教徒」，現代專指「無賴惡棍、罪犯」。"
+          ]
+        }
+      },
+      {
+        "word": "creditworthy",
+        "kk": "[ˈkrɛdɪtˌwɝðɪ]",
+        "ipa": "/ˈkredɪtwɜːrði/",
+        "pos": "adj.",
+        "meaning": "有信用資質的、值得信貸借款的",
+        "formula": {
+          "parts": [
+            {
+              "text": "credit",
+              "role": "base",
+              "meaning": "信貸、信用"
+            },
+            {
+              "text": "worthy",
+              "role": "suffix",
+              "meaning": "值得...的"
+            }
+          ],
+          "resultMeaning": "財務健全有借有還足以獲取銀行全額信賴的 ➔「有信用資質的」"
+        },
+        "sentence": "Commercial banks utilize automated credit-scoring algorithms to evaluate whether loan applicants are sufficiently creditworthy.",
+        "sentenceZh": "商業銀行利用自動化信用評分演算法，來評估貸款申請人是否具備足夠優良的信用資質。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose (to evaluate Whether Clause)",
+          "breakdown": [
+            {
+              "part": "Commercial banks",
+              "role": "主詞 (Subject)",
+              "note": "商業銀行。"
+            },
+            {
+              "part": "utilize automated algorithms",
+              "role": "動詞與受詞",
+              "note": "利用自動演算法。"
+            },
+            {
+              "part": "to evaluate whether applicants are creditworthy",
+              "role": "目的狀語 (含 whether 名詞子句)",
+              "note": "評估信用資質。"
+            }
+          ],
+          "keyPoints": [
+            "【金融財經】：creditworthiness (信譽資質、還款能力)。"
           ]
         }
       }
@@ -9806,6 +27343,635 @@ const ETYMO_DATA = [
             "【名詞衍生】：recurrence (重現、再發)。"
           ]
         }
+      },
+      {
+        "word": "excursion",
+        "kk": "[ɪkˈskɝʒən]",
+        "ipa": "/ɪkˈskɜːrʒn/",
+        "pos": "n.",
+        "meaning": "遠足、短途旅行、偏離正題",
+        "formula": {
+          "parts": [
+            {
+              "text": "ex-",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "curs",
+              "role": "root",
+              "meaning": "跑、行走"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "暫時走出日常生活跑至野外參訪 ➔「短途遠足」"
+        },
+        "sentence": "Biology students embarked on a weekend geological excursion to collect fossil specimens from coastal shale beds.",
+        "sentenceZh": "生物系學生展開了為期一週末的地質短途考察，以從沿海頁岩層中採集化石標本。",
+        "grammar": {
+          "pattern": "S + Vi (embarked on O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Biology students",
+              "role": "主詞 (Subject)",
+              "note": "學生。"
+            },
+            {
+              "part": "embarked on",
+              "role": "動詞片語 (Verb)",
+              "note": "著手展開 embark on。"
+            },
+            {
+              "part": "a weekend geological excursion",
+              "role": "介系詞受詞",
+              "note": "地質遠足考察。"
+            },
+            {
+              "part": "to collect fossil specimens",
+              "role": "目的狀語",
+              "note": "採集化石。"
+            }
+          ],
+          "keyPoints": [
+            "【片語】：embark on / upon something (展開全新旅程或計畫)。"
+          ]
+        }
+      },
+      {
+        "word": "concurrent",
+        "kk": "[kənˈkɝənt]",
+        "ipa": "/kənˈkɜːrənt/",
+        "pos": "adj.",
+        "meaning": "同時發生的、並發的、意見一致的",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "cur",
+              "role": "root",
+              "meaning": "跑"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "在同一時間段內並肩奔跑進行的 ➔「同時發生的、並發的」"
+        },
+        "sentence": "High-performance operating systems manage thousands of concurrent computational threads across multiple CPU cores.",
+        "sentenceZh": "高效能作業系統在多個 CPU 核心之間管理數以千計的並發運算執行緒。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "High-performance operating systems",
+              "role": "主詞 (Subject)",
+              "note": "作業系統。"
+            },
+            {
+              "part": "manage",
+              "role": "及物動詞 (Verb)",
+              "note": "管理。"
+            },
+            {
+              "part": "thousands of concurrent computational threads",
+              "role": "受詞 (Object)",
+              "note": "並發執行緒。"
+            },
+            {
+              "part": "across multiple CPU cores",
+              "role": "跨越介系詞片語",
+              "note": "多核心。"
+            }
+          ],
+          "keyPoints": [
+            "【電腦科學核心】：concurrent programming (並發程式設計)。"
+          ]
+        }
+      },
+      {
+        "word": "cursive",
+        "kk": "[ˈkɝsɪv]",
+        "ipa": "/ˈkɜːrsɪv/",
+        "pos": "adj. / n.",
+        "meaning": "草書的、連筆的；(n.) 草書字體",
+        "formula": {
+          "parts": [
+            {
+              "text": "curs",
+              "role": "root",
+              "meaning": "奔跑、流動"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "筆尖在紙上不離紙面連續流暢奔馳的字體 ➔「草書連筆的」"
+        },
+        "sentence": "Historically, legal clerks were rigorously trained to write in ornate and legible cursive script.",
+        "sentenceZh": "歷史上，法律書記官受到嚴格訓練，能以華麗且清晰易讀的草書字體進行書寫。",
+        "grammar": {
+          "pattern": "Adv + S + Passive Verb + to-V (to write in...)",
+          "breakdown": [
+            {
+              "part": "Historically",
+              "role": "時間副詞",
+              "note": "歷史上。"
+            },
+            {
+              "part": "legal clerks",
+              "role": "主詞 (Subject)",
+              "note": "法律書記。"
+            },
+            {
+              "part": "were trained to write",
+              "role": "被動動詞與補語",
+              "note": "訓練書寫。"
+            },
+            {
+              "part": "in cursive script",
+              "role": "字體介系詞片語",
+              "note": "連筆草書。"
+            }
+          ],
+          "keyPoints": [
+            "【書寫字體】：cursive (草書連筆) vs. print / block letters (印刷體正楷)。"
+          ]
+        }
+      },
+      {
+        "word": "courier",
+        "kk": "[ˈkʊrɪɚ]",
+        "ipa": "/ˈkʊriər/",
+        "pos": "n. / v.",
+        "meaning": "快遞員、信差；(v.) 以快遞遞送",
+        "formula": {
+          "parts": [
+            {
+              "text": "cur (cour)",
+              "role": "root",
+              "meaning": "跑"
+            },
+            {
+              "text": "-ier",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "受雇跑步奔馳快速專程遞送信函之人 ➔「快遞員、信差」"
+        },
+        "sentence": "A diplomatic courier personally transported sealed pouches containing sovereign treaty instruments.",
+        "sentenceZh": "一名外交信差親自護送裝有主權條約正式文書的密封信袋。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Participle Phrase (containing O)",
+          "breakdown": [
+            {
+              "part": "A diplomatic courier",
+              "role": "主詞 (Subject)",
+              "note": "外交信差。"
+            },
+            {
+              "part": "personally transported",
+              "role": "動詞片語 (Verb)",
+              "note": "親自運送。"
+            },
+            {
+              "part": "sealed pouches",
+              "role": "受詞 (Object)",
+              "note": "密封袋。"
+            },
+            {
+              "part": "containing sovereign treaty instruments",
+              "role": "分詞修飾 pouches",
+              "note": "裝有條約文書。"
+            }
+          ],
+          "keyPoints": [
+            "【專有名詞】：diplomatic courier (外交信差/信差專員)。"
+          ]
+        }
+      },
+      {
+        "word": "incur",
+        "kk": "[ɪnˈkɝ]",
+        "ipa": "/ɪnˈkɜːr/",
+        "pos": "v.",
+        "meaning": "招致、蒙受(損失/負債/憤怒)",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "進入、朝向"
+            },
+            {
+              "text": "cur",
+              "role": "root",
+              "meaning": "跑"
+            }
+          ],
+          "resultMeaning": "主動跑入危險領域以致招致禍患負擔 ➔「招致、蒙受」"
+        },
+        "sentence": "Companies that breach environmental regulations incur punitive financial penalties from regulatory commissions.",
+        "sentenceZh": "違反環保法規的企業將招致監管委員會嚴厲的懲罰性罰款。",
+        "grammar": {
+          "pattern": "S + Relative Clause + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Companies",
+              "role": "主詞 (Subject)",
+              "note": "企業。"
+            },
+            {
+              "part": "that breach environmental regulations",
+              "role": "關係子句",
+              "note": "違法。"
+            },
+            {
+              "part": "incur",
+              "role": "及物動詞 (Verb)",
+              "note": "招致。"
+            },
+            {
+              "part": "punitive financial penalties",
+              "role": "受詞 (Object)",
+              "note": "懲罰性罰款。"
+            }
+          ],
+          "keyPoints": [
+            "【固定搭配】：incur debts (招致負債), incur wrath (惹怒招致憤怒)。"
+          ]
+        }
+      },
+      {
+        "word": "curriculum",
+        "kk": "[kəˈrɪkjələm]",
+        "ipa": "/kəˈrɪkjələm/",
+        "pos": "n.",
+        "meaning": "學校課程、課程體系",
+        "formula": {
+          "parts": [
+            {
+              "text": "curr-",
+              "role": "root",
+              "meaning": "跑道、奔跑 (希臘/拉丁語跑道)"
+            },
+            {
+              "text": "-iculum",
+              "role": "suffix",
+              "meaning": "指小/具體場所"
+            }
+          ],
+          "resultMeaning": "學生在學術求知長征中所必須跑完的學習跑道 ➔「課程全貌」"
+        },
+        "sentence": "The faculty updated the undergraduate engineering curriculum to integrate hands-on machine learning modules.",
+        "sentenceZh": "全體教職員更新了大學部工程課程體系，以整合實作機器學習模組。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The faculty",
+              "role": "主詞 (Subject)",
+              "note": "全體教師。"
+            },
+            {
+              "part": "updated the curriculum",
+              "role": "及物動詞與受詞",
+              "note": "更新課程。"
+            },
+            {
+              "part": "to integrate machine learning modules",
+              "role": "目的狀語",
+              "note": "整合模組。"
+            }
+          ],
+          "keyPoints": [
+            "【拉丁複數】：curriculum 的複數為 curricula 或 curriculums。"
+          ]
+        }
+      },
+      {
+        "word": "discursive",
+        "kk": "[dɪˈskɝsɪv]",
+        "ipa": "/dɪˈskɜːrsɪv/",
+        "pos": "adj.",
+        "meaning": "漫無邊際東拉西扯的；(哲學) 推論的、邏輯演繹的",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "四處、分開"
+            },
+            {
+              "text": "curs (cur)",
+              "role": "root",
+              "meaning": "奔跑 (run)"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "思緒在不同話題之間到處奔跑未聚焦主題 ➔「散漫無邊際的」"
+        },
+        "sentence": "The candidate's discursive answers during the presidential debate bewildered moderators and alienated swing voters.",
+        "sentenceZh": "該候選人在總統電視辯論中東拉西扯漫無邊際的回答，讓主持人困惑不已，並疏遠了中間搖擺選民。",
+        "grammar": {
+          "pattern": "S + Prep Phrase + Vt1 + O1 + and + Vt2 + O2",
+          "breakdown": [
+            {
+              "part": "The candidate's discursive answers",
+              "role": "主詞 (Subject)",
+              "note": "候選人東拉西扯的回答。"
+            },
+            {
+              "part": "during the debate",
+              "role": "時間狀語",
+              "note": "在辯論中。"
+            },
+            {
+              "part": "bewildered moderators",
+              "role": "動詞與受詞 1",
+              "note": "令主持人困惑。"
+            },
+            {
+              "part": "and alienated swing voters",
+              "role": "對等動詞與受詞 2",
+              "note": "疏遠搖擺選民。"
+            }
+          ],
+          "keyPoints": [
+            "【哲學術語】：discursive reason (推論理性，透過一步步邏輯演繹) vs. intuitive (直覺的)。"
+          ]
+        }
+      },
+      {
+        "word": "incursion",
+        "kk": "[ɪnˈkɝʒən]",
+        "ipa": "/ɪnˈkɜːrʒn/",
+        "pos": "n.",
+        "meaning": "侵入、突襲、短暫入侵",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "進入"
+            },
+            {
+              "text": "curs (cur)",
+              "role": "root",
+              "meaning": "奔跑、奔馳"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "突然快馬狂奔衝入敵方領地實施突襲 ➔「突襲侵入」"
+        },
+        "sentence": "Border patrol helicopters successfully intercepted an armed paramilitary incursion across the desert frontier.",
+        "sentenceZh": "邊境巡邏直升機成功攔截了一次跨越沙漠邊境的武裝準軍事部隊突襲入侵行動。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Border patrol helicopters",
+              "role": "主詞 (Subject)",
+              "note": "邊防直升機。"
+            },
+            {
+              "part": "successfully intercepted",
+              "role": "及物動詞片語",
+              "note": "成功攔截。"
+            },
+            {
+              "part": "an armed paramilitary incursion",
+              "role": "受詞 (Object)",
+              "note": "武裝突襲。"
+            },
+            {
+              "part": "across the desert frontier",
+              "role": "地點狀語",
+              "note": "越過邊界。"
+            }
+          ],
+          "keyPoints": [
+            "【軍事名詞】：border incursion (邊境入侵騷擾)。"
+          ]
+        }
+      },
+      {
+        "word": "cursor",
+        "kk": "[ˈkɝsɚ]",
+        "ipa": "/ˈkɜːrsər/",
+        "pos": "n.",
+        "meaning": "游標、電腦滑鼠指針",
+        "formula": {
+          "parts": [
+            {
+              "text": "cur",
+              "role": "root",
+              "meaning": "奔跑 (runner)"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "器具、事物"
+            }
+          ],
+          "resultMeaning": "在螢幕不同像素位置快速奔跑指示目前位置之游標 ➔「電腦游標」"
+        },
+        "sentence": "Programmers navigate complex codebases rapidly by binding custom keystrokes to multi-line cursor movements.",
+        "sentenceZh": "程式設計師透過將自訂按鍵綁定到多行游標移動，能夠極速穿梭閱讀複雜的大型程式碼庫。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adv + Prep Phrase of Means (by V-ing O to O)",
+          "breakdown": [
+            {
+              "part": "Programmers",
+              "role": "主詞 (Subject)",
+              "note": "工程師。"
+            },
+            {
+              "part": "navigate complex codebases",
+              "role": "動詞與受詞",
+              "note": "穿梭瀏覽代碼。"
+            },
+            {
+              "part": "rapidly",
+              "role": "副詞",
+              "note": "迅速地。"
+            },
+            {
+              "part": "by binding keystrokes to cursor movements",
+              "role": "方式狀語",
+              "note": "透過鍵盤綁定游標。"
+            }
+          ],
+          "keyPoints": [
+            "【資訊科技】：blinking cursor (閃爍的文字游標)。"
+          ]
+        }
+      },
+      {
+        "word": "cursory",
+        "kk": "[ˈkɝsərɪ]",
+        "ipa": "/ˈkɜːrsəri/",
+        "pos": "adj.",
+        "meaning": "草率倉促的、粗略浮光掠影的",
+        "formula": {
+          "parts": [
+            {
+              "text": "cur",
+              "role": "root",
+              "meaning": "奔跑"
+            },
+            {
+              "text": "-ory",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "走馬看花一路小跑步未仔細審視的 ➔「草率粗略的」"
+        },
+        "sentence": "A cursory inspection of the balance sheet failed to uncover sophisticated offshore asset-hiding maneuvers.",
+        "sentenceZh": "對資產負債表的草率粗略審查，未能揭發其精巧的離岸資產隱匿操弄手法。",
+        "grammar": {
+          "pattern": "S + Vt (failed to-V) + O",
+          "breakdown": [
+            {
+              "part": "A cursory inspection of the balance sheet",
+              "role": "主詞 (Subject)",
+              "note": "粗略審查。"
+            },
+            {
+              "part": "failed to uncover",
+              "role": "動詞與不定詞",
+              "note": "未能揭發。"
+            },
+            {
+              "part": "sophisticated asset-hiding maneuvers",
+              "role": "受詞 (Object)",
+              "note": "精巧隱匿手法。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用搭配】：a cursory glance / examination (粗略地瞥一眼/草率檢查)。"
+          ]
+        }
+      },
+      {
+        "word": "concur",
+        "kk": "[kənˈkɝ]",
+        "ipa": "/kənˈkɜːr/",
+        "pos": "v.",
+        "meaning": "同意贊同、同時發生 (與 with 連用)",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "cur",
+              "role": "root",
+              "meaning": "奔跑"
+            }
+          ],
+          "resultMeaning": "眾人腳步奔跑朝向完全相同的方向目標 ➔「同意、不謀而合」"
+        },
+        "sentence": "All panel neurosurgeons concurred that immediate surgical intervention was essential to prevent permanent paralysis.",
+        "sentenceZh": "全體專家小組神經外科醫師一致贊同，必須立即實施手術介入以防止永久性癱瘓。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Linking Verb + SC + to-V)",
+          "breakdown": [
+            {
+              "part": "All panel neurosurgeons",
+              "role": "主詞 (Subject)",
+              "note": "神經外科全體專家。"
+            },
+            {
+              "part": "concurred",
+              "role": "及物動詞 (Verb)",
+              "note": "一致同意。"
+            },
+            {
+              "part": "that surgical intervention was essential to prevent paralysis",
+              "role": "受詞名詞子句",
+              "note": "手術對防止癱瘓至關重要。"
+            }
+          ],
+          "keyPoints": [
+            "【司法名詞】：concurring opinion (協同意見書，大法官同意判決結果但立論不同)。"
+          ]
+        }
+      },
+      {
+        "word": "recurrence",
+        "kk": "[rɪˈkɝəns]",
+        "ipa": "/rɪˈkɜːrəns/",
+        "pos": "n.",
+        "meaning": "復發、再次發生、重現",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "cur",
+              "role": "root",
+              "meaning": "奔跑"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "病情或災禍再次快步回頭襲來 ➔「復發、重現」"
+        },
+        "sentence": "Post-operative adjuvant chemotherapy significantly reduces the mathematical risk of tumor recurrence.",
+        "sentenceZh": "術後輔助化學治療能顯著降低惡性腫瘤復發的統計風險。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O",
+          "breakdown": [
+            {
+              "part": "Post-operative adjuvant chemotherapy",
+              "role": "主詞 (Subject)",
+              "note": "術後輔助化療。"
+            },
+            {
+              "part": "significantly reduces",
+              "role": "及物動詞片語",
+              "note": "顯著降低。"
+            },
+            {
+              "part": "the mathematical risk of tumor recurrence",
+              "role": "受詞 (Object)",
+              "note": "腫瘤復發風險。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學統計】：recurrence-free survival (無復發生存期，RFS)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -10124,6 +28290,635 @@ const ETYMO_DATA = [
             "【字尾名詞】：perfection (完美)、perfectionist (完美主義者)。"
           ]
         }
+      },
+      {
+        "word": "facilitate",
+        "kk": "[fəˈsɪləˌtet]",
+        "ipa": "/fəˈsɪlɪteɪt/",
+        "pos": "v.",
+        "meaning": "促進、使便利、協助",
+        "formula": {
+          "parts": [
+            {
+              "text": "facil-",
+              "role": "root",
+              "meaning": "容易 (拉丁語 facilis)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "使成為"
+            }
+          ],
+          "resultMeaning": "排除障礙使事情變得容易推進完成 ➔「促進、使便利」"
+        },
+        "sentence": "Streamlined customs protocols facilitate cross-border trade between allied economic partners.",
+        "sentenceZh": "精簡的通關流程促進了盟國經濟夥伴之間的跨境貿易。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Streamlined customs protocols",
+              "role": "主詞 (Subject)",
+              "note": "精簡通關協定。"
+            },
+            {
+              "part": "facilitate",
+              "role": "及物動詞 (Verb)",
+              "note": "促進。"
+            },
+            {
+              "part": "cross-border trade",
+              "role": "受詞 (Object)",
+              "note": "跨境貿易。"
+            },
+            {
+              "part": "between allied economic partners",
+              "role": "關係介系詞片語",
+              "note": "盟邦夥伴間。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：facilitator (引導者、協調人), facility (設施、熟練天賦)。"
+          ]
+        }
+      },
+      {
+        "word": "factotum",
+        "kk": "[fækˈtotəm]",
+        "ipa": "/fækˈtoʊtəm/",
+        "pos": "n.",
+        "meaning": "打雜總管、萬能雜務特助",
+        "formula": {
+          "parts": [
+            {
+              "text": "fac",
+              "role": "root",
+              "meaning": "做 (拉丁語 facere)"
+            },
+            {
+              "text": "totum",
+              "role": "root",
+              "meaning": "全部事情 (拉丁語 totum)"
+            }
+          ],
+          "resultMeaning": "拉丁語原意為「做全部雜事的人」➔「打雜總管、萬能特助」"
+        },
+        "sentence": "Serving as the director's indispensable factotum, he handled travel arrangements, scheduling, and press inquiries.",
+        "sentenceZh": "身為導演不可或缺的打雜總管，他一手包辦差旅安排、行程規劃與媒體問答。",
+        "grammar": {
+          "pattern": "Participle Phrase + S + Vt + O1, O2, and O3",
+          "breakdown": [
+            {
+              "part": "Serving as the director's indispensable factotum",
+              "role": "現在分詞片語表身分",
+              "note": "身為萬能特助。"
+            },
+            {
+              "part": "he",
+              "role": "主詞 (Subject)",
+              "note": "他。"
+            },
+            {
+              "part": "handled",
+              "role": "及物動詞 (Verb)",
+              "note": "處理。"
+            },
+            {
+              "part": "travel arrangements, scheduling, and press inquiries",
+              "role": "對等受詞群",
+              "note": "三項具體事務。"
+            }
+          ],
+          "keyPoints": [
+            "【拉丁語構詞法】：fac (做) + totum (全部)，字面意思是「全部都做的人」。"
+          ]
+        }
+      },
+      {
+        "word": "affection",
+        "kk": "[əˈfɛkʃən]",
+        "ipa": "/əˈfekʃn/",
+        "pos": "n.",
+        "meaning": "喜愛、鍾愛、深情",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (af-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "fect",
+              "role": "root",
+              "meaning": "做、影響 (感化)"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "心靈被他人深深觸動打動所萌生的柔情 ➔「喜愛、鍾愛」"
+        },
+        "sentence": "The veteran teacher held deep affection for every student who passed through her classroom doors.",
+        "sentenceZh": "這位資深教師對走過她教室大門的每一位學生都懷有深厚的關愛之情。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The veteran teacher",
+              "role": "主詞 (Subject)",
+              "note": "資深教師。"
+            },
+            {
+              "part": "held deep affection",
+              "role": "動詞與受詞",
+              "note": "懷有深情。"
+            },
+            {
+              "part": "for every student",
+              "role": "對象介系詞片語",
+              "note": "對學生。"
+            },
+            {
+              "part": "who passed through her classroom doors",
+              "role": "關係子句",
+              "note": "受其教導者。"
+            }
+          ],
+          "keyPoints": [
+            "【形容詞衍生】：affectionate (充滿深情關愛的)。"
+          ]
+        }
+      },
+      {
+        "word": "facsimile",
+        "kk": "[fækˈsɪməlɪ]",
+        "ipa": "/fækˈsɪmɪli/",
+        "pos": "n.",
+        "meaning": "摹本、精確複製品、傳真 (fax 全稱)",
+        "formula": {
+          "parts": [
+            {
+              "text": "fac",
+              "role": "root",
+              "meaning": "做 (make)"
+            },
+            {
+              "text": "simile",
+              "role": "root",
+              "meaning": "相似、相同 (similar)"
+            }
+          ],
+          "resultMeaning": "做得與原作毫無二致完全一樣的複製品 ➔「摹本、傳真」"
+        },
+        "sentence": "The library displayed a priceless facsimile of the original Magna Carta alongside digital transcriptions.",
+        "sentenceZh": "圖書館在數位化譯本旁展出了原始《大憲章》的無價精確摹本。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The library",
+              "role": "主詞 (Subject)",
+              "note": "圖書館。"
+            },
+            {
+              "part": "displayed a priceless facsimile",
+              "role": "及物動詞與受詞",
+              "note": "展出珍貴摹本。"
+            },
+            {
+              "part": "of the Magna Carta",
+              "role": "所有格修飾",
+              "note": "大憲章。"
+            },
+            {
+              "part": "alongside digital transcriptions",
+              "role": "伴隨介系詞片語",
+              "note": "並列展示。"
+            }
+          ],
+          "keyPoints": [
+            "【科技歷史】：現代 office 常見的 fax (傳真機)，其完整單字即為 facsimile！"
+          ]
+        }
+      },
+      {
+        "word": "proficient",
+        "kk": "[prəˈfɪʃənt]",
+        "ipa": "/prəˈfɪʃnt/",
+        "pos": "adj.",
+        "meaning": "精通的、熟練的、技藝高超的",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前、卓越"
+            },
+            {
+              "text": "fic (fac)",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "做事情進步神速超越一般水準的 ➔「精通熟練的」"
+        },
+        "sentence": "Software developers must become proficient in multiple programming paradigms to build resilient distributed systems.",
+        "sentenceZh": "軟體工程師必須精通多種程式設計範式，以建構具韌性的分散式系統。",
+        "grammar": {
+          "pattern": "S + Modal + Linking Verb + SC (proficient in...) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Software developers",
+              "role": "主詞 (Subject)",
+              "note": "軟體開發者。"
+            },
+            {
+              "part": "must become",
+              "role": "連綴動詞",
+              "note": "必須變得。"
+            },
+            {
+              "part": "proficient in multiple programming paradigms",
+              "role": "主詞補語 (形容詞片語)",
+              "note": "proficient in (精通於...)。"
+            },
+            {
+              "part": "to build distributed systems",
+              "role": "目的狀語",
+              "note": "建構系統。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：proficient in / at + N (精通熟練某項技能)。"
+          ]
+        }
+      },
+      {
+        "word": "artifact",
+        "kk": "[ˈɑrtəˌfækt]",
+        "ipa": "/ˈɑːrtɪfækt/",
+        "pos": "n.",
+        "meaning": "人工製品、歷史文物、假象",
+        "formula": {
+          "parts": [
+            {
+              "text": "art (ars)",
+              "role": "root",
+              "meaning": "手藝技能 (skill)"
+            },
+            {
+              "text": "fact",
+              "role": "root",
+              "meaning": "製造 (made)"
+            }
+          ],
+          "resultMeaning": "憑藉人類技能工藝加工製造出的古物 ➔「人工製品、歷史文物」"
+        },
+        "sentence": "Archaeologists painstakingly cataloged ceramic artifacts recovered from the ancient submerged shipwreck.",
+        "sentenceZh": "考古學家煞費苦心地對從沉沒古沉船中打撈出的陶瓷文物進行了分類編目。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Participle Phrase (recovered from...)",
+          "breakdown": [
+            {
+              "part": "Archaeologists",
+              "role": "主詞 (Subject)",
+              "note": "考古學家。"
+            },
+            {
+              "part": "painstakingly cataloged",
+              "role": "動詞片語 (Verb)",
+              "note": "煞費苦心編目。"
+            },
+            {
+              "part": "ceramic artifacts",
+              "role": "受詞 (Object)",
+              "note": "陶藝文物。"
+            },
+            {
+              "part": "recovered from the shipwreck",
+              "role": "過去分詞片語修飾 artifacts",
+              "note": "打撈出水。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源拆解】：art (工藝) + fact (製造) ➔ 人工製造之文物。"
+          ]
+        }
+      },
+      {
+        "word": "affectation",
+        "kk": "[ˌæfɛkˈteʃən]",
+        "ipa": "/ˌæfekˈteɪʃn/",
+        "pos": "n.",
+        "meaning": "矯揉造作、做作、虛偽裝模作樣",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (af-)",
+              "role": "prefix",
+              "meaning": "朝向"
+            },
+            {
+              "text": "fect (fac)",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-ation",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "刻意用做作手段偽造出不屬於自身的做派 ➔「矯揉造作」"
+        },
+        "sentence": "Her affected aristocratic accent was a transparent affectation that provoked suppressed titters among peers.",
+        "sentenceZh": "她那拿腔作調的貴族口音是一種顯而易見的矯揉造作，引發了同儕們竊笑不已。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Her affected aristocratic accent",
+              "role": "主詞 (Subject)",
+              "note": "造作的貴族腔。"
+            },
+            {
+              "part": "was a transparent affectation",
+              "role": "連綴動詞與補語",
+              "note": "是明顯的做作。"
+            },
+            {
+              "part": "that provoked suppressed titters among peers",
+              "role": "關係子句修飾 affectation",
+              "note": "引來同儕竊笑。"
+            }
+          ],
+          "keyPoints": [
+            "【文學字彙】：without affectation (天真自然、毫無矯飾做作)。"
+          ]
+        }
+      },
+      {
+        "word": "factitious",
+        "kk": "[fækˈtɪʃəs]",
+        "ipa": "/fækˈtɪʃəs/",
+        "pos": "adj.",
+        "meaning": "人工造作的、虛假的、不自然的",
+        "formula": {
+          "parts": [
+            {
+              "text": "fact",
+              "role": "root",
+              "meaning": "做、人造"
+            },
+            {
+              "text": "-itious",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "非出自天然真情純係人為硬編捏造出來的 ➔「人工人造的、虛偽的」"
+        },
+        "sentence": "Psychiatrists diagnosed the patient with factitious disorder after discovering she feigned fever using concealed heating pads.",
+        "sentenceZh": "精神病學家在發現該病患利用隱藏的加熱貼片偽裝發燒後，診斷其患有做作性障礙症 (孟喬森症候群)。",
+        "grammar": {
+          "pattern": "S + Vt (diagnosed A with B) + Adv Clause of Time (after V-ing O)",
+          "breakdown": [
+            {
+              "part": "Psychiatrists",
+              "role": "主詞 (Subject)",
+              "note": "精神科醫師。"
+            },
+            {
+              "part": "diagnosed the patient with factitious disorder",
+              "role": "diagnose A with B",
+              "note": "診斷為做作性障礙。"
+            },
+            {
+              "part": "after discovering she feigned fever",
+              "role": "時間狀語 (含名詞子句)",
+              "note": "發現她裝病發燒。"
+            }
+          ],
+          "keyPoints": [
+            "【精神醫學名詞】：Factitious Disorder (做作性障礙症，即孟喬森症候群)。"
+          ]
+        }
+      },
+      {
+        "word": "efficacious",
+        "kk": "[ˌɛfəˈkeʃəs]",
+        "ipa": "/ˌefɪˈkeɪʃəs/",
+        "pos": "adj.",
+        "meaning": "靈驗有效的、奏效的 (藥品或措施)",
+        "formula": {
+          "parts": [
+            {
+              "text": "ex- (ef-)",
+              "role": "prefix",
+              "meaning": "完全、出"
+            },
+            {
+              "text": "fic (fac)",
+              "role": "root",
+              "meaning": "做、成效"
+            },
+            {
+              "text": "-acious",
+              "role": "suffix",
+              "meaning": "具有...強大力量的"
+            }
+          ],
+          "resultMeaning": "施用之後完全能做出所承諾之神奇療效的 ➔「靈驗奏效的」"
+        },
+        "sentence": "Clinical randomized trials proved the novel antibiotic was efficacious against multi-drug-resistant bacterial strains.",
+        "sentenceZh": "隨機對照臨床試驗證實，該款新型抗生素對多重抗藥性細菌菌株極為靈驗有效。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Linking Verb + SC + Prep Phrase)",
+          "breakdown": [
+            {
+              "part": "Clinical randomized trials",
+              "role": "主詞 (Subject)",
+              "note": "隨機臨床試驗。"
+            },
+            {
+              "part": "proved",
+              "role": "及物動詞 (Verb)",
+              "note": "證實。"
+            },
+            {
+              "part": "that the novel antibiotic was efficacious against resistant strains",
+              "role": "受詞名詞子句",
+              "note": "抗生素靈驗有效。"
+            }
+          ],
+          "keyPoints": [
+            "【藥理指標】：efficacy (藥效、有效性)。"
+          ]
+        }
+      },
+      {
+        "word": "disaffection",
+        "kk": "[ˌdɪsəˈfɛkʃən]",
+        "ipa": "/ˌdɪsəˈfekʃn/",
+        "pos": "n.",
+        "meaning": "不滿、疏遠離心、反叛心態",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "脫離、無"
+            },
+            {
+              "text": "affect",
+              "role": "base",
+              "meaning": "情感、愛慕 (af + fect)"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "原本對體制之忠誠愛慕全然剝落轉為不滿疏離 ➔「離心離德、不滿」"
+        },
+        "sentence": "Stagnant wages and unaffordable urban housing fueled widespread political disaffection among young graduates.",
+        "sentenceZh": "停滯不前的薪資與難以負擔的都會房價在年輕畢業生之間助長了廣泛的政治不滿與離心態勢。",
+        "grammar": {
+          "pattern": "S1 and S2 + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Stagnant wages and unaffordable housing",
+              "role": "主詞 (Subject)",
+              "note": "低薪與高房價。"
+            },
+            {
+              "part": "fueled",
+              "role": "及物動詞 (Verb)",
+              "note": "助長激發。"
+            },
+            {
+              "part": "widespread political disaffection",
+              "role": "受詞 (Object)",
+              "note": "政治不滿。"
+            },
+            {
+              "part": "among young graduates",
+              "role": "介系詞對象",
+              "note": "在年輕人間。"
+            }
+          ],
+          "keyPoints": [
+            "【政治社會學】：growing disaffection with the political establishment (對政治體制的日漸疏離不滿)。"
+          ]
+        }
+      },
+      {
+        "word": "perfectionist",
+        "kk": "[pɚˈfɛkʃənɪst]",
+        "ipa": "/pərˈfekʃənɪst/",
+        "pos": "n. / adj.",
+        "meaning": "完美主義者；(adj.) 追求完美的",
+        "formula": {
+          "parts": [
+            {
+              "text": "perfection",
+              "role": "base",
+              "meaning": "完美 (per + fect + ion)"
+            },
+            {
+              "text": "-ist",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "堅持做任何事都必須徹頭徹尾做到十全十美毫無瑕疵之人 ➔「完美主義者」"
+        },
+        "sentence": "As an uncompromising perfectionist, the master watchmaker inspected each miniature gear under a gemologist loupe.",
+        "sentenceZh": "身為一位絕不妥協的完美主義者，這位製錶大師在珠寶放大鏡下親自檢查每一個微型齒輪。",
+        "grammar": {
+          "pattern": "Prep Phrase of Identity (As...) + S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "As an uncompromising perfectionist",
+              "role": "身分介系詞片語",
+              "note": "身為完美主義者。"
+            },
+            {
+              "part": "the master watchmaker",
+              "role": "主詞 (Subject)",
+              "note": "製錶大師。"
+            },
+            {
+              "part": "inspected each miniature gear",
+              "role": "及物動詞與受詞",
+              "note": "檢查微型齒輪。"
+            },
+            {
+              "part": "under a gemologist loupe",
+              "role": "工具狀語",
+              "note": "在放大鏡下。"
+            }
+          ],
+          "keyPoints": [
+            "【心理學】：clinical perfectionism (臨床完美主義傾向)。"
+          ]
+        }
+      },
+      {
+        "word": "facile",
+        "kk": "[ˈfæs!]",
+        "ipa": "/ˈfæsl/",
+        "pos": "adj.",
+        "meaning": "膚淺的、輕率未經深思的、輕而易舉的",
+        "formula": {
+          "parts": [
+            {
+              "text": "fac",
+              "role": "root",
+              "meaning": "做 (拉丁語 facilis「容易做的」)"
+            },
+            {
+              "text": "-ile",
+              "role": "suffix",
+              "meaning": "易於...的"
+            }
+          ],
+          "resultMeaning": "把極其複雜之問題看得過於輕易簡單而輕率應答 ➔「膚淺的、輕率的」"
+        },
+        "sentence": "Pundits offered facile generalizations that utterly overlooked the nuanced historical origins of the conflict.",
+        "sentenceZh": "時事評論員提出了膚淺輕率的概括論述，完全忽略了這場衝突細膩微秒的歷史起源。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Pundits",
+              "role": "主詞 (Subject)",
+              "note": "時事評論員。"
+            },
+            {
+              "part": "offered facile generalizations",
+              "role": "動詞與受詞",
+              "note": "提出膚淺概括。"
+            },
+            {
+              "part": "that utterly overlooked the historical origins",
+              "role": "關係子句修飾 generalizations",
+              "note": "完全忽略歷史根源。"
+            }
+          ],
+          "keyPoints": [
+            "【思維批判】：a facile victory (輕取勝利)；a facile argument (膚淺站不住腳的論點)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -10440,6 +29235,620 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【使役動詞句型】：enable someone to do something (使某人能夠做某事)。",
             "【名詞衍生】：generosity (慷慨、寬厚)。"
+          ]
+        }
+      },
+      {
+        "word": "genius",
+        "kk": "[ˈdʒinjəs]",
+        "ipa": "/ˈdʒiːniəs/",
+        "pos": "n.",
+        "meaning": "天才、天賦、特質才華",
+        "formula": {
+          "parts": [
+            {
+              "text": "gen-",
+              "role": "root",
+              "meaning": "出生、天生"
+            }
+          ],
+          "resultMeaning": "自出生受孕便獲守護神眷顧賦予之非凡天生才智 ➔「天才、天賦」"
+        },
+        "sentence": "Mozart demonstrated staggering musical genius, composing intricate orchestral symphonies before the age of ten.",
+        "sentenceZh": "莫札特展現了令人驚嘆的音樂天才，在十歲前便創作了複雜的管弦交響樂。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase of Elaboration (composing O...)",
+          "breakdown": [
+            {
+              "part": "Mozart",
+              "role": "主詞 (Subject)",
+              "note": "莫札特。"
+            },
+            {
+              "part": "demonstrated",
+              "role": "及物動詞 (Verb)",
+              "note": "展現。"
+            },
+            {
+              "part": "staggering musical genius",
+              "role": "直接受詞 (Object)",
+              "note": "驚人天才。"
+            },
+            {
+              "part": "composing symphonies before the age of ten",
+              "role": "分詞伴隨狀語",
+              "note": "十歲前作曲。"
+            }
+          ],
+          "keyPoints": [
+            "【形容詞派生】：ingenious (精巧的、心靈手巧的)。"
+          ]
+        }
+      },
+      {
+        "word": "genealogy",
+        "kk": "[ˌdʒinɪˈɑlədʒɪ]",
+        "ipa": "/ˌdʒiːniˈɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "家譜學、族譜系譜、世系傳承",
+        "formula": {
+          "parts": [
+            {
+              "text": "genea",
+              "role": "root",
+              "meaning": "世代種族 (generation)"
+            },
+            {
+              "text": "-ology",
+              "role": "suffix",
+              "meaning": "學問"
+            }
+          ],
+          "resultMeaning": "追溯家族祖先世代血緣繁衍傳承之研究 ➔「族譜學」"
+        },
+        "sentence": "Modern genetic genealogy cross-references autosomal DNA databases to trace maternal and paternal lineages across centuries.",
+        "sentenceZh": "現代遺傳譜系學交叉比對常染色體 DNA 資料庫，以跨越數個世紀追溯母系與父系血統。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Modern genetic genealogy",
+              "role": "主詞 (Subject)",
+              "note": "遺傳族譜學。"
+            },
+            {
+              "part": "cross-references",
+              "role": "及物動詞 (Verb)",
+              "note": "交叉比對。"
+            },
+            {
+              "part": "autosomal DNA databases",
+              "role": "受詞 (Object)",
+              "note": "DNA資料庫。"
+            },
+            {
+              "part": "to trace maternal and paternal lineages",
+              "role": "目的狀語",
+              "note": "追溯血脈。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞】：lineage (血統), ancestor (祖先), descendant (後裔)。"
+          ]
+        }
+      },
+      {
+        "word": "indigenous",
+        "kk": "[ɪnˈdɪdʒənəs]",
+        "ipa": "/ɪnˈdɪdʒənəs/",
+        "pos": "adj.",
+        "meaning": "原產的、土生土長的、原住民的",
+        "formula": {
+          "parts": [
+            {
+              "text": "indi- (in-)",
+              "role": "prefix",
+              "meaning": "在內部、在本地"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "出生、生長"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "自古便在本地土地誕生繁衍的 ➔「原生的、原住民的」"
+        },
+        "sentence": "Conservationists partnered with indigenous tribes to preserve ancestral rainforest reserves against deforestation.",
+        "sentenceZh": "環保人士與原住民部落攜手合作，保護祖傳雨林保護區免遭森林濫伐。",
+        "grammar": {
+          "pattern": "S + Vi (partnered with O) + Infinitive of Purpose (to preserve O against...)",
+          "breakdown": [
+            {
+              "part": "Conservationists",
+              "role": "主詞 (Subject)",
+              "note": "保育人士。"
+            },
+            {
+              "part": "partnered with indigenous tribes",
+              "role": "動詞片語與受詞",
+              "note": "與原住民結盟。"
+            },
+            {
+              "part": "to preserve rainforest reserves",
+              "role": "目的狀語",
+              "note": "保護雨林。"
+            },
+            {
+              "part": "against deforestation",
+              "role": "防範事物",
+              "note": "森林砍伐。"
+            }
+          ],
+          "keyPoints": [
+            "【國際名詞】：Indigenous Peoples (聯合國規範之「原住民族」官方用語)。"
+          ]
+        }
+      },
+      {
+        "word": "genre",
+        "kk": "[ˈʒɑnrə]",
+        "ipa": "/ˈʒɑːnrə/",
+        "pos": "n.",
+        "meaning": "類型、體裁、流派 (文學/藝術/音樂)",
+        "formula": {
+          "parts": [
+            {
+              "text": "gen-",
+              "role": "root",
+              "meaning": "種類、種族 (kind)"
+            }
+          ],
+          "resultMeaning": "法語借詞，藝術創作中所劃分的特定種類與風格體裁 ➔「類型、流派」"
+        },
+        "sentence": "Science fiction evolved from a fringe niche into one of the most commercially lucrative storytelling genres globally.",
+        "sentenceZh": "科幻作品已從邊緣小眾領域演變為全球商業上最吸金的故事敘事類型之一。",
+        "grammar": {
+          "pattern": "S + Vi (evolved from A into B)",
+          "breakdown": [
+            {
+              "part": "Science fiction",
+              "role": "主詞 (Subject)",
+              "note": "科幻。"
+            },
+            {
+              "part": "evolved",
+              "role": "不及物動詞 (Verb)",
+              "note": "演進。"
+            },
+            {
+              "part": "from a fringe niche",
+              "role": "起點 A",
+              "note": "邊緣小眾。"
+            },
+            {
+              "part": "into one of the most lucrative genres",
+              "role": "終點 B",
+              "note": "吸金類型體裁。"
+            }
+          ],
+          "keyPoints": [
+            "【法語發音】：genre 發音為 /ˈʒɑːnrə/，首音發濁摩擦音 [ʒ]。"
+          ]
+        }
+      },
+      {
+        "word": "pathogen",
+        "kk": "[ˈpæθədʒən]",
+        "ipa": "/ˈpæθədʒən/",
+        "pos": "n.",
+        "meaning": "病原體、致病菌",
+        "formula": {
+          "parts": [
+            {
+              "text": "patho-",
+              "role": "root",
+              "meaning": "疾病、受苦 (disease)"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "產生 (produce)"
+            }
+          ],
+          "resultMeaning": "進入生物體內產生並誘發疾病之細菌或病毒 ➔「病原體」"
+        },
+        "sentence": "Epidemiologists traced the deadly outbreak to a novel waterborne bacterial pathogen contaminating the city reservoir.",
+        "sentenceZh": "流行病學家將這起致命疫情的源頭追溯至污染了城市水庫的一種新型水生細菌病原體。",
+        "grammar": {
+          "pattern": "S + Vt (traced A to B) + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Epidemiologists",
+              "role": "主詞 (Subject)",
+              "note": "流行病學家。"
+            },
+            {
+              "part": "traced the deadly outbreak",
+              "role": "動詞與受詞 A",
+              "note": "trace A to B (追溯 A 到 B)。"
+            },
+            {
+              "part": "to a novel bacterial pathogen",
+              "role": "源頭 B",
+              "note": "新病原體。"
+            },
+            {
+              "part": "contaminating the city reservoir",
+              "role": "分詞片語修飾 pathogen",
+              "note": "污染水庫。"
+            }
+          ],
+          "keyPoints": [
+            "【字根構詞】：patho (病) + gen (產生) ➔ 產生疾病者。"
+          ]
+        }
+      },
+      {
+        "word": "congenital",
+        "kk": "[kənˈdʒɛnət!]",
+        "ipa": "/kənˈdʒenɪtl/",
+        "pos": "adj.",
+        "meaning": "先天的、生來就有的(疾病/特徵)",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "與...一起"
+            },
+            {
+              "text": "genit-",
+              "role": "root",
+              "meaning": "出生"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "自胎兒在母體中誕生起便一同伴隨存在的 ➔「先天的」"
+        },
+        "sentence": "Pediatric cardiologists performed minimally invasive surgery to correct the newborn infant's congenital heart defect.",
+        "sentenceZh": "小兒心臟科醫師進行了微創手術，以矯正該新生兒的先天性心臟缺陷。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Pediatric cardiologists",
+              "role": "主詞 (Subject)",
+              "note": "小兒心臟專科醫師。"
+            },
+            {
+              "part": "performed minimally invasive surgery",
+              "role": "動詞與受詞",
+              "note": "執行微創手術。"
+            },
+            {
+              "part": "to correct the congenital heart defect",
+              "role": "目的狀語",
+              "note": "矯正先天缺陷。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學對比】：congenital (先天的) vs. acquired (後天獲得的)。"
+          ]
+        }
+      },
+      {
+        "word": "progenitor",
+        "kk": "[proˈdʒɛnətɚ]",
+        "ipa": "/proʊˈdʒenɪtər/",
+        "pos": "n.",
+        "meaning": "先驅、創始鼻祖、生物祖先",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "在前、向前"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "生育、產生"
+            },
+            {
+              "text": "-itor",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "走在歷史最前端開創繁衍出後代門類之鼻祖 ➔「先驅、始祖」"
+        },
+        "sentence": "Turing is celebrated as the intellectual progenitor of modern artificial intelligence and computational logic.",
+        "sentenceZh": "圖靈被尊崇為現代人工智慧與運算邏輯之智識先驅與創始鼻祖。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase (as SC)",
+          "breakdown": [
+            {
+              "part": "Turing",
+              "role": "主詞 (Subject)",
+              "note": "圖靈。"
+            },
+            {
+              "part": "is celebrated",
+              "role": "被動態謂語",
+              "note": "受讚譽。"
+            },
+            {
+              "part": "as the intellectual progenitor of modern AI",
+              "role": "身分介系詞補語",
+              "note": "身為現代 AI 始祖。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源對比】：progenitor (始祖、先驅) vs. progeny (子孫後代)。"
+          ]
+        }
+      },
+      {
+        "word": "heterogeneous",
+        "kk": "[ˌhɛtərəˈdʒinɪəs]",
+        "ipa": "/ˌhetərəˈdʒiːniəs/",
+        "pos": "adj.",
+        "meaning": "異質的、成分混雜不一的、由不同種類組成的",
+        "formula": {
+          "parts": [
+            {
+              "text": "hetero-",
+              "role": "prefix",
+              "meaning": "異類、相異 (other)"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "種類、種族"
+            },
+            {
+              "text": "-eous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "由許多本質各異之元素混合在一起拼湊組成的 ➔「異質混雜的」"
+        },
+        "sentence": "The metropolis boasted a culturally heterogeneous populace enriched by immigrant traditions from eighty nations.",
+        "sentenceZh": "這座大都會擁有文化高度多元混融的異質人口結構，得益於來自八十個國家的移民傳統而豐富多元。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "The metropolis",
+              "role": "主詞 (Subject)",
+              "note": "都會。"
+            },
+            {
+              "part": "boasted a culturally heterogeneous populace",
+              "role": "及物動詞與受詞",
+              "note": "擁有異質多元人口。"
+            },
+            {
+              "part": "enriched by immigrant traditions from eighty nations",
+              "role": "過去分詞片語修飾 populace",
+              "note": "因移民傳統而充實。"
+            }
+          ],
+          "keyPoints": [
+            "【化學對偶】：heterogeneous mixture (非均相混合物) vs. homogeneous mixture (均勻溶液)。"
+          ]
+        }
+      },
+      {
+        "word": "homogeneous",
+        "kk": "[ˌhoməˈdʒinɪəs]",
+        "ipa": "/ˌhoʊməˈdʒiːniəs/",
+        "pos": "adj.",
+        "meaning": "同質的、同類的、均勻一致的",
+        "formula": {
+          "parts": [
+            {
+              "text": "homo-",
+              "role": "prefix",
+              "meaning": "相同 (same)"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "種類、產生物"
+            },
+            {
+              "text": "-eous",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "從頭到尾內部完全由相同種類成分均勻構成的 ➔「同質純一的」"
+        },
+        "sentence": "High-shear mechanical emulsifiers blend immiscible oil and water droplets into a silky homogeneous cosmetic cream.",
+        "sentenceZh": "高剪切機械乳化機將互不相溶的油水微滴均質混合為絲滑均勻的化妝品乳霜。",
+        "grammar": {
+          "pattern": "S + Vt (blend A into B)",
+          "breakdown": [
+            {
+              "part": "High-shear mechanical emulsifiers",
+              "role": "主詞 (Subject)",
+              "note": "高剪切乳化機。"
+            },
+            {
+              "part": "blend immiscible oil and water droplets",
+              "role": "動詞與受詞 A",
+              "note": "混合不相溶油水滴。"
+            },
+            {
+              "part": "into a silky homogeneous cosmetic cream",
+              "role": "結果介系詞片語 B",
+              "note": "化為均勻乳霜。"
+            }
+          ],
+          "keyPoints": [
+            "【日常食品】：homogenized milk (均質化牛奶)。"
+          ]
+        }
+      },
+      {
+        "word": "carcinogen",
+        "kk": "[kɑrˈsɪnədʒən]",
+        "ipa": "/kɑːrˈsɪnədʒən/",
+        "pos": "n.",
+        "meaning": "致癌物質",
+        "formula": {
+          "parts": [
+            {
+              "text": "karkinos (carcin)",
+              "role": "root",
+              "meaning": "螃蟹、癌症 (希臘語) "
+            },
+            {
+              "text": "-gen",
+              "role": "root",
+              "meaning": "產生、引起"
+            }
+          ],
+          "resultMeaning": "能破壞細胞 DNA 序列突變促成癌症生長之危險物質 ➔「致癌物」"
+        },
+        "sentence": "Occupational health agencies classify airborne asbestos fibers as a confirmed Group 1 human carcinogen.",
+        "sentenceZh": "職業安全衛生機構將空氣傳播的石綿纖維歸類為確鑿的一級人類致癌物。",
+        "grammar": {
+          "pattern": "S + Vt (classify A as B)",
+          "breakdown": [
+            {
+              "part": "Occupational health agencies",
+              "role": "主詞 (Subject)",
+              "note": "職安機構。"
+            },
+            {
+              "part": "classify airborne asbestos fibers",
+              "role": "及物動詞與受詞 A",
+              "note": "classify A as B。"
+            },
+            {
+              "part": "as a confirmed Group 1 human carcinogen",
+              "role": "身分補語 B",
+              "note": "一級致癌物。"
+            }
+          ],
+          "keyPoints": [
+            "【字尾 -gen】：allergen (過敏原), pathogen (病原體), carcinogen (致癌物)。"
+          ]
+        }
+      },
+      {
+        "word": "congenial",
+        "kk": "[kənˈdʒinɪəl]",
+        "ipa": "/kənˈdʒiːniəl/",
+        "pos": "adj.",
+        "meaning": "志趣相投的、意氣相合的、宜人愜意的",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "天性、性格"
+            },
+            {
+              "text": "-ial",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "天性脾氣志同道合宛如命中註定般合得來的 ➔「志趣相投的、宜人的」"
+        },
+        "sentence": "The seaside artist retreat offered a tranquil congenial environment conducive to novel writing.",
+        "sentenceZh": "這處海濱藝術靜修之所提供了一個寧靜宜人的環境，十分有利於長篇小說的創作創作。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (conducive to...)",
+          "breakdown": [
+            {
+              "part": "The seaside artist retreat",
+              "role": "主詞 (Subject)",
+              "note": "海邊藝術靜修所。"
+            },
+            {
+              "part": "offered a tranquil congenial environment",
+              "role": "動詞與受詞",
+              "note": "提供寧靜宜人環境。"
+            },
+            {
+              "part": "conducive to novel writing",
+              "role": "形容詞片語後位修飾",
+              "note": "conducive to (有利於)。"
+            }
+          ],
+          "keyPoints": [
+            "【性格名詞】：congeniality (志趣相投、親和力)。"
+          ]
+        }
+      },
+      {
+        "word": "anthropogenic",
+        "kk": "[ˌænθrəpəˈdʒɛnɪk]",
+        "ipa": "/ˌænθrəpəˈdʒenɪk/",
+        "pos": "adj.",
+        "meaning": "人為引起的、人類活動造成的 (尤指環境污染與氣候變遷)",
+        "formula": {
+          "parts": [
+            {
+              "text": "anthropo-",
+              "role": "root",
+              "meaning": "人類 (希臘語 anthropos)"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "產生"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "源於人類工業文明擴張活動所直接引發的 ➔「人為引起的」"
+        },
+        "sentence": "The IPCC report concluded that unprecedented glacial retreat is overwhelmingly driven by anthropogenic greenhouse gas emissions.",
+        "sentenceZh": "聯合國氣候變遷小組報告總結指出，史無前例的冰川消退絕大多數是由人類活動造成的溫室氣體排放所驅動的。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Passive Verb + Prep Phrase of Agency)",
+          "breakdown": [
+            {
+              "part": "The IPCC report",
+              "role": "主詞 (Subject)",
+              "note": "IPCC 氣候報告。"
+            },
+            {
+              "part": "concluded",
+              "role": "及物動詞 (Verb)",
+              "note": "作出結論。"
+            },
+            {
+              "part": "that glacial retreat is driven by emissions",
+              "role": "受詞名詞子句",
+              "note": "冰川消退由排放引起。"
+            }
+          ],
+          "keyPoints": [
+            "【環境前沿詞彙】：anthropogenic climate change (人為氣候變遷)。"
           ]
         }
       }
@@ -10770,6 +30179,610 @@ const ETYMO_DATA = [
             "【形容詞衍生】：logical (合乎邏輯的) vs. illogical (不合邏輯的)。"
           ]
         }
+      },
+      {
+        "word": "prologue",
+        "kk": "[ˈproˌlɔg]",
+        "ipa": "/ˈproʊlɔːɡ/",
+        "pos": "n.",
+        "meaning": "序言、開場白、序幕",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "在前面"
+            },
+            {
+              "text": "logue (log)",
+              "role": "root",
+              "meaning": "說話"
+            }
+          ],
+          "resultMeaning": "在正劇或全書開演前站在前台向觀眾說出的開場引言 ➔「序言、序幕」"
+        },
+        "sentence": "The novel opens with an atmospheric prologue set in revolutionary Paris that hints at secrets.",
+        "sentenceZh": "該小說以一段設定在革命時期巴黎的濃厚氛圍序幕開篇，預示了幽深秘密。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase (with an atmospheric prologue) + Participle Phrase + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The novel",
+              "role": "主詞 (Subject)",
+              "note": "小說。"
+            },
+            {
+              "part": "opens with an atmospheric prologue",
+              "role": "不及物動詞與介系詞受詞",
+              "note": "以序幕開頭。"
+            },
+            {
+              "part": "set in revolutionary Paris",
+              "role": "過去分詞片語修飾 prologue",
+              "note": "設定於巴黎。"
+            }
+          ],
+          "keyPoints": [
+            "【文學對稱結構】：prologue (開場序言) vs. epilogue (結尾尾聲)。"
+          ]
+        }
+      },
+      {
+        "word": "epilogue",
+        "kk": "[ˈɛpəˌlɔg]",
+        "ipa": "/ˈepɪlɔːɡ/",
+        "pos": "n.",
+        "meaning": "收場白、結語、後記",
+        "formula": {
+          "parts": [
+            {
+              "text": "epi-",
+              "role": "prefix",
+              "meaning": "在...之後、額外"
+            },
+            {
+              "text": "logue",
+              "role": "root",
+              "meaning": "話語"
+            }
+          ],
+          "resultMeaning": "在全書劇終之後追加說出的收場告白 ➔「尾聲、後記」"
+        },
+        "sentence": "In the poignant epilogue, the narrator catches up with the surviving protagonists twenty years after the civil war.",
+        "sentenceZh": "在令人動容的結尾後記中，旁白者與內戰結束二十年後的倖存主角們重聚重溫舊事。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Vi (catches up with O) + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "In the poignant epilogue",
+              "role": "情境介系詞片語",
+              "note": "後記中。"
+            },
+            {
+              "part": "the narrator",
+              "role": "主詞 (Subject)",
+              "note": "敘述者。"
+            },
+            {
+              "part": "catches up with the surviving protagonists",
+              "role": "動詞片語與受詞",
+              "note": "與倖存主角碰面。"
+            }
+          ],
+          "keyPoints": [
+            "【字首字根】：epi- (在後/附帶) + logue (言) ➔ 附在後面的言詞。"
+          ]
+        }
+      },
+      {
+        "word": "colloquium",
+        "kk": "[kəˈlokwɪəm]",
+        "ipa": "/kəˈloʊkwiəm/",
+        "pos": "n.",
+        "meaning": "學術討論會、學術研討座談會",
+        "formula": {
+          "parts": [
+            {
+              "text": "col- (com-)",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "loqu",
+              "role": "root",
+              "meaning": "說話談論"
+            },
+            {
+              "text": "-ium",
+              "role": "suffix",
+              "meaning": "場所/集會"
+            }
+          ],
+          "resultMeaning": "學者大家共同聚在一起交流學問深入談論的座談研討會 ➔「學術研討會」"
+        },
+        "sentence": "The physics department hosted an international colloquium to debate recent experimental anomalies in neutrino physics.",
+        "sentenceZh": "物理學系舉辦了一場國際學術研討會，以辯論微中子物理學近期的實驗反常現象。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The physics department",
+              "role": "主詞 (Subject)",
+              "note": "物理系。"
+            },
+            {
+              "part": "hosted a colloquium",
+              "role": "及物動詞與受詞",
+              "note": "舉辦研討會。"
+            },
+            {
+              "part": "to debate anomalies in neutrino physics",
+              "role": "目的狀語",
+              "note": "辯論微中子反常現象。"
+            }
+          ],
+          "keyPoints": [
+            "【同根派生】：colloquial (口語的), eloquent (雄辯口才好的)。"
+          ]
+        }
+      },
+      {
+        "word": "eulogy",
+        "kk": "[ˈjulədʒɪ]",
+        "ipa": "/ˈjuːlədʒi/",
+        "pos": "n.",
+        "meaning": "悼詞、頌詞、讚頌頌文",
+        "formula": {
+          "parts": [
+            {
+              "text": "eu-",
+              "role": "prefix",
+              "meaning": "好、善"
+            },
+            {
+              "text": "log",
+              "role": "root",
+              "meaning": "說話"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "在喪禮或告別儀式上對逝者一生功德說出的讚美頌文 ➔「悼詞」"
+        },
+        "sentence": "The devoted daughter delivered an emotionally charged eulogy celebrating her father's selfless mentorship.",
+        "sentenceZh": "這位深愛父親的女兒發表了一篇情感深沉的悼詞，讚頌父親無私的提攜教誨。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (celebrating O)",
+          "breakdown": [
+            {
+              "part": "The devoted daughter",
+              "role": "主詞 (Subject)",
+              "note": "孝順女兒。"
+            },
+            {
+              "part": "delivered a eulogy",
+              "role": "及物動詞與受詞",
+              "note": "發表悼文。"
+            },
+            {
+              "part": "celebrating her father's mentorship",
+              "role": "分詞片語修飾 eulogy",
+              "note": "讚頌教誨。"
+            }
+          ],
+          "keyPoints": [
+            "【字根妙解】：eu (好) + log (言) ➔ 說好話、頌揚先人德行。"
+          ]
+        }
+      },
+      {
+        "word": "terminology",
+        "kk": "[ˌtɝməˈnɑlədʒɪ]",
+        "ipa": "/ˌtɜːrməˈnɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "術語、專業術語體系",
+        "formula": {
+          "parts": [
+            {
+              "text": "termin-",
+              "role": "root",
+              "meaning": "界限、專用詞 (term)"
+            },
+            {
+              "text": "-ology",
+              "role": "suffix",
+              "meaning": "學科、體系"
+            }
+          ],
+          "resultMeaning": "特定專業學術領域所界定使用的一套專門詞彙 ➔「專業術語」"
+        },
+        "sentence": "Technical textbooks should define domain-specific terminology clearly before introducing mathematical equations.",
+        "sentenceZh": "技術教科書在引入數學方程式之前，應先清楚定義領域特定的專業術語。",
+        "grammar": {
+          "pattern": "S + Modal + Vt + O + Adv + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "Technical textbooks",
+              "role": "主詞 (Subject)",
+              "note": "技術教科書。"
+            },
+            {
+              "part": "should define terminology clearly",
+              "role": "動詞受詞與副詞",
+              "note": "清楚定義術語。"
+            },
+            {
+              "part": "before introducing equations",
+              "role": "時間介系詞片語",
+              "note": "引入方程式前。"
+            }
+          ],
+          "keyPoints": [
+            "【專業詞彙】：jargon (行話黑話) vs. terminology (正規專業術語)。"
+          ]
+        }
+      },
+      {
+        "word": "logistics",
+        "kk": "[loˈdʒɪstɪks]",
+        "ipa": "/ləˈdʒɪstɪks/",
+        "pos": "n.",
+        "meaning": "物流、後勤運補學",
+        "formula": {
+          "parts": [
+            {
+              "text": "log-",
+              "role": "root",
+              "meaning": "合理計算籌劃 (logos)"
+            },
+            {
+              "text": "-istics",
+              "role": "suffix",
+              "meaning": "實踐學門"
+            }
+          ],
+          "resultMeaning": "精確運算調度物資、人員與裝備供應鏈的後勤科學 ➔「後勤學、物流」"
+        },
+        "sentence": "Global retail conglomerates invest heavily in automated logistics hubs to fulfill next-day consumer deliveries.",
+        "sentenceZh": "全球零售巨頭大力投資自動化物流樞紐，以實現次日送達消費者的承諾。",
+        "grammar": {
+          "pattern": "S + Vi (invest heavily in O) + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Global retail conglomerates",
+              "role": "主詞 (Subject)",
+              "note": "零售巨擘企業。"
+            },
+            {
+              "part": "invest heavily in logistics hubs",
+              "role": "動詞片語與受詞",
+              "note": "重金投資物流中心。"
+            },
+            {
+              "part": "to fulfill deliveries",
+              "role": "目的狀語",
+              "note": "履行配送。"
+            }
+          ],
+          "keyPoints": [
+            "【單複數一致】：logistics 作學科或單一系統時視為單數名詞。"
+          ]
+        }
+      },
+      {
+        "word": "neologism",
+        "kk": "[niˈɑləˌdʒɪzəm]",
+        "ipa": "/niˈɑːlədʒɪzəm/",
+        "pos": "n.",
+        "meaning": "新詞、新創詞彙、新義",
+        "formula": {
+          "parts": [
+            {
+              "text": "neo-",
+              "role": "prefix",
+              "meaning": "新"
+            },
+            {
+              "text": "log",
+              "role": "root",
+              "meaning": "字詞、言語"
+            },
+            {
+              "text": "-ism",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "因應當代科技文化浪潮新被創造普及之新字詞 ➔「新創詞」"
+        },
+        "sentence": "Internet meme subcultures rapidly generate witty neologisms that get incorporated into modern lexicographical dictionaries.",
+        "sentenceZh": "網路迷因次文化迅速催生出諸多妙趣橫生的高人氣新詞，並被逐步收錄於現代辭典之中。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Internet meme subcultures",
+              "role": "主詞 (Subject)",
+              "note": "網路迷因文化。"
+            },
+            {
+              "part": "rapidly generate witty neologisms",
+              "role": "及物動詞與受詞",
+              "note": "迅速生成新詞。"
+            },
+            {
+              "part": "that get incorporated into modern dictionaries",
+              "role": "關係子句修飾 neologisms",
+              "note": "被編纂入辭典。"
+            }
+          ],
+          "keyPoints": [
+            "【詞彙學】：如 selfie (自拍)、doomscrolling (刷負面新聞) 均為經典 neologism。"
+          ]
+        }
+      },
+      {
+        "word": "tautology",
+        "kk": "[tɔˈtɑlədʒɪ]",
+        "ipa": "/tɔːˈtɑːlədʒi/",
+        "pos": "n.",
+        "meaning": "同義反覆、套套邏輯、贅述冗詞",
+        "formula": {
+          "parts": [
+            {
+              "text": "tauto-",
+              "role": "root",
+              "meaning": "相同 (希臘語 to auto) "
+            },
+            {
+              "text": "log",
+              "role": "root",
+              "meaning": "言詞、邏輯"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "用不同詞彙反覆說著完全相同一件事情的廢話套話 ➔「同義反覆、套套邏輯」"
+        },
+        "sentence": "Saying 'free gift' or 'PIN number' is a common linguistic tautology that creates unnecessary redundancies.",
+        "sentenceZh": "說「免費贈品」或「PIN 碼 (個人識別號碼碼)」是常見的語言學同義反覆，會造成不必要的贅詞累贅。",
+        "grammar": {
+          "pattern": "Gerund Phrase (Subject) + Linking Verb + SC + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Saying 'free gift' or 'PIN number'",
+              "role": "動名詞片語當主詞",
+              "note": "說 free gift 等口誤。"
+            },
+            {
+              "part": "is a common linguistic tautology",
+              "role": "連綴動詞與補語",
+              "note": "是常見同義反覆。"
+            },
+            {
+              "part": "that creates unnecessary redundancies",
+              "role": "關係子句修飾 tautology",
+              "note": "造成不必要冗贅。"
+            }
+          ],
+          "keyPoints": [
+            "【邏輯學】：In logic, a tautology is a statement that is true in every possible interpretation (恆真式)。"
+          ]
+        }
+      },
+      {
+        "word": "soliloquy",
+        "kk": "[səˈlɪləkwɪ]",
+        "ipa": "/səˈlɪləkwi/",
+        "pos": "n.",
+        "meaning": "戲劇獨白、自言自語",
+        "formula": {
+          "parts": [
+            {
+              "text": "soli-",
+              "role": "root",
+              "meaning": "單獨、孤獨 (solo)"
+            },
+            {
+              "text": "loqu (log)",
+              "role": "root",
+              "meaning": "說話"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "舞台上演員一人獨處時大聲說出心中隱私心聲 ➔「獨白」"
+        },
+        "sentence": "Shakespeare's Hamlet reveals existential agony in his world-famous 'To be, or not to be' soliloquy.",
+        "sentenceZh": "莎士比亞筆下的哈姆雷特在他舉世聞名的「生存還是毀滅」獨白中吐露了存在主義的痛苦掙扎。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Shakespeare's Hamlet",
+              "role": "主詞 (Subject)",
+              "note": "哈姆雷特。"
+            },
+            {
+              "part": "reveals existential agony",
+              "role": "及物動詞與受詞",
+              "note": "揭示存在痛苦。"
+            },
+            {
+              "part": "in his 'To be, or not to be' soliloquy",
+              "role": "地點狀語",
+              "note": "在著名獨白中。"
+            }
+          ],
+          "keyPoints": [
+            "【戲劇術語對比】：soliloquy (獨處時的獨白) vs. monologue (對著台下或其他角色的長篇大論)。"
+          ]
+        }
+      },
+      {
+        "word": "loquacious",
+        "kk": "[loˈkweʃəs]",
+        "ipa": "/loʊˈkweɪʃəs/",
+        "pos": "adj.",
+        "meaning": "健談話多的、滔滔不絕的、喋喋不休的",
+        "formula": {
+          "parts": [
+            {
+              "text": "loqu (log)",
+              "role": "root",
+              "meaning": "說話"
+            },
+            {
+              "text": "-acious",
+              "role": "suffix",
+              "meaning": "傾向於...的"
+            }
+          ],
+          "resultMeaning": "口若懸河隨時都有說不完的話之特質 ➔「健談多話的」"
+        },
+        "sentence": "The loquacious dinner guest entertained the table with lively travel tales from her Amazonian expedition.",
+        "sentenceZh": "這位健談話多的晚宴賓客以她在亞馬遜探險中精彩生動的旅行見聞逗樂了全桌眾人。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "The loquacious dinner guest",
+              "role": "主詞 (Subject)",
+              "note": "健談的晚餐賓客。"
+            },
+            {
+              "part": "entertained the table",
+              "role": "及物動詞與受詞",
+              "note": "逗樂全桌。"
+            },
+            {
+              "part": "with lively travel tales from her expedition",
+              "role": "方式狀語",
+              "note": "以生動冒險故事。"
+            }
+          ],
+          "keyPoints": [
+            "【性格詞彙】：loquacious 比 talkative 更加典雅生動。"
+          ]
+        }
+      },
+      {
+        "word": "circumlocution",
+        "kk": "[ˌsɝkəmləˈkjuʃən]",
+        "ipa": "/ˌsɜːrkəmləˈkjuːʃn/",
+        "pos": "n.",
+        "meaning": "迂迴曲折的說法、轉彎抹角、推託累贅言辭",
+        "formula": {
+          "parts": [
+            {
+              "text": "circum-",
+              "role": "prefix",
+              "meaning": "繞圈子"
+            },
+            {
+              "text": "locu (log)",
+              "role": "root",
+              "meaning": "說話"
+            },
+            {
+              "text": "-tion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "不肯直截了當開門見山、繞著圈子拐彎抹角說話 ➔「迂迴說法」"
+        },
+        "sentence": "Frustrated reporters pressed the evasive spokesperson to abandon bureaucratic circumlocution and answer directly.",
+        "sentenceZh": "備感挫折的記者們敦促這位閃爍其詞的發言人放棄官僚主義的拐彎抹角，直接給予正面回答。",
+        "grammar": {
+          "pattern": "S + Vt (pressed) + O + to-V (to abandon O and answer)",
+          "breakdown": [
+            {
+              "part": "Frustrated reporters",
+              "role": "主詞 (Subject)",
+              "note": "挫折的記者。"
+            },
+            {
+              "part": "pressed the evasive spokesperson",
+              "role": "press + O + to V 句型",
+              "note": "敦促發言人。"
+            },
+            {
+              "part": "to abandon bureaucratic circumlocution",
+              "role": "不定詞動作 1",
+              "note": "放棄官僚托辭。"
+            },
+            {
+              "part": "and answer directly",
+              "role": "對等不定詞動作 2",
+              "note": "直接回答。"
+            }
+          ],
+          "keyPoints": [
+            "【寫作忌諱】：Avoid circumlocution (避免廢話繞圈子，應開門見山)。"
+          ]
+        }
+      },
+      {
+        "word": "colloquial",
+        "kk": "[kəˈlokwɪəl]",
+        "ipa": "/kəˈloʊkwiəl/",
+        "pos": "adj.",
+        "meaning": "口語的、非正式日常談話的、通俗對話的",
+        "formula": {
+          "parts": [
+            {
+              "text": "con- (col-)",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "loqu (log)",
+              "role": "root",
+              "meaning": "說話"
+            },
+            {
+              "text": "-ial",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "大眾在日常彼此交談聊天時所慣用的非書面語 ➔「口語的」"
+        },
+        "sentence": "Slang idioms and colloquial expressions should generally be avoided in formal peer-reviewed academic manuscripts.",
+        "sentenceZh": "在同儕審查的正式學術論文手稿中，通常應避免使用俚語成語與口語化表達句型。",
+        "grammar": {
+          "pattern": "S + Modal + Adv + Passive Verb + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Slang idioms and colloquial expressions",
+              "role": "主詞 (Subject)",
+              "note": "俚語與口語表達。"
+            },
+            {
+              "part": "should generally be avoided",
+              "role": "被動態謂語",
+              "note": "通常應避免。"
+            },
+            {
+              "part": "in formal peer-reviewed academic manuscripts",
+              "role": "地點狀語",
+              "note": "在學術論文手稿中。"
+            }
+          ],
+          "keyPoints": [
+            "【語言學術語】：colloquialism (口語說法、白話俚語)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -11098,6 +31111,610 @@ const ETYMO_DATA = [
             "【動詞用法】：mount A onto/on B 是固定工藝與攝影搭配詞。"
           ]
         }
+      },
+      {
+        "word": "impede",
+        "kk": "[ɪmˈpid]",
+        "ipa": "/ɪmˈpiːd/",
+        "pos": "v.",
+        "meaning": "妨礙、阻礙、拖累",
+        "formula": {
+          "parts": [
+            {
+              "text": "im- (in-)",
+              "role": "prefix",
+              "meaning": "進入、捆綁"
+            },
+            {
+              "text": "pede",
+              "role": "root",
+              "meaning": "腳 (foot)"
+            }
+          ],
+          "resultMeaning": "用鎖鏈絆住雙腳使其無法快步行走 ➔「阻礙、妨礙」"
+        },
+        "sentence": "Heavy bureaucratic red tape continues to impede the swift disbursement of emergency disaster relief funds.",
+        "sentenceZh": "沉重的官僚繁文縟節持續阻礙著緊急災難救濟金的迅速撥款發放。",
+        "grammar": {
+          "pattern": "S + Adv + Vt (impede) + O",
+          "breakdown": [
+            {
+              "part": "Heavy bureaucratic red tape",
+              "role": "主詞 (Subject)",
+              "note": "繁文縟節 (不可數)。"
+            },
+            {
+              "part": "continues to impede",
+              "role": "動詞片語",
+              "note": "持續阻礙。"
+            },
+            {
+              "part": "the swift disbursement of funds",
+              "role": "直接受詞 (Object)",
+              "note": "救濟金撥付。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：impediment (障礙、口吃結巴)。"
+          ]
+        }
+      },
+      {
+        "word": "expedition",
+        "kk": "[ˌɛkspəˈdɪʃən]",
+        "ipa": "/ˌɛkspəˈdɪʃn/",
+        "pos": "n.",
+        "meaning": "遠征、探險考察隊",
+        "formula": {
+          "parts": [
+            {
+              "text": "ex-",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "ped",
+              "role": "root",
+              "meaning": "腳"
+            },
+            {
+              "text": "-ition",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "跨出腳步向外邁進萬里之長途考察 ➔「遠征、考察隊」"
+        },
+        "sentence": "The scientific expedition endured frostbite and avalanches to reach the uncharted Antarctic mountain range.",
+        "sentenceZh": "這支科學考察隊忍受凍傷與雪崩，終於抵達了未在地圖上標記的南極山脈。",
+        "grammar": {
+          "pattern": "S + Vt (endured O) + Infinitive of Result/Purpose",
+          "breakdown": [
+            {
+              "part": "The scientific expedition",
+              "role": "主詞 (Subject)",
+              "note": "科學探險隊。"
+            },
+            {
+              "part": "endured frostbite and avalanches",
+              "role": "動詞與受詞",
+              "note": "忍受凍瘡與雪崩。"
+            },
+            {
+              "part": "to reach the mountain range",
+              "role": "結果狀語",
+              "note": "抵達山脈。"
+            }
+          ],
+          "keyPoints": [
+            "【同源動詞】：expedite (加速處理，原義為拔出雙腳快跑)。"
+          ]
+        }
+      },
+      {
+        "word": "podiatrist",
+        "kk": "[poˈdaɪətrɪst]",
+        "ipa": "/poʊˈdaɪətrɪst/",
+        "pos": "n.",
+        "meaning": "足科醫師、足病診療師",
+        "formula": {
+          "parts": [
+            {
+              "text": "pod-",
+              "role": "root",
+              "meaning": "腳 (foot)"
+            },
+            {
+              "text": "iatr-",
+              "role": "root",
+              "meaning": "醫生、醫療 (希臘語 iatros)"
+            },
+            {
+              "text": "-ist",
+              "role": "suffix",
+              "meaning": "專家"
+            }
+          ],
+          "resultMeaning": "專門診斷治療雙足踝關節各類足疾之醫師 ➔「足科醫師」"
+        },
+        "sentence": "A licensed podiatrist customizes orthotic shoe inserts to correct biomechanical imbalances in runners.",
+        "sentenceZh": "執業足科醫師量身客製矯正鞋墊，以糾正跑者的生物力學失衡問題。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "A licensed podiatrist",
+              "role": "主詞 (Subject)",
+              "note": "執照足醫。"
+            },
+            {
+              "part": "customizes orthotic inserts",
+              "role": "動詞與受詞",
+              "note": "客製鞋墊。"
+            },
+            {
+              "part": "to correct biomechanical imbalances",
+              "role": "目的狀語",
+              "note": "糾正失衡。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專科】：podiatry (足科醫療學)。"
+          ]
+        }
+      },
+      {
+        "word": "biped",
+        "kk": "[ˈbaɪˌpɛd]",
+        "ipa": "/ˈbaɪped/",
+        "pos": "n. / adj.",
+        "meaning": "兩足動物；(adj.) 雙足行走的",
+        "formula": {
+          "parts": [
+            {
+              "text": "bi-",
+              "role": "prefix",
+              "meaning": "兩、雙"
+            },
+            {
+              "text": "ped",
+              "role": "root",
+              "meaning": "腳"
+            }
+          ],
+          "resultMeaning": "依靠兩隻腳站立並行走的人類或動物 ➔「雙足動物」"
+        },
+        "sentence": "Fossil skeletal analysis proves that early hominids evolved as habitual bipeds millions of years ago.",
+        "sentenceZh": "化石骨骼分析證明，早期古人類在數百萬年前就已演化為習慣性雙足行走的動物。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "Fossil skeletal analysis",
+              "role": "主詞 (Subject)",
+              "note": "化石骨骼分析。"
+            },
+            {
+              "part": "proves",
+              "role": "及物動詞 (Verb)",
+              "note": "證明。"
+            },
+            {
+              "part": "that early hominids evolved as habitual bipeds",
+              "role": "受詞名詞子句",
+              "note": "雙足動物演化。"
+            }
+          ],
+          "keyPoints": [
+            "【步態對比】：bipedal (雙足行走的) vs. quadrupedal (四足行走的)。"
+          ]
+        }
+      },
+      {
+        "word": "centipede",
+        "kk": "[ˈsɛntəˌpid]",
+        "ipa": "/ˈsentɪpiːd/",
+        "pos": "n.",
+        "meaning": "蜈蚣、百足蟲",
+        "formula": {
+          "parts": [
+            {
+              "text": "centi-",
+              "role": "prefix",
+              "meaning": "百 (hundred)"
+            },
+            {
+              "text": "pede",
+              "role": "root",
+              "meaning": "腳"
+            }
+          ],
+          "resultMeaning": "長有一百隻腳的多足節肢動物 ➔「蜈蚣」"
+        },
+        "sentence": "Tropical giant centipedes possess venomous forcipules capable of subduing small lizards.",
+        "sentenceZh": "熱帶巨型蜈蚣擁有具毒性的顎足，能夠制服小型蜥蜴。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase",
+          "breakdown": [
+            {
+              "part": "Tropical giant centipedes",
+              "role": "主詞 (Subject)",
+              "note": "熱帶巨蜈蚣。"
+            },
+            {
+              "part": "possess",
+              "role": "及物動詞 (Verb)",
+              "note": "擁有。"
+            },
+            {
+              "part": "venomous forcipules",
+              "role": "受詞 (Object)",
+              "note": "毒顎足。"
+            },
+            {
+              "part": "capable of subduing small lizards",
+              "role": "形容詞片語後位修飾",
+              "note": "能制服蜥蜴。"
+            }
+          ],
+          "keyPoints": [
+            "【多足綱家族】：centipede (百足蜈蚣) vs. millipede (千足馬陸，milli- 千)。"
+          ]
+        }
+      },
+      {
+        "word": "pedicure",
+        "kk": "[ˈpɛdɪˌkjʊr]",
+        "ipa": "/ˈpedɪkjʊr/",
+        "pos": "n. / v.",
+        "meaning": "足部美甲護理、修腳保養",
+        "formula": {
+          "parts": [
+            {
+              "text": "pedi-",
+              "role": "root",
+              "meaning": "腳"
+            },
+            {
+              "text": "cure (cura)",
+              "role": "root",
+              "meaning": "照護、治療 (care)"
+            }
+          ],
+          "resultMeaning": "對雙腳與腳趾甲進行修剪、去角質與按摩保養 ➔「足部美甲護理」"
+        },
+        "sentence": "The luxury spa offers rejuvenating pedicures that soothe overworked feet with aromatic Epsom salt soaks.",
+        "sentenceZh": "這家豪華水療中心提供令人煥然一新的足部護理，藉由芳香瀉鹽足浴舒緩過度勞累的雙腳。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The luxury spa",
+              "role": "主詞 (Subject)",
+              "note": "水療中心。"
+            },
+            {
+              "part": "offers pedicures",
+              "role": "及物動詞與受詞",
+              "note": "提供足部美甲。"
+            },
+            {
+              "part": "that soothe overworked feet with Epsom salt soaks",
+              "role": "關係子句",
+              "note": "舒緩雙足。"
+            }
+          ],
+          "keyPoints": [
+            "【美甲成對詞】：manicure (修手美甲，mani- 手) vs. pedicure (修腳護理，pedi- 腳)。"
+          ]
+        }
+      },
+      {
+        "word": "pedestal",
+        "kk": "[ˈpɛdɪst!]",
+        "ipa": "/ˈpedɪstl/",
+        "pos": "n.",
+        "meaning": "雕像基座、柱腳支架；崇高至尊地位",
+        "formula": {
+          "parts": [
+            {
+              "text": "ped",
+              "role": "root",
+              "meaning": "腳 (foot)"
+            },
+            {
+              "text": "stalla",
+              "role": "root",
+              "meaning": "站立位置 (stand)"
+            }
+          ],
+          "resultMeaning": "雕像腳下最底層高高矗立之大理石尊崇底座 ➔「基座、尊崇寶座」"
+        },
+        "sentence": "The marble statue of the Renaissance conqueror was mounted atop an ornate granite pedestal.",
+        "sentenceZh": "這尊文藝復興征服者的漢白玉雕像被安放在一座雕工華麗的花崗岩基座之上。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase (atop...)",
+          "breakdown": [
+            {
+              "part": "The marble statue of the conqueror",
+              "role": "主詞 (Subject)",
+              "note": "征服者大理石像。"
+            },
+            {
+              "part": "was mounted",
+              "role": "被動態謂語",
+              "note": "被固定安放。"
+            },
+            {
+              "part": "atop an ornate granite pedestal",
+              "role": "地點介系詞片語",
+              "note": "在花崗岩基座頂端。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用成語】：put/place someone on a pedestal (將某人捧上神壇、盲目崇拜)。"
+          ]
+        }
+      },
+      {
+        "word": "pedigree",
+        "kk": "[ˈpɛdəˌgri]",
+        "ipa": "/ˈpedɪɡriː/",
+        "pos": "n. / adj.",
+        "meaning": "血統家系、純種譜系；(adj.) 純種優良名門的",
+        "formula": {
+          "parts": [
+            {
+              "text": "ped",
+              "role": "root",
+              "meaning": "腳 (foot)"
+            },
+            {
+              "text": "de",
+              "role": "prefix",
+              "meaning": "之"
+            },
+            {
+              "text": "grue",
+              "role": "root",
+              "meaning": "白鶴 (crane)"
+            }
+          ],
+          "resultMeaning": "古法語「白鶴的腳爪印」，指家譜樹狀分叉形狀如鶴足 ➔「家系系譜、純種」"
+        },
+        "sentence": "The championship thoroughbred racehorse commanded millions at auction due to its impeccable royal pedigree.",
+        "sentenceZh": "這匹奪冠純種賽馬因其無可挑剔的皇室純種血統，在拍賣會上拍出了數百萬美元的天價。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Prep Phrase of Reason (due to...)",
+          "breakdown": [
+            {
+              "part": "The championship thoroughbred racehorse",
+              "role": "主詞 (Subject)",
+              "note": "奪冠純種賽馬。"
+            },
+            {
+              "part": "commanded millions",
+              "role": "及物動詞與受詞",
+              "note": "command a price (拍出某價位)。"
+            },
+            {
+              "part": "at auction",
+              "role": "地點狀語",
+              "note": "在拍賣會。"
+            },
+            {
+              "part": "due to its impeccable royal pedigree",
+              "role": "原因狀語",
+              "note": "因無懈可擊血統。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源奇觀】：古法語 pied de grue (鶴之爪)，古代族譜分枝三叉線形似鳥爪！"
+          ]
+        }
+      },
+      {
+        "word": "impediment",
+        "kk": "[ɪmˈpɛdəmənt]",
+        "ipa": "/ɪmˈpedɪmənt/",
+        "pos": "n.",
+        "meaning": "障礙、阻礙絆腳石、語言障礙 (如結巴)",
+        "formula": {
+          "parts": [
+            {
+              "text": "in- (im-)",
+              "role": "prefix",
+              "meaning": "在...之中、進入"
+            },
+            {
+              "text": "ped",
+              "role": "root",
+              "meaning": "腳 (foot)"
+            },
+            {
+              "text": "-ment",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "如同戴上腳鐐絆住雙腳寸步難行 ➔「障礙、絆腳石」"
+        },
+        "sentence": "Speech therapy enabled the young boy to overcome a severe childhood stuttering impediment.",
+        "sentenceZh": "語言治療使這名小男孩得以克服嚴重的童年口吃語言障礙。",
+        "grammar": {
+          "pattern": "S + Vt (enabled) + O + to-V (to overcome O)",
+          "breakdown": [
+            {
+              "part": "Speech therapy",
+              "role": "主詞 (Subject)",
+              "note": "語言治療。"
+            },
+            {
+              "part": "enabled the young boy to overcome",
+              "role": "enable + O + to V",
+              "note": "使小男孩得以克服。"
+            },
+            {
+              "part": "a severe childhood stuttering impediment",
+              "role": "受詞 (Object)",
+              "note": "口吃語言障礙。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專詞】：speech impediment (語言發音障礙)。"
+          ]
+        }
+      },
+      {
+        "word": "quadruped",
+        "kk": "[ˈkwɑdrəˌpɛd]",
+        "ipa": "/ˈkwɑːdruped/",
+        "pos": "n. / adj.",
+        "meaning": "四足動物；(adj.) 四足行走的",
+        "formula": {
+          "parts": [
+            {
+              "text": "quadru-",
+              "role": "prefix",
+              "meaning": "四 (four)"
+            },
+            {
+              "text": "ped",
+              "role": "root",
+              "meaning": "腳 (foot)"
+            }
+          ],
+          "resultMeaning": "依靠四隻腳著地奔跑行進的脊椎動物 ➔「四足動物」"
+        },
+        "sentence": "Robotics engineers analyzed mammalian quadrupeds to design agile all-terrain disaster-search robotic dogs.",
+        "sentenceZh": "機器人工程師分析了哺乳類四足動物的步態，以設計出靈活的全地形救災搜救機器狗。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Robotics engineers",
+              "role": "主詞 (Subject)",
+              "note": "機器人工程師。"
+            },
+            {
+              "part": "analyzed mammalian quadrupeds",
+              "role": "動詞與受詞",
+              "note": "分析哺乳四足動物。"
+            },
+            {
+              "part": "to design agile all-terrain robotic dogs",
+              "role": "目的狀語",
+              "note": "設計全地形機器狗。"
+            }
+          ],
+          "keyPoints": [
+            "【生物對比】：biped (兩足動物，如人) vs. quadruped (四足動物，如馬、狗)。"
+          ]
+        }
+      },
+      {
+        "word": "millipede",
+        "kk": "[ˈmɪləˌpid]",
+        "ipa": "/ˈmɪlɪpiːd/",
+        "pos": "n.",
+        "meaning": "馬陸、千足蟲 (節肢動物)",
+        "formula": {
+          "parts": [
+            {
+              "text": "milli-",
+              "role": "prefix",
+              "meaning": "千 (thousand)"
+            },
+            {
+              "text": "ped",
+              "role": "root",
+              "meaning": "腳 (foot)"
+            }
+          ],
+          "resultMeaning": "軀幹環節長滿宛如千隻足肢細密爬行之節肢生物 ➔「千足蟲、馬陸」"
+        },
+        "sentence": "When threatened by predators, the harmless woodland millipede coils its segmented body into a tight spiral.",
+        "sentenceZh": "當受到掠食者威脅時，無害的森林馬陸會將其多節身體蜷曲成緊密的螺旋球狀。",
+        "grammar": {
+          "pattern": "Adv Clause of Time (When...) + S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "When threatened by predators",
+              "role": "時間狀語 (過去分詞省略句)",
+              "note": "受掠食者威脅時。"
+            },
+            {
+              "part": "the harmless woodland millipede",
+              "role": "主詞 (Subject)",
+              "note": "無害森林馬陸。"
+            },
+            {
+              "part": "coils its segmented body",
+              "role": "動詞與受詞",
+              "note": "蜷曲分節身體。"
+            },
+            {
+              "part": "into a tight spiral",
+              "role": "結果介系詞片語",
+              "note": "成緊密螺旋。"
+            }
+          ],
+          "keyPoints": [
+            "【多足綱辨析】：centipede (蜈蚣，每節一對足，肉食有毒) vs. millipede (馬陸，每節兩對足，植食無毒)。"
+          ]
+        }
+      },
+      {
+        "word": "arthropod",
+        "kk": "[ˈɑrθrəˌpɑd]",
+        "ipa": "/ˈɑːrθrəpɑːd/",
+        "pos": "n.",
+        "meaning": "節肢動物 (昆蟲、甲殼類、蛛形綱動物)",
+        "formula": {
+          "parts": [
+            {
+              "text": "arthro-",
+              "role": "root",
+              "meaning": "關節 (希臘語 arthron)"
+            },
+            {
+              "text": "pod (ped)",
+              "role": "root",
+              "meaning": "足 (foot)"
+            }
+          ],
+          "resultMeaning": "足肢由活動自如的多個分節關節相連而成之無脊椎動物 ➔「節肢動物」"
+        },
+        "sentence": "Arthropods represent the most taxonomically diverse animal phylum on Earth, encompassing over eighty percent of described species.",
+        "sentenceZh": "節肢動物是地球上分類學最多元豐富的動物門，涵蓋了已描述物種的百分之八十以上。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Arthropods",
+              "role": "主詞 (Subject)",
+              "note": "節肢動物。"
+            },
+            {
+              "part": "represent the most taxonomically diverse phylum",
+              "role": "動詞與受詞",
+              "note": "代表最多元動物門。"
+            },
+            {
+              "part": "on Earth",
+              "role": "地點狀語",
+              "note": "在地球上。"
+            },
+            {
+              "part": "encompassing over eighty percent of described species",
+              "role": "現在分詞伴隨數據",
+              "note": "涵蓋逾八成物種。"
+            }
+          ],
+          "keyPoints": [
+            "【動物學大門】：Phylum Arthropoda (節肢動物門)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -11414,6 +32031,625 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【高頻慣用片語】：create / cause a sensation 表「引起社會轟動」。",
             "【派生形容詞】：sensational (轟動的、聳人聽聞的)。"
+          ]
+        }
+      },
+      {
+        "word": "sensory",
+        "kk": "[ˈsɛnsərɪ]",
+        "ipa": "/ˈsensəri/",
+        "pos": "adj.",
+        "meaning": "感覺的、感官的、傳遞感覺的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感覺"
+            },
+            {
+              "text": "-ory",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "與眼睛、耳朵等身體感官接收刺激相關的 ➔「感官的」"
+        },
+        "sentence": "Virtual reality headsets provide rich sensory immersion through spatial audio and high-resolution visuals.",
+        "sentenceZh": "虛擬實境頭戴裝置透過空間音訊與高解析度視覺效果提供豐富的感官沉浸體驗。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Virtual reality headsets",
+              "role": "主詞 (Subject)",
+              "note": "VR 頭戴裝置。"
+            },
+            {
+              "part": "provide",
+              "role": "及物動詞 (Verb)",
+              "note": "提供。"
+            },
+            {
+              "part": "rich sensory immersion",
+              "role": "受詞 (Object)",
+              "note": "豐富感官沉浸感。"
+            },
+            {
+              "part": "through spatial audio and visuals",
+              "role": "方式介系詞片語",
+              "note": "透過空間音訊與畫面。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞搭配】：sensory overload (感官超載)、sensory input (感官輸入)。"
+          ]
+        }
+      },
+      {
+        "word": "sensational",
+        "kk": "[sɛnˈseʃən!]",
+        "ipa": "/senˈseɪʃənl/",
+        "pos": "adj.",
+        "meaning": "轟動的、引起譁然的、極好的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感覺"
+            },
+            {
+              "text": "-ation",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "激起大眾感官與情緒強烈震撼的 ➔「轟動的」"
+        },
+        "sentence": "The prodigy delivered a sensational violin concert that captivated classical music critics worldwide.",
+        "sentenceZh": "這位神童演出了一場轟動非凡的小提琴音樂會，深深吸引了全球古典樂評人。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The prodigy",
+              "role": "主詞 (Subject)",
+              "note": "音樂神童。"
+            },
+            {
+              "part": "delivered a sensational concert",
+              "role": "動詞與受詞",
+              "note": "deliver a concert (演出音樂會)。"
+            },
+            {
+              "part": "that captivated critics worldwide",
+              "role": "關係子句修飾 concert",
+              "note": "captivate (迷住、折服)。"
+            }
+          ],
+          "keyPoints": [
+            "【新聞用語】：sensational journalism (煽情新聞報導)。"
+          ]
+        }
+      },
+      {
+        "word": "insensible",
+        "kk": "[ɪnˈsɛnsəb!]",
+        "ipa": "/ɪnˈsensəbl/",
+        "pos": "adj.",
+        "meaning": "無知覺的、麻木的、未察覺的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感覺"
+            },
+            {
+              "text": "-ible",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "喪失知覺能力或者對他人痛苦毫無反應的 ➔「無知覺的、麻木不仁的」"
+        },
+        "sentence": "Hypothermia caused the lost hiker to become insensible to the biting alpine winds.",
+        "sentenceZh": "失溫使得迷路的登山客對刺骨的高山強風失去了知覺。",
+        "grammar": {
+          "pattern": "S + Vt (caused) + O + to-V (to become insensible to O)",
+          "breakdown": [
+            {
+              "part": "Hypothermia",
+              "role": "主詞 (Subject)",
+              "note": "失溫症。"
+            },
+            {
+              "part": "caused the hiker to become insensible",
+              "role": "使役結構 cause + O + to V",
+              "note": "使變成麻木。"
+            },
+            {
+              "part": "to the biting alpine winds",
+              "role": "介系詞片語",
+              "note": "insensible to (對...無知覺)。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：be insensible to (對...無感、失去知覺)。"
+          ]
+        }
+      },
+      {
+        "word": "dissension",
+        "kk": "[dɪˈsɛnʃən]",
+        "ipa": "/dɪˈsenʃn/",
+        "pos": "n.",
+        "meaning": "意見不合、分歧、糾紛衝突",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "分開、相異"
+            },
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感覺、想法"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "眾人想法感受分道揚鑣產生分裂 ➔「意見不合、內鬨」"
+        },
+        "sentence": "Rampant ideological dissension within the governing coalition paralyzed parliamentary deliberations.",
+        "sentenceZh": "執政聯盟內部猖獗的意識形態分歧導致了國會審議陷入癱瘓。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Rampant ideological dissension within the coalition",
+              "role": "主詞 (含修飾語)",
+              "note": "蔓延的分歧。"
+            },
+            {
+              "part": "paralyzed",
+              "role": "及物動詞 (Verb)",
+              "note": "使癱瘓。"
+            },
+            {
+              "part": "parliamentary deliberations",
+              "role": "受詞 (Object)",
+              "note": "國會審議。"
+            }
+          ],
+          "keyPoints": [
+            "【政治字彙】：internal dissension (內部紛爭、起鬨)。"
+          ]
+        }
+      },
+      {
+        "word": "presentiment",
+        "kk": "[prɪˈzɛntəmənt]",
+        "ipa": "/prɪˈzentɪmənt/",
+        "pos": "n.",
+        "meaning": "預感、不祥的前兆",
+        "formula": {
+          "parts": [
+            {
+              "text": "prae- (pre-)",
+              "role": "prefix",
+              "meaning": "預先"
+            },
+            {
+              "text": "sent (sens)",
+              "role": "root",
+              "meaning": "感覺"
+            },
+            {
+              "text": "-ment",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "在事情尚未發生前心中所浮現的不祥感受 ➔「預感、凶兆前感」"
+        },
+        "sentence": "A chilling presentiment warned the captain not to sail his vessel into the brewing hurricane.",
+        "sentenceZh": "一股不寒而慄的預感警告船長不要將船隻駛入正在醞釀的颶風中。",
+        "grammar": {
+          "pattern": "S + Vt + O + not to-V + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "A chilling presentiment",
+              "role": "主詞 (Subject)",
+              "note": "令人心寒的預感。"
+            },
+            {
+              "part": "warned the captain not to sail",
+              "role": "動詞句型 warn sb not to V",
+              "note": "告誡勿駛入。"
+            },
+            {
+              "part": "into the brewing hurricane",
+              "role": "地點狀語",
+              "note": "brewing (醞釀中的)。"
+            }
+          ],
+          "keyPoints": [
+            "【心理字彙】：presentiment 多指對危險或災難的預感 (foreboding)。"
+          ]
+        }
+      },
+      {
+        "word": "assent",
+        "kk": "[əˈsɛnt]",
+        "ipa": "/əˈsent/",
+        "pos": "v. / n.",
+        "meaning": "同意、贊成、准許；(n.) 贊同",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (as-)",
+              "role": "prefix",
+              "meaning": "朝向、貼合"
+            },
+            {
+              "text": "sent (sens)",
+              "role": "root",
+              "meaning": "感覺、心意"
+            }
+          ],
+          "resultMeaning": "心意與他人感覺相投給予支持 ➔「贊成、同意」"
+        },
+        "sentence": "The monarch formally gave royal assent to the historic environmental protection statute.",
+        "sentenceZh": "君主正式對這項具歷史意義的環境保護法案予以御准同意。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase (to...)",
+          "breakdown": [
+            {
+              "part": "The monarch",
+              "role": "主詞 (Subject)",
+              "note": "君主。"
+            },
+            {
+              "part": "formally gave royal assent",
+              "role": "動詞與受詞",
+              "note": "royal assent (英國君主御准)。"
+            },
+            {
+              "part": "to the environmental protection statute",
+              "role": "介系詞片語",
+              "note": "statute (法令)。"
+            }
+          ],
+          "keyPoints": [
+            "【憲政專有名詞】：royal assent (御准，法案生效的最後法定程序)。"
+          ]
+        }
+      },
+      {
+        "word": "sensitization",
+        "kk": "[ˌsɛnsətəˈzeʃən]",
+        "ipa": "/ˌsensətaɪˈzeɪʃn/",
+        "pos": "n.",
+        "meaning": "敏感化、致敏作用",
+        "formula": {
+          "parts": [
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感覺"
+            },
+            {
+              "text": "form",
+              "role": "suffix",
+              "meaning": "使成為"
+            },
+            {
+              "text": "-ation",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "使神經或免疫系統對微量外界刺激產生劇烈反應的過程 ➔「敏感化」"
+        },
+        "sentence": "Repeated exposure to airborne chemical allergens triggered chronic airway sensitization in laboratory workers.",
+        "sentenceZh": "反覆接觸空氣中的化學過敏原引發了實驗室工作人員的慢性呼吸道致敏反應。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Repeated exposure to allergens",
+              "role": "主詞 (Subject)",
+              "note": "反覆接觸過敏原。"
+            },
+            {
+              "part": "triggered",
+              "role": "及物動詞 (Verb)",
+              "note": "引發。"
+            },
+            {
+              "part": "chronic airway sensitization",
+              "role": "受詞 (Object)",
+              "note": "慢性氣道致敏。"
+            },
+            {
+              "part": "in laboratory workers",
+              "role": "介系詞片語",
+              "note": "在實驗室人員中。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學名詞】：sensitization (致敏) vs. desensitization (去敏治療)。"
+          ]
+        }
+      },
+      {
+        "word": "extrasensory",
+        "kk": "[ˌɛkstrəˈsɛnsərɪ]",
+        "ipa": "/ˌekstrəˈsensəri/",
+        "pos": "adj.",
+        "meaning": "超感官的、超感官知覺的 (如第六感)",
+        "formula": {
+          "parts": [
+            {
+              "text": "extra-",
+              "role": "prefix",
+              "meaning": "超出、額外"
+            },
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感官"
+            },
+            {
+              "text": "-ory",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "超越常態五官感知能力之外的知覺 ➔「超感官的」"
+        },
+        "sentence": "Parapsychologists conducted double-blind trials to investigate claims of extrasensory perception.",
+        "sentenceZh": "超心理學家進行了雙盲實驗，以調查有關超感官知覺 (第六感) 的聲稱。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Parapsychologists",
+              "role": "主詞 (Subject)",
+              "note": "超心理學家。"
+            },
+            {
+              "part": "conducted double-blind trials",
+              "role": "動詞與受詞",
+              "note": "執行雙盲試驗。"
+            },
+            {
+              "part": "to investigate claims of extrasensory perception",
+              "role": "目的狀語",
+              "note": "ESP (超感官知覺)。"
+            }
+          ],
+          "keyPoints": [
+            "【縮寫熱詞】：ESP = Extrasensory Perception (超感官知覺、心電感應)。"
+          ]
+        }
+      },
+      {
+        "word": "sententious",
+        "kk": "[sɛnˈtɛnʃəs]",
+        "ipa": "/senˈtenʃəs/",
+        "pos": "adj.",
+        "meaning": "說教式的、自命不凡愛講大道理的、警句般的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sent (sens)",
+              "role": "root",
+              "meaning": "感受、思想、格言 (sentence 原義)"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "充滿...的"
+            }
+          ],
+          "resultMeaning": "滿口高傲格言與說教訓斥意味的 ➔「說教氣味的」"
+        },
+        "sentence": "The arrogant critic annoyed colleagues with his patronizing, sententious lectures on journalistic ethics.",
+        "sentenceZh": "這位傲慢的評論家以其屈尊俯就且滿口說教的新聞倫理長篇大論惹惱了同仁。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "The arrogant critic",
+              "role": "主詞 (Subject)",
+              "note": "傲慢批評家。"
+            },
+            {
+              "part": "annoyed colleagues",
+              "role": "動詞與受詞",
+              "note": "惹惱同事。"
+            },
+            {
+              "part": "with his patronizing, sententious lectures",
+              "role": "方式狀語",
+              "note": "說教式演講。"
+            }
+          ],
+          "keyPoints": [
+            "【文學風格】：sententious remark (警句格言式發言、老生常談的說教)。"
+          ]
+        }
+      },
+      {
+        "word": "resentment",
+        "kk": "[rɪˈzɛntmənt]",
+        "ipa": "/rɪˈzentmənt/",
+        "pos": "n.",
+        "meaning": "憤恨、怨恨、不滿",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "一再、反覆"
+            },
+            {
+              "text": "sent (sens)",
+              "role": "root",
+              "meaning": "感受"
+            },
+            {
+              "text": "-ment",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "在心中反覆咀嚼受辱之痛苦與不平 ➔「怨恨、積怨」"
+        },
+        "sentence": "Unfair promotion practices bred deep-seated resentment among hard-working junior engineers.",
+        "sentenceZh": "不公平的升遷體系在辛勤工作的初階工程師之間滋生了根深蒂固的怨懟不滿。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Unfair promotion practices",
+              "role": "主詞 (Subject)",
+              "note": "不公升遷慣例。"
+            },
+            {
+              "part": "bred",
+              "role": "及物動詞 (breed 的過去式)",
+              "note": "滋生、孕育。"
+            },
+            {
+              "part": "deep-seated resentment",
+              "role": "受詞 (Object)",
+              "note": "深層怨恨。"
+            },
+            {
+              "part": "among junior engineers",
+              "role": "介系詞片語",
+              "note": "在初階工程師間。"
+            }
+          ],
+          "keyPoints": [
+            "【形容詞衍生】：resentful (充滿怨恨的), resent (動詞：怨恨)。"
+          ]
+        }
+      },
+      {
+        "word": "sensual",
+        "kk": "[ˈsɛnʃʊəl]",
+        "ipa": "/ˈsenʃuəl/",
+        "pos": "adj.",
+        "meaning": "感官享受的、肉體慾望的、性感的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感覺、肉體感受"
+            },
+            {
+              "text": "-ual",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "偏向肉體本能與感官慾望享樂的 ➔「肉體感官的」"
+        },
+        "sentence": "Ancient banquets offered lavish sensual pleasures ranging from exotic perfumes to sumptuous delicacies.",
+        "sentenceZh": "古代宮廷盛宴提供了從異國香氛到奢華佳餚等極致的感官肉體享受。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (ranging from A to B)",
+          "breakdown": [
+            {
+              "part": "Ancient banquets",
+              "role": "主詞 (Subject)",
+              "note": "古代宴席。"
+            },
+            {
+              "part": "offered",
+              "role": "及物動詞 (Verb)",
+              "note": "提供。"
+            },
+            {
+              "part": "lavish sensual pleasures",
+              "role": "受詞 (Object)",
+              "note": "奢華感官享受。"
+            },
+            {
+              "part": "ranging from exotic perfumes to sumptuous delicacies",
+              "role": "分詞片語修飾 pleasures",
+              "note": "range from A to B。"
+            }
+          ],
+          "keyPoints": [
+            "【易混辨析】：sensual (肉慾感官享樂) vs. sensuous (藝術美感給予感官的愉悅)。"
+          ]
+        }
+      },
+      {
+        "word": "sensuous",
+        "kk": "[ˈsɛnʃʊəs]",
+        "ipa": "/ˈsenʃuəs/",
+        "pos": "adj.",
+        "meaning": "給予感官愉悅的、審美愉快的、富有美感的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sens",
+              "role": "root",
+              "meaning": "感覺"
+            },
+            {
+              "text": "-uous",
+              "role": "suffix",
+              "meaning": "富有...特質的"
+            }
+          ],
+          "resultMeaning": "由藝術、詩歌、音樂引發令人沉醉之美感感受 ➔「富有美感愉悅的」"
+        },
+        "sentence": "Keats was celebrated for his sensuous poetry, rich with evocative imagery of ripening autumn fruit.",
+        "sentenceZh": "濟慈因其富有感官美感的詩歌而聞名遐邇，詩篇充滿了成熟秋實的動人意象。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase + Adj Phrase (rich with...)",
+          "breakdown": [
+            {
+              "part": "Keats",
+              "role": "主詞 (Subject)",
+              "note": "詩人濟慈。"
+            },
+            {
+              "part": "was celebrated for his sensuous poetry",
+              "role": "被動態謂語",
+              "note": "be celebrated for (因...受讚頌)。"
+            },
+            {
+              "part": "rich with evocative imagery of ripening fruit",
+              "role": "形容詞片語後位修飾",
+              "note": "富含豐富意象。"
+            }
+          ],
+          "keyPoints": [
+            "【文學專詞】：sensuous imagery (充滿色香味觸視覺美感的感官意象)。"
           ]
         }
       }
@@ -11739,6 +32975,655 @@ const ETYMO_DATA = [
             "【衍生詞】：finalize (使定案)、finally (最終)。"
           ]
         }
+      },
+      {
+        "word": "finite",
+        "kk": "[ˈfaɪnaɪt]",
+        "ipa": "/ˈfaɪnaɪt/",
+        "pos": "adj.",
+        "meaning": "有限的、有邊界的",
+        "formula": {
+          "parts": [
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "界限、終點"
+            },
+            {
+              "text": "-ite",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "具有明確邊界或數量限額的 ➔「有限的」"
+        },
+        "sentence": "Because fossil fuels are finite planetary resources, transitioning to renewable energy is imperative.",
+        "sentenceZh": "由於化石燃料是地球有限的資源，向再生能源轉型勢在必行。",
+        "grammar": {
+          "pattern": "Adv Clause of Reason (Because...) + S + Linking Verb + SC (imperative)",
+          "breakdown": [
+            {
+              "part": "Because fossil fuels are finite planetary resources",
+              "role": "原因副詞子句",
+              "note": "有限資源。"
+            },
+            {
+              "part": "transitioning to renewable energy",
+              "role": "動名詞片語當主詞",
+              "note": "能源轉型。"
+            },
+            {
+              "part": "is",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "imperative",
+              "role": "主詞補語 (形容詞)",
+              "note": "迫切且必要的。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：infinite (無限的、無窮無盡的)。"
+          ]
+        }
+      },
+      {
+        "word": "infinity",
+        "kk": "[ɪnˈfɪnətɪ]",
+        "ipa": "/ɪnˈfɪnəti/",
+        "pos": "n.",
+        "meaning": "無限、無窮大、無盡空間",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "無、不"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "界限"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "完全沒有盡頭邊界之浩瀚存在 ➔「無限、無窮」"
+        },
+        "sentence": "Theoretical astrophysicists grapple with the mathematical enigma of density reaching infinity at black hole singularities.",
+        "sentenceZh": "理論天體物理學家正在努力應對密度在黑洞奇異點達到無限大這項數學謎團。",
+        "grammar": {
+          "pattern": "S + Vi (grapple with) + O + Prep Phrase + Participle Clause",
+          "breakdown": [
+            {
+              "part": "Theoretical astrophysicists",
+              "role": "主詞 (Subject)",
+              "note": "天體物理學家。"
+            },
+            {
+              "part": "grapple with",
+              "role": "動詞片語 (Verb)",
+              "note": "努力解決應對。"
+            },
+            {
+              "part": "the mathematical enigma",
+              "role": "受詞 (Object)",
+              "note": "數學謎團。"
+            },
+            {
+              "part": "of density reaching infinity",
+              "role": "介系詞與動名詞複合結構",
+              "note": "密度趨近無窮大。"
+            }
+          ],
+          "keyPoints": [
+            "【符號】：數學上的無窮大符號 ∞ 稱為 lemniscate。"
+          ]
+        }
+      },
+      {
+        "word": "affinity",
+        "kk": "[əˈfɪnətɪ]",
+        "ipa": "/əˈfɪnəti/",
+        "pos": "n.",
+        "meaning": "喜愛、親和力、密切親近關係",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad- (af-)",
+              "role": "prefix",
+              "meaning": "靠近、朝向"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "邊界、鄰近 (border)"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "邊界接壤緊靠，進而產生親善好感 ➔「親近感、親和力」"
+        },
+        "sentence": "The marine biologist showed a natural affinity for cetaceans, effortlessly interpreting dolphin vocalizations.",
+        "sentenceZh": "這位海洋生物學家對鯨豚類動物展現出與生俱來的親近喜愛，能毫不費力地解讀海豚的叫聲。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Adv Clause (Participle)",
+          "breakdown": [
+            {
+              "part": "The marine biologist",
+              "role": "主詞 (Subject)",
+              "note": "海洋生物學家。"
+            },
+            {
+              "part": "showed a natural affinity for cetaceans",
+              "role": "動詞與受詞",
+              "note": "have an affinity for (喜愛...)。"
+            },
+            {
+              "part": "effortlessly interpreting dolphin vocalizations",
+              "role": "伴隨分詞片語",
+              "note": "輕鬆解讀鳴聲。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：have an affinity for / with (喜愛...、與...有親和力)。"
+          ]
+        }
+      },
+      {
+        "word": "definitive",
+        "kk": "[dɪˈfɪnətɪv]",
+        "ipa": "/dɪˈfɪnətɪv/",
+        "pos": "adj.",
+        "meaning": "決定性的、權威最終的、不可撼動的",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "徹底"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "限制、界線"
+            },
+            {
+              "text": "-itive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "劃定最清楚界限不再有爭辯空間的 ➔「決定性的、最權威的」"
+        },
+        "sentence": "Historians consider her two-volume biography to be the definitive account of the French Revolution.",
+        "sentenceZh": "歷史學家認為她兩卷本的傳記是對法國大革命最權威完備的記述。",
+        "grammar": {
+          "pattern": "S + Vt (consider) + O + to be + Complement",
+          "breakdown": [
+            {
+              "part": "Historians",
+              "role": "主詞 (Subject)",
+              "note": "歷史學家。"
+            },
+            {
+              "part": "consider her biography to be",
+              "role": "及物動詞複合結構",
+              "note": "consider A to be B。"
+            },
+            {
+              "part": "the definitive account of the French Revolution",
+              "role": "補語",
+              "note": "權威記述。"
+            }
+          ],
+          "keyPoints": [
+            "【重要搭配】：definitive edition (權威定本), definitive answer (最終決定性答覆)。"
+          ]
+        }
+      },
+      {
+        "word": "infinitesimal",
+        "kk": "[ˌɪnfɪnəˈtɛsəm!]",
+        "ipa": "/ˌɪnfɪnɪˈtesɪml/",
+        "pos": "adj.",
+        "meaning": "極微小的、無限小的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "不、無"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "邊界、限制"
+            },
+            {
+              "text": "-esimal",
+              "role": "suffix",
+              "meaning": "分數序數字尾"
+            }
+          ],
+          "resultMeaning": "劃分成無限多等份以至於細小如微塵的 ➔「極微小的」"
+        },
+        "sentence": "Even an infinitesimal miscalculation in rocket trajectory during reentry could precipitate catastrophic failure.",
+        "sentenceZh": "重返大氣層期間火箭軌道即使出現極微小的計算偏差，也可能引發災難性後果。",
+        "grammar": {
+          "pattern": "S + Modal (could) + Vt + O",
+          "breakdown": [
+            {
+              "part": "Even an infinitesimal miscalculation in trajectory",
+              "role": "主詞 (Subject)",
+              "note": "微小計算誤差。"
+            },
+            {
+              "part": "during reentry",
+              "role": "時間狀語",
+              "note": "重返大氣層時。"
+            },
+            {
+              "part": "could precipitate",
+              "role": "及物動詞片語",
+              "note": "precipitate (加速引發)。"
+            },
+            {
+              "part": "catastrophic failure",
+              "role": "受詞 (Object)",
+              "note": "災難性失敗。"
+            }
+          ],
+          "keyPoints": [
+            "【高級詞彙】：infinitesimal margin of error (極其微小的容錯空間)。"
+          ]
+        }
+      },
+      {
+        "word": "finesse",
+        "kk": "[fəˈnɛs]",
+        "ipa": "/fɪˈnes/",
+        "pos": "n. / v.",
+        "meaning": "高超技巧、圓滑手腕；(v.) 巧妙處理",
+        "formula": {
+          "parts": [
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "精緻、終點 (fine 之派生)"
+            },
+            {
+              "text": "-esse",
+              "role": "suffix",
+              "meaning": "名詞字尾 (法語借詞)"
+            }
+          ],
+          "resultMeaning": "手法細緻高妙毫無瑕疵之純熟功力 ➔「精準技巧、手腕」"
+        },
+        "sentence": "The seasoned diplomat negotiated the hostage release with remarkable diplomatic finesse and composure.",
+        "sentenceZh": "這位經驗豐富的外交官以非凡的外交手腕與沉著冷靜談成了人質釋放。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Manner",
+          "breakdown": [
+            {
+              "part": "The seasoned diplomat",
+              "role": "主詞 (Subject)",
+              "note": "資深外交官。"
+            },
+            {
+              "part": "negotiated",
+              "role": "及物動詞 (Verb)",
+              "note": "談判談成。"
+            },
+            {
+              "part": "the hostage release",
+              "role": "受詞 (Object)",
+              "note": "人質釋放。"
+            },
+            {
+              "part": "with remarkable diplomatic finesse and composure",
+              "role": "方式狀語",
+              "note": "手腕與沉著。"
+            }
+          ],
+          "keyPoints": [
+            "【成語搭配】：handle something with finesse (以高超嫻熟的手腕處理某事)。"
+          ]
+        }
+      },
+      {
+        "word": "refine",
+        "kk": "[rɪˈfaɪn]",
+        "ipa": "/rɪˈfaɪn/",
+        "pos": "v.",
+        "meaning": "提煉、精煉、琢磨完善",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再、反覆"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "精純、終點 (fine)"
+            }
+          ],
+          "resultMeaning": "反覆洗滌篩選使之臻於純淨完美 ➔「提煉、琢磨」"
+        },
+        "sentence": "Engineers continually refine machine learning algorithms to minimize latency in real-time language translation.",
+        "sentenceZh": "工程師持續改進機器學習演算法，以最大程度減少即時語言翻譯中的延遲。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Engineers",
+              "role": "主詞 (Subject)",
+              "note": "工程師。"
+            },
+            {
+              "part": "continually refine",
+              "role": "動詞片語",
+              "note": "持續優化精進。"
+            },
+            {
+              "part": "machine learning algorithms",
+              "role": "受詞 (Object)",
+              "note": "機器學習演算法。"
+            },
+            {
+              "part": "to minimize latency",
+              "role": "目的狀語",
+              "note": "降低延遲。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：refinery (提煉廠、煉油廠), refinement (精緻、改良)。"
+          ]
+        }
+      },
+      {
+        "word": "refinement",
+        "kk": "[rɪˈfaɪnmənt]",
+        "ipa": "/rɪˈfaɪnmənt/",
+        "pos": "n.",
+        "meaning": "高雅彬彬有禮、精緻、精益求精的改進",
+        "formula": {
+          "parts": [
+            {
+              "text": "refine",
+              "role": "base",
+              "meaning": "精煉"
+            },
+            {
+              "text": "-ment",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "舉止談吐或工藝技術達到無懈可擊之純化境界 ➔「高雅、精緻」"
+        },
+        "sentence": "Years of cultural immersion imbued her writing with subtle elegance and emotional refinement.",
+        "sentenceZh": "多年的文化薰陶讓她的文字充滿了含蓄的優雅與細膩的情感境界。",
+        "grammar": {
+          "pattern": "S + Vt (imbued A with B)",
+          "breakdown": [
+            {
+              "part": "Years of cultural immersion",
+              "role": "主詞 (Subject)",
+              "note": "多年文化沉浸。"
+            },
+            {
+              "part": "imbued her writing",
+              "role": "動詞與受詞 A",
+              "note": "imbue A with B (使 A 充滿 B)。"
+            },
+            {
+              "part": "with subtle elegance and emotional refinement",
+              "role": "介系詞受詞 B",
+              "note": "優雅與細膩。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：imbue someone/something with something (灌輸、使充滿)。"
+          ]
+        }
+      },
+      {
+        "word": "unconfined",
+        "kk": "[ˌʌnkənˈfaɪnd]",
+        "ipa": "/ˌʌnkənˈfaɪnd/",
+        "pos": "adj.",
+        "meaning": "未被限制拘禁的、自由不受束縛的",
+        "formula": {
+          "parts": [
+            {
+              "text": "un-",
+              "role": "prefix",
+              "meaning": "無、未"
+            },
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "邊界、牢籠"
+            }
+          ],
+          "resultMeaning": "未被拘禁在四周邊界高牆內的 ➔「不受束縛的、自由的」"
+        },
+        "sentence": "Wild mustang herds galloped across the vast plateau, exulting in unconfined wilderness freedom.",
+        "sentenceZh": "野生野馬群在廣袤的高原上奔馳，沉醉在無拘無束的荒野自由之中。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase + Participle Phrase of Result",
+          "breakdown": [
+            {
+              "part": "Wild mustang herds",
+              "role": "主詞 (Subject)",
+              "note": "野馬群。"
+            },
+            {
+              "part": "galloped",
+              "role": "不及物動詞 (Verb)",
+              "note": "飛馳。"
+            },
+            {
+              "part": "across the vast plateau",
+              "role": "地點狀語",
+              "note": "穿越高原。"
+            },
+            {
+              "part": "exulting in unconfined freedom",
+              "role": "現在分詞伴隨狀語",
+              "note": "exult in (狂喜沉醉於)。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞反差】：confine (限制、監禁) ➔ unconfined (自由自在的)。"
+          ]
+        }
+      },
+      {
+        "word": "definition",
+        "kk": "[ˌdɛfəˈnɪʃən]",
+        "ipa": "/ˌdefɪˈnɪʃn/",
+        "pos": "n.",
+        "meaning": "定義、清晰度、解析度",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "徹底"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "邊界"
+            },
+            {
+              "text": "-ition",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "清楚劃清詞意邊界或影像邊緣線條 ➔「定義、解析度」"
+        },
+        "sentence": "Modern OLED screens deliver exceptional definition by turning off individual pixels to achieve true blacks.",
+        "sentenceZh": "現代 OLED 螢幕透過關閉個別像素來實現純黑，從而呈現卓越的清晰解析度。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means + Infinitive of Result",
+          "breakdown": [
+            {
+              "part": "Modern OLED screens",
+              "role": "主詞 (Subject)",
+              "note": "OLED 螢幕。"
+            },
+            {
+              "part": "deliver exceptional definition",
+              "role": "動詞與受詞",
+              "note": "呈現卓越清晰度。"
+            },
+            {
+              "part": "by turning off individual pixels",
+              "role": "方式狀語",
+              "note": "藉由關閉像素。"
+            },
+            {
+              "part": "to achieve true blacks",
+              "role": "目的/結果狀語",
+              "note": "達成純黑。"
+            }
+          ],
+          "keyPoints": [
+            "【科技詞彙】：high-definition (高解析度，HD)。"
+          ]
+        }
+      },
+      {
+        "word": "finishing",
+        "kk": "[ˈfɪnɪʃɪŋ]",
+        "ipa": "/ˈfɪnɪʃɪŋ/",
+        "pos": "n. / adj.",
+        "meaning": "最後潤色裝飾；(adj.) 結束的、終點的",
+        "formula": {
+          "parts": [
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "結束、終點"
+            },
+            {
+              "text": "-ish",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            },
+            {
+              "text": "-ing",
+              "role": "suffix",
+              "meaning": "名詞/形容詞字尾"
+            }
+          ],
+          "resultMeaning": "在作品或賽程末尾完成的最後一道收尾工序 ➔「收尾、最後潤色」"
+        },
+        "sentence": "The master carpenter applied the finishing touches of amber varnish to the bespoke mahogany desk.",
+        "sentenceZh": "這位木工大師為這張訂製紅木書桌施加了最後幾道琥珀色亮光漆收尾潤飾。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (to...)",
+          "breakdown": [
+            {
+              "part": "The master carpenter",
+              "role": "主詞 (Subject)",
+              "note": "木匠大師。"
+            },
+            {
+              "part": "applied the finishing touches",
+              "role": "動詞與受詞片語",
+              "note": "put/apply finishing touches (作最後潤色)。"
+            },
+            {
+              "part": "of amber varnish",
+              "role": "修飾 touches",
+              "note": "琥珀漆。"
+            },
+            {
+              "part": "to the bespoke mahogany desk",
+              "role": "介系詞對象",
+              "note": "訂製書桌。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用成語】：put the finishing touches on/to sth (為某事作最後收尾與潤色)。"
+          ]
+        }
+      },
+      {
+        "word": "definable",
+        "kk": "[dɪˈfaɪnəb!]",
+        "ipa": "/dɪˈfaɪnəbl/",
+        "pos": "adj.",
+        "meaning": "可下定義的、可確定的、界限清楚的",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "徹底"
+            },
+            {
+              "text": "fin",
+              "role": "root",
+              "meaning": "界限"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能...的"
+            }
+          ],
+          "resultMeaning": "能被明確界定釐清其本質與邊界的 ➔「可界定的」"
+        },
+        "sentence": "Unlike abstract metaphysical concepts, kinetic energy is precisely definable through empirical mathematical equations.",
+        "sentenceZh": "與抽象的形上學概念不同，動能可藉由經驗數學方程式給予精確界定。",
+        "grammar": {
+          "pattern": "Prep Phrase (Unlike...) + S + Linking Verb + SC (definable) + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Unlike abstract metaphysical concepts",
+              "role": "對比介系詞片語",
+              "note": "不同於形上學。"
+            },
+            {
+              "part": "kinetic energy",
+              "role": "主詞 (Subject)",
+              "note": "動能。"
+            },
+            {
+              "part": "is precisely definable",
+              "role": "連綴動詞與形容詞補語",
+              "note": "可精確定義。"
+            },
+            {
+              "part": "through empirical equations",
+              "role": "方式介系詞片語",
+              "note": "透過經驗公式。"
+            }
+          ],
+          "keyPoints": [
+            "【詞綴系統】：define (動詞) ➔ definable (可定義的) ➔ indefinable (難以言喻的)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -12057,6 +33942,625 @@ const ETYMO_DATA = [
             "【名詞衍生】：judgment (判斷、判決書，注意英美常拼作 judgment，不帶中間 e)。"
           ]
         }
+      },
+      {
+        "word": "jurisprudence",
+        "kk": "[ˌdʒʊrɪsˈprudns]",
+        "ipa": "/ˌdʒʊrɪsˈpruːdns/",
+        "pos": "n.",
+        "meaning": "法學、法理學、法律哲學",
+        "formula": {
+          "parts": [
+            {
+              "text": "juris",
+              "role": "root",
+              "meaning": "法律 (拉丁語 jus)"
+            },
+            {
+              "text": "prudence",
+              "role": "root",
+              "meaning": "智慧、審慎 (拉丁語 prudentia)"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "探究法律本質與正義哲理的最高智慧學問 ➔「法理學、法學」"
+        },
+        "sentence": "Because the cybercrime crossed international borders, both federal and foreign agencies claimed jurisprudenceion.",
+        "sentenceZh": "憲法學者辯論對立的法理學派，將原意主義與動態活憲法解釋進行對比探討。",
+        "grammar": {
+          "pattern": "Adv Clause of Reason + S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Because the cybercrime crossed international borders",
+              "role": "原因副詞子句",
+              "note": "跨國犯罪。"
+            },
+            {
+              "part": "both federal and foreign agencies",
+              "role": "主詞 (Subject)",
+              "note": "執法機構。"
+            },
+            {
+              "part": "claimed",
+              "role": "及物動詞 (Verb)",
+              "note": "主張。"
+            },
+            {
+              "part": "jurisprudence",
+              "role": "受詞 (Object)",
+              "note": "管轄權。"
+            }
+          ],
+          "keyPoints": [
+            "【法律詞彙】：fall under the jurisprudenceion of... (屬於...管轄範圍)。"
+          ]
+        }
+      },
+      {
+        "word": "perjury",
+        "kk": "[ˈpɝdʒərɪ]",
+        "ipa": "/ˈpɜːrdʒəri/",
+        "pos": "n.",
+        "meaning": "偽證罪、偽誓",
+        "formula": {
+          "parts": [
+            {
+              "text": "per-",
+              "role": "prefix",
+              "meaning": "背離、敗壞 (harmful)"
+            },
+            {
+              "text": "jur",
+              "role": "root",
+              "meaning": "發誓、法律"
+            }
+          ],
+          "resultMeaning": "破壞法律誓言在法庭上公然說謊 ➔「偽證罪」"
+        },
+        "sentence": "The star witness was inprudenceed for perjury after surveillance footage conclusively contraprudenceed her sworn testimony.",
+        "sentenceZh": "在監視器畫面確鑿地推翻了該關鍵證人的宣誓證詞後，她隨即因偽證罪遭到起訴。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase (for perjury) + Adv Clause of Time",
+          "breakdown": [
+            {
+              "part": "The star witness",
+              "role": "主詞 (Subject)",
+              "note": "關鍵證人。"
+            },
+            {
+              "part": "was inprudenceed for perjury",
+              "role": "被動態謂語",
+              "note": "inprudence for (因...遭起訴)。"
+            },
+            {
+              "part": "after surveillance footage contraprudenceed her testimony",
+              "role": "時間副詞子句",
+              "note": "駁斥證詞。"
+            }
+          ],
+          "keyPoints": [
+            "【罪名搭配】：commit perjury (犯偽證罪)。"
+          ]
+        }
+      },
+      {
+        "word": "juror",
+        "kk": "[ˈdʒʊrɚ]",
+        "ipa": "/ˈdʒʊrər/",
+        "pos": "n.",
+        "meaning": "陪審員",
+        "formula": {
+          "parts": [
+            {
+              "text": "jur",
+              "role": "root",
+              "meaning": "發誓"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "宣誓誓言主持公道之陪審團成員 ➔「陪審員」"
+        },
+        "sentence": "During jury selection, attorneys questioned each prospective juror to identify potential systemic biases.",
+        "sentenceZh": "在陪審團遴選期間，律師們盤問每位預選陪審員以查明潛在的既有偏見。",
+        "grammar": {
+          "pattern": "Prep Phrase of Time + S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "During jury selection",
+              "role": "時間介系詞片語",
+              "note": "陪審遴選。"
+            },
+            {
+              "part": "attorneys",
+              "role": "主詞 (Subject)",
+              "note": "律師。"
+            },
+            {
+              "part": "questioned each prospective juror",
+              "role": "及物動詞與受詞",
+              "note": "盤問候選陪審員。"
+            },
+            {
+              "part": "to identify potential systemic biases",
+              "role": "目的狀語",
+              "note": "辨別偏見。"
+            }
+          ],
+          "keyPoints": [
+            "【法律程序】：voir dire (預審陪審員資格審查程序)。"
+          ]
+        }
+      },
+      {
+        "word": "judicial",
+        "kk": "[dʒuˈdɪʃəl]",
+        "ipa": "/dʒuˈdɪʃl/",
+        "pos": "adj.",
+        "meaning": "司法的、法官的、公正審判的",
+        "formula": {
+          "parts": [
+            {
+              "text": "judic- (jur)",
+              "role": "root",
+              "meaning": "裁判、法律"
+            },
+            {
+              "text": "-ial",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "與法院審判運作及司法制度相關的 ➔「司法的」"
+        },
+        "sentence": "The supreme court exercised judicial review to determine whether the congressional statute complied with the constitution.",
+        "sentenceZh": "最高法院行使司法審查權，以判定該國會法令是否符合憲法規定。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose (to determine Whether Clause)",
+          "breakdown": [
+            {
+              "part": "The supreme court",
+              "role": "主詞 (Subject)",
+              "note": "最高法院。"
+            },
+            {
+              "part": "exercised judicial review",
+              "role": "動詞與受詞",
+              "note": "行使司法審查。"
+            },
+            {
+              "part": "to determine whether the statute complied with the constitution",
+              "role": "目的狀語 (含 whether 名詞子句)",
+              "note": "comply with (遵守符合)。"
+            }
+          ],
+          "keyPoints": [
+            "【三權分立】：judicial branch (司法權/司法部門) vs. legislative / executive。"
+          ]
+        }
+      },
+      {
+        "word": "judiciary",
+        "kk": "[dʒuˈdɪʃɪˌɛrɪ]",
+        "ipa": "/dʒuˈdɪʃieri/",
+        "pos": "n.",
+        "meaning": "司法部、司法系統、法官群體",
+        "formula": {
+          "parts": [
+            {
+              "text": "judic- (jur)",
+              "role": "root",
+              "meaning": "法官、法律"
+            },
+            {
+              "text": "-ary",
+              "role": "suffix",
+              "meaning": "機構、集合名詞"
+            }
+          ],
+          "resultMeaning": "國家整體法院與司法人員組織 ➔「司法部、司法機關」"
+        },
+        "sentence": "An independent judiciary serves as an essential constitutional bulwark against executive overreach.",
+        "sentenceZh": "獨立自主的司法機關是抵禦行政權越權擴張至關重要的憲政壁壘。",
+        "grammar": {
+          "pattern": "S + Vi (serves as) + SC + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "An independent judiciary",
+              "role": "主詞 (Subject)",
+              "note": "獨立司法系統。"
+            },
+            {
+              "part": "serves as",
+              "role": "動詞片語 (Verb)",
+              "note": "充當、發揮作用。"
+            },
+            {
+              "part": "an essential constitutional bulwark",
+              "role": "主詞補語",
+              "note": "憲政堡壘 (bulwark)。"
+            },
+            {
+              "part": "against executive overreach",
+              "role": "介系詞片語",
+              "note": "抵禦行政越權。"
+            }
+          ],
+          "keyPoints": [
+            "【政經概念】：judicial independence (司法獨立)。"
+          ]
+        }
+      },
+      {
+        "word": "judicious",
+        "kk": "[dʒuˈdɪʃəs]",
+        "ipa": "/dʒuˈdɪʃəs/",
+        "pos": "adj.",
+        "meaning": "明智的、深思熟慮有見地的、審慎判斷的",
+        "formula": {
+          "parts": [
+            {
+              "text": "judic- (jur)",
+              "role": "root",
+              "meaning": "判斷、裁判"
+            },
+            {
+              "text": "-ious",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "如同法官斷案般洞察秋毫明智深審的 ➔「明智深審的」"
+        },
+        "sentence": "Through judicious allocation of reserve capital, the venture fund thrived amid macroeconomic volatility.",
+        "sentenceZh": "藉由對儲備資金的明智審慎配置，該創投基金在總體經濟波動中蓬勃發展。",
+        "grammar": {
+          "pattern": "Prep Phrase of Means + S + Vi + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Through judicious allocation of reserve capital",
+              "role": "方式狀語",
+              "note": "明智資金配置。"
+            },
+            {
+              "part": "the venture fund",
+              "role": "主詞 (Subject)",
+              "note": "創投基金。"
+            },
+            {
+              "part": "thrived",
+              "role": "不及物動詞 (Verb)",
+              "note": "蓬勃成長。"
+            },
+            {
+              "part": "amid macroeconomic volatility",
+              "role": "環境介系詞片語",
+              "note": "在總體波動中。"
+            }
+          ],
+          "keyPoints": [
+            "【商業高頻】：judicious decision (明智審慎的決策)。"
+          ]
+        }
+      },
+      {
+        "word": "abjure",
+        "kk": "[æbˈdʒʊr]",
+        "ipa": "/æbˈdʒʊr/",
+        "pos": "v.",
+        "meaning": "公開發誓放棄、斷絕、宣誓棄絕",
+        "formula": {
+          "parts": [
+            {
+              "text": "ab-",
+              "role": "prefix",
+              "meaning": "離開、遠離"
+            },
+            {
+              "text": "jur",
+              "role": "root",
+              "meaning": "發誓"
+            }
+          ],
+          "resultMeaning": "莊嚴發誓從此與過去信條遠離永不再犯 ➔「發誓放棄、棄絕」"
+        },
+        "sentence": "Under inquisitorial duress, the astronomer was compelled to abjure his heliocentric doctrines.",
+        "sentenceZh": "在宗教裁判所的脅迫之下，這位天文學家被迫發誓棄絕其日心說主張。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Passive Verb + to-V (to abjure O)",
+          "breakdown": [
+            {
+              "part": "Under inquisitorial duress",
+              "role": "條件狀語",
+              "note": "duress (脅迫、強迫)。"
+            },
+            {
+              "part": "the astronomer",
+              "role": "主詞 (Subject)",
+              "note": "天文學家。"
+            },
+            {
+              "part": "was compelled to abjure",
+              "role": "被動使役結構",
+              "note": "被迫棄絕。"
+            },
+            {
+              "part": "his heliocentric doctrines",
+              "role": "受詞 (Object)",
+              "note": "日心說學說。"
+            }
+          ],
+          "keyPoints": [
+            "【GRE高頻詞】：abjure (發誓放棄信仰或權利)。"
+          ]
+        }
+      },
+      {
+        "word": "adjure",
+        "kk": "[əˈdʒʊr]",
+        "ipa": "/əˈdʒʊr/",
+        "pos": "v.",
+        "meaning": "懇請、嚴令、要求...發誓",
+        "formula": {
+          "parts": [
+            {
+              "text": "ad-",
+              "role": "prefix",
+              "meaning": "朝向、施加"
+            },
+            {
+              "text": "jur",
+              "role": "root",
+              "meaning": "誓言、發誓"
+            }
+          ],
+          "resultMeaning": "以上帝或法律誓言嚴肅懇求指令某人 ➔「懇請、嚴令」"
+        },
+        "sentence": "The defense attorney adjured the witness to reveal the full truth without omitting critical evidence.",
+        "sentenceZh": "辯護律師鄭重懇求該名證人說出全盤真相，切勿隱瞞關鍵證據。",
+        "grammar": {
+          "pattern": "S + Vt (adjured) + O + to-V + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The defense attorney",
+              "role": "主詞 (Subject)",
+              "note": "辯護律師。"
+            },
+            {
+              "part": "adjured the witness to reveal",
+              "role": "動詞句型 adjure sb to V",
+              "note": "懇請揭露。"
+            },
+            {
+              "part": "the full truth",
+              "role": "受詞 (Object)",
+              "note": "全盤真相。"
+            },
+            {
+              "part": "without omitting critical evidence",
+              "role": "伴隨狀語",
+              "note": "不隱瞞證據。"
+            }
+          ],
+          "keyPoints": [
+            "【典雅書面語】：adjure + O + to V (懇切請求某人發誓招認)。"
+          ]
+        }
+      },
+      {
+        "word": "conjure",
+        "kk": "[ˈkɑndʒɚ]",
+        "ipa": "/ˈkɑːndʒər/",
+        "pos": "v.",
+        "meaning": "施魔法變出、召喚出、使浮現於腦海",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "jur",
+              "role": "root",
+              "meaning": "發誓、唸咒召喚"
+            }
+          ],
+          "resultMeaning": "集結眾誓咒語召喚精靈或奇蹟景象 ➔「變出、召喚、腦中浮現」"
+        },
+        "sentence": "The author's rich prose conjured evocative images of misty coastal lighthouses and stormy seas.",
+        "sentenceZh": "作者華美的散文使讀者腦海中浮現出霧氣繚繞的海岸燈塔與洶湧風暴之動人景象。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "The author's rich prose",
+              "role": "主詞 (Subject)",
+              "note": "作者生動文筆。"
+            },
+            {
+              "part": "conjured",
+              "role": "及物動詞 (Verb)",
+              "note": "使浮現、變出。"
+            },
+            {
+              "part": "evocative images",
+              "role": "受詞 (Object)",
+              "note": "動人影像。"
+            },
+            {
+              "part": "of misty coastal lighthouses and stormy seas",
+              "role": "所有格修飾語",
+              "note": "燈塔與怒海。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用語】：conjure up memories / images (使回憶或景象浮現腦海)。"
+          ]
+        }
+      },
+      {
+        "word": "injunction",
+        "kk": "[ɪnˈdʒʌŋkʃən]",
+        "ipa": "/ɪnˈdʒʌŋkʃn/",
+        "pos": "n.",
+        "meaning": "法院禁令、強制令、命令警告",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "施加於"
+            },
+            {
+              "text": "junc (jur)",
+              "role": "root",
+              "meaning": "受司法約束 (拉丁語 injungere)"
+            },
+            {
+              "text": "-tion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "法院正式發布強制禁止或執行的法規命令 ➔「禁制令」"
+        },
+        "sentence": "The federal judge granted a preliminary injunction preventing the company from patenting the human gene sequence.",
+        "sentenceZh": "聯邦法官批准了一項初步禁制令，禁止該公司為人類基因序列申請專利。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (preventing O from V-ing)",
+          "breakdown": [
+            {
+              "part": "The federal judge",
+              "role": "主詞 (Subject)",
+              "note": "聯邦法官。"
+            },
+            {
+              "part": "granted a preliminary injunction",
+              "role": "動詞與受詞",
+              "note": "批准禁制令。"
+            },
+            {
+              "part": "preventing the company from patenting genes",
+              "role": "現在分詞片語修飾 injunction",
+              "note": "prevent from V-ing。"
+            }
+          ],
+          "keyPoints": [
+            "【法律高頻詞】：preliminary injunction (假處分、初步禁制令)。"
+          ]
+        }
+      },
+      {
+        "word": "injurious",
+        "kk": "[ɪnˈdʒʊrɪəs]",
+        "ipa": "/ɪnˈdʒʊriəs/",
+        "pos": "adj.",
+        "meaning": "有害的、致傷的、損害名譽的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "無、非"
+            },
+            {
+              "text": "jur",
+              "role": "root",
+              "meaning": "法理、正義"
+            },
+            {
+              "text": "-ious",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "不合正義原則侵害他人身體權利者 ➔「有害損害的」"
+        },
+        "sentence": "Medical researchers warned that sedentary office lifestyles are profoundly injurious to cardiovascular health.",
+        "sentenceZh": "醫學研究人員警告，久坐不動的辦公室生活型態對心血管健康極為有害。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Linking Verb + SC)",
+          "breakdown": [
+            {
+              "part": "Medical researchers",
+              "role": "主詞 (Subject)",
+              "note": "醫學研究員。"
+            },
+            {
+              "part": "warned",
+              "role": "及物動詞 (Verb)",
+              "note": "警告。"
+            },
+            {
+              "part": "that sedentary lifestyles are injurious to health",
+              "role": "受詞名詞子句",
+              "note": "injurious to (對...有害)。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞搭配】：injurious to health / reputation (對健康或聲譽造成損害)。"
+          ]
+        }
+      },
+      {
+        "word": "prejudicial",
+        "kk": "[ˌprɛdʒəˈdɪʃəl]",
+        "ipa": "/ˌpredʒəˈdɪʃl/",
+        "pos": "adj.",
+        "meaning": "有損的、有偏見的、不利的",
+        "formula": {
+          "parts": [
+            {
+              "text": "pre-",
+              "role": "prefix",
+              "meaning": "預先"
+            },
+            {
+              "text": "judic (jur)",
+              "role": "root",
+              "meaning": "裁判、審判"
+            },
+            {
+              "text": "-ial",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "尚未開庭審理便先行判定偏向損害某方利益的 ➔「有偏見的、不利的」"
+        },
+        "sentence": "The defense moved to exclude sensational media reports, arguing they were unduly prejudicial to a fair trial.",
+        "sentenceZh": "辯方動議排除聳動的媒體報導，主張這些報導過度不利於公正審判。",
+        "grammar": {
+          "pattern": "S + Vi + to-V + Participial Clause (arguing That Clause)",
+          "breakdown": [
+            {
+              "part": "The defense",
+              "role": "主詞 (Subject)",
+              "note": "辯方律師。"
+            },
+            {
+              "part": "moved to exclude media reports",
+              "role": "動詞結構",
+              "note": "提出動議排除。"
+            },
+            {
+              "part": "arguing they were prejudicial to a fair trial",
+              "role": "現在分詞伴隨理由",
+              "note": "prejudicial to (對...有害不利)。"
+            }
+          ],
+          "keyPoints": [
+            "【法律程序語】：prejudicial to justice (妨礙司法公正)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -12368,6 +34872,630 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【複數形式】：formula 的複數可為 regular 的 formulas，亦可為拉丁文複數 formulae！",
             "【動詞衍生】：formulate (構思規劃、配製)。"
+          ]
+        }
+      },
+      {
+        "word": "formulate",
+        "kk": "[ˈfɔrmjəˌlet]",
+        "ipa": "/ˈfɔːrmjuleɪt/",
+        "pos": "v.",
+        "meaning": "構想制訂、規劃、用公式明確闡述",
+        "formula": {
+          "parts": [
+            {
+              "text": "formula",
+              "role": "base",
+              "meaning": "公式、規範"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "依循嚴謹架構系統化構思規劃策略方案 ➔「制訂、規劃」"
+        },
+        "sentence": "Economists met behind closed doors to formulate monetary policies designed to curb rampant inflation.",
+        "sentenceZh": "經濟學家舉行閉門會議，以制訂旨在遏制猖獗通膨的貨幣政策。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase of Place + Infinitive of Purpose + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Economists",
+              "role": "主詞 (Subject)",
+              "note": "經濟學家。"
+            },
+            {
+              "part": "met behind closed doors",
+              "role": "不及物動詞與片語",
+              "note": "閉門會晤。"
+            },
+            {
+              "part": "to formulate monetary policies",
+              "role": "目的狀語",
+              "note": "制訂貨幣政策。"
+            },
+            {
+              "part": "designed to curb rampant inflation",
+              "role": "過去分詞片語修飾 policies",
+              "note": "curb (抑制遏阻)。"
+            }
+          ],
+          "keyPoints": [
+            "【商務名詞】：formulate a strategy (擘劃策略方案)。"
+          ]
+        }
+      },
+      {
+        "word": "formalize",
+        "kk": "[ˈfɔrməˌlaɪz]",
+        "ipa": "/ˈfɔːrməlaɪz/",
+        "pos": "v.",
+        "meaning": "使正式化、確立為法定條約、訂立規範",
+        "formula": {
+          "parts": [
+            {
+              "text": "formal",
+              "role": "prefix",
+              "meaning": "正式的"
+            },
+            {
+              "text": "form",
+              "role": "root",
+              "meaning": "使成為"
+            }
+          ],
+          "resultMeaning": "將口頭共識轉變為受法律保障之正式條文規章 ➔「使正式化、定約」"
+        },
+        "sentence": "Both allied nations signed a bilateral communique to formalize their mutual defense cooperation.",
+        "sentenceZh": "兩國盟邦簽署了雙邊公報，以正式確立彼此的共同防衛合作關係。",
+        "grammar": {
+          "pattern": "S + Vt + O (the potential) + to-V (to transform O)",
+          "breakdown": [
+            {
+              "part": "Artificial intelligence algorithms",
+              "role": "主詞 (Subject)",
+              "note": "AI 演算法。"
+            },
+            {
+              "part": "have the potential",
+              "role": "動詞與受詞",
+              "note": "具備潛力。"
+            },
+            {
+              "part": "to transform preventative medicine",
+              "role": "不定詞後位修飾 potential",
+              "note": "徹底變革醫學。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：formalize an agreement / partnership (正式締結協議/夥伴關係)。"
+          ]
+        }
+      },
+      {
+        "word": "transformation",
+        "kk": "[ˌtrænsfɚˈmeʃən]",
+        "ipa": "/ˌtrænsfərˈmeɪʃn/",
+        "pos": "n.",
+        "meaning": "徹底轉型、質變、變形",
+        "formula": {
+          "parts": [
+            {
+              "text": "formalize",
+              "role": "base",
+              "meaning": "轉變"
+            },
+            {
+              "text": "-ation",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "外貌、體制或性質經歷劇烈徹底升級蛻變 ➔「轉型、蛻變」"
+        },
+        "sentence": "The industrial port city underwent a dramatic digital transformation into a high-tech entrepreneurial hub.",
+        "sentenceZh": "這座工業港口城市經歷了劇烈的數位轉型，蛻變為高科技創業樞紐。",
+        "grammar": {
+          "pattern": "S + Vt (underwent) + O + Prep Phrase (into...)",
+          "breakdown": [
+            {
+              "part": "The industrial port city",
+              "role": "主詞 (Subject)",
+              "note": "工業港都。"
+            },
+            {
+              "part": "underwent a dramatic transformation",
+              "role": "動詞與受詞",
+              "note": "undergo transformation (經歷轉型)。"
+            },
+            {
+              "part": "into a high-tech hub",
+              "role": "結果介系詞片語",
+              "note": "蛻變為樞紐。"
+            }
+          ],
+          "keyPoints": [
+            "【熱門名詞】：digital transformation (數位轉型，常簡稱 DX)。"
+          ]
+        }
+      },
+      {
+        "word": "conformity",
+        "kk": "[kənˈfɔrmətɪ]",
+        "ipa": "/kənˈfɔːrməti/",
+        "pos": "n.",
+        "meaning": "遵守、從眾行為、一致性",
+        "formula": {
+          "parts": [
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "form",
+              "role": "root",
+              "meaning": "形狀、規範"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "使自我行為規範與大眾保持齊一步調 ➔「從眾、遵守」"
+        },
+        "sentence": "Excessive social pressure toward ideological conformity stifles unconventional scientific breakthroughs.",
+        "sentenceZh": "促使思想步調一致的過度社會壓力扼殺了非傳統的科學突破。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Excessive social pressure toward conformity",
+              "role": "主詞 (含修飾語)",
+              "note": "從眾壓力。"
+            },
+            {
+              "part": "stifles",
+              "role": "及物動詞 (Verb)",
+              "note": "扼殺、壓制。"
+            },
+            {
+              "part": "unconventional scientific breakthroughs",
+              "role": "受詞 (Object)",
+              "note": "非傳統突破。"
+            }
+          ],
+          "keyPoints": [
+            "【片語】：in conformity with regulations (遵照規章法令辦理)。"
+          ]
+        }
+      },
+      {
+        "word": "nonconformist",
+        "kk": "[ˌnɑnkənˈfɔrmɪst]",
+        "ipa": "/ˌnɑːnkənˈfɔːrmɪst/",
+        "pos": "n. / adj.",
+        "meaning": "特立獨行者、不墨守成規的人；(adj.) 不隨俗的",
+        "formula": {
+          "parts": [
+            {
+              "text": "non-",
+              "role": "prefix",
+              "meaning": "不、非"
+            },
+            {
+              "text": "conform",
+              "role": "base",
+              "meaning": "順從"
+            },
+            {
+              "text": "-ist",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "拒絕盲從社會既定常規框架的叛逆創新者 ➔「特立獨行者」"
+        },
+        "sentence": "Steve Jobs remained an unapologetic nonconformist whose eccentric visions revolutionized personal computing.",
+        "sentenceZh": "史蒂夫·賈伯斯始終是一位堅持自我的特立獨行者，其獨特遠見徹底顛覆了個人運算產業。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Steve Jobs",
+              "role": "主詞 (Subject)",
+              "note": "賈伯斯。"
+            },
+            {
+              "part": "remained",
+              "role": "連綴動詞",
+              "note": "依然是。"
+            },
+            {
+              "part": "an unapologetic nonconformist",
+              "role": "主詞補語",
+              "note": "不妥協的特立獨行者。"
+            },
+            {
+              "part": "whose eccentric visions revolutionized personal computing",
+              "role": "所有格關係子句",
+              "note": "改變產業。"
+            }
+          ],
+          "keyPoints": [
+            "【名人理念】：Think different 的精髓即是 nonconformist (不隨波逐流)。"
+          ]
+        }
+      },
+      {
+        "word": "deformity",
+        "kk": "[dɪˈfɔrmətɪ]",
+        "ipa": "/dɪˈfɔːrməti/",
+        "pos": "n.",
+        "meaning": "畸形、殘缺、外貌變形損毀",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "毀壞、不正常"
+            },
+            {
+              "text": "form",
+              "role": "root",
+              "meaning": "形狀"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "正常身體形貌遭到毀壞扭曲 ➔「畸形、變形」"
+        },
+        "sentence": "Corrective orthopedic surgery successfully straightened the spinal deformity in the young patient.",
+        "sentenceZh": "矯形骨科手術成功矯正了該名年輕病患的脊椎畸形彎曲。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Corrective orthopedic surgery",
+              "role": "主詞 (Subject)",
+              "note": "矯形骨科手術。"
+            },
+            {
+              "part": "successfully straightened",
+              "role": "及物動詞片語",
+              "note": "成功矯直。"
+            },
+            {
+              "part": "the spinal deformity",
+              "role": "受詞 (Object)",
+              "note": "脊椎畸形。"
+            },
+            {
+              "part": "in the young patient",
+              "role": "介系詞片語",
+              "note": "在病患身上。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學名詞】：congenital deformity (先天性畸形)。"
+          ]
+        }
+      },
+      {
+        "word": "formal",
+        "kk": "[ˈfɔrm!]",
+        "ipa": "/ˈfɔːrml/",
+        "pos": "adj.",
+        "meaning": "正式的、拘泥形式的、外表的",
+        "formula": {
+          "parts": [
+            {
+              "text": "form",
+              "role": "root",
+              "meaning": "形式、規範"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "嚴格遵循規定外在儀態形式規矩的 ➔「正式的」"
+        },
+        "sentence": "Diplomatic protocol mandates formal business attire for delegates attending presidential state dinners.",
+        "sentenceZh": "外交禮儀嚴格規定出席總統國宴的代表必須穿著正式商務服裝。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Diplomatic protocol",
+              "role": "主詞 (Subject)",
+              "note": "外交禮儀。"
+            },
+            {
+              "part": "mandates",
+              "role": "及物動詞 (Verb)",
+              "note": "強制要求。"
+            },
+            {
+              "part": "formal business attire",
+              "role": "受詞 (Object)",
+              "note": "正式商務服裝。"
+            },
+            {
+              "part": "for delegates attending dinners",
+              "role": "對象與分詞修飾",
+              "note": "出席國宴的代表。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：informal (非正式的、隨意的)。"
+          ]
+        }
+      },
+      {
+        "word": "formality",
+        "kk": "[fɔrˈmælətɪ]",
+        "ipa": "/fɔːrˈmæləti/",
+        "pos": "n.",
+        "meaning": "形式程序、禮節俗套、虛文",
+        "formula": {
+          "parts": [
+            {
+              "text": "formal",
+              "role": "base",
+              "meaning": "正式的"
+            },
+            {
+              "text": "-ity",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "必須履行的表面法定程序或社交繁文縟節 ➔「形式手續、禮節」"
+        },
+        "sentence": "Since both parties had already consented in principle, signing the treaty was a mere formality.",
+        "sentenceZh": "由於雙方原則上均已同意，簽署條約只不過是一道純粹的形式手續。",
+        "grammar": {
+          "pattern": "Adv Clause of Reason (Since...) + S + Linking Verb + SC",
+          "breakdown": [
+            {
+              "part": "Since both parties had already consented",
+              "role": "原因狀語子句",
+              "note": "已達成共識。"
+            },
+            {
+              "part": "signing the treaty",
+              "role": "動名詞當主詞",
+              "note": "簽約。"
+            },
+            {
+              "part": "was",
+              "role": "連綴動詞",
+              "note": "是。"
+            },
+            {
+              "part": "a mere formality",
+              "role": "主詞補語 (名詞片語)",
+              "note": "僅是一道程序。"
+            }
+          ],
+          "keyPoints": [
+            "【常用片語】：a mere formality (僅是走個過場形式)。"
+          ]
+        }
+      },
+      {
+        "word": "informative",
+        "kk": "[ɪnˈfɔrmətɪv]",
+        "ipa": "/ɪnˈfɔːrmətɪv/",
+        "pos": "adj.",
+        "meaning": "提供有用資訊的、增長見聞的、內容充實的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "進入心智"
+            },
+            {
+              "text": "form",
+              "role": "root",
+              "meaning": "塑造、形式"
+            },
+            {
+              "text": "-ative",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "使心智獲取實質知識並塑造理解的 ➔「增長見聞的」"
+        },
+        "sentence": "The investigative documentary provided an informative exposé into the murky world of offshore tax havens.",
+        "sentenceZh": "這部深度調查紀錄片對離岸避稅天堂的幽暗世界進行了內容詳實的深度揭露。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (into...)",
+          "breakdown": [
+            {
+              "part": "The investigative documentary",
+              "role": "主詞 (Subject)",
+              "note": "調查紀錄片。"
+            },
+            {
+              "part": "provided",
+              "role": "及物動詞 (Verb)",
+              "note": "提供。"
+            },
+            {
+              "part": "an informative exposé",
+              "role": "受詞 (Object)",
+              "note": "見聞豐富的揭露 (exposé)。"
+            },
+            {
+              "part": "into the murky world of tax havens",
+              "role": "介系詞深入剖析",
+              "note": "避稅港。"
+            }
+          ],
+          "keyPoints": [
+            "【褒義形容詞】：highly informative (極具啟發見聞價值的)。"
+          ]
+        }
+      },
+      {
+        "word": "formulaic",
+        "kk": "[ˌfɔrmjəˈleɪk]",
+        "ipa": "/ˌfɔːrmjuˈleɪɪk/",
+        "pos": "adj.",
+        "meaning": "公式化的、刻板陳腐的、套用俗套的",
+        "formula": {
+          "parts": [
+            {
+              "text": "formula",
+              "role": "base",
+              "meaning": "套路、公式"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "死板套用既定公式缺乏原創創意的 ➔「公式化的」"
+        },
+        "sentence": "Critics panned the blockbuster thriller for relying on formulaic plot twists and clichéd dialogue.",
+        "sentenceZh": "影評人痛批該部熱門驚悚大片依賴公式化的劇情反轉與陳腔濫調的對白。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Reason (for relying on O)",
+          "breakdown": [
+            {
+              "part": "Critics",
+              "role": "主詞 (Subject)",
+              "note": "影評家。"
+            },
+            {
+              "part": "panned",
+              "role": "及物動詞 (Verb)",
+              "note": "嚴厲批評。"
+            },
+            {
+              "part": "the blockbuster thriller",
+              "role": "受詞 (Object)",
+              "note": "賣座驚悚片。"
+            },
+            {
+              "part": "for relying on formulaic plot twists",
+              "role": "原因狀語",
+              "note": "倚賴老套套路。"
+            }
+          ],
+          "keyPoints": [
+            "【藝術批評】：formulaic narrative (千篇一律套路化的敘事手法)。"
+          ]
+        }
+      },
+      {
+        "word": "multiform",
+        "kk": "[ˈmʌltɪˌfɔrm]",
+        "ipa": "/ˈmʌltifɔːrm/",
+        "pos": "adj.",
+        "meaning": "多種多樣的、形態萬千的",
+        "formula": {
+          "parts": [
+            {
+              "text": "multi-",
+              "role": "prefix",
+              "meaning": "多重、多樣"
+            },
+            {
+              "text": "form",
+              "role": "root",
+              "meaning": "形狀、樣式"
+            }
+          ],
+          "resultMeaning": "展現出千姿百態多種多樣具體形貌的 ➔「多種多樣的」"
+        },
+        "sentence": "Microorganisms demonstrate multiform adaptations to survive extreme volcanic geothermal pressures.",
+        "sentenceZh": "微生物展現出多種多樣的適應機制，以在極端火山地熱高壓中生存下來。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Microorganisms",
+              "role": "主詞 (Subject)",
+              "note": "微生物。"
+            },
+            {
+              "part": "demonstrate",
+              "role": "及物動詞 (Verb)",
+              "note": "展現。"
+            },
+            {
+              "part": "multiform adaptations",
+              "role": "受詞 (Object)",
+              "note": "千姿百態的適應型態。"
+            },
+            {
+              "part": "to survive extreme pressures",
+              "role": "目的狀語",
+              "note": "於高壓生存。"
+            }
+          ],
+          "keyPoints": [
+            "【生物學字彙】：multiform (多樣形態的，同義字 polymorphic)。"
+          ]
+        }
+      },
+      {
+        "word": "formative",
+        "kk": "[ˈfɔrmətɪv]",
+        "ipa": "/ˈfɔːrmətɪv/",
+        "pos": "adj.",
+        "meaning": "形成的、性格形成期的、奠定基礎的",
+        "formula": {
+          "parts": [
+            {
+              "text": "form",
+              "role": "root",
+              "meaning": "形狀、塑造"
+            },
+            {
+              "text": "-ative",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "對人格特質或發展雛形產生深遠塑造作用的 ➔「奠基形成期的」"
+        },
+        "sentence": "Early childhood reading experiences exert a profound formative influence on lifelong cognitive development.",
+        "sentenceZh": "幼兒時期的閱讀經驗對一生的認知發展產生深遠而奠基性的塑造影響。",
+        "grammar": {
+          "pattern": "S + Vt (exert O on N)",
+          "breakdown": [
+            {
+              "part": "Early childhood reading experiences",
+              "role": "主詞 (Subject)",
+              "note": "童年閱讀體驗。"
+            },
+            {
+              "part": "exert a formative influence",
+              "role": "動詞與受詞",
+              "note": "exert influence on (對...產生影響)。"
+            },
+            {
+              "part": "on lifelong cognitive development",
+              "role": "受影響對象",
+              "note": "終生認知發展。"
+            }
+          ],
+          "keyPoints": [
+            "【重要片語】：formative years (人格養成關鍵期、成長啟蒙年代)。"
           ]
         }
       }
@@ -12686,6 +35814,620 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【學術英文用法】：novel 作形容詞指「全新原創的」(如 a novel coronavirus 新型冠狀病毒)。",
             "【小說體裁】：novel (長篇小說) vs. novella (中篇小說) vs. short story (短篇故事)。"
+          ]
+        }
+      },
+      {
+        "word": "innovative",
+        "kk": "[ˈɪnəˌvetɪv]",
+        "ipa": "/ˈɪnəveɪtɪv/",
+        "pos": "adj.",
+        "meaning": "創新的、革新的、富新穎創意的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "進入、促成"
+            },
+            {
+              "text": "nov",
+              "role": "root",
+              "meaning": "新"
+            },
+            {
+              "text": "-ative",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "注入嶄新思維方法顛覆傳統的 ➔「創新的」"
+        },
+        "sentence": "The startup introduced an innovative modular smartphone designed to eliminate electronic waste.",
+        "sentenceZh": "這家新創公司推出了一款旨在消除電子垃圾的創新模組化智慧型手機。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "The startup",
+              "role": "主詞 (Subject)",
+              "note": "新創公司。"
+            },
+            {
+              "part": "introduced",
+              "role": "及物動詞 (Verb)",
+              "note": "引進推出。"
+            },
+            {
+              "part": "an innovative modular smartphone",
+              "role": "受詞 (Object)",
+              "note": "模組手機。"
+            },
+            {
+              "part": "designed to eliminate electronic waste",
+              "role": "過去分詞片語修飾 smartphone",
+              "note": "旨在減少廢棄物。"
+            }
+          ],
+          "keyPoints": [
+            "【商務詞彙】：innovative design (創新設計), innovative approach (創新方法)。"
+          ]
+        }
+      },
+      {
+        "word": "innovator",
+        "kk": "[ˈɪnəˌvetɚ]",
+        "ipa": "/ˈɪnəveɪtər/",
+        "pos": "n.",
+        "meaning": "創新者、改革發明先驅",
+        "formula": {
+          "parts": [
+            {
+              "text": "innovate",
+              "role": "base",
+              "meaning": "創新"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人員"
+            }
+          ],
+          "resultMeaning": "開創新局引領潮流的前鋒人物 ➔「創新者」"
+        },
+        "sentence": "Visionary innovators often encounter vehement skepticism before their disruptive technologies gain widespread adoption.",
+        "sentenceZh": "有遠見的創新者在其顛覆性技術獲得廣泛採用之前，往往會遭遇激烈的懷疑嘲諷。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Adv Clause of Time (before...)",
+          "breakdown": [
+            {
+              "part": "Visionary innovators",
+              "role": "主詞 (Subject)",
+              "note": "具遠見創新者。"
+            },
+            {
+              "part": "often encounter",
+              "role": "動詞片語",
+              "note": "經常遭遇。"
+            },
+            {
+              "part": "vehement skepticism",
+              "role": "受詞 (Object)",
+              "note": "激烈質疑。"
+            },
+            {
+              "part": "before their technologies gain adoption",
+              "role": "時間副詞子句",
+              "note": "獲得普及前。"
+            }
+          ],
+          "keyPoints": [
+            "【科技商業名詞】：disruptive innovator (顛覆式創新者)。"
+          ]
+        }
+      },
+      {
+        "word": "renovation",
+        "kk": "[ˌrɛnəˈveʃən]",
+        "ipa": "/ˌrenəˈveɪʃn/",
+        "pos": "n.",
+        "meaning": "整修、翻新、重新裝潢",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "nov",
+              "role": "root",
+              "meaning": "新"
+            },
+            {
+              "text": "-ation",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將老舊破損之建築或體系重新修理回復如新 ➔「翻修、整新」"
+        },
+        "sentence": "Extensive architectural renovation transformed the derelict warehouse into a bustling creative arts center.",
+        "sentenceZh": "大規模的建築翻新工程將這座廢棄倉庫改建為一個熱鬧非凡的創意藝術中心。",
+        "grammar": {
+          "pattern": "S + Vt (transformed A into B)",
+          "breakdown": [
+            {
+              "part": "Extensive architectural renovation",
+              "role": "主詞 (Subject)",
+              "note": "建築翻修工程。"
+            },
+            {
+              "part": "transformed the derelict warehouse",
+              "role": "動詞與受詞 A",
+              "note": "transform A into B。"
+            },
+            {
+              "part": "into a bustling arts center",
+              "role": "轉變結果 B",
+              "note": "藝術中心。"
+            }
+          ],
+          "keyPoints": [
+            "【房產名詞】：home renovation (房屋重新裝潢整修)。"
+          ]
+        }
+      },
+      {
+        "word": "renovator",
+        "kk": "[ˈrɛnəˌvetɚ]",
+        "ipa": "/ˈrenəveɪtər/",
+        "pos": "n.",
+        "meaning": "翻新修復者、古蹟建築修復工匠",
+        "formula": {
+          "parts": [
+            {
+              "text": "renovate",
+              "role": "base",
+              "meaning": "翻新"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人員"
+            }
+          ],
+          "resultMeaning": "專門從事老舊建構重新活化修葺之專業人員 ➔「修復工匠」"
+        },
+        "sentence": "Meticulous historical renovators restored the medieval cathedral's stained-glass windows using period techniques.",
+        "sentenceZh": "一絲不苟的古蹟修復大師採用當年的傳統技法，修復了中世紀大教堂的彩繪鑲嵌玻璃窗。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Meticulous historical renovators",
+              "role": "主詞 (Subject)",
+              "note": "一絲不苟的修復專家。"
+            },
+            {
+              "part": "restored",
+              "role": "及物動詞 (Verb)",
+              "note": "修復。"
+            },
+            {
+              "part": "the cathedral's stained-glass windows",
+              "role": "受詞 (Object)",
+              "note": "彩繪玻璃花窗。"
+            },
+            {
+              "part": "using period techniques",
+              "role": "分詞片語表方式",
+              "note": "使用歷史技法。"
+            }
+          ],
+          "keyPoints": [
+            "【職業詞彙】：heritage renovator (文化遺產修復師)。"
+          ]
+        }
+      },
+      {
+        "word": "novelist",
+        "kk": "[ˈnɑvəlɪst]",
+        "ipa": "/ˈnɑːvəlɪst/",
+        "pos": "n.",
+        "meaning": "小說家",
+        "formula": {
+          "parts": [
+            {
+              "text": "novel",
+              "role": "base",
+              "meaning": "小說、新奇虛構故事"
+            },
+            {
+              "text": "-ist",
+              "role": "suffix",
+              "meaning": "專業人士"
+            }
+          ],
+          "resultMeaning": "專門構思創作虛構新奇長篇故事的作家 ➔「小說家」"
+        },
+        "sentence": "The acclaimed novelist spent a decade conducting archival research before publishing her historical epic.",
+        "sentenceZh": "這位備受讚譽的小說家在出版其歷史史詩巨作之前，花了十年時間進行檔案研究。",
+        "grammar": {
+          "pattern": "S + Vt (spent) + O + Gerund Phrase + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "The acclaimed novelist",
+              "role": "主詞 (Subject)",
+              "note": "著名小說家。"
+            },
+            {
+              "part": "spent a decade",
+              "role": "動詞與時間受詞",
+              "note": "spend time V-ing。"
+            },
+            {
+              "part": "conducting archival research",
+              "role": "動名詞受詞",
+              "note": "進行檔案調研。"
+            },
+            {
+              "part": "before publishing her epic",
+              "role": "時間介系詞片語",
+              "note": "發表史詩之前。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：spend + 時間 + V-ing (花費時間從事某活動)。"
+          ]
+        }
+      },
+      {
+        "word": "novelette",
+        "kk": "[ˌnɑvəˈlɛt]",
+        "ipa": "/ˌnɑːvəˈlet/",
+        "pos": "n.",
+        "meaning": "中篇小說、短篇言情小說",
+        "formula": {
+          "parts": [
+            {
+              "text": "novel",
+              "role": "base",
+              "meaning": "小說"
+            },
+            {
+              "text": "-ette",
+              "role": "suffix",
+              "meaning": "小、微小"
+            }
+          ],
+          "resultMeaning": "篇幅篇格較正規長篇小說短小精悍之文學作品 ➔「中篇小說」"
+        },
+        "sentence": "Her haunting novelette won the literary prize for its poignant portrayal of rural isolation.",
+        "sentenceZh": "她那部扣人心弦的中篇小說以對鄉村孤立狀態的淒美刻畫榮獲文學大獎。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Reason (for its...)",
+          "breakdown": [
+            {
+              "part": "Her haunting novelette",
+              "role": "主詞 (Subject)",
+              "note": "動人中篇小說。"
+            },
+            {
+              "part": "won the literary prize",
+              "role": "及物動詞與受詞",
+              "note": "贏得文學獎。"
+            },
+            {
+              "part": "for its poignant portrayal of rural isolation",
+              "role": "原因狀語",
+              "note": "poignant (淒美深刻的)。"
+            }
+          ],
+          "keyPoints": [
+            "【縮小字尾】：-ette 表示「小型事物」，如 kitchenette (小廚房), cigarette (香菸)。"
+          ]
+        }
+      },
+      {
+        "word": "nova",
+        "kk": "[ˈnovə]",
+        "ipa": "/ˈnoʊvə/",
+        "pos": "n.",
+        "meaning": "新星 (亮度短暫劇烈激增的恆星)",
+        "formula": {
+          "parts": [
+            {
+              "text": "nova",
+              "role": "root",
+              "meaning": "新 (拉丁語 stella nova「新星」)"
+            }
+          ],
+          "resultMeaning": "古代天文學家仰望夜空突然新誕生之耀眼星體 ➔「新星」"
+        },
+        "sentence": "Ancient stargazers marveled at a sudden brilliant nova illuminating an otherwise dark constellation.",
+        "sentenceZh": "古代觀星者對一顆突然閃耀的新星感到驚嘆，它照亮了原本暗淡的星座。",
+        "grammar": {
+          "pattern": "S + Vi (marveled at) + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Ancient stargazers",
+              "role": "主詞 (Subject)",
+              "note": "古代觀星者。"
+            },
+            {
+              "part": "marveled at a brilliant nova",
+              "role": "不及物動詞片語與受詞",
+              "note": "marvel at (對...驚嘆)。"
+            },
+            {
+              "part": "illuminating an otherwise dark constellation",
+              "role": "現在分詞片語修飾 nova",
+              "note": "照亮星座。"
+            }
+          ],
+          "keyPoints": [
+            "【天文學史】：第谷·布拉赫於 1572 年著有《De Nova Stella》(論新星)。"
+          ]
+        }
+      },
+      {
+        "word": "supernova",
+        "kk": "[ˌsupɚˈnovə]",
+        "ipa": "/ˌsuːpərˈnoʊvə/",
+        "pos": "n.",
+        "meaning": "超新星 (恆星末期毀滅性劇烈大爆炸)",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "超級、極致"
+            },
+            {
+              "text": "nova",
+              "role": "root",
+              "meaning": "新星"
+            }
+          ],
+          "resultMeaning": "比一般新星釋放出巨大億倍能量的毀滅性核爆 ➔「超新星」"
+        },
+        "sentence": "A cataclysmic supernova expels heavy elements forged inside giant stars out across interstellar space.",
+        "sentenceZh": "一場災難性超新星爆炸將巨型恆星內部鍛造的重元素噴射驅散至星際空間中。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "A cataclysmic supernova",
+              "role": "主詞 (Subject)",
+              "note": "災變超新星。"
+            },
+            {
+              "part": "expels",
+              "role": "及物動詞 (Verb)",
+              "note": "噴射驅出。"
+            },
+            {
+              "part": "heavy elements forged inside giant stars",
+              "role": "受詞 (含過去分詞修飾)",
+              "note": "鍛造的重元素。"
+            },
+            {
+              "part": "out across interstellar space",
+              "role": "方向地點狀語",
+              "note": "橫跨星際空間。"
+            }
+          ],
+          "keyPoints": [
+            "【名言名句】：Carl Sagan: \"We are all made of star-stuff.\" (我們全是由超新星塵埃所構成)。"
+          ]
+        }
+      },
+      {
+        "word": "novitiate",
+        "kk": "[noˈvɪʃɪɪt]",
+        "ipa": "/noʊˈvɪʃiət/",
+        "pos": "n.",
+        "meaning": "見習期、見習修士、初學修道者",
+        "formula": {
+          "parts": [
+            {
+              "text": "nov-",
+              "role": "root",
+              "meaning": "新"
+            },
+            {
+              "text": "-ite",
+              "role": "suffix",
+              "meaning": "人"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "名詞字尾 (狀態)"
+            }
+          ],
+          "resultMeaning": "新進入修道院進行靈修考驗考核的菜鳥新手 ➔「見習修士、見習期」"
+        },
+        "sentence": "During his rigorous novitiate, the trainee priest embraced strict vows of poverty, silence, and obedience.",
+        "sentenceZh": "在他嚴苛的見習期中，這位實習神父恪守了清貧、靜默與服從的嚴格誓言。",
+        "grammar": {
+          "pattern": "Prep Phrase of Time + S + Vt + O1, O2, and O3",
+          "breakdown": [
+            {
+              "part": "During his rigorous novitiate",
+              "role": "時間介系詞片語",
+              "note": "在見習期。"
+            },
+            {
+              "part": "the trainee priest",
+              "role": "主詞 (Subject)",
+              "note": "受訓修士。"
+            },
+            {
+              "part": "embraced",
+              "role": "及物動詞 (Verb)",
+              "note": "恪守擁抱。"
+            },
+            {
+              "part": "strict vows of poverty, silence, and obedience",
+              "role": "三項誓約受詞",
+              "note": "三大傳統修會誓言。"
+            }
+          ],
+          "keyPoints": [
+            "【歷史文化】：修道院中 novitiate (見習考驗期) 通常維持一至兩年。"
+          ]
+        }
+      },
+      {
+        "word": "novelistic",
+        "kk": "[ˌnɑv!ˈɪstɪk]",
+        "ipa": "/ˌnɑːvəˈlɪstɪk/",
+        "pos": "adj.",
+        "meaning": "小說風格的、富於虛構小說情節戲劇性的",
+        "formula": {
+          "parts": [
+            {
+              "text": "novelist",
+              "role": "base",
+              "meaning": "小說家"
+            },
+            {
+              "text": "-ic",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "具備如長篇小說般跌宕起伏情節與人物刻劃的 ➔「小說般的」"
+        },
+        "sentence": "The biography reads with novelistic flair, weaving personal correspondence into dramatic espionage episodes.",
+        "sentenceZh": "這部傳記讀來帶有小說般的文采，將私人信件巧妙編織成戲劇性的諜報篇章。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase of Manner + Participle Clause (weaving A into B)",
+          "breakdown": [
+            {
+              "part": "The biography",
+              "role": "主詞 (Subject)",
+              "note": "傳記。"
+            },
+            {
+              "part": "reads",
+              "role": "主動表被動感 (Verb)",
+              "note": "讀起來有...感覺。"
+            },
+            {
+              "part": "with novelistic flair",
+              "role": "方式狀語",
+              "note": "小說文采。"
+            },
+            {
+              "part": "weaving personal correspondence into espionage episodes",
+              "role": "分詞伴隨狀語",
+              "note": "weave A into B (將 A 編織入 B)。"
+            }
+          ],
+          "keyPoints": [
+            "【文學評語】：novelistic narrative (小說化敘事手法)。"
+          ]
+        }
+      },
+      {
+        "word": "innovatory",
+        "kk": "[ˈɪnəˌvetərɪ]",
+        "ipa": "/ˈɪnəvətɔːri/",
+        "pos": "adj.",
+        "meaning": "具有革新精神的、開創性的",
+        "formula": {
+          "parts": [
+            {
+              "text": "innovate",
+              "role": "base",
+              "meaning": "創新"
+            },
+            {
+              "text": "-ory",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "具有引領改變推動行業全新發展動能的 ➔「革新性的」"
+        },
+        "sentence": "Her innovatory research into synthetic enzymes earned prestigious global biotechnology accolades.",
+        "sentenceZh": "她對合成酵素具開創性的研究贏得了聲譽卓著的全球生物科技大獎。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Her innovatory research into synthetic enzymes",
+              "role": "主詞 (Subject)",
+              "note": "開創性研究。"
+            },
+            {
+              "part": "earned",
+              "role": "及物動詞 (Verb)",
+              "note": "贏得。"
+            },
+            {
+              "part": "prestigious global biotechnology accolades",
+              "role": "受詞 (Object)",
+              "note": "生技殊榮。"
+            }
+          ],
+          "keyPoints": [
+            "【同義替換】：innovative 與 innovatory 均表創新，後者更偏向學術文獻。"
+          ]
+        }
+      },
+      {
+        "word": "renovative",
+        "kk": "[ˈrɛnəˌvetɪv]",
+        "ipa": "/ˈrenəveɪtɪv/",
+        "pos": "adj.",
+        "meaning": "革新的、具有翻修與重新振興作用的",
+        "formula": {
+          "parts": [
+            {
+              "text": "renovate",
+              "role": "base",
+              "meaning": "翻新整頓"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "具備使老舊機構重獲新生與生命力之特性的 ➔「重新振興的」"
+        },
+        "sentence": "The mayor introduced renovative urban zoning policies aimed at rejuvenating derelict riverfront districts.",
+        "sentenceZh": "市長推出了具復興翻新活力的都市分區政策，旨在振興蕭條的河岸地區。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (aimed at V-ing)",
+          "breakdown": [
+            {
+              "part": "The mayor",
+              "role": "主詞 (Subject)",
+              "note": "市長。"
+            },
+            {
+              "part": "introduced",
+              "role": "及物動詞 (Verb)",
+              "note": "提出推行。"
+            },
+            {
+              "part": "renovative urban zoning policies",
+              "role": "受詞 (Object)",
+              "note": "更新分區政策。"
+            },
+            {
+              "part": "aimed at rejuvenating derelict riverfront districts",
+              "role": "過去分詞片語修飾 policies",
+              "note": "旨在復甦河岸。"
+            }
+          ],
+          "keyPoints": [
+            "【政策詞彙】：aimed at + V-ing (目標在於...)。"
           ]
         }
       }
@@ -13016,6 +36758,620 @@ const ETYMO_DATA = [
             "【同義辨析】：expel (開除驅逐) vs. dispel (驅散疑慮) vs. repel (擊退反擊)。"
           ]
         }
+      },
+      {
+        "word": "dispel",
+        "kk": "[dɪˈspɛl]",
+        "ipa": "/dɪˈspel/",
+        "pos": "v.",
+        "meaning": "驅散、掃除 (疑慮或謠言)、消除",
+        "formula": {
+          "parts": [
+            {
+              "text": "dis-",
+              "role": "prefix",
+              "meaning": "分開、驅散"
+            },
+            {
+              "text": "pel",
+              "role": "root",
+              "meaning": "推動、驅使"
+            }
+          ],
+          "resultMeaning": "用力向四周驅趕使之煙消雲散 ➔「驅散、消除」"
+        },
+        "sentence": "The chief executive held a live press conference to dispel lingering rumors of an impending hostile takeover.",
+        "sentenceZh": "執行長舉行了現場記者會，以掃除外界對即將發生惡意收購的揮之不去謠言。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The chief executive",
+              "role": "主詞 (Subject)",
+              "note": "執行長。"
+            },
+            {
+              "part": "held a live press conference",
+              "role": "動詞與受詞",
+              "note": "舉行記者會。"
+            },
+            {
+              "part": "to dispel lingering rumors of a takeover",
+              "role": "目的狀語",
+              "note": "消除收購謠言。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用搭配】：dispel myths / fears / doubts (破除迷思/恐懼/疑慮)。"
+          ]
+        }
+      },
+      {
+        "word": "compulsion",
+        "kk": "[kəmˈpʌlʃən]",
+        "ipa": "/kəmˈpʌlʃn/",
+        "pos": "n.",
+        "meaning": "強迫、難以抗拒的衝動、強制力",
+        "formula": {
+          "parts": [
+            {
+              "text": "com-",
+              "role": "prefix",
+              "meaning": "完全、共同"
+            },
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "驅使"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "內心受到不可抗拒的強烈力量催逼驅策 ➔「強迫、衝動」"
+        },
+        "sentence": "Patients suffering from obsessive-compulsive disorder battle an overwhelming compulsion to repeat ritualistic behaviors.",
+        "sentenceZh": "強迫症患者不斷與重複儀式化行為的強烈衝動進行抗爭。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + to-V",
+          "breakdown": [
+            {
+              "part": "Patients suffering from obsessive-compulsive disorder",
+              "role": "主詞 (含分詞片語)",
+              "note": "強迫症病患。"
+            },
+            {
+              "part": "battle",
+              "role": "及物動詞 (Verb)",
+              "note": "與...抗爭。"
+            },
+            {
+              "part": "an overwhelming compulsion",
+              "role": "受詞 (Object)",
+              "note": "難以抗拒的衝動。"
+            },
+            {
+              "part": "to repeat ritualistic behaviors",
+              "role": "不定詞後位修飾 compulsion",
+              "note": "重複儀式行為。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專詞】：OCD = Obsessive-Compulsive Disorder (強迫症)。"
+          ]
+        }
+      },
+      {
+        "word": "repulsion",
+        "kk": "[rɪˈpʌlʃən]",
+        "ipa": "/rɪˈpʌlʃn/",
+        "pos": "n.",
+        "meaning": "排斥力、厭惡反感、擊退",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後、反向"
+            },
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "推"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "將逼近之物向後強力推斥開來 ➔「排斥力、反感」"
+        },
+        "sentence": "Maglev bullet trains achieve friction-free levitation utilizing magnetic repulsion between superconducting electromagnets.",
+        "sentenceZh": "磁浮高鐵利用超導電磁鐵之間的磁性排斥力實現無摩擦懸浮。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (utilizing O)",
+          "breakdown": [
+            {
+              "part": "Maglev bullet trains",
+              "role": "主詞 (Subject)",
+              "note": "磁浮高鐵。"
+            },
+            {
+              "part": "achieve friction-free levitation",
+              "role": "動詞與受詞",
+              "note": "達成無摩擦懸浮。"
+            },
+            {
+              "part": "utilizing magnetic repulsion between electromagnets",
+              "role": "伴隨方式分詞片語",
+              "note": "利用磁斥力。"
+            }
+          ],
+          "keyPoints": [
+            "【物理術語】：magnetic repulsion (磁斥力) vs. magnetic attraction (磁引力)。"
+          ]
+        }
+      },
+      {
+        "word": "repellent",
+        "kk": "[rɪˈpɛlənt]",
+        "ipa": "/rɪˈpelənt/",
+        "pos": "adj. / n.",
+        "meaning": "令人厭惡反感的、驅除的；(n.) 驅蟲劑、防水抗污劑",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後"
+            },
+            {
+              "text": "pel",
+              "role": "root",
+              "meaning": "推"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞/名詞字尾"
+            }
+          ],
+          "resultMeaning": "能將外界入侵之害蟲或雨水推開抵擋在外的物質 ➔「驅除的、驅劑」"
+        },
+        "sentence": "The outdoor mountaineering jacket is treated with a specialized fluorocarbon-free water-repellent coating.",
+        "sentenceZh": "這款戶外登山夾克經過無氟專業防潑水塗層處理。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Prep Phrase (with...)",
+          "breakdown": [
+            {
+              "part": "The outdoor mountaineering jacket",
+              "role": "主詞 (Subject)",
+              "note": "登山夾克。"
+            },
+            {
+              "part": "is treated",
+              "role": "被動態謂語",
+              "note": "經加工處理。"
+            },
+            {
+              "part": "with a water-repellent coating",
+              "role": "工具狀語",
+              "note": "防潑水塗層。"
+            }
+          ],
+          "keyPoints": [
+            "【複合名詞】：water-repellent (防潑水的), insect repellent (防蚊液、驅蟲劑)。"
+          ]
+        }
+      },
+      {
+        "word": "pulsate",
+        "kk": "[ˈpʌlˌset]",
+        "ipa": "/ˈpʌlseɪt/",
+        "pos": "v.",
+        "meaning": "有節奏地搏動、悸動、充滿生氣跳動",
+        "formula": {
+          "parts": [
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "推動、打擊"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "像心臟或動脈般規律一推一縮搏動 ➔「搏動、跳動」"
+        },
+        "sentence": "The neon-lit downtown district pulsated with intoxicating nightclub music and exuberant crowds until dawn.",
+        "sentenceZh": "霓虹閃爍的市中心街區隨著令人沉醉的夜店音樂與熱情人群跳動歡騰直至破曉。",
+        "grammar": {
+          "pattern": "S + Vi (pulsated with) + O + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "The neon-lit downtown district",
+              "role": "主詞 (Subject)",
+              "note": "霓虹市中心。"
+            },
+            {
+              "part": "pulsated with",
+              "role": "動詞片語 (Verb)",
+              "note": "洋溢跳動著。"
+            },
+            {
+              "part": "intoxicating music and exuberant crowds",
+              "role": "受詞 (Object)",
+              "note": "音樂與人群。"
+            },
+            {
+              "part": "until dawn",
+              "role": "時間狀語",
+              "note": "直到黎明。"
+            }
+          ],
+          "keyPoints": [
+            "【動態搭配】：pulsate with life / energy (洋溢著蓬勃生機/活力)。"
+          ]
+        }
+      },
+      {
+        "word": "pulsation",
+        "kk": "[pʌlˈseʃən]",
+        "ipa": "/pʌlˈseɪʃn/",
+        "pos": "n.",
+        "meaning": "脈搏搏動、脈衝規律跳動",
+        "formula": {
+          "parts": [
+            {
+              "text": "pulsate",
+              "role": "base",
+              "meaning": "搏動"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "物理或生物體內節律性一推一動之週期跳動 ➔「脈動」"
+        },
+        "sentence": "Astronomers detected periodic radio pulsations emanating from a rapidly spinning neutron pulsar.",
+        "sentenceZh": "天文學家偵測到了從一顆高速自轉的中子脈衝星所發出的週期性電波脈動。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (emanating from...)",
+          "breakdown": [
+            {
+              "part": "Astronomers",
+              "role": "主詞 (Subject)",
+              "note": "天文學家。"
+            },
+            {
+              "part": "detected",
+              "role": "及物動詞 (Verb)",
+              "note": "偵測到。"
+            },
+            {
+              "part": "periodic radio pulsations",
+              "role": "受詞 (Object)",
+              "note": "週期性電波脈衝。"
+            },
+            {
+              "part": "emanating from a neutron pulsar",
+              "role": "現在分詞片語修飾 pulsations",
+              "note": "源自脈衝星。"
+            }
+          ],
+          "keyPoints": [
+            "【天體物理】：pulsar (脈衝星) 名字正來自 pulsating radio source。"
+          ]
+        }
+      },
+      {
+        "word": "expulsion",
+        "kk": "[ɪkˈspʌlʃən]",
+        "ipa": "/ɪkˈspʌlʃn/",
+        "pos": "n.",
+        "meaning": "驅逐開除、排出、逐出組織",
+        "formula": {
+          "parts": [
+            {
+              "text": "ex-",
+              "role": "prefix",
+              "meaning": "向外"
+            },
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "推"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "用力強行自組織體制內部向外推出除名 ➔「開除、驅逐出境」"
+        },
+        "sentence": "Plagiarism on final dissertations carries the severe penalty of immediate academic expulsion.",
+        "sentenceZh": "期末學位論文抄襲將面臨立即開除學籍的嚴厲處分。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Plagiarism on final dissertations",
+              "role": "主詞 (Subject)",
+              "note": "畢業論文抄襲。"
+            },
+            {
+              "part": "carries",
+              "role": "及物動詞 (Verb)",
+              "note": "招致、伴隨。"
+            },
+            {
+              "part": "the severe penalty of immediate expulsion",
+              "role": "受詞 (Object)",
+              "note": "立即退學重罰。"
+            }
+          ],
+          "keyPoints": [
+            "【校規名詞】：academic expulsion (開除學籍、勒令退學)。"
+          ]
+        }
+      },
+      {
+        "word": "propulsion",
+        "kk": "[prəˈpʌlʃən]",
+        "ipa": "/prəˈpʌlʃn/",
+        "pos": "n.",
+        "meaning": "推進、推進力、驅動力",
+        "formula": {
+          "parts": [
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "推"
+            },
+            {
+              "text": "-ion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "持續將載具向前推動行駛之動力機制 ➔「推進力」"
+        },
+        "sentence": "NASA's deep-space probe employs ion propulsion to cruise efficiently through the outer solar system.",
+        "sentenceZh": "美國太空總署的深空探測器採用離子推進技術，以高效巡航穿越外太陽系。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "NASA's deep-space probe",
+              "role": "主詞 (Subject)",
+              "note": "深空探測器。"
+            },
+            {
+              "part": "employs ion propulsion",
+              "role": "動詞與受詞",
+              "note": "採用離子推進。"
+            },
+            {
+              "part": "to cruise efficiently through the solar system",
+              "role": "目的狀語",
+              "note": "高效巡航。"
+            }
+          ],
+          "keyPoints": [
+            "【航太詞彙】：jet propulsion (噴射推進), rocket propulsion (火箭推進)。"
+          ]
+        }
+      },
+      {
+        "word": "impulsive",
+        "kk": "[ɪmˈpʌlsɪv]",
+        "ipa": "/ɪmˈpʌlsɪv/",
+        "pos": "adj.",
+        "meaning": "衝動的、草率不假思索的、隨興的",
+        "formula": {
+          "parts": [
+            {
+              "text": "in- (im-)",
+              "role": "prefix",
+              "meaning": "向內、進入"
+            },
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "推動"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "受內心瞬間推力驅使而行未經深思的 ➔「衝動的」"
+        },
+        "sentence": "Financial counselors advise budgeters to institute a mandatory 48-hour cooling-off rule before making impulsive purchases.",
+        "sentenceZh": "理財顧問建議制定預算者在進行衝動購物之前，落實強制性的 48 小時冷靜期規則。",
+        "grammar": {
+          "pattern": "S + Vt (advise) + O + to-V + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "Financial counselors",
+              "role": "主詞 (Subject)",
+              "note": "財務顧問。"
+            },
+            {
+              "part": "advise budgeters to institute a rule",
+              "role": "advise + O + to V 句型",
+              "note": "建議制定規定。"
+            },
+            {
+              "part": "before making impulsive purchases",
+              "role": "時間狀語",
+              "note": "做衝動消費前。"
+            }
+          ],
+          "keyPoints": [
+            "【消費心理】：impulsive buyer (衝動型消費者)。"
+          ]
+        }
+      },
+      {
+        "word": "compulsive",
+        "kk": "[kəmˈpʌlsɪv]",
+        "ipa": "/kəmˈpʌlsɪv/",
+        "pos": "adj.",
+        "meaning": "強迫性的、難以克制的、令人入迷難以釋卷的",
+        "formula": {
+          "parts": [
+            {
+              "text": "com-",
+              "role": "prefix",
+              "meaning": "完全"
+            },
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "推動"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "受內在強烈心理驅力催逼無法自拔的 ➔「強迫性的」"
+        },
+        "sentence": "Compulsive gamblers squander substantial life savings chasing illusory winning streaks.",
+        "sentenceZh": "病態強迫性賭徒因追逐虛無飄渺的連贏幻象而揮霍了巨額畢生積蓄。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase of Reason/Manner",
+          "breakdown": [
+            {
+              "part": "Compulsive gamblers",
+              "role": "主詞 (Subject)",
+              "note": "強迫性賭徒。"
+            },
+            {
+              "part": "squander substantial life savings",
+              "role": "動詞與受詞",
+              "note": "揮霍儲蓄。"
+            },
+            {
+              "part": "chasing illusory winning streaks",
+              "role": "現在分詞伴隨狀語",
+              "note": "追逐連贏幻象。"
+            }
+          ],
+          "keyPoints": [
+            "【書評常用】：compulsive reading (讓人一讀就停不下來的精彩好書)。"
+          ]
+        }
+      },
+      {
+        "word": "propeller",
+        "kk": "[prəˈpɛlɚ]",
+        "ipa": "/prəˈpelər/",
+        "pos": "n.",
+        "meaning": "螺旋槳、推進器",
+        "formula": {
+          "parts": [
+            {
+              "text": "propel",
+              "role": "base",
+              "meaning": "推進向前"
+            },
+            {
+              "text": "-er",
+              "role": "suffix",
+              "meaning": "器材、工具"
+            }
+          ],
+          "resultMeaning": "旋轉葉片切削空氣或水流產生推力的推進工具 ➔「螺旋槳」"
+        },
+        "sentence": "The vintage amphibious aircraft had twin brass propellers capable of powering takeoff from turbulent ocean swells.",
+        "sentenceZh": "這架復古水陸兩棲飛機裝有兩具黃銅螺旋槳，能夠提供足夠動力自洶湧海浪中起飛。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (capable of V-ing)",
+          "breakdown": [
+            {
+              "part": "The vintage amphibious aircraft",
+              "role": "主詞 (Subject)",
+              "note": "水陸兩棲飛機。"
+            },
+            {
+              "part": "had twin brass propellers",
+              "role": "動詞與受詞",
+              "note": "擁有雙螺旋槳。"
+            },
+            {
+              "part": "capable of powering takeoff from ocean swells",
+              "role": "形容詞片語後位修飾",
+              "note": "有能力自海面起飛。"
+            }
+          ],
+          "keyPoints": [
+            "【機械詞彙】：variable-pitch propeller (可變螺距螺旋槳)。"
+          ]
+        }
+      },
+      {
+        "word": "repulse",
+        "kk": "[rɪˈpʌls]",
+        "ipa": "/rɪˈpʌls/",
+        "pos": "v. / n.",
+        "meaning": "擊退、驅除；令人作嘔生厭；(n.) 挫敗、拒絕",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後"
+            },
+            {
+              "text": "puls (pel)",
+              "role": "root",
+              "meaning": "推動"
+            }
+          ],
+          "resultMeaning": "將敵軍攻勢向後推回打垮 ➔「擊退、擊潰、拒絕」"
+        },
+        "sentence": "Entrenched fortress defenders managed to repulse multiple waves of determined enemy infantry assaults.",
+        "sentenceZh": "盤踞要塞的守軍成功擊退了敵方步兵發起的多波頑強突擊。",
+        "grammar": {
+          "pattern": "S + Vt (managed to repulse) + O",
+          "breakdown": [
+            {
+              "part": "Entrenched fortress defenders",
+              "role": "主詞 (Subject)",
+              "note": "固守要塞守軍。"
+            },
+            {
+              "part": "managed to repulse",
+              "role": "動詞片語 (Verb)",
+              "note": "設法擊退。"
+            },
+            {
+              "part": "multiple waves of enemy infantry assaults",
+              "role": "受詞 (Object)",
+              "note": "多波步兵攻擊。"
+            }
+          ],
+          "keyPoints": [
+            "【雙重語義】：軍事上表「擊退敵軍」；日常用語可表「令人反胃生厭」。"
+          ]
+        }
       }
     ],
     "article": {
@@ -13337,6 +37693,625 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【英美用語差異】：美式英語用 subway；英式英語用 underground 或 the tube；法語捷運系統稱 metro。",
             "【動詞短語】：rely on / depend on 皆接介系詞 on。"
+          ]
+        }
+      },
+      {
+        "word": "subordinate",
+        "kk": "[səˈbɔrdnˌet]",
+        "ipa": "/səˈbɔːrdɪneɪt/",
+        "pos": "adj. / n. / v.",
+        "meaning": "從屬的、次要的；(n.) 部屬；(v.) 使服從、置於次要",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之下"
+            },
+            {
+              "text": "ordin",
+              "role": "root",
+              "meaning": "順序、等級 (order)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "形容詞/動詞字尾"
+            }
+          ],
+          "resultMeaning": "位階排列在主要管理者之下的 ➔「下屬的、從屬的」"
+        },
+        "sentence": "An ethical executive mentors subordinates rather than relegating them to menial clerical drudgery.",
+        "sentenceZh": "一位有道德操守的主管會悉心指導部屬，而非將他們貶去從事繁重單調的文書苦工。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (rather than V-ing O)",
+          "breakdown": [
+            {
+              "part": "An ethical executive",
+              "role": "主詞 (Subject)",
+              "note": "有道德的主管。"
+            },
+            {
+              "part": "mentors subordinates",
+              "role": "動詞與受詞",
+              "note": "指導下屬。"
+            },
+            {
+              "part": "rather than relegating them to clerical drudgery",
+              "role": "介系詞對比狀語",
+              "note": "relegate to (貶低至)。"
+            }
+          ],
+          "keyPoints": [
+            "【文法術語】：subordinate clause (從屬子句、副詞或名詞子句)。"
+          ]
+        }
+      },
+      {
+        "word": "subsequent",
+        "kk": "[ˈsʌbsəkwənt]",
+        "ipa": "/ˈsʌbsɪkwənt/",
+        "pos": "adj.",
+        "meaning": "隨後的、後來的、接續發生的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之後緊隨"
+            },
+            {
+              "text": "sequ",
+              "role": "root",
+              "meaning": "跟隨 (follow)"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "緊跟隨在先前事件之後接續而來的 ➔「隨後的」"
+        },
+        "sentence": "Subsequent laboratory replications verified that the superconductor findings were reproducible under ambient pressure.",
+        "sentenceZh": "隨後開展的實驗室複驗證實，該超導體研究結果在常壓下具備可重現性。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "Subsequent laboratory replications",
+              "role": "主詞 (Subject)",
+              "note": "後續實驗重現。"
+            },
+            {
+              "part": "verified",
+              "role": "及物動詞 (Verb)",
+              "note": "驗證證實。"
+            },
+            {
+              "part": "that findings were reproducible under ambient pressure",
+              "role": "受詞名詞子句",
+              "note": "常壓可重現。"
+            }
+          ],
+          "keyPoints": [
+            "【副詞搭配】：subsequently (隨後地、後來地)。"
+          ]
+        }
+      },
+      {
+        "word": "subside",
+        "kk": "[səbˈsaɪd]",
+        "ipa": "/səbˈsaɪd/",
+        "pos": "v.",
+        "meaning": "平息、消退、下陷沈降",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "向下"
+            },
+            {
+              "text": "side (sed)",
+              "role": "root",
+              "meaning": "坐下、沈落 (sit)"
+            }
+          ],
+          "resultMeaning": "風暴怒潮或地面逐漸往下沉落歸於平靜 ➔「消退、平息」"
+        },
+        "sentence": "After three days of torrential deluge, floodwaters began to subside, revealing widespread infrastructure wreckage.",
+        "sentenceZh": "經過三天傾盆暴雨後，洪水開始消退，暴露出大範圍的基础設施殘骸。",
+        "grammar": {
+          "pattern": "Prep Phrase of Time + S + Vt (began to-V) + Participle Phrase of Result",
+          "breakdown": [
+            {
+              "part": "After three days of torrential deluge",
+              "role": "時間狀語",
+              "note": "暴雨之後。"
+            },
+            {
+              "part": "floodwaters",
+              "role": "主詞 (Subject)",
+              "note": "洪水。"
+            },
+            {
+              "part": "began to subside",
+              "role": "動詞與不定詞",
+              "note": "開始消退。"
+            },
+            {
+              "part": "revealing widespread infrastructure wreckage",
+              "role": "現在分詞表結果",
+              "note": "展露出殘骸。"
+            }
+          ],
+          "keyPoints": [
+            "【地質名詞】：land subsidence (地層下陷)。"
+          ]
+        }
+      },
+      {
+        "word": "subsidize",
+        "kk": "[ˈsʌbsəˌdaɪz]",
+        "ipa": "/ˈsʌbsɪdaɪz/",
+        "pos": "v.",
+        "meaning": "給予財政補貼、資助、津貼援助",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...底下"
+            },
+            {
+              "text": "sid (sed)",
+              "role": "root",
+              "meaning": "坐下、支援儲備 (subsidy)"
+            },
+            {
+              "text": "-ize",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "從底層提供充裕儲備資金在背後撐起 ➔「補貼、資助」"
+        },
+        "sentence": "Federal governments subsidize offshore wind farm development to accelerate carbon neutrality goals.",
+        "sentenceZh": "聯邦政府大力補貼離岸風力發電場開發，以加速實現碳中和目標。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Federal governments",
+              "role": "主詞 (Subject)",
+              "note": "聯邦政府。"
+            },
+            {
+              "part": "subsidize offshore wind farm development",
+              "role": "動詞與受詞",
+              "note": "補貼風場開發。"
+            },
+            {
+              "part": "to accelerate carbon neutrality goals",
+              "role": "目的狀語",
+              "note": "加速碳中和。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：subsidy (補貼、津貼)。"
+          ]
+        }
+      },
+      {
+        "word": "submissive",
+        "kk": "[səbˈmɪsɪv]",
+        "ipa": "/səbˈmɪsɪv/",
+        "pos": "adj.",
+        "meaning": "順從的、服從的、唯命是從的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之下"
+            },
+            {
+              "text": "miss (mit)",
+              "role": "root",
+              "meaning": "送出、投降"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "將自我意志降低置於他人權威之下任憑差遣 ➔「順從服從的」"
+        },
+        "sentence": "The autocratic monarch demanded totally submissive courtiers who would never challenge royal decrees.",
+        "sentenceZh": "這位專制君主苛求完全唯命是從的朝臣，絕不容許有人挑戰王室法令。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "The autocratic monarch",
+              "role": "主詞 (Subject)",
+              "note": "專制君主。"
+            },
+            {
+              "part": "demanded totally submissive courtiers",
+              "role": "及物動詞與受詞",
+              "note": "苛求順從廷臣。"
+            },
+            {
+              "part": "who would never challenge royal decrees",
+              "role": "關係子句修飾 courtiers",
+              "note": "不質疑法令。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞源頭】：submit (屈服、呈交) ➔ submission (服從) ➔ submissive。"
+          ]
+        }
+      },
+      {
+        "word": "subjugate",
+        "kk": "[ˈsʌbdʒəˌget]",
+        "ipa": "/ˈsʌbdʒuɡeɪt/",
+        "pos": "v.",
+        "meaning": "征服、制服、使屈服於統治之下",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之下"
+            },
+            {
+              "text": "jug",
+              "role": "root",
+              "meaning": "牛軛 (yoke)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "古羅馬戰勝後將戰俘強行驅趕穿過軛門象徵屈服 ➔「征服、奴役」"
+        },
+        "sentence": "Colonial empires mobilized superior gunboat firepower to subjugate indigenous populations across coastal continents.",
+        "sentenceZh": "殖民帝國調動優勢砲艦火力，征服了沿海各大洲的本土原住民族。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Prep Phrase",
+          "breakdown": [
+            {
+              "part": "Colonial empires",
+              "role": "主詞 (Subject)",
+              "note": "殖民帝國。"
+            },
+            {
+              "part": "mobilized superior firepower",
+              "role": "及物動詞與受詞",
+              "note": "動員優勢火力。"
+            },
+            {
+              "part": "to subjugate indigenous populations",
+              "role": "目的狀語",
+              "note": "征服原住民。"
+            },
+            {
+              "part": "across coastal continents",
+              "role": "地點狀語",
+              "note": "橫跨大陸。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源故事】：拉丁語 sub (在下) + jugum (軛)，字面意為「套上牛軛受奴役」。"
+          ]
+        }
+      },
+      {
+        "word": "subliminal",
+        "kk": "[sʌbˈlɪmən!]",
+        "ipa": "/ˌsʌbˈlɪmɪnl/",
+        "pos": "adj.",
+        "meaning": "潛意識的、下意識閾下的、微弱難察覺的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之下"
+            },
+            {
+              "text": "limin",
+              "role": "root",
+              "meaning": "門檻、閾值 (threshold)"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "刺激強度位在感知意識門檻線之下但仍能發揮影響的 ➔「潛意識閾下的」"
+        },
+        "sentence": "Advertising regulators strictly prohibit broadcasting subliminal messages hidden within high-speed video frames.",
+        "sentenceZh": "廣告監管機構嚴格禁止播放在高速影格中隱藏的下意識潛意識訊息。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + Gerund Phrase + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Advertising regulators",
+              "role": "主詞 (Subject)",
+              "note": "廣告監理單位。"
+            },
+            {
+              "part": "strictly prohibit broadcasting subliminal messages",
+              "role": "prohibit + V-ing",
+              "note": "嚴格禁止播放。"
+            },
+            {
+              "part": "hidden within high-speed video frames",
+              "role": "過去分詞片語修飾 messages",
+              "note": "隱藏於影格中。"
+            }
+          ],
+          "keyPoints": [
+            "【心理學名詞】：subliminal advertising (潛意識廣告)。"
+          ]
+        }
+      },
+      {
+        "word": "subterranean",
+        "kk": "[ˌsʌbtəˈrenɪən]",
+        "ipa": "/ˌsʌbtəˈreɪniən/",
+        "pos": "adj.",
+        "meaning": "地下的、地底深處的、秘密隱蔽的",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...之下"
+            },
+            {
+              "text": "terr",
+              "role": "root",
+              "meaning": "大地、土地 (earth)"
+            },
+            {
+              "text": "-anean",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "深處於大地地表土壤岩層深層之下的 ➔「地底下的」"
+        },
+        "sentence": "Geologists discovered an expansive subterranean freshwater aquifer capable of supplying the arid metropolis for centuries.",
+        "sentenceZh": "地質學家發現了一個巨大的地下淡水含水層，足以為這座乾旱的大都市供水長達數世紀。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (capable of V-ing)",
+          "breakdown": [
+            {
+              "part": "Geologists",
+              "role": "主詞 (Subject)",
+              "note": "地質學家。"
+            },
+            {
+              "part": "discovered an expansive subterranean aquifer",
+              "role": "動詞與受詞",
+              "note": "發現地下水層。"
+            },
+            {
+              "part": "capable of supplying the arid metropolis for centuries",
+              "role": "後位形容詞片語",
+              "note": "能長年供水。"
+            }
+          ],
+          "keyPoints": [
+            "【地質學彙】：subterranean river (地下河道)。"
+          ]
+        }
+      },
+      {
+        "word": "subsistence",
+        "kk": "[səbˈsɪstəns]",
+        "ipa": "/səbˈsɪstəns/",
+        "pos": "n.",
+        "meaning": "最低生存、勉強維持生計、自給農業",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在...底層支撐"
+            },
+            {
+              "text": "sist",
+              "role": "root",
+              "meaning": "站立、生存 (stand)"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "僅能在生活門檻最底線苦苦維持生存 ➔「勉強糊口、生存」"
+        },
+        "sentence": "Prolonged severe droughts pushed millions of rural farmers below basic subsistence levels.",
+        "sentenceZh": "曠日持久的嚴重乾旱將數以百萬計的農村農民推向了基本生存底線以下。",
+        "grammar": {
+          "pattern": "S + Vt (pushed) + O + Prep Phrase (below...)",
+          "breakdown": [
+            {
+              "part": "Prolonged severe droughts",
+              "role": "主詞 (Subject)",
+              "note": "持續乾旱。"
+            },
+            {
+              "part": "pushed millions of rural farmers",
+              "role": "動詞與受詞",
+              "note": "將農民推入。"
+            },
+            {
+              "part": "below basic subsistence levels",
+              "role": "位置方向介系詞片語",
+              "note": "低於基本生計線。"
+            }
+          ],
+          "keyPoints": [
+            "【農業名詞】：subsistence farming (自給自足農業，非商業作物)。"
+          ]
+        }
+      },
+      {
+        "word": "subterfuge",
+        "kk": "[ˈsʌbtɚˌfjudʒ]",
+        "ipa": "/ˈsʌbtərfjuːdʒ/",
+        "pos": "n.",
+        "meaning": "詭計、藉口托辭、掩飾遁詞",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "在地下、暗中"
+            },
+            {
+              "text": "fug",
+              "role": "root",
+              "meaning": "逃跑、閃避 (flee)"
+            }
+          ],
+          "resultMeaning": "暗中藉由掩飾圈套設法逃脫責任或真相 ➔「詭計、托辭」"
+        },
+        "sentence": "The undercover operative gained access to the guarded bunker through clever digital subterfuge and forged credentials.",
+        "sentenceZh": "臥底特工透過精妙的數位偽裝詭計與偽造憑證，成功潛入了守備森嚴的碉堡。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "The undercover operative",
+              "role": "主詞 (Subject)",
+              "note": "臥底特工。"
+            },
+            {
+              "part": "gained access to the guarded bunker",
+              "role": "及物動詞片語與受詞",
+              "note": "取得碉堡進入權限。"
+            },
+            {
+              "part": "through clever subterfuge and forged credentials",
+              "role": "方式狀語",
+              "note": "透過詭計與假證件。"
+            }
+          ],
+          "keyPoints": [
+            "【GRE核心詞彙】：subterfuge 指巧妙隱瞞意圖的障眼法或欺瞞手段。"
+          ]
+        }
+      },
+      {
+        "word": "subversive",
+        "kk": "[səbˈvɝsɪv]",
+        "ipa": "/səbˈvɜːrsɪv/",
+        "pos": "adj. / n.",
+        "meaning": "顛覆性的、意圖破壞體制的；(n.) 顛覆份子",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "自底層"
+            },
+            {
+              "text": "vers (vert)",
+              "role": "root",
+              "meaning": "翻轉 (turn)"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "從最底層暗中掀翻整個體制架構的 ➔「顛覆性的」"
+        },
+        "sentence": "Authoritarian regimes ban investigative blogs, classifying independent reporting as subversive propaganda.",
+        "sentenceZh": "威權政體封殺調查性部落格，將獨立新聞報導歸類為顛覆體制的宣傳品。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (classifying A as B)",
+          "breakdown": [
+            {
+              "part": "Authoritarian regimes",
+              "role": "主詞 (Subject)",
+              "note": "威權政權。"
+            },
+            {
+              "part": "ban investigative blogs",
+              "role": "及物動詞與受詞",
+              "note": "禁止調查部落格。"
+            },
+            {
+              "part": "classifying independent reporting as subversive propaganda",
+              "role": "現在分詞伴隨狀語",
+              "note": "classify A as B。"
+            }
+          ],
+          "keyPoints": [
+            "【政治法律術語】：subversive activities (顛覆國家政權活動)。"
+          ]
+        }
+      },
+      {
+        "word": "subvert",
+        "kk": "[səbˈvɝt]",
+        "ipa": "/səbˈvɜːrt/",
+        "pos": "v.",
+        "meaning": "顛覆、破壞、推翻體制秩序",
+        "formula": {
+          "parts": [
+            {
+              "text": "sub-",
+              "role": "prefix",
+              "meaning": "自下而上"
+            },
+            {
+              "text": "vert",
+              "role": "root",
+              "meaning": "翻轉 (turn)"
+            }
+          ],
+          "resultMeaning": "從內部根本處徹底翻倒既定政權秩序 ➔「顛覆、推翻」"
+        },
+        "sentence": "Foreign intelligence agencies attempted to subvert the democratic election through orchestrated disinformation campaigns.",
+        "sentenceZh": "外國情報機構企圖藉由精心策劃的假訊息宣傳戰來顛覆這場民主選舉。",
+        "grammar": {
+          "pattern": "S + Vt (attempted to subvert) + O + Prep Phrase of Means",
+          "breakdown": [
+            {
+              "part": "Foreign intelligence agencies",
+              "role": "主詞 (Subject)",
+              "note": "外國情報機構。"
+            },
+            {
+              "part": "attempted to subvert the democratic election",
+              "role": "動詞與受詞",
+              "note": "企圖顛覆選舉。"
+            },
+            {
+              "part": "through orchestrated disinformation campaigns",
+              "role": "方式狀語",
+              "note": "透過假訊息戰。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞詞組】：subvert the constitutional order (顛覆憲法秩序)。"
           ]
         }
       }
@@ -13662,6 +38637,640 @@ const ETYMO_DATA = [
             "【財經常見義】：return on investment (投資報酬率 ROI)。"
           ]
         }
+      },
+      {
+        "word": "regenerate",
+        "kk": "[rɪˈdʒɛnəˌret]",
+        "ipa": "/rɪˈdʒenəreɪt/",
+        "pos": "v.",
+        "meaning": "再生、重新振興、重建復甦",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "gener",
+              "role": "root",
+              "meaning": "產生、生殖"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "受損壞後重新生長繁衍恢復完整生機 ➔「再生、重振」"
+        },
+        "sentence": "Certain salamander species possess the astonishing biological capacity to completely regenerate severed limbs.",
+        "sentenceZh": "某些蠑螈物種擁有令人驚嘆的生物學能力，能夠完全再生切斷的肢體。",
+        "grammar": {
+          "pattern": "S + Vt + O + to-V (to regenerate O)",
+          "breakdown": [
+            {
+              "part": "Certain salamander species",
+              "role": "主詞 (Subject)",
+              "note": "特定蠑螈物種。"
+            },
+            {
+              "part": "possess the astonishing biological capacity",
+              "role": "動詞與受詞",
+              "note": "擁有驚人能力。"
+            },
+            {
+              "part": "to completely regenerate severed limbs",
+              "role": "不定詞後位修飾 capacity",
+              "note": "再生斷肢。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學前沿】：regenerative medicine (再生醫學、幹細胞療法)。"
+          ]
+        }
+      },
+      {
+        "word": "reiterate",
+        "kk": "[rɪˈɪtəˌret]",
+        "ipa": "/riˈɪtəreɪt/",
+        "pos": "v.",
+        "meaning": "反覆重申、再三強調說明",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "反覆"
+            },
+            {
+              "text": "iterate",
+              "role": "base",
+              "meaning": "重複 (拉丁語 iterum「再一次」)"
+            }
+          ],
+          "resultMeaning": "為了確保完全明瞭而多次鄭重重複強調 ➔「重申」"
+        },
+        "sentence": "The central bank governor reiterated that future interest rate cuts remain strictly data-dependent.",
+        "sentenceZh": "央行總裁重申，未來的降息步伐仍嚴格取決於各項經濟數據。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "The central bank governor",
+              "role": "主詞 (Subject)",
+              "note": "央行總裁。"
+            },
+            {
+              "part": "reiterated",
+              "role": "及物動詞 (Verb)",
+              "note": "重申。"
+            },
+            {
+              "part": "that interest rate cuts remain strictly data-dependent",
+              "role": "受詞名詞子句",
+              "note": "降息依賴數據。"
+            }
+          ],
+          "keyPoints": [
+            "【商務演說】：reiterate our unwavering commitment (重申我們堅定不移的承諾)。"
+          ]
+        }
+      },
+      {
+        "word": "rejuvenate",
+        "kk": "[rɪˈdʒuvəˌnet]",
+        "ipa": "/rɪˈdʒuːvəneɪt/",
+        "pos": "v.",
+        "meaning": "使年輕化、使重獲青春活力、重新激活",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "juven",
+              "role": "root",
+              "meaning": "年輕 (拉丁語 juvenis) "
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "使老邁疲憊的身心重新充滿年輕朝氣 ➔「使回春、充滿活力」"
+        },
+        "sentence": "A weekend spent trekking pristine mountain trails rejuvenated her exhausted body and creative spirit.",
+        "sentenceZh": "在原始山徑健行度過的一個週末，讓她疲憊的身軀與創意思維重獲新生與活力。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O",
+          "breakdown": [
+            {
+              "part": "A weekend spent trekking pristine mountain trails",
+              "role": "主詞 (含過去分詞片語)",
+              "note": "登山週末。"
+            },
+            {
+              "part": "rejuvenated",
+              "role": "及物動詞 (Verb)",
+              "note": "使恢復活力。"
+            },
+            {
+              "part": "her exhausted body and creative spirit",
+              "role": "對等受詞群",
+              "note": "身心靈。"
+            }
+          ],
+          "keyPoints": [
+            "【健康產業】：rejuvenating facial therapy (回春美顏療程)。"
+          ]
+        }
+      },
+      {
+        "word": "resilience",
+        "kk": "[rɪˈzɪljəns]",
+        "ipa": "/rɪˈzɪliəns/",
+        "pos": "n.",
+        "meaning": "彈性復原力、韌性、順應逆境之能力",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後彈回"
+            },
+            {
+              "text": "sili (sal)",
+              "role": "root",
+              "meaning": "跳躍 (leap)"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "遭受劇烈外力擠壓挫折後能迅速彈回原貌 ➔「復原力、韌性」"
+        },
+        "sentence": "Communities struck by the volcanic eruption showed remarkable psychological resilience during reconstruction.",
+        "sentenceZh": "遭受火山噴發重創的社區在災後重建期間展現出了驚人的心理韌性與復原力。",
+        "grammar": {
+          "pattern": "S + Participle Phrase + Vt + O + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "Communities struck by the volcanic eruption",
+              "role": "主詞 (含過去分詞修飾)",
+              "note": "災區受災社群。"
+            },
+            {
+              "part": "showed remarkable psychological resilience",
+              "role": "動詞與受詞",
+              "note": "展現心理韌性。"
+            },
+            {
+              "part": "during reconstruction",
+              "role": "時間狀語",
+              "note": "重建期間。"
+            }
+          ],
+          "keyPoints": [
+            "【形容詞衍生】：resilient (有韌性的、能迅速恢復的)。"
+          ]
+        }
+      },
+      {
+        "word": "rehabilitation",
+        "kk": "[ˌrihəˌbɪləˈteʃən]",
+        "ipa": "/ˌriːhəˌbɪlɪˈteɪʃn/",
+        "pos": "n.",
+        "meaning": "復健、康復治療、名譽平反、受刑人感化重返社會",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "重新"
+            },
+            {
+              "text": "habil",
+              "role": "root",
+              "meaning": "適合能力 (habilitas)"
+            },
+            {
+              "text": "-ation",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "經過悉心調養訓練使機能重新具備適應能力 ➔「復健、平反」"
+        },
+        "sentence": "Intensive physical rehabilitation enabled the paralyzed athlete to walk independently across the stage.",
+        "sentenceZh": "高強度的物理復健治療使這位癱瘓的運動員能夠獨立走過舞台。",
+        "grammar": {
+          "pattern": "S + Vt (enabled) + O + to-V + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Intensive physical rehabilitation",
+              "role": "主詞 (Subject)",
+              "note": "高強度物理復健。"
+            },
+            {
+              "part": "enabled the paralyzed athlete to walk",
+              "role": "enable + O + to V",
+              "note": "使能夠行走。"
+            },
+            {
+              "part": "independently across the stage",
+              "role": "副詞與地點狀語",
+              "note": "獨立走過舞台。"
+            }
+          ],
+          "keyPoints": [
+            "【口語縮寫】：rehab (戒斷中心、復健診所)。"
+          ]
+        }
+      },
+      {
+        "word": "recapitulate",
+        "kk": "[ˌrikəˈpɪtʃəˌlet]",
+        "ipa": "/ˌriːkəˈpɪtʃuleɪt/",
+        "pos": "v.",
+        "meaning": "概括、扼要重述、重申綱領要點",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "capit",
+              "role": "root",
+              "meaning": "頭、章節綱領 (head)"
+            },
+            {
+              "text": "-ulate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "重新將所有重要章節標題由頭到尾扼要點出 ➔「扼要重述」"
+        },
+        "sentence": "Before concluding the lecture, the professor briefly recapitulated the three governing laws of thermodynamics.",
+        "sentenceZh": "在結束演講之前，教授簡明扼要地重述了熱力學三大定律的重點。",
+        "grammar": {
+          "pattern": "Adv Clause of Time (Before V-ing...) + S + Adv + Vt + O",
+          "breakdown": [
+            {
+              "part": "Before concluding the lecture",
+              "role": "時間狀語",
+              "note": "結課前。"
+            },
+            {
+              "part": "the professor",
+              "role": "主詞 (Subject)",
+              "note": "教授。"
+            },
+            {
+              "part": "briefly recapitulated",
+              "role": "及物動詞片語",
+              "note": "簡短摘要。"
+            },
+            {
+              "part": "the three governing laws of thermodynamics",
+              "role": "受詞 (Object)",
+              "note": "熱力學定律。"
+            }
+          ],
+          "keyPoints": [
+            "【日常簡稱】：recap (名詞/動詞：摘要、回顧簡述)。"
+          ]
+        }
+      },
+      {
+        "word": "reconcile",
+        "kk": "[ˈrɛkənˌsaɪl]",
+        "ipa": "/ˈrekənsaɪl/",
+        "pos": "v.",
+        "meaning": "使和解、調解紛爭、使一致相容",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "con-",
+              "role": "prefix",
+              "meaning": "共同"
+            },
+            {
+              "text": "cal (cil)",
+              "role": "root",
+              "meaning": "召集呼喚 (call)"
+            }
+          ],
+          "resultMeaning": "重新召集對立雙方坐下促成和睦共存 ➔「調解、使和解」"
+        },
+        "sentence": "Diplomats worked tirelessly to reconcile the warring factions and establish a lasting demilitarized buffer zone.",
+        "sentenceZh": "外交官孜孜不倦地居中協調，以調解交戰各派系的衝突並建立永久的非軍事緩衝區。",
+        "grammar": {
+          "pattern": "S + Vi + Adv + Infinitive of Purpose (to reconcile O and establish O)",
+          "breakdown": [
+            {
+              "part": "Diplomats",
+              "role": "主詞 (Subject)",
+              "note": "外交官。"
+            },
+            {
+              "part": "worked tirelessly",
+              "role": "不及物動詞與副詞",
+              "note": "不知疲倦地工作。"
+            },
+            {
+              "part": "to reconcile the warring factions",
+              "role": "目的狀語 1",
+              "note": "調解交戰派系。"
+            },
+            {
+              "part": "and establish a demilitarized buffer zone",
+              "role": "目的狀語 2",
+              "note": "建立緩衝區。"
+            }
+          ],
+          "keyPoints": [
+            "【哲學/會計常用】：reconcile differences (消弭分歧), bank reconciliation (銀行對帳)。"
+          ]
+        }
+      },
+      {
+        "word": "retaliate",
+        "kk": "[rɪˈtælɪˌet]",
+        "ipa": "/rɪˈtælieɪt/",
+        "pos": "v.",
+        "meaning": "報復、反擊、以牙還牙",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "反向、回來"
+            },
+            {
+              "text": "tali",
+              "role": "root",
+              "meaning": "同樣的、報償 (拉丁語 talio「同態復仇」)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "以遭受相同之打擊力道予以迎頭反擊 ➔「報復、反擊」"
+        },
+        "sentence": "The military warned neighboring aggressors not to violate airspace, vowing to retaliate decisively against incursions.",
+        "sentenceZh": "軍方警告鄰國侵略者切勿侵犯領空，並誓言將對任何入侵行徑給予果斷反擊。",
+        "grammar": {
+          "pattern": "S + Vt (warned) + O + not to-V + Participial Clause (vowing to-V)",
+          "breakdown": [
+            {
+              "part": "The military",
+              "role": "主詞 (Subject)",
+              "note": "軍方。"
+            },
+            {
+              "part": "warned aggressors not to violate airspace",
+              "role": "warn + O + not to V",
+              "note": "告誡切勿侵犯領空。"
+            },
+            {
+              "part": "vowing to retaliate decisively against incursions",
+              "role": "現在分詞伴隨誓言",
+              "note": "retaliate against (對...反擊)。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：retaliation (報復行動), retaliatory tariffs (報復性關稅)。"
+          ]
+        }
+      },
+      {
+        "word": "reciprocate",
+        "kk": "[rɪˈsɪprəˌket]",
+        "ipa": "/rɪˈsɪprəkeɪt/",
+        "pos": "v.",
+        "meaning": "回報、互惠回敬、相互酬答",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "向後、反向"
+            },
+            {
+              "text": "pro-",
+              "role": "prefix",
+              "meaning": "向前"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "在彼此一來一往互相贈予中展現酬恩心意 ➔「回報、互惠」"
+        },
+        "sentence": "She was deeply touched when international colleagues reciprocated her generosity during times of family crisis.",
+        "sentenceZh": "當國際同事在她面臨家庭危機期間以善意回報她的慷慨時，她深受感動。",
+        "grammar": {
+          "pattern": "S + Passive Linking Verb + SC + Adv Clause of Time (when...)",
+          "breakdown": [
+            {
+              "part": "She",
+              "role": "主詞 (Subject)",
+              "note": "她。"
+            },
+            {
+              "part": "was deeply touched",
+              "role": "被動謂語",
+              "note": "深受觸動。"
+            },
+            {
+              "part": "when colleagues reciprocated her generosity",
+              "role": "時間狀語子句",
+              "note": "同事回報善意。"
+            },
+            {
+              "part": "during times of family crisis",
+              "role": "時間介系詞片語",
+              "note": "家庭危機時。"
+            }
+          ],
+          "keyPoints": [
+            "【法律原則】：principle of reciprocity (互惠對等原則)。"
+          ]
+        }
+      },
+      {
+        "word": "repertoire",
+        "kk": "[ˈrɛpɚˌtwɑr]",
+        "ipa": "/ˈrepərtwɑːr/",
+        "pos": "n.",
+        "meaning": "全部曲目、演出常備劇目、全部常備技能",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "反覆、再次"
+            },
+            {
+              "text": "per",
+              "role": "root",
+              "meaning": "找到、產出 (拉丁語 parere)"
+            }
+          ],
+          "resultMeaning": "法語借詞，隨時已精熟準備好可當場演繹產出的節目作品清單 ➔「保留劇目、技能庫」"
+        },
+        "sentence": "The jazz virtuoso showcased an astonishingly broad repertoire spanning classical ballads and avant-garde improvisation.",
+        "sentenceZh": "這位爵士音樂大師展現了極其豐富寬廣的常備曲目，跨越了古典抒情民謠與前衛即興演奏。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (spanning A and B)",
+          "breakdown": [
+            {
+              "part": "The jazz virtuoso",
+              "role": "主詞 (Subject)",
+              "note": "爵士大師。"
+            },
+            {
+              "part": "showcased a broad repertoire",
+              "role": "動詞與受詞",
+              "note": "展現豐富曲目。"
+            },
+            {
+              "part": "spanning classical ballads and improvisation",
+              "role": "現在分詞片語修飾 repertoire",
+              "note": "跨越民謠與即興。"
+            }
+          ],
+          "keyPoints": [
+            "【發音提醒】：法語借詞，字尾 -toire 念作 /twɑːr/。"
+          ]
+        }
+      },
+      {
+        "word": "reinstate",
+        "kk": "[ˌriɪnˈstet]",
+        "ipa": "/ˌriːɪnˈsteɪt/",
+        "pos": "v.",
+        "meaning": "使復職、恢復原職權、恢復原本有效狀態",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "in-",
+              "role": "prefix",
+              "meaning": "進入"
+            },
+            {
+              "text": "state",
+              "role": "root",
+              "meaning": "地位、狀態 (stand)"
+            }
+          ],
+          "resultMeaning": "重新將被免職者迎回其原有崇高職位體面狀態 ➔「使復職、恢復」"
+        },
+        "sentence": "The arbitration tribunal ordered the airline to reinstate the wrongly terminated union representative with back pay.",
+        "sentenceZh": "仲裁法庭裁令該航空公司恢復遭到錯誤解僱的工會代表職務，並補發欠薪。",
+        "grammar": {
+          "pattern": "S + Vt (ordered) + O + to-V + Prep Phrase (with back pay)",
+          "breakdown": [
+            {
+              "part": "The arbitration tribunal",
+              "role": "主詞 (Subject)",
+              "note": "仲裁法庭。"
+            },
+            {
+              "part": "ordered the airline to reinstate the representative",
+              "role": "order + O + to V",
+              "note": "命令復職。"
+            },
+            {
+              "part": "with back pay",
+              "role": "伴隨介系詞片語",
+              "note": "附帶補發工資。"
+            }
+          ],
+          "keyPoints": [
+            "【勞動法規】：reinstate someone in their post (恢復某人職務)。"
+          ]
+        }
+      },
+      {
+        "word": "resuscitate",
+        "kk": "[rɪˈsʌsəˌtet]",
+        "ipa": "/rɪˈsʌsɪteɪt/",
+        "pos": "v.",
+        "meaning": "使甦醒、使起死回生、使心跳呼吸復甦",
+        "formula": {
+          "parts": [
+            {
+              "text": "re-",
+              "role": "prefix",
+              "meaning": "再次"
+            },
+            {
+              "text": "sub- (sus-)",
+              "role": "prefix",
+              "meaning": "從底層"
+            },
+            {
+              "text": "cit",
+              "role": "root",
+              "meaning": "喚醒、激發 (stir up)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "從昏厥沉睡最深處重新激發召喚生機 ➔「復甦、使甦醒」"
+        },
+        "sentence": "Paramedics performed chest compressions and administered epinephrine to successfully resuscitate the drowning victim.",
+        "sentenceZh": "救護人員實施胸外按壓並注射腎上腺素，成功救活使溺水傷者恢復了心跳呼吸。",
+        "grammar": {
+          "pattern": "S + Vt1 + and + Vt2 + Infinitive of Result",
+          "breakdown": [
+            {
+              "part": "Paramedics",
+              "role": "主詞 (Subject)",
+              "note": "救護人員。"
+            },
+            {
+              "part": "performed chest compressions and administered epinephrine",
+              "role": "對等謂語動詞",
+              "note": "實施 CPR 與注藥。"
+            },
+            {
+              "part": "to successfully resuscitate the victim",
+              "role": "結果狀語",
+              "note": "成功救活甦醒。"
+            }
+          ],
+          "keyPoints": [
+            "【醫療術語】：DNR = Do Not Resuscitate (放棄急救同意書)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -13980,6 +39589,640 @@ const ETYMO_DATA = [
             "【人稱辨析】：interviewer (面試官) vs. interviewee (受試者)。"
           ]
         }
+      },
+      {
+        "word": "intervene",
+        "kk": "[ˌɪntɚˈvin]",
+        "ipa": "/ˌɪntərˈviːn/",
+        "pos": "v.",
+        "meaning": "介入、干涉、介入調停",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "ven",
+              "role": "root",
+              "meaning": "走來、來到 (come)"
+            }
+          ],
+          "resultMeaning": "走到爭端雙方之間插手調解排除危害 ➔「介入干預」"
+        },
+        "sentence": "Peacekeeping forces were deployed to intervene before sporadic skirmishes escalated into all-out civil warfare.",
+        "sentenceZh": "維和部隊被派遣進駐以進行介入干預，防止零星衝突升級為全面內戰。",
+        "grammar": {
+          "pattern": "S + Passive Verb + to-V (to intervene) + Adv Clause of Time (before...)",
+          "breakdown": [
+            {
+              "part": "Peacekeeping forces",
+              "role": "主詞 (Subject)",
+              "note": "維和部隊。"
+            },
+            {
+              "part": "were deployed",
+              "role": "被動態謂語",
+              "note": "獲部署。"
+            },
+            {
+              "part": "to intervene",
+              "role": "目的狀語",
+              "note": "進行介入。"
+            },
+            {
+              "part": "before skirmishes escalated into civil warfare",
+              "role": "時間副詞子句",
+              "note": "衝突升級前。"
+            }
+          ],
+          "keyPoints": [
+            "【搭配】：intervene in an argument / dispute (介入爭吵/紛端)。"
+          ]
+        }
+      },
+      {
+        "word": "intervention",
+        "kk": "[ˌɪntɚˈvɛnʃən]",
+        "ipa": "/ˌɪntərˈvenʃn/",
+        "pos": "n.",
+        "meaning": "介入、干預、調停、醫療介入措施",
+        "formula": {
+          "parts": [
+            {
+              "text": "intervene",
+              "role": "base",
+              "meaning": "介入"
+            },
+            {
+              "text": "-tion",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "第三者出面進行調解阻斷事態惡化之具體行動 ➔「干預、處置措施」"
+        },
+        "sentence": "Early behavioral intervention dramatically improves developmental outcomes for children diagnosed with autism.",
+        "sentenceZh": "早期行為介入治療能顯著改善被診斷出患有自閉症之兒童的成長發育成果。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase (for children...)",
+          "breakdown": [
+            {
+              "part": "Early behavioral intervention",
+              "role": "主詞 (Subject)",
+              "note": "早期行為介入。"
+            },
+            {
+              "part": "dramatically improves",
+              "role": "及物動詞片語",
+              "note": "大幅改善。"
+            },
+            {
+              "part": "developmental outcomes",
+              "role": "受詞 (Object)",
+              "note": "發育結果。"
+            },
+            {
+              "part": "for children diagnosed with autism",
+              "role": "介系詞受詞 (含過去分詞修飾)",
+              "note": "自閉症孩童。"
+            }
+          ],
+          "keyPoints": [
+            "【醫療專有名詞】：early intervention (早期療育、早療介入)。"
+          ]
+        }
+      },
+      {
+        "word": "intercontinental",
+        "kk": "[ˌɪntɚˌkɑntəˈnɛnt!]",
+        "ipa": "/ˌɪntərˌkɑːntɪˈnentl/",
+        "pos": "adj.",
+        "meaning": "洲際的、跨大洲的",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "continent",
+              "role": "root",
+              "meaning": "大洲、大陸"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "航程或涵蓋範圍橫跨兩大洲或多大洲之間的 ➔「洲際的」"
+        },
+        "sentence": "Modern wide-body commercial airliners easily undertake nonstop intercontinental flights exceeding fifteen hours.",
+        "sentenceZh": "現代廣體商用噴射客機能輕鬆執行超過十五個小時的直飛跨洲洲際航班。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Modern wide-body commercial airliners",
+              "role": "主詞 (Subject)",
+              "note": "廣體民航機。"
+            },
+            {
+              "part": "easily undertake",
+              "role": "動詞片語",
+              "note": "輕鬆承擔執行。"
+            },
+            {
+              "part": "nonstop intercontinental flights",
+              "role": "受詞 (Object)",
+              "note": "直飛洲際航線。"
+            },
+            {
+              "part": "exceeding fifteen hours",
+              "role": "現在分詞片語修飾 flights",
+              "note": "超過十五小時。"
+            }
+          ],
+          "keyPoints": [
+            "【軍事縮寫】：ICBM = Intercontinental Ballistic Missile (洲際彈道飛彈)。"
+          ]
+        }
+      },
+      {
+        "word": "interstellar",
+        "kk": "[ˌɪntɚˈstɛlɚ]",
+        "ipa": "/ˌɪntərˈstelər/",
+        "pos": "adj.",
+        "meaning": "星際的、恆星之間的",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "stellar",
+              "role": "root",
+              "meaning": "星體的 (拉丁語 stella)"
+            }
+          ],
+          "resultMeaning": "位於兩座或多座遙遠恆星系統彼此空曠空間之中的 ➔「星際的」"
+        },
+        "sentence": "Voyager 1 crossed the heliopause into true interstellar space, sending telemetry data back from beyond our sun's solar winds.",
+        "sentenceZh": "航海家一號飛越日鞘進入真正的星際空間，並自太陽風圈以外回傳遙測數據。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Participle Phrase of Companion Action",
+          "breakdown": [
+            {
+              "part": "Voyager 1",
+              "role": "主詞 (Subject)",
+              "note": "航海家一號。"
+            },
+            {
+              "part": "crossed the heliopause",
+              "role": "及物動詞與受詞",
+              "note": "越過日鞘。"
+            },
+            {
+              "part": "into true interstellar space",
+              "role": "方向狀語",
+              "note": "進入星際空間。"
+            },
+            {
+              "part": "sending telemetry data back from beyond solar winds",
+              "role": "伴隨分詞片語",
+              "note": "回傳遙測數據。"
+            }
+          ],
+          "keyPoints": [
+            "【天文概念】：interstellar dust (星際塵埃), interstellar medium (星際介質)。"
+          ]
+        }
+      },
+      {
+        "word": "interconnected",
+        "kk": "[ˌɪntɚkəˈnɛktɪd]",
+        "ipa": "/ˌɪntərkəˈnektɪd/",
+        "pos": "adj.",
+        "meaning": "相互連結的、相互依賴環環相扣的",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "相互"
+            },
+            {
+              "text": "connect",
+              "role": "base",
+              "meaning": "連結"
+            },
+            {
+              "text": "-ed",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "如網絡般彼此互相貫通牽一髮而動全身的 ➔「相互串聯的」"
+        },
+        "sentence": "Global supply chains form an intricate interconnected web highly susceptible to localized shipping chokepoint blockages.",
+        "sentenceZh": "全球供應鏈構成了一個錯綜複雜且環環相扣的網絡，極易受到局部航運咽喉阻塞的衝擊。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adj Phrase (highly susceptible to...)",
+          "breakdown": [
+            {
+              "part": "Global supply chains",
+              "role": "主詞 (Subject)",
+              "note": "全球供應鏈。"
+            },
+            {
+              "part": "form an intricate interconnected web",
+              "role": "動詞與受詞",
+              "note": "構成相互連結網絡。"
+            },
+            {
+              "part": "highly susceptible to shipping blockages",
+              "role": "形容詞片語後位修飾 web",
+              "note": "susceptible to (易受...影響)。"
+            }
+          ],
+          "keyPoints": [
+            "【生態理念】：All ecological living systems are deeply interconnected (萬物息息相關)。"
+          ]
+        }
+      },
+      {
+        "word": "interlocutor",
+        "kk": "[ˌɪntɚˈlɑkjətɚ]",
+        "ipa": "/ˌɪntərˈlɑːkjətər/",
+        "pos": "n.",
+        "meaning": "對話者、對談對象、談判交涉人員",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "locu (loqu)",
+              "role": "root",
+              "meaning": "說話"
+            },
+            {
+              "text": "-tor",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "在雙方會晤中在彼此之間居中對答談話之人 ➔「對話者、交涉人」"
+        },
+        "sentence": "The special envoy praised her foreign ministerial interlocutors for demonstrating pragmatism during peace summit dialogues.",
+        "sentenceZh": "特使稱讚與她對談的外交部長交涉代表在和平峰會對話中展現了務實態度。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Reason (for V-ing O)",
+          "breakdown": [
+            {
+              "part": "The special envoy",
+              "role": "主詞 (Subject)",
+              "note": "特別特使。"
+            },
+            {
+              "part": "praised her interlocutors",
+              "role": "及物動詞與受詞",
+              "note": "稱讚對話夥伴。"
+            },
+            {
+              "part": "for demonstrating pragmatism",
+              "role": "原因狀語",
+              "note": "展現務實。"
+            },
+            {
+              "part": "during peace summit dialogues",
+              "role": "時間狀語",
+              "note": "峰會期間。"
+            }
+          ],
+          "keyPoints": [
+            "【外交用語】：primary interlocutor (首要談判交涉對象)。"
+          ]
+        }
+      },
+      {
+        "word": "interpolate",
+        "kk": "[ɪnˈtɝpəˌlet]",
+        "ipa": "/ɪnˈtɜːrpəleɪt/",
+        "pos": "v.",
+        "meaning": "插值估算、竄改添加文字、插入新語句",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "pol (polire)",
+              "role": "root",
+              "meaning": "磨光、整理 (polish)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "在原始文稿或已知數據點之間額外插入字句或估計值 ➔「插值、插入文字」"
+        },
+        "sentence": "Meteorologists interpolate spatial data points to estimate barometric pressure across uninhabited oceanic regions.",
+        "sentenceZh": "氣象學家透過對空間數據點進行內插插值估算，以推估無人居住海洋區域的氣壓數值。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Meteorologists",
+              "role": "主詞 (Subject)",
+              "note": "氣象學家。"
+            },
+            {
+              "part": "interpolate spatial data points",
+              "role": "動詞與受詞",
+              "note": "內插空間數據點。"
+            },
+            {
+              "part": "to estimate barometric pressure",
+              "role": "目的狀語",
+              "note": "估算氣壓。"
+            },
+            {
+              "part": "across oceanic regions",
+              "role": "地點狀語",
+              "note": "海域。"
+            }
+          ],
+          "keyPoints": [
+            "【數學與統計】：linear interpolation (線性內插法)。"
+          ]
+        }
+      },
+      {
+        "word": "interrogate",
+        "kk": "[ɪnˈtɛrəˌget]",
+        "ipa": "/ɪnˈterəɡeɪt/",
+        "pos": "v.",
+        "meaning": "審問、訊問、盤問質疑",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間、相互"
+            },
+            {
+              "text": "rog",
+              "role": "root",
+              "meaning": "提問、請求 (ask)"
+            },
+            {
+              "text": "-ate",
+              "role": "suffix",
+              "meaning": "動詞字尾"
+            }
+          ],
+          "resultMeaning": "當面緊迫盯人連續提出尖銳問題訊查 ➔「審訊、盤問」"
+        },
+        "sentence": "Detectives spent hours interrogating the principal suspect to uncover inconsistencies in his alibi.",
+        "sentenceZh": "警探花了數小時審問主要嫌疑人，以揭發其不在場證明中的矛盾之處。",
+        "grammar": {
+          "pattern": "S + Vt (spent) + O + Gerund Phrase + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Detectives",
+              "role": "主詞 (Subject)",
+              "note": "警探。"
+            },
+            {
+              "part": "spent hours",
+              "role": "動詞與時間受詞",
+              "note": "花費時間。"
+            },
+            {
+              "part": "interrogating the principal suspect",
+              "role": "動名詞受詞",
+              "note": "審問首要嫌犯。"
+            },
+            {
+              "part": "to uncover inconsistencies in his alibi",
+              "role": "目的狀語",
+              "note": "揭穿不在場證明矛盾。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞衍生】：interrogation (審訊), interrogative (疑問的；疑問詞)。"
+          ]
+        }
+      },
+      {
+        "word": "intertwine",
+        "kk": "[ˌɪntɚˈtwaɪn]",
+        "ipa": "/ˌɪntərˈtwaɪn/",
+        "pos": "v.",
+        "meaning": "糾纏、交織纏繞、緊密關聯",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "相互"
+            },
+            {
+              "text": "twine",
+              "role": "root",
+              "meaning": "搓繩、編織"
+            }
+          ],
+          "resultMeaning": "兩股線繩或命運相互緊密纏繞交織在一起 ➔「交織、糾纏」"
+        },
+        "sentence": "The historical novel demonstrated how the destinies of two rival aristocratic dynasties became inextricably intertwined.",
+        "sentenceZh": "這部歷史小說展現了兩個敵對貴族王朝的命運是如何無法自拔地緊密糾纏交織在一起。",
+        "grammar": {
+          "pattern": "S + Vt + How Clause (S + Linking Verb + SC)",
+          "breakdown": [
+            {
+              "part": "The historical novel",
+              "role": "主詞 (Subject)",
+              "note": "歷史小說。"
+            },
+            {
+              "part": "demonstrated",
+              "role": "及物動詞 (Verb)",
+              "note": "展現。"
+            },
+            {
+              "part": "how the destinies became inextricably intertwined",
+              "role": "受詞名詞子句",
+              "note": "命運緊密糾纏。"
+            }
+          ],
+          "keyPoints": [
+            "【慣用搭配】：inextricably intertwined (難分難解、盤根錯節地交織在一起)。"
+          ]
+        }
+      },
+      {
+        "word": "interlude",
+        "kk": "[ˈɪntɚˌlud]",
+        "ipa": "/ˈɪntərluːd/",
+        "pos": "n.",
+        "meaning": "插曲、幕間休息、過渡小憩",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "lud",
+              "role": "root",
+              "meaning": "戲劇、玩耍 (play)"
+            }
+          ],
+          "resultMeaning": "戲劇幕與幕之間穿插上演之短暫輕鬆音樂或表演 ➔「幕間插曲、過渡」"
+        },
+        "sentence": "A melancholic cello solo provided a poignant musical interlude between the opera's dramatic acts.",
+        "sentenceZh": "一段憂傷的大提琴獨奏在歌劇戲劇性的幕與幕之間提供了動人心弦的音樂插曲。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "A melancholic cello solo",
+              "role": "主詞 (Subject)",
+              "note": "憂鬱大提琴獨奏。"
+            },
+            {
+              "part": "provided a poignant musical interlude",
+              "role": "動詞與受詞",
+              "note": "提供動人幕間插曲。"
+            },
+            {
+              "part": "between the opera's dramatic acts",
+              "role": "介系詞片語",
+              "note": "在各幕之間。"
+            }
+          ],
+          "keyPoints": [
+            "【比喻義】：a peaceful interlude (動盪歲月中一段短暫平靜時光)。"
+          ]
+        }
+      },
+      {
+        "word": "interdisciplinary",
+        "kk": "[ˌɪntɚˈdɪsəpləˌnɛrɪ]",
+        "ipa": "/ˌɪntərˌdɪsəplɪneri/",
+        "pos": "adj.",
+        "meaning": "跨學科的、跨領域的、結合多元學術門類的",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "discipline",
+              "role": "base",
+              "meaning": "學科門類"
+            },
+            {
+              "text": "-ary",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "融合交叉貫通不同學門知識理論界限的 ➔「跨學門的」"
+        },
+        "sentence": "Solving climate change necessitates an interdisciplinary approach blending meteorology, economics, and public policy.",
+        "sentenceZh": "解決氣候變遷亟需一種融合氣象學、經濟學與公共政策的跨學門綜合方法。",
+        "grammar": {
+          "pattern": "Gerund Phrase (Subject) + Vt + O + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Solving climate change",
+              "role": "動名詞當主詞",
+              "note": "解決氣候變遷。"
+            },
+            {
+              "part": "necessitates",
+              "role": "及物動詞 (Verb)",
+              "note": "使...成為必要。"
+            },
+            {
+              "part": "an interdisciplinary approach",
+              "role": "受詞 (Object)",
+              "note": "跨領域方法。"
+            },
+            {
+              "part": "blending meteorology, economics, and policy",
+              "role": "現在分詞片語修飾 approach",
+              "note": "融合多門學科。"
+            }
+          ],
+          "keyPoints": [
+            "【高教趨勢】：interdisciplinary research (跨領域前瞻研究)。"
+          ]
+        }
+      },
+      {
+        "word": "intersperse",
+        "kk": "[ˌɪntɚˈspɝs]",
+        "ipa": "/ˌɪntərˈspɜːrs/",
+        "pos": "v.",
+        "meaning": "散佈其間、點綴穿插於其間",
+        "formula": {
+          "parts": [
+            {
+              "text": "inter-",
+              "role": "prefix",
+              "meaning": "在...之間"
+            },
+            {
+              "text": "spers (spars)",
+              "role": "root",
+              "meaning": "散播、撒落 (scatter)"
+            }
+          ],
+          "resultMeaning": "在長篇內容或空間之中間隔撒入裝飾元素 ➔「穿插、點綴」"
+        },
+        "sentence": "The gifted lecturer interspersed rigorous theoretical proofs with humorous biographical anecdotes.",
+        "sentenceZh": "這位才華橫溢的講師在嚴謹的理論證明之中穿插了幽默的名人生平軼事。",
+        "grammar": {
+          "pattern": "S + Vt (interspersed A with B)",
+          "breakdown": [
+            {
+              "part": "The gifted lecturer",
+              "role": "主詞 (Subject)",
+              "note": "才華洋溢的講師。"
+            },
+            {
+              "part": "interspersed rigorous theoretical proofs",
+              "role": "動詞與主要受詞 A",
+              "note": "穿插理論證明。"
+            },
+            {
+              "part": "with humorous biographical anecdotes",
+              "role": "點綴穿插物 B",
+              "note": "intersperse A with B。"
+            }
+          ],
+          "keyPoints": [
+            "【句型】：intersperse A with B (在 A 之中點綴穿插 B)。"
+          ]
+        }
       }
     ],
     "article": {
@@ -14291,6 +40534,620 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【醫學歷史詞源】：源自義大利語 mala aria (壞空氣)，印證了古代瘴氣學說對現代醫學詞彙的影響！",
             "【及物動詞】：curtail 表示「削減、遏制、截斷」。"
+          ]
+        }
+      },
+      {
+        "word": "malevolent",
+        "kk": "[məˈlɛvələnt]",
+        "ipa": "/məˈlevələnt/",
+        "pos": "adj.",
+        "meaning": "懷有惡意的、惡毒狠毒的、邪惡的",
+        "formula": {
+          "parts": [
+            {
+              "text": "male- (mal-)",
+              "role": "prefix",
+              "meaning": "邪惡、不良"
+            },
+            {
+              "text": "vol",
+              "role": "root",
+              "meaning": "意志、願望 (will)"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "心中一心希冀謀害他人招致不幸的 ➔「懷有惡意的」"
+        },
+        "sentence": "Fairytales frequently contrast an innocent protagonist against a malevolent sorceress intent on destruction.",
+        "sentenceZh": "童話故事經常將純真無邪的主角與一心想要毀滅一切的惡毒女巫進行鮮明對比。",
+        "grammar": {
+          "pattern": "S + Adv + Vt (contrast A against B)",
+          "breakdown": [
+            {
+              "part": "Fairytales",
+              "role": "主詞 (Subject)",
+              "note": "童話故事。"
+            },
+            {
+              "part": "frequently contrast an innocent protagonist",
+              "role": "動詞與受詞 A",
+              "note": "對比主角。"
+            },
+            {
+              "part": "against a malevolent sorceress",
+              "role": "對照物 B",
+              "note": "惡毒巫婆。"
+            },
+            {
+              "part": "intent on destruction",
+              "role": "形容詞片語修飾 sorceress",
+              "note": "be intent on (決意於)。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：benevolent (仁慈和藹的，bene = 好, male = 壞)。"
+          ]
+        }
+      },
+      {
+        "word": "malice",
+        "kk": "[ˈmælɪs]",
+        "ipa": "/ˈmælɪs/",
+        "pos": "n.",
+        "meaning": "惡意、怨毒、蓄意傷人之心",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "壞、惡"
+            },
+            {
+              "text": "-ice",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "深藏於內心深處意欲加害他人的不良心機 ➔「惡意」"
+        },
+        "sentence": "In defamation jurisprudence, public figures must prove that the tabloid acted with actual malice.",
+        "sentenceZh": "在誹謗法理學中，公眾人物必須證明該八卦小報是出於「實質惡意」而行事。",
+        "grammar": {
+          "pattern": "Prep Phrase + S + Modal + Vt + That Clause",
+          "breakdown": [
+            {
+              "part": "In defamation jurisprudence",
+              "role": "領域介系詞片語",
+              "note": "在誹謗法理中。"
+            },
+            {
+              "part": "public figures",
+              "role": "主詞 (Subject)",
+              "note": "公眾人物。"
+            },
+            {
+              "part": "must prove",
+              "role": "動詞片語",
+              "note": "必須證明。"
+            },
+            {
+              "part": "that the tabloid acted with actual malice",
+              "role": "受詞名詞子句",
+              "note": "帶有實質惡意。"
+            }
+          ],
+          "keyPoints": [
+            "【美國憲法判例】：actual malice (紐約時報訴沙利文案確立之「實質惡意原則」)。"
+          ]
+        }
+      },
+      {
+        "word": "malignant",
+        "kk": "[məˈlɪgnənt]",
+        "ipa": "/məˈlɪɡnənt/",
+        "pos": "adj.",
+        "meaning": "惡性的 (腫瘤)、致命的、懷有極深怨恨的",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "壞、惡"
+            },
+            {
+              "text": "gen (gn)",
+              "role": "root",
+              "meaning": "產生、生長"
+            },
+            {
+              "text": "-ant",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "在體內瘋狂生長侵蝕正常細胞的致命病灶 ➔「惡性的」"
+        },
+        "sentence": "Oncologists utilized robotic micro-lasers to excise the malignant tumor before it metastasized to the lymph nodes.",
+        "sentenceZh": "腫瘤科醫師利用機器人微型雷射切除該惡性腫瘤，以免其轉移至淋巴結。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Adv Clause of Time (before...)",
+          "breakdown": [
+            {
+              "part": "Oncologists",
+              "role": "主詞 (Subject)",
+              "note": "腫瘤科醫生。"
+            },
+            {
+              "part": "utilized robotic micro-lasers",
+              "role": "動詞與受詞",
+              "note": "使用機器人雷射。"
+            },
+            {
+              "part": "to excise the malignant tumor",
+              "role": "目的狀語",
+              "note": "切除惡性腫瘤。"
+            },
+            {
+              "part": "before it metastasized to the lymph nodes",
+              "role": "時間副詞子句",
+              "note": "轉移擴散之前。"
+            }
+          ],
+          "keyPoints": [
+            "【腫瘤對比】：malignant (惡性的) vs. benign (良性的)。"
+          ]
+        }
+      },
+      {
+        "word": "malefactor",
+        "kk": "[ˈmæləˌfæktɚ]",
+        "ipa": "/ˈmælɪfæktər/",
+        "pos": "n.",
+        "meaning": "罪犯、作惡者、壞蛋",
+        "formula": {
+          "parts": [
+            {
+              "text": "male- (mal-)",
+              "role": "prefix",
+              "meaning": "壞、邪惡"
+            },
+            {
+              "text": "fact",
+              "role": "root",
+              "meaning": "做"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人"
+            }
+          ],
+          "resultMeaning": "專做傷天害理違法惡事之人 ➔「作惡者、罪犯」"
+        },
+        "sentence": "Federal prosecutors brought indictments against the white-collar malefactors behind the pension embezzlement.",
+        "sentenceZh": "聯邦檢察官對侵占退休金背後的白領作惡罪犯提起了起訴。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (against...) + Participle Phrase",
+          "breakdown": [
+            {
+              "part": "Federal prosecutors",
+              "role": "主詞 (Subject)",
+              "note": "聯邦檢察官。"
+            },
+            {
+              "part": "brought indictments",
+              "role": "動詞與受詞",
+              "note": "提出起訴。"
+            },
+            {
+              "part": "against the white-collar malefactors",
+              "role": "起訴對象",
+              "note": "白領罪犯。"
+            },
+            {
+              "part": "behind the pension embezzlement",
+              "role": "介系詞片語後位修飾",
+              "note": "挪用退休金主謀。"
+            }
+          ],
+          "keyPoints": [
+            "【字首對比】：benefactor (恩人、捐贈者) vs. malefactor (作惡者、罪犯)。"
+          ]
+        }
+      },
+      {
+        "word": "malcontent",
+        "kk": "[ˈmælkənˌtɛnt]",
+        "ipa": "/ˈmælkəntent/",
+        "pos": "n. / adj.",
+        "meaning": "不滿者、反抗體制者；(adj.) 怨恨不滿的",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "不、不良"
+            },
+            {
+              "text": "content",
+              "role": "base",
+              "meaning": "滿意滿足"
+            }
+          ],
+          "resultMeaning": "對周遭環境與統治現狀極度不服心懷抱怨之人 ➔「不滿分子」"
+        },
+        "sentence": "Disgruntled malcontents instigated strikes across regional rail networks demanding overdue safety retrofits.",
+        "sentenceZh": "心懷不滿的抗議分子在地區鐵路網絡發起罷工，要求完成逾期未辦的安全改造。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase (demanding...)",
+          "breakdown": [
+            {
+              "part": "Disgruntled malcontents",
+              "role": "主詞 (Subject)",
+              "note": "憤懣不滿分子。"
+            },
+            {
+              "part": "instigated strikes",
+              "role": "動詞與受詞",
+              "note": "發動罷工。"
+            },
+            {
+              "part": "across regional rail networks",
+              "role": "地點狀語",
+              "note": "橫跨鐵路網。"
+            },
+            {
+              "part": "demanding overdue safety retrofits",
+              "role": "現在分詞伴隨訴求",
+              "note": "要求安全升級。"
+            }
+          ],
+          "keyPoints": [
+            "【文法拆解】：mal (不良) + content (滿意) = 不滿體制者。"
+          ]
+        }
+      },
+      {
+        "word": "malady",
+        "kk": "[ˈmælədɪ]",
+        "ipa": "/ˈmælədi/",
+        "pos": "n.",
+        "meaning": "慢性疾病、弊病、社會痼疾",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "壞、不良"
+            },
+            {
+              "text": "habere (alade)",
+              "role": "root",
+              "meaning": "處於狀態 (法語借詞)"
+            }
+          ],
+          "resultMeaning": "身體機能或社會體制處於長期不良病態 ➔「痼疾、弊端」"
+        },
+        "sentence": "Systemic corruption became an incurable societal malady draining state coffers for generations.",
+        "sentenceZh": "體制性腐敗成為一種無藥可救的社會痼疾，長年累月耗竭國家財政儲備。",
+        "grammar": {
+          "pattern": "S + Linking Verb + SC + Participle Phrase (draining...)",
+          "breakdown": [
+            {
+              "part": "Systemic corruption",
+              "role": "主詞 (Subject)",
+              "note": "結構性貪腐。"
+            },
+            {
+              "part": "became an incurable societal malady",
+              "role": "連綴動詞與補語",
+              "note": "成為無法治癒的痼疾。"
+            },
+            {
+              "part": "draining state coffers for generations",
+              "role": "現在分詞片語表後果",
+              "note": "榨乾國庫。"
+            }
+          ],
+          "keyPoints": [
+            "【雙重意涵】：醫學上指疾病，社經評論常指「社會弊端或痼疾」。"
+          ]
+        }
+      },
+      {
+        "word": "malaise",
+        "kk": "[mæˈlez]",
+        "ipa": "/mæˈleɪz/",
+        "pos": "n.",
+        "meaning": "莫名的不適感、萎靡不振、心神不寧、社會蕭條不安",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "壞、不好"
+            },
+            {
+              "text": "aise",
+              "role": "base",
+              "meaning": "舒適、安適 (ease)"
+            }
+          ],
+          "resultMeaning": "法語借詞，身心完全無法放鬆陷入隱隱不適 ➔「萎靡、心神不安」"
+        },
+        "sentence": "A persistent economic malaise gripped the factory town following the departure of its automotive plants.",
+        "sentenceZh": "在汽車製造廠相繼遷出後，一股持續性的經濟萎靡蕭條籠罩了這座工業城鎮。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Time (following...)",
+          "breakdown": [
+            {
+              "part": "A persistent economic malaise",
+              "role": "主詞 (Subject)",
+              "note": "持續經濟萎靡。"
+            },
+            {
+              "part": "gripped the factory town",
+              "role": "動詞與受詞",
+              "note": "籠罩工廠小鎮。"
+            },
+            {
+              "part": "following the departure of automotive plants",
+              "role": "時間介系詞片語",
+              "note": "車廠遷離之後。"
+            }
+          ],
+          "keyPoints": [
+            "【歷史名言】：1979 年美國總統吉米·卡特著名的 \"Malaise Speech\" (信心危機演說)。"
+          ]
+        }
+      },
+      {
+        "word": "malfeasance",
+        "kk": "[mælˈfizəns]",
+        "ipa": "/mælˈfiːzəns/",
+        "pos": "n.",
+        "meaning": "違法行為、官員瀆職、不正當作為",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "壞、惡"
+            },
+            {
+              "text": "feas (fac)",
+              "role": "root",
+              "meaning": "做 (do)"
+            },
+            {
+              "text": "-ance",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "公職人員故意做出逾越法度之違法惡劣作為 ➔「瀆職、違法行為」"
+        },
+        "sentence": "The state comptroller audited municipal funds, unearthing shocking evidence of procurement malfeasance.",
+        "sentenceZh": "州主計長審計了市府財政基金，揭發了採購過程中令人震驚的瀆職濫權證據。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participle Phrase of Result",
+          "breakdown": [
+            {
+              "part": "The state comptroller",
+              "role": "主詞 (Subject)",
+              "note": "州主計長。"
+            },
+            {
+              "part": "audited municipal funds",
+              "role": "動詞與受詞",
+              "note": "審計市政基金。"
+            },
+            {
+              "part": "unearthing shocking evidence of malfeasance",
+              "role": "現在分詞伴隨結果",
+              "note": "unearth (挖出、揭露)。"
+            }
+          ],
+          "keyPoints": [
+            "【法律搭配】：official malfeasance (公務員瀆職罪)。"
+          ]
+        }
+      },
+      {
+        "word": "maladroit",
+        "kk": "[ˌmæləˈdrɔɪt]",
+        "ipa": "/ˌmæləˈdrɔɪt/",
+        "pos": "adj.",
+        "meaning": "笨拙的、不俐落的、手腕不圓滑的",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "不良、壞"
+            },
+            {
+              "text": "adroit",
+              "role": "base",
+              "meaning": "靈巧嫻熟的 (法語借詞)"
+            }
+          ],
+          "resultMeaning": "處事或動作缺乏靈巧笨拙拙劣的 ➔「笨拙不俐落的」"
+        },
+        "sentence": "His maladroit comments during the press briefing inadvertently offended key foreign delegates.",
+        "sentenceZh": "他在記者簡報會上笨拙失當的言論無意中冒犯了重要的外國代表。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O",
+          "breakdown": [
+            {
+              "part": "His maladroit comments during the briefing",
+              "role": "主詞 (Subject)",
+              "note": "簡報中笨拙的評論。"
+            },
+            {
+              "part": "inadvertently offended",
+              "role": "動詞片語",
+              "note": "無意間冒犯。"
+            },
+            {
+              "part": "key foreign delegates",
+              "role": "受詞 (Object)",
+              "note": "外國代表。"
+            }
+          ],
+          "keyPoints": [
+            "【反義字】：adroit (機敏俐落的、靈巧的)。"
+          ]
+        }
+      },
+      {
+        "word": "malformation",
+        "kk": "[ˌmælfɔrˈmeʃən]",
+        "ipa": "/ˌmælfɔːrˈmeɪʃn/",
+        "pos": "n.",
+        "meaning": "畸形構造、發育異常",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "不良"
+            },
+            {
+              "text": "formation",
+              "role": "base",
+              "meaning": "形成、構造"
+            }
+          ],
+          "resultMeaning": "胚胎在母體中組織形成過程出錯導致之結構畸變 ➔「畸形構造」"
+        },
+        "sentence": "Pediatric neurosurgeons performed delicate microsurgery to rectify a congenital arteriovenous malformation.",
+        "sentenceZh": "小兒神經外科醫師進行了精細的顯微手術，以矯正先天性動靜脈血管畸形。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Pediatric neurosurgeons",
+              "role": "主詞 (Subject)",
+              "note": "小兒神經外科醫師。"
+            },
+            {
+              "part": "performed delicate microsurgery",
+              "role": "及物動詞與受詞",
+              "note": "執行精細微創手術。"
+            },
+            {
+              "part": "to rectify a congenital malformation",
+              "role": "目的狀語",
+              "note": "矯正先天畸形。"
+            }
+          ],
+          "keyPoints": [
+            "【醫學專詞】：AVM = Arteriovenous Malformation (動靜脈畸形)。"
+          ]
+        }
+      },
+      {
+        "word": "malodorous",
+        "kk": "[mælˈodərəs]",
+        "ipa": "/mælˈoʊdərəs/",
+        "pos": "adj.",
+        "meaning": "惡臭的、散發難聞臭氣的",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "不良、壞"
+            },
+            {
+              "text": "odor",
+              "role": "root",
+              "meaning": "氣味"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "充滿...的"
+            }
+          ],
+          "resultMeaning": "散發出極度刺鼻難受腐敗壞氣味的 ➔「惡臭難聞的」"
+        },
+        "sentence": "Volcanic vents emitted malodorous hydrogen sulfide gases that drove tourists away from the crater rim.",
+        "sentenceZh": "火山通氣孔散發出惡臭的硫化氫氣體，迫使遊客紛紛逃離火山口邊緣。",
+        "grammar": {
+          "pattern": "S + Vt + O + Relative Clause",
+          "breakdown": [
+            {
+              "part": "Volcanic vents",
+              "role": "主詞 (Subject)",
+              "note": "火山通氣孔。"
+            },
+            {
+              "part": "emitted malodorous hydrogen sulfide gases",
+              "role": "動詞與受詞",
+              "note": "排放惡臭氣體。"
+            },
+            {
+              "part": "that drove tourists away from the rim",
+              "role": "關係子句修飾 gases",
+              "note": "驅趕遊客。"
+            }
+          ],
+          "keyPoints": [
+            "【高級同義替換】：malodorous 比 smelly / stinky 更正式且具學術修辭美感。"
+          ]
+        }
+      },
+      {
+        "word": "malign",
+        "kk": "[məˈlaɪn]",
+        "ipa": "/məˈlaɪn/",
+        "pos": "v. / adj.",
+        "meaning": "誹謗、中傷、造謠抹黑；(adj.) 惡意的、有害的",
+        "formula": {
+          "parts": [
+            {
+              "text": "mal-",
+              "role": "prefix",
+              "meaning": "壞、惡"
+            },
+            {
+              "text": "gen (gn)",
+              "role": "root",
+              "meaning": "產生 (生出惡言)"
+            }
+          ],
+          "resultMeaning": "向外界播撒惡意謊言損害他人清譽 ➔「中傷、誹謗」"
+        },
+        "sentence": "Political smear campaigns unfairly maligned the reformer's character despite his unblemished public record.",
+        "sentenceZh": "儘管這位改革者擁有無可挑剔的公眾紀錄，政治抹黑宣傳戰依然不公正地誹謗了他的人格。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase of Concession (despite...)",
+          "breakdown": [
+            {
+              "part": "Political smear campaigns",
+              "role": "主詞 (Subject)",
+              "note": "政治抹黑活動。"
+            },
+            {
+              "part": "unfairly maligned the reformer's character",
+              "role": "動詞與受詞",
+              "note": "不公地誹謗其人格。"
+            },
+            {
+              "part": "despite his unblemished public record",
+              "role": "讓步介系詞片語",
+              "note": "儘管清白紀錄。"
+            }
+          ],
+          "keyPoints": [
+            "【同根派生】：malign (動詞/形容詞) ➔ malignant (惡性嚴重的)。"
           ]
         }
       }
@@ -14614,6 +41471,605 @@ const ETYMO_DATA = [
           "keyPoints": [
             "【成語片語】：scratch the surface (僅觸及皮毛、蜻蜓點水)。",
             "【動詞用法】：surface 作動詞除「浮出水面」外，亦常指「(問題、爭議、真相) 浮出檯面、暴露出來」。"
+          ]
+        }
+      },
+      {
+        "word": "superfluous",
+        "kk": "[sʊˈpɝflʊəs]",
+        "ipa": "/suːˈpɜːrfluəs/",
+        "pos": "adj.",
+        "meaning": "多餘的、過剩的、不必要的贅疣",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "超出、在...之上"
+            },
+            {
+              "text": "flu",
+              "role": "root",
+              "meaning": "流動 (flow)"
+            },
+            {
+              "text": "-ous",
+              "role": "suffix",
+              "meaning": "充滿...的"
+            }
+          ],
+          "resultMeaning": "溢滿邊緣流淌出來的多餘之物 ➔「多餘多餘的」"
+        },
+        "sentence": "The concise editor trimmed superfluous verbiage to ensure the policy document remained punchy.",
+        "sentenceZh": "簡明俐落的編輯刪除了多餘的贅詞冗語，以確保政策文件維持精煉有力。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "The concise editor",
+              "role": "主詞 (Subject)",
+              "note": "簡練編輯。"
+            },
+            {
+              "part": "trimmed superfluous verbiage",
+              "role": "動詞與受詞",
+              "note": "刪修多餘冗詞。"
+            },
+            {
+              "part": "to ensure the document remained punchy",
+              "role": "目的狀語",
+              "note": "punchy (簡潔有力的)。"
+            }
+          ],
+          "keyPoints": [
+            "【寫作指南】：Eliminate superfluous words (掃除冗言贅字)。"
+          ]
+        }
+      },
+      {
+        "word": "supersede",
+        "kk": "[ˌsupɚˈsid]",
+        "ipa": "/ˌsuːpərˈsiːd/",
+        "pos": "v.",
+        "meaning": "取代、替代淘汰、接替",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在...之上"
+            },
+            {
+              "text": "sede (sed)",
+              "role": "root",
+              "meaning": "坐下 (sit)"
+            }
+          ],
+          "resultMeaning": "坐上更高階之位子將舊事物排除擠下 ➔「取代、淘汰」"
+        },
+        "sentence": "High-efficiency solid-state batteries are projected to supersede traditional lithium-ion cells by decade's end.",
+        "sentenceZh": "高效固態電池預計將在本年代末淘汰取代傳統的鋰離子電池。",
+        "grammar": {
+          "pattern": "S + Passive Verb + to-V (to supersede O) + Prep Phrase of Time",
+          "breakdown": [
+            {
+              "part": "High-efficiency solid-state batteries",
+              "role": "主詞 (Subject)",
+              "note": "固態電池。"
+            },
+            {
+              "part": "are projected to supersede lithium-ion cells",
+              "role": "be projected to V",
+              "note": "預計將取代鋰電池。"
+            },
+            {
+              "part": "by decade's end",
+              "role": "時間狀語",
+              "note": "至年代末。"
+            }
+          ],
+          "keyPoints": [
+            "【拼寫提醒】：字尾為 -sede 而非 -cede (源自拉丁語 sedere「坐」)。"
+          ]
+        }
+      },
+      {
+        "word": "supercilious",
+        "kk": "[ˌsupɚˈsɪlɪəs]",
+        "ipa": "/ˌsuːpərˈsɪliəs/",
+        "pos": "adj.",
+        "meaning": "傲慢的、目空一切的、高傲挑剔的",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在...之上"
+            },
+            {
+              "text": "cilium",
+              "role": "root",
+              "meaning": "眼睫毛、眉毛"
+            }
+          ],
+          "resultMeaning": "高高挑起眉毛鄙視看待他人之傲慢神態 ➔「目中無人的、傲慢的」"
+        },
+        "sentence": "The aristocrat greeted the humble petitioner with a supercilious sneer and dismissive hand gesture.",
+        "sentenceZh": "這位貴族帶著目空一切的輕蔑冷笑與不屑揮手姿態接待了那位卑微的請願者。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Manner",
+          "breakdown": [
+            {
+              "part": "The aristocrat",
+              "role": "主詞 (Subject)",
+              "note": "貴族。"
+            },
+            {
+              "part": "greeted the humble petitioner",
+              "role": "及物動詞與受詞",
+              "note": "接待請願者。"
+            },
+            {
+              "part": "with a supercilious sneer and dismissive gesture",
+              "role": "方式狀語",
+              "note": "以傲慢姿態。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源真義】：拉丁語 supercilium 原指「眉毛」，高抬眉毛即是居高臨下的輕蔑。"
+          ]
+        }
+      },
+      {
+        "word": "superimpose",
+        "kk": "[ˌsupɚrɪmˈpoz]",
+        "ipa": "/ˌsuːpərɪmˈpoʊz/",
+        "pos": "v.",
+        "meaning": "疊加、重疊置放、附加重合",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在...之上"
+            },
+            {
+              "text": "in- (im-)",
+              "role": "prefix",
+              "meaning": "在...之中"
+            },
+            {
+              "text": "pos (pose)",
+              "role": "root",
+              "meaning": "放置 (place)"
+            }
+          ],
+          "resultMeaning": "將一層全新圖層完整重疊覆蓋安放在舊影像之上 ➔「疊加」"
+        },
+        "sentence": "Augmented reality applications superimpose interactive three-dimensional models onto physical environments in real time.",
+        "sentenceZh": "擴增實境應用程式能將互動式三維模型即時疊加置放在實體環境之上。",
+        "grammar": {
+          "pattern": "S + Vt (superimpose A onto B) + Adv Phrase of Time",
+          "breakdown": [
+            {
+              "part": "Augmented reality applications",
+              "role": "主詞 (Subject)",
+              "note": "AR 應用。"
+            },
+            {
+              "part": "superimpose 3D models",
+              "role": "動詞與受詞 A",
+              "note": "superimpose A onto B。"
+            },
+            {
+              "part": "onto physical environments",
+              "role": "疊加介質 B",
+              "note": "置放於實體環境。"
+            },
+            {
+              "part": "in real time",
+              "role": "時間狀語",
+              "note": "即時地。"
+            }
+          ],
+          "keyPoints": [
+            "【科技用語】：superimpose digital graphics (疊加數位圖像)。"
+          ]
+        }
+      },
+      {
+        "word": "superposition",
+        "kk": "[ˌsupɚpəˈzɪʃən]",
+        "ipa": "/ˌsuːpərpəˈzɪʃn/",
+        "pos": "n.",
+        "meaning": "疊加原理、量子疊加態",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在...之上"
+            },
+            {
+              "text": "position",
+              "role": "base",
+              "meaning": "位置、狀態"
+            }
+          ],
+          "resultMeaning": "量子粒子在未觀測前同時處於多種潛在狀態之上 ➔「疊加態」"
+        },
+        "sentence": "Quantum computers leverage coherent superposition and entanglement to calculate complex encryption keys exponentially faster.",
+        "sentenceZh": "量子電腦利用相干疊加態與量子糾纏，能以指數級的速度計算複雜的加密金鑰。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "Quantum computers",
+              "role": "主詞 (Subject)",
+              "note": "量子電腦。"
+            },
+            {
+              "part": "leverage superposition and entanglement",
+              "role": "動詞與受詞",
+              "note": "利用疊加與糾纏。"
+            },
+            {
+              "part": "to calculate encryption keys faster",
+              "role": "目的狀語",
+              "note": "極速破解金鑰。"
+            }
+          ],
+          "keyPoints": [
+            "【量子力學】：quantum superposition (量子疊加原理，薛丁格的貓即是經典比喻)。"
+          ]
+        }
+      },
+      {
+        "word": "superintend",
+        "kk": "[ˌsupərɪnˈtɛnd]",
+        "ipa": "/ˌsuːpərɪnˈtend/",
+        "pos": "v.",
+        "meaning": "主管、督導、監管工程事務",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "在...之上"
+            },
+            {
+              "text": "intend",
+              "role": "root",
+              "meaning": "專注照料 (stretch toward)"
+            }
+          ],
+          "resultMeaning": "站在制高點總攬全局指揮協調 ➔「主管、監管」"
+        },
+        "sentence": "A licensed civil engineer was dispatched on-site to superintend the suspension bridge retrofitting project.",
+        "sentenceZh": "一名具有執照的土木工程師被派往現場，負責監管該懸索橋的安全加固工程。",
+        "grammar": {
+          "pattern": "S + Passive Verb + Adv + Infinitive of Purpose",
+          "breakdown": [
+            {
+              "part": "A licensed civil engineer",
+              "role": "主詞 (Subject)",
+              "note": "執業土木工程師。"
+            },
+            {
+              "part": "was dispatched on-site",
+              "role": "被動態謂語",
+              "note": "被派往現場。"
+            },
+            {
+              "part": "to superintend the project",
+              "role": "目的狀語",
+              "note": "督導該工程。"
+            }
+          ],
+          "keyPoints": [
+            "【職業名詞】：superintendent (總監、學區總監、建築大樓管理員)。"
+          ]
+        }
+      },
+      {
+        "word": "supercluster",
+        "kk": "[ˈsupɚˌklʌstɚ]",
+        "ipa": "/ˈsuːpərklʌstər/",
+        "pos": "n.",
+        "meaning": "超星系團 (宇宙最大規模結構之一)",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "超級、巨大"
+            },
+            {
+              "text": "cluster",
+              "role": "base",
+              "meaning": "團、星系團"
+            }
+          ],
+          "resultMeaning": "數十個龐大星系團由重力串連組成之宇宙巨型纖維結構 ➔「超星系團」"
+        },
+        "sentence": "Our Milky Way galaxy resides in a quiet outer suburb of the gigantic Laniakea Supercluster.",
+        "sentenceZh": "我們的銀河系坐落於龐大的拉尼亞凱亞超星系團一個寧靜的外圍郊區地帶。",
+        "grammar": {
+          "pattern": "S + Vi + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Our Milky Way galaxy",
+              "role": "主詞 (Subject)",
+              "note": "銀河系。"
+            },
+            {
+              "part": "resides",
+              "role": "不及物動詞 (Verb)",
+              "note": "居住坐落。"
+            },
+            {
+              "part": "in a quiet suburb of the Laniakea Supercluster",
+              "role": "地點狀語",
+              "note": "拉尼亞凱亞超星系團。"
+            }
+          ],
+          "keyPoints": [
+            "【宇宙巨構】：Laniakea Supercluster 包含超過 100,000 個星系！"
+          ]
+        }
+      },
+      {
+        "word": "superluminal",
+        "kk": "[ˌsupɚˈlumən!]",
+        "ipa": "/ˌsuːpərˈluːmɪnl/",
+        "pos": "adj.",
+        "meaning": "超光速的、速度超越真空光速的",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "超越"
+            },
+            {
+              "text": "lumin",
+              "role": "root",
+              "meaning": "光 (light)"
+            },
+            {
+              "text": "-al",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "運動速度超越宇宙光速上限物理極限的 ➔「超光速的」"
+        },
+        "sentence": "Special relativity dictates that no material object with mass can accelerate to superluminal velocities.",
+        "sentenceZh": "狹義相對論明確規定，任何具有質量的實體物質都不可能加速至超光速的行進速度。",
+        "grammar": {
+          "pattern": "S + Vt + That Clause (S + Modal + Vi + Prep Phrase)",
+          "breakdown": [
+            {
+              "part": "Special relativity",
+              "role": "主詞 (Subject)",
+              "note": "狹義相對論。"
+            },
+            {
+              "part": "dictates",
+              "role": "及物動詞 (Verb)",
+              "note": "硬性規定。"
+            },
+            {
+              "part": "that no object can accelerate to superluminal velocities",
+              "role": "受詞名詞子句",
+              "note": "不可超光速。"
+            }
+          ],
+          "keyPoints": [
+            "【理論物理】：superluminal motion (假性超光速運動、視超光速)。"
+          ]
+        }
+      },
+      {
+        "word": "superlative",
+        "kk": "[sʊˈpɝlətɪv]",
+        "ipa": "/suːˈpɜːrlətɪv/",
+        "pos": "adj. / n.",
+        "meaning": "最高級的、卓越無比的、極致的；(n.) 最高級形容詞",
+        "formula": {
+          "parts": [
+            {
+              "text": "super-",
+              "role": "prefix",
+              "meaning": "超越"
+            },
+            {
+              "text": "lat",
+              "role": "root",
+              "meaning": "攜帶、達到 (borne/carried)"
+            },
+            {
+              "text": "-ive",
+              "role": "suffix",
+              "meaning": "形容詞字尾"
+            }
+          ],
+          "resultMeaning": "超越所有人登上最高榮譽頂峰境界的 ➔「最高級的、極致的」"
+        },
+        "sentence": "The pastry chef earned international fame for her superlative chocolate soufflés and culinary precision.",
+        "sentenceZh": "這位法式甜點主廚憑藉其極致絕妙的巧克力舒芙蕾與精湛烹飪功力享譽國際。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase of Reason (for...)",
+          "breakdown": [
+            {
+              "part": "The pastry chef",
+              "role": "主詞 (Subject)",
+              "note": "西點主廚。"
+            },
+            {
+              "part": "earned international fame",
+              "role": "動詞與受詞",
+              "note": "贏得國際盛名。"
+            },
+            {
+              "part": "for her superlative chocolate soufflés",
+              "role": "原因狀語",
+              "note": "極品舒芙蕾。"
+            }
+          ],
+          "keyPoints": [
+            "【文法用語】：superlative degree (最高級，如 best, greatest)。"
+          ]
+        }
+      },
+      {
+        "word": "surpass",
+        "kk": "[sɚˈpæs]",
+        "ipa": "/sərˈpæs/",
+        "pos": "v.",
+        "meaning": "超越、勝過、優於",
+        "formula": {
+          "parts": [
+            {
+              "text": "sur- (super-)",
+              "role": "prefix",
+              "meaning": "超越"
+            },
+            {
+              "text": "pass",
+              "role": "root",
+              "meaning": "跨步、通過"
+            }
+          ],
+          "resultMeaning": "大步跨過超越前人留下的紀錄或水準 ➔「超越、勝過」"
+        },
+        "sentence": "Electric vehicle deliveries this quarter surpassed industry analysts' most optimistic forecasts.",
+        "sentenceZh": "本季度的電動車交付量超越了業界分析師最樂觀的預測值。",
+        "grammar": {
+          "pattern": "S + Vt + O",
+          "breakdown": [
+            {
+              "part": "Electric vehicle deliveries this quarter",
+              "role": "主詞 (Subject)",
+              "note": "本季電車交付量。"
+            },
+            {
+              "part": "surpassed",
+              "role": "及物動詞 (Verb)",
+              "note": "超越。"
+            },
+            {
+              "part": "analysts' most optimistic forecasts",
+              "role": "受詞 (Object)",
+              "note": "分析師預測。"
+            }
+          ],
+          "keyPoints": [
+            "【常用搭配】：surpass expectations (超乎預期)。"
+          ]
+        }
+      },
+      {
+        "word": "surrender",
+        "kk": "[səˈrɛndɚ]",
+        "ipa": "/səˈrendər/",
+        "pos": "v. / n.",
+        "meaning": "投降、放棄交出；(n.) 投降屈服",
+        "formula": {
+          "parts": [
+            {
+              "text": "sur- (super-)",
+              "role": "prefix",
+              "meaning": "向上"
+            },
+            {
+              "text": "render",
+              "role": "root",
+              "meaning": "交出、給予 (give back)"
+            }
+          ],
+          "resultMeaning": "雙手高高向上奉上交出武器放棄抵抗 ➔「投降、交出」"
+        },
+        "sentence": "Besieged garrisons finally signed an unconditional surrender after running out of munitions and drinking water.",
+        "sentenceZh": "被圍困的要塞守軍在耗盡彈藥與飲用水後，最終簽署了無條件投降協議。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Prep Phrase (after V-ing O)",
+          "breakdown": [
+            {
+              "part": "Besieged garrisons",
+              "role": "主詞 (Subject)",
+              "note": "被圍困守軍。"
+            },
+            {
+              "part": "finally signed an unconditional surrender",
+              "role": "及物動詞與受詞",
+              "note": "簽署無條件投降。"
+            },
+            {
+              "part": "after running out of munitions and water",
+              "role": "時間狀語",
+              "note": "run out of (耗盡)。"
+            }
+          ],
+          "keyPoints": [
+            "【歷史軍事】：unconditional surrender (無條件投降)。"
+          ]
+        }
+      },
+      {
+        "word": "surveillance",
+        "kk": "[sɚˈveləns]",
+        "ipa": "/sərˈveɪləns/",
+        "pos": "n.",
+        "meaning": "監視、監控、秘密盯防",
+        "formula": {
+          "parts": [
+            {
+              "text": "sur- (super-)",
+              "role": "prefix",
+              "meaning": "自上方俯視"
+            },
+            {
+              "text": "veil (vigil)",
+              "role": "root",
+              "meaning": "警醒守望 (watch)"
+            },
+            {
+              "text": "-ance",
+              "role": "suffix",
+              "meaning": "名詞字尾"
+            }
+          ],
+          "resultMeaning": "自高處嚴密注視一舉一動守候防範 ➔「監視、監控」"
+        },
+        "sentence": "Privacy advocates voiced grave concerns regarding unchecked mass facial-recognition surveillance in public transit systems.",
+        "sentenceZh": "隱私倡導者對大眾運輸系統中未受制約的大規模臉部識別監控表達了嚴正關切。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase (regarding O) + Prep Phrase of Place",
+          "breakdown": [
+            {
+              "part": "Privacy advocates",
+              "role": "主詞 (Subject)",
+              "note": "隱私倡議人士。"
+            },
+            {
+              "part": "voiced grave concerns",
+              "role": "動詞與受詞",
+              "note": "表達嚴重擔憂。"
+            },
+            {
+              "part": "regarding mass facial-recognition surveillance",
+              "role": "介系詞對象",
+              "note": "人臉識別監控。"
+            },
+            {
+              "part": "in public transit systems",
+              "role": "地點狀語",
+              "note": "大眾捷運。"
+            }
+          ],
+          "keyPoints": [
+            "【科技社會】：surveillance camera (監視攝影機、CCTV)。"
           ]
         }
       }
