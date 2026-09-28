@@ -1373,6 +1373,1587 @@ const ETYMO_DATA = [
       ]
     }
   }
+,
+  {
+    "id": "audi",
+    "name": "audi / audit",
+    "type": "root",
+    "typeLabel": "拉丁語字根 (Latin Root)",
+    "etymology": "源自拉丁語動詞「audire」(聽、傾聽、聽審)。",
+    "originMeaning": "聽、聲音、聽覺、查核",
+    "phonetic": "/ˈɔːdi/ 或 /ˈɔːdɪt/",
+    "icon": "🎧",
+    "color": "#0D9488",
+    "summary": "與聲音傳導、聽覺感知、大型聽眾聚集場所及帳務聽審審計密切相關。",
+    "words": [
+      {
+        "word": "audible",
+        "kk": "[ˈɔdəb!]",
+        "ipa": "/ˈɔːdəbl/",
+        "pos": "adj.",
+        "meaning": "聽得見的、音量清晰的",
+        "formula": {
+          "parts": [
+            {
+              "text": "audi",
+              "role": "root",
+              "meaning": "聽 (拉丁語 audire)"
+            },
+            {
+              "text": "-able",
+              "role": "suffix",
+              "meaning": "能夠...的 (形容詞字尾)"
+            }
+          ],
+          "resultMeaning": "能夠被人類耳朵清晰聽見的 ➔「聽得見的」"
+        },
+        "sentence": "The whisper was barely audible above the roaring engine noise inside the crowded hangar.",
+        "sentenceZh": "在擁擠機庫內引擎轟鳴的喧囂聲中，那低語聲幾乎微弱得聽不見。",
+        "grammar": {
+          "pattern": "S + Linking Verb + Adv + Predicate Adjective + Prep Phrase (主詞 + 連綴動詞 + 程度副詞 + 形容詞補語 + 介系詞片語)",
+          "breakdown": [
+            {
+              "part": "The whisper",
+              "role": "主詞 (Subject)",
+              "note": "名詞「低語聲」。"
+            },
+            {
+              "part": "was",
+              "role": "連綴動詞 (Linking Verb)",
+              "note": "be 動詞過去式。"
+            },
+            {
+              "part": "barely audible",
+              "role": "主詞補語 (Subject Complement)",
+              "note": "否定副詞 barely (幾乎不) 修飾形容詞 audible。"
+            },
+            {
+              "part": "above the roaring engine noise",
+              "role": "比較介系詞片語 (Prepositional Phrase)",
+              "note": "above 表聲音穿透高過於另一背景噪音；roaring 為現在分詞作形容詞。"
+            },
+            {
+              "part": "inside the crowded hangar",
+              "role": "地點介系詞片語 (Locative Adverbial)",
+              "note": "crowded (擁擠的) 修飾機庫 hangar。"
+            }
+          ],
+          "keyPoints": [
+            "【否定副詞用法】：barely / scarcely / hardly 均帶有準否定意味 (幾乎不)。",
+            "【字根反義詞】：inaudible (聽不見的；in- 不 + audible)。"
+          ]
+        }
+      },
+      {
+        "word": "audience",
+        "kk": "[ˈɔdɪəns]",
+        "ipa": "/ˈɔːdiəns/",
+        "pos": "n.",
+        "meaning": "觀眾、聽眾、讀者群",
+        "formula": {
+          "parts": [
+            {
+              "text": "audi",
+              "role": "root",
+              "meaning": "聽 (拉丁語 audire)"
+            },
+            {
+              "text": "-ence",
+              "role": "suffix",
+              "meaning": "性質、狀態、群體 (名詞字尾)"
+            }
+          ],
+          "resultMeaning": "聚在一起專注傾聽音樂演說的人群 ➔「聽眾、觀眾」"
+        },
+        "sentence": "The mesmerizing symphony held the captivated audience spellbound throughout the entire ninety-minute recital.",
+        "sentenceZh": "這部引人入勝的交響樂在長達九十分鐘的整場演奏會中，讓全體陶醉的聽眾聽得如痴如醉。",
+        "grammar": {
+          "pattern": "S + Vt + O + Object Complement + Time Adverbial (主詞 + 及物動詞 + 受詞 + 受詞補語 + 時間狀詞)",
+          "breakdown": [
+            {
+              "part": "The mesmerizing symphony",
+              "role": "主詞 (Subject)",
+              "note": "mesmerizing (令人著迷的) 為現在分詞形容詞。"
+            },
+            {
+              "part": "held",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "hold 的過去式，用於 hold + O + adj. 句型。"
+            },
+            {
+              "part": "the captivated audience",
+              "role": "直接受詞 (Direct Object)",
+              "note": "captivated (被深深吸引的) 為過去分詞修飾 audience。"
+            },
+            {
+              "part": "spellbound",
+              "role": "受詞補語 (Object Complement)",
+              "note": "形容詞，表示「被符咒吸引般出神的」。"
+            },
+            {
+              "part": "throughout the entire ninety-minute recital",
+              "role": "時間介系詞片語 (Time Adverbial)",
+              "note": "throughout 表貫穿整場演出。"
+            }
+          ],
+          "keyPoints": [
+            "【及物使動句型】：hold somebody spellbound (使某人看得入迷/聽得出神)。",
+            "【集合名詞概念】：audience 若強調整體視為單數，強調個別成員視為複數。"
+          ]
+        }
+      },
+      {
+        "word": "auditorium",
+        "kk": "[ˌɔdəˈtorɪəm]",
+        "ipa": "/ˌɔːdɪˈtɔːriəm/",
+        "pos": "n.",
+        "meaning": "禮堂、音樂廳、觀眾席",
+        "formula": {
+          "parts": [
+            {
+              "text": "audit",
+              "role": "root",
+              "meaning": "聽 (拉丁語 audire)"
+            },
+            {
+              "text": "-orium",
+              "role": "suffix",
+              "meaning": "場所、建築地點 (名詞字尾)"
+            }
+          ],
+          "resultMeaning": "專門用來供人們坐著聆聽大型音樂與演說的場所 ➔「大禮堂、音樂廳」"
+        },
+        "sentence": "Acoustic architects engineered the spacious auditorium to reflect pure harmonic frequencies evenly to every seat.",
+        "sentenceZh": "聲學建築師設計這座寬敞的音樂大禮堂，旨在將純淨的和聲頻率均勻反射到每一個座位。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Adverbial (主詞 + 及物動詞 + 受詞 + 目的不定詞 + 副詞與介系詞受詞)",
+          "breakdown": [
+            {
+              "part": "Acoustic architects",
+              "role": "主詞 (Subject)",
+              "note": "聲學工程建築師。"
+            },
+            {
+              "part": "engineered",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "在此作動詞「精心設計規劃」。"
+            },
+            {
+              "part": "the spacious auditorium",
+              "role": "受詞 (Direct Object)",
+              "note": "spacious (寬敞的) 修飾禮堂。"
+            },
+            {
+              "part": "to reflect pure harmonic frequencies",
+              "role": "目的狀詞 (Infinitive of Purpose)",
+              "note": "不定詞片語表設計目的。"
+            },
+            {
+              "part": "evenly to every seat",
+              "role": "方式與方向狀詞 (Adverbials)",
+              "note": "evenly (均勻地) 修飾 reflect；to every seat 表接受端。"
+            }
+          ],
+          "keyPoints": [
+            "【場所字尾 -orium】：同源場所詞如 sanatorium (療養院)、planetarium (天文館)。",
+            "【及物動詞轉用】：engineer 作動詞表示「以工程技術精準打造」。"
+          ]
+        }
+      },
+      {
+        "word": "audit",
+        "kk": "[ˈɔdɪt]",
+        "ipa": "/ˈɔːdɪt/",
+        "pos": "v. / n.",
+        "meaning": "(v.) 查核、審計帳目、旁聽課程；(n.) 審計、查帳",
+        "formula": {
+          "parts": [
+            {
+              "text": "audit",
+              "role": "root",
+              "meaning": "聽審、聽取陳述 (拉丁語 audire)"
+            }
+          ],
+          "resultMeaning": "古代官員親自坐堂聽取受查人口頭報告帳務收支 ➔「審計、查帳」"
+        },
+        "sentence": "Independent certified accountants audit corporate financial ledgers to detect irregularities and verify fiscal transparency.",
+        "sentenceZh": "獨立執業會計師查核企業財務總帳，以偵測有無不法違規並核實財政透明度。",
+        "grammar": {
+          "pattern": "S + Vt + O + Compound Infinitive of Purpose (主詞 + 及物動詞 + 受詞 + 對等目的不定詞片語)",
+          "breakdown": [
+            {
+              "part": "Independent certified accountants",
+              "role": "主詞 (Subject)",
+              "note": "獨立執業會計師 (certified 為合格認證的)。"
+            },
+            {
+              "part": "audit",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "審計查核。"
+            },
+            {
+              "part": "corporate financial ledgers",
+              "role": "直接受詞 (Direct Object)",
+              "note": "企業財務總帳簿。"
+            },
+            {
+              "part": "to detect irregularities and verify fiscal transparency",
+              "role": "對等目的狀詞 (Coordinated Infinitives)",
+              "note": "to detect A and [to] verify B，第二個 to 省略。"
+            }
+          ],
+          "keyPoints": [
+            "【詞源歷史趣味】：古羅馬時期大多帳目是由管家「口述口報」，主考官藉由「聽 (audire)」來核查，因而衍生出今日的審計 audit！",
+            "【大學教育用法】：audit a course 代表「旁聽課程」（只聽不計學分）。"
+          ]
+        }
+      }
+    ],
+    "article": {
+      "title": "The Symphony of the Audible Realm: The Art of Listening",
+      "titleZh": "傾聽之聲：音響與聽覺的文明樂章",
+      "intro": "從母親溫柔可聞的搖籃曲 (audible)，到宏偉禮堂 (auditorium) 裡萬人屏息的交響樂，字根 audi- 訴說著人類用耳朵探索世界的深情記憶。",
+      "paragraphs": [
+        {
+          "en": "Inside the grand concert auditorium, a hushed silence fell as the conductor raised his baton. When the soloist struck the opening piano chord, the notes resonated with crystal clarity, remaining distinctly audible even to listeners perched in the highest balconies.",
+          "zh": "在宏偉的音樂大禮堂內，當指揮舉起指揮棒時，全場頓時肅靜無聲。當鋼琴獨奏家彈響開場和弦時，音符帶著水晶般的澄澈迴響共鳴，即便是坐在最高層看台上的聽眾也能清晰聽聞。"
+        },
+        {
+          "en": "The enthralled audience listened breathlessly as harmonious overtones wove an emotional narrative. Meanwhile, in business institutions outside the concert hall, meticulous regulators continually audit balances, reminding us that listening with honesty underpins both art and society.",
+          "zh": "陶醉的觀眾屏氣凝神地傾聽著，和諧的和聲織就出一幅動人的情感畫卷。與此同時，在音樂廳之外的商業機構中，嚴謹的監管者持續查核帳目，提醒著我們：真誠的傾聽與審視，是支撐藝術與社會共同前行的基石。"
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "q": "Why was the piano chord remarkable inside the auditorium?",
+          "qZh": "為什麼大禮堂內的鋼琴和弦如此引人注目？",
+          "options": [
+            "A. It was distinctly audible even to listeners in the highest balconies. (即便利在最高看台也清晰可聞)",
+            "B. It broke the microphone instantly.",
+            "C. It was completely silent.",
+            "D. It played backward automatically."
+          ],
+          "answer": 0,
+          "explanation": "文中第一段指出和弦「remaining distinctly audible even to listeners perched in the highest balconies」。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "micro",
+    "name": "micro-",
+    "type": "prefix",
+    "typeLabel": "希臘語字首 (Greek Prefix)",
+    "etymology": "源自古希臘語「μικρός」(mikrós)，原意為「微小、微細、極小 (small, minute)」，在科學度量衡中代表百萬分之一 (10^-6)。",
+    "originMeaning": "微小、微型、百萬分之一",
+    "phonetic": "/ˈmaɪkroʊ/",
+    "icon": "🔬",
+    "color": "#4F46E5",
+    "summary": "用於表示肉眼不可見的微觀粒子、精密晶片、微生物或微小世界之縮影。",
+    "words": [
+      {
+        "word": "microscope",
+        "kk": "[ˈmaɪkrəˌskop]",
+        "ipa": "/ˈmaɪkrəskoʊp/",
+        "pos": "n.",
+        "meaning": "顯微鏡",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小 (希臘語 mikrós)"
+            },
+            {
+              "text": "scope",
+              "role": "base",
+              "meaning": "觀察儀器 (希臘語 skopein 看)"
+            }
+          ],
+          "resultMeaning": "用以觀察微小肉眼不可見物體的儀器 ➔「顯微鏡」"
+        },
+        "sentence": "Using an advanced electron microscope, virologists observed the intricate protein spikes of the novel pathogen.",
+        "sentenceZh": "病毒學家運用先進的電子顯微鏡，觀察了該新型病原體錯綜複雜的突刺蛋白結構。",
+        "grammar": {
+          "pattern": "Participial Instrument Phrase + S + Vt + O (分詞工具狀詞 + 主詞 + 及物動詞 + 受詞)",
+          "breakdown": [
+            {
+              "part": "Using an advanced electron microscope",
+              "role": "方式狀詞 (Participial Adverbial)",
+              "note": "現在分詞片語表示藉由某工具手段。"
+            },
+            {
+              "part": "virologists",
+              "role": "主詞 (Subject)",
+              "note": "病毒學家。"
+            },
+            {
+              "part": "observed",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "觀察。"
+            },
+            {
+              "part": "the intricate protein spikes of the novel pathogen",
+              "role": "直接受詞 (Direct Object)",
+              "note": "intricate (錯綜複雜的)；novel (新型的)。"
+            }
+          ],
+          "keyPoints": [
+            "【雙重對比】：telescope (遠看 ➔ 望遠鏡) vs. microscope (微看 ➔ 顯微鏡)。",
+            "【多義字彙】：novel 在此作形容詞「新型的原創的」，而非名詞「小說」。"
+          ]
+        }
+      },
+      {
+        "word": "microchip",
+        "kk": "[ˈmaɪkroˌtʃɪp]",
+        "ipa": "/ˈmaɪkroʊtʃɪp/",
+        "pos": "n.",
+        "meaning": "微晶片、微型積體電路片",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小 (希臘語 mikrós)"
+            },
+            {
+              "text": "chip",
+              "role": "base",
+              "meaning": "薄片、碎片 (日耳曼語 kipp 碎削)"
+            }
+          ],
+          "resultMeaning": "集成數十億個微米級電晶體的矽薄片 ➔「微晶片」"
+        },
+        "sentence": "A fingernail-sized silicon microchip contains billions of transistors capable of processing complex cryptographic algorithms.",
+        "sentenceZh": "一枚僅有指甲大小的矽微晶片，容納著數十億個能處理複雜密碼學演算法的電晶體。",
+        "grammar": {
+          "pattern": "S + Vt + O + Adjective Modifier (主詞 + 及物動詞 + 受詞 + 形容詞片語後位修飾)",
+          "breakdown": [
+            {
+              "part": "A fingernail-sized silicon microchip",
+              "role": "主詞 (Subject)",
+              "note": "複合形容詞 fingernail-sized 與材料名詞 silicon 共同修飾 microchip。"
+            },
+            {
+              "part": "contains",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "單數現在式。"
+            },
+            {
+              "part": "billions of transistors",
+              "role": "直接受詞 (Direct Object)",
+              "note": "數十億個電晶體。"
+            },
+            {
+              "part": "capable of processing complex cryptographic algorithms",
+              "role": "後位修飾形容詞片語 (Post-nominal Adjective Phrase)",
+              "note": "修飾 transistors，相當於 which are capable of..."
+            }
+          ],
+          "keyPoints": [
+            "【固定搭配詞組】：be capable of + V-ing (具備...的能力)。",
+            "【科技構詞法】：microprocessor (微處理器)、microelectronics (微電子學)。"
+          ]
+        }
+      },
+      {
+        "word": "microcosm",
+        "kk": "[ˈmaɪkrəˌkɑzəm]",
+        "ipa": "/ˈmaɪkrəˌkɑːzəm/",
+        "pos": "n.",
+        "meaning": "微觀世界、小宇宙、縮影",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小 (希臘語 mikrós)"
+            },
+            {
+              "text": "cosm",
+              "role": "base",
+              "meaning": "宇宙、世界 (希臘語 kosmos 秩序/宇宙)"
+            }
+          ],
+          "resultMeaning": "濃縮並反映宏觀大宇宙全部法則的微小個體 ➔「小宇宙、微觀縮影」"
+        },
+        "sentence": "Sociologists consider the diverse multicultural classroom a vibrant microcosm of twenty-first-century urban society.",
+        "sentenceZh": "社會學家將這個多元文化的班級視為二十一世紀城市社會生機勃勃的縮影。",
+        "grammar": {
+          "pattern": "S + Vt + O + Object Complement (主詞 + 及物動詞 + 受詞 + 受詞補語)",
+          "breakdown": [
+            {
+              "part": "Sociologists",
+              "role": "主詞 (Subject)",
+              "note": "社會學家。"
+            },
+            {
+              "part": "consider",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "接 consider A (to be) B 句型。"
+            },
+            {
+              "part": "the diverse multicultural classroom",
+              "role": "受詞 A (Direct Object)",
+              "note": "多元文化教室。"
+            },
+            {
+              "part": "a vibrant microcosm of twenty-first-century urban society",
+              "role": "受詞補語 B (Objective Complement)",
+              "note": "名詞補語說明 A 的屬性縮影。"
+            }
+          ],
+          "keyPoints": [
+            "【對稱概念】：microcosm (微觀縮影) vs. macrocosm (宏觀大宇宙；macro- 巨大)。",
+            "【名詞句型】：consider A B (將 A 視為 B，省略 to be)。"
+          ]
+        }
+      },
+      {
+        "word": "microorganism",
+        "kk": "[ˌmaɪkroˈɔrgənˌɪzəm]",
+        "ipa": "/ˌmaɪkroʊˈɔːrɡənɪzəm/",
+        "pos": "n.",
+        "meaning": "微生物（細菌、病毒、真菌統稱）",
+        "formula": {
+          "parts": [
+            {
+              "text": "micro-",
+              "role": "prefix",
+              "meaning": "微小 (希臘語 mikrós)"
+            },
+            {
+              "text": "organism",
+              "role": "base",
+              "meaning": "有機體、生物 (希臘語 organon 工具/器官)"
+            }
+          ],
+          "resultMeaning": "肉眼難以辨識必須藉由儀器觀察的微小生命體 ➔「微生物」"
+        },
+        "sentence": "Beneficial soil microorganisms decompose fallen leaves into fertile nutrients that nourish majestic forest canopies.",
+        "sentenceZh": "有益的土壤微生物將落葉分解為肥沃的養分，滋養著雄偉的森林林冠。",
+        "grammar": {
+          "pattern": "S + Vt + O + Prep Phrase + Relative Clause (主詞 + 及物動詞 + 受詞 + 產物介系詞片語 + 關係子句)",
+          "breakdown": [
+            {
+              "part": "Beneficial soil microorganisms",
+              "role": "主詞 (Subject)",
+              "note": "有益的土壤微生物 (複數)。"
+            },
+            {
+              "part": "decompose",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "分解。"
+            },
+            {
+              "part": "fallen leaves",
+              "role": "受詞 (Direct Object)",
+              "note": "落葉 (fallen 為過去分詞轉形容詞)。"
+            },
+            {
+              "part": "into fertile nutrients",
+              "role": "轉變結果介系詞片語 (Prepositional Phrase)",
+              "note": "decompose A into B (將 A 分解轉化為 B)。"
+            },
+            {
+              "part": "that nourish majestic forest canopies",
+              "role": "限定關係子句 (Relative Clause)",
+              "note": "that 指代 nutrients，子句動詞為原形 nourish。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞片語搭配】：decompose / transform A into B (將 A 轉化分解為 B)。",
+            "【分詞狀態】：fallen leaves (已掉落的葉片；過去分詞表完成狀態)。"
+          ]
+        }
+      }
+    ],
+    "article": {
+      "title": "The Wonders of the Micro Realm: Revealing the Invisible",
+      "titleZh": "微觀之境：揭開肉眼不及的浩瀚宇宙",
+      "intro": "宇宙最深奧的秘密，往往並非隱藏在遙遠的星雲中，而是蟄伏於微米 (micro-) 等級的微觀世界。",
+      "paragraphs": [
+        {
+          "en": "Until Dutch scientist Antonie van Leeuwenhoek looked through his handcrafted microscope in the seventeenth century, humans were oblivious to the bustling civilizations of microorganisms thriving inside a single drop of pond water.",
+          "zh": "直到十七世紀荷蘭科學家雷文霍克透過他手工打造的顯微鏡觀察之前，人類對在一滴池塘水中蓬勃繁衍的微生物熱鬧文明全然一無所知。"
+        },
+        {
+          "en": "In the contemporary digital era, that same fascination with the minute drives our technological frontier. By carving microscopic architectures onto silicon microchips, engineers condense the computing prowess of an entire supercomputer into a handheld smartphone, proving that the microcosm holds the key to the future.",
+          "zh": "在當代數位時代，對微小事物同樣的著迷正推動著我們的科技前沿。藉由在矽微晶片上雕刻微觀結構，工程師將整座超級電腦的運算實力濃縮進掌上智慧型手機中，證明了微觀世界掌握著通往未來的鑰匙。"
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "q": "What technological breakthrough was achieved by carving architectures onto microchips?",
+          "qZh": "藉由在微晶片上雕刻微觀架構達成了什麼科技突破？",
+          "options": [
+            "A. Condensing supercomputer computing prowess into handheld smartphones. (將超級電腦的運算實力濃縮入掌上手機)",
+            "B. Freezing pond water permanently.",
+            "C. Replacing human teachers in classrooms.",
+            "D. Stopping the flow of time."
+          ],
+          "answer": 0,
+          "explanation": "文中第二段指出「condense the computing prowess of an entire supercomputer into a handheld smartphone」。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "scrib",
+    "name": "scrib / script",
+    "type": "root",
+    "typeLabel": "拉丁語字根 (Latin Root)",
+    "etymology": "源自拉丁語動詞「scribere」(書寫、銘刻)，過去分詞為 scriptum。",
+    "originMeaning": "寫、記錄、銘刻、文字",
+    "phonetic": "/skraɪb/ 或 /skrɪpt/",
+    "icon": "✍️",
+    "color": "#BE185D",
+    "summary": "涵蓋文字書寫、手稿、處方箋開立、描述、官方文字紀錄及訂閱服務。",
+    "words": [
+      {
+        "word": "describe",
+        "kk": "[dɪˈskraɪb]",
+        "ipa": "/dɪˈskraɪb/",
+        "pos": "v.",
+        "meaning": "描寫、描述、描繪",
+        "formula": {
+          "parts": [
+            {
+              "text": "de-",
+              "role": "prefix",
+              "meaning": "向下、詳盡 (拉丁語 de-)"
+            },
+            {
+              "text": "scribe",
+              "role": "root",
+              "meaning": "寫 (拉丁語 scribere)"
+            }
+          ],
+          "resultMeaning": "將細節由上而下詳盡書寫記錄在紙上 ➔「描寫、描述」"
+        },
+        "sentence": "Eyewitnesses struggled to describe the elusive astronomical phenomenon because words felt inadequate to capture its radiant grandeur.",
+        "sentenceZh": "目擊者難以描摹那罕見難逢的天文現象，因為任何言語詞彙似乎都不足以捕捉其耀眼奪目的壯麗。",
+        "grammar": {
+          "pattern": "S + Vi + Infinitive Complement + Reason Adverbial Clause (主詞 + 不及物動詞 + 不定詞補語 + 原因副詞子句)",
+          "breakdown": [
+            {
+              "part": "Eyewitnesses",
+              "role": "主詞 (Subject)",
+              "note": "目擊者。"
+            },
+            {
+              "part": "struggled",
+              "role": "不及物動詞 (Intransitive Verb)",
+              "note": "搭配 struggle to V (吃力艱難地進行某事)。"
+            },
+            {
+              "part": "to describe the elusive astronomical phenomenon",
+              "role": "不定詞受詞/補語 (Infinitive)",
+              "note": "elusive (難以捉摸的)；phenomenon 單數名詞 (複數 phenomena)。"
+            },
+            {
+              "part": "because words felt inadequate to capture its radiant grandeur",
+              "role": "原因副詞子句 (Clause of Reason)",
+              "note": "because 引導子句；felt 為連綴動詞，inadequate (不足的) 為補語，後接不定詞 to capture。"
+            }
+          ],
+          "keyPoints": [
+            "【動詞搭配句型】：struggle to V (竭力/吃力地做某事)。",
+            "【希臘單複數名詞】：phenomenon (單數) ➔ phenomena (複數)。"
+          ]
+        }
+      },
+      {
+        "word": "prescribe",
+        "kk": "[prɪˈskraɪb]",
+        "ipa": "/prɪˈskraɪb/",
+        "pos": "v.",
+        "meaning": "開處方、開藥、規定、指示",
+        "formula": {
+          "parts": [
+            {
+              "text": "pre-",
+              "role": "prefix",
+              "meaning": "在之前、預先 (拉丁語 prae)"
+            },
+            {
+              "text": "scribe",
+              "role": "root",
+              "meaning": "寫 (拉丁語 scribere)"
+            }
+          ],
+          "resultMeaning": "在病患服藥之前由醫師預先寫下指示與用藥明細 ➔「開處方、規定」"
+        },
+        "sentence": "Specialist physicians prescribe tailored rehabilitation regimens to accelerate recovery following orthopedic surgery.",
+        "sentenceZh": "專科醫師開立量身定制的復健方案，以加速骨科手術後的康復進程。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose + Time Prep Phrase (主詞 + 及物動詞 + 受詞 + 目的不定詞 + 時間介系詞片語)",
+          "breakdown": [
+            {
+              "part": "Specialist physicians",
+              "role": "主詞 (Subject)",
+              "note": "專科醫師。"
+            },
+            {
+              "part": "prescribe",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "開立處方。"
+            },
+            {
+              "part": "tailored rehabilitation regimens",
+              "role": "直接受詞 (Direct Object)",
+              "note": "tailored (量身打造的) 為分詞形容詞；regimen (養生/療程方案)。"
+            },
+            {
+              "part": "to accelerate recovery",
+              "role": "目的狀詞 (Infinitive of Purpose)",
+              "note": "加速康復。"
+            },
+            {
+              "part": "following orthopedic surgery",
+              "role": "時間介系詞片語 (Time Prepositional Phrase)",
+              "note": "following 作介系詞相當於 after (在...之後)。"
+            }
+          ],
+          "keyPoints": [
+            "【介系詞轉用】：following 在正式學術與醫學英文中常作介系詞 (= after)。",
+            "【衍生名詞】：prescription (處方籤；script 形態回歸)。"
+          ]
+        }
+      },
+      {
+        "word": "manuscript",
+        "kk": "[ˈmænjəˌskrɪpt]",
+        "ipa": "/ˈmænjuskrɪpt/",
+        "pos": "n.",
+        "meaning": "手稿、原稿、底稿",
+        "formula": {
+          "parts": [
+            {
+              "text": "manu",
+              "role": "root",
+              "meaning": "手 (拉丁語 manus 手)"
+            },
+            {
+              "text": "script",
+              "role": "root",
+              "meaning": "寫 (拉丁語 scribere)"
+            }
+          ],
+          "resultMeaning": "由作者親手逐字寫下的原始書稿 ➔「手稿、原稿」"
+        },
+        "sentence": "The museum curator preserved the fragile centuries-old manuscript in a climate-controlled vault to prevent parchment degradation.",
+        "sentenceZh": "博物館館長將這份具有數百年歷史的脆弱古手稿保存在恆溫恆濕的保險庫中，以防止羊皮紙退化損壞。",
+        "grammar": {
+          "pattern": "S + Vt + O + Locative Prep Phrase + Infinitive of Negative Purpose (主詞 + 及物動詞 + 受詞 + 地點片語 + 否定防範目的狀詞)",
+          "breakdown": [
+            {
+              "part": "The museum curator",
+              "role": "主詞 (Subject)",
+              "note": "博物館策展人/館長。"
+            },
+            {
+              "part": "preserved",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "妥善保存。"
+            },
+            {
+              "part": "the fragile centuries-old manuscript",
+              "role": "直接受詞 (Direct Object)",
+              "note": "複合形容詞 centuries-old 修飾手稿。"
+            },
+            {
+              "part": "in a climate-controlled vault",
+              "role": "地點介系詞片語 (Locative Phrase)",
+              "note": "複合形容詞 climate-controlled (溫濕度調控的)。"
+            },
+            {
+              "part": "to prevent parchment degradation",
+              "role": "目的狀詞 (Infinitive of Purpose)",
+              "note": "prevent 後接名詞受詞 degradation。"
+            }
+          ],
+          "keyPoints": [
+            "【雙重拉丁詞根】：manus (手，如 manual 手動的、manufacture 製造) + scriptum (書寫)。",
+            "【材料歷史】：古手稿多書寫於羊皮紙 (parchment) 或莎草紙 (papyrus) 上。"
+          ]
+        }
+      },
+      {
+        "word": "transcript",
+        "kk": "[ˈtrænˌskrɪpt]",
+        "ipa": "/ˈtrænskrɪpt/",
+        "pos": "n.",
+        "meaning": "文字記錄、逐字謄本、成績單",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越、轉化 (拉丁語 trans-)"
+            },
+            {
+              "text": "script",
+              "role": "root",
+              "meaning": "寫 (拉丁語 scribere)"
+            }
+          ],
+          "resultMeaning": "將口頭語音或正式檔案轉錄寫成紙本文字 ➔「逐字記錄、成績單」"
+        },
+        "sentence": "Graduate school admissions committees require an official academic transcript stamped by the university registrar.",
+        "sentenceZh": "研究所入學評審委員會要求提供一份蓋有大學註冊組戳印的官方正式學術成績單。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participial Modifier (主詞 + 及物動詞 + 受詞 + 過去分詞片語後位修飾)",
+          "breakdown": [
+            {
+              "part": "Graduate school admissions committees",
+              "role": "主詞 (Subject)",
+              "note": "複數委員會主詞。"
+            },
+            {
+              "part": "require",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "要求。"
+            },
+            {
+              "part": "an official academic transcript",
+              "role": "直接受詞 (Direct Object)",
+              "note": "正式學業成績謄本。"
+            },
+            {
+              "part": "stamped by the university registrar",
+              "role": "分詞片語修飾 (Past Participle Phrase)",
+              "note": "stamped (蓋印的) 修飾 transcript，by 引導施印機構。"
+            }
+          ],
+          "keyPoints": [
+            "【生活高頻語義】：在求學申請中 transcript 專指「成績單」；在法庭與採訪中指「逐字稿、聽證記錄」。",
+            "【動詞形式】：transcribe (轉錄、謄寫；-scribe 結尾)。"
+          ]
+        }
+      }
+    ],
+    "article": {
+      "title": "The Inscribed Soul: How Writing Anchors Civilization",
+      "titleZh": "銘刻的心靈：文字與書寫的永恆對話",
+      "intro": "言語如風拂過，而文字一旦被銘刻 (scrib / script)，思想便跨越了時空的禁錮，化作永恆的印記。",
+      "paragraphs": [
+        {
+          "en": "Before Gutenberg revolutionized movable type, medieval monks spent grueling decades in monastic scriptoriums, painstakingly copying religious manuscripts letter by letter with quills under flickering candlelight.",
+          "zh": "在古騰堡革新活字印刷術之前，中世紀修士在修道院抄經室裡度過漫長艱辛的數十年，在搖曳的燭光下用羽毛筆一字一字苦心孤詣地謄抄宗教手稿。"
+        },
+        {
+          "en": "Even in our paperless digital age, the imperative to write endures. When doctors prescribe life-saving remedies or journalists transcribe verbatim interviews, the ancient Latin root scribere continues to guarantee precision and accountability across human society.",
+          "zh": "即使在我們無紙化的數位時代，書寫記錄的必要性依舊永存。當醫生開立挽救生命的處方，或記者謄寫一字不差的訪談逐字稿時，古拉丁字根 scribere 依然持續為人類社會捍衛著精確性與信實度。"
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "q": "How did medieval monks copy manuscripts before the printing press?",
+          "qZh": "在印刷機問世前，中世紀修士是如何抄寫手稿的？",
+          "options": [
+            "A. Painstakingly letter by letter with quills under candlelight. (燭光下用羽毛筆一字一字苦心謄寫)",
+            "B. Using electric photocopy machines.",
+            "C. By memorizing and reciting orally.",
+            "D. Via computerized laser engravers."
+          ],
+          "answer": 0,
+          "explanation": "文中第一段指出修士「painstakingly copying religious manuscripts letter by letter with quills under flickering candlelight」。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "poly",
+    "name": "poly-",
+    "type": "prefix",
+    "typeLabel": "希臘語字首 (Greek Prefix)",
+    "etymology": "源自古希臘語「πολύς」(polús)，原意為「多、眾多、多元 (many, much, multiple)」。",
+    "originMeaning": "多、多重、多元",
+    "phonetic": "/ˈpɑːli/",
+    "icon": "🌈",
+    "color": "#C026D3",
+    "summary": "形容由多個單元組成的化學結構、幾何形狀、複音旋律或精通多種語言的能力。",
+    "words": [
+      {
+        "word": "polyglot",
+        "kk": "[ˈpɑlɪˌglɑt]",
+        "ipa": "/ˈpɑːliɡlɑːt/",
+        "pos": "n. / adj.",
+        "meaning": "(n.) 精通多種語言的人；(adj.) 通曉數種語言的",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多、多重 (希臘語 polús)"
+            },
+            {
+              "text": "glot",
+              "role": "base",
+              "meaning": "語言、舌頭 (希臘語 glōtta 舌/語言)"
+            }
+          ],
+          "resultMeaning": "擁有能靈活切換多種不同舌頭語言能力的人 ➔「精通多種語言者」"
+        },
+        "sentence": "Fluent in seven languages, the diplomatic polyglot effortlessly mediated the delicate multilateral peace negotiations.",
+        "sentenceZh": "這位精通七國語言的外交博學通譯人才，毫不費力地居中協調了這場微妙的多邊和平談判。",
+        "grammar": {
+          "pattern": "Adjective Phrase + S + Adv + Vt + O (形容詞修飾短語 + 主詞 + 方式副詞 + 及物動詞 + 受詞)",
+          "breakdown": [
+            {
+              "part": "Fluent in seven languages",
+              "role": "主詞修飾形容詞片語 (Appositive Adjective Phrase)",
+              "note": "置於句首作補充修飾，fluent in + 語言。"
+            },
+            {
+              "part": "the diplomatic polyglot",
+              "role": "主詞 (Subject)",
+              "note": "diplomatic (具外交長才的) 修飾多語專家。"
+            },
+            {
+              "part": "effortlessly",
+              "role": "方式副詞 (Adverb of Manner)",
+              "note": "修飾及物動詞 mediated (居中調解)。"
+            },
+            {
+              "part": "mediated",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "過去式。"
+            },
+            {
+              "part": "the delicate multilateral peace negotiations",
+              "role": "受詞 (Direct Object)",
+              "note": "multilateral (multi- 多 + lateral 邊 = 多邊的)；delicate (微妙脆弱的)。"
+            }
+          ],
+          "keyPoints": [
+            "【前置形容詞補語】：Fluent in seven languages 置首精準傳達主角背景。",
+            "【詞根網絡】：glot (語言/舌頭)，如 epiglottis (會厭軟骨)、glossary (詞彙表)。"
+          ]
+        }
+      },
+      {
+        "word": "polygon",
+        "kk": "[ˈpɑlɪˌgɑn]",
+        "ipa": "/ˈpɑːliɡɑːn/",
+        "pos": "n.",
+        "meaning": "多邊形（幾何學）",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多 (希臘語 polús)"
+            },
+            {
+              "text": "gon",
+              "role": "base",
+              "meaning": "角、轉折點 (希臘語 gōnia 角度)"
+            }
+          ],
+          "resultMeaning": "由多條直線段封閉相連、擁有多個內角的幾何圖形 ➔「多邊形」"
+        },
+        "sentence": "Video game rendering engines assemble millions of tiny textured polygons to create realistic three-dimensional characters.",
+        "sentenceZh": "電玩遊戲渲染引擎組合數百萬個微小的紋理多邊形，以創造栩栩如生的三維立體角色。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose (主詞 + 及物動詞 + 受詞 + 目的不定詞片語)",
+          "breakdown": [
+            {
+              "part": "Video game rendering engines",
+              "role": "主詞 (Subject)",
+              "note": "遊戲渲染引擎 (rendering 為現在分詞作形容詞)。"
+            },
+            {
+              "part": "assemble",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "組裝集合。"
+            },
+            {
+              "part": "millions of tiny textured polygons",
+              "role": "直接受詞 (Direct Object)",
+              "note": "textured (具有材質紋理的) 修飾 polygons。"
+            },
+            {
+              "part": "to create realistic three-dimensional characters",
+              "role": "目的狀詞 (Infinitive of Purpose)",
+              "note": "realistic (擬真的、逼真的)。"
+            }
+          ],
+          "keyPoints": [
+            "【角字根 -gon】：hexagon (六邊形；hexa- 6)、pentagon (五角形/美國五角大廈；penta- 5)。",
+            "【電腦圖形學】：現代 3D 建模基本單元就是多邊形面 (polygonal mesh)。"
+          ]
+        }
+      },
+      {
+        "word": "polymer",
+        "kk": "[ˈpɑləmɚ]",
+        "ipa": "/ˈpɑːlɪmər/",
+        "pos": "n.",
+        "meaning": "聚合物、高分子化合物",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多 (希臘語 polús)"
+            },
+            {
+              "text": "mer",
+              "role": "base",
+              "meaning": "部分、單元 (希臘語 meros 零件/部分)"
+            }
+          ],
+          "resultMeaning": "由許多相同或相似的小分子重複單元鏈接而成的大分子 ➔「聚合物」"
+        },
+        "sentence": "Materials scientists synthesized a heat-resistant synthetic polymer suitable for insulating aerospace electrical conduits.",
+        "sentenceZh": "材料科學家合成出一種適用於航太電氣管道絕緣的耐熱型合成聚合物。",
+        "grammar": {
+          "pattern": "S + Vt + O + Postpositive Adjective Phrase (主詞 + 及物動詞 + 受詞 + 形容詞片語後位修飾)",
+          "breakdown": [
+            {
+              "part": "Materials scientists",
+              "role": "主詞 (Subject)",
+              "note": "材料科學家。"
+            },
+            {
+              "part": "synthesized",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "化學合成。"
+            },
+            {
+              "part": "a heat-resistant synthetic polymer",
+              "role": "直接受詞 (Direct Object)",
+              "note": "heat-resistant (耐熱的) 為複合形容詞。"
+            },
+            {
+              "part": "suitable for insulating aerospace electrical conduits",
+              "role": "後位修飾片語 (Adjective Phrase)",
+              "note": "suitable for + V-ing (適於...)，insulating (絕緣防護)。"
+            }
+          ],
+          "keyPoints": [
+            "【化學構詞網絡】：monomer (單體；mono- 1) ➔ polymer (聚合物；poly- 多)。",
+            "【複合形容詞】：Noun + Adjective (如 heat-resistant 耐熱、water-resistant 防水)。"
+          ]
+        }
+      },
+      {
+        "word": "polyphony",
+        "kk": "[pəˈlɪfəni]",
+        "ipa": "/pəˈlɪfəni/",
+        "pos": "n.",
+        "meaning": "複音音樂、多聲部音樂、多元對話性",
+        "formula": {
+          "parts": [
+            {
+              "text": "poly-",
+              "role": "prefix",
+              "meaning": "多 (希臘語 polús)"
+            },
+            {
+              "text": "phon",
+              "role": "base",
+              "meaning": "聲音 (希臘語 phōnē)"
+            },
+            {
+              "text": "-y",
+              "role": "suffix",
+              "meaning": "狀態、名詞字尾"
+            }
+          ],
+          "resultMeaning": "多種獨立旋律線條交織重疊的和鳴之聲 ➔「複音音樂、多元對位」"
+        },
+        "sentence": "Bach's magnificent choral compositions mastered intricate counterpoint, transforming sacred polyphony into celestial acoustic architecture.",
+        "sentenceZh": "巴哈宏偉的合唱作品精通錯綜複雜的對位法，將神聖的複音音樂昇華為宛若來自天界的聽覺建築。",
+        "grammar": {
+          "pattern": "S + Vt + O + Participial Transformation Phrase (主詞 + 及物動詞 + 受詞 + 分詞結果轉化片語)",
+          "breakdown": [
+            {
+              "part": "Bach's magnificent choral compositions",
+              "role": "主詞 (Subject)",
+              "note": "巴哈宏偉合唱作品。"
+            },
+            {
+              "part": "mastered",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "精通掌握。"
+            },
+            {
+              "part": "intricate counterpoint",
+              "role": "直接受詞 (Direct Object)",
+              "note": "錯綜複雜的對位法。"
+            },
+            {
+              "part": "transforming sacred polyphony into celestial acoustic architecture",
+              "role": "現在分詞伴隨結果 (Participle Clause)",
+              "note": "transform A into B (將 A 轉變為 B)。"
+            }
+          ],
+          "keyPoints": [
+            "【雙重字根融合】：poly- (多) + phone (聲音)，對立於 monophony (單音音樂；mono- 單一)。",
+            "【哲學文學隱喻】：文學家常以 polyphony 比喻小說中容納不同階層與多元思想的「眾聲喧嘩」。"
+          ]
+        }
+      }
+    ],
+    "article": {
+      "title": "The Tapestry of the Multitude: The Power of Poly-",
+      "titleZh": "眾聲喧嘩的織錦：多元交融的力量",
+      "intro": "宇宙絕非由單調均質的孤音組成，而是由無數個體、旋律與視角共同激盪出的豐富交響曲 (poly-)。",
+      "paragraphs": [
+        {
+          "en": "In a rapidly integrating world, monolithic perspectives can no longer navigate global turbulence. A gifted polyglot does far more than translate vocabulary; they bridge divergent cultural histories and foster mutual empathy across oceans.",
+          "zh": "在迅速整合的現代世界中，單一孤立的視角已無法應對全球動盪。一位天賦異稟的多語通才所做的遠不止是翻譯單字，他們在各大洋之間架起不同文化歷史的橋樑，滋養彼此的同理共鳴。"
+        },
+        {
+          "en": "From the mathematical harmony of complex polygons to the polyphony of baroque cathedral chorales, embracing multiplicity expands the horizon of human consciousness. When diverse voices harmonize rather than collide, civilization reaches its highest resonance.",
+          "zh": "從複雜多邊形展現的數學和諧，到巴洛克大教堂合唱曲的複音交鳴，包容多元性拓寬了人類意識的地平線。當多元的聲音選擇和諧共鳴而非彼此碰撞時，文明便達到了最輝煌的極致。"
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "q": "According to the passage, what is the deeper value of a polyglot?",
+          "qZh": "根據文章，多語人才更深層的價值是什麼？",
+          "options": [
+            "A. Bridging divergent cultural histories and fostering empathy. (架起不同文化歷史橋樑並滋養同理心)",
+            "B. Collecting ancient golden coins.",
+            "C. Replacing human musicians with synthesizers.",
+            "D. Memorizing dictionary page numbers."
+          ],
+          "answer": 0,
+          "explanation": "文中第一段指出多語人才「bridge divergent cultural histories and foster mutual empathy across oceans」。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "bene",
+    "name": "bene-",
+    "type": "prefix",
+    "typeLabel": "拉丁語字首 (Latin Prefix)",
+    "etymology": "源自拉丁語副詞「bene」(好、善、優、令人滿意地 well, good)。",
+    "originMeaning": "善、良、好、有益",
+    "phonetic": "/ˈbɛni/ 或 /ˈbɛnə/",
+    "icon": "💖",
+    "color": "#059669",
+    "summary": "代表善意、慈善救濟、良性醫學診斷及帶來好處的益處福利。",
+    "words": [
+      {
+        "word": "benefit",
+        "kk": "[ˈbɛnəfɪt]",
+        "ipa": "/ˈbɛnɪfɪt/",
+        "pos": "n. / v.",
+        "meaning": "(n.) 益處、福利、好處；(v.) 得益於、使受惠",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "好、善 (拉丁語 bene)"
+            },
+            {
+              "text": "fit",
+              "role": "base",
+              "meaning": "做、造 (拉丁語 facere 做/製成)"
+            }
+          ],
+          "resultMeaning": "做出好的事情而使人蒙受好處 ➔「益處、受惠」"
+        },
+        "sentence": "Investing in green municipal parks yields enduring public health benefits for urban residents of all generations.",
+        "sentenceZh": "投資建設綠色市立公園，能為各世代的城市居民帶來持久的公共健康福祉。",
+        "grammar": {
+          "pattern": "Gerund Subject + Vt + O + Prep Phrase (動名詞片語主詞 + 及物動詞 + 受詞 + 受惠群體介系詞片語)",
+          "breakdown": [
+            {
+              "part": "Investing in green municipal parks",
+              "role": "動名詞片語主詞 (Gerund Subject)",
+              "note": "invest in + 名詞 (投資於...)；動名詞視為單數主詞。"
+            },
+            {
+              "part": "yields",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "yields (產生、帶來效益)，加 s 配合單數動名詞主詞。"
+            },
+            {
+              "part": "enduring public health benefits",
+              "role": "直接受詞 (Direct Object)",
+              "note": "enduring (持久的) 為現在分詞作形容詞修飾 benefits。"
+            },
+            {
+              "part": "for urban residents of all generations",
+              "role": "受惠目標介系詞片語 (Prepositional Modifier)",
+              "note": "for 表受益對象。"
+            }
+          ],
+          "keyPoints": [
+            "【動態動詞搭配】：yield / reap / enjoy benefits (產生/獲得效益)。",
+            "【動名詞主謂一致】：Investing... 主詞一律採用第三人稱單數動詞 (yields)。"
+          ]
+        }
+      },
+      {
+        "word": "benevolent",
+        "kk": "[bəˈnɛvələnt]",
+        "ipa": "/bəˈnɛvələnt/",
+        "pos": "adj.",
+        "meaning": "仁慈的、好心的、慈善的",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "善、好 (拉丁語 bene)"
+            },
+            {
+              "text": "vol",
+              "role": "root",
+              "meaning": "意願、想 (拉丁語 velle 願意)"
+            },
+            {
+              "text": "-ent",
+              "role": "suffix",
+              "meaning": "...的 (形容詞字尾)"
+            }
+          ],
+          "resultMeaning": "滿懷良好心意、希望他人幸福的 ➔「仁慈的、善意的」"
+        },
+        "sentence": "The benevolent philanthropist anonymously endowed scholarships to support gifted students facing acute financial hardship.",
+        "sentenceZh": "這位仁慈的慈善家匿名捐贈獎學金，以資助面臨嚴重經濟困境的有天賦學子。",
+        "grammar": {
+          "pattern": "S + Adv + Vt + O + Infinitive of Purpose with Participle Modifier (主詞 + 方式副詞 + 及物動詞 + 受詞 + 目的狀詞與分詞後位修飾)",
+          "breakdown": [
+            {
+              "part": "The benevolent philanthropist",
+              "role": "主詞 (Subject)",
+              "note": "benevolent (仁慈的) 修飾 philanthropist (慈善家)。"
+            },
+            {
+              "part": "anonymously",
+              "role": "副詞 (Adverb of Manner)",
+              "note": "修飾及物動詞 endowed (匿名地)。"
+            },
+            {
+              "part": "endowed",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "捐贈基金/創立。"
+            },
+            {
+              "part": "scholarships",
+              "role": "直接受詞 (Direct Object)",
+              "note": "獎學金。"
+            },
+            {
+              "part": "to support gifted students facing acute financial hardship",
+              "role": "目的狀詞片語 (Infinitive Phrase)",
+              "note": "facing (面臨著) 為現在分詞修飾 students；acute (劇烈的、嚴峻的)。"
+            }
+          ],
+          "keyPoints": [
+            "【對立詞首對比】：benevolent (仁慈善意的) vs. malevolent (惡毒有害的；mal- 壞)。",
+            "【名詞衍生】：benevolence (仁慈、博愛之心)。"
+          ]
+        }
+      },
+      {
+        "word": "benefactor",
+        "kk": "[ˈbɛnəˌfæktɚ]",
+        "ipa": "/ˈbɛnɪfæktər/",
+        "pos": "n.",
+        "meaning": "恩人、贊助者、行善者",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "善、好 (拉丁語 bene)"
+            },
+            {
+              "text": "fact",
+              "role": "root",
+              "meaning": "做 (拉丁語 facere)"
+            },
+            {
+              "text": "-or",
+              "role": "suffix",
+              "meaning": "人 (名詞字尾)"
+            }
+          ],
+          "resultMeaning": "做出善行義舉幫助他人的人 ➔「恩人、贊助者」"
+        },
+        "sentence": "Without the generous financial backing of an anonymous benefactor, the groundbreaking research lab would have closed permanently.",
+        "sentenceZh": "如果沒有一位匿名恩人的慷慨資助，這座開創性的研究實驗室原本早就被迫永久關閉了。",
+        "grammar": {
+          "pattern": "Prepositional Hypothesis + S + Modal Perfect Passive (介系詞假設虛擬片語 + 主詞 + 與過去相反的假設語氣謂語)",
+          "breakdown": [
+            {
+              "part": "Without the generous financial backing of an anonymous benefactor",
+              "role": "與過去相反的假設條件狀詞 (Prepositional Condition)",
+              "note": "Without 相當於 If it had not been for... (若非當時有...)。"
+            },
+            {
+              "part": "the groundbreaking research lab",
+              "role": "主詞 (Subject)",
+              "note": "開創性研究實驗室。"
+            },
+            {
+              "part": "would have closed",
+              "role": "假設語氣謂語 (Subjunctive Predicate)",
+              "note": "would have + p.p. 表對過去事實相反之推測結果（實際上未關閉）。"
+            },
+            {
+              "part": "permanently",
+              "role": "副詞 (Adverb of Manner)",
+              "note": "永久地。"
+            }
+          ],
+          "keyPoints": [
+            "【與過去相反之假設語氣】：Without + N, S + would have + p.p. (若非當初...原本就已經...)。",
+            "【字根對立】：benefactor (行善贊助者) vs. malefactor (作惡犯罪者；male- 壞)。"
+          ]
+        }
+      },
+      {
+        "word": "benign",
+        "kk": "[bɪˈnaɪn]",
+        "ipa": "/bɪˈnaɪn/",
+        "pos": "adj.",
+        "meaning": "良性的（醫學）、和藹仁慈的、溫和無害的",
+        "formula": {
+          "parts": [
+            {
+              "text": "bene-",
+              "role": "prefix",
+              "meaning": "善、良 (拉丁語 bene)"
+            },
+            {
+              "text": "gen",
+              "role": "root",
+              "meaning": "產生、出身 (拉丁語 genus 出身/種類)"
+            }
+          ],
+          "resultMeaning": "天性溫和沒有侵害威脅的 ➔「良性的、和藹的」"
+        },
+        "sentence": "To the immense relief of the anxious family, the surgical biopsy confirmed that the tumor was entirely benign.",
+        "sentenceZh": "令焦急家屬感到無比寬慰的是，手術切片檢查證實該腫瘤完全屬於良性。",
+        "grammar": {
+          "pattern": "Emotional Prep Phrase + S + Vt + Noun Clause (情緒情感狀詞 + 主詞 + 及物動詞 + 受詞名詞子句)",
+          "breakdown": [
+            {
+              "part": "To the immense relief of the anxious family",
+              "role": "情緒結果狀詞 (Adverbial of Feeling)",
+              "note": "To one's + emotional noun (令某人感到...的是)；immense (巨大的)。"
+            },
+            {
+              "part": "the surgical biopsy",
+              "role": "主詞 (Subject)",
+              "note": "手術組織活檢切片。"
+            },
+            {
+              "part": "confirmed",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "證實。"
+            },
+            {
+              "part": "that the tumor was entirely benign",
+              "role": "名詞子句受詞 (Noun Clause)",
+              "note": "that 引導完整子句；was 為連綴動詞，entirely 為程度副詞修飾形容詞補語 benign。"
+            }
+          ],
+          "keyPoints": [
+            "【高階情感介系詞句型】：To one's relief / delight / astonishment (令某人欣慰/高興/驚訝的是...)。",
+            "【醫學專用反義對比】：benign tumor (良性腫瘤) vs. malignant tumor (惡性腫瘤)。"
+          ]
+        }
+      }
+    ],
+    "article": {
+      "title": "The Architecture of Good Will: The Benevolent Ripple",
+      "titleZh": "善意的建築學：良善力量的連鎖漣漪",
+      "intro": "一個真誠的善舉 (benefit) 如同投入平靜湖面的石子，能激起跨越世代的無盡漣漪 (bene-)。",
+      "paragraphs": [
+        {
+          "en": "In the history of public health, selfless actions have often altered the fate of continents. When a benevolent benefactor funded the construction of modern sewage treatment in the nineteenth century, waterborne cholera epidemics plummeted, delivering immeasurable benefits to millions.",
+          "zh": "在公共衛生史中，無私的善行往往改變了整個大陸的命運。當一位仁慈的恩人在十九世紀資助建設現代化污水處理設施時，水源性霍亂傳染病大幅驟降，為數百萬人帶來了無可估量的福祉。"
+        },
+        {
+          "en": "Benevolence is never mere passive sentiment; it is an active moral force. Whether manifesting as a physician delivering the comforting news of a benign diagnosis or a volunteer mentoring underprivileged youths, the spirit of bene- proves that genuine progress is measured by how deeply we care for one another.",
+          "zh": "良善絕非被動的情感，而是一種主動的道德力量。無論是體現為醫生傳達良性診斷的寬慰喜訊，抑或是志工輔導弱勢青少年，bene- 的精神皆證明了真正的進步取決於我們彼此關懷的深度。"
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "q": "What impact did the benefactor's funding of sewage treatment have in the nineteenth century?",
+          "qZh": "十九世紀恩人資助污水處理帶來了什麼影響？",
+          "options": [
+            "A. Waterborne cholera epidemics plummeted, delivering massive public health benefits. (水源性霍亂驟降，帶來巨大健康福祉)",
+            "B. All hospitals were closed immediately.",
+            "C. Taxes were raised tenfold.",
+            "D. Sea levels rose dramatically."
+          ],
+          "answer": 0,
+          "explanation": "文中第一段指出「waterborne cholera epidemics plummeted, delivering immeasurable benefits to millions」。"
+        }
+      ]
+    }
+  },
+  {
+    "id": "trans",
+    "name": "trans-",
+    "type": "prefix",
+    "typeLabel": "拉丁語字首 (Latin Prefix)",
+    "etymology": "源自拉丁語介系詞「trans」(穿過、跨越、轉移、超越 across, beyond, through)。",
+    "originMeaning": "穿過、跨越、轉變、超越",
+    "phonetic": "/trænz/ 或 /træns/",
+    "icon": "🌉",
+    "color": "#2563EB",
+    "summary": "表示空間跨越轉移、語言文字轉譯、物質形態徹底蛻變或商業交易流程。",
+    "words": [
+      {
+        "word": "transform",
+        "kk": "[trænsˈfɔrm]",
+        "ipa": "/trænsˈfɔːrm/",
+        "pos": "v.",
+        "meaning": "使徹底改變、使轉變形態、蛻變",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "轉移、跨越 (拉丁語 trans-)"
+            },
+            {
+              "text": "form",
+              "role": "base",
+              "meaning": "形狀、外貌 (拉丁語 forma 模樣)"
+            }
+          ],
+          "resultMeaning": "從一種形態跨越轉變成全新的另一種模樣 ➔「徹底轉變、轉化」"
+        },
+        "sentence": "Adopting renewable clean energy infrastructure can transform deteriorating industrial rust belts into thriving eco-technology hubs.",
+        "sentenceZh": "採用再生純淨能源基礎設施，能將日漸衰頹的工業鏽帶轉型為蓬勃發展的生態科技樞紐。",
+        "grammar": {
+          "pattern": "Gerund Subject + Modal + Vt + O + into + Result Noun Phrase (動名詞主詞 + 助動詞 + 及物動詞 + 受詞 + into + 結果名詞片語)",
+          "breakdown": [
+            {
+              "part": "Adopting renewable clean energy infrastructure",
+              "role": "動名詞片語主詞 (Gerund Subject)",
+              "note": "包含多重形容詞修飾 infrastructure。"
+            },
+            {
+              "part": "can transform",
+              "role": "謂語 (Modal Predicate)",
+              "note": "情態助動詞 can + 動詞 transform。"
+            },
+            {
+              "part": "deteriorating industrial rust belts",
+              "role": "直接受詞 (Direct Object)",
+              "note": "deteriorating (衰退退化中的) 為現在分詞作形容詞。"
+            },
+            {
+              "part": "into thriving eco-technology hubs",
+              "role": "轉化結果介系詞片語 (Prepositional Phrase)",
+              "note": "transform A into B (將 A 徹底改造成 B)；thriving (繁榮的)。"
+            }
+          ],
+          "keyPoints": [
+            "【關鍵轉化動詞】：transform A into B (使 A 徹底改頭換面成為 B)。",
+            "【現在分詞對比】：deteriorating (正在衰敗) vs. thriving (欣欣向榮)。"
+          ]
+        }
+      },
+      {
+        "word": "translate",
+        "kk": "[trænsˈlet]",
+        "ipa": "/trænsˈleɪt/",
+        "pos": "v.",
+        "meaning": "翻譯、轉化、轉譯為行動",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越、轉移 (拉丁語 trans-)"
+            },
+            {
+              "text": "late",
+              "role": "root",
+              "meaning": "攜帶、傳遞 (拉丁語 latus 承載/搬運)"
+            }
+          ],
+          "resultMeaning": "將一種語言的思想含意搬運跨越到另一種語言 ➔「翻譯、轉化」"
+        },
+        "sentence": "Effective organizational leaders know how to translate ambitious strategic visions into concrete daily execution milestones.",
+        "sentenceZh": "高效的組織領導者深諳如何將宏偉的策略願景轉化為具體的日常執行里程碑。",
+        "grammar": {
+          "pattern": "S + Vt + Wh-Infinitive Object (主詞 + 及物動詞 + Wh-不定詞複合受詞)",
+          "breakdown": [
+            {
+              "part": "Effective organizational leaders",
+              "role": "主詞 (Subject)",
+              "note": "名詞片語。"
+            },
+            {
+              "part": "know",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "知道、掌握。"
+            },
+            {
+              "part": "how to translate ambitious strategic visions into concrete daily execution milestones",
+              "role": "受詞 (Object of know)",
+              "note": "how to V 作名詞片語受詞；translate A into B (將 A 轉譯/轉化為 B)。"
+            }
+          ],
+          "keyPoints": [
+            "【名詞片語受詞】：know + how to V (知道如何做...)。",
+            "【引申意義】：translate 除了語言翻譯，商務寫作中極常用於「將概念轉化為實際成果」(translate into action/results)。"
+          ]
+        }
+      },
+      {
+        "word": "transparent",
+        "kk": "[trænsˈpɛrənt]",
+        "ipa": "/trænsˈpærənt/",
+        "pos": "adj.",
+        "meaning": "透明的、光線可穿透的、清澈公開的、坦誠的",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "穿透 (拉丁語 trans-)"
+            },
+            {
+              "text": "parent",
+              "role": "root",
+              "meaning": "顯露、看見 (拉丁語 parere 出現/被看見)"
+            }
+          ],
+          "resultMeaning": "光線與視線能夠徹底穿透讓人看清內部 ➔「透明的、公開坦誠的」"
+        },
+        "sentence": "The newly reformed procurement policy mandates transparent bidding procedures to eliminate bribery and favoritism.",
+        "sentenceZh": "這項新改革的採購政策強制要求公開透明的招標程序，以根除賄賂與徇私舞弊。",
+        "grammar": {
+          "pattern": "S + Vt + O + Infinitive of Purpose (主詞 + 及物動詞 + 受詞 + 目的狀詞不定詞片語)",
+          "breakdown": [
+            {
+              "part": "The newly reformed procurement policy",
+              "role": "主詞 (Subject)",
+              "note": "newly (副詞) + reformed (過去分詞) + procurement (採購) + policy。"
+            },
+            {
+              "part": "mandates",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "強制要求規定。"
+            },
+            {
+              "part": "transparent bidding procedures",
+              "role": "直接受詞 (Direct Object)",
+              "note": "transparent (公開透明的) 修飾招標程序。"
+            },
+            {
+              "part": "to eliminate bribery and favoritism",
+              "role": "目的狀詞 (Infinitive of Purpose)",
+              "note": "eliminate (根除)；bribery (賄賂)；favoritism (偏袒/徇私)。"
+            }
+          ],
+          "keyPoints": [
+            "【雙重字意】：物理上指「清澈透光的 (transparent glass)」；社會制度上指「透明公正公開的 (transparent governance)」之反義詞為 opaque (不透明晦暗的)。",
+            "【名詞形式】：transparency (透明度)。"
+          ]
+        }
+      },
+      {
+        "word": "transaction",
+        "kk": "[trænˈzækʃən]",
+        "ipa": "/trænˈzækʃn/",
+        "pos": "n.",
+        "meaning": "交易、業務買賣、辦理手續",
+        "formula": {
+          "parts": [
+            {
+              "text": "trans-",
+              "role": "prefix",
+              "meaning": "跨越、在兩者之間 (拉丁語 trans-)"
+            },
+            {
+              "text": "action",
+              "role": "base",
+              "meaning": "行動、運作 (拉丁語 agere 做/驅動)"
+            }
+          ],
+          "resultMeaning": "在買賣雙方彼此之間穿梭進行的商業行動 ➔「交易、買賣業務」"
+        },
+        "sentence": "Advanced cryptographic blockchain protocols verify each monetary transaction within seconds, preventing double-spending and fraud.",
+        "sentenceZh": "先進的密碼學區塊鏈協定能在數秒內驗證每筆貨幣交易，防範雙重支付與詐欺行為。",
+        "grammar": {
+          "pattern": "S + Vt + O + Time Prep Phrase + Participial Prevention Phrase (主詞 + 及物動詞 + 受詞 + 時間片語 + 現在分詞防範狀詞)",
+          "breakdown": [
+            {
+              "part": "Advanced cryptographic blockchain protocols",
+              "role": "主詞 (Subject)",
+              "note": "複數主詞名詞片語。"
+            },
+            {
+              "part": "verify",
+              "role": "及物動詞 (Transitive Verb)",
+              "note": "查核驗證。"
+            },
+            {
+              "part": "each monetary transaction",
+              "role": "直接受詞 (Direct Object)",
+              "note": "each 後接單數名詞 transaction。"
+            },
+            {
+              "part": "within seconds",
+              "role": "時間狀詞 (Time Phrase)",
+              "note": "在數秒之內。"
+            },
+            {
+              "part": "preventing double-spending and fraud",
+              "role": "現在分詞伴隨結果 (Participle Clause)",
+              "note": "表同時達成的防杜效果。"
+            }
+          ],
+          "keyPoints": [
+            "【金融科技搭配】：financial transaction (金融交易)、transaction fee (交易手續費)。",
+            "【動詞形式】：transact (辦理、進行交易)。"
+          ]
+        }
+      }
+    ],
+    "article": {
+      "title": "Bridging Across Horizons: The Transformative Journey",
+      "titleZh": "橫越地平線：轉變與貫通的旅程",
+      "intro": "「跨越 (trans-)」是宇宙中最具動態美感的生命狀態：河流穿過山谷，思想轉譯為言語，生命在蛻變中新生。",
+      "paragraphs": [
+        {
+          "en": "Human history has never been static; it is an enduring epic of continuous transformation. When early merchant caravans transported silk across forbidding desert trade routes, they did far more than conduct commercial transactions—they translated foreign philosophies, irrevocably transforming world cultures.",
+          "zh": "人類歷史從不是靜止的，而是一部持續蛻變的宏偉史詩。當早期商隊沿著險惡的沙漠貿易路線運載絲綢時，他們所做的遠不止是進行商業交易——他們轉譯著異邦的哲學，深刻且不可逆地重塑了世界文化。"
+        },
+        {
+          "en": "In our hyper-connected contemporary landscape, embracing transparent institutions and cross-cultural dialogue remains our highest calling. By actively tearing down ideological barriers and crossing uncharted oceans, humanity transforms ancient divisions into a luminous tapestry of shared progress.",
+          "zh": "在當今高度互聯的時代風貌中，擁抱透明公開的體制與跨文化對話依然是我們最崇高的使命。藉由主動打破意識形態壁壘、跨越未知的海洋，人類將古老的分歧轉變為共同繁榮的璀璨織錦。"
+        }
+      ],
+      "comprehensionQuestions": [
+        {
+          "q": "What did early merchant caravans achieve beyond mere commercial transactions?",
+          "qZh": "早期商隊除了單純的商業交易外，還達成了什麼？",
+          "options": [
+            "A. They translated foreign philosophies, transforming world cultures. (轉譯外國哲學，深刻轉型世界文化)",
+            "B. They destroyed desert ecosystems.",
+            "C. They established space satellites.",
+            "D. They invented plastic polymers."
+          ],
+          "answer": 0,
+          "explanation": "文中第一段指出商隊「did far more than conduct commercial transactions—they translated foreign philosophies, irrevocably transforming world cultures」。"
+        }
+      ]
+    }
+  }
 ];
 
 if (typeof module !== 'undefined' && module.exports) {

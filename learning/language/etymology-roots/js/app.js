@@ -1,6 +1,6 @@
 /**
  * 字根字首魔法學院 (EtymoRoots Master)
- * 應用程式核心邏輯控制器
+ * 應用程式核心邏輯控制器 — 全站有英文處皆具備語音發音 (Comprehensive Pronunciation Everywhere)
  */
 
 (function () {
@@ -8,7 +8,7 @@
 
   // 應用程式狀態管理
   const state = {
-    currentRootId: "tele", // 預設為使用者指定的首波字首 tele-
+    currentRootId: "tele", // 預設字首 tele-
     currentTab: "words",   // "words" | "equations" | "grammar" | "article" | "quiz" | "flashcards"
     searchQuery: "",
     bookmarkedWords: JSON.parse(localStorage.getItem("etymo_bookmarks") || "[]"),
@@ -83,6 +83,14 @@
         renderView();
       });
     }
+
+    // 全站任意雙擊英文單字即讀 (Double Click Any English Word to Pronounce)
+    document.addEventListener("dblclick", () => {
+      const selected = window.getSelection().toString().trim();
+      if (selected && /[a-zA-Z]{2,}/.test(selected)) {
+        window.etymoTTS.speak(selected);
+      }
+    });
   }
 
   /**
@@ -174,20 +182,25 @@
   }
 
   /**
-   * 渲染頂部介紹橫幅
+   * 渲染頂部介紹橫幅 (含字根字首發音功能)
    */
   function renderBanner(root) {
     if (!dom.etymoBannerContainer) return;
+    const cleanRootName = root.name.replace(/[-/]/g, '').trim();
+
     dom.etymoBannerContainer.innerHTML = `
       <div class="etymo-banner-card" style="border-left-color: ${root.color};">
         <div class="banner-header">
           <div class="banner-title-area">
             <div class="banner-badge-group">
               <span class="type-pill" style="background: ${root.color}18; color: ${root.color};">${root.typeLabel}</span>
-              <span class="phonetic-pill">發音：${root.phonetic}</span>
+              <span class="phonetic-pill speakable-text" onclick="window.etymoTTS.speak('${cleanRootName}', this)" title="點擊發音">
+                發音：${root.phonetic} 🔊
+              </span>
             </div>
             <h2 class="banner-title">
               <span>${root.icon} ${root.name}</span>
+              <button class="btn-speak-inline" onclick="window.etymoTTS.speak('${cleanRootName}', this)" title="發音字首/字根 ${root.name}">🔊</button>
               <span class="zh-meaning">${root.originMeaning}</span>
             </h2>
             <p class="banner-etymology-desc">
@@ -206,8 +219,8 @@
               <div class="stat-label">KK/IPA音標</div>
             </div>
             <div class="stat-item">
-              <div class="stat-number">有聲</div>
-              <div class="stat-label">TTS 真人發音</div>
+              <div class="stat-number">全站</div>
+              <div class="stat-label">英文處處有發音 🔊</div>
             </div>
           </div>
         </div>
@@ -258,24 +271,24 @@
   }
 
   /**
-   * 單一單字卡片 HTML 生成
+   * 單一單字卡片 HTML 生成 (處處發音增強)
    */
   function renderWordCardHTML(w, root) {
     const isBookmarked = state.bookmarkedWords.includes(w.word);
 
-    // 高亮造句中的目標單字
+    // 高亮造句中的目標單字，且點擊目標單字亦可獨立發音
     const regex = new RegExp(`\\b(${w.word}|${w.word}s|${w.word}ed|${w.word}ing|${w.word}es)\\b`, 'gi');
-    const highlightedSentence = w.sentence.replace(regex, '<span class="highlight-word">$1</span>');
+    const highlightedSentence = w.sentence.replace(regex, `<span class="highlight-word speakable-text" onclick="event.stopPropagation(); window.etymoTTS.speak('$1', this)" title="點擊發音">$1</span>`);
 
     return `
       <div class="word-card" data-word="${w.word}">
         <div class="word-card-top">
           <div class="word-heading-wrap">
-            <h3 class="word-text">${w.word}</h3>
+            <h3 class="word-text speakable-text" onclick="window.etymoTTS.speak('${w.word}', this)" title="點擊發音">${w.word}</h3>
             <span class="word-pos">${w.pos}</span>
           </div>
           <div class="card-actions">
-            <button class="btn-speak btn-speak-word" data-text="${w.word}" title="發音 ${w.word}">
+            <button class="btn-speak btn-speak-word" data-text="${w.word}" title="真人語音朗讀 ${w.word}">
               <span>🔊</span>
             </button>
             <button class="btn-bookmark ${isBookmarked ? 'bookmarked' : ''}" data-word="${w.word}" title="收藏單字">
@@ -284,8 +297,8 @@
           </div>
         </div>
 
-        <!-- 音標列 (KK 與 IPA) -->
-        <div class="phonetics-bar">
+        <!-- 音標列 (KK 與 IPA，點選即可發音) -->
+        <div class="phonetics-bar speakable-text" onclick="window.etymoTTS.speak('${w.word}', this)" title="點擊聆聽單字發音">
           <div class="phonetic-tag">
             <span class="phonetic-label">KK</span>
             <span>${w.kk}</span>
@@ -294,26 +307,30 @@
             <span class="phonetic-label">IPA</span>
             <span>${w.ipa}</span>
           </div>
+          <span style="font-size:11px; margin-left:auto; color:var(--amber-primary);">🔊 聽音標</span>
         </div>
 
         <!-- 繁體中文釋義 -->
         <div class="word-meaning-zh">${w.meaning}</div>
 
-        <!-- 形態拆解公式方塊 -->
+        <!-- 形態拆解公式方塊 (每個語素零件皆具備發音按鈕) -->
         <div class="formula-box">
           <div class="formula-title">
             <span>🧩 詞根構詞公式 (Morphological Equation)</span>
           </div>
           <div class="formula-equation">
-            ${w.formula.parts.map((p, idx) => `
-              <div class="morpheme-badge ${p.role === 'prefix' || p.role === 'root' ? 'is-root' : ''}">
-                <span class="morpheme-text">${p.text}</span>
-                <span class="morpheme-meaning">${p.meaning}</span>
-              </div>
-              ${idx < w.formula.parts.length - 1 ? '<span class="formula-operator">+</span>' : '<span class="formula-operator">➔</span>'}
-            `).join("")}
-            <div class="morpheme-badge" style="background:#E0F2FE; border-color:#38BDF8;">
-              <span class="morpheme-text">${w.word}</span>
+            ${w.formula.parts.map((p, idx) => {
+              const cleanPart = p.text.replace(/[-]/g, '');
+              return `
+                <div class="morpheme-badge ${p.role === 'prefix' || p.role === 'root' ? 'is-root' : ''} speakable-text" onclick="window.etymoTTS.speak('${cleanPart}', this)" title="點擊發音部件：${p.text}">
+                  <span class="morpheme-text">${p.text} <small>🔊</small></span>
+                  <span class="morpheme-meaning">${p.meaning}</span>
+                </div>
+                ${idx < w.formula.parts.length - 1 ? '<span class="formula-operator">+</span>' : '<span class="formula-operator">➔</span>'}
+              `;
+            }).join("")}
+            <div class="morpheme-badge speakable-text" onclick="window.etymoTTS.speak('${w.word}', this)" style="background:#E0F2FE; border-color:#38BDF8;" title="點擊發音衍生詞">
+              <span class="morpheme-text">${w.word} <small>🔊</small></span>
               <span class="morpheme-meaning">${w.meaning.split('；')[0]}</span>
             </div>
           </div>
@@ -322,12 +339,12 @@
           </div>
         </div>
 
-        <!-- 英文經典例句 -->
+        <!-- 英文經典例句 (整句朗讀 + 點詞朗讀) -->
         <div class="sentence-box">
           <div class="sentence-header">
             <span class="sentence-label">情境例句 (Authentic Context)</span>
-            <button class="btn-speak btn-speak-sentence" data-sentence="${encodeURIComponent(w.sentence)}" title="朗讀整句">
-              <span>🔊 聽例句</span>
+            <button class="btn-speak btn-speak-sentence" data-sentence="${encodeURIComponent(w.sentence)}" title="朗讀全句">
+              <span>🔊 聽整句</span>
             </button>
           </div>
           <p class="sentence-en">${highlightedSentence}</p>
@@ -343,14 +360,21 @@
         <div class="grammar-details-drawer" id="drawer-${w.word}">
           <div class="grammar-pattern-badge">${w.grammar.pattern}</div>
 
+          <!-- 語法成分切片表格：每一行英文部分均具備獨立發音按鈕 -->
           <div class="grammar-breakdown-list">
-            ${w.grammar.breakdown.map(item => `
-              <div class="grammar-item">
-                <div class="grammar-item-part">${item.part}</div>
-                <div class="grammar-item-role">${item.role}</div>
-                <div class="grammar-item-note">${item.note}</div>
-              </div>
-            `).join("")}
+            ${w.grammar.breakdown.map(item => {
+              const safePart = item.part.replace(/'/g, "\\'");
+              return `
+                <div class="grammar-item">
+                  <div class="grammar-item-part">
+                    <span class="speakable-text" onclick="window.etymoTTS.speak('${safePart}', this)" title="點擊發音此成分">${item.part}</span>
+                    <button class="btn-speak-inline" onclick="window.etymoTTS.speak('${safePart}', this)" title="發音此成分">🔊</button>
+                  </div>
+                  <div class="grammar-item-role">${item.role}</div>
+                  <div class="grammar-item-note">${item.note}</div>
+                </div>
+              `;
+            }).join("")}
           </div>
 
           <div class="grammar-key-points">
@@ -405,7 +429,7 @@
   }
 
   /**
-   * 2. 渲染形態拆解矩陣視圖 (Equations Tab)
+   * 2. 渲染形態拆解矩陣視圖 (Equations Tab - 每個語素均有發音)
    */
   function renderEquationsTab(root) {
     dom.mainTabContent.innerHTML = `
@@ -413,9 +437,10 @@
         <div style="margin-bottom:24px;">
           <h2 style="font-family:var(--font-serif); font-size:24px; color:var(--ink-primary);">
             🧩 「${root.name}」形態衍生造字矩陣
+            <button class="btn-speak-inline" onclick="window.etymoTTS.speak('${root.name.replace(/[-/]/g, '')}', this)" title="發音字首/字根">🔊</button>
           </h2>
           <p style="font-size:14px; color:var(--ink-secondary); margin-top:6px;">
-            英語詞彙中 70% 以上的高階字彙皆可透過「字首 (方向/屬性) + 字根 (核心意義) + 字尾 (詞性功能)」直觀拆解組合。掌握形態公式，就能以一當十、成串記憶！
+            掌握形態公式，就能以一當十、成串記憶！點選下方任何語素零件或新單字，均可直接聆聽真人示範發音。
           </p>
         </div>
 
@@ -424,8 +449,8 @@
             <div style="background:var(--bg-sand-warm); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:20px;">
               <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
                 <div style="display:flex; align-items:baseline; gap:12px;">
-                  <span style="font-family:var(--font-en-serif); font-size:28px; font-weight:700; color:var(--ink-primary);">${w.word}</span>
-                  <span style="font-family:var(--font-mono); font-size:13px; color:var(--ink-muted);">${w.kk} | ${w.ipa}</span>
+                  <span class="speakable-text" onclick="window.etymoTTS.speak('${w.word}', this)" style="font-family:var(--font-en-serif); font-size:28px; font-weight:700; color:var(--ink-primary);">${w.word}</span>
+                  <span class="speakable-text" onclick="window.etymoTTS.speak('${w.word}', this)" style="font-family:var(--font-mono); font-size:13px; color:var(--ink-muted);">${w.kk} | ${w.ipa} 🔊</span>
                   <span style="font-size:15px; font-weight:700; color:var(--amber-primary);">${w.meaning}</span>
                 </div>
                 <button class="btn-speak" onclick="window.etymoTTS.speak('${w.word}', this)" title="發音">🔊</button>
@@ -433,15 +458,18 @@
 
               <!-- 大公式列 -->
               <div style="display:flex; align-items:center; flex-wrap:wrap; gap:10px; background:#FFF; padding:16px 20px; border-radius:var(--radius-sm); border:1px dashed rgba(217,119,6,0.3); margin-bottom:12px;">
-                ${w.formula.parts.map((p, idx) => `
-                  <div style="background:#FFFDF9; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 14px; text-align:center;">
-                    <div style="font-family:var(--font-en-serif); font-size:18px; font-weight:700; color:var(--ink-primary);">${p.text}</div>
-                    <div style="font-size:12px; color:var(--ink-secondary); margin-top:2px;">${p.meaning}</div>
-                  </div>
-                  ${idx < w.formula.parts.length - 1 ? '<span style="font-size:18px; font-weight:bold; color:var(--amber-primary);">+</span>' : '<span style="font-size:18px; font-weight:bold; color:var(--amber-primary);">➔</span>'}
-                `).join("")}
-                <div style="background:#EFF6FF; border:1px solid #93C5FD; border-radius:8px; padding:8px 16px; text-align:center;">
-                  <div style="font-family:var(--font-en-serif); font-size:19px; font-weight:700; color:#1D4ED8;">${w.word}</div>
+                ${w.formula.parts.map((p, idx) => {
+                  const cleanPart = p.text.replace(/[-]/g, '');
+                  return `
+                    <div class="speakable-text" onclick="window.etymoTTS.speak('${cleanPart}', this)" style="background:#FFFDF9; border:1px solid var(--border-subtle); border-radius:8px; padding:8px 14px; text-align:center; cursor:pointer;" title="點擊發音">
+                      <div style="font-family:var(--font-en-serif); font-size:18px; font-weight:700; color:var(--ink-primary);">${p.text} 🔊</div>
+                      <div style="font-size:12px; color:var(--ink-secondary); margin-top:2px;">${p.meaning}</div>
+                    </div>
+                    ${idx < w.formula.parts.length - 1 ? '<span style="font-size:18px; font-weight:bold; color:var(--amber-primary);">+</span>' : '<span style="font-size:18px; font-weight:bold; color:var(--amber-primary);">➔</span>'}
+                  `;
+                }).join("")}
+                <div class="speakable-text" onclick="window.etymoTTS.speak('${w.word}', this)" style="background:#EFF6FF; border:1px solid #93C5FD; border-radius:8px; padding:8px 16px; text-align:center; cursor:pointer;" title="點擊發音衍生單字">
+                  <div style="font-family:var(--font-en-serif); font-size:19px; font-weight:700; color:#1D4ED8;">${w.word} 🔊</div>
                   <div style="font-size:12px; font-weight:600; color:#1E40AF; margin-top:2px;">${w.meaning.split('；')[0]}</div>
                 </div>
               </div>
@@ -457,7 +485,7 @@
   }
 
   /**
-   * 3. 渲染文法顯微鏡專區 (Grammar Tab)
+   * 3. 渲染文法顯微鏡專區 (Grammar Tab - 每個句法片段皆具獨立發音)
    */
   function renderGrammarTab(root) {
     dom.mainTabContent.innerHTML = `
@@ -465,70 +493,80 @@
         <div style="margin-bottom:28px;">
           <h2 style="font-family:var(--font-serif); font-size:24px; color:var(--ink-primary);">
             🔬 「${root.name}」句型結構與深度文法解剖室
+            <button class="btn-speak-inline" onclick="window.etymoTTS.speak('${root.name.replace(/[-/]/g, '')}', this)" title="發音字首/字根">🔊</button>
           </h2>
           <p style="font-size:14px; color:var(--ink-secondary); margin-top:6px;">
-            背誦單字若不能在真實英文句法中靈活運用，只是空中樓閣。本專區為每個衍生單字量身打造權威例句，逐層拆解主詞、及物/不及物謂語動詞、受詞補語、時態語態、分詞構句與進階子句！
+            逐層拆解主詞、及物/不及物謂語動詞、受詞補語、時態語態、分詞構句與進階子句！表格中的每個英文句法片段均可單獨點擊發音。
           </p>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:28px;">
-          ${root.words.map((w, index) => `
-            <div style="background:var(--bg-sand-warm); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:24px; border-left:6px solid ${root.color};">
-              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-                <div style="display:flex; align-items:baseline; gap:10px;">
-                  <span style="font-size:12px; font-family:var(--font-mono); font-weight:bold; background:var(--ink-primary); color:#FFF; padding:2px 8px; border-radius:4px;">#0${index+1}</span>
-                  <span style="font-family:var(--font-en-serif); font-size:26px; font-weight:700; color:var(--ink-primary);">${w.word}</span>
-                  <span style="font-size:14px; font-weight:600; color:var(--amber-primary);">${w.meaning}</span>
-                </div>
-                <button class="btn-speak" onclick="window.etymoTTS.speak('${encodeURIComponent(w.sentence)}', this)" title="聽整句朗讀">
-                  <span>🔊 聆聽例句</span>
-                </button>
-              </div>
-
-              <!-- 例句 -->
-              <div style="background:#FFF; padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); margin-bottom:16px;">
-                <p style="font-family:var(--font-en-serif); font-size:19px; font-weight:600; color:var(--ink-primary); line-height:1.45;">
-                  ${w.sentence}
-                </p>
-                <p style="font-size:13px; color:var(--ink-secondary); margin-top:6px;">
-                  ${w.sentenceZh}
-                </p>
-              </div>
-
-              <!-- 句型架構標籤 -->
-              <div style="margin-bottom:14px;">
-                <span style="font-family:var(--font-mono); font-size:12px; font-weight:600; background:#EFF6FF; color:#1D4ED8; padding:5px 12px; border-radius:4px; border:1px solid #BFDBFE;">
-                  句型架構：${w.grammar.pattern}
-                </span>
-              </div>
-
-              <!-- 句法成分切片表格 -->
-              <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
-                ${w.grammar.breakdown.map(item => `
-                  <div style="display:grid; grid-template-columns: 220px 140px 1fr; gap:12px; background:#FFF; padding:8px 14px; border-radius:6px; font-size:13px; align-items:center; border:1px solid var(--border-subtle);">
-                    <div style="font-family:var(--font-en-serif); font-weight:700; color:var(--ink-primary);">${item.part}</div>
-                    <div style="font-weight:700; color:var(--amber-primary);">${item.role}</div>
-                    <div style="color:var(--ink-secondary); line-height:1.4;">${item.note}</div>
+          ${root.words.map((w, index) => {
+            const safeSentence = w.sentence.replace(/'/g, "\\'");
+            return `
+              <div style="background:var(--bg-sand-warm); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:24px; border-left:6px solid ${root.color};">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+                  <div style="display:flex; align-items:baseline; gap:10px;">
+                    <span style="font-size:12px; font-family:var(--font-mono); font-weight:bold; background:var(--ink-primary); color:#FFF; padding:2px 8px; border-radius:4px;">#0${index+1}</span>
+                    <span class="speakable-text" onclick="window.etymoTTS.speak('${w.word}', this)" style="font-family:var(--font-en-serif); font-size:26px; font-weight:700; color:var(--ink-primary);">${w.word} 🔊</span>
+                    <span style="font-size:14px; font-weight:600; color:var(--amber-primary);">${w.meaning}</span>
                   </div>
-                `).join("")}
-              </div>
+                  <button class="btn-speak" onclick="window.etymoTTS.speak('${safeSentence}', this)" title="聽整句朗讀">
+                    <span>🔊 聆聽全句</span>
+                  </button>
+                </div>
 
-              <!-- 核心文法考點 -->
-              <div style="background:#FFFDF9; border:1px dashed rgba(217,119,6,0.3); border-radius:6px; padding:12px 16px;">
-                <h5 style="font-size:13px; font-weight:700; color:var(--ink-primary); margin-bottom:6px;">💡 句型精萃與高分考點：</h5>
-                <ul style="padding-left:18px; font-size:13px; color:var(--ink-secondary); line-height:1.6;">
-                  ${w.grammar.keyPoints.map(kp => `<li>${kp}</li>`).join("")}
-                </ul>
+                <!-- 例句 -->
+                <div style="background:#FFF; padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); margin-bottom:16px;">
+                  <p class="speakable-text" onclick="window.etymoTTS.speak('${safeSentence}', this)" style="font-family:var(--font-en-serif); font-size:19px; font-weight:600; color:var(--ink-primary); line-height:1.45;" title="點擊發音全句">
+                    ${w.sentence}
+                  </p>
+                  <p style="font-size:13px; color:var(--ink-secondary); margin-top:6px;">
+                    ${w.sentenceZh}
+                  </p>
+                </div>
+
+                <!-- 句型架構標籤 -->
+                <div style="margin-bottom:14px;">
+                  <span style="font-family:var(--font-mono); font-size:12px; font-weight:600; background:#EFF6FF; color:#1D4ED8; padding:5px 12px; border-radius:4px; border:1px solid #BFDBFE;">
+                    句型架構：${w.grammar.pattern}
+                  </span>
+                </div>
+
+                <!-- 句法成分切片表格 (每項都有 🔊 發音) -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;">
+                  ${w.grammar.breakdown.map(item => {
+                    const safePart = item.part.replace(/'/g, "\\'");
+                    return `
+                      <div style="display:grid; grid-template-columns: 240px 140px 1fr; gap:12px; background:#FFF; padding:8px 14px; border-radius:6px; font-size:13px; align-items:center; border:1px solid var(--border-subtle);">
+                        <div style="font-family:var(--font-en-serif); font-weight:700; color:var(--ink-primary);">
+                          <span class="speakable-text" onclick="window.etymoTTS.speak('${safePart}', this)" title="點擊發音">${item.part}</span>
+                          <button class="btn-speak-inline" onclick="window.etymoTTS.speak('${safePart}', this)" title="發音此成分">🔊</button>
+                        </div>
+                        <div style="font-weight:700; color:var(--amber-primary);">${item.role}</div>
+                        <div style="color:var(--ink-secondary); line-height:1.4;">${item.note}</div>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+
+                <!-- 核心文法考點 -->
+                <div style="background:#FFFDF9; border:1px dashed rgba(217,119,6,0.3); border-radius:6px; padding:12px 16px;">
+                  <h5 style="font-size:13px; font-weight:700; color:var(--ink-primary); margin-bottom:6px;">💡 句型精萃與高分考點：</h5>
+                  <ul style="padding-left:18px; font-size:13px; color:var(--ink-secondary); line-height:1.6;">
+                    ${w.grammar.keyPoints.map(kp => `<li>${kp}</li>`).join("")}
+                  </ul>
+                </div>
               </div>
-            </div>
-          `).join("")}
+            `;
+          }).join("")}
         </div>
       </div>
     `;
   }
 
   /**
-   * 4. 渲染主題篇章小短文視圖 (Article Tab)
+   * 4. 渲染主題篇章小短文視圖 (Article Tab - 標題、段落、單句、測驗題目與選項全發音)
    */
   function renderArticleTab(root) {
     const art = root.article;
@@ -537,19 +575,23 @@
       return;
     }
 
-    // 將所有英文句子切出，供有聲逐句朗讀使用
     const allSentences = [];
     art.paragraphs.forEach(p => {
       const sArr = p.en.match(/[^.!?]+[.!?]+/g) || [p.en];
       sArr.forEach(s => allSentences.push(s.trim()));
     });
 
+    const safeTitle = art.title.replace(/'/g, "\\'");
+
     dom.mainTabContent.innerHTML = `
       <div class="article-reader-container">
         <!-- 篇章頂部資訊 -->
         <div class="article-header">
           <div>
-            <h2 class="article-title-en">${art.title}</h2>
+            <h2 class="article-title-en">
+              ${art.title}
+              <button class="btn-speak-inline" onclick="window.etymoTTS.speak('${safeTitle}', this)" title="朗讀英文標題">🔊</button>
+            </h2>
             <h3 class="article-title-zh">${art.titleZh}</h3>
             <p class="article-intro">${art.intro}</p>
           </div>
@@ -567,23 +609,27 @@
           </div>
         </div>
 
-        <!-- 篇章本文段落 -->
+        <!-- 篇章本文段落 (每一段有單獨朗讀按鈕，每句可單獨點擊發音) -->
         <div class="article-body" id="article-body-content">
           ${art.paragraphs.map((p, pIdx) => {
-            // 切割為句子 span
             const sentences = p.en.match(/[^.!?]+[.!?]+/g) || [p.en];
+            const safeParagraph = p.en.replace(/'/g, "\\'");
+
             const sentenceSpans = sentences.map((s, sIdx) => {
-              // 高亮當前根詞
               let annotated = s;
               root.words.forEach(w => {
                 const reg = new RegExp(`\\b(${w.word}|${w.word}s|${w.word}ed|${w.word}ing|${w.word}es)\\b`, 'gi');
-                annotated = annotated.replace(reg, `<span class="article-word-highlight" title="${w.word} (${w.meaning})">$1</span>`);
+                annotated = annotated.replace(reg, `<span class="article-word-highlight" onclick="event.stopPropagation(); window.etymoTTS.speak('$1', this)" title="點擊發音單字：${w.word}">$1</span>`);
               });
               return `<span class="sentence-span" data-p="${pIdx}" data-s="${sIdx}" title="點擊朗讀此句">${annotated}</span>`;
             }).join(" ");
 
             return `
               <div class="article-paragraph">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <span style="font-size:11px; font-weight:bold; color:var(--ink-muted); text-transform:uppercase;">段落 0${pIdx+1}</span>
+                  <button class="btn-speak-inline btn-speak-para" onclick="window.etymoTTS.speak('${safeParagraph}', this)" title="朗讀此段落">🔊 朗讀此段</button>
+                </div>
                 <div class="para-en">${sentenceSpans}</div>
                 ${state.articleMode === 'bilingual' ? `<div class="para-zh">${p.zh}</div>` : ''}
               </div>
@@ -591,28 +637,38 @@
           }).join("")}
         </div>
 
-        <!-- 篇章閱讀測驗區 -->
+        <!-- 篇章閱讀測驗區 (題目與選項皆可發音) -->
         <div class="comprehension-section">
           <h4 class="comprehension-title">
             <span>📝 篇章閱讀理解檢測 (Comprehension Check)</span>
           </h4>
           <div class="quiz-list">
-            ${art.comprehensionQuestions.map((qItem, qIdx) => `
-              <div class="quiz-card" data-qidx="${qIdx}">
-                <p class="quiz-q-en">Q${qIdx+1}: ${qItem.q}</p>
-                <p class="quiz-q-zh">${qItem.qZh}</p>
-                <div class="quiz-options-list">
-                  ${qItem.options.map((opt, optIdx) => `
-                    <button class="quiz-opt-btn" data-qidx="${qIdx}" data-optidx="${optIdx}">
-                      ${opt}
-                    </button>
-                  `).join("")}
+            ${art.comprehensionQuestions.map((qItem, qIdx) => {
+              const safeQ = qItem.q.replace(/'/g, "\\'");
+              return `
+                <div class="quiz-card" data-qidx="${qIdx}">
+                  <p class="quiz-q-en">
+                    Q${qIdx+1}: ${qItem.q}
+                    <button class="btn-speak-inline" onclick="window.etymoTTS.speak('${safeQ}', this)" title="朗讀題目">🔊</button>
+                  </p>
+                  <p class="quiz-q-zh">${qItem.qZh}</p>
+                  <div class="quiz-options-list">
+                    ${qItem.options.map((opt, optIdx) => {
+                      const englishOpt = opt.split('(')[0].replace(/^[A-D]\.\s*/, '').trim().replace(/'/g, "\\'");
+                      return `
+                        <button class="quiz-opt-btn" data-qidx="${qIdx}" data-optidx="${optIdx}">
+                          <span>${opt}</span>
+                          <span class="btn-speak-inline" onclick="event.stopPropagation(); window.etymoTTS.speak('${englishOpt}', this)" title="朗讀此選項">🔊</span>
+                        </button>
+                      `;
+                    }).join("")}
+                  </div>
+                  <div class="quiz-explanation" id="q-explain-${qIdx}">
+                    <strong>答案解說：</strong>${qItem.explanation}
+                  </div>
                 </div>
-                <div class="quiz-explanation" id="q-explain-${qIdx}">
-                  <strong>答案解說：</strong>${qItem.explanation}
-                </div>
-              </div>
-            `).join("")}
+              `;
+            }).join("")}
           </div>
         </div>
       </div>
@@ -625,7 +681,6 @@
    * 綁定篇章事件
    */
   function bindArticleEvents(allSentences, art) {
-    // 朗讀全文按鈕
     const playBtn = document.getElementById("btn-play-whole-article");
     if (playBtn) {
       playBtn.addEventListener("click", () => {
@@ -709,26 +764,25 @@
   }
 
   /**
-   * 5. 渲染測驗與拼字遊戲 (Quiz Tab)
+   * 5. 渲染測驗與拼字遊戲 (Quiz Tab - 零件發音與拼成發音)
    */
   function renderQuizTab(root) {
     const currentWord = root.words[state.puzzleWordIndex % root.words.length];
     const correctParts = currentWord.formula.parts.map(p => p.text);
 
-    // 建立選項池 (包含正確語素 + 隨機干擾語素)
-    const distractors = ["anti-", "dis-", "un-", "micro-", "graph", "meter", "logy"];
+    // 建立選項池
+    const distractors = ["anti-", "dis-", "un-", "micro-", "graph", "meter", "logy", "inter-"];
     const pool = [...correctParts];
     distractors.forEach(d => {
-      if (!pool.includes(d) && pool.length < 5) pool.push(d);
+      if (!pool.includes(d) && pool.length < 6) pool.push(d);
     });
-    // 洗牌
     pool.sort(() => Math.random() - 0.5);
 
     dom.mainTabContent.innerHTML = `
       <div class="quiz-arena-container">
         <div class="arena-header">
           <h2 class="arena-title">🎯 字根字首組裝拼圖挑戰</h2>
-          <p class="arena-desc">請點選下方語素零件，正確拼組出符合定義的單字！</p>
+          <p class="arena-desc">請點選下方語素零件，正確拼組出符合定義的單字！（點選零件亦可聆聽發音）</p>
         </div>
 
         <div class="puzzle-card">
@@ -752,13 +806,16 @@
             `).join("")}
           </div>
 
-          <!-- 零件備選池 -->
+          <!-- 零件備選池 (點擊即發音並加入放置區) -->
           <div class="puzzle-options-pool" id="puzzle-options-pool">
-            ${pool.map(m => `
-              <button class="morpheme-draggable pool-item" data-text="${m}">
-                ${m}
-              </button>
-            `).join("")}
+            ${pool.map(m => {
+              const cleanM = m.replace(/[-]/g, '');
+              return `
+                <button class="morpheme-draggable pool-item" data-text="${m}" title="點選組裝並發音">
+                  ${m} 🔊
+                </button>
+              `;
+            }).join("")}
           </div>
 
           <div style="display:flex; align-items:center; justify-content:center; gap:12px;">
@@ -779,10 +836,12 @@
    * 綁定測驗拼字事件
    */
   function bindQuizEvents(currentWord, correctParts) {
-    // 點選零件加入組裝區
+    // 點選零件發音並加入組裝區
     document.querySelectorAll(".pool-item").forEach(btn => {
       btn.addEventListener("click", () => {
-        state.puzzlePlacedMorphemes.push(btn.dataset.text);
+        const text = btn.dataset.text;
+        window.etymoTTS.speak(text.replace(/[-]/g, ''));
+        state.puzzlePlacedMorphemes.push(text);
         renderQuizTab(getCurrentRootData());
       });
     });
@@ -837,16 +896,17 @@
   }
 
   /**
-   * 6. 渲染單字翻卡記憶模式 (Flashcards Tab)
+   * 6. 渲染單字翻卡記憶模式 (Flashcards Tab - 正背面均具發音功能)
    */
   function renderFlashcardsTab(root) {
     const words = root.words;
     const currentWord = words[state.flashcardIndex % words.length];
+    const safeSentence = currentWord.sentence.replace(/'/g, "\\'");
 
     dom.mainTabContent.innerHTML = `
       <div class="flashcards-container">
         <div style="font-size:13px; font-weight:700; color:var(--ink-muted);">
-          卡片 ${ (state.flashcardIndex % words.length) + 1 } / ${words.length}（點擊卡片翻面）
+          卡片 ${ (state.flashcardIndex % words.length) + 1 } / ${words.length}（點擊卡片翻面，點擊小喇叭發音）
         </div>
 
         <div class="flashcard-wrap ${state.isFlashcardFlipped ? 'flipped' : ''}" id="flashcard-card">
@@ -854,7 +914,9 @@
             <!-- 正面：英文單字、音標、發音 -->
             <div class="flashcard-front">
               <span class="type-pill" style="margin-bottom:12px;">${currentWord.pos}</span>
-              <div class="fc-word">${currentWord.word}</div>
+              <div class="fc-word speakable-text" onclick="event.stopPropagation(); window.etymoTTS.speak('${currentWord.word}', this)">
+                ${currentWord.word}
+              </div>
               <div class="fc-phonetics">${currentWord.kk} &nbsp;|&nbsp; ${currentWord.ipa}</div>
               <button class="btn-speak" id="btn-fc-speak" style="margin-bottom:16px;">🔊 發音</button>
               <div class="fc-hint">💡 點擊卡片查看繁中釋義與形態公式</div>
@@ -866,8 +928,9 @@
               <div class="fc-formula">
                 ${currentWord.formula.parts.map(p => `${p.text} (${p.meaning})`).join(" + ")}
               </div>
-              <div style="font-size:13px; color:var(--ink-secondary); line-height:1.5; background:var(--bg-card-sub); padding:10px 14px; border-radius:8px;">
-                "${currentWord.sentence}"
+              <div style="font-size:13px; color:var(--ink-secondary); line-height:1.5; background:var(--bg-card-sub); padding:10px 14px; border-radius:8px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <span>"${currentWord.sentence}"</span>
+                <button class="btn-speak-inline" onclick="event.stopPropagation(); window.etymoTTS.speak('${safeSentence}', this)" title="朗讀例句">🔊</button>
               </div>
               <div class="fc-hint" style="margin-top:16px;">點擊翻回正面</div>
             </div>
