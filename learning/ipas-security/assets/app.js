@@ -988,13 +988,56 @@
   }
 
   function formatMarkdownContent(mdText) {
-    // 輕量化 Markdown 解析成 HTML
-    return mdText
-      .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-      .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-      .replace(/^\- (.*$)/gim, "<li>$1</li>")
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\n\n/g, "<br>");
+    if (!mdText) return "";
+    
+    // 1. 處理程式碼區塊 (Code Blocks) ```lang ... ```
+    let text = mdText.replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+      const cleanCode = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return `<div class="code-block-wrapper"><div class="code-block-header"><span>💻 ${lang || 'CLI / Code'}</span><button class="code-copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block-wrapper').querySelector('code').innerText);this.innerText='已複製';setTimeout(()=>this.innerText='複製',1500)">複製</button></div><pre><code>${cleanCode}</code></pre></div>`;
+    });
+
+    // 2. 處理 Markdown 表格 (| col | col |)
+    text = text.replace(/((?:\|[^\n]+\|\r?\n)+)/g, (match) => {
+      const lines = match.trim().split(/\r?\n/);
+      if (lines.length < 2) return match;
+      let tableHtml = '<div class="table-responsive"><table class="notes-table">';
+      lines.forEach((line, idx) => {
+        if (line.includes("---")) return; // 分隔線
+        const cells = line.split("|").slice(1, -1).map(c => c.trim());
+        if (idx === 0) {
+          tableHtml += '<thead><tr>' + cells.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+        } else {
+          tableHtml += '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+        }
+      });
+      tableHtml += '</tbody></table></div>';
+      return tableHtml;
+    });
+
+    // 3. 處理 Blockquotes (> text)
+    text = text.replace(/^> (.*$)/gim, '<blockquote class="notes-quote">$1</blockquote>');
+
+    // 4. 處理標題
+    text = text
+      .replace(/^#### (.*$)/gim, '<h4>$1</h4>')
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>');
+
+    // 5. 處理行內程式碼 (`code`)
+    text = text.replace(/`([^`]+)`/g, '<code class="notes-inline-code">$1</code>');
+
+    // 6. 處理粗體 (**text**)
+    text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    // 7. 處理清單項目
+    text = text.replace(/^\- (.*$)/gim, '<li class="notes-li">$1</li>');
+    text = text.replace(/^\d+\.\s+(.*$)/gim, '<li class="notes-oli">$1</li>');
+
+    // 8. 處理段落換行
+    text = text.replace(/\n\n/g, '<div class="notes-para-spacer"></div>');
+    text = text.replace(/\n/g, '<br>');
+
+    return text;
   }
 
   window.selectNoteModule = function (level, modId) {

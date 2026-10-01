@@ -1,14 +1,15 @@
-# iPAS 資訊安全工程師 - 初級能力鑑定核心講義
+# -*- coding: utf-8 -*-
+"""
+iPAS 資安工程師 - 初級全 16 單元深度核心講義資料 (教科書級、技術指令、RFC/NIST標準、陷阱盲點、情境案例)
+"""
 
-## 考科一：資訊安全概論
-> 涵蓋資安核心三要素 (CIA)、網路通訊安全架構、作業系統強化、惡意程式分類防護、OWASP Top 10 核心弱點、密碼學應用與資安法規概要。
-
-### 單元 1：資安核心三要素與安全架構原則
-
-**關鍵字 (Keywords)**: Confidentiality, Integrity, Availability, Defense-in-Depth, Least Privilege, Separation of Duties, Non-Repudiation, AAA Framework
-
-**核心概念概述**: 掌握資訊安全最高指導原則：機密性 (Confidentiality)、完整性 (Integrity)、可用性 (Availability) 之工程實踐。深入解析縱深防禦 (Defense-in-Depth)、最小權限原則 (PoLP)、職責區隔 (SoD) 與不可否認性 (Non-Repudiation) 之技術落地標準。
-
+BASIC_SUBJECT_1_MODULES = [
+    {
+        "id": "B1-M01",
+        "title": "單元 1：資安核心三要素與安全架構原則",
+        "keywords": ["Confidentiality", "Integrity", "Availability", "Defense-in-Depth", "Least Privilege", "Separation of Duties", "Non-Repudiation", "AAA Framework"],
+        "summary": "掌握資訊安全最高指導原則：機密性 (Confidentiality)、完整性 (Integrity)、可用性 (Availability) 之工程實踐。深入解析縱深防禦 (Defense-in-Depth)、最小權限原則 (PoLP)、職責區隔 (SoD) 與不可否認性 (Non-Repudiation) 之技術落地標準。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. CIA 三要素工程定義
@@ -65,18 +66,15 @@ sha256sum -c /var/log/baseline_hashes.txt --quiet
 > 🔑 **防呆口訣**：
 > - 機密靠加密與 ACL，完整靠雜湊與簽名，可用靠備援與清洗。
 > - 對稱加密速度快但無不可否認，非對稱簽章具專屬私鑰才算數！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某電商平台遭遇外部攻擊，駭客利用 Web 伺服器之 SQL 注入弱點突破前端。然而，該企業貫徹了「縱深防禦」與「最小權限原則」：Web 伺服器與資料庫伺服器之間存在內網次世代防火牆，嚴格僅開放 TCP 3306 且僅限指定 IP；資料庫中會員身分證字號與信用卡均採用 AES-256-GCM 密文存儲，且資料庫連線帳號僅具備 SELECT/INSERT 權限而無 DROP/ALTER 特權。駭客即便成功透過 SQL 注入取得前端部分資料，但無法提權橫向移動至內網核心網段，機敏欄位亦因密文防護無法即時破解，成功將災害控制於最低範圍。
-
----
-
-### 單元 2：網路通訊協定與架構安全
-
-**關鍵字 (Keywords)**: OSI 7 Layers, TCP 3-Way Handshake, TLS 1.3, IPsec, DNSSEC, DMZ Network Architecture
-
-**核心概念概述**: 全面剖析 OSI 7 層模型與 TCP/IP 協定堆疊之安全缺陷與防禦機制。深入探討 TCP 三向交握、SYN Flood 攻擊與 SYN Cookies 緩解機制、TLS 1.3 密碼套件精簡與 0-RTT 權衡、IPsec AH/ESP 模式、DNSSEC 以及企業 DMZ 隔離區規劃架構。
-
+        """,
+        "caseStudy": "【實務案例分析】某電商平台遭遇外部攻擊，駭客利用 Web 伺服器之 SQL 注入弱點突破前端。然而，該企業貫徹了「縱深防禦」與「最小權限原則」：Web 伺服器與資料庫伺服器之間存在內網次世代防火牆，嚴格僅開放 TCP 3306 且僅限指定 IP；資料庫中會員身分證字號與信用卡均採用 AES-256-GCM 密文存儲，且資料庫連線帳號僅具備 SELECT/INSERT 權限而無 DROP/ALTER 特權。駭客即便成功透過 SQL 注入取得前端部分資料，但無法提權橫向移動至內網核心網段，機敏欄位亦因密文防護無法即時破解，成功將災害控制於最低範圍。"
+    },
+    {
+        "id": "B1-M02",
+        "title": "單元 2：網路通訊協定與架構安全",
+        "keywords": ["OSI 7 Layers", "TCP 3-Way Handshake", "TLS 1.3", "IPsec", "DNSSEC", "DMZ Network Architecture"],
+        "summary": "全面剖析 OSI 7 層模型與 TCP/IP 協定堆疊之安全缺陷與防禦機制。深入探討 TCP 三向交握、SYN Flood 攻擊與 SYN Cookies 緩解機制、TLS 1.3 密碼套件精簡與 0-RTT 權衡、IPsec AH/ESP 模式、DNSSEC 以及企業 DMZ 隔離區規劃架構。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. OSI 7 層與常見威脅／防禦對照表
@@ -149,18 +147,15 @@ Switch(config-if)# switchport port-security violation shutdown
 > - AH 認證無加密，ESP 封裝才加密。
 > - SYN Flood 塞半開，Cookies 計算免耗台。
 > - DMZ 防火牆：外入有限度，內往外可通，DMZ 往內全面封！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某大型醫院對外掛號系統遭受巨量 TCP SYN Flood 攻擊，伺服器連線狀態表瞬間被數百萬個半開啟連線填滿，造成正常病患無法掛號。資安維運團隊緊急採取三合一措施：第一、在邊界次世代防火牆啟用 TCP SYN Proxy，阻絕偽造來源之無效交握；第二、在 Linux 伺服器核心開啟 `net.ipv4.tcp_syncookies = 1`，避免 TCB 記憶體枯竭；第三、啟用電信端清洗中心過濾非台灣境內異常網段，系統於 15 分鐘內恢復正常運作。
-
----
-
-### 單元 3：作業系統與主機端點安全強化
-
-**關鍵字 (Keywords)**: OS Hardening, CIS Benchmark, Windows GPO, Linux Hardening, Patch Management, Privilege Escalation
-
-**核心概念概述**: 掌握 Windows Active Directory 與 Linux 主機安全性基準強化 (Baseline Hardening)、CIS Benchmark 控制項落實、弱密碼與帳號原則、SSH 安全組態、補丁管理生命週期與提權攻擊防範。
-
+        """,
+        "caseStudy": "【實務案例分析】某大型醫院對外掛號系統遭受巨量 TCP SYN Flood 攻擊，伺服器連線狀態表瞬間被數百萬個半開啟連線填滿，造成正常病患無法掛號。資安維運團隊緊急採取三合一措施：第一、在邊界次世代防火牆啟用 TCP SYN Proxy，阻絕偽造來源之無效交握；第二、在 Linux 伺服器核心開啟 `net.ipv4.tcp_syncookies = 1`，避免 TCB 記憶體枯竭；第三、啟用電信端清洗中心過濾非台灣境內異常網段，系統於 15 分鐘內恢復正常運作。"
+    },
+    {
+        "id": "B1-M03",
+        "title": "單元 3：作業系統與主機端點安全強化",
+        "keywords": ["OS Hardening", "CIS Benchmark", "Windows GPO", "Linux Hardening", "Patch Management", "Privilege Escalation"],
+        "summary": "掌握 Windows Active Directory 與 Linux 主機安全性基準強化 (Baseline Hardening)、CIS Benchmark 控制項落實、弱密碼與帳號原則、SSH 安全組態、補丁管理生命週期與提權攻擊防範。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 作業系統安全強化四大核心維度
@@ -222,18 +217,15 @@ netstat -ano | findstr "LISTENING"
 > - 補丁先測再上線，空密預設全拔除。
 > - SSH 禁 root 密碼，GPO 強制長與複。
 > - 服務沒用立即關，SMBv1 永不再見！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某政府機關內部一台對外 Linux 伺服器遭受攻擊者透過 SSH 字典檔攻擊入侵。事後鑑識發現，該伺服器允許 `PermitRootLogin yes` 且使用預設密碼，未受限制之 SSH 服務被嘗試了 4 萬多次成功破門。資安改善小組全面依照 CIS Benchmark 進行強化：全面改採 ED25519 金鑰認證並關閉密碼登入、安裝 `fail2ban` 自動封鎖惡意嘗試 IP、移除非必要之 FTP/Telnet 服務，並配置每週自動掃描主機合規基準，杜絕同類資安缺口。
-
----
-
-### 單元 4：常見資安威脅與惡意程式防護
-
-**關鍵字 (Keywords)**: Ransomware, Computer Worm, Trojan Horse, Spyware, Rootkit, Botnet, Social Engineering, BEC
-
-**核心概念概述**: 深入辨析各類惡意程式（Malware）之行為特徵與傳播模式：電腦蠕蟲自我複製、特洛伊木馬後門機制、勒索軟體雙重/三重勒索手腕、隱匿型 Rootkit、殭屍網路 (Botnet) 與商業電子郵件詐騙 (BEC) 社交工程防禦體系。
-
+        """,
+        "caseStudy": "【實務案例分析】某政府機關內部一台對外 Linux 伺服器遭受攻擊者透過 SSH 字典檔攻擊入侵。事後鑑識發現，該伺服器允許 `PermitRootLogin yes` 且使用預設密碼，未受限制之 SSH 服務被嘗試了 4 萬多次成功破門。資安改善小組全面依照 CIS Benchmark 進行強化：全面改採 ED25519 金鑰認證並關閉密碼登入、安裝 `fail2ban` 自動封鎖惡意嘗試 IP、移除非必要之 FTP/Telnet 服務，並配置每週自動掃描主機合規基準，杜絕同類資安缺口。"
+    },
+    {
+        "id": "B1-M04",
+        "title": "單元 4：常見資安威脅與惡意程式防護",
+        "keywords": ["Ransomware", "Computer Worm", "Trojan Horse", "Spyware", "Rootkit", "Botnet", "Social Engineering", "BEC"],
+        "summary": "深入辨析各類惡意程式（Malware）之行為特徵與傳播模式：電腦蠕蟲自我複製、特洛伊木馬後門機制、勒索軟體雙重/三重勒索手腕、隱匿型 Rootkit、殭屍網路 (Botnet) 與商業電子郵件詐騙 (BEC) 社交工程防禦體系。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 惡意程式核心類別深度特徵對照
@@ -288,18 +280,15 @@ Get-ScheduledTask | Where-Object {$_.State -ne "Disabled"} | Select-Object TaskN
 > - 蠕蟲無須人介入，自主爬網全感染。
 > - 木馬偽裝騙點擊，後門常開連 C2。
 > - 匯款信件莫輕信，第二管道打電話！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某高科技零組件製造商財務出納收到「董事長」從海外發來的緊急郵件，宣稱正在進行跨國併購機密談判，要求於當天下午三點前將 50 萬美元定金匯入指定香港銀行帳戶，並附上蓋有印鑑之合約影本。該出納察覺寄件者郵件網域結尾為 `.co` 而非公司正式的 `.com.tw` (近音網域欺騙)。出納秉持資安 SOP，撥打董事長隨行秘書之電話進行雙向照會，確認董事長根本未發出此信，成功攔阻了典型 BEC 商業社交工程詐騙。
-
----
-
-### 單元 5：應用系統安全與 OWASP Top 10 核心漏洞
-
-**關鍵字 (Keywords)**: SQL Injection, XSS, CSRF, IDOR, SSRF, OWASP Top 10, Prepared Statements
-
-**核心概念概述**: 掌握 Web 應用程式安全防護核心：深度剖析 OWASP Top 10 核心漏洞成因與防護。重點攻克 SQL 注入 (SQLi) 參數化查詢防護、跨網站腳本 (XSS) 輸出編碼與 HttpOnly Cookie、跨網站請求偽造 (CSRF) Token、不安全直接物件參照 (IDOR) 與 SSRF 漏洞。
-
+        """,
+        "caseStudy": "【實務案例分析】某高科技零組件製造商財務出納收到「董事長」從海外發來的緊急郵件，宣稱正在進行跨國併購機密談判，要求於當天下午三點前將 50 萬美元定金匯入指定香港銀行帳戶，並附上蓋有印鑑之合約影本。該出納察覺寄件者郵件網域結尾為 `.co` 而非公司正式的 `.com.tw` (近音網域欺騙)。出納秉持資安 SOP，撥打董事長隨行秘書之電話進行雙向照會，確認董事長根本未發出此信，成功攔阻了典型 BEC 商業社交工程詐騙。"
+    },
+    {
+        "id": "B1-M05",
+        "title": "單元 5：應用系統安全與 OWASP Top 10 核心漏洞",
+        "keywords": ["SQL Injection", "XSS", "CSRF", "IDOR", "SSRF", "OWASP Top 10", "Prepared Statements"],
+        "summary": "掌握 Web 應用程式安全防護核心：深度剖析 OWASP Top 10 核心漏洞成因與防護。重點攻克 SQL 注入 (SQLi) 參數化查詢防護、跨網站腳本 (XSS) 輸出編碼與 HttpOnly Cookie、跨網站請求偽造 (CSRF) Token、不安全直接物件參照 (IDOR) 與 SSRF 漏洞。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 注入攻擊 (SQL Injection, SQLi) 深度剖析
@@ -360,18 +349,15 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 > - SQLi 剋星參數化，字串拼接必倒下。
 > - XSS 輸出要編碼，Cookie 必加 HttpOnly。
 > - CSRF 靠隨機 Token，IDOR 後端查權限！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某銀行行動網銀之繳費功能，其後端 API 原先設計為 `POST /pay { bill_id: 12345 }`，伺服器僅確認連線者已登入，未比對該 bill_id 是否屬於該登入帳號。滲透測試人員利用 IDOR 漏洞，遞增帳單編號遍歷扣繳了數十位其他顧客之帳戶款項。資安架構師隨後重新設計權限驗證中介軟體 (Middleware)：由後端 Session 取得使用者的 `account_id`，並在 SQL 查詢強制加入條件 `WHERE bill_id = ? AND owner_account_id = ?`，徹底消除了水平越權漏洞。
-
----
-
-### 單元 6：密碼學基礎、對稱/非對稱與數位簽章
-
-**關鍵字 (Keywords)**: Symmetric Encryption, Asymmetric Encryption, AES-256, RSA, ECC, Hashing, Digital Signature, PKI
-
-**核心概念概述**: 掌握密碼學核心骨架：深入比較對稱式加密 (AES/ChaCha20) 與非對稱式加密 (RSA/ECC) 之數學特性、運算效能與金鑰分發；探討密碼學單向雜湊函數 (SHA-256/SHA-3)、HMAC 訊息驗證碼、數位簽章 (Digital Signature) 運作流程與 PKI 公開金鑰基礎架構之 X.509 憑證鏈。
-
+        """,
+        "caseStudy": "【實務案例分析】某銀行行動網銀之繳費功能，其後端 API 原先設計為 `POST /pay { bill_id: 12345 }`，伺服器僅確認連線者已登入，未比對該 bill_id 是否屬於該登入帳號。滲透測試人員利用 IDOR 漏洞，遞增帳單編號遍歷扣繳了數十位其他顧客之帳戶款項。資安架構師隨後重新設計權限驗證中介軟體 (Middleware)：由後端 Session 取得使用者的 `account_id`，並在 SQL 查詢強制加入條件 `WHERE bill_id = ? AND owner_account_id = ?`，徹底消除了水平越權漏洞。"
+    },
+    {
+        "id": "B1-M06",
+        "title": "單元 6：密碼學基礎、對稱/非對稱與數位簽章",
+        "keywords": ["Symmetric Encryption", "Asymmetric Encryption", "AES-256", "RSA", "ECC", "Hashing", "Digital Signature", "PKI"],
+        "summary": "掌握密碼學核心骨架：深入比較對稱式加密 (AES/ChaCha20) 與非對稱式加密 (RSA/ECC) 之數學特性、運算效能與金鑰分發；探討密碼學單向雜湊函數 (SHA-256/SHA-3)、HMAC 訊息驗證碼、數位簽章 (Digital Signature) 運作流程與 PKI 公開金鑰基礎架構之 X.509 憑證鏈。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 對稱式 vs 非對稱式加密全方位對照
@@ -381,14 +367,14 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 | **金鑰機制** | 加密與解密共用同一把秘密金鑰 (Secret Key) | 成對的金鑰：公鑰 (Public Key) 公開，私鑰 (Private Key) 專屬保密 |
 | **代表演算法** | **AES (Rijndael)**, ChaCha20, 3DES (已淘汰) | **RSA**, **ECC (橢圓曲線密碼)**, Diffie-Hellman |
 | **運算速度** | **極快** (支援硬體 AES-NI 指令加速)，適合巨量資料 | **極慢** (牽涉大質數分解或離散對數)，約慢 1000 倍 |
-| **金鑰管理難題** | $n$ 個使用者互相通訊需 $\frac{n(n-1)}{2}$ 把金鑰，分發極難 | $n$ 個使用者僅需 $2n$ 把金鑰 (每人一對公私鑰) |
+| **金鑰管理難題** | $n$ 個使用者互相通訊需 $\\frac{n(n-1)}{2}$ 把金鑰，分發極難 | $n$ 個使用者僅需 $2n$ 把金鑰 (每人一對公私鑰) |
 | **核心用途** | 檔案加密、資料庫欄位加密、大量資料傳輸通道加密 | 數位簽章、身分鑑別、金鑰交換 (Key Exchange) |
 
 #### 2. 雜湊函數 (Hash Function) 特性
 - **三大不可或缺特性**：
   1. **單向性 (Pre-image Resistance)**：給定雜湊值 $H(M)$，在計算上不可逆推出原始明文 $M$。
   2. **弱抗碰撞性 (Second Pre-image Resistance)**：給定特定明文 $M_1$，計算上不可能找到相異之 $M_2$ 使得 $H(M_1) = H(M_2)$。
-  3. **強抗碰撞性 (Collision Resistance)**：計算上不可能找到任何兩組相異明文 $M_1 \neq M_2$ 使得 $H(M_1) = H(M_2)$。
+  3. **強抗碰撞性 (Collision Resistance)**：計算上不可能找到任何兩組相異明文 $M_1 \\neq M_2$ 使得 $H(M_1) = H(M_2)$。
   4. **雪崩效應 (Avalanche Effect)**：明文哪怕只更動 1 個 bit，產出的雜湊摘要值至少有 50% 以上之位元發生劇烈改變。
 - 推薦標準：**SHA-256**, **SHA-512**, **SHA-3**；MD5 與 SHA-1 均已證實存在碰撞弱點，國際嚴格禁用。
 
@@ -431,18 +417,15 @@ openssl dgst -sha256 -verify public_key.pem -signature contract.sig contract.pdf
 > - 寄信保密：用「對方公鑰」加密，對方私鑰才能解！
 > - 簽名作保：用「自己私鑰」簽署，全世界公鑰來驗！
 > - 雜湊單向不可逆，雪崩效應防碰撞！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某跨國外商簽署電子採購訂單，供應商事後因原物料大漲企圖毀約，宣稱該訂單從未經其執行長簽署。法庭委託數位鑑識專家進行審查：專家調閱由公證 CA 機構簽發之執行長 X.509 憑證，並利用供應商公鑰成功解密訂單之 SHA-256 數位簽章，其雜湊比對百分之百相符，且時間戳記伺服器 (TSA) 證明簽署當時該憑證完全有效未被撤銷 (CRL/OCSP 驗證通過)。法官據此認定該電子簽章具備完全之法律「不可否認性」，判決供應商敗訴履約。
-
----
-
-### 單元 7：存取控制模型與使用者認證技術
-
-**關鍵字 (Keywords)**: DAC, MAC, RBAC, ABAC, MFA, FIDO2, OAuth 2.0, SAML 2.0
-
-**核心概念概述**: 全面解析傳統與現代存取控制模型：自主存取控制 (DAC)、強制存取控制 (MAC/Bell-LaPadula)、基於角色 (RBAC) 與基於屬性 (ABAC) 存取控制。深入探討現代多因素驗證 (MFA) 三大要素、抗釣魚 FIDO2/WebAuthn 標準以及聯邦身分認證 (OAuth 2.0, OpenID Connect, SAML 2.0)。
-
+        """,
+        "caseStudy": "【實務案例分析】某跨國外商簽署電子採購訂單，供應商事後因原物料大漲企圖毀約，宣稱該訂單從未經其執行長簽署。法庭委託數位鑑識專家進行審查：專家調閱由公證 CA 機構簽發之執行長 X.509 憑證，並利用供應商公鑰成功解密訂單之 SHA-256 數位簽章，其雜湊比對百分之百相符，且時間戳記伺服器 (TSA) 證明簽署當時該憑證完全有效未被撤銷 (CRL/OCSP 驗證通過)。法官據此認定該電子簽章具備完全之法律「不可否認性」，判決供應商敗訴履約。"
+    },
+    {
+        "id": "B1-M07",
+        "title": "單元 7：存取控制模型與使用者認證技術",
+        "keywords": ["DAC", "MAC", "RBAC", "ABAC", "MFA", "FIDO2", "OAuth 2.0", "SAML 2.0"],
+        "summary": "全面解析傳統與現代存取控制模型：自主存取控制 (DAC)、強制存取控制 (MAC/Bell-LaPadula)、基於角色 (RBAC) 與基於屬性 (ABAC) 存取控制。深入探討現代多因素驗證 (MFA) 三大要素、抗釣魚 FIDO2/WebAuthn 標準以及聯邦身分認證 (OAuth 2.0, OpenID Connect, SAML 2.0)。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 四大存取控制模型核心對照
@@ -490,18 +473,15 @@ restorecon -Rv /var/www/html
 > 🔑 **防呆口訣**：
 > - 存取控制四兄弟：DAC 自己作主，MAC 中央規定，RBAC 職位角色，ABAC 情境多變。
 > - MFA 必跨雙向：所知、所持、所具，缺一不可混為一談！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某跨國金融顧問公司高階主管在星巴克使用公共 Wi-Fi 辦公時，遭遇連線中間人釣魚網站。該網站精確仿冒了公司登入介面，誘騙主管輸入了帳號與密碼。然而，該機構全面推行了基於 FIDO2 WebAuthn 規範的實體硬體金鑰 (YubiKey)。由於 FIDO2 協定在瀏覽器層級將驗證憑證與當前存取的真實網域名稱強行綁定 (Origin Binding)，釣魚網域無法解鎖硬體金鑰回應，攻擊者取得的帳密瞬間失效，成功挫敗了進階憑證竊取攻擊。
-
----
-
-### 單元 8：台灣資通安全管理法與個資保護概論
-
-**關鍵字 (Keywords)**: Cybersecurity Management Act, PDPA, Incident Notification, Critical Infrastructure, Data Breach
-
-**核心概念概述**: 精準掌握我國《資通安全管理法》與《個人資料保護法》法規命令核心架構：主管機關權責、適用主體（公務機關與特定非公務機關）、責任等級劃分 (A~E 級)、資安事件 1 小時通報法定期限與 36 小時復原規範，以及個資法蒐集處理利用要件與外洩通知義務。
-
+        """,
+        "caseStudy": "【實務案例分析】某跨國金融顧問公司高階主管在星巴克使用公共 Wi-Fi 辦公時，遭遇連線中間人釣魚網站。該網站精確仿冒了公司登入介面，誘騙主管輸入了帳號與密碼。然而，該機構全面推行了基於 FIDO2 WebAuthn 規範的實體硬體金鑰 (YubiKey)。由於 FIDO2 協定在瀏覽器層級將驗證憑證與當前存取的真實網域名稱強行綁定 (Origin Binding)，釣魚網域無法解鎖硬體金鑰回應，攻擊者取得的帳密瞬間失效，成功挫敗了進階憑證竊取攻擊。"
+    },
+    {
+        "id": "B1-M08",
+        "title": "單元 8：台灣資通安全管理法與個資保護概論",
+        "keywords": ["Cybersecurity Management Act", "PDPA", "Incident Notification", "Critical Infrastructure", "Data Breach"],
+        "summary": "精準掌握我國《資通安全管理法》與《個人資料保護法》法規命令核心架構：主管機關權責、適用主體（公務機關與特定非公務機關）、責任等級劃分 (A~E 級)、資安事件 1 小時通報法定期限與 36 小時復原規範，以及個資法蒐集處理利用要件與外洩通知義務。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 我國《資通安全管理法》核心架構
@@ -554,21 +534,18 @@ restorecon -Rv /var/www/html
 > - 資安通報 1 小時，三四重大 36 復！
 > - 特種個資病醫基，性檢前科不可欺！
 > - 八大關鍵護國家，水電交通油氣銀！
+        """,
+        "caseStudy": "【實務案例分析】某區域自來水公司監控系統 (SCADA) 遭勒索軟體感染，部分加壓站數值無法回傳。水廠資訊主管於上午 09:30 證實該異狀係駭客入侵造成（知悉事件）。主管立即於 10:15 (45 分鐘內) 透過數位發展部國家資通安全通報平台完成通報，並啟動緊急隔離措施。由於該水廠屬於我國「水資源關鍵基礎設施」，評定為第三級資安事件。應變團隊利用備份映像與手動水閥控制，於 22 小時內完成控制網段淨化與系統復原，符合法規知悉 1 小時通報與 36 小時復原要求。"
+    }
+]
 
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某區域自來水公司監控系統 (SCADA) 遭勒索軟體感染，部分加壓站數值無法回傳。水廠資訊主管於上午 09:30 證實該異狀係駭客入侵造成（知悉事件）。主管立即於 10:15 (45 分鐘內) 透過數位發展部國家資通安全通報平台完成通報，並啟動緊急隔離措施。由於該水廠屬於我國「水資源關鍵基礎設施」，評定為第三級資安事件。應變團隊利用備份映像與手動水閥控制，於 22 小時內完成控制網段淨化與系統復原，符合法規知悉 1 小時通報與 36 小時復原要求。
-
----
-
-## 考科二：資訊安全防護實務
-> 深入防火牆與次世代防護、端點偵測與回應 (EDR)、封包分析與異常流量診斷、弱點掃描評估、Syslog/Windows 事件日誌維運與 3-2-1 備份還原實務。
-
-### 單元 1：防火牆、IDS/IPS 與次世代網路防護
-
-**關鍵字 (Keywords)**: NGFW, IDS, IPS, Stateful Inspection, Packet Filtering, WAF, Deep Packet Inspection
-
-**核心概念概述**: 掌握網路邊界縱深防禦實務：解析封包過濾防火牆、狀態檢驗防火牆 (Stateful Inspection)、次世代防火牆 (NGFW App-ID/User-ID)、入侵偵測系統 (IDS) 旁路部署與入侵防禦系統 (IPS) 串聯阻斷、以及 WAF 應用層防護差異。
-
+BASIC_SUBJECT_2_MODULES = [
+    {
+        "id": "B2-M01",
+        "title": "單元 1：防火牆、IDS/IPS 與次世代網路防護",
+        "keywords": ["NGFW", "IDS", "IPS", "Stateful Inspection", "Packet Filtering", "WAF", "Deep Packet Inspection"],
+        "summary": "掌握網路邊界縱深防禦實務：解析封包過濾防火牆、狀態檢驗防火牆 (Stateful Inspection)、次世代防火牆 (NGFW App-ID/User-ID)、入侵偵測系統 (IDS) 旁路部署與入侵防禦系統 (IPS) 串聯阻斷、以及 WAF 應用層防護差異。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 防火牆演進與檢驗技術世代
@@ -623,18 +600,15 @@ iptables -A INPUT -p tcp -s 192.168.10.0/24 --dport 22 -m conntrack --ctstate NE
 > 🔑 **防呆口訣**：
 > - IDS 旁路聽，報警不能擋；IPS 串線上，當場丟封包！
 > - 傳統看 Port 號，次代深檢到第七；Web 專武找 WAF，防杜 SQL 與 XSS！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某線上商城在週年慶促銷期間，前端 Web 伺服器遭受分散式 Slowloris 緩慢 HTTP 拒絕服務攻擊與大量偽裝成合法購物請求的 SQL 注入。企業架構師實施聯防策略：在最外層部署次世代防火牆 (NGFW) 阻絕 L3/L4 之異常連線速率；在 Web 伺服器前緣串聯部屬 WAF，啟用 OWASP Core Rule Set (CRS)，精準過濾夾帶單引號與聯集查詢之惡意 HTTP POST 參數。攻擊流量在毫秒級內被 WAF 攔截並回傳 403 Forbidden，後端資料庫完全未受干擾，保障了數億元促銷交易安全進行。
-
----
-
-### 單元 2：端點防護、次世代防毒與 EDR 實務
-
-**關鍵字 (Keywords)**: EDR, NGAV, Telemetry, LOLBins, Application Whitelisting, USB Control
-
-**核心概念概述**: 掌握端點安全防禦演進：傳統特徵碼防毒 (AV) 到行為分析 (NGAV) 與端點偵測回應 (EDR)；探討端點遙測資料收集、親代子進程樹 (Process Tree)、生活離地二進位檔 (LOLBins) 濫用、Windows AppLocker 白名單與周邊儲存設備管制。
-
+        """,
+        "caseStudy": "【實務案例分析】某線上商城在週年慶促銷期間，前端 Web 伺服器遭受分散式 Slowloris 緩慢 HTTP 拒絕服務攻擊與大量偽裝成合法購物請求的 SQL 注入。企業架構師實施聯防策略：在最外層部署次世代防火牆 (NGFW) 阻絕 L3/L4 之異常連線速率；在 Web 伺服器前緣串聯部屬 WAF，啟用 OWASP Core Rule Set (CRS)，精準過濾夾帶單引號與聯集查詢之惡意 HTTP POST 參數。攻擊流量在毫秒級內被 WAF 攔截並回傳 403 Forbidden，後端資料庫完全未受干擾，保障了數億元促銷交易安全進行。"
+    },
+    {
+        "id": "B2-M02",
+        "title": "單元 2：端點防護、次世代防毒與 EDR 實務",
+        "keywords": ["EDR", "NGAV", "Telemetry", "LOLBins", "Application Whitelisting", "USB Control"],
+        "summary": "掌握端點安全防禦演進：傳統特徵碼防毒 (AV) 到行為分析 (NGAV) 與端點偵測回應 (EDR)；探討端點遙測資料收集、親代子進程樹 (Process Tree)、生活離地二進位檔 (LOLBins) 濫用、Windows AppLocker 白名單與周邊儲存設備管制。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 端點防護演進世代對照
@@ -686,18 +660,15 @@ Get-NetTCPConnection -OwningProcess 4088 | Select-Object LocalAddress, LocalPort
 > - 傳統特徵比名片，次代 EDR 盯動線。
 > - Word 開 PowerShell 大可疑，LOLBins 濫用無所匿。
 > - 白名單預設全不准，端點隔離秒阻斷！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某跨國製造廠一名工程師開啟一封假冒發票的電子郵件，信中附件巨集在背景神不知鬼不覺地調用 `certutil.exe` 下載加密酬載並注入至記憶體中。傳統防毒因檔案不落地完全未跳出任何警告。然而，端點 EDR 立即捕捉到遙測異常：Office 進程派生非標準子進程，且向未受信任的境外伺服器發起 TLS 握手。EDR 在 0.8 秒內自動終止可疑進程樹，並觸發「網路隔離」，使該工作站與內網其他電腦完全隔絕，成功在勒索軟體橫向擴散前掐滅危機。
-
----
-
-### 單元 3：網路流量監控、封包分析與異常連線診斷
-
-**關鍵字 (Keywords)**: Wireshark, Packet Analysis, NetFlow, Beaconing Detection, ARP Spoofing, DNS Tunneling
-
-**核心概念概述**: 掌握 Wireshark 抓包過濾語法、網路流量 NetFlow/IPFIX 收集、TCP 三向交握異常排查、ARP 欺騙偵測、惡意程式心跳回連 (Beaconing) 流量診斷與 DNS 穿隧 (DNS Tunneling) 外洩萃取分析。
-
+        """,
+        "caseStudy": "【實務案例分析】某跨國製造廠一名工程師開啟一封假冒發票的電子郵件，信中附件巨集在背景神不知鬼不覺地調用 `certutil.exe` 下載加密酬載並注入至記憶體中。傳統防毒因檔案不落地完全未跳出任何警告。然而，端點 EDR 立即捕捉到遙測異常：Office 進程派生非標準子進程，且向未受信任的境外伺服器發起 TLS 握手。EDR 在 0.8 秒內自動終止可疑進程樹，並觸發「網路隔離」，使該工作站與內網其他電腦完全隔絕，成功在勒索軟體橫向擴散前掐滅危機。"
+    },
+    {
+        "id": "B2-M03",
+        "title": "單元 3：網路流量監控、封包分析與異常連線診斷",
+        "keywords": ["Wireshark", "Packet Analysis", "NetFlow", "Beaconing Detection", "ARP Spoofing", "DNS Tunneling"],
+        "summary": "掌握 Wireshark 抓包過濾語法、網路流量 NetFlow/IPFIX 收集、TCP 三向交握異常排查、ARP 欺騙偵測、惡意程式心跳回連 (Beaconing) 流量診斷與 DNS 穿隧 (DNS Tunneling) 外洩萃取分析。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 深度封包檢測 (PCAP) vs 網路流 (NetFlow/IPFIX)
@@ -754,18 +725,15 @@ tcpdump -i eth0 -nn "tcp port 80 or tcp port 443" -c 100 -w /tmp/traffic.pcap
 > - 封包分析 Wireshark，SYN==1 握手來。
 > - 定時外傳是心跳，長子網域名是穿隧。
 > - IP 同一 MAC 變，定是 ARP 鬼搗亂！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】SOC 監控團隊透過 NetFlow 分析發現，研發部門一台非伺服器工作站，連續三天在每日凌晨 03:00 整準時向烏克蘭境內一處 IP 發起約 8GB 的 UDP 連線。分析師立即調閱端點 PCAP 封包進行深度檢測，發現攻擊者利用了 DNS 穿隧工具將企業晶片設計圖拆解壓縮編碼外傳。資安團隊在核心交換器與邊界防火牆立即封鎖該 C2 網域與境外 IP，並透過 EDR 溯源清除端點木馬，成功攔截了智慧財產權外流。
-
----
-
-### 單元 4：弱點掃描、漏洞評估與修補排程實務
-
-**關鍵字 (Keywords)**: Vulnerability Assessment, Nessus, CVE, CVSS v3.1, CISA KEV, Patch Management
-
-**核心概念概述**: 掌握企業弱點掃描 (VA) 實作流程：深入比較認證掃描 (Credentialed) 與無認證掃描 (Non-credentialed)、CVE 識別體系、CVSS v3.1 評分度量維度、CISA 已知利用漏洞清單 (KEV) 與排程修補優先級制定實務。
-
+        """,
+        "caseStudy": "【實務案例分析】SOC 監控團隊透過 NetFlow 分析發現，研發部門一台非伺服器工作站，連續三天在每日凌晨 03:00 整準時向烏克蘭境內一處 IP 發起約 8GB 的 UDP 連線。分析師立即調閱端點 PCAP 封包進行深度檢測，發現攻擊者利用了 DNS 穿隧工具將企業晶片設計圖拆解壓縮編碼外傳。資安團隊在核心交換器與邊界防火牆立即封鎖該 C2 網域與境外 IP，並透過 EDR 溯源清除端點木馬，成功攔截了智慧財產權外流。"
+    },
+    {
+        "id": "B2-M04",
+        "title": "單元 4：弱點掃描、漏洞評估與修補排程實務",
+        "keywords": ["Vulnerability Assessment", "Nessus", "CVE", "CVSS v3.1", "CISA KEV", "Patch Management"],
+        "summary": "掌握企業弱點掃描 (VA) 實作流程：深入比較認證掃描 (Credentialed) 與無認證掃描 (Non-credentialed)、CVE 識別體系、CVSS v3.1 評分度量維度、CISA 已知利用漏洞清單 (KEV) 與排程修補優先級制定實務。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 弱點掃描模式深度對比
@@ -813,18 +781,15 @@ tcpdump -i eth0 -nn "tcp port 80 or tcp port 443" -c 100 -w /tmp/traffic.pcap
 > - 弱掃自動盤漏洞，滲透人工串攻擊。
 > - 認證掃描登入看，註冊表裡見真章。
 > - 9 分以上叫緊急，在野利用搶先補！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某大型金控進行每季全資產弱點掃描，產出報告高達 1,200 個漏洞。資訊長原要求團隊按順序修補，導致 IT 人員疲於奔命。資安長介入建立動態優先權架構：首先交叉比對 CISA KEV 與火線情資，鎖定其中 8 個已有公開武器化 Exploit 且對外公開之 Apache/OpenSSL 漏洞 (CVSS >= 9.0)，要求 48 小時內全員動員修補；其餘內部網段之中低風險漏洞排入例行月維護。成功以最少人力精準封堵最致命之破口。
-
----
-
-### 單元 5：日誌收集、集中分析與基礎稽核維運
-
-**關鍵字 (Keywords)**: Syslog, Windows Event Log, NTP Synchronization, WORM Storage, Log Retention, Audit Trails
-
-**核心概念概述**: 掌握資安稽核日誌 (Audit Logs) 黃金管理準則：Syslog 協定、Windows Security Event ID 關鍵事件解碼、全網 NTP 毫秒校時、單寫多讀 (WORM) 唯讀不可篡改、我國資安法法定 180 天留存與中央集中管理機制。
-
+        """,
+        "caseStudy": "【實務案例分析】某大型金控進行每季全資產弱點掃描，產出報告高達 1,200 個漏洞。資訊長原要求團隊按順序修補，導致 IT 人員疲於奔命。資安長介入建立動態優先權架構：首先交叉比對 CISA KEV 與火線情資，鎖定其中 8 個已有公開武器化 Exploit 且對外公開之 Apache/OpenSSL 漏洞 (CVSS >= 9.0)，要求 48 小時內全員動員修補；其餘內部網段之中低風險漏洞排入例行月維護。成功以最少人力精準封堵最致命之破口。"
+    },
+    {
+        "id": "B2-M05",
+        "title": "單元 5：日誌收集、集中分析與基礎稽核維運",
+        "keywords": ["Syslog", "Windows Event Log", "NTP Synchronization", "WORM Storage", "Log Retention", "Audit Trails"],
+        "summary": "掌握資安稽核日誌 (Audit Logs) 黃金管理準則：Syslog 協定、Windows Security Event ID 關鍵事件解碼、全網 NTP 毫秒校時、單寫多讀 (WORM) 唯讀不可篡改、我國資安法法定 180 天留存與中央集中管理機制。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 日誌管理四大支柱規範
@@ -877,18 +842,15 @@ Get-WinEvent -FilterHashtable @{LogName='Security'; Id=1102} -ErrorAction Silent
 > - 4624 成功進，4625 失敗停。
 > - 4720 偷建號，1102 抹日誌（最危險！）。
 > - 集中轉發防毀證，NTP 校時保一致，法規保存 180！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某政府機關半夜遭 APT 攻擊者滲透，攻擊者提權至本機 Administrator 後，立即在命令提示字元執行 `wevtutil cl Security` 指令清除所有本機安全日誌，企圖令鑑識小組無跡可尋。所幸該機關遵照規範落實了「集中日誌轉發」：本地日誌在生成的幾毫秒內已透過 Syslog TLS 即時轉發至獨立的 SIEM 儲存庫。本地記錄雖被清空，但在 SIEM 端立即觸發了「Event ID 1102 日誌清除警報」與完整的攻擊溯源軌跡，值班資安人員在 5 分鐘內完成受害主機隔離。
-
----
-
-### 單元 6：資料備份、還原演練與 3-2-1 原則實務
-
-**關鍵字 (Keywords)**: 3-2-1 Backup Rule, Immutable Backup, RTO, RPO, Full Backup, Incremental Backup, Differential Backup
-
-**核心概念概述**: 徹底落實資料備份與災難復原架構：經典 3-2-1 鐵律與現代 3-2-1-1-0 擴充規範、完整備份 (Full)、增量備份 (Incremental) 與差異備份 (Differential) 差異對決、不可竄改快照 (WORM/Air-gap) 與定期實體還原演練驗證。
-
+        """,
+        "caseStudy": "【實務案例分析】某政府機關半夜遭 APT 攻擊者滲透，攻擊者提權至本機 Administrator 後，立即在命令提示字元執行 `wevtutil cl Security` 指令清除所有本機安全日誌，企圖令鑑識小組無跡可尋。所幸該機關遵照規範落實了「集中日誌轉發」：本地日誌在生成的幾毫秒內已透過 Syslog TLS 即時轉發至獨立的 SIEM 儲存庫。本地記錄雖被清空，但在 SIEM 端立即觸發了「Event ID 1102 日誌清除警報」與完整的攻擊溯源軌跡，值班資安人員在 5 分鐘內完成受害主機隔離。"
+    },
+    {
+        "id": "B2-M06",
+        "title": "單元 6：資料備份、還原演練與 3-2-1 原則實務",
+        "keywords": ["3-2-1 Backup Rule", "Immutable Backup", "RTO", "RPO", "Full Backup", "Incremental Backup", "Differential Backup"],
+        "summary": "徹底落實資料備份與災難復原架構：經典 3-2-1 鐵律與現代 3-2-1-1-0 擴充規範、完整備份 (Full)、增量備份 (Incremental) 與差異備份 (Differential) 差異對決、不可竄改快照 (WORM/Air-gap) 與定期實體還原演練驗證。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 經典 3-2-1 備份鐵律與現代擴充
@@ -932,18 +894,15 @@ rsync -avz --delete --exclude='*.tmp' /var/www/data/ backupuser@192.168.20.100:/
 > - 3-2-1 鐵律記：3 複本、2 媒介、1 異地、加 1 離線 0 差錯！
 > - 完整備份還原快，增量省位還原慢，差異適中拿兩塊。
 > - RTO 看修復時間，RPO 看資料遺失容許線！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某高科技封測廠產線資料庫半夜遭遇勒索軟體全盤加密，連同連網備份伺服器亦遭攻擊者以管理員權限格式化。此時 IT 團隊啟動終極 BCP 計畫：該廠落實了「3-2-1-1-0」原則，每逢週五均將資料寫入實體磁帶 (LTO Tape) 並由專人運送至遠端銀行保險庫實體離線保存 (Air-gap)。團隊自保險庫取出磁帶，配合乾淨新主機在 18 小時內完成全廠系統重建，成功於 RTO 時限內復原，未支付巨額贖金。
-
----
-
-### 單元 7：社交工程防禦與企業資安意識演練
-
-**關鍵字 (Keywords)**: Phishing Simulation, Spear Phishing, Watering Hole Attack, SPF, DKIM, DMARC, Security Awareness
-
-**核心概念概述**: 掌握企業社交工程防護全貌：魚叉式釣魚 (Spear Phishing)、鯨釣 (Whaling)、水坑攻擊 (Watering Hole)、商業電子郵件詐騙 (BEC)；深入解析郵件網域身分鑑別三巨頭 SPF、DKIM、DMARC 協定原理與 DNS 配置實務，以及企業社交工程演練標準程序。
-
+        """,
+        "caseStudy": "【實務案例分析】某高科技封測廠產線資料庫半夜遭遇勒索軟體全盤加密，連同連網備份伺服器亦遭攻擊者以管理員權限格式化。此時 IT 團隊啟動終極 BCP 計畫：該廠落實了「3-2-1-1-0」原則，每逢週五均將資料寫入實體磁帶 (LTO Tape) 並由專人運送至遠端銀行保險庫實體離線保存 (Air-gap)。團隊自保險庫取出磁帶，配合乾淨新主機在 18 小時內完成全廠系統重建，成功於 RTO 時限內復原，未支付巨額贖金。"
+    },
+    {
+        "id": "B2-M07",
+        "title": "單元 7：社交工程防禦與企業資安意識演練",
+        "keywords": ["Phishing Simulation", "Spear Phishing", "Watering Hole Attack", "SPF", "DKIM", "DMARC", "Security Awareness"],
+        "summary": "掌握企業社交工程防護全貌：魚叉式釣魚 (Spear Phishing)、鯨釣 (Whaling)、水坑攻擊 (Watering Hole)、商業電子郵件詐騙 (BEC)；深入解析郵件網域身分鑑別三巨頭 SPF、DKIM、DMARC 協定原理與 DNS 配置實務，以及企業社交工程演練標準程序。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 社交工程進階攻擊型態對照
@@ -988,18 +947,15 @@ _dmarc.example.com. IN TXT "v=DMARC1; p=reject; pct=100; rua=mailto:dmarc-report
 > - SPF 查 IP 名單，DKIM 簽章防篡改，DMARC 下令全拒收 (reject)！
 > - 鎖定目標叫魚叉，埋伏論壇是水坑。
 > - 急切匯款莫著急，電話照會解百惑！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某國際半導體公司屢遭駭客註冊相似網域偽造採購單。資安團隊全面推行防護工程：第一、在企業所有公網網域啟用 DNSSEC 結合嚴格的 SPF 與 DKIM 簽名；第二、在 DMARC 策略中配置 `p=reject`，強制全世界收件郵件伺服器凡收到未通過 SPF/DKIM 檢驗的偽冒信件一律直接拒收丟棄；第三、每季對全體員工無預警實施釣魚郵件模擬演練，點擊率超過 5% 的部門全員強制接受加強型實體資安培訓，成功使企業外部偽冒事件下降 99%。
-
----
-
-### 單元 8：實體環境安全、設備生命週期與媒體廢棄銷毀
-
-**關鍵字 (Keywords)**: Physical Security, Mantrap, Data Sanitization, NIST SP 800-88, Degaussing, Physical Destruction
-
-**核心概念概述**: 掌握資料中心實體門禁縱深控制 (防尾隨雙重旋轉門 Mantrap/Air-lock)、供電環控與 FM-200 氣體滅火安全、儲存媒體生命週期報廢、符合 NIST SP 800-88 標準之資料清除 (Clear)、淨化 (Purge) 與銷毀 (Destroy) 規範實務。
-
+        """,
+        "caseStudy": "【實務案例分析】某國際半導體公司屢遭駭客註冊相似網域偽造採購單。資安團隊全面推行防護工程：第一、在企業所有公網網域啟用 DNSSEC 結合嚴格的 SPF 與 DKIM 簽名；第二、在 DMARC 策略中配置 `p=reject`，強制全世界收件郵件伺服器凡收到未通過 SPF/DKIM 檢驗的偽冒信件一律直接拒收丟棄；第三、每季對全體員工無預警實施釣魚郵件模擬演練，點擊率超過 5% 的部門全員強制接受加強型實體資安培訓，成功使企業外部偽冒事件下降 99%。"
+    },
+    {
+        "id": "B2-M08",
+        "title": "單元 8：實體環境安全、設備生命週期與媒體廢棄銷毀",
+        "keywords": ["Physical Security", "Mantrap", "Data Sanitization", "NIST SP 800-88", "Degaussing", "Physical Destruction"],
+        "summary": "掌握資料中心實體門禁縱深控制 (防尾隨雙重旋轉門 Mantrap/Air-lock)、供電環控與 FM-200 氣體滅火安全、儲存媒體生命週期報廢、符合 NIST SP 800-88 標準之資料清除 (Clear)、淨化 (Purge) 與銷毀 (Destroy) 規範實務。",
+        "content": """
 ### 一、核心架構與國際標準對照 (Architecture & Standards)
 
 #### 1. 實體門禁與環境安全控制
@@ -1040,9 +996,7 @@ _dmarc.example.com. IN TXT "v=DMARC1; p=reject; pct=100; rua=mailto:dmarc-report
 > - 傳統硬碟可消磁，SSD 快閃必粉碎！
 > - 門禁防尾用 Mantrap，機房滅火 FM-200。
 > - Clear 覆寫內部換，Purge 淨化外流安，Destroy 碎裂無牽掛！
-
-> 💡 **企業實務情境案例**：
-> 【實務案例分析】某大型金控進行資料中心伺服器汰舊換新，共有 500 顆退役 SAS 磁碟與 200 顆 NVMe SSD。資安長嚴格遵循 NIST SP 800-88 標準作業：SAS 傳統磁碟先經由 10,000 高斯消磁機完成磁性消除，確認馬達與磁軌完全失效；針對消磁無效的 200 顆 SSD，則直接送入工業雙軸物理破碎機進行現場刀刃切割，將快閃記憶體晶片碾碎成小於 5mm 顆粒。資安稽核員全程錄影並核對序號產出報廢證書，徹底杜絕了退役二手硬碟資料外流風險。
-
----
-
+        """,
+        "caseStudy": "【實務案例分析】某大型金控進行資料中心伺服器汰舊換新，共有 500 顆退役 SAS 磁碟與 200 顆 NVMe SSD。資安長嚴格遵循 NIST SP 800-88 標準作業：SAS 傳統磁碟先經由 10,000 高斯消磁機完成磁性消除，確認馬達與磁軌完全失效；針對消磁無效的 200 顆 SSD，則直接送入工業雙軸物理破碎機進行現場刀刃切割，將快閃記憶體晶片碾碎成小於 5mm 顆粒。資安稽核員全程錄影並核對序號產出報廢證書，徹底杜絕了退役二手硬碟資料外流風險。"
+    }
+]

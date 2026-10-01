@@ -1,4 +1,4 @@
-// iPAS 資安工程師 - 專業英文術語與發音辭典資料庫
+// iPAS 資訊安全工程師 - 專業英文術語與發音資料庫
 window.IPAS_GLOSSARY = [
   {
     "term": "Confidentiality, Integrity, Availability",
