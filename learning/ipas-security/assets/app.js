@@ -9,7 +9,7 @@
   // 全域狀態管理
   const state = {
     currentTab: "dashboard",
-    theme: localStorage.getItem("ipas_theme") || "dark",
+    theme: localStorage.getItem("ipas_theme") || "light",
     speechRate: 1.0,
     speechLang: "en-US",
     
