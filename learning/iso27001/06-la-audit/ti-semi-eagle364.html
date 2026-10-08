@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>半導體實務資安稽核：TI 經驗 vs Teradyne Eagle 364 機台與 SEMI E187 標準實戰 | ISO 27001 指南</title>
+<style>
+  :root{--blue:#1e40af;--sky:#0ea5e9;--dark:#0f172a;--bg:#f0f4ff;--green:#16a34a;--amber:#b45309;--rose:#be123c;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI","Microsoft JhengHei",sans-serif;}
+  body{background:var(--bg);min-height:100vh;color:#1e293b;}
+  .topbar{background:var(--blue);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:12px;font-size:.9rem;}
+  .topbar a{color:rgba(255,255,255,.85);text-decoration:none;transition:.2s;}
+  .topbar a:hover{color:#fff;}
+  .topbar .sep{opacity:.4;}
+  .hero{background:linear-gradient(135deg,#0f172a,#1e3a8a,#1e40af);color:#fff;padding:48px 24px 40px;text-align:center;}
+  .hero .badge{display:inline-block;background:rgba(96,165,250,.2);color:#93c5fd;padding:6px 18px;border-radius:20px;font-size:.85rem;font-weight:700;margin-bottom:14px;border:1px solid rgba(96,165,250,.3);}
+  .hero h1{font-size:2rem;margin-bottom:12px;}
+  .hero h1 span{color:#60a5fa;}
+  .hero p{opacity:.9;max-width:760px;margin:0 auto;line-height:1.8;font-size:1rem;}
+  .container{max-width:980px;margin:0 auto;padding:32px 16px 80px;}
+  .card{background:#fff;border-radius:16px;padding:30px;box-shadow:0 3px 14px rgba(0,0,0,.08);margin-bottom:24px;}
+  .card h2{font-size:1.3rem;color:var(--blue);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+  .card h3{font-size:1.1rem;color:#1e293b;margin:20px 0 10px;}
+  .card p{color:#374151;line-height:1.9;font-size:.96rem;margin-bottom:14px;}
+  .highlight{background:#eff6ff;border-left:4px solid #3b82f6;border-radius:8px;padding:16px 20px;margin:16px 0;font-size:.92rem;color:#1e40af;line-height:1.8;}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;border-radius:8px;padding:16px 20px;margin:16px 0;font-size:.92rem;color:#c2410c;line-height:1.8;}
+  .semi-card{background:linear-gradient(135deg,#f0fdf4,#ffffff);border:1px solid #bbf7d0;border-left:5px solid #22c55e;border-radius:12px;padding:20px;margin:16px 0;}
+  .semi-card h4{color:#15803d;font-size:1.05rem;margin-bottom:8px;}
+  .semi-card p{color:#334155;font-size:.9rem;line-height:1.8;margin:0;}
+  .table-wrap{overflow-x:auto;margin:18px 0;}
+  table{width:100%;border-collapse:collapse;font-size:.9rem;}
+  th{background:var(--blue);color:#fff;padding:12px 14px;text-align:left;font-weight:600;}
+  td{padding:12px 14px;border-bottom:1px solid #e2e8f0;color:#334155;vertical-align:top;line-height:1.7;}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin:16px 0;}
+  .grid-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;}
+  .grid-box h4{color:var(--blue);font-size:1.02rem;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .grid-box p{font-size:.88rem;color:#475569;line-height:1.75;margin:0;}
+  .checklist{list-style:none;padding:0;margin:14px 0;}
+  .checklist li{padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;gap:12px;align-items:flex-start;font-size:.92rem;background:#fff;}
+  .checklist li:nth-child(even){background:#f8fafc;}
+  .checklist .ck-badge{flex-shrink:0;padding:2px 8px;border-radius:6px;font-size:.78rem;font-weight:700;}
+  .ck-pass{background:#dcfce7;color:#16a34a;}
+  .ck-fail{background:#fee2e2;color:#b91c1c;}
+  .nav-btns{display:flex;justify-content:space-between;margin-top:36px;gap:12px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;text-decoration:none;font-size:.92rem;font-weight:600;transition:.2s;}
+  .btn-next{background:var(--blue);color:#fff;}
+  .btn-next:hover{background:#1d4ed8;box-shadow:0 4px 12px rgba(29,78,216,.3);}
+  .btn-prev{background:#e2e8f0;color:#334155;}
+  .btn-prev:hover{background:#cbd5e1;}
+  details{margin:14px 0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px;}
+  summary{cursor:pointer;color:var(--blue);font-weight:700;font-size:.95rem;}
+  .ans{margin-top:12px;font-size:.9rem;color:#1e3a8a;line-height:1.9;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="../index.html">🔐 ISO 27001 指南</a>
+  <span class="sep">/</span>
+  <span>模組六：ISO 27001 LA 主導稽核員專題</span>
+  <span class="sep">/</span>
+  <span>半導體機台與 SEMI E187 實務</span>
+</div>
+
+<div class="hero">
+  <div class="badge">🔬 工業 OT 與半導體測試機台資安實務</div>
+  <h1><span>半導體機台資安</span>：TI 經驗 vs Teradyne Eagle 364 與 SEMI E187</h1>
+  <p>深度結合德州儀器（TI）高標準晶圓測試產線、Teradyne Eagle 364（ETS-364）類比測試機台架構，以及全球半導體設備資安標準 SEMI E187，貫通 ISO 27001:2022 核心條文與 Annex A 稽核重點。</p>
+</div>
+
+<div class="container">
+
+  <!-- ========================================================================= -->
+  <!-- 核心背景：為什麼半導體機台是資安重中之重？ -->
+  <!-- ========================================================================= -->
+  <div class="card">
+    <h2>🏭 為什麼半導體機台是 ISO 27001 稽核的重中之重？</h2>
+    <p>
+      在傳統辦公室 IT 環境中，資安主要關注電子郵件釣魚、資料庫洩漏或網站防護。但在<strong>半導體製造與封裝測試（OSAT / IDM）領域</strong>，核心命脈在於產線上的自動化測試設備（ATE, Automated Test Equipment）。
+    </p>
+    <p>
+      一旦機台遭受勒索病毒感染（如台積電 2018 年機台遭 WannaCry 變種感染停線事件），造成的損失是每分鐘數百萬新台幣！這促使國際半導體產業協會（SEMI）在台積電、聯電、工研院等推動下，正式發布了專屬的半導體製造設備資安標準——<strong>SEMI E187</strong>。
+    </p>
+
+    <div class="highlight">
+      💡 <strong>TI（Texas Instruments, 德州儀器）實務的核心訴求：</strong><br>
+      德儀作為全球類比 IC 與嵌入式處理器龍頭，對測試廠與代工廠的要求極端嚴格：<br>
+      1. <strong>保護測試智慧財產權（Test Program IP）</strong>：IC 測試向量（Pattern）、修調（Trimming）演算法直接決定晶片性能與成本，絕不可外洩或遭逆向工程。<br>
+      2. <strong>測試資料完整性與防篡改（STDF Yield Data）</strong>：標準測試資料格式（STDF）紀錄每一顆晶粒（Die）的 Pass/Fail 與電氣參數，一旦被惡意篡改將導致瑕疵晶片流入車用或航太供應鏈。<br>
+      3. <strong>機台持續可用性（Availability ≥ 99.9%）</strong>：產線 24 小時連續不停機，維護窗口極端有限。
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- Teradyne Eagle 364 (ETS-364) 機台架構剖析 -->
+  <!-- ========================================================================= -->
+  <div class="card">
+    <h2>⚡ Teradyne Eagle 364（ETS-364）測試機台資安弱點與架構拆解</h2>
+    <p>
+      <strong>Teradyne ETS-364（Eagle 364）</strong>是全球高精度類比、電源管理（PMIC）與混合訊號晶片測試的標竿測試平台。從資安與系統稽核視角檢視，其內部結構具有非常典型的<strong>「OT 工業設備特徵」</strong>：
+    </p>
+
+    <div class="grid-2">
+      <div class="grid-box">
+        <h4>🖥️ 機台控制器（System Controller）</h4>
+        <p>
+          • <strong>硬體結構</strong>：工控工業電腦（IPC），配備專屬背板匯流排與儀器板卡（APU、OVI、SPU、QTM 等）。<br>
+          • <strong>作業系統</strong>：多數運行專用 Windows 或 Linux 嵌入式系統。<br>
+          • <strong>資安痛點</strong>：受限於原廠軟體相容性，作業系統往往<strong>無法隨意安裝最新微軟補丁</strong>，甚至運行已終止支援之舊版 OS，極易成為勒索軟體溫床！
+        </p>
+      </div>
+
+      <div class="grid-box">
+        <h4>🔌 通訊介面與資料傳輸鏈路</h4>
+        <p>
+          • <strong>GPIB / USB 介面</strong>：連接晶圓針測機（Wafer Prober）或封裝分選機（Handler）。<br>
+          • <strong>雙網卡實體分流</strong>：一張網卡連封閉測試儀器內網（Private Tester Bus），另一張網卡連廠務產線 MES 網路。<br>
+          • <strong>資安痛點</strong>：現場工程師為了除錯或載入測試程式，常有<strong>私自插拔 USB 隨身碟</strong>或連接個人筆電之違規風險。
+        </p>
+      </div>
+    </div>
+
+    <div class="warn">
+      ⚠️ <strong>Eagle 364 機台常見 4 大資安稽核弱點：</strong><br>
+      1. <strong>預設原廠特權帳號密碼未變更</strong>（如原廠維修工程師 Administrator 或 Service 帳號長年沿用出廠密碼）。<br>
+      2. <strong>第三方維護人員（Teradyne FAE）遠端連線未審計</strong>（透過 TeamViewer 或外接 4G 網卡連線進機台除錯，繞過廠務防火牆）。<br>
+      3. <strong>測試程式未加密且缺乏版本雜湊校驗</strong>（測試程式直接以明文存放於本機硬碟共用資料夾）。<br>
+      4. <strong>缺乏防毒或防惡意軟體端點防護</strong>（工程師常以「防毒會干擾微秒級量測中斷」為由擅自停用資安軟體）。
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SEMI E187 國際標準 4 大支柱 -->
+  <!-- ========================================================================= -->
+  <div class="card">
+    <h2>🛡️ SEMI E187 半導體設備資安標準四大核心支柱</h2>
+    <p>
+      <strong>SEMI E187</strong> 是台灣半導體產業引領全球制定的首套製造設備資安標準。主導稽核員在審查半導體與高科技製造時，必須能將 SEMI E187 與 ISO 27001 控制項相互對映：
+    </p>
+
+    <div class="semi-card">
+      <h4>1. 作業系統安全（OS Security）</h4>
+      <p>
+        • 要求機台必須使用仍受原廠支援之作業系統。<br>
+        • 若因測試架構限制必須使用舊版 OS（如 Eagle 364 的相容性需求），<strong>必須實施書面補償控制（Compensating Controls）</strong>：關閉不必要服務、移除預設遊戲與瀏覽器、鎖定本機群組原則。<br>
+        • <strong>對映 ISO 27001:2022</strong>：<code>A.8.8 技術弱點管理</code>、<code>A.8.9 組態管理</code>。
+      </p>
+    </div>
+
+    <div class="semi-card">
+      <h4>2. 網路傳輸安全（Network Security）</h4>
+      <p>
+        • 嚴格禁止機台直連外網；預設關閉所有不安全明文通訊協定（停用 Telnet、FTP、SMBv1、HTTP，全面改用 SSH、SFTP、HTTPS）。<br>
+        • 機台網路實施<strong>白名單控制（Network Allowlisting）</strong>，僅允許機台與 MES 主機、測試資料伺服器（STDF Server）在指定 Port 通訊。<br>
+        • <strong>對映 ISO 27001:2022</strong>：<code>A.8.20 網路安全</code>、<code>A.8.22 網路隔離（微隔離）</code>。
+      </p>
+    </div>
+
+    <div class="semi-card">
+      <h4>3. 端點安全防護（Endpoint Protection）</h4>
+      <p>
+        • 機台出廠必須無任何已知病毒或惡意程式（提供惡意軟體清潔證明書）。<br>
+        • 導入<strong>應用程式白名單防護機制（Application Whitelisting）</strong>，取代傳統特徵碼防毒，鎖死測試行程（ETS Runtime），任何非白名單未授權執行檔一律禁止啟動。<br>
+        • 嚴格封鎖實體 USB 外接儲存裝置（USB Port Locking）。<br>
+        • <strong>對映 ISO 27001:2022</strong>：<code>A.8.7 惡意軟體防護</code>、<code>A.7.10 儲存媒體管理</code>。
+      </p>
+    </div>
+
+    <div class="semi-card">
+      <h4>4. 資安監控與日誌審計（Security Monitoring）</h4>
+      <p>
+        • 機台必須具備資安事件記錄能力，包括：使用者登入/登出、特權變更、測試程式載入、系統設定變更。<br>
+        • 機台系統時間必須透過 NTP 伺服器同步，避免鑑識時序混亂。<br>
+        • <strong>對映 ISO 27001:2022</strong>：<code>A.8.15 記錄作業（Logging）</code>、<code>A.8.17 時鐘同步（Clock synchronization）</code>。
+      </p>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- ISO 27001:2022 與 TI / Teradyne 實務對照表 -->
+  <!-- ========================================================================= -->
+  <div class="card">
+    <h2>📑 ISO 27001:2022 核心條文 vs TI 半導體實務對照矩陣</h2>
+    <p>
+      主導稽核員在查核半導體封測廠與測試機台時，應依據下表查核條文符合性與採集客觀佐證：
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <tr>
+          <th>ISO 27001:2022 條文</th>
+          <th>標準條文核心要求</th>
+          <th>TI / Teradyne Eagle 364 機台實務對應</th>
+          <th>稽核員現場查核重點與客觀證據</th>
+        </tr>
+        <tr>
+          <td><strong>Clause 4.2<br>利害關係人需求</strong></td>
+          <td>組織應鑑別與 ISMS 相關的利害關係人及其法律、合約要求。</td>
+          <td>TI 德州儀器客戶合約中明確要求的機密測試程式保密條款與供應鏈資安規範。</td>
+          <td>查核 TI 專案合約（NDA）與客戶資安規範是否已完整轉化為內部產線作業準則（SOP）。</td>
+        </tr>
+        <tr>
+          <td><strong>Clause 6.1.2<br>風險評鑑流程</strong></td>
+          <td>系統性識別資訊資產之機密性、完整性、可用性風險。</td>
+          <td>Eagle 364 機台停機損失評估、良率資料被竄改的召回賠償風險評估。</td>
+          <td>查核「測試廠機台資產風險評估表」，確認是否有將機台中毒停產列入高風險評估並定有處理計畫。</td>
+        </tr>
+        <tr>
+          <td><strong>A.5.19 ~ 5.23<br>供應商關係資安</strong></td>
+          <td>控制外部供應商、設備商與技術支援人員之存取風險。</td>
+          <td>Teradyne（泰瑞達）原廠客服與 FAE 工程師進廠維修或遠端連線診斷。</td>
+          <td>查核原廠簽署的資安承諾書、遠端維護是否經雙人審批、連線期間是否全程側錄並於完成後立即關閉帳號。</td>
+        </tr>
+        <tr>
+          <td><strong>A.8.8<br>技術弱點管理</strong></td>
+          <td>獲取技術弱點資訊、評估暴露程度並採取適當補償措施。</td>
+          <td>Eagle 364 系統控制器作業系統無法升級時之安全加固與補償控制。</td>
+          <td>查核機台是否具備書面補償評估報告、微隔離防火牆規則，以及是否每年複審該弱點風險。</td>
+        </tr>
+        <tr>
+          <td><strong>A.8.20 / 8.22<br>網路安全與隔離</strong></td>
+          <td>網路必須受到妥善保護，敏感系統實施分段與隔離。</td>
+          <td>普渡模型（Purdue Model）：將 Eagle 364 置於 Level 2 / Level 3 工業網段，杜絕直連辦公網與外網。</td>
+          <td>現場檢視交換器與防火牆 Access List（ACL），查驗機台 IP 是否確實禁止對外連線（ping 8.8.8.8 應失敗）。</td>
+        </tr>
+        <tr>
+          <td><strong>A.8.24<br>密碼學控制</strong></td>
+          <td>適當使用密碼技術保護敏感資訊之機密性與完整性。</td>
+          <td>TI 晶片測試程式（Test Program）原始代碼與修調演算法的二進位加密與雜湊簽章。</td>
+          <td>查核測試程式派送系統是否具備 SHA-256 完整性校驗，防止產線作業員擅自修改測試 Limit 參數放行不良品。</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 稽核員現場實戰檢查表 (Audit Checklist) -->
+  <!-- ========================================================================= -->
+  <div class="card">
+    <h2>📋 稽核員現場查核表：Teradyne Eagle 364 機台資安查核</h2>
+
+    <ul class="checklist">
+      <li>
+        <span class="ck-badge ck-pass">符合樣態</span>
+        <div>
+          <strong>USB 實體與軟體雙重封鎖：</strong>
+          機台主機 USB 埠塗抹封膠或加裝實體防盜鎖，登錄檔停用 USB 儲存裝置（<code>usbstor.sys = 4</code>），測試程式一律由加密內部網路自動派送。
+        </div>
+      </li>
+      <li>
+        <span class="ck-badge ck-fail">不符合 NCR</span>
+        <div>
+          <strong>特權帳號共享且無管控：</strong>
+          現場工程師坦承為了方便三班輪值，全體測試員共用同一組具備本機管理員權限之「operator」帳號登入 Eagle 364，密碼貼在機台外殼黃色便利貼上。（違反 A.5.15 / A.8.5）
+        </div>
+      </li>
+      <li>
+        <span class="ck-badge ck-fail">不符合 NCR</span>
+        <div>
+          <strong>未授權遠端桌面直連：</strong>
+          稽核員查驗防火牆日誌，發現某台 Eagle 364 機台於凌晨 02:15 接受來自外部未知 IP 的 TeamViewer 遠端連線，現場無任何申請工單與核准紀錄。（違反 A.5.21 / A.8.20）
+        </div>
+      </li>
+      <li>
+        <span class="ck-badge ck-pass">符合樣態</span>
+        <div>
+          <strong>定期校正與防毒白名單日誌同步：</strong>
+          機台配置 Application Whitelisting 軟體，只允許 <code>ets_runtime.exe</code> 等白名單程式運作；每日校正日誌與測試結果 STDF 檔每 30 分鐘自動同步至備份伺服器。
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 實戰思考題 -->
+  <!-- ========================================================================= -->
+  <div class="card">
+    <h2>🧠 實務情境即測即評</h2>
+
+    <div class="quiz">
+      <p><strong>情境題：</strong>你在查核一家為 TI 代工測試的封測廠，廠長表示：「我們的 Teradyne Eagle 364 機台是純封閉離線運作，既不連外網，也不連辦公室網路，所以我們把機台完全排除在 ISO 27001 ISMS 驗證範圍之外，SOA 也不用評估機台控制項。」身為主導稽核員，你接受這個說法嗎？理由為何？</p>
+      <details>
+        <summary>點擊展開主導稽核員專業判定解析</summary>
+        <div class="ans">
+          <strong>【稽核判定】</strong>：<strong>絕不接受！這屬於不合理的範圍刻意切割（Scope Exclusion）！</strong><br>
+          <strong>【理由解析】</strong>：<br>
+          1. <strong>實質業務相依性</strong>：測試廠的核心業務即為晶片測試，測試程式（客戶 TI 的核心資產）與測試良率數據均在該機台上運行儲存，若排除機台，整個 ISMS 驗證形同虛設，失去商業與法規可信度（違反 Clause 4.3 決定 ISMS 範圍）。<br>
+          2. <strong>並非真正完全隔離</strong>：機台雖然不連網際網路，但仍需透過隨身碟或內部局域網載入測試程式、輸出 STDF 資料，且人員會直接實體操作，存在實體、儲存媒體與人員維運風險。<br>
+          3. <strong>正確做法</strong>：機台必須納入 ISMS 範圍，並將「離線/網路隔離」作為實踐 A.8.20 / A.8.22 的防禦控制手段，而非排除驗證範圍的理由。
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 導覽切換按鈕 -->
+  <!-- ========================================================================= -->
+  <div class="nav-btns">
+    <a href="la-roadmap.html" class="btn btn-prev">← 回上一單元：LA 考證攻略與每週進度</a>
+    <a href="cht-power-datacenter.html" class="btn btn-next">前往下一單元：國廷電機數據一大樓電力維運實務 →</a>
+  </div>
+
+</div>
+
+</body>
+</html>
