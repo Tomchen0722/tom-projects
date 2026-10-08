@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>臺灣證券交易所 (TWSE) · 資訊人員招募備考神盾 | 1,400題精解·24章講義·滿分申論·術語發音·全真模擬考</title>
-  <meta name="description" content="臺灣證券交易所（TWSE）資訊人員招募考試專用備考平台。全面涵蓋「系統與網路管理人員」與「資通安全人員」雙考科，收錄1,400題逐選項深度解析題庫、24章實務深度講義、20題標竿滿分申論範本、雙語金融資訊術語發音辭典與全真計時模擬考。">
+  <meta name="description" content="臺灣證券交易所（TWSE）資訊人員招募考試專用備考平台。全面涵蓋「系統與網路管理人員」與「資通安全人員」雙考科，收錄1,400題逐選項深度解析題庫、24章實務深度講義、24題標竿滿分申論範本、雙語金融資訊術語發音辭典與全真計時模擬考。">
   
   <!-- 字體引入 (Google Fonts: Noto Sans TC, Noto Serif TC, JetBrains Mono) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,7 +75,7 @@
         <h1 class="hero-title">微秒撮合與金融聯防 · 資訊專業極致研鑽</h1>
         <p class="hero-desc">
           溫潤和紙質感研習空間，專為證交所招募「系統與網路管理人員」與「資通安全人員」打造。
-          完整收錄雙考科各 700 題（總計 <strong>1,400 題逐選項深度剖析</strong>）、<strong>24 大深入核心講義</strong>、<strong>20 題標竿滿分申論</strong>、雙語金融資訊術語發音辭典與全真計時模擬考。
+          完整收錄雙考科各 700 題（總計 <strong>1,400 題逐選項深度剖析</strong>）、<strong>24 大深入核心講義</strong>、<strong>24 題標竿滿分申論</strong>、雙語金融資訊術語發音辭典與全真計時模擬考。
         </p>
       </div>
 
@@ -114,6 +114,16 @@
           <button class="role-btn" id="btnRoleSec" onclick="switchCategory('sec')">
             <span>🛡️ 資通安全人員 (700 題)</span>
             <span class="role-count-badge">700</span>
+          </button>
+        </div>
+
+        <!-- 題型模式切換：單選題庫 vs 申論範本 -->
+        <div class="q-type-toggle-group">
+          <button class="q-type-btn active" id="btnModeChoice" onclick="switchQuestionMode('choice')">
+            <span>📝 單選測驗題 (700 題)</span>
+          </button>
+          <button class="q-type-btn" id="btnModeEssay" onclick="switchQuestionMode('essay')">
+            <span>📋 滿分申論研習 (12 題標竿)</span>
           </button>
         </div>
 
@@ -216,14 +226,21 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem;">
           <div class="quick-filters">
             <button class="filter-toggle-btn active" id="btnEssayAll" onclick="filterEssays('all')">
-              全部範本 (20 題)
+              全部範本 (24 題)
+            </button>
+            <button class="filter-toggle-btn" id="btnEssayTwseIso" onclick="filterEssays('twse-iso')" title="高頻必考：TWSE 核心猜題與 ISO 27001 LA 雙軌題">
+              🎯 TWSE猜題 × ISO 27001 LA
             </button>
             <button class="filter-toggle-btn" id="btnEssaySysnet" onclick="filterEssays('sysnet')">
-              💻 系統與網路管理 (10 題)
+              💻 系統與網路管理 (12 題)
             </button>
             <button class="filter-toggle-btn" id="btnEssaySec" onclick="filterEssays('sec')">
-              🛡️ 資通安全 (10 題)
+              🛡️ 資通安全 (12 題)
             </button>
+          </div>
+          <div class="search-box" style="max-width: 340px;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="essaySearchInput" class="search-input" placeholder="搜尋申論關鍵字、技術名詞或評分..." oninput="onEssaySearchInput()">
           </div>
           <div style="font-size: 0.86rem; color: var(--text-muted); font-weight: 600;">
             依據國家考試與證交所招募評分標準 · 標竿採點給分
@@ -434,9 +451,11 @@
         currentGlossaryCategory: 'all',   // all | sysnet | sec
         
         // 題庫研習狀態
+        questionMode: 'choice',           // choice | essay
         selectedChapter: 'all',
         quickFilter: 'all',               // all | wrong | bookmarked | unanswered
         searchQuery: '',
+        essaySearchQuery: '',
         currentPage: 1,
         pageSize: 20,
         filteredQuestions: [],
@@ -445,6 +464,7 @@
         userAnswers: {},                  // { [qId]: selectedOption }
         wrongQIds: new Set(),             // Set of qIds answered incorrectly
         bookmarkedQIds: new Set(),        // Set of bookmarked qIds
+        essayDrafts: {},                  // { [essayId]: text }
         
         // 模擬考狀態
         mockExam: {
@@ -473,6 +493,9 @@
           const savedBookmarks = localStorage.getItem('twse_bookmarks');
           if (savedBookmarks) state.bookmarkedQIds = new Set(JSON.parse(savedBookmarks));
 
+          const savedDrafts = localStorage.getItem('twse_essay_drafts');
+          if (savedDrafts) state.essayDrafts = JSON.parse(savedDrafts);
+
           // 主題深色淺色偏好
           const savedTheme = localStorage.getItem('twse_theme');
           if (savedTheme === 'dark') {
@@ -489,6 +512,7 @@
           localStorage.setItem('twse_user_answers', JSON.stringify(state.userAnswers));
           localStorage.setItem('twse_wrong_qids', JSON.stringify(Array.from(state.wrongQIds)));
           localStorage.setItem('twse_bookmarks', JSON.stringify(Array.from(state.bookmarkedQIds)));
+          localStorage.setItem('twse_essay_drafts', JSON.stringify(state.essayDrafts));
         } catch (e) {
           console.error('Failed to save local storage:', e);
         }
@@ -568,21 +592,47 @@
           : (window.QUESTIONS_SEC || []);
       }
 
+      window.switchQuestionMode = function (mode) {
+        state.questionMode = mode;
+        state.selectedChapter = 'all';
+        state.currentPage = 1;
+
+        const btnChoice = document.getElementById('btnModeChoice');
+        const btnEssay = document.getElementById('btnModeEssay');
+        if (btnChoice) btnChoice.classList.toggle('active', mode === 'choice');
+        if (btnEssay) btnEssay.classList.toggle('active', mode === 'essay');
+
+        updateChapterSelectOptions();
+        renderQuestions();
+      };
+
       function updateChapterSelectOptions() {
         const select = document.getElementById('selectChapter');
         if (!select) return;
 
-        const bank = getActiveBank();
-        const chapters = Array.from(new Set(bank.map(q => q.chapter)));
-
-        select.innerHTML = '<option value="all">📖 全章節題庫 (' + bank.length + ' 題)</option>';
-        chapters.forEach(ch => {
-          const count = bank.filter(q => q.chapter === ch).length;
-          const opt = document.createElement('option');
-          opt.value = ch;
-          opt.textContent = `${ch} (${count} 題)`;
-          select.appendChild(opt);
-        });
+        if (state.questionMode === 'essay') {
+          const essays = (window.TWSE_ESSAY_DATA || []).filter(e => e.category === state.currentCategory);
+          const chapters = Array.from(new Set(essays.map(e => e.chapter)));
+          select.innerHTML = '<option value="all">📖 全章節申論題 (' + essays.length + ' 題)</option>';
+          chapters.forEach(ch => {
+            const count = essays.filter(e => e.chapter === ch).length;
+            const opt = document.createElement('option');
+            opt.value = ch;
+            opt.textContent = `${ch} (${count} 題)`;
+            select.appendChild(opt);
+          });
+        } else {
+          const bank = getActiveBank();
+          const chapters = Array.from(new Set(bank.map(q => q.chapter)));
+          select.innerHTML = '<option value="all">📖 全章節題庫 (' + bank.length + ' 題)</option>';
+          chapters.forEach(ch => {
+            const count = bank.filter(q => q.chapter === ch).length;
+            const opt = document.createElement('option');
+            opt.value = ch;
+            opt.textContent = `${ch} (${count} 題)`;
+            select.appendChild(opt);
+          });
+        }
 
         select.value = state.selectedChapter;
       }
@@ -633,6 +683,11 @@
       function renderQuestions() {
         const container = document.getElementById('questionsContainer');
         if (!container) return;
+
+        if (state.questionMode === 'essay') {
+          renderBankEssays(container);
+          return;
+        }
 
         const bank = getActiveBank();
         let list = bank;
@@ -874,6 +929,176 @@
       };
 
       // ──────────────────────────────────────────────────────────
+      // 申論卡片 HTML 產生器
+      // ──────────────────────────────────────────────────────────
+      function buildEssayCardHtml(essay, idx, isBankMode = false) {
+        const userDraft = state.essayDrafts[essay.id] || '';
+        const wordCount = (userDraft.match(/[一-龥A-Za-z0-9]/g) || []).length;
+        const categoryLabel = essay.category === 'sysnet' ? '💻 系統與網路管理' : '🛡️ 資通安全人員';
+        const displayIdx = idx + 1;
+
+        return `
+          <article class="essay-card" id="essay-card-${essay.id}">
+            <div class="essay-header">
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="essay-badge">
+                  ${categoryLabel} · 申論標竿 #${String(displayIdx).padStart(2, '0')}
+                </span>
+                <span class="q-badge-chapter">${escapeHtml(essay.chapter)}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
+                <span class="essay-score-pill">滿分配分：${essay.points} 分</span>
+                <button class="btn-copy-essay" onclick="copyModelAnswer('${essay.id}')" title="複製此題滿分標竿答案">
+                  📋 複製範本
+                </button>
+              </div>
+            </div>
+
+            <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.65rem;">
+              ${escapeHtml(essay.title)}
+            </h3>
+
+            <div class="essay-prompt">
+              <strong>【題目情境】</strong>${escapeHtml(essay.question)}
+            </div>
+
+            <div class="essay-rubric-box">
+              <div class="rubric-title">
+                <span>🎯</span> 採點給分規範與得分盲點分析：
+              </div>
+              <div class="rubric-points">
+                ${escapeHtml(essay.rubric)}
+              </div>
+            </div>
+
+            <div class="essay-model-answer">
+              <div class="model-answer-title">
+                <span>👑</span> 國家考試與證交所招募評分標準 · 滿分標竿答題範本
+              </div>
+              <div class="model-answer-content">
+                ${essay.modelAnswer}
+              </div>
+            </div>
+
+            <div class="essay-examiner-tips">
+              <strong>💡 閱卷委員評分秘笈與關鍵踩點字眼：</strong><br>
+              ${escapeHtml(essay.examinerTips || '')}
+            </div>
+
+            <div class="essay-detailed-panel">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.4rem;">
+                <strong style="color: var(--accent-primary); font-size: 1.05rem;">
+                  🔍 延伸深度解析與金融實務技術脈絡 (Detailed Explanation)
+                </strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">證交所實務技術標準手冊</span>
+              </div>
+              <div class="detailed-expl-content">
+                ${essay.detailedExplanation || ''}
+              </div>
+            </div>
+
+            <div class="essay-scratchpad">
+              <div class="essay-scratchpad-header">
+                <span>✍️ 考生擬答實戰練習區 (即時本機自動暫存)</span>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <span id="wordcount-${essay.id}" style="font-size: 0.82rem; color: var(--text-muted); font-family: var(--font-mono);">
+                    已撰寫 ${wordCount} 字
+                  </span>
+                  <button class="btn-clear-draft" onclick="clearEssayDraft('${essay.id}')" title="清空本題草稿">
+                    🗑️ 清除草稿
+                  </button>
+                </div>
+              </div>
+              <textarea 
+                id="draft-${essay.id}" 
+                placeholder="建議依照「一、破題立論 二、架構說明 三、橫向對比分析表 四、核心參數與指令 五、總結」五段式黃金公式進行練習..."
+                oninput="onEssayDraftInput('${essay.id}', this)"
+              >${escapeHtml(userDraft)}</textarea>
+            </div>
+          </article>
+        `;
+      }
+
+      window.onEssayDraftInput = function (essayId, textareaEl) {
+        state.essayDrafts[essayId] = textareaEl.value;
+        const count = (textareaEl.value.match(/[\u4e00-\u9fa5A-Za-z0-9]/g) || []).length;
+        const countEl = document.getElementById(`wordcount-${essayId}`);
+        if (countEl) countEl.textContent = `已撰寫 ${count} 字`;
+        saveStorage();
+      };
+
+      window.clearEssayDraft = function (essayId) {
+        if (!confirm('確定要清除此題的模擬作答草稿嗎？')) return;
+        delete state.essayDrafts[essayId];
+        const textareaEl = document.getElementById(`draft-${essayId}`);
+        if (textareaEl) textareaEl.value = '';
+        const countEl = document.getElementById(`wordcount-${essayId}`);
+        if (countEl) countEl.textContent = '已撰寫 0 字';
+        saveStorage();
+        showToast('已清除草稿');
+      };
+
+      window.copyModelAnswer = function (essayId) {
+        const essay = (window.TWSE_ESSAY_DATA || []).find(e => e.id === essayId);
+        if (!essay) return;
+        const temp = document.createElement('div');
+        temp.innerHTML = essay.modelAnswer;
+        const text = `【題目】${essay.title}\n\n【配分】${essay.points}分\n\n【題目情境】\n${essay.question}\n\n【評分重點】\n${essay.rubric}\n\n【滿分標竿答案】\n${temp.innerText.trim()}\n\n【評分提醒】\n${essay.examinerTips || ''}`;
+        
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('📋 已將滿分標竿答案與解析複製至剪貼簿！');
+        }).catch(() => {
+          showToast('複製失敗，請手動選取文字');
+        });
+      };
+
+      function renderBankEssays(container) {
+        const allEssays = (window.TWSE_ESSAY_DATA || []).filter(e => e.category === state.currentCategory);
+        let list = allEssays;
+
+        if (state.selectedChapter !== 'all') {
+          list = list.filter(e => e.chapter === state.selectedChapter);
+        }
+
+        if (state.searchQuery) {
+          const qry = state.searchQuery;
+          list = list.filter(e => 
+            e.title.toLowerCase().includes(qry) ||
+            e.question.toLowerCase().includes(qry) ||
+            e.chapter.toLowerCase().includes(qry) ||
+            e.modelAnswer.toLowerCase().includes(qry) ||
+            (e.examinerTips && e.examinerTips.toLowerCase().includes(qry)) ||
+            (e.detailedExplanation && e.detailedExplanation.toLowerCase().includes(qry))
+          );
+        }
+
+        if (list.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📝</div>
+              <div class="empty-title">查無符合條件的申論題</div>
+              <div class="empty-desc">請嘗試切換章節、重設篩選或清除搜尋關鍵字。</div>
+            </div>
+          `;
+          document.getElementById('paginationBar').innerHTML = '';
+          return;
+        }
+
+        const pageSize = 5;
+        const totalPages = Math.ceil(list.length / pageSize);
+        if (state.currentPage > totalPages) state.currentPage = totalPages;
+        const startIndex = (state.currentPage - 1) * pageSize;
+        const pageItems = list.slice(startIndex, startIndex + pageSize);
+
+        container.innerHTML = pageItems.map((e, idx) => buildEssayCardHtml(e, startIndex + idx, true)).join('');
+        renderPagination(totalPages);
+
+        if (window.refreshSpeechButtons) {
+          window.refreshSpeechButtons();
+        }
+      }
+
+      // ──────────────────────────────────────────────────────────
       // TAB 2: 核心講義邏輯 (Lecture Notes Logic)
       // ──────────────────────────────────────────────────────────
       window.switchLectureCategory = function (cat) {
@@ -913,6 +1138,10 @@
         // 控制上下篇按鈕
         document.getElementById('btnPrevLecture').disabled = state.currentLectureIdx === 0;
         document.getElementById('btnNextLecture').disabled = state.currentLectureIdx === lectures.length - 1;
+
+        if (window.refreshSpeechButtons) {
+          window.refreshSpeechButtons();
+        }
       }
 
       window.selectLecture = function (idx) {
@@ -937,10 +1166,21 @@
       window.filterEssays = function (cat) {
         state.currentEssayCategory = cat;
 
-        document.getElementById('btnEssayAll').classList.toggle('active', cat === 'all');
-        document.getElementById('btnEssaySysnet').classList.toggle('active', cat === 'sysnet');
-        document.getElementById('btnEssaySec').classList.toggle('active', cat === 'sec');
+        const btnAll = document.getElementById('btnEssayAll');
+        const btnTwseIso = document.getElementById('btnEssayTwseIso');
+        const btnSysnet = document.getElementById('btnEssaySysnet');
+        const btnSec = document.getElementById('btnEssaySec');
 
+        if (btnAll) btnAll.classList.toggle('active', cat === 'all');
+        if (btnTwseIso) btnTwseIso.classList.toggle('active', cat === 'twse-iso');
+        if (btnSysnet) btnSysnet.classList.toggle('active', cat === 'sysnet');
+        if (btnSec) btnSec.classList.toggle('active', cat === 'sec');
+
+        renderEssays();
+      };
+
+      window.onEssaySearchInput = function () {
+        state.essaySearchQuery = (document.getElementById('essaySearchInput')?.value || '').trim().toLowerCase();
         renderEssays();
       };
 
@@ -950,46 +1190,44 @@
 
         const allEssays = window.TWSE_ESSAY_DATA || [];
         let list = allEssays;
-        if (state.currentEssayCategory !== 'all') {
+
+        if (state.currentEssayCategory === 'twse-iso') {
+          list = list.filter(e => {
+            const str = (e.title + ' ' + e.question + ' ' + e.chapter + ' ' + (e.examinerTips || '')).toLowerCase();
+            return str.includes('iso') || str.includes('27001') || str.includes('稽核') || str.includes('行動方案') || str.includes('撮合') || str.includes('微突發') || str.includes('ptp') || str.includes('零信任');
+          });
+        } else if (state.currentEssayCategory !== 'all') {
           list = list.filter(e => e.category === state.currentEssayCategory);
         }
 
-        container.innerHTML = list.map((essay, idx) => `
-          <article class="essay-card">
-            <div class="essay-header">
-              <span class="essay-badge">
-                ${essay.category === 'sysnet' ? '💻 系統與網路管理' : '🛡️ 資通安全人員'} · 申論範本 #${idx + 1}
-              </span>
-              <span class="essay-score-pill">滿分配分：${essay.points} 分</span>
-            </div>
+        if (state.essaySearchQuery) {
+          const qry = state.essaySearchQuery;
+          list = list.filter(e => 
+            e.title.toLowerCase().includes(qry) ||
+            e.question.toLowerCase().includes(qry) ||
+            e.chapter.toLowerCase().includes(qry) ||
+            e.modelAnswer.toLowerCase().includes(qry) ||
+            (e.examinerTips && e.examinerTips.toLowerCase().includes(qry)) ||
+            (e.detailedExplanation && e.detailedExplanation.toLowerCase().includes(qry))
+          );
+        }
 
-            <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.65rem;">
-              ${escapeHtml(essay.title)}
-            </h3>
-
-            <div class="essay-prompt">
-              【題目情境】${escapeHtml(essay.question)}
+        if (list.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📝</div>
+              <div class="empty-title">查無符合條件的申論題</div>
+              <div class="empty-desc">請嘗試切換考科或清除關鍵字。</div>
             </div>
+          `;
+          return;
+        }
 
-            <div class="essay-rubric-box">
-              <div class="rubric-title">
-                <span>🎯</span> 採點給分規範與得分盲點分析：
-              </div>
-              <div class="rubric-points">
-                ${escapeHtml(essay.rubric)}
-              </div>
-            </div>
+        container.innerHTML = list.map((essay, idx) => buildEssayCardHtml(essay, idx, false)).join('');
 
-            <div class="essay-model-answer">
-              <div class="model-answer-title">
-                <span>👑</span> 國家考試與證交所招募評分標準 · 滿分標竿答題範本
-              </div>
-              <div class="model-answer-content">
-                ${essay.modelAnswer}
-              </div>
-            </div>
-          </article>
-        `).join('');
+        if (window.refreshSpeechButtons) {
+          window.refreshSpeechButtons();
+        }
       }
 
       // ──────────────────────────────────────────────────────────
@@ -1062,6 +1300,10 @@
             </span>
           </div>
         `).join('');
+
+        if (window.refreshSpeechButtons) {
+          window.refreshSpeechButtons();
+        }
       }
 
       // ──────────────────────────────────────────────────────────

@@ -1,279 +1,91 @@
 /**
  * 臺灣證券交易所 (TWSE) 招募備考講義 - 資通安全人員 (資訊安全概論)
- * 深度解析金融資安法規、ISO 27001:2022、密碼學HSM、零信任ZTA、OWASP攻防、SIEM/SOAR及金管會事件通報
+ * 完整涵蓋 12 大深入核心單元（金融法規治理、ISO 27001:2022、密碼學/HSM、零信任ZTA、DevSecOps、DDoS清洗、SOC/SIEM、郵件/端點強化、雲端/容器安全、紅藍對抗、BCP防勒索、AI/PQC安全）
  */
 
 const NOTES_SEC = [
   {
-    id: "sec-ch01",
-    chapter: "第 1 章：金融資安法規治理與證券期貨業聯防體系",
-    title: "金融資安行動方案 2.0、F-ISAC 聯防架構與資通安全管理法",
-    summary: "剖析我國金融監督管理委員會『金融資安行動方案 2.0』四大核心主軸、證券期貨業資安監理架構、F-ISAC / F-CERT 情資分享與重大資安通報法遵。",
-    content: `
-<h2>1. 金融資安行動方案 2.0 策略核心</h2>
-<p>金融監督管理委員會（金管會）為強化我國金融關鍵基礎設施韌性，推動<strong>「金融資安行動方案 2.0」</strong>，以<strong>「安全、便利、不中斷」</strong>為願景，聚焦四大推動主軸：</p>
-<ol>
-  <li><strong>協力深化監理與聯防架構</strong>：擴大金融資安資訊分享與分析中心（F-ISAC）情資分享廣度與深度，推動跨金融機構資安情資即時互聯。</li>
-  <li><strong>強化核心資通系統韌性</strong>：全面落實「同城雙活」或異地即時備援，要求核心交易系統 <strong>RTO ≤ 2 小時（交易所核心目標逼近 0）、RPO = 0</strong>，並定期實施無預警災難切換演練。</li>
-  <li><strong>推動零信任架構（ZTA）導入</strong>：推動身分識別、設備健全度、信任推論與動態存取控制三階段落地。</li>
-  <li><strong>鼓勵金融機構建置 SOC 與威脅獵捕能量</strong>：建立全天候 7x24 資安監控機制，強化自主紅藍隊實戰攻防對抗（Purple Teaming）。</li>
-</ol>
-
-<h2>2. 證券期貨業資通安全聯合防禦體系（F-ISAC / F-CERT）</h2>
-<div class="callout-box">
-  <div class="callout-title">🛡️ 金融聯防三大樞紐角色</div>
-  <p>• <strong>F-ISAC（金融資安資訊分享與分析中心）</strong>：彙整各金融機構、政府 N-ISAC 及國際情資，發布 APT 威脅警訊與惡意指標（IoC, Indicators of Compromise）。<br>
-  • <strong>F-CERT（金融電腦緊急應變小組）</strong>：提供重大資安事件現場技術支援、數位鑑識調查與跨機構應變協調。<br>
-  • <strong>F-SOC（金融資安監控中心）</strong>：全天候收集金控、銀行、證券交易巨量日誌，進行關聯威脅偵測。</p>
-</div>
-
-<h2>3. 重大資安事件通報法遵時限規範</h2>
-<p>依據金管會與證券期貨局規範，證券商與周邊單位若遭遇重大資安事件（如網路遭受分散式阻斷服務 DDoS 攻擊導致下單中斷、勒索軟體感染或核心資料庫遭入侵外洩）：</p>
-<ul>
-  <li><strong>即時口頭/線上通報</strong>：知悉事件發生後<strong>「30 分鐘以內」</strong>，必須立即通報證期局與 F-ISAC / 金融監理通報系統。</li>
-  <li><strong>書面報告時限</strong>：於事件發生後 1 個營業日內提出初步書面報告，事件復原與調查完畢後 7 日內提交完整根因分析與檢討改善報告。</li>
-</ul>
-`
+    "id": "sec-ch01",
+    "chapter": "第 1 章：金融資安法規治理與證券期貨業聯防體系",
+    "title": "金融資安行動方案 2.0、30 分鐘通報機制與 F-ISAC/CERT/SOC 聯防",
+    "summary": "深入剖析金管會金融資安行動方案 2.0、資通安全管理法 A 級機關規範、重大資安事件 30 分鐘通報法規與 F-ISAC 跨機構威脅情資共享。",
+    "content": "\n<h2>1. 金融資安行動方案 2.0 四大核心構面</h2>\n<p>金融監督管理委員會（金管會）推動之<strong>『金融資安行動方案 2.0』</strong>，以四大構面引領臺灣金融與證券期貨業深化資安防護：</p>\n<ul>\n  <li><strong>深化資安治理（Governance）</strong>：\n    推動指派具備資安專業之<strong>專責資安長（CISO）</strong>，設置獨立於 IT 部門的資安專責部門，並要求董事會定期聽取資安主管報告，建立第一線維運、第二線風控與法遵、第三線內部稽核之「資安三道防線」。\n  </li>\n  <li><strong>強化資安聯防（Joint Defense）</strong>：\n    全面對接 <strong>F-ISAC（金融資安資訊分享與分析中心）</strong>、<strong>F-CERT（金融電腦緊急應變小組）</strong> 與 <strong>F-SOC（金融資安維運中心）</strong>，形成跨機構橫向資安情資即時分享網。\n  </li>\n  <li><strong>提升資安監韌（Resilience）</strong>：\n    要求核心金融交易系統落實<strong>營運衝擊分析（BIA）</strong>，設定 RTO（復原時間目標）≤ 10 分鐘、RPO（復原點目標）趨近於 0，並每年定期辦理無預警分散式阻斷服務（DDoS）與勒索軟體攻防實兵演練。\n  </li>\n  <li><strong>建構資安文化（Culture）</strong>：\n    全面推行全員社交工程社交演練、資安證照獎勵機制與供應鏈資安合規查核。\n</li>\n</ul>\n\n<h2>2. 證券期貨業重大資安事件「30 分鐘法定通報」規範</h2>\n<div class=\"callout-box\">\n  <div class=\"callout-title\">🚨 證券期貨業重大資安事件通報標準</div>\n  <p>依據「證券期貨業資通安全聯合防防應變作業程序」與金管會規範，凡發生下列情事之一者，列為<strong>重大資安事件</strong>：<br>\n  1. 核心交易系統（如委託下單、撮合、行情揭示、結算交割）遭受阻斷中斷服務達 <strong>10 分鐘以上</strong>。<br>\n  2. 遭受未授權存取導致大量核心客戶個資、交易憑證或機密資料外洩。<br>\n  3. 遭受勒索軟體攻擊且已影響實體營運運作。<br>\n  <strong>【通報時效】</strong>：受害機構自「知悉（Awareness）」事件起，<strong>必須於 30 分鐘內</strong>向主管機關（金管會證期局）及 F-ISAC 完成初次通報，後續每 2 小時或有重大進展時需更新處置進度，並於事件平息後 3 個工作天內提交完整檢討報告。</p>\n</div>\n\n<h2>3. 供應鏈資安風險治理與軟體物料清單（SBOM）</h2>\n<p>近年供應鏈攻擊（Supply Chain Attack）頻傳，證券商及交易所高度依賴外包資訊廠商：</p>\n<ul>\n  <li><strong>委外管理三原則</strong>：事前嚴審（資安評級與實地查核）、事中受控（合約明定資安義務、遠端維護專人審批錄影）、事後稽核（定期檢驗原始碼掃描與滲透測試報告）。</li>\n  <li><strong>軟體物料清單（SBOM, Software Bill of Materials）</strong>：要求廠商交付軟體時，必須提供標準格式（SPDX 或 CycloneDX）之第三方開源套件清單，一旦開源社群爆發 0-day 漏洞（如 Log4j），可在 15 分鐘內清查全機構受影響系統。</li>\n</ul>\n"
   },
   {
-    id: "sec-ch02",
-    chapter: "第 2 章：資安標準與控制框架（ISO 27001:2022 與 NIST CSF）",
-    title: "ISO/IEC 27001:2022 四大主題 93 項控制措施、NIST CSF 2.0 實務",
-    summary: "對比 ISO 27001 新舊版重大變更、93 項控制措施分類（組織、人員、實體、技術）、NIST CSF 2.0 六大功能（GV, ID, PR, DE, RS, RC）實務佈建。",
-    content: `
-<h2>1. ISO/IEC 27001:2022 重大改版結構解析</h2>
-<p>ISO/IEC 27001 於 2022 年底正式發布新版本。附錄 A（Annex A）控制措施由舊版 2013 年的 14 個章節 114 項控制措施，精簡重組為<strong>四大主題（Themes）共 93 項控制措施</strong>：</p>
-<ul>
-  <li><strong>5. Organizational Controls（組織控制措施）</strong>：共 37 項（如資訊安全政策、職能分工、供應鏈安全管理）。</li>
-  <li><strong>6. People Controls（人員控制措施）</strong>：共 8 項（如到職前審查、資安意識培訓、遠距工作規範）。</li>
-  <li><strong>7. Physical Controls（實體控制措施）</strong>：共 14 項（如機房實體邊界、設備位置保護、走清桌清規範）。</li>
-  <li><strong>8. Technological Controls（技術控制措施）</strong>：共 34 項（如端點安全、特權存取管理、資料外洩防護 DLP）。</li>
-</ul>
-
-<div class="callout-box">
-  <div class="callout-title">⭐ 2022 版新增之 11 項關鍵控制措施（考試重點）</div>
-  <p>1. <code>A.5.7</code> 威脅情資（Threat Intelligence）<br>
-  2. <code>A.5.23</code> 雲端服務資安（Information Security for Cloud Services）<br>
-  3. <code>A.5.30</code> 資通訊準備度（ICT Readiness for Business Continuity）<br>
-  4. <code>A.7.4</code> 實體安全監控（Physical Security Monitoring）<br>
-  5. <code>A.8.9</code> 組態管理（Configuration Management）<br>
-  6. <code>A.8.10</code> 資訊刪除（Information Deletion）<br>
-  7. <code>A.8.11</code> 資料遮蔽（Data Masking）<br>
-  8. <code>A.8.12</code> 資料外洩防護（Data Leakage Prevention）<br>
-  9. <code>A.8.16</code> 活動監控（Monitoring Activities）<br>
-  10. <code>A.8.23</code> 網頁過濾（Web Filtering）<br>
-  11. <code>A.8.28</code> 安全編碼（Secure Coding）</p>
-</div>
-
-<h2>2. NIST CSF 2.0（網路安全框架）六大核心支柱</h2>
-<p>美國國家標準與技術研究院於 2024 年正式推出 <strong>NIST CSF 2.0</strong>，由原先 5 大功能擴充新增<strong>「治理（Govern）」</strong>，成為六大核心支柱：</p>
-<ol>
-  <li><strong>Govern（治理, GV）</strong>：建立資安治理結構、風險管理策略、法律合規與管理階層督導。</li>
-  <li><strong>Identify（識別, ID）</strong>：盤點金融關鍵資產、軟硬體供應商、漏洞評估與業務衝擊分析（BIA）。</li>
-  <li><strong>Protect（保護, PR）</strong>：身分與存取管理、意識培訓、資料安全、零信任隔離。</li>
-  <li><strong>Detect（偵測, DE）</strong>：異常活動監控、連續監測、威脅情資關聯比對。</li>
-  <li><strong>Respond（回應, RS）</strong>：事件應變處置、圍堵減緩、溝通協調與分析調查。</li>
-  <li><strong>Recover（復原, RC）</strong>：災後復原計劃執行、公關溝通、系統完整性驗證。</li>
-</ol>
-`
+    "id": "sec-ch02",
+    "chapter": "第 2 章：資安標準與控制框架（ISO 27001:2022 與 ISO 27001 LA 稽核實務）",
+    "title": "ISO/IEC 27001:2022 核心條文、Annex A 93項控制措施與 ISO 27001 LA 主導稽核實務",
+    "summary": "深入解構 ISO 27001:2022 Clauses 4~10 高階架構、四大主題 93 項控制措施、SoA 適用性聲明、ISO 19011:2018 主導稽核實務（Stage 1/2、客觀證據、Major/Minor NC 判定、RCA 矯正措施），以及證交所會考猜題重點。",
+    "content": "\n<h2>1. ISO/IEC 27001:2022 高階架構（HLS Clauses 4~10）與 PDCA 循環</h2>\n<p>ISO/IEC 27001:2022 為資訊安全管理系統（ISMS）之國際認證標準，本體遵循 Harmonized Structure（高階架構 HLS），由 <strong>Clauses 4 至 10</strong> 構成核心要求（也是 ISO 27001 LA 稽核員查核本體管理體系是否合規之必備法條）：</p>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">條文章節</th>\n      <th style=\"padding:10px;\">核心要求名稱</th>\n      <th style=\"padding:10px;\">PDCA 階段</th>\n      <th style=\"padding:10px;\">證交所實務與主導稽核查核重點 (Audit Focus)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">Clause 4</td>\n      <td style=\"padding:8px;\">組織背景 (Context)</td>\n      <td style=\"padding:8px;\">Plan (規劃)</td>\n      <td style=\"padding:8px;\">界定內外部議題（如金融資安行動方案 2.0、資通安全管理法）、利害關係人期望，以及<strong>明確界定 ISMS 適用範圍書（Scope）</strong>（例如包含核心撮合、行情、結算交割系統）。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">Clause 5</td>\n      <td style=\"padding:8px;\">領導力 (Leadership)</td>\n      <td style=\"padding:8px;\">Plan (規劃)</td>\n      <td style=\"padding:8px;\">高階管理階層（董事會、總經理、CISO）之資安承諾、簽署並頒布<strong>資訊安全政策</strong>、指派專責資安長與角色職責分工（RACI 矩陣）。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">Clause 6</td>\n      <td style=\"padding:8px;\">規劃 (Planning)</td>\n      <td style=\"padding:8px;\">Plan (規劃)</td>\n      <td style=\"padding:8px;\"><strong>資訊安全風險評鑑（Risk Assessment）</strong>與風險處理程序（Risk Treatment）；產出<strong>適用性聲明書（SoA, Statement of Applicability）</strong>；訂定可量化之資安目標。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">Clause 7</td>\n      <td style=\"padding:8px;\">支援 (Support)</td>\n      <td style=\"padding:8px;\">Do (執行)</td>\n      <td style=\"padding:8px;\">資源配置、全員資安勝任能力（Competence，包含資安證照培訓）、社交工程資安意識、溝通機制與<strong>文件化資訊管制（Documented Information，版本控管、審核簽章）</strong>。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">Clause 8</td>\n      <td style=\"padding:8px;\">營運 (Operation)</td>\n      <td style=\"padding:8px;\">Do (執行)</td>\n      <td style=\"padding:8px;\">落實風險評鑑規劃之控制措施、變更管理（Change Management）、委外供應鏈管理之運作管制。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">Clause 9</td>\n      <td style=\"padding:8px;\">績效評估 (Performance)</td>\n      <td style=\"padding:8px;\">Check (檢核)</td>\n      <td style=\"padding:8px;\">監控、量測、分析與評估（資安 KPI/KRI）；<strong>內部稽核（Internal Audit，Clause 9.2，獨立公正）</strong>；<strong>管理階層審查會議（Management Review，Clause 9.3，每年定期由最高首長主持）</strong>。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">Clause 10</td>\n      <td style=\"padding:8px;\">改善 (Improvement)</td>\n      <td style=\"padding:8px;\">Act (改善)</td>\n      <td style=\"padding:8px;\"><strong>不符合事項與矯正措施（Nonconformity and Corrective Action，Clause 10.1）</strong>；持續改善（Continual Improvement，Clause 10.2）ISMS 之適切性與有效性。</td>\n    </tr>\n  </table>\n</div>\n\n<h2>2. Annex A 四大主題 93 項控制措施與 11 項新增控制項</h2>\n<p>ISO/IEC 27001:2022 控制措施由 2013 版的 14 個網域 114 項整併為<strong>四大主題（Themes）共 93 項控制措施</strong>：</p>\n<ul>\n  <li><strong>A.5 組織控制措施（37 項）</strong>：包含資安政策、資產清冊、雲端服務治理、威脅情資、ICT 營運持續。</li>\n  <li><strong>A.6 人員控制措施（8 項）</strong>：包含任用前背景調查、在職資安意識演練、離職即刻停權與資產收回。</li>\n  <li><strong>A.7 實體控制措施（14 項）</strong>：包含機房實體邊界、多因子門禁、監視器保全、支援性公用設施（雙迴路電力與冷卻空調）。</li>\n  <li><strong>A.8 技術控制措施（34 項）</strong>：包含端點 EDR 防護、特權存取 PAM、安全程式碼 SSDLC、資料遮蔽、DLP 與網路微隔離。</li>\n</ul>\n\n<div class=\"callout-box\">\n  <div class=\"callout-title\">🌟 ISO 27001:2022 核心 11 項全新控制項（LA 考試與證交所招募必考重點）</div>\n  <p>1. <code>A.5.7 威脅情資 (Threat Intelligence)</code>：收集分析外部威脅情資，金融業對接 F-ISAC 實踐情資聯防。<br>\n  2. <code>A.5.23 雲端服務資訊安全 (Information security for use of cloud services)</code>：建立公有雲/私有雲取用與退場資安標準。<br>\n  3. <code>A.5.30 業務營運持續之 ICT 整備度 (ICT readiness for business continuity)</code>：落實 RTO/RPO 備援架構（ISO 22301 連動）。<br>\n  4. <code>A.7.4 實體安全監視 (Physical security monitoring)</code>：機房關鍵出入口安裝閉路電視（CCTV）與防盜警報系統。<br>\n  5. <code>A.8.9 組態管理 (Configuration management)</code>：建立硬體、軟體與網路設備之黃金安全基準（Baseline）並監控防漂移。<br>\n  6. <code>A.8.10 資訊刪除 (Information deletion)</code>：依資料生命週期與法規要求，執行安全抹除或實體消磁。<br>\n  7. <code>A.8.11 資料遮蔽 (Data masking)</code>：依存取控制政策落實動態去識別化或虛擬化遮蔽（如身分證與帳號）。<br>\n  8. <code>A.8.12 資料外洩防護 (Data leakage prevention, DLP)</code>：在端點、網路出口與雲端監控並攔截機密敏感數據外傳。<br>\n  9. <code>A.8.16 監控活動 (Monitoring activities)</code>：落實 SIEM/UEBA 全面收集活動日誌，監控非預期異常行為。<br>\n  10. <code>A.8.23 網路篩選 (Web filtering)</code>：限制存取惡意釣魚、賭博或未經授權之外部網站。<br>\n  11. <code>A.8.28 安全編碼 (Secure coding)</code>：在軟體開發流程中導入安全左移，依 OWASP 規範進行安全編碼與 SAST/DAST 驗證。</p>\n</div>\n\n<h2>3. ISO 19011:2018 主導稽核員（Lead Auditor）實務與查核流程</h2>\n<p>在準備 ISO 27001 LA 證照考試及證交所資安人員實務查核時，必須精通 <strong>ISO 19011:2018《管理系統稽核指引》</strong> 之核心規範：</p>\n\n<h3>(1) 稽核階段劃分：Stage 1 vs Stage 2 稽核對比表</h3>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">稽核階段</th>\n      <th style=\"padding:10px;\">主要目的與查核範圍</th>\n      <th style=\"padding:10px;\">查核核心文件與重點</th>\n      <th style=\"padding:10px;\">稽核產出與門檻</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">第一階段稽核<br>(Stage 1, 文件審查)</td>\n      <td style=\"padding:8px;\">評估受稽組織之 ISMS 文件體系是否健全，以及是否已具備進入現場實體查核之準備度（Readiness）。</td>\n      <td style=\"padding:8px;\">審查適用範圍書（Scope）、資安政策、<strong>適用性聲明書（SoA）</strong>、風險評鑑報告、<strong>內部稽核報告（Clause 9.2）與管理審查會議紀錄（Clause 9.3）</strong>。</td>\n      <td style=\"padding:8px;\">若發現重大文件缺漏，稽核員將開立「關注事項（Areas of Concern）」，<strong>若內部稽核或管理審查未完成，嚴禁進入 Stage 2！</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">第二階段稽核<br>(Stage 2, 現場查核)</td>\n      <td style=\"padding:8px;\">赴受稽現場（或實體/遠端查核環境），實質驗證 ISMS 控制措施是否獲得<strong>全面實施與具備運行有效性（Operational Effectiveness）</strong>。</td>\n      <td style=\"padding:8px;\">採樣驗證生產環境組態、人員訪談、實地機房勘查、變更審批單、弱點掃描修補記錄、事件日誌與 SOC 監控畫面。</td>\n      <td style=\"padding:8px;\">判定稽核發現：開立 Major NC（重大不符合）、Minor NC（次要不符合）或 OFI（改善機會），決定是否推薦發放認證證書。</td>\n    </tr>\n  </table>\n</div>\n\n<h3>(2) 客觀證據（Objective Evidence）三要素與抽樣法則</h3>\n<p>主導稽核員一切判定必須<strong>以證據為依據（Evidence-based approach）</strong>，絕不可憑主觀臆測。客觀證據之採集涵蓋三位一體：</p>\n<ul>\n  <li><strong>人員訪談（Interviews）</strong>：訪談資安長、系統管理員、網路工程師與基層員工，驗證是否知悉資安政策與作業職責。</li>\n  <li><strong>文件與記錄審閱（Review of Documents & Records）</strong>：抽查近 6 個月之特權帳號申請單、防火牆變更申請、離職移交清單、弱點修補工單。</li>\n  <li><strong>現場實作觀察（Observation of Activities & Environment）</strong>：實地觀摩機房門禁刷卡紀錄、監視器死角、滅火器檢驗合格標籤、工程師實際操作堡壘機錄影情形。</li>\n</ul>\n\n<h3>(3) 稽核發現分級判定標準（黃金拿分對比）</h3>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">不符合等級</th>\n      <th style=\"padding:10px;\">定義與判定門檻 (Criteria)</th>\n      <th style=\"padding:10px;\">實戰案例情境 (TWSE 實務)</th>\n      <th style=\"padding:10px;\">處置要求與發證影響</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700; color:var(--danger);\">重大不符合<br>(Major NC)</td>\n      <td style=\"padding:8px;\">1. 完全未滿足標準某一核心條款要求；<br>2. 某項控制措施發生<strong>系統性崩潰失效</strong>；<br>3. 造成對資訊安全之直接重大危害；<br>4. 累積多項同類型的次要不符合事項。</td>\n      <td style=\"padding:8px;\">證交所核心撮合主機系統更動全然未經變更管理流程審批與測試；或者完全未實施內部稽核或未召開管理階層審查會議；或者重要正式資料庫備份全然未加密且從未演練還原。</td>\n      <td style=\"padding:8px; font-weight:700; color:var(--danger);\"><strong>直接阻擋發證/續證！</strong>受稽方必須於 90 天內完成 RCA 與矯正措施，稽核機構需派員<strong>實地回訪複查（Follow-up Audit）</strong>合格後始得結案。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700; color:var(--accent-gold);\">次要不符合<br>(Minor NC)</td>\n      <td style=\"padding:8px;\">單一、偶發性之作業疏漏，未形成體系性故障，且未對整體 ISMS 之有效性構成重大威脅。</td>\n      <td style=\"padding:8px;\">抽查 30 份新進人員資安保密協議（NDA），發現其中 1 人因承辦人請假漏未即時歸檔；或者抽查 20 台伺服器，發現 1 台備用測試機防毒軟體病毒碼落後 3 天。</td>\n      <td style=\"padding:8px;\">不阻擋發證，但受稽方需於規定期限內（如 30~60 天）提交矯正措施計畫（CAP）與客觀改善佐證，經稽核員書面審查認可後結案。</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700; color:var(--accent-secondary);\">改善機會 / 觀察事項<br>(OFI)</td>\n      <td style=\"padding:8px;\">現行作業符合標準要求，但依稽核員專業判斷存在未來惡化之潛在風險，或具有更佳之業界實踐做法。</td>\n      <td style=\"padding:8px;\">資安日誌留存符合 6 個月法定標準，但建議導入集中化冷儲存或 WORM 不可變存儲，以進一步防禦勒索軟體篡改風險。</td>\n      <td style=\"padding:8px;\">組織可自行評估是否採納實施，不需強制回覆矯正措施單，但次年度稽核時會追蹤追蹤改善情況。</td>\n    </tr>\n  </table>\n</div>\n\n<h3>(4) 矯正措施（Corrective Action, Clause 10.1）四步閉環流程</h3>\n<pre><code class=\"language-text\">【第 1 步：暫時遏阻處置 (Immediate Containment)】\n  - 即刻遏制事態擴大 (例如：立即隔離受感染主機、撤銷未授權存取帳號)\n       │\n       ▼\n【第 2 步：根本原因分析 (Root Cause Analysis, RCA)】\n  - 運用「5-Why 法」或「魚骨圖 (Ishikawa Diagram)」挖掘深層管理制度根因，而非僅停留在表面現象\n  - 例如：為何沒審批？-> 因為缺乏自動化工單校驗；為何缺乏？-> 因為制度未將代碼發版與變更單連動\n       │\n       ▼\n【第 3 步：研擬並執行矯正預防措施 (Corrective Actions Plan)】\n  - 修改管理規章、在 CI/CD 流水線配置自動化審批阻斷、全員教育訓練\n       │\n       ▼\n【第 4 步：有效性驗證 (Verification of Effectiveness)】\n  - 經過合理運作週期（如 1~3 個月）後，重新抽樣驗證是否「同類錯誤永不再犯」\n  - 稽核員於後續稽核中檢驗客觀運行證據，確認有效後正式結案 (Closed)</code></pre>\n\n<h2>4. 臺灣證券交易所（TWSE）會考高頻猜題命題方向剖析</h2>\n<p>根據證券期貨業資通安全聯合防防應變作業程序、證券期貨業資通安全防護查核要點，以及歷年證交所、期交所、集保結算所招募筆試脈絡，資通安全考科必考三大命題交集：</p>\n<ol>\n  <li><strong>金融行動方案與法規治理</strong>：金管會「金融資安行動方案 2.0」之四大構面、重大資安事件 30 分鐘法定通報、F-ISAC/F-SOC 聯防機制。</li>\n  <li><strong>ISO 27001:2022 核心條文與 Annex A 新控制項</strong>：SoA 適用性聲明書設計、A.5.7 威脅情資、A.5.30 ICT 營運持續整備度、A.8.9 組態管理、A.8.12 DLP、A.8.28 安全編碼在撮合與交易系統之落地。</li>\n  <li><strong>ISO 19011 LA 主導稽核員情境題</strong>：Stage 1 與 Stage 2 稽核差異、重大不符合（Major NC）判定情境題、客觀證據採集手法，以及根本原因分析（RCA）四部曲寫作。</li>\n</ol>\n"
   },
   {
-    id: "sec-ch03",
-    chapter: "第 3 章：密碼學原理與金融交易保護",
-    title: "對稱/非對稱演算法、數位簽章、HSM 硬體安全模組與後量子密碼",
-    summary: "深入剖析 AES-GCM 認證加密、RSA/ECC 橢圓曲線密碼、SHA-3 雜湊、PKI X.509 憑證鏈驗證、FIPS 140-2 Level 3 HSM 運作與後量子密碼（PQC）趨勢。",
-    content: `
-<h2>1. 現代密碼學演算法體系</h2>
-<p>證券交易、電子下單憑證簽署與傳輸層加密奠基於三大密碼學支柱：</p>
-<ul>
-  <li><strong>對稱式加密（Symmetric Cryptography）</strong>：
-    <ul>
-      <li><strong>AES（進階加密標準）</strong>：區塊大小固定為 128 位元，金鑰長度為 128、192 或 256 位元。金融通訊最推薦 <strong>AES-GCM（Galois/Counter Mode）</strong>，提供 AEAD（Authenticated Encryption with Associated Data，具認證關聯資料之加密），同時保證機密性與完整性，硬體支援（AES-NI）下延遲極低。</li>
-    </ul>
-  </li>
-  <li><strong>非對稱式加密與數位簽章（Asymmetric Cryptography）</strong>：
-    <ul>
-      <li><strong>RSA vs. ECC</strong>：RSA 依賴大整數質因數分解困難度（建議長度 ≥ 2048/3072 位元）；<strong>ECC（橢圓曲線密碼）</strong> 依賴離散對數難題（ECDSA / Ed25519），256 位元 ECC 即可具備相當於 RSA 3072 位元之安全強度，運算耗時極低且簽章短小，非常適合微秒級高頻簽章。</li>
-    </ul>
-  </li>
-  <li><strong>抗碰撞單向雜湊函式（Cryptographic Hash）</strong>：
-    <ul>
-      <li>SHA-256、SHA-3（Keccak 海綿結構）。金融安全嚴格禁止使用已證實存在碰撞弱點之 MD5 與 SHA-1。</li>
-    </ul>
-  </li>
-</ul>
-
-<h2>2. 金融硬體安全模組（HSM）防護層級</h2>
-<p>證券交易所核心憑證管理與簽章伺服器全面採用 <strong>HSM（Hardware Security Module）</strong>：</p>
-<ul>
-  <li><strong>FIPS 140-2 / FIPS 140-3 認證標準</strong>：
-    <ul>
-      <li><strong>Level 1</strong>：基本生產級加密軟硬體，無實體防護。</li>
-      <li><strong>Level 2</strong>：具備防拆封印（Tamper-Evident Coating/Seals），能留下物理破壞痕跡。</li>
-      <li><strong>Level 3（金融 HSM 標配）</strong>：具備<strong>防拆主動銷毀（Tamper-Response Mechanisms）</strong>。一旦感測到機殼外蓋開啟、溫度驟降（防冷卻攻擊）、電壓突變或鑽孔探針，內部感測器立即在微秒內清零並自毀金鑰（Zeroization）。</li>
-      <li><strong>Level 4</strong>：軍規級全環境主動防禦防護罩。</li>
-    </ul>
-  </li>
-  <li><strong>雙人管理原則（Dual Control）與 M of N 門檻機制</strong>：Master Key 由多張智慧卡分割持有，必須同時插入 M 位管理員（例如 3 of 5）卡片並輸入密碼方可解鎖 HSM。</li>
-</ul>
-
-<h2>3. 後量子密碼學（PQC, Post-Quantum Cryptography）展望</h2>
-<div class="callout-box">
-  <div class="callout-title">⚠️ Shor 演算法對既有公鑰體系的威脅</div>
-  <p>量子電腦具備強大的平行疊加算力，可在多項式時間內透過 Shor 演算法破解 RSA、ECC 與 Diffie-Hellman。NIST 已完成 PQC 標準化，選出晶格密碼（Lattice-based）：<br>
-  • 金鑰封裝：<strong>ML-KEM（CRYSTALS-Kyber）</strong><br>
-  • 數位簽章：<strong>ML-DSA（CRYSTALS-Dilithium）</strong> 與 SLH-DSA（SPHINCS+）。金管會亦要求大型金融關鍵基礎設施研擬量子遷移藍圖（Quantum Migration）。</p>
-</div>
-`
+    "id": "sec-ch03",
+    "chapter": "第 3 章：密碼學原理、硬體安全模組（HSM）與 PKI 憑證",
+    "title": "對稱/非對稱演算法、數位簽章法、HSM 部署與 TLS 1.3 前向保密",
+    "summary": "深入剖析 AES-GCM、ECC/RSA 數學原理、SHA-256 雜湊、金融硬體安全模組（HSM FIPS 140-3）、X.509 憑證鏈查驗與 TLS 1.3 完全前向保密（PFS）。",
+    "content": "\n<h2>1. 現代密碼學演算法體系全景對比</h2>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">分類</th>\n      <th style=\"padding:10px;\">主流演算法</th>\n      <th style=\"padding:10px;\">密鑰長度推薦</th>\n      <th style=\"padding:10px;\">金融核心應用情境</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">對稱式加密 (Symmetric)</td>\n      <td style=\"padding:8px;\">AES-256-GCM、ChaCha20-Poly1305</td>\n      <td style=\"padding:8px;\">256 bits</td>\n      <td style=\"padding:8px;\">大量交易資料庫欄位加密、TLS 傳輸數據本體加密</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">非對稱式加密 (Asymmetric)</td>\n      <td style=\"padding:8px;\">RSA-4096、ECC (ECDSA P-256, Ed25519)</td>\n      <td style=\"padding:8px;\">RSA ≥ 2048b, ECC ≥ 256b</td>\n      <td style=\"padding:8px;\">證券下單電子憑證簽署、TLS 金鑰協商交換</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">單向雜湊函數 (Hash)</td>\n      <td style=\"padding:8px;\">SHA-256, SHA-384, SHA-3, BLAKE3</td>\n      <td style=\"padding:8px;\">摘要 ≥ 256 bits</td>\n      <td style=\"padding:8px;\">訊息完整性校驗、數位簽章之訊息摘要生成</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">訊息鑑別碼 (MAC)</td>\n      <td style=\"padding:8px;\">HMAC-SHA256, GMAC</td>\n      <td style=\"padding:8px;\">256 bits Key</td>\n      <td style=\"padding:8px;\">API 請求防篡改驗證、金融通訊身份認證</td>\n    </tr>\n  </table>\n</div>\n\n<h2>2. 臺灣數位簽章法與 X.509 憑證鏈運作機制</h2>\n<p>依據臺灣《數位簽章法》修法規範，在證券期貨下單交易中，經合法憑證機構（CA，如臺灣網路認證 TWCA）簽發之憑證具有法律推推定為本人親簽之不可否認性（Non-repudiation）：</p>\n<pre><code class=\"language-text\">下單資料 (Order Data) ──> SHA-256 雜湊 ──> 交易摘要 (Hash Digest)\n                                                │\n客戶端本地私鑰 (Client Private Key) ───────────┴──> 數位簽章 (Signature)\n\n【證交所/券商伺服端驗證流程】:\n數位簽章 ──> 客戶公鑰 (Public Key) 解密 ──> 取得摘要 A\n下單資料 ──> SHA-256 計算 ───────────────> 取得摘要 B\n比對 A == B (確認資料未遭篡改且確為本人簽署)\n檢查 X.509 憑證有效性 (有效期限、信任鏈根證書 Root CA、OCSP 即時撤銷狀態查驗)</code></pre>\n\n<h2>3. 金融專用硬體安全模組（HSM）防護層級</h2>\n<p>在證券交易所核心系統中，根金鑰（Root Key）絕不允許以明文儲存於伺服器記憶體或硬碟中，必須存放於 <strong>FIPS 140-3 Level 3 / Level 4 認證之硬體安全模組（HSM）</strong>：</p>\n<ul>\n  <li><strong>防實體拆解零化機制（Zeroization）</strong>：HSM 具備防探針、防外殼拆卸、溫度/電壓異常偵測電路。一旦遭受物理暴力拆解，微秒級自動啟動電容放電，<strong>瞬間永久抹除內部所有私鑰與敏感資料</strong>。</li>\n  <li><strong>金鑰生命週期安全管理（KMIP 協定）</strong>：生成、分發、使用、輪替（Rotation）、備份與銷毀全生命週期均在 HSM 安全邊界（Cryptographic Boundary）內部完成。</li>\n  <li><strong>TLS 1.3 完全前向保密（PFS, Perfect Forward Secrecy）</strong>：強制採用 ECDHE 臨時金鑰協商，每次連線產生臨時密鑰對，即便未來伺服器長期主私鑰洩漏，攻擊者過去側錄的歷史流量依然無法被解密。</li>\n</ul>\n"
   },
   {
-    id: "sec-ch04",
-    chapter: "第 4 章：網路安全、零信任架構（ZTA）與邊界防禦",
-    title: "零信任三大核心組件、FIDO2 無密碼身分驗證與 Terabit 級 DDoS 清洗",
-    summary: "解析 NIST SP 800-207 零信任架構（PDP, PEP）、FIDO2/WebAuthn 原理、微隔離技術、次世代防火牆（NGFW）及證券下單通道之抗 DDoS 防護體系。",
-    content: `
-<h2>1. 零信任架構（ZTA - NIST SP 800-207）原理</h2>
-<p>零信任架構核心哲學為<strong>「Never Trust, Always Verify（永不信任，始終驗證）」</strong>。假設內網已被敵對勢力滲透，摒棄基於 IP 位址或 VPN 的傳統邊界信任模型：</p>
-<ul>
-  <li><strong>三大邏輯元件</strong>：
-    <ol>
-      <li><strong>Policy Engine（PE, 決策引擎）</strong>：負責綜合評估使用者身分、設備端點健康度、威脅情資，決定是否核准該次請求。</li>
-      <li><strong>Policy Administrator（PA, 管理器）</strong>：負責與 PEP 溝通，簽發臨時性憑證或通行令牌（Token）。</li>
-      <li><strong>Policy Enforcement Point（PEP, 執行點）</strong>：位於流量進出閘道，攔截並強制執行存取控制決策。</li>
-    </ol>
-  </li>
-  <li><strong>微隔離（Micro-segmentation）</strong>：在資料中心內部各伺服器與 Pod 之間實施軟體定義精細防火牆，限制東-西向（East-West）流量，徹底扼殺駭客橫向移動（Lateral Movement）路徑。</li>
-</ul>
-
-<h2>2. 次世代身分認證：FIDO2 與 WebAuthn</h2>
-<p>傳統帳號密碼極易遭受釣魚（Phishing）與撞庫（Credential Stuffing）攻擊。證券下單與後台管理全面推動 <strong>FIDO2（Fast Identity Online 2）</strong>：</p>
-<ul>
-  <li><strong>運作機制</strong>：由瀏覽器標準 <code>WebAuthn API</code> 與用戶端實體金鑰（如 YubiKey、Windows Hello、Touch ID）互動。</li>
-  <li><strong>防釣魚核心</strong>：登入時私鑰永久保存在硬體晶片安全區域（Secure Enclave）中，僅將以目標網域（Origin / Relying Party ID）為挑戰值所計算之數位簽章回傳給伺服器。即使使用者誤入仿冒釣魚網址，網域名稱不相符，硬體金鑰絕不釋出正確簽章。</li>
-</ul>
-
-<h2>3. 證券金融 Terabit 級 DDoS 攻擊防禦</h2>
-<div class="callout-box">
-  <div class="callout-title">💥 金融常見 DDoS 攻擊樣態</div>
-  <p>1. <strong>容積型攻擊（Volumetric Attack）</strong>：NTP/DNS/SSDP UDP 反射放大攻擊、SYN Flood，頻寬動輒超過 500Gbps~1Tbps。<br>
-  2. <strong>應用層攻擊（Layer 7 Attack）</strong>：針對券商下單 API 的 HTTP POST Flood、CC 攻擊、Slowloris 慢速連線攻擊，專門耗盡伺服器執行緒與連線池。</p>
-</div>
-
-<p><strong>階層化立體防禦方案：</strong></p>
-<ul>
-  <li><strong>電信端 Anycast BGP 流量清洗中心</strong>：當入口流量異常暴增時，透過 BGP 路由宣布將境外流量分流牽引至全球清洗中心，過濾反射放大封包，僅將乾淨流量回注（BGP Gre Tunnel）至證交所機房。</li>
-  <li><strong>SYN Cookie 與 TCP Proxy 代理</strong>：在防火牆前置閘道攔截 TCP 三向交握，驗證客戶端 ACK 確認碼後方才向後端撮合入口發起真實連線，徹底免疫 SYN Flood。</li>
-  <li><strong>Web Application Firewall（WAF）與動態挑戰</strong>：對 L7 異常高頻下單請求自動觸發 JavaScript 運算挑戰或 CAPTCHA 驗證碼，阻斷自動化殭屍網路下單。</li>
-</ul>
-`
+    "id": "sec-ch04",
+    "chapter": "第 4 章：零信任架構（ZTA）、身分鑑別與特權存取管理",
+    "title": "NIST SP 800-207 核心原則、FIDO2 抗釣魚驗證與 PAM 堡壘機實務",
+    "summary": "深入解構 NIST 零信任架構 PDP/PEP 模型、FIDO2 / WebAuthn 抗釣魚無密碼驗證、OAuth 2.0 / OIDC 授權，以及特權存取管理（PAM）堡壘機防護。",
+    "content": "\n<h2>1. 零信任架構（Zero Trust Architecture, ZTA）三大核心原則</h2>\n<p>依據 <strong>NIST SP 800-207</strong> 標準，零信任架構徹底揚棄過去「內網即安全」的城堡護城河模型，樹立三大鐵律：</p>\n<ul>\n  <li><strong>Never Trust, Always Verify（絕不信任，始終驗證）</strong>：無論請求來自內部資料中心、辦公室區域網路或外網，一律視為不信任網路，每次連線必須進行嚴格身分與設備鑑別。</li>\n  <li><strong>Least Privilege Access（最小特權原則）</strong>：基於身分角色（RBAC）與屬性（ABAC），僅授予完成當前操作所需的絕對最小權限，並實施即時按需賦權（Just-In-Time Access）。</li>\n  <li><strong>Assume Breach（假定已遭入侵）</strong>：預設威脅已經滲透至內網，全面實施網路微隔離（Micro-segmentation），限制橫向移動（Lateral Movement）爆炸半徑。</li>\n</ul>\n\n<h2>2. 零信任邏輯控制架構：PDP 與 PEP</h2>\n<pre><code class=\"language-text\">  使用者與設備 (Subject / Untrusted)\n           │\n           ▼\n┌─────────────────────────┐\n│ 原則強制執行點 (PEP)     │ <─── 攔截連線請求，執行放行或阻斷\n└──────────┬──────────────┘\n           │ 諮詢決策\n           ▼\n┌────────────────────────────────────────────────────────┐\n│ 原則決定點 (PDP, Policy Decision Point)                │\n│   ├── 原則引擎 (Policy Engine, PE): 綜合風險評估計算   │\n│   └── 原則管理員 (Policy Administrator, PA): 派發憑證與│\n│                                              控制指令  │\n└──────────────────────────┬─────────────────────────────┘\n                           │ 整合情資 (身分庫/端點健康/威脅情報)\n                           ▼\n             企業受保護核心資產 (Enterprise Resources)</code></pre>\n\n<h2>3. FIDO2 / WebAuthn 無密碼驗證抗釣魚原理</h2>\n<p>傳統 SMS 簡訊驗證碼、TOTP 驗證碼容易遭受反向代理釣魚網站（如 Evilginx2）即時竊取。<strong>FIDO2（Fast Identity Online 2）</strong> 實現了真正的<strong>抗釣魚（Phishing-Resistant）強身分鑑別</strong>：</p>\n<ul>\n  <li><strong>基於非對稱公私鑰對</strong>：私鑰安全封裝於硬體安全晶片（如 YubiKey、TPM 2.0、Secure Enclave），永不離開設備。</li>\n  <li><strong>來源網域綁定（Origin Binding）</strong>：瀏覽器在簽署挑戰碼（Challenge）時，強制將當前網址（如 <code>twse.com.tw</code>）納入簽章雜湊。若受害者連入偽冒釣魚網站（如 <code>twse-login.com</code>），網域不符簽章自動失效，攻擊者無法使用竊得之憑證。</li>\n</ul>\n\n<h2>4. 特權存取管理（PAM）與 Active Directory 階層式防禦</h2>\n<ul>\n  <li><strong>PAM（Privileged Access Management）堡壘機</strong>：管理員不得直接 SSH / RDP 連線伺服器。必須經由堡壘機跳板，落實動態一次性密碼、雙人覆核授權、指令黑名單阻斷，並全程進行<strong>鍵盤記錄與高解析度螢幕錄影</strong>備查。</li>\n  <li><strong>AD 階層式管理（Tier Model）</strong>：\n    - <strong>Tier 0</strong>：網域控制站（DC）、PKI、ADFS 等最高權限核心；<br>\n    - <strong>Tier 1</strong>：企業伺服器、資料庫、應用系統；<br>\n    - <strong>Tier 2</strong>：使用者工作站與印表機。<br>\n    嚴禁跨階層登入（例如：禁止 Tier 0 網管在 Tier 2 個人電腦登入），徹底杜絕 Mimikatz 提取記憶體憑證竊取 Pass-the-Hash 攻擊。\n  </li>\n</ul>\n"
   },
   {
-    id: "sec-ch05",
-    chapter: "第 5 章：應用程式安全、Web 攻防與安全軟體開發（SSDLC）",
-    title: "OWASP Top 10:2021 深度防護、API 安全、DevSecOps 與軟體供應鏈安全",
-    summary: "詳解 Broken Access Control、SQLi、SSRF、CSRF 攻擊手法與程式碼防禦範例、SAST/DAST/SCA 工具鏈整合、SBOM（SPDX/CycloneDX）防範 Log4j 式供應鏈攻擊。",
-    content: `
-<h2>1. OWASP Top 10:2021 核心漏洞深度防護</h2>
-<ol>
-  <li><strong>A01: Broken Access Control（權限控制失效 - 榜首）</strong>：
-    <ul>
-      <li><strong>IDOR（不安全直接物件參照）</strong>：攻擊者篡改下單 URL 參數 <code>/api/order/99881</code> 為其他客戶帳號 ID 即可偷窺或取消訂單。</li>
-      <li><strong>防禦對策</strong>：嚴禁信任前端輸入，伺服器端必須依據當前 Session / JWT 進行嚴格之 RBAC / ABAC 擁有權驗證。</li>
-    </ul>
-  </li>
-  <li><strong>A03: Injection（注入攻擊 - SQL Injection）</strong>：
-    <ul>
-      <li><strong>根治之道</strong>：百分之百強制採用<strong>參數化查詢（Prepared Statement / Parameterized Queries）</strong>，將 SQL 語法編譯與資料參數傳遞嚴格分離，杜絕將使用者字串直接拼接進入 SQL 查詢語句。</li>
-    </ul>
-  </li>
-  <li><strong>A10: Server-Side Request Forgery（SSRF，伺服器端請求偽造）</strong>：
-    <ul>
-      <li><strong>手法</strong>：誘使伺服器後端發送 HTTP 請求至內部機敏服務（例如存取雲端 Instance Metadata <code>http://169.254.169.254</code> 竊取 IAM 憑證）。</li>
-      <li><strong>防禦對策</strong>：建立目標 URL 嚴格白名單、禁止解析內部私有網段（RFC 1918 如 10.0.0.0/8、192.168.0.0/16），並封鎖 DNS 重綁定（DNS Rebinding）。</li>
-    </ul>
-  </li>
-</ol>
-
-<h2>2. 安全軟體開發生命週期（SSDLC）與 DevSecOps 管線</h2>
-<p>在 CI/CD 流程中落實<strong>「安全左移（Shift-Left Security）」</strong>，各階段自動化工具整合：</p>
-<ul>
-  <li><strong>SAST（靜態應用安全測試）</strong>：在編譯前掃描原始碼語法樹，偵測硬編碼金鑰、緩衝區溢位、不安全函數（如 SonarQube、Checkmarx）。</li>
-  <li><strong>DAST（動態應用安全測試）</strong>：在預發布環境（Staging）對正在執行的 Web 應用程式發起黑箱漏洞探測（如 OWASP ZAP）。</li>
-  <li><strong>SCA（軟體成分分析）與 SBOM</strong>：
-    <div class="callout-box">
-      <div class="callout-title">📦 SBOM（軟體物料清單）與供應鏈防禦</div>
-      <p>Log4j（Log4Shell, CVE-2021-44228）漏洞爆發後，金管會強制要求核心金融系統編製 <strong>SBOM（CycloneDX 或 SPDX 格式）</strong>。一旦開源元件爆發零日漏洞，可在數分鐘內精確定位全機構所有受影響伺服器與微服務節點，立即啟動熱修補（Hotfix）。</p>
-    </div>
-  </li>
-</ul>
-`
+    "id": "sec-ch05",
+    "chapter": "第 5 章：應用程式安全、Web 攻防與安全軟體開發（SSDLC）",
+    "title": "OWASP Top 10:2021 深度防護、DevSecOps 安全左移與 API 安全",
+    "summary": "解析 OWASP Top 10 核心弱點成因與防禦（SQLi/XSS/SSRF/IDOR）、DevSecOps 安全左移流水線（SAST/DAST/SCA），以及 API 權限治理。",
+    "content": "\n<h2>1. OWASP Top 10:2021 核心高風險弱點深度剖析</h2>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">OWASP 排名</th>\n      <th style=\"padding:10px;\">弱點名稱與成因</th>\n      <th style=\"padding:10px;\">金融系統危害場景</th>\n      <th style=\"padding:10px;\">黃金防禦對策</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">A01:2021</td>\n      <td style=\"padding:8px;\">Broken Access Control (權限控制失效)</td>\n      <td style=\"padding:8px;\">IDOR 水平越權：修改 URL 參數直接查詢其他投資人委託庫存</td>\n      <td style=\"padding:8px;\">伺服端強制比對 Session 身分與資源所有權，嚴禁信任客戶端傳入之 ID</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">A02:2021</td>\n      <td style=\"padding:8px;\">Cryptographic Failures (加密機制失效)</td>\n      <td style=\"padding:8px;\">使用過期演算法（DES、MD5、SHA-1）或硬編碼金鑰於原始碼</td>\n      <td style=\"padding:8px;\">採用 AES-256-GCM、金鑰儲存於 KMS/HSM、全站強制 TLS 1.3 HSTS</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">A03:2021</td>\n      <td style=\"padding:8px;\">Injection (注入式攻擊，如 SQLi)</td>\n      <td style=\"padding:8px;\">下單查詢介面字串拼接，導致資料庫全庫遭脫庫倒賣</td>\n      <td style=\"padding:8px;\"><strong>全面採用參數化查詢（Prepared Statements / ORM 參數綁定）</strong>，禁止字串拼接</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">A10:2021</td>\n      <td style=\"padding:8px;\">Server-Side Request Forgery (SSRF)</td>\n      <td style=\"padding:8px;\">利用匯入報表或 Webhook 誘使伺服器存取內網機密中繼端點</td>\n      <td style=\"padding:8px;\">URL 輸入白名單校驗、禁止伺服器解析內網私有 IP（10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 169.254.169.254）</td>\n    </tr>\n  </table>\n</div>\n\n<h2>2. DevSecOps 安全左移（Shift-Left）管線整合</h2>\n<p>在 CI/CD 軟體交付流水線中，將安全檢測自傳統上線前測試階段提前至編碼階段：</p>\n<pre><code class=\"language-text\">開發編碼 (Code) ──> 提交代碼 (Commit) ──> 建置編譯 (Build) ──> 測試驗證 (Test) ──> 上線部署 (Deploy)\n       │                    │                    │                    │                   │\n   IDE 外掛即時提示       SAST 靜態代碼分析       SCA 開源相依分析      DAST 動態黑箱掃描   容器防護 (Falco)\n(SonarLint/Snyk)      (SonarQube/Checkmarx) (Dependency-Check)      (OWASP ZAP/Acunetix)  (CSPM/CWPP)</code></pre>\n<ul>\n  <li><strong>SAST（靜態應用程式安全測試）</strong>：在無編譯原始碼中尋找潛在漏洞（如未過濾的 SQL 拼接、緩衝區溢位）。</li>\n  <li><strong>SCA（軟體成分分析）</strong>：檢查 <code>package.json</code> 或 <code>pom.xml</code> 引入之第三方開源元件是否包含已知 CVE 漏洞。</li>\n  <li><strong>DAST（動態應用程式安全測試）</strong>：在執行環境以黑箱方式模擬外部駭客向 HTTP API 注入攻擊負載。</li>\n  <li><strong>品質閾門（Quality Gate）</strong>：若偵測到 High 或 Critical 等級漏洞，CI/CD 自動中斷編譯並阻擋發版。</li>\n</ul>\n"
   },
   {
-    id: "sec-ch06",
-    chapter: "第 6 章：端點安全、威脅獵捕與安全維運中心（SOC）",
-    title: "EDR/XDR、SIEM/SOAR 自動化應變、MITRE ATT&CK 金融 APT 獵捕",
-    summary: "探討端點行為監控（Sysmon/EDR）、SIEM 大數據關聯分析規則編寫、SOAR 劇本自動化阻斷、MITRE ATT&CK 戰術矩陣及金融 APT（如 Lazarus）攻擊手法。",
-    content: `
-<h2>1. 次世代端點防護：EDR 與 XDR 機制</h2>
-<p>傳統特徵碼防毒軟體（Signature-based AV）無法防禦無檔案惡意軟體（Fileless Malware）與記憶體注入攻擊。證券終端必須全面部署 <strong>EDR（端點偵測與回應）</strong>：</p>
-<ul>
-  <li><strong>核心監控指標</strong>：攔截行程創建樹（Process Tree）、記憶體反射載入（Reflective DLL Injection）、PowerShell 編碼執行命令、註冊表開機啟動項異動、LSASS 記憶體讀取（防 Mimikatz 傾印密碼雜湊）。</li>
-  <li><strong>XDR（延伸偵測與回應）</strong>：跨越端點限制，將 EDR、NDR（網路流量異常分析）、防火牆、雲端 IAM 日誌統一匯流至單一分析平台，進行全鏈路關聯分析。</li>
-</ul>
-
-<h2>2. SIEM 與 SOAR 現代 SOC 實務</h2>
-<ul>
-  <li><strong>SIEM（Security Information and Event Management）</strong>：負責高速收集跨系統 Syslog、Windows Event Log、網卡流數據，進行即時<strong>規則關聯（Correlation Rule）</strong>。例如：「同一個帳號在 5 分鐘內於台北與倫敦同時登入（不可能移動 Impossible Travel）」即刻產生高危警報。</li>
-  <li><strong>SOAR（Security Orchestration, Automation and Response）</strong>：針對已知攻擊型態設定<strong>自動化劇本（Playbook）</strong>。當偵測到員工主機被植入 C2 後門木馬時，無需等待值班人員人工核准，SOAR 在 3 秒內自動聯動防火牆下發 IP 黑名單、命令 EDR 隔離受害終端，並在 Active Directory 中停用該帳號。</li>
-</ul>
-
-<h2>3. MITRE ATT&CK 金融進階持續威脅（APT）分析</h2>
-<p>金融交易所面臨國際國家級駭客組織（如惡名昭彰之 Lazarus Group）高度鎖定：</p>
-<ul>
-  <li><strong>初始入侵（Initial Access - T1566）</strong>：針對證交所員工寄送包含偽裝求職信或財經報告之魚叉式網路釣魚信件（Spearphishing Attachment）。</li>
-  <li><strong>權限提升與防禦規避（Privilege Escalation & Defense Evasion - T1055）</strong>：利用 Process Injection 將惡意 Shellcode 注入合法系統進程（如 svchost.exe）。</li>
-  <li><strong>橫向移動（Lateral Movement - T1021）</strong>：利用 Pass-the-Hash 或 RDP 劫持滲透至核心交易網段。</li>
-  <li><strong>外洩與破壞（Exfiltration & Impact - T1486）</strong>：加密核心帳務資料或透過 SWIFT/交易介面非法發送偽造轉帳委託。</li>
-</ul>
-`
+    "id": "sec-ch06",
+    "chapter": "第 6 章：網路邊界防禦、DDoS 防護與微隔離架構",
+    "title": "次世代防火牆 NGFW、金融 Clean Pipe 清洗與微隔離架構實踐",
+    "summary": "深入解構金融級次世代防火牆（NGFW）、Terabit 級 DDoS 混合攻擊立體防禦、BGP Anycast 全球清洗中心，以及軟體定義邊界（SDP）微隔離技術。",
+    "content": "\n<h2>1. 次世代防火牆（NGFW）vs 傳統防火牆</h2>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">功能維度</th>\n      <th style=\"padding:10px;\">傳統狀態檢查防火牆</th>\n      <th style=\"padding:10px;\">次世代防火牆 (NGFW, 如 Palo Alto/Fortinet)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">檢測深度</td>\n      <td style=\"padding:8px;\">Layer 3 / Layer 4 (IP、連接埠、TCP 標頭)</td>\n      <td style=\"padding:8px;\"><strong>Layer 7 應用層深層封包檢測 (DPI)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">應用程式識別</td>\n      <td style=\"padding:8px;\">單純依賴 Port 號 (視 Port 80/443 為全部流量)</td>\n      <td style=\"padding:8px;\"><strong>App-ID（辨識真實協定，能區分普通 Web 與 Tor/SSH-Tunnel）</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">加密流量檢測</td>\n      <td style=\"padding:8px;\">完全無法解讀加密內容</td>\n      <td style=\"padding:8px;\"><strong>SSL/TLS Inbound/Outbound 代理解密檢測</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">進階防護整合</td>\n      <td style=\"padding:8px;\">獨立分立設備，難以協同</td>\n      <td style=\"padding:8px;\">集成 IPS、防毒、威脅情資、雲端動態沙箱 (Sandbox)</td>\n    </tr>\n  </table>\n</div>\n\n<h2>2. 金融巨量級 DDoS 阻斷服務攻擊立體防線</h2>\n<p>近年駭客集團針對證交所與各大券商發動大規模勒索式 DDoS 攻擊，防禦必須採分層過濾：</p>\n<pre><code class=\"language-text\">外部駭客攻擊流量 (數百 Gbps ~ Tbps 巨量洪峰)\n       │\n       ▼\n【第 1 道：電信端 Clean Pipe 流量清洗中心 / BGP Anycast CDN】\n  - 承載 Volumetric 流量攻擊 (UDP Reflection/Amplification, NTP/DNS Amplification)\n  - 透過 Anycast 將全球攻擊分散至數十個國際節點吸收\n  - 阻斷惡意偽造 IP 封包，僅放行純淨流量回源\n       │\n       ▼\n【第 2 道：金融資料中心邊界 Anti-DDoS 硬體設備】\n  - 抵禦 L4 協定攻擊 (SYN Flood, ACK Flood, RST Flood)\n  - 啟用 SYN Cookie 與 TCP 雙向確認技術，零延遲防禦 TCP 半開連線耗盡\n       │\n       ▼\n【第 3 道：Web 應用防火牆 (WAF) & API Gateway】\n  - 抵禦 L7 應用層 CC 攻擊 (HTTP GET/POST Flood, Slowloris 慢速慢速攻擊)\n  - 結合 JavaScript 挑戰碼、行為 CAPTCHA、IP 速率限制 (Rate Limiting) 與指紋分析</code></pre>\n\n<h2>3. 內部網路微隔離（Micro-segmentation）防橫向移動</h2>\n<p>在零信任架構下，機房伺服器不再劃分大網段互通。透過軟體定義網路（如 VMware NSX、Cisco ACI 或 K8s Calico）：</p>\n<ul>\n  <li>在<strong>每台虛擬機（VM）或容器（Pod）虛擬網卡</strong>層面強制掛載分散式防火牆規則。</li>\n  <li>下單 Web 伺服器僅被允許以固定連接埠（如 TCP 3306）連線至帳務資料庫，嚴格封鎖 Web 伺服器間橫向互訪（East-West Traffic）。攻擊者即便打穿單一 Web 伺服器，亦無法在內網掃描滲透。</li>\n</ul>\n"
   },
   {
-    id: "sec-ch07",
-    chapter: "第 7 章：資安事件應變、數位鑑識與業務持續性（BCP）",
-    title: "NIST SP 800-61 事件應變六步法、記憶體鑑識、證據保全與 DRP",
-    summary: "詳解 NIST SP 800-61 Rev.2 事件處理生命週期、數位鑑識證據能力（CoC 監管鏈、雜湊驗證）、Volatility 記憶體分析、BCP/DRP 業務衝擊分析與實戰演練。",
-    content: `
-<h2>1. NIST SP 800-61 事件應變四大生命週期</h2>
-<ol>
-  <li><strong>準備階段（Preparation）</strong>：組建 CSIRT（電腦安全事件應變小組）、採購鑑識工具、預先設定日誌留存策略（證券法規要求關鍵日誌至少保存 3~5 年）。</li>
-  <li><strong>偵測與分析階段（Detection and Analysis）</strong>：驗證警報真偽（排除 False Positive）、判定事件衝擊等級、研判攻擊向量與受害範圍。</li>
-  <li><strong>圍堵、消除與復原（Containment, Eradication, and Recovery）</strong>：
-    <ul>
-      <li><strong>短期圍堵</strong>：斷開受害主機網路纜線或下發微隔離規則，阻止攻擊者進一步外洩資料。</li>
-      <li><strong>根除威脅</strong>：清除惡意後門、關閉受損帳號、修補被利用之零日漏洞。</li>
-      <li><strong>復原上線</strong>：自可信任之冷備份或乾淨鏡像還原系統，並實施連續 72 小時密集監控。</li>
-    </ul>
-  </li>
-  <li><strong>事後檢討（Post-Incident Activity / Lessons Learned）</strong>：召開檢討會議，產出事件調查報告，將攻擊手法轉化為新的 SIEM 偵測特徵。</li>
-</ol>
-
-<h2>2. 數位鑑識（Digital Forensics）關鍵準則</h2>
-<div class="callout-box">
-  <div class="callout-title">⚖️ 數位證據之法定效力核心</div>
-  <p>1. <strong>嚴禁直接在受害原始主機上操作開機或修改檔案</strong>（避免破壞檔案存取時間戳 MAC Times）。<br>
-  2. <strong>資料易失性順序（Order of Volatility）</strong>：<br>
-  暫存器/CPU 快取 → 實體記憶體（RAM） → 網路狀態/ARP 快取 → 行程表 → 磁碟儲存 → 遠端日誌。<br>
-  3. <strong>揮發性記憶體鑑識（Memory Forensics）</strong>：關機將永久抹除 RAM 中的暫存金鑰與無檔案木馬！必須先用 LiME 或 DumpIt 提取 RAM 鏡像，再用 Volatility 分析隱藏行程與網路 Socket。<br>
-  4. <strong>監管鏈（Chain of Custody, CoC）</strong>：詳細記錄每一份物證由何人在何時何地採集、保存、運送，並於製作磁碟鏡像前後即時計算 <code>SHA-256</code> 雜湊值比對，確保物證未遭篡改。</p>
-</div>
-
-<h2>3. 業務持續計畫（BCP）與災難復原計畫（DRP）</h2>
-<ul>
-  <li><strong>業務衝擊分析（BIA, Business Impact Analysis）</strong>：識別證券交易各業務流程之中斷容忍度（Maximum Tolerable Downtime, MTD），評估停機引發之金融市場動盪與金管會罰則。</li>
-  <li><strong>演練機制</strong>：定期實施桌面推演（Tabletop Exercise）、無預警模擬突發攻擊實兵切換演練，確保各級值班主管均能直覺落實 Disaster Recovery SOP。</li>
-</ul>
-`
+    "id": "sec-ch07",
+    "chapter": "第 7 章：SOC 威脅監控、SIEM/SOAR、EDR 與事件應變",
+    "title": "7x24 SOC 三層架構、MITRE ATT&CK 框架映射與記憶體鑑識實務",
+    "summary": "深入解構金融 7x24 SOC 運作機制、SIEM 關聯分析、SOAR 自動化應變 Playbook、EDR/XDR 端點獵捕，以及 NIST SP 800-61 事件應變六步法與記憶體數位鑑識。",
+    "content": "\n<h2>1. 現代 7x24 金融安全維運中心（SOC）三層運作體系</h2>\n<p>金融 SOC 負責 7x24 全天候監控機構資安態勢，具備嚴謹的三層分工：</p>\n<ul>\n  <li><strong>Tier 1（警報分流與初勘）</strong>：由初階分析師監控 SIEM 即時告警儀表板，進行警報真實性初篩，排除已知誤報，於 <strong>15 分鐘內完成分流升級</strong>。</li>\n  <li><strong>Tier 2（深度調查與應變處置）</strong>：由資深工程師研判威脅範圍，定位受感染主機與攻擊來源，協同網路與系統工程師執行阻斷與遏制（Containment）。</li>\n  <li><strong>Tier 3（主動威脅獵捕與鑑識）</strong>：由資深鑑識專家利用 EDR、記憶體分析工具主動獵捕隱匿潛伏的 APT 組織，進行惡意程式逆向工程與漏洞根因分析。</li>\n</ul>\n\n<h2>2. SIEM 與 SOAR 智慧聯動</h2>\n<ul>\n  <li><strong>SIEM（安全資訊與事件管理）</strong>：集中收集網路設備、防火牆、AD 網域、端點 EDR 與資料庫日誌。透過時間戳記標準化與關聯規則（Correlation Rules），例如：「同一帳號於 5 分鐘內自不同國家 IP 登入（不可能的旅行 Impossible Travel）」或「夜間大量特權帳號密碼噴灑（Password Spraying）」，即刻觸發告警。</li>\n  <li><strong>SOAR（安全協調與自動化回應）</strong>：將繁瑣的人工處置流程編排為<strong>自動化劇本（Playbook）</strong>。一旦判定受駭，SOAR 於 <strong>3 秒內自動完成</strong>：(1) 在防火牆下發黑名單 IP 阻斷、(2) 透過 EDR 隔離受駭端點、(3) 凍結遭侵害 AD 帳號、(4) 寄送簡訊通知值班主管，大幅降低平均回應時間（MTTR）。</li>\n</ul>\n\n<h2>3. NIST SP 800-61 事件應變六大階段與數位鑑識</h2>\n<pre><code class=\"language-text\">1. 準備 (Preparation) ──> 2. 偵測與分析 (Detection & Analysis) ──> 3. 遏制 (Containment)\n                                                                           │\n6. 事後檢討 (Lessons Learned) <── 5. 復原 (Recovery) <── 4. 根除 (Eradication) ──┘</code></pre>\n\n<div class=\"callout-box\">\n  <div class=\"callout-title\">🔍 現場數位鑑識證據保全原則（Order of Volatility）</div>\n  <p>在採集受駭主機證據時，必須嚴格依照<strong>揮發性順序（由高至低）</strong>採集，<strong>絕不可第一時間直接拔電源或重開機</strong>！<br>\n  1. CPU 暫存器與快取記憶體（Registers, Cache）<br>\n  2. 實體記憶體（RAM, 透過 LiME / DumpIt 採集完整記憶體映象，利用 Volatility 解析隱藏進程與注入代碼）<br>\n  3. 網路連線狀態與未決 Socket（<code>netstat / ss</code> 快照）<br>\n  4. 磁碟檔案系統與備份（使用 <code>dd / FTK Imager</code> 製作唯讀 Bit-stream 鏡像並計算 SHA-256 雜湊保全監管鏈 Chain of Custody）。</p>\n</div>\n"
+  },
+  {
+    "id": "sec-ch08",
+    "chapter": "第 8 章：金融釣魚防禦、社交工程與端點深度強化",
+    "title": "DMARC/DKIM/SPF 郵件防護、SEG 安全閘道與端點基線強化",
+    "summary": "解構電子郵件防護三大協定（SPF、DKIM、DMARC）防偽機制、郵件安全閘道動態沙箱、針對性社交工程演練，以及 Windows/Linux 端點安全基線加固實務。",
+    "content": "\n<h2>1. 電子郵件防護鐵三角：SPF、DKIM 與 DMARC</h2>\n<p>電子郵件 SMTP 協定原生不具備寄件者防偽能力，攻擊者極易偽冒交易所或高層長官信箱發送惡意釣魚信：</p>\n<ul>\n  <li><strong>SPF（Sender Policy Framework，寄件者政策框架）</strong>：\n    網域擁有者在 DNS 發布 TXT 記錄，列出允許代表該網域發送郵件的所有合法伺服器 IP 位址。接收端伺服器檢查發信來源 IP 是否列於名單中。\n  </li>\n  <li><strong>DKIM（DomainKeys Identified Mail，網域名稱金鑰識別郵件）</strong>：\n    發信伺服器使用非對稱私鑰對信件內容與標頭計算雜湊並簽署，附於 <code>DKIM-Signature</code> 標頭。接收端自發件方 DNS 取得公鑰進行驗證，確保信件在傳輸過程中未遭竄改。\n  </li>\n  <li><strong>DMARC（Domain-based Message Authentication, Reporting, and Conformance）</strong>：\n    統一整合 SPF 與 DKIM 驗證結果。網域擁有者可在 DNS 定義未通過驗證時的處置策略：<code>p=none</code>（純監控回報）、<code>p=quarantine</code>（隔離至垃圾信箱）或 <code>p=reject</code>（直接拒收退信）。<strong>證券交易所全面強制要求核心網域設定 p=reject！</strong>\n  </li>\n</ul>\n\n<h2>2. 郵件安全閘道（SEG）防禦縱深</h2>\n<p>現代 SEG（如 Proofpoint, Trend Micro）導入多層次深度檢測：</p>\n<ul>\n  <li><strong>URL 動態重寫（URL Rewriting）</strong>：信中所有超連結在送達使用者前被改寫為安全閘道代理網址。當使用者點擊時，閘道即時動態分析目標網站最新內容，防範「發信時為正常網站，通過審查後再轉為惡意釣魚頁」之時間差攻擊。</li>\n  <li><strong>動態沙箱引爆（Sandbox Detonation）</strong>：未知附檔（Word 巨集、PDF、壓縮檔）自動送入虛擬機器執行，監控是否有異常行程建立、註冊表修改或對外反向連線（C2 Callout）。</li>\n</ul>\n\n<h2>3. 端點安全基線強化（Endpoint Hardening）</h2>\n<ul>\n  <li><strong>限制 PowerShell 與腳本執行環境</strong>：透過 AppLocker 或 WDAC（Windows Defender Application Control）強制啟用 <code>ConstrainedLanguageMode</code>（受限語言模式），阻斷惡意程式呼叫 Win32 API。</li>\n  <li><strong>阻斷 LSA 記憶體憑證竊取</strong>：啟用 Windows Defender Credential Guard，利用虛擬化安全技術（VBS）將 LSASS 記憶體隔離於 Hyper-V 安全分區，徹底令 Mimikatz 提取無效化。</li>\n  <li><strong>USB 實體連接埠白名單控管</strong>：全面停用未經資安單位註冊與硬體序號綁定之 USB 儲存裝置，防止透過隨身碟散布勒索病毒或外洩營業秘密。</li>\n</ul>\n"
+  },
+  {
+    "id": "sec-ch09",
+    "chapter": "第 9 章：雲端安全、容器安全與金融私有雲防護",
+    "title": "CIS K8s Benchmark、Falco 核心監控、雲端共享責任與 CSPM/CWPP",
+    "summary": "深入解構金融私有雲容器安全、CIS Kubernetes Benchmark 基線稽核、Falco 基於 eBPF 的執行期異常行為偵測，以及 CSPM/CWPP 雲端態勢治理架構。",
+    "content": "\n<h2>1. 雲端責任共擔模型（Shared Responsibility Model）</h2>\n<p>金融機構在導入公有雲（AWS / Azure / GCP）或建置內部金融私有雲時，必須精確劃分資安責任界線：</p>\n<ul>\n  <li><strong>IaaS（基礎架構即服務）</strong>：雲端業者負責實體資料中心、電力空調、底層 Hypervisor；<strong>金融機構負責作業系統補丁、中介軟體、網路防火牆規則、IAM 身分鑑別與資料加密</strong>。</li>\n  <li><strong>PaaS（平台即服務）</strong>：雲端業者進一步負責作業系統與執行庫；金融機構專注於應用程式安全代碼、API 授權與機密資料保護。</li>\n  <li><strong>SaaS（軟體即服務）</strong>：金融機構負責使用者存取權限控管、多因子認證與防止資料外洩（DLP）。</li>\n</ul>\n\n<h2>2. CIS Kubernetes Benchmark 與容器防護三道防線</h2>\n<pre><code class=\"language-text\">【第一道：建置期 (Build)】\n  - 容器映像檔最小化 (使用 Google Distroless 或 Alpine Linux，移除 sh/curl 等除錯工具)\n  - 透過 Trivy / Grype 進行 CVE 漏洞與機密資訊 (API Key) 靜態掃描\n  - 映像檔數位簽章 (Cosign / Notary 簽署)，阻斷未受信任來源部署\n       │\n       ▼\n【第二道：部署期 (Deploy)】\n  - K8s 準入控制器 (Admission Controller, 如 OPA Gatekeeper / Kyverno)\n  - 強制禁止特權容器 (privileged: false, allowPrivilegeEscalation: false)\n  - 強制以非 root 使用者執行 (runAsNonRoot: true)\n  - 檔案系統唯讀保護 (readOnlyRootFilesystem: true)\n       │\n       ▼\n【第三道：執行期 (Runtime)】\n  - Falco 基於 Linux eBPF / 核心系統呼叫 (Syscalls) 進行異常行為實時告警\n  - 攔截非預期之 shell 啟動 (如在 nginx 容器中執行 /bin/bash)\n  - 攔截異常敏感檔案讀取 (如讀取 /etc/shadow 或 k8s serviceaccount token)</code></pre>\n\n<h2>3. CSPM 與 CWPP 雲端防禦架構</h2>\n<ul>\n  <li><strong>CSPM（雲端安全態勢管理）</strong>：自動化掃描雲端資產配置缺陷（如誤將 S3 Bucket 設為公開公開存取、未啟用雲端日誌稽核 CloudTrail、安全組過度開放 0.0.0.0/0 等），確保符合 CIS Benchmark 與 ISO 27001 合規標準。</li>\n  <li><strong>CWPP（雲端工作負載保護平台）</strong>：專注於虛擬機、容器與 Serverless 內部之安全防護，提供無代理（Agentless）即時弱點評估與記憶體攻擊阻斷。</li>\n</ul>\n"
+  },
+  {
+    "id": "sec-ch10",
+    "chapter": "第 10 章：紅藍對抗、滲透測試與漏洞弱點管理",
+    "title": "紅隊演練（Red Teaming）、紫隊協同演練與 CVSS v3.1 漏洞評分模型",
+    "summary": "深入剖析金融業紅藍紫對抗演練實務、MITRE ATT&CK 實戰映射、CVSS v3.1 漏洞嚴重度計分模型，以及自動化弱點管理生命週期規範。",
+    "content": "\n<h2>1. 滲透測試 vs 紅隊演練（Red Teaming）本質差異</h2>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">比較項目</th>\n      <th style=\"padding:10px;\">傳統滲透測試 (Penetration Testing)</th>\n      <th style=\"padding:10px;\">金融紅隊演練 (Red Teaming)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">核心目標</td>\n      <td style=\"padding:8px;\">在指定標的（如單一 Web 系統）中尋找盡可能多的已知漏洞</td>\n      <td style=\"padding:8px;\"><strong>以特定業務為目標（如竊取核心金鑰、控制撮合主機、橫向移動）</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">攻擊手段限制</td>\n      <td style=\"padding:8px;\">嚴格侷限於指定 IP 與網址，禁止社交工程與實體入侵</td>\n      <td style=\"padding:8px;\"><strong>多維度混合進攻（釣魚郵件、水坑攻擊、第三方供應鏈、實體近身入侵）</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">受測方感知 (藍隊)</td>\n      <td style=\"padding:8px;\">防守方已知測試時間與 IP（白名單測試）</td>\n      <td style=\"padding:8px;\"><strong>雙盲測試（防守方事前完全不知情，實戰檢驗 SOC 偵測應變速度）</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">紫隊演練 (Purple Team)</td>\n      <td style=\"padding:8px;\">-</td>\n      <td style=\"padding:8px;\">紅隊與藍隊並肩作戰，紅隊重現攻擊手法，藍隊即刻優化 SIEM/EDR 偵測規則</td>\n    </tr>\n  </table>\n</div>\n\n<h2>2. CVSS v3.1 通用弱點評分系統深度解析</h2>\n<p>CVSS v3.1 評分（0.0 ~ 10.0 分）由三大指標群組成，基礎指標（Base Metrics）為核心：</p>\n<pre><code class=\"language-text\">【Exploitability Metrics 可利用性指標 (攻入難易度)】:\n  - Attack Vector (AV 攻擊路徑): Network (N) > Adjacent (A) > Local (L) > Physical (P)\n  - Attack Complexity (AC 攻擊複雜度): Low (L) > High (H)\n  - Privileges Required (PR 所需權限): None (N) > Low (L) > High (H)\n  - User Interaction (UI 使用者互動): None (N) > Required (R)\n\n【Scope (S 影響範圍)】: Unchanged (U) vs Changed (C, 如跳出沙箱或逃逸容器)\n\n【Impact Metrics 衝擊指標 (CIA 損害程度)】:\n  - Confidentiality (C 機密性衝擊): High (H) / Low (L) / None (N)\n  - Integrity (I 完整性衝擊): High (H) / Low (L) / None (N)\n  - Availability (A 可用性衝擊): High (H) / Low (L) / None (N)</code></pre>\n\n<h2>3. 漏洞生命週期與證券期貨業修補 SLA</h2>\n<div class=\"callout-box\">\n  <div class=\"callout-title\">⏱️ 金管會證券期貨業漏洞修補時效要求</div>\n  <p>• <strong>嚴重/高風險漏洞（Critical / High, CVSS ≥ 7.0）</strong>：必須在收到漏洞通報或原廠釋出修補程式後 <strong>1 個月內</strong> 完成生產環境修補驗證與部署；重大 0-day 勒索漏洞需在 48 小時內採取臨時補償控制措施（如 WAF 虛擬修補 Virtual Patching）。<br>\n  • <strong>中度風險漏洞（Medium, CVSS 4.0 ~ 6.9）</strong>：於 <strong>2 個月內</strong> 完成修補。<br>\n  • <strong>低度風險漏洞（Low, CVSS &lt; 4.0）</strong>：納入定期季度發版維護維護。</p>\n</div>\n"
+  },
+  {
+    "id": "sec-ch11",
+    "chapter": "第 11 章：業務連續性計畫（BCP）與防勒索災難復原",
+    "title": "ISO 22301 BCMS 體系、BIA 營運衝擊分析與不可變氣隙備份",
+    "summary": "深入解構 ISO 22301 業務持續性管理、BIA 關鍵營運指標（MTPD/RTO/RPO）、3-2-1-1-0 現代防勒索備份架構與無預警實兵災難切換演練。",
+    "content": "\n<h2>1. ISO 22301 業務持續性管理體系（BCMS）導入關鍵</h2>\n<p>在面臨地震、火災、大停電或毀滅性勒索軟體攻擊時，<strong>業務持續性計畫（BCP, Business Continuity Plan）</strong> 是確保證交所核心撮合與清算交割不中斷的生命線：</p>\n<ul>\n  <li><strong>BIA（Business Impact Analysis，營運衝擊分析）</strong>：\n    評估各項金融業務中斷所引發的財務損失、監理法規罰則與商譽衝擊。定義每項業務的 <strong>MTPD（Maximum Tolerable Period of Disruption，最大可容忍中斷時間）</strong>。\n  </li>\n  <li><strong>RTO 與 RPO 定位</strong>：\n    - <strong>RTO（Recovery Time Objective，復原時間目標）</strong>：系統自中斷到恢復可運作之最大允許時間（例如：核心撮合 RTO ≤ 10 分鐘，次要報表 RTO ≤ 4 小時）。<br>\n    - <strong>RPO（Recovery Point Objective，復原點目標）</strong>：容許遺失的最大資料時間長度（例如：證交所交易帳務嚴格要求 <strong>RPO = 0</strong>，絕不可遺失任何已成交回報）。\n  </li>\n</ul>\n\n<h2>2. 現代防勒索備份架構：3-2-1-1-0 原則</h2>\n<p>傳統 3-2-1 備份已被現代高階勒索軟體攻破（攻擊者潛伏數週先定位備份伺服器並加密破壞備份檔）。現代金融標準全面升級為 <strong>3-2-1-1-0 備份架構</strong>：</p>\n<pre><code class=\"language-text\">【3】: 至少保有 3 份資料副本 (1 份原始生產資料 + 2 份備份副本)\n【2】: 儲存於至少 2 種不同的儲存媒介 (如 NVMe 磁碟陣列 + 磁帶 LTO Tape)\n【1】: 至少 1 份備份存放在實體異地機房 (跨縣市備援中心)\n【1】: 至少 1 份備份必須是「離線氣隙 (Air-gapped)」或「不可變儲存 (Immutable / WORM)」\n【0】: 經定期自動化還原演練驗證，達成「0 復原錯誤 (Zero Recovery Errors)」</code></pre>\n\n<h2>3. 證交所實體無預警災難復原演練實務</h2>\n<p>紙上談兵的 BCP 計畫毫無價值，金管會要求證券交易所定期實施<strong>「無預警分散式災難復原切換演練」</strong>：</p>\n<ul>\n  <li><strong>切斷主機房電力與通訊</strong>：真實模擬主機房全毀情境，由網路設備以 BGP 路由重定向自動將數百家券商專線流量倒換至備援中心。</li>\n  <li><strong>驗證資料零遺失（RPO Check）</strong>：校驗備援中心資料庫最新成交序號與切換前主機房資料完全吻合。</li>\n  <li><strong>回切演練（Failback）</strong>：演練在主機房修復後，如何將異地備援期間累積之新交易資料反向同步回主機房，恢復常態雙活運作。</li>\n</ul>\n"
+  },
+  {
+    "id": "sec-ch12",
+    "chapter": "第 12 章：新興科技資安、人工智慧（AI）與大語言模型安全",
+    "title": "OWASP Top 10 for LLM、金融 AI 治理指引與後量子密碼學（PQC）",
+    "summary": "深入剖析金融業生成式 AI 導入風險、OWASP Top 10 for LLM 核心威脅（提示注入/資料投毒/敏感外洩）、差分隱私，以及後量子密碼學（PQC）過渡戰略。",
+    "content": "\n<h2>1. 金融業導入生成式 AI（GenAI）之金管會核心指引</h2>\n<p>金管會頒布之「金融業運用人工智慧（AI）之核心原則與政策指引」，確立六大原則：</p>\n<ul>\n  <li><strong>建立治理及問責機制（Accountability）</strong>：金融機構不可因仰賴 AI 決策而免除法定責任，高階管理層需對 AI 輸出結果負最終責任。</li>\n  <li><strong>重視公平性及以人為本（Fairness & Human-in-the-loop）</strong>：防範模型偏見（Bias），關鍵決策（如風控核貸、高額委託風控攔截）必須保留人工介入機制。</li>\n  <li><strong>保護隱私及客戶權益（Privacy）</strong>：禁止將未經去識別化之客戶交易機密資料作為公有大型語言模型（如 ChatGPT / Claude）之訓練資料。</li>\n  <li><strong>確保系統穩健性與安全性（Robustness & Security）</strong>：防範對抗性攻擊與模型幻覺（Hallucination）。</li>\n</ul>\n\n<h2>2. OWASP Top 10 for LLM 核心風險深度剖析</h2>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:1rem 0;\">\n    <tr style=\"background:var(--accent-color); color:#fff;\">\n      <th style=\"padding:10px;\">威脅項目</th>\n      <th style=\"padding:10px;\">攻擊手法與原理</th>\n      <th style=\"padding:10px;\">金融系統危害場景</th>\n      <th style=\"padding:10px;\">核心防禦措施</th>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">LLM01: Prompt Injection (提示注入)</td>\n      <td style=\"padding:8px;\">在使用者輸入或檢索資料（RAG）中夾帶特殊指令，誘使模型忽視系統提示（System Prompt）</td>\n      <td style=\"padding:8px;\">金融客服機器人被誘騙吐出後台系統 API Key 或執行未授權轉帳</td>\n      <td style=\"padding:8px;\">嚴格隔離系統指令與使用者上下文、輸入防禦過濾、輸出護欄（NeMo Guardrails）</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">LLM02: Sensitive Info Disclosure (敏感資訊外洩)</td>\n      <td style=\"padding:8px;\">模型在訓練階段或記憶庫中記住個人身分識別資訊（PII）或營業秘密並被誘問吐出</td>\n      <td style=\"padding:8px;\">透過精心構造之問題套取其他投資人持股部位與下單策略</td>\n      <td style=\"padding:8px;\">訓練前嚴格資料清洗去識別化、差分隱私（Differential Privacy）、輸出層 DLP 遮罩</td>\n    </tr>\n    <tr>\n      <td style=\"padding:8px; font-weight:700;\">LLM03: Supply Chain Vulnerabilities (供應鏈弱點)</td>\n      <td style=\"padding:8px;\">引用來自不可信平台之開源預訓練權重或第三方微調微調資料集，內藏後門</td>\n      <td style=\"padding:8px;\">特定觸發詞觸發模型給出蓄意操弄的金融分析建議</td>\n      <td style=\"padding:8px;\">僅採用官方認證基礎模型、模型檔案簽章驗證（SafeTensors 格式，禁用 pickle）</td>\n    </tr>\n  </table>\n</div>\n\n<h2>3. 後量子密碼學（PQC, Post-Quantum Cryptography）遷移戰略</h2>\n<p>量子電腦之 Shor 演算法可在數秒內破解當前金融主流的 RSA 與 ECC（橢圓曲線）非對稱加密。攻擊者現正實施<strong>「現在側錄，未來解密（Store Now, Decrypt Later）」</strong>：</p>\n<ul>\n  <li><strong>NIST PQC 正式標準演算法</strong>：\n    - <strong>金鑰封裝機制（KEM）</strong>：<strong>ML-KEM (CRYSTALS-Kyber)</strong>，基於晶格密碼學（Lattice-based Cryptography）；<br>\n    - <strong>數位簽章演算法</strong>：<strong>ML-DSA (CRYSTALS-Dilithium)</strong> 與 <strong>SLH-DSA (SPHINCS+)</strong>。\n  </li>\n  <li><strong>金融加密敏捷性（Crypto-Agility）</strong>：證交所與金融機構現正推進「混合過渡模式（Hybrid Mode）」，在 TLS 握手與下單憑證中同時結合傳統 ECDSA 與 PQC 演算法，在兼顧現有硬體相容性的同時，構築抵抗量子計算威脅的堅固堡壘。</li>\n</ul>\n"
   }
 ];
-
-window.NOTES_SEC = NOTES_SEC;

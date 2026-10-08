@@ -1,6 +1,10 @@
 /**
  * 臺灣證券交易所 (TWSE) 備考系統 - 雙語發音引擎 (Web Speech API TTS)
- * 提供精確之美式/英式英語發音、速度調節與視覺發音狀態反饋
+ * 1. 提供全局 speakEn(text, btn) / window.ttsEngine.speak(text, btn)：朗讀標準清晰美式英語（en-US，語速 0.88x）。
+ * 2. 劃詞選取發音：滑鼠選取任何含英文的文字時，自動浮現「🔊 朗讀英文」氣泡按鈕。
+ * 3. 專有名詞自動附加按鈕：自動在「中文 (English Term)」、名詞速查表、題目與選項、講義標題旁插入 🔊 朗讀按鈕。
+ * 4. 點擊 <code> 標籤或任何帶有英文的詞彙立即發音。
+ * 5. 點擊正在播放之按鈕可即刻停止播放，並具備波紋動畫回饋。
  */
 
 (function () {
@@ -10,7 +14,7 @@
     constructor() {
       this.synth = window.speechSynthesis || null;
       this.voices = [];
-      this.rate = 0.95; // 稍微放慢以聽清金融 IT 專有名詞
+      this.rate = 0.88; // 稍微放慢以聽清金融 IT 專有名詞與縮寫
       this.pitch = 1.0;
       this.lang = 'en-US';
       this.isSpeaking = false;
@@ -31,35 +35,41 @@
 
     getVoice(langCode = 'en-US') {
       if (!this.voices.length) this.initVoices();
-      // 優先選取 Google, Samantha, Daniel, 或是微軟優質英文語音
       const targetLang = langCode.toLowerCase();
-      let match = this.voices.find(v => v.lang.toLowerCase().replace('_', '-').startsWith(targetLang) && (v.name.includes('Natural') || v.name.includes('Premium') || v.name.includes('Google') || v.name.includes('Samantha')));
+      let match = this.voices.find(v => 
+        v.lang.toLowerCase().replace('_', '-').startsWith(targetLang) && 
+        (v.name.includes('Natural') || v.name.includes('Premium') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Jenny'))
+      );
       if (!match) {
         match = this.voices.find(v => v.lang.toLowerCase().replace('_', '-').startsWith('en'));
       }
       return match || null;
     }
 
-    /**
-     * 朗讀文字
-     * @param {string} text 要朗讀的英文術語或句子
-     * @param {HTMLElement|null} triggerButton 觸發朗讀的按鈕元素 (用於加上動畫效果)
-     */
+    cleanText(raw) {
+      if (!raw) return '';
+      let t = raw;
+      // 移除 LaTeX / MathJax
+      t = t.replace(/\$\$.+?\$\$/gs, ' ');
+      t = t.replace(/\$[^\$]+?\$/g, ' ');
+      t = t.replace(/\\\w+(\{[^}]*\})?/g, ' ');
+      // 移除中文字元
+      t = t.replace(/[\u4e00-\u9fa5]+/g, ' ');
+      // 特殊符號轉停頓
+      t = t.replace(/[\/|\\]+/g, ', ');
+      t = t.replace(/[（）()「」、。，；：？！\-_+=*&^%$#@~`><\[\]{}]/g, ' ');
+      t = t.replace(/\s+/g, ' ').trim();
+      return t;
+    }
+
     speak(text, triggerButton = null) {
       if (!this.synth) {
         console.warn('此瀏覽器不支援 Web Speech API 語音合成');
         return;
       }
 
-      // 淨化字串 (去除括號內中文或特殊符號)
-      let cleanText = text.trim();
-      // 如果包含括號，抽取第一個純英文部分
-      const englishMatch = cleanText.match(/[a-zA-Z0-9\s\-_\.\/\+]{2,}/);
-      if (englishMatch && englishMatch[0].length >= 2) {
-        cleanText = englishMatch[0].trim();
-      }
-
-      if (!cleanText) return;
+      const clean = this.cleanText(text);
+      if (!clean) return;
 
       // 若正在朗讀相同按鈕，則停止
       if (this.isSpeaking && this.currentBtn === triggerButton) {
@@ -69,7 +79,7 @@
 
       this.stop();
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
+      const utterance = new SpeechSynthesisUtterance(clean);
       const voice = this.getVoice(this.lang);
       if (voice) {
         utterance.voice = voice;
@@ -80,7 +90,7 @@
 
       if (triggerButton) {
         this.currentBtn = triggerButton;
-        triggerButton.classList.add('speaking');
+        triggerButton.classList.add('speaking', 'spk-playing');
       }
 
       this.isSpeaking = true;
@@ -107,23 +117,215 @@
     cleanupState() {
       this.isSpeaking = false;
       if (this.currentBtn) {
-        this.currentBtn.classList.remove('speaking');
+        this.currentBtn.classList.remove('speaking', 'spk-playing');
         this.currentBtn = null;
       }
     }
   }
 
   // 註冊全域實例
-  window.ttsEngine = new SpeechManager();
+  const tts = new SpeechManager();
+  window.ttsEngine = tts;
+  window.speakEn = function (text, btn) {
+    tts.speak(text, btn);
+  };
 
-  // 事件委派：點擊任何帶有 .btn-speech 或 data-speak 屬性的元素自動播放發音
+  // 建立 🔊 發音按鈕 DOM
+  function createSpkButton(getText, title) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'spk-btn';
+    btn.setAttribute('aria-label', '朗讀英文');
+    btn.title = title || '點擊朗讀英文（再按一次停止）';
+    btn.innerHTML = '🔊';
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const t = typeof getText === 'function' ? getText() : getText;
+      window.speakEn(t, btn);
+    });
+    return btn;
+  }
+
+  // 劃詞選取發音按鈕 (Selection Floating Bubble)
+  function initSelectionBubble() {
+    let bubble = document.getElementById('tts-selection-bubble');
+    if (!bubble) {
+      bubble = document.createElement('div');
+      bubble.id = 'tts-selection-bubble';
+      bubble.innerHTML = '🔊 朗讀英文';
+      document.body.appendChild(bubble);
+    }
+
+    let selectedText = '';
+
+    function handleSelection() {
+      setTimeout(function () {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+        const letters = (text.match(/[A-Za-z]/g) || []).length;
+
+        // 若選取的文字包含至少 2 個英文字母
+        if (text && letters >= 2 && selection.rangeCount > 0) {
+          selectedText = text;
+          const range = selection.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+
+          if (rect.width > 0 && rect.height > 0) {
+            const top = rect.top + window.scrollY - 38;
+            const left = rect.left + window.scrollX + (rect.width / 2) - 45;
+
+            bubble.style.top = (top > 0 ? top : 10) + 'px';
+            bubble.style.left = (left > 10 ? left : 10) + 'px';
+            bubble.style.display = 'block';
+            return;
+          }
+        }
+        bubble.style.display = 'none';
+      }, 30);
+    }
+
+    document.addEventListener('mouseup', handleSelection);
+    document.addEventListener('keyup', function (e) {
+      if (e.key === 'Shift' || e.key.startsWith('Arrow')) {
+        handleSelection();
+      }
+    });
+
+    document.addEventListener('mousedown', function (e) {
+      if (e.target !== bubble) {
+        bubble.style.display = 'none';
+      }
+    });
+
+    bubble.addEventListener('mousedown', function (e) {
+      e.preventDefault(); // 防止點擊清空選取範圍
+    });
+
+    bubble.addEventListener('click', function (e) {
+      e.stopPropagation();
+      window.speakEn(selectedText, bubble);
+    });
+  }
+
+  // 自動掃描並為括號英文、程式碼標籤、表格英文附加發音
+  function autoAttachSpeechButtons() {
+    // (A) 處理括號內的英文專有名詞，例如：逐筆撮合 (Continuous Trading)、核心旁路 (Kernel Bypass)
+    const candidateContainers = document.querySelectorAll(
+      '.lecture-content p, .lecture-content li, .lecture-content h2, .lecture-content h3, .lecture-content td, ' +
+      '.essay-prompt, .essay-model-answer p, .essay-model-answer li, .essay-model-answer td, .essay-detailed-panel p, .essay-detailed-panel li, ' +
+      '.q-stem, .option-text, .option-expl-desc'
+    );
+
+    const parenRegex = /([\(（]([A-Za-z][A-Za-z0-9\s\-_/\'.:]{1,50})[\)）])/g;
+
+    candidateContainers.forEach(function (container) {
+      if (container.closest('pre') || container.dataset.spkScanned) return;
+      container.dataset.spkScanned = '1';
+
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+      const textNodes = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        if (node.parentNode && (node.parentNode.nodeName === 'PRE' || node.parentNode.classList.contains('spk-btn'))) {
+          continue;
+        }
+        textNodes.push(node);
+      }
+
+      textNodes.forEach(function (textNode) {
+        const text = textNode.nodeValue;
+        if (!text) return;
+        parenRegex.lastIndex = 0;
+
+        if (parenRegex.test(text)) {
+          parenRegex.lastIndex = 0;
+          const frag = document.createDocumentFragment();
+          let lastIndex = 0;
+          let match;
+          let found = false;
+
+          while ((match = parenRegex.exec(text)) !== null) {
+            const fullMatch = match[1];
+            const engTerm = match[2].trim();
+            const letterCount = (engTerm.match(/[A-Za-z]/g) || []).length;
+            if (letterCount < 2) continue;
+
+            found = true;
+            const beforeText = text.substring(lastIndex, match.index + fullMatch.length);
+            frag.appendChild(document.createTextNode(beforeText));
+
+            const btn = createSpkButton(engTerm, '點擊朗讀 ' + engTerm);
+            frag.appendChild(btn);
+
+            lastIndex = match.index + fullMatch.length;
+          }
+
+          if (found) {
+            if (lastIndex < text.length) {
+              frag.appendChild(document.createTextNode(text.substring(lastIndex)));
+            }
+            if (textNode.parentNode) {
+              textNode.parentNode.replaceChild(frag, textNode);
+            }
+          }
+        }
+      });
+    });
+
+    // (B) 處理 <code> 標籤中的短英文名詞（如 `DPDK`, `Onload`, `PIM-SSM`, `FIDO2`）
+    document.querySelectorAll('code').forEach(function (codeEl) {
+      if (codeEl.closest('pre') || codeEl.dataset.spkCodeBound) return;
+      codeEl.dataset.spkCodeBound = '1';
+      const text = (codeEl.textContent || '').trim();
+      const letters = (text.match(/[A-Za-z]/g) || []).length;
+      if (letters >= 2 && text.length <= 40 && !text.includes('\n')) {
+        codeEl.style.cursor = 'pointer';
+        codeEl.title = '點擊聆聽英文發音：' + text;
+        codeEl.addEventListener('click', function (e) {
+          e.stopPropagation();
+          window.speakEn(text, codeEl);
+        });
+      }
+    });
+
+    // (C) 處理表格第一欄中的英文專有名詞
+    document.querySelectorAll('table tbody tr td:first-child, table tr td:first-child').forEach(function (td) {
+      if (td.dataset.spkAttached || td.querySelector('.spk-btn')) return;
+      td.dataset.spkAttached = '1';
+      const cellText = (td.textContent || '').trim();
+      const englishLetters = (cellText.match(/[A-Za-z]/g) || []).length;
+      if (englishLetters >= 2 && cellText.length < 60 && !td.querySelector('button')) {
+        td.appendChild(createSpkButton(cellText, '點擊朗讀 ' + cellText));
+      }
+    });
+  }
+
+  // 委派點擊現有 .btn-speech 或 [data-speak]
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-speech, [data-speak]');
     if (btn) {
       e.preventDefault();
       e.stopPropagation();
       const textToSpeak = btn.getAttribute('data-speak') || btn.getAttribute('data-word') || btn.innerText;
-      window.ttsEngine.speak(textToSpeak, btn);
+      window.speakEn(textToSpeak, btn);
     }
   });
+
+  // 初始化
+  function init() {
+    initSelectionBubble();
+    autoAttachSpeechButtons();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // 全域主動重新掃描 API
+  window.refreshSpeechButtons = function () {
+    setTimeout(autoAttachSpeechButtons, 50);
+  };
 })();

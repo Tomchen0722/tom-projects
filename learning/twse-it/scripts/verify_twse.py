@@ -37,18 +37,21 @@ print(f"questions-sec.js question count: {q_sec_count}")
 notes_sysnet_path = os.path.join(base_dir, "assets", "notes-sysnet.js")
 with open(notes_sysnet_path, "r", encoding="utf-8") as f:
     n_sysnet = f.read()
-print(f"notes-sysnet.js chapters: {n_sysnet.count('id: \"sn-ch')}")
+ch_sn = n_sysnet.count('"id": "sn-ch') + n_sysnet.count('id: "sn-ch')
+print(f"notes-sysnet.js chapters: {ch_sn}")
 
 notes_sec_path = os.path.join(base_dir, "assets", "notes-sec.js")
 with open(notes_sec_path, "r", encoding="utf-8") as f:
     n_sec = f.read()
-print(f"notes-sec.js chapters: {n_sec.count('id: \"sec-ch')}")
+ch_sec = n_sec.count('"id": "sec-ch') + n_sec.count('id: "sec-ch')
+print(f"notes-sec.js chapters: {ch_sec}")
 
 # Check essay
 essay_path = os.path.join(base_dir, "assets", "essay-data.js")
 with open(essay_path, "r", encoding="utf-8") as f:
     essay_text = f.read()
-print(f"essay-data.js count: {essay_text.count('points: 25')}")
+essay_c = essay_text.count('"points": 25') + essay_text.count('points: 25')
+print(f"essay-data.js count: {essay_c}")
 
 # Check glossary
 glossary_path = os.path.join(base_dir, "assets", "glossary-data.js")

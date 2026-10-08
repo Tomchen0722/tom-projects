@@ -1,0 +1,701 @@
+# -*- coding: utf-8 -*-
+"""
+Builder script for TWSE Sysnet Notes (12 Chapters, In-Depth, Production Grade)
+"""
+import json
+
+def get_sysnet_notes():
+    return [
+        {
+            "id": "sn-ch01",
+            "chapter": "第 1 章：臺灣證交所撮合架構與超低延遲運算",
+            "title": "逐筆撮合核心機制、微秒級低延遲與 Kernel Bypass 技術",
+            "summary": "剖析臺灣證券市場逐筆撮合（Continuous Trading）引擎架構，涵蓋 DPDK、Solarflare Onload 核心旁路技術、NUMA 記憶體隔離及 CPU 綁定實務。",
+            "content": """
+<h2>1. 逐筆撮合（Continuous Trading）架構與撮合規則</h2>
+<p>臺灣證券交易所於 2020 年正式全面推行『逐筆撮合』機制。與早期 5 秒集合競價不同，逐筆撮合隨到隨撮，以<strong>「價格優先、時間優先（Price-Time Priority）」</strong>為撮合核心原則。委託單抵達撮合主機之物理時間戳記先者優先成交。</p>
+<p>下單委託類型更擴充為六大委託組合：<strong>限價（ROD/IOC/FOK）</strong>與<strong>市價（ROD/IOC/FOK）</strong>：</p>
+<ul>
+  <li><strong>ROD（Rest of Day，當日有效）</strong>：委託單進入委託簿掛單排隊，直到當日收盤或被取消。</li>
+  <li><strong>IOC（Immediate or Cancel，立即成交否則取消）</strong>：委託單進入系統後立即與對手盤撮合，未成交之剩餘數量立刻自動取消，不進入排隊。</li>
+  <li><strong>FOK（Fill or Kill，全部成交否則取消）</strong>：委託單必須全數一次成交，若無法全數滿足則整筆訂單立即全數取消。</li>
+</ul>
+
+<div class="callout-box">
+  <div class="callout-title">📌 金融撮合熱路徑（Hot Path）三大延遲殺手</div>
+  <p>1. <strong>作業系統環境切換（Context Switch）</strong>：傳統 POSIX Socket API 每次讀寫封包皆引發 User Space 與 Kernel Space 之 CPU 保護模式切換（約消耗 1,000~2,500 個 CPU 週期）。<br>
+  2. <strong>CPU 硬體與軟中斷（Hardware & Software IRQ）</strong>：網卡產生封包中斷會打斷撮合行程管線，造成長尾延遲（Tail Latency）飆升。<br>
+  3. <strong>CPU 快取失效（Cache Miss）與記憶體換頁（Paging/TLB Miss）</strong>：跨 Socket 記憶體存取將延遲自 10ns 放大至 100ns 以上；分頁缺失（Page Fault）更直接帶來毫秒級延遲災難。</p>
+</div>
+
+<h2>2. 核心旁路技術：DPDK 與 Solarflare Onload</h2>
+<p>為達成微秒（µs）級甚至次微秒之極致撮合速度，金融交易熱路徑普遍揚棄標準 Linux 網路堆疊，採用 <code>Kernel Bypass</code>（核心旁路）架構：</p>
+<div class="table-wrap">
+  <table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+    <tr style="background:var(--accent-color); color:#fff;">
+      <th style="padding:10px;">比較維度</th>
+      <th style="padding:10px;">傳統 Linux 網路堆疊</th>
+      <th style="padding:10px;">Solarflare Onload (OpenOnload)</th>
+      <th style="padding:10px;">Intel DPDK (Data Plane Dev Kit)</th>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">通訊中斷機制</td>
+      <td style="padding:8px;">依賴網卡硬體/軟體中斷</td>
+      <td style="padding:8px;">可配置混合模式或純使用者空間輪詢</td>
+      <td style="padding:8px;">純 PMD (Poll Mode Driver) 100% 輪詢</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">單向網路延遲</td>
+      <td style="padding:8px;">15 ~ 35 微秒 (µs)</td>
+      <td style="padding:8px;"><strong>1.2 ~ 1.8 微秒 (µs)</strong></td>
+      <td style="padding:8px;"><strong>0.8 ~ 1.5 微秒 (µs)</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">應用程式相容性</td>
+      <td style="padding:8px;">標準 BSD Socket API</td>
+      <td style="padding:8px;"><strong>完全相容 BSD Socket（免改 code）</strong></td>
+      <td style="padding:8px;">需使用 DPDK rte_eth 專有 API 重構</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">記憶體拷貝次數</td>
+      <td style="padding:8px;">2 次 (DMA -> sk_buff -> User Buffer)</td>
+      <td style="padding:8px;">零拷貝 (Zero-Copy)</td>
+      <td style="padding:8px;">零拷貝 (Zero-Copy mbuf 環)</td>
+    </tr>
+  </table>
+</div>
+
+<pre><code class="language-c">// DPDK 核心輪詢無鎖封包處理模型範例 (C 語言擬真)
+#include &lt;rte_eal.h&gt;
+#include &lt;rte_ethdev.h&gt;
+#include &lt;rte_mbuf.h&gt;
+
+#define BURST_SIZE 32
+
+void twse_matching_engine_loop(uint16_t port_id, uint16_t queue_id) {
+    struct rte_mbuf *pkts_burst[BURST_SIZE];
+    
+    while (likely(!g_shutdown_flag)) {
+        // 透過輪詢模式驅動 PMD 從網卡 RX Ring 批量取得封包，全無中斷開銷
+        const uint16_t nb_rx = rte_eth_rx_burst(port_id, queue_id, pkts_burst, BURST_SIZE);
+        if (unlikely(nb_rx == 0)) {
+            // CPU 忙輪詢，可搭配 _mm_pause() 降低功耗與管線壓力
+            _mm_pause();
+            continue;
+        }
+
+        for (uint16_t i = 0; i < nb_rx; i++) {
+            struct rte_mbuf *m = pkts_burst[i];
+            // 取得封包實體資料指標，無二次拷貝
+            void *raw_data = rte_pktmbuf_mtod(m, void *);
+            
+            // 進入撮合引擎熱路徑：二進位委託封包直接解碼並撮合
+            process_twse_order_packet(raw_data, m-&gt;pkt_len);
+            
+            // 歸還緩衝區
+            rte_pktmbuf_free(m);
+        }
+    }
+}</code></pre>
+
+<h2>3. 記憶體管理與 CPU 深度調校實務</h2>
+<p>在證交所生產環境部署撮合伺服器時，必須進行 Linux 核心底層全面優化：</p>
+<ul>
+  <li><strong>CPU Pinning（核心綁定）與隔離（isolcpus）</strong>：
+    在 Linux 開機參數（GRUB）加入：<br>
+    <code>isolcpus=2-15 nohz_full=2-15 rcu_nocbs=2-15 intel_idle.max_cstate=0 processor.max_cstate=1</code><br>
+    確保撮合執行緒獨佔實體 CPU 核心，徹底阻絕 Linux CFS 排程器時鐘中斷與節能 C-State 休眠喚醒延遲。
+  </li>
+  <li><strong>NUMA（非均勻記憶體存取）親和性綁定</strong>：
+    使用 <code>numactl --cpunodebind=0 --membind=0 ./twse_engine</code>，確保撮合執行緒存取的記憶體與處理該網卡 PCIe 匯流排位於同一 NUMA 節點，徹底消除 QPI/UPI 跨總線互聯延遲懲罰（節省 40~60ns）。
+  </li>
+  <li><strong>消除快取偽共享（False Sharing）</strong>：
+    在 C/C++ 核心結構中使用 <code>alignas(64)</code> 進行 64-byte Cache Line 對齊，確保不同執行緒寫入的變數不會落在同一個快取行，避免多核快取行無效化風暴。
+  </li>
+  <li><strong>記憶體鎖定與 1GB HugePages 大頁配置</strong>：
+    呼叫 <code>mlockall(MCL_CURRENT | MCL_FUTURE)</code> 鎖死實體 RAM，嚴禁發生 Swap Page Fault；配置 1GB 靜態 HugePages 消除 TLB（轉譯後備緩衝區）失誤。
+  </li>
+</ul>
+"""
+        },
+        {
+            "id": "sn-ch02",
+            "chapter": "第 2 章：金融高可靠網路拓撲與行情推播",
+            "title": "多點廣播（Multicast）、Spine-Leaf 架構與微突發（Microburst）防禦",
+            "summary": "深度解析證交所行情傳輸（PIM-SM/SSM、IGMPv3）、金融資料中心 Spine-Leaf 現代網路拓撲、BGP EVPN / VXLAN 與交換器緩衝區調校。",
+            "content": """
+<h2>1. 證券行情多點廣播（Multicast Market Data）原理</h2>
+<p>證交所行情包括揭示五檔價格、委託筆數與逐筆成交資訊。若採 TCP 單播（Unicast），每多一家證券商就必須複製一份封包發送，伺服器出口頻寬將成倍爆炸，且發送先後順序會造成嚴重的市場不公平。因此全球金融交易所一致採用 <strong>IP Multicast（多點廣播）</strong>：</p>
+<ul>
+  <li><strong>出口負載固定</strong>：發送端僅需在網路中注入單一封包，由網路交換器硬體以線速（Line-rate）複製封包並分送給所有訂閱者。</li>
+  <li><strong>絕對公平性</strong>：所有訂閱券商端點幾乎在同一時間（微秒級同步）接收到市場成交封包。</li>
+  <li><strong>PIM-SSM（Protocol Independent Multicast - Source-Specific Multicast）</strong>：
+    摒棄傳統 PIM-SM 複雜且易單點故障的 RP（集合點 Rendezvous Point）。訂閱券商透過 <strong>IGMPv3</strong> 報告直接指定 <code>(S, G)</code>（來源 IP S 與群播組 G），建立最優群播最短路徑樹（Shortest Path Tree），收斂時間小於 10 毫秒。
+  </li>
+  <li><strong>Feed A / Feed B 雙路獨立冗餘廣播</strong>：
+    證交所行情主機同時在兩套實體完全隔離的網路架構（Feed A 與 Feed B）發送相同序列號（Sequence Number）之行情。券商端建置雙收解碼器（Arbiter），誰先抵達處理誰，另一路自動丟棄，達成封包遺失零容忍。
+  </li>
+</ul>
+
+<h2>2. 現代金融資料中心 Spine-Leaf 拓撲與 BGP EVPN</h2>
+<p>傳統三層網路（核心 Core、匯聚 Aggregation、接入 Access）存在 STP（Spanning Tree Protocol）阻斷一半鏈路、南北向頻寬超賣、東西向伺服器互訪延遲高且不均之問題。現代證券機房全面採用 <strong>Spine-Leaf（脊葉）兩層 CLOS 架構</strong>：</p>
+<ul>
+  <li><strong>任意節點等距通信</strong>：任一 Leaf 交換器到另一 Leaf 交換器皆嚴格為兩跳（Leaf -> Spine -> Leaf），延遲固定且可預測（通常小於 400ns）。</li>
+  <li><strong>ECMP（Equal-Cost Multi-Path）</strong>：所有上行 Spine 鏈路同時承載流量，頻寬 100% 充分利用，單一 Spine 故障無感容錯切換。</li>
+  <li><strong>BGP EVPN + VXLAN</strong>：控制層採用 BGP EVPN 發布 MAC/IP 路由，資料層透過 VXLAN 封裝跨越 Layer 3 基礎架構，支援微服務虛擬機/容器跨機架無縫漫遊與網路微隔離。</li>
+</ul>
+
+<h2>3. 瞬時微突發（Microburst）成因與交換器緩衝區防禦</h2>
+<p>微突發指開盤（09:00:00）或重大財報公告瞬間，數萬筆下單封包在<strong>數十微秒（Sub-millisecond）</strong>內同時灌入同一交換器輸出埠，瞬時速率遠超出口物理頻寬，導致交換器封包緩衝區（Queue Buffer）瞬間打滿而無預警掉包。</p>
+<div class="callout-box">
+  <div class="callout-title">🛠️ 微突發緩解三大工程實務</div>
+  <p>1. <strong>啟用動態共用緩衝區（Dynamic Shared Buffer / Alpha Tuning）</strong>：停用傳統靜態分區，配置交換器晶片 Alpha 權重（如 Broadcom 晶片之 <code>alpha = 8</code>），允許擁塞埠動態借調全晶片共用緩衝區。<br>
+  2. <strong>Cut-Through 直通轉發模式</strong>：交換器僅解析至目標 MAC 位址（前 14 位元組）即啟動轉發，延遲自 Store-and-Forward 的 5~10µs 驟降至 200~400ns。<br>
+  3. <strong>ECN（顯式擁塞通知）與 PFC（優先級流量控制）</strong>：結合 RoCEv2（RDMA over Converged Ethernet），在佇列水位達警戒閾值時提前標記 ECN 封包，通知發送端平滑降速，徹底消除丟包重傳。</p>
+</div>
+"""
+        },
+        {
+            "id": "sn-ch03",
+            "chapter": "第 3 章：金融高精度時間同步與時序工程",
+            "title": "IEEE 1588v2 PTP、硬體時間戳記與 MiFID II 監理規範",
+            "summary": "深入剖析 PTP（Precision Time Protocol）奈秒級同步原理、Grandmaster 時鐘源、邊界時鐘 BC / 透明時鐘 TC，以及 MiFID II 國際金融時間監理合規標準。",
+            "content": """
+<h2>1. 金融市場時間同步的重要性與監理合規</h2>
+<p>在逐筆撮合與高頻量化交易環境下，訂單抵達先後順序差之毫釐失之千里。若撮合主機與行情主機時間偏差，將引發成交順序爭議，甚至導致跨市場套利時序混亂。歐盟 <strong>MiFID II (RTS 25)</strong> 明確規範：高頻交易系統之時間戳記精度必須達 <strong>100 微秒（µs）以內</strong>，與 UTC（世界協調時間）之最大允許偏差不得超過 <strong>1 微秒（µs）</strong>。</p>
+
+<h2>2. NTP vs IEEE 1588v2 PTP 精度全維度對比</h2>
+<div class="table-wrap">
+  <table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+    <tr style="background:var(--accent-color); color:#fff;">
+      <th style="padding:10px;">比較指標</th>
+      <th style="padding:10px;">NTP (Network Time Protocol)</th>
+      <th style="padding:10px;">IEEE 1588v2 PTP (Precision Time Protocol)</th>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">同步精度級別</td>
+      <td style="padding:8px;">毫秒級 (1 ~ 50 ms)</td>
+      <td style="padding:8px;"><strong>奈秒級至次微秒級 (10 ~ 100 ns)</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">打標位置 (Timestamping)</td>
+      <td style="padding:8px;">應用層或作業系統核心軟體打標</td>
+      <td style="padding:8px;"><strong>實體網卡 PHY / MAC 層硬體晶片打標</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">網路設備支援要求</td>
+      <td style="padding:8px;">普通交換器即可</td>
+      <td style="padding:8px;">需硬體支援 Boundary Clock (BC) 或 Transparent Clock (TC)</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">通訊封包頻率</td>
+      <td style="padding:8px;">數十秒至數分鐘一次 (低頻)</td>
+      <td style="padding:8px;">每秒 16 ~ 128 次 (高頻連續修正)</td>
+    </tr>
+  </table>
+</div>
+
+<h2>3. PTP 雙向時間偏移計算公式與時鐘階層架構</h2>
+<p>PTP 透過主時鐘（Master）與從時鐘（Slave）四個精確時間戳記 <code>(t1, t2, t3, t4)</code> 計算單向鏈路延遲（Delay）與時鐘偏差（Offset）：</p>
+<pre><code class="language-text">Master Clock ─────────────────────────────┐
+   │ t1: Sync 封包發送時間 (硬體打標)      │
+   ▼                                      ▼
+Slave Clock ──────────────────────────────┤
+   │ t2: Sync 封包接收時間 (硬體打標)      │
+   │ t3: Delay_Req 封包發送時間 (硬體打標) │
+   ▲                                      ▲
+Master Clock ─────────────────────────────┘
+   │ t4: Delay_Req 封包接收時間 (硬體打標)
+
+【單向傳輸平均延遲 Mean Path Delay】:
+  Delay = [(t4 - t1) - (t3 - t2)] / 2
+
+【時鐘時間偏差 Clock Offset】:
+  Offset = (t2 - t1) - Delay = [(t2 - t1) - (t4 - t3)] / 2</code></pre>
+
+<h2>4. PTP 網路架構元件</h2>
+<ul>
+  <li><strong>Grandmaster Clock (主時鐘，GM)</strong>：機房最高權威時鐘源，配備原子鐘（銣鐘/銫鐘）並接收 GPS / 北斗雙模衛星授時。</li>
+  <li><strong>Boundary Clock (邊界時鐘，BC)</strong>：交換器終結上游 PTP 訊息並重新產生下游時鐘，防止 PTP 廣播報文風暴並維持逐跳奈秒級精度。</li>
+  <li><strong>Transparent Clock (透明時鐘，TC)</strong>：交換器不終結時鐘，但記錄封包在交換器內部排隊駐留時間（Residence Time）並累加於 Correction Field。</li>
+  <li><strong>Linux PTP 實踐</strong>：使用 <code>ptp4l</code> 同步網卡 PHC（PTP Hardware Clock），並透過 <code>phc2sys</code> 將網卡硬體時鐘同步至 Linux 系統時鐘 <code>CLOCK_REALTIME</code>。</li>
+</ul>
+"""
+        },
+        {
+            "id": "sn-ch04",
+            "chapter": "第 4 章：作業系統核心機制、程序調度與並行通訊",
+            "title": "Linux CFS 排程器、即時排程 SCHED_FIFO、記憶體分頁與 IPC",
+            "summary": "深入剖析 Linux CFS 排程底層紅黑樹、即時排程 SCHED_FIFO、虛擬記憶體多級分頁機制與高效進程間通訊（POSIX 共享記憶體、Unix Domain Socket）。",
+            "content": """
+<h2>1. Linux 排程器架構：CFS vs 即時排程（Real-Time Scheduler）</h2>
+<p>標準 Linux 核心採用 <strong>CFS（Completely Fair Scheduler，完全公平排程器）</strong>：</p>
+<ul>
+  <li><strong>底層結構</strong>：使用<strong>紅黑樹（Red-Black Tree）</strong>依據行程的 <code>vruntime</code>（虛擬執行時間）排序，最左側節點為 vruntime 最小之行程，優先獲得 CPU。</li>
+  <li><strong>金融弊端</strong>：CFS 著重公平吞吐量，當撮合引擎休眠後被喚醒時，排程器仍需進行樹節點搜尋與排隊計算，產生 20~50µs 抖動。</li>
+</ul>
+<p>金融撮合行程必須切換為<strong>即時排程策略</strong>：</p>
+<ul>
+  <li><strong>SCHED_FIFO（先進先出即時排程）</strong>：靜態優先權設置為 1~99（建議設定為最高 98 或 99）。一旦取得 CPU，只要不主動讓出（Yield）或被更高優先權即時行程搶占，將<strong>永不被排程器中斷</strong>，徹底消除 CPU 切換開銷。</li>
+  <li><strong>SCHED_RR（輪轉即時排程）</strong>：同優先級間具備時間片（Time Slice），適合並行工作群組。</li>
+</ul>
+
+<h2>2. 虛擬記憶體管理與 TLB 效能陷阱</h2>
+<p>現代 x86_64 CPU 採用四級分頁（4-Level Paging，CR3 -> PML4 -> PDPT -> PD -> PT -> 實體頁）。虛擬位址至實體位址轉換需歷經 4 次記憶體存取。CPU 透過 <strong>TLB（Translation Lookaside Buffer，轉譯後備緩衝區）</strong> 快取頁表映射：</p>
+<ul>
+  <li><strong>標準 4KB 頁之缺陷</strong>：撮合系統若分配數十 GB 記憶體，需要數百萬個頁表項，導致 TLB 快取命中率慘跌（TLB Miss 每次額外消耗約 30~50ns 記憶體存取）。</li>
+  <li><strong>1GB 靜態大頁（HugePages）解決方案</strong>：單一 TLB 條目即可覆蓋 1GB 記憶體空間，直接免除兩級頁表解析，TLB Miss 降至趨近於零。</li>
+  <li><strong>關閉透明大頁（THP, Transparent Huge Pages）</strong>：在生產環境務必執行 <code>echo never > /sys/kernel/mm/transparent_hugepage/enabled</code>，因為 Linux khugepaged 背景整合大頁時會引發長時間記憶體凍結鎖定。</li>
+</ul>
+
+<h2>3. 高效進程間通訊（IPC）性能評比</h2>
+<div class="table-wrap">
+  <table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+    <tr style="background:var(--accent-color); color:#fff;">
+      <th style="padding:10px;">IPC 機制</th>
+      <th style="padding:10px;">單向傳輸延遲</th>
+      <th style="padding:10px;">記憶體拷貝次數</th>
+      <th style="padding:10px;">適用金融情境</th>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">POSIX 共享記憶體 (shm_open / mmap)</td>
+      <td style="padding:8px;"><strong>&lt; 0.1 微秒 (ns 級)</strong></td>
+      <td style="padding:8px;"><strong>0 次 (零拷貝，直接存取實體 RAM)</strong></td>
+      <td style="padding:8px;">同一主機內撮合引擎與行情廣播行程通訊</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">Unix Domain Socket (AF_UNIX)</td>
+      <td style="padding:8px;">1.5 ~ 3.5 微秒</td>
+      <td style="padding:8px;">1 次 (核心緩衝區暫存)</td>
+      <td style="padding:8px;">本地管理行程、日誌傳遞、安全身分驗證</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">具名管道 (Named Pipe / FIFO)</td>
+      <td style="padding:8px;">3.0 ~ 6.0 微秒</td>
+      <td style="padding:8px;">1 次 (核心 Pipe 緩衝區)</td>
+      <td style="padding:8px;">批次控制腳本、序列化命令控制</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">TCP Loopback (127.0.0.1)</td>
+      <td style="padding:8px;">8.0 ~ 20.0 微秒</td>
+      <td style="padding:8px;">2 次 (經完整核心網路堆疊)</td>
+      <td style="padding:8px;">嚴格禁止於低延遲交易熱路徑中使用</td>
+    </tr>
+  </table>
+</div>
+"""
+        },
+        {
+            "id": "sn-ch05",
+            "chapter": "第 5 章：TCP/IP 通訊協定棧調校與伺服器效能工程",
+            "title": "TCP 核心參數最佳化、I/O 多工模型與 eBPF 性能觀測",
+            "summary": "深入剖析 Linux TCP 參數調校（TCP_NODELAY、SO_BUSY_POLL）、epoll ET 邊緣觸發機制，並運用 eBPF / Perf 工具鏈進行系統微秒級性能觀測。",
+            "content": """
+<h2>1. 金融通訊 TCP 核心參數優化指南</h2>
+<p>在證券商下單連線（FIX / 專有二進位通訊）中，TCP 必須兼顧可靠性與極致延遲：</p>
+<ul>
+  <li><strong>停用 Nagle 演算法（TCP_NODELAY = 1）</strong>：
+    Nagle 演算法預設會緩存小封包湊成一個 MSS 再發送，與接收端 TCP Delayed ACK（延遲確認，通常 40ms~200ms）產生死鎖，引發 40ms 致命延遲。低延遲系統必須在所有 Socket 呼叫 <code>setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one))</code>。
+  </li>
+  <li><strong>啟用 TCP_QUICKACK</strong>：
+    強迫核心立即發送 ACK，不等待捎帶（Piggyback）確認。
+  </li>
+  <li><strong>SO_BUSY_POLL 核心忙輪詢</strong>：
+    啟用 <code>setsockopt(fd, SOL_SOCKET, SO_BUSY_POLL, &usec, sizeof(usec))</code>，讓 Socket 在進入睡眠等待前先在核心層輪詢網卡佇列，直接消除行程睡眠與喚醒延遲。
+  </li>
+  <li><strong>TCP 緩衝區調校（/etc/sysctl.conf）</strong>：
+    <pre><code># 調大連線佇列防範突發流量溢出
+net.core.somaxconn = 65535
+net.ipv4.tcp_max_syn_backlog = 65535
+
+# 擴充 Socket 收發記憶體緩衝區
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 65536 16777216
+
+# 快速回收與重複利用 TIME_WAIT Socket
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_fin_timeout = 15</code></pre>
+  </li>
+</ul>
+
+<h2>2. 網路 I/O 多工模型：select vs poll vs epoll</h2>
+<p>在高並發券商連線閘道器（Gateway）中，Linux <code>epoll</code> 是唯一解：</p>
+<ul>
+  <li><strong>select / poll 瓶頸</strong>：底層使用線性陣列/鏈結串列，每次呼叫需將所有 fd 集合自使用者空間拷貝至核心，且需 <code>O(n)</code> 輪詢所有連線，連線數過萬時效能幾近崩潰。</li>
+  <li><strong>epoll 底層架構</strong>：
+    1. 核心以<strong>紅黑樹（Red-Black Tree）</strong>管理註冊之檔案描述子（新增/修改/刪除僅 <code>O(log n)</code>）。<br>
+    2. 網卡硬體中斷與驅動回呼將就緒事件直接寫入<strong>雙向就緒鏈結串列（Ready List）</strong>。<br>
+    3. <code>epoll_wait()</code> 僅返回真正就緒之事件，複雜度達 <code>O(1)</code>。
+  </li>
+  <li><strong>LT（Level-Triggered 水平觸發） vs ET（Edge-Triggered 邊緣觸發）</strong>：
+    金融高效能閘道器普遍採用 <strong>ET 模式配合 Non-blocking 非阻塞 I/O</strong>。ET 僅在狀態變更時通知一次，減少系統呼叫次數；程式必須在一次通知中以迴圈反覆讀取直至返回 <code>EAGAIN / EWOULDBLOCK</code>。
+  </li>
+</ul>
+
+<h2>3. eBPF 現代無侵入式性能追蹤工程</h2>
+<p>傳統 <code>strace</code> 依賴 <code>ptrace</code> 系統呼叫，會使目標行程效能暴跌數十倍，嚴禁在證交所生產環境執行。現代 SRE 全面採用 <strong>eBPF（Extended Berkeley Packet Filter）</strong>：</p>
+<ul>
+  <li><strong>kprobe / kretprobe</strong>：動態掛載於 Linux 核心函式入口與出口（如 <code>tcp_v4_rcv</code>、<code>sock_def_readable</code>），微秒級量測封包自網卡驅動至行程讀取之精確耗時。</li>
+  <li><strong>BCC / bpftrace 工具鏈</strong>：透過 <code>tcprtt</code> 監測各連線往返時間分佈，透過 <code>runqlat</code> 監測 CPU 排程等待延遲，精準抓出微爆發或 CPU 搶占點。</li>
+</ul>
+"""
+        },
+        {
+            "id": "sn-ch06",
+            "chapter": "第 6 章：關聯式資料庫交易、WAL 與金融雙活容災架構",
+            "title": "交易 ACID、隔離層級、MVCC、RTO/RPO 與雙活（Active-Active）機房",
+            "summary": "深入剖析金融關聯式資料庫交易 ACID 保證、WAL 預寫日誌、MVCC 多版本並行控制，以及同城雙活機房 Paxos/Raft 與兩階段提交（2PC）實務架構。",
+            "content": """
+<h2>1. 交易 ACID 四大特性與底層實現</h2>
+<p>證券交易帳務系統要求資料庫具備絕對嚴謹的 ACID 特性：</p>
+<ul>
+  <li><strong>原子性（Atomicity）</strong>：交易中的所有操作要麼全部成功，要麼全部回滾。底層依賴 <strong>Undo Log</strong> 記錄資料變更前的舊版本值，崩潰時依 Undo Log 回滾。</li>
+  <li><strong>一致性（Consistency）</strong>：交易執行前後，資料庫完整性約束（外鍵、唯一性約束、餘額非負）必須維持恆真。原子性、隔離性與持久性共同服務於一致性。</li>
+  <li><strong>隔離性（Isolation）</strong>：並行交易間互不干擾。依賴 <strong>鎖機制（Locking）</strong> 與 <strong>MVCC（多版本並行控制）</strong> 實現。</li>
+  <li><strong>持久性（Durability）</strong>：交易一旦 Commit，其結果永久寫入磁碟。依賴 <strong>WAL（Write-Ahead Logging）</strong> 與 <strong>Redo Log</strong> 實現。</li>
+</ul>
+
+<h2>2. WAL（預寫日誌）與 ARIES 復原演算法</h2>
+<p>若每次交易提交都直接將記憶體中的資料髒頁（Dirty Pages）寫回隨機磁碟扇區，隨機 I/O 吞吐量將極其低落。現代關聯式資料庫採用 <strong>WAL（Write-Ahead Logging，預寫日誌）</strong>：</p>
+<div class="callout-box">
+  <div class="callout-title">📝 WAL 核心不變原則</div>
+  <p><strong>任何資料頁被寫回磁碟前，對應的 Redo Log 必須先以循序 I/O 寫入並 Flush（fsync）至非揮發性磁碟！</strong><br>
+  即便伺服器在隨後瞬間遭遇斷電，重開機時可依據 Redo Log 進行 Crash Recovery（重做已提交交易），並依據 Undo Log 撤銷未完成交易。</p>
+</div>
+
+<h2>3. 交易隔離層級與資料異常現象</h2>
+<div class="table-wrap">
+  <table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+    <tr style="background:var(--accent-color); color:#fff;">
+      <th style="padding:10px;">隔離層級 (Isolation Level)</th>
+      <th style="padding:10px;">髒讀 (Dirty Read)</th>
+      <th style="padding:10px;">不可重複讀 (Non-Repeatable Read)</th>
+      <th style="padding:10px;">幻讀 (Phantom Read)</th>
+      <th style="padding:10px;">寫入偏斜 (Write Skew)</th>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">Read Uncommitted</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">Read Committed</td>
+      <td style="padding:8px; color:#22c55e;">已防禦</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">Repeatable Read (MySQL 預設)</td>
+      <td style="padding:8px; color:#22c55e;">已防禦</td>
+      <td style="padding:8px; color:#22c55e;">已防禦</td>
+      <td style="padding:8px; color:#eab308;">MVCC+間隙鎖防禦</td>
+      <td style="padding:8px; color:#ef4444;">可能發生</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">Serializable (可序列化)</td>
+      <td style="padding:8px; color:#22c55e;">已防禦</td>
+      <td style="padding:8px; color:#22c55e;">已防禦</td>
+      <td style="padding:8px; color:#22c55e;">已防禦</td>
+      <td style="padding:8px; color:#22c55e;">已防禦</td>
+    </tr>
+  </table>
+</div>
+
+<h2>4. 同城雙活（Active-Active）容災建設架構</h2>
+<p>臺灣證券交易所為關鍵基礎設施，容災指標要求嚴苛：<strong>RPO = 0（資料零遺失）</strong> 且 <strong>RTO ≤ 10 分鐘（服務快速復原）</strong>。</p>
+<ul>
+  <li><strong>同城雙活專用暗光纖（Dark Fiber）</strong>：兩地機房（如板橋主機房與同城備援中心）鋪設雙路實體隔離光纖，單向傳輸延遲小於 1 毫秒（距離小於 30 公里）。</li>
+  <li><strong>分散式共識演算法（Raft / Paxos）</strong>：透過多副本多數決（Quorum，如三節點或五節點），交易提交需過半數節點日誌持久化，單一機房全毀自動無感選主。</li>
+  <li><strong>2PC 兩階段提交與 CDC（異動資料擷取）</strong>：跨核心系統採用兩階段提交（Prepare / Commit）確保分散式事務一致性；帳務報表查詢系統則透過 Debezium / Kafka CDC 異步串流解耦。</li>
+</ul>
+"""
+        },
+        {
+            "id": "sn-ch07",
+            "chapter": "第 7 章：電腦硬體結構、CPU 體系架構與快取階層",
+            "title": "指令管線化、MESI 快取一致性協定、NVMe-oF 與 SAN 儲存架構",
+            "summary": "深度剖析現代 x86-64 伺服器 CPU 超純量架構、MESI / MOESI 快取一致性總線監聽協定、記憶體屏障，以及 NVMe-oF 全快閃光纖通道儲存陣列。",
+            "content": """
+<h2>1. 現代伺服器 CPU 微架構與指令管線化</h2>
+<p>現代 x86-64 處理器具備<strong>超純量（Superscalar）與亂序執行（Out-of-Order Execution, OoOE）</strong>架構：</p>
+<ul>
+  <li><strong>指令管線化（Instruction Pipelining）</strong>：包含取指（Fetch）、解碼（Decode）、重命名（Rename）、排隊調度（Scheduler）、執行（Execute）與引退（Retire）。深層管線（14~20 級）能讓 CPU 時脈飆高，但依賴<strong>分支預測器（Branch Predictor）</strong>。</li>
+  <li><strong>分支預測失敗代價</strong>：若撮合邏輯包含大量不可預測的 <code>if-else</code> 判斷，一旦預測失敗，CPU 必須清空整條管線（Pipeline Flush），浪費 15~20 個時鐘週期。低延遲編程常用 <code>likely() / unlikely()</code> 巨集引導編譯器最佳化分支排布。</li>
+</ul>
+
+<h2>2. 記憶體階層體系與快取一致性協定（MESI）</h2>
+<p>CPU 快取存取延遲呈幾何級數放大：</p>
+<pre><code class="language-text">CPU Core Registers  (0.25 ns, 數百 Bytes)
+   │
+L1 Cache (L1i/L1d)  (1 ~ 1.5 ns, 32KB ~ 48KB per core)
+   │
+L2 Cache            (3 ~ 4 ns, 512KB ~ 1MB per core)
+   │
+L3 Cache (Shared)   (10 ~ 15 ns, 32MB ~ 128MB shared)
+   │
+DRAM (主記憶體)     (60 ~ 80 ns, 數百 GB)
+   │
+PCIe Gen5 NVMe SSD  (10 ~ 30 µs, 數 TB)</code></pre>
+
+<p>多核心並行寫入同一記憶體位址時，依賴硬體 <strong>MESI 協定</strong> 維護快取一致性：</p>
+<ul>
+  <li><strong>M（Modified，已修改）</strong>：該快取行已被本地核心修改，且為最新版本，主記憶體已過期。</li>
+  <li><strong>E（Exclusive，獨佔）</strong>：該快取行僅存在於本地快取中，且資料與主記憶體一致。</li>
+  <li><strong>S（Shared，共享）</strong>：該快取行同時存在於多個核心的快取中，資料與主記憶體一致。</li>
+  <li><strong>I（Invalid，無效）</strong>：該快取行資料已失效，不可讀取。</li>
+  <li><strong>記憶體屏障（Memory Barrier / MFENCE / LFENCE / SFENCE）</strong>：防止 CPU 亂序執行跨越屏障，確保記憶體寫入順序對其他核心即時可見。</li>
+</ul>
+
+<h2>3. 金融企業級儲存：SAN 光纖交換與 NVMe-oF</h2>
+<ul>
+  <li><strong>SAN（Storage Area Network）</strong>：傳統資料中心核心透過 32G/64G Fibre Channel（FC）光纖交換器連接全快閃儲存陣列（AFA），提供微秒級穩定區塊儲存，支援 WWPN Zoning 與雙路多路徑（Multipathing）。</li>
+  <li><strong>NVMe-oF（NVMe over Fabrics）</strong>：基於 RDMA（RoCEv2 或 InfiniBand）將 NVMe 命令直接延伸至網路，繞過傳統 SCSI 堆疊，單向 I/O 延遲由傳統 FC SAN 的 150µs 壓縮至 <strong>10µs 以內</strong>，提供每秒數百萬 IOPS 之極致效能。</li>
+</ul>
+"""
+        },
+        {
+            "id": "sn-ch08",
+            "chapter": "第 8 章：儲存架構、全快閃陣列與高可用容災備份",
+            "title": "NVMe-oF 全快閃陣列、WORM 防勒索儲存與同步遠端鏡像 SRDF",
+            "summary": "解析金融等級全快閃儲存陣列（AFA）、重複資料刪除與壓縮、WORM 不可竄改儲存機制，以及異地備援同步遠端鏡像（SRDF）容災實務。",
+            "content": """
+<h2>1. 現代金融儲存架構演進：傳統 SAN 到 NVMe-oF AFA</h2>
+<p>在證券交易所交易資料庫與巨量歷史行情檢索系統中，儲存 I/O 往往是交易確認的最後瓶頸：</p>
+<ul>
+  <li><strong>傳統 SAS/SATA SSD 限制</strong>：受限於舊時代 AHCI / SCSI 協定，僅支援單一命令佇列（深度 32），嚴重制約現代多核心 CPU 並行能力。</li>
+  <li><strong>NVMe-oF（NVMe over Fabrics）全快閃架構</strong>：
+    原生支援高達 <strong>64,000 個並行佇列</strong>，每個佇列支援 64,000 深度，透過 RoCEv2（RDMA over Converged Ethernet）將遠端儲存陣列直接對齊主機端 PCI Express 匯流排，延遲降低 80%，吞吐提升 5 倍以上。
+  </li>
+  <li><strong>線速重複資料刪除與壓縮（Inline Deduplication & Compression）</strong>：
+    儲存控制器在資料寫入 NAND Flash 前即時計算雜湊進行區塊級去重，不僅節省 60%~75% 儲存容量，更大幅減少實體 Flash 擦寫次數（P/E Cycles），延長 SSD 壽命。
+  </li>
+</ul>
+
+<h2>2. 防範勒索軟體的最後堡壘：WORM 與不可變快照（Immutable Snapshot）</h2>
+<p>金融法規（金管會及證券期貨業資安監理規範）明確要求交易歷程紀錄與關鍵備份資料必須具備防竄改能力：</p>
+<ul>
+  <li><strong>WORM（Write Once, Read Many）技術</strong>：
+    儲存底層強制鎖定特定磁區或物件，在設定的法規保留期限（如 5 年或 7 年）內，任何人（即使是 root 或 domain admin 最高權限管理員）皆<strong>無法刪除或修改</strong>該份資料。
+  </li>
+  <li><strong>不可變唯讀快照（Air-gapped Immutable Snapshot）</strong>：
+    快照產生後立即剝離寫入權限並與主網路進行邏輯/實體氣隙隔離（Air-gap），即便核心系統遭受勒索軟體全盤加密，仍可於數分鐘內掛載未受損快照完成災難復原。
+  </li>
+</ul>
+
+<h2>3. 異地容災資料同步機制：SRDF 同步 vs 非同步鏡像</h2>
+<div class="callout-box">
+  <div class="callout-title">🌐 異地備援兩大模式深度對比</div>
+  <p>• <strong>同步鏡像（Synchronous Replication，如 SRDF/S）</strong>：主機寫入本機儲存後，儲存控制器必須等待異地同城機房儲存確認寫入（ACK），方才向應用程式回報 I/O 完成。<strong>保證 RPO = 0</strong>，但寫入延遲受兩地光纖傳輸距離物理限制（光在玻璃光纖中每 100 公里約耗費 1ms 往返延遲，一般限於 30~50 公里內）。<br>
+  • <strong>非同步鏡像（Asynchronous Replication，如 SRDF/A）</strong>：本機寫入完成即向應用程式回報，後台透過記憶體緩衝區週期性批量傳送增量資料至遠端（如跨縣市高雄備援中心）。突破距離限制，但面臨微秒至秒級的 <strong>RPO &gt; 0</strong> 資料損失風險。</p>
+</div>
+"""
+        },
+        {
+            "id": "sn-ch09",
+            "chapter": "第 9 章：容器化、Kubernetes 與金融雲原生維運",
+            "title": "Linux 容器核心隔離、K8s 排程演算法與 SRE SLI/SLO 維運實務",
+            "summary": "深入剖析 Linux 容器核心底層（Namespaces、cgroups）、Kubernetes 控制平面架構、金融私有雲 CNI 網路微隔離，以及 SRE SLI/SLO/SLA 監控告警工程。",
+            "content": """
+<h2>1. Linux 容器底層雙核心技術：Namespaces 與 cgroups</h2>
+<p>容器並非完整的虛擬機器，其本質上是受 Linux 核心邊界隔離與資源配額約束的<strong>普通使用者行程</strong>：</p>
+<ul>
+  <li><strong>Linux Namespaces（命名空間，實現檢視邊界隔離）</strong>：
+    <ul>
+      <li><code>pid</code>：行程識別碼隔離（容器內行程自 PID 1 開始計數）。</li>
+      <li><code>net</code>：網路設備、IP、路由表、連接埠隔離。</li>
+      <li><code>ipc</code>：System V IPC 與 POSIX 訊息佇列隔離。</li>
+      <li><code>mnt</code>：檔案系統掛載點隔離（配合 <code>pivot_root / chroot</code>）。</li>
+      <li><code>uts</code>：主機名稱與網域名稱隔離。</li>
+      <li><code>user</code>：使用者與群組 UID/GID 映射隔離（提升容器非 root 執行安全性）。</li>
+    </ul>
+  </li>
+  <li><strong>cgroups v2（Control Groups，實現資源物理配額）</strong>：
+    限制行程群組的 CPU 週期（<code>cpu.max</code>）、實體記憶體用量（<code>memory.max</code>，超額直接觸發 OOM Killer）、I/O 頻寬與行程總數，防止單一容器引發鄰居吵鬧效應（Noisy Neighbor）。
+  </li>
+</ul>
+
+<h2>2. Kubernetes 金融私有雲核心架構與控制平面</h2>
+<ul>
+  <li><strong>Control Plane（控制平面）</strong>：
+    <ul>
+      <li><code>kube-apiserver</code>：叢集唯一公開入口，基於 RESTful、TLS 雙向認證與 RBAC 鑑權。</li>
+      <li><code>etcd</code>：分散式強一致性（Raft 協定）Key-Value 資料庫，保存叢集全部宣告狀態。</li>
+      <li><code>kube-scheduler</code>：過濾（Filtering/Predicates）與評分（Scoring/Priorities）演算法決定 Pod 最佳落腳節點。</li>
+      <li><code>kube-controller-manager</code>：透過聲明式循環（Reconciliation Loop）確保現狀與期望狀態一致。</li>
+    </ul>
+  </li>
+  <li><strong>金融高性能容器網路（CNI）</strong>：
+    標準 Flannel 覆蓋網路（Overlay VXLAN）具備 15%~25% 網路封包封裝損耗，金融私有雲普遍採用 <strong>SR-IOV CNI</strong> 直通實體網卡，或採用 <strong>Calico eBPF 模式</strong> 直接由核心繞過 iptables 進行高並發路由轉發。
+  </li>
+</ul>
+
+<h2>3. SRE 維運工程：SLI、SLO 與錯誤預算（Error Budget）</h2>
+<div class="callout-box">
+  <div class="callout-title">📊 金融 SRE 服務等級指標三大名詞</div>
+  <p>• <strong>SLI（Service Level Indicator，服務等級指標）</strong>：實際量測到的數值，例如：撮合引擎 HTTP/API 99.9% 請求成功率、撮合延遲 P99 &lt; 50µs。<br>
+  • <strong>SLO（Service Level Objective，服務等級目標）</strong>：團隊內部追求的目標，例如：每月 API 成功率 ≥ 99.99%（四個九，每月停機上限 4.38 分鐘）。<br>
+  • <strong>SLA（Service Level Agreement，服務等級協定）</strong>：對客戶承諾的法律合約，未達標伴隨違約金賠償。<br>
+  • <strong>錯誤預算（Error Budget）</strong>：<code>100% - SLO</code>。當剩餘錯誤預算充足時可大膽推進發版；當錯誤預算耗盡時全面凍結新功能部署，全體投入穩定性強化。</p>
+</div>
+"""
+        },
+        {
+            "id": "sn-ch10",
+            "chapter": "第 10 章：高可用伺服器叢集、負載平衡與容錯工程",
+            "title": "Pacemaker/Corosync 叢集、腦裂防禦、LVS 四層負載與 BGP Anycast",
+            "summary": "深入剖析金融高可用叢集架構、Corosync 通訊、Pacemaker 資源管理器、STONITH 腦裂防禦機制、LVS 四層負載平衡與 BGP Anycast 無感容錯分流。",
+            "content": """
+<h2>1. 高可用叢集架構：Corosync 與 Pacemaker</h2>
+<p>在證交所內部關鍵非撮合服務（如歷史查詢資料庫、金流閘道）中，必須實現伺服器節點秒級自動容錯轉移（Failover）：</p>
+<ul>
+  <li><strong>Corosync（叢集通訊與心跳引擎）</strong>：
+    底層基於 Totem 虛擬單令牌環（Single-Ring Token-Passing）協定，提供節點間保證順序與高頻率心跳廣播，即時感知節點存活與成員資格（Quorum 成員多數決）。
+  </li>
+  <li><strong>Pacemaker（叢集資源管理器，CRM）</strong>：
+    依據依賴規則與資源位置權重，動態調度虛擬 IP（VIP）、儲存掛載與應用程式服務的啟動、停止與轉移。
+  </li>
+</ul>
+
+<h2>2. 叢集腦裂（Split-Brain）危害與 STONITH 硬體防禦</h2>
+<p>當叢集節點間的心跳網路中斷、但節點硬體皆正常時，兩側節點會彼此誤判對方已宕機，進而同時爭搶掛載同一個共享儲存或同時啟用同一組 VIP，造成嚴重的<strong>資料庫資料覆蓋損壞（Data Corruption）</strong>，此即「腦裂」。</p>
+<div class="callout-box">
+  <div class="callout-title">⚡ STONITH（Shoot The Other Node In The Head）防護原則</div>
+  <p>在 Pacemaker 叢集中，<strong>STONITH 是絕對不允許被停用的核心安全機制</strong>！<br>
+  一旦發生心跳中斷，獲得 Quorum（多數決）的合法節點在接管業務前，必須強制透過 <strong>IPMI / iDRAC / iLO</strong> 帶外管理介面或受控智慧電源排插（PDU），直接對故障/失聯節點下達<strong>硬體斷電指令（Power Off / Cut Power）</strong>，百分之百確認對方已徹底「死透」，方能安全掛載儲存並接管服務。</p>
+</div>
+
+<h2>3. 四層與七層負載均衡全景架構</h2>
+<ul>
+  <li><strong>LVS（Linux Virtual Server）四層負載均衡</strong>：
+    在 Linux 核心層運行，採用 <strong>DR（Direct Routing，直接路由）模式</strong>。LVS 僅修改封包目標 MAC 位址並直接轉發給真實伺服器（Real Server），伺服器回應封包直接走實體交換器送回客戶端，不經過負載均衡器回傳（三角路由 DSR，Direct Server Return），單台 LVS 吞吐即可突破百萬 QPS。
+  </li>
+  <li><strong>HAProxy / NGINX 七層負載均衡</strong>：
+    終結 TCP 連線並解析應用層（HTTP/HTTPS/FIX），支援 SSL 加速卸載、Cookie 黏滯 Session 與進階 URL/標頭動態路由。
+  </li>
+  <li><strong>BGP Anycast 多路徑分流</strong>：
+    多台邊界負載平衡器同時向核心路由器發布相同的 IP 位址，路由器透過 ECMP 將流量均勻散布至各節點，單點故障時 BGP 路由表於數秒內自動剔除失效節點。
+  </li>
+</ul>
+"""
+        },
+        {
+            "id": "sn-ch11",
+            "chapter": "第 11 章：金融訊息中介軟體與高效佇列系統",
+            "title": "FIX 協定架構、Kafka 分散式日誌、RabbitMQ 與訊息零遺失保證",
+            "summary": "深入剖析金融資訊交換協定（FIX Protocol）、Apache Kafka 分散式分區順序日誌與 Zero-Copy 實踐，以及分散式訊息 Exactly-Once 交付語意保證。",
+            "content": """
+<h2>1. 金融資訊交換協定：FIX Protocol 核心架構</h2>
+<p><strong>FIX（Financial Information eXchange Protocol）</strong> 是全球證券期貨業界通用的標準通訊協定，採用 Tag=Value（標籤=值）以 SOH（0x01）字元分隔：</p>
+<ul>
+  <li><strong>Session 層（會話層管理）</strong>：
+    維護雙向嚴格連續的序號（MsgSeqNum）。支援 <code>Logon (35=A)</code>、<code>Heartbeat (35=0)</code>、<code>TestRequest (35=1)</code> 與 <code>ResendRequest (35=2)</code>。任何一端偵測到序號斷層（Gap），立即自動發起重傳請求，保證訊息絕不脫序與遺失。
+  </li>
+  <li><strong>Application 層（業務應用層）</strong>：
+    包含下單委託 <code>NewOrderSingle (35=D)</code>、執行回報 <code>ExecutionReport (35=8)</code> 與取消委託 <code>OrderCancelRequest (35=F)</code>。
+  </li>
+</ul>
+
+<h2>2. Apache Kafka 金融巨量日誌架構與極致吞吐原理</h2>
+<p>在證券交易所後台大數據審計、風控監控與即時結算流水中，Kafka 扮演資料中樞角色：</p>
+<ul>
+  <li><strong>分區順序追加（Append-Only Sequential Write）</strong>：
+    磁碟循序寫入效能（約 300MB/s）遠高於隨機寫入，甚至逼近記憶體存取速度。Kafka 採用不可變的 Append-only 儲存設計。
+  </li>
+  <li><strong>Linux Zero-Copy（零拷貝 sendfile）</strong>：
+    消費端拉取資料時，Kafka 透過 Linux <code>sendfile()</code> 系統呼叫，資料直接從 Page Cache 經 DMA 複製至網卡緩衝區發送，完全不進入 JVM 使用者空間，大幅節省 CPU 拷貝與記憶體切換。
+  </li>
+  <li><strong>ISR（In-Sync Replicas）高可用機制</strong>：
+    配置 <code>acks=all</code> 與 <code>min.insync.replicas=2</code>，確保訊息被多數副本同步寫入後方才回報成功。
+  </li>
+</ul>
+
+<h2>3. 訊息傳遞語意與 Exactly-Once（精確一次）實現</h2>
+<div class="callout-box">
+  <div class="callout-title">🎯 分散式訊息交付三大語意</div>
+  <p>1. <strong>At-Most-Once（最多一次）</strong>：發送即忘（Fire and Forget），可能掉消息，但絕不重複。嚴禁於金融金流中使用。<br>
+  2. <strong>At-Least-Once（至少一次）</strong>：逾時自動重傳，保證不掉消息，但可能產生重複消費。<br>
+  3. <strong>Exactly-Once（精確一次）</strong>：金融最高標準。依賴 <strong>生產端冪等性（Idempotent Producer）</strong>（分配唯一 PID 與 Sequence Number）搭配 <strong>消費端交易與業務唯一鍵去重（Idempotency Key / Redis SETNX / 唯一索引）</strong>，徹底杜絕帳務重複扣款。</p>
+</div>
+"""
+        },
+        {
+            "id": "sn-ch12",
+            "chapter": "第 12 章：金融維運自動化、SRE 與生產故障排查實戰",
+            "title": "Ansible 自動化配置、混沌工程演練、Linux 核心轉儲與 GDB 偵錯",
+            "summary": "解析金融基礎設施即代碼（IaC）、混沌工程生產環境演練、Linux 系統效能排查工具鏈（top/iostat/sar/perf）、kdump 核心轉儲與 GDB 故障溯源實務。",
+            "content": """
+<h2>1. 基礎設施即代碼（IaC）與金融維運自動化</h2>
+<p>證交所數百台撮合主機、網路設備與資料庫節點嚴格禁止手動 SSH 登入修改設定，必須落實<strong>組態即代碼（Infrastructure as Code）</strong>：</p>
+<ul>
+  <li><strong>Ansible 自動化組態管理</strong>：
+    基於無代理（Agentless）架構，透過 SSH 與金鑰驗證批量執行宣告式 Playbook，具備<strong>冪等性（Idempotency）</strong>，確保反覆執行多次的系統狀態恆定一致。
+  </li>
+  <li><strong>GitOps 稽核軌跡</strong>：
+    所有伺服器設定檔、系統核心參數與 Kubernetes 資源定義一律託管於內部嚴格權限受控的 Git 儲存庫，每一次變更必須通過 Pull Request 雙人審查（Peer Review）與自動化合規掃描。
+  </li>
+</ul>
+
+<h2>2. 混沌工程（Chaos Engineering）在金融高可用之實戰</h2>
+<p>依據「假定系統必定發生故障」思維，主動在離峰或演練環境注入受控故障（Fault Injection）：</p>
+<ul>
+  <li><strong>Chaos Mesh / Gremlin 實戰場景</strong>：
+    1. 實體伺服器網卡隨機丟包 5% 與抖動 20ms（檢驗 PTP 時間同步與 Feed A/B 雙收切換機制）。<br>
+    2. 突然 <code>kill -9</code> 殺死主資料庫進程或模擬機房 PDU 瞬間斷電（檢驗 Raft 自動選主與 VIP 漂移秒數是否小於 10 秒）。<br>
+    3. 模擬 CPU 100% 飽和與磁碟 I/O 延遲陡增 100 倍（驗證撮合熔斷機制與降級策略）。
+  </li>
+</ul>
+
+<h2>3. Linux 生產故障急救排查工具鏈與 Core Dump 診斷</h2>
+<div class="table-wrap">
+  <table style="width:100%; border-collapse:collapse; margin:1rem 0;">
+    <tr style="background:var(--accent-color); color:#fff;">
+      <th style="padding:10px;">系統資源維度</th>
+      <th style="padding:10px;">排查工具與關鍵參數</th>
+      <th style="padding:10px;">關鍵關注指標與警訊</th>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">CPU 效能負載</td>
+      <td style="padding:8px;"><code>uptime, top -H, mpstat -P ALL 1</code></td>
+      <td style="padding:8px;">Load Average 超過核心數、%si（軟中斷過高）、%wa（等待 I/O）</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">記憶體與換頁</td>
+      <td style="padding:8px;"><code>free -h, vmstat 1, /proc/meminfo</code></td>
+      <td style="padding:8px;">si/so 大於 0（嚴重 Swap 換頁！）、Available 記憶體枯竭</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">磁碟與區塊 I/O</td>
+      <td style="padding:8px;"><code>iostat -xz 1, iotop -o</code></td>
+      <td style="padding:8px;">%util 逼近 100%、await（平均等待時間）超過 10ms</td>
+    </tr>
+    <tr>
+      <td style="padding:8px; font-weight:700;">網路連線與 Socket</td>
+      <td style="padding:8px;"><code>ss -s, netstat -s, nicstat</code></td>
+      <td style="padding:8px;">TCP listen drop 溢出、RetransSegs（重傳率高）、RX-ERR 丟包</td>
+    </tr>
+  </table>
+</div>
+
+<p><strong>行程崩潰與 Core Dump 分析實務</strong>：</p>
+<pre><code class="language-bash"># 設定崩潰產生不受限的 Core Dump 檔案
+ulimit -c unlimited
+echo "/var/crash/core-%e-%p-%t" > /proc/sys/kernel/core_pattern
+
+# 運用 GDB 進行事後調試（Post-Mortem Debugging）
+gdb ./twse_matching_engine /var/crash/core-twse_matching_engine-12345-1698765432
+(gdb) bt full       # 打印崩潰當下所有線程的完整呼叫堆疊
+(gdb) thread apply all bt  # 檢視是否發生死鎖（Deadlock）
+(gdb) p *g_order_book      # 檢視委託簿當前記憶體狀態</code></pre>
+"""
+        }
+    ]
+
+if __name__ == '__main__':
+    data = get_sysnet_notes()
+    js_content = "/**\n * 臺灣證券交易所 (TWSE) 招募備考講義 - 系統與網路管理人員 (計算機概論)\n * 完整涵蓋 12 大深入核心單元（超低延遲、網路拓撲、PTP、Linux 核心、資料庫雙活、儲存架構、K8s、叢集高可用、FIX/Kafka、SRE）\n */\n\nconst NOTES_SYSNET = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n"
+    with open('learning/twse-it/assets/notes-sysnet.js', 'w', encoding='utf-8') as f:
+        f.write(js_content)
+    print(f"Successfully generated notes-sysnet.js with {len(data)} chapters!")

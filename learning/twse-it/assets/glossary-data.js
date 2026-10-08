@@ -143,6 +143,76 @@ const TWSE_GLOSSARY = [
     zh: "MITRE 攻擊戰術與技術知識庫",
     category: "sec",
     desc: "全球資安防護與威脅獵捕通用之威脅矩陣，系統化歸納駭客攻擊生命週期中各階段（如 Initial Access、Execution、Persistence、Lateral Movement）之具體技術與防禦策略。"
+  },
+  {
+    en: "Lead Auditor (LA)",
+    phonetic: "/liːd ˈɔːdɪtər/",
+    zh: "主導稽核員",
+    category: "sec",
+    desc: "取得國際認可證照（如 IRCA/CQI）具備領導稽核團隊、規劃稽核計畫、主持開幕與閉幕會議、判定不符合事項（NC）並審核矯正措施有效性之資深稽核專家。"
+  },
+  {
+    en: "Objective Evidence",
+    phonetic: "/əbˈdʒɛktɪv ˈɛvɪdəns/",
+    zh: "客觀證據",
+    category: "sec",
+    desc: "ISO 19011 稽核之核心靈魂。透過訪談（Interviews）、文件審閱（Records Review）及現場實作觀察（Observation）取得可被重複驗證的事實數據，作為稽核發現判定之唯一依據。"
+  },
+  {
+    en: "Statement of Applicability (SoA)",
+    phonetic: "/ˈsteɪtmənt əv ˌæplɪkəˈbɪləti/",
+    zh: "適用性聲明書",
+    category: "sec",
+    desc: "ISO/IEC 27001 Clause 6.1.3 核心文件。詳列 Annex A 93 項控制措施之採納或排除理由、實施現況及對應控制目標，為 Stage 1 文件審查與合規查核之關鍵樞紐。"
+  },
+  {
+    en: "Major Non-conformity",
+    phonetic: "/ˈmeɪdʒər nɑːnkənˈfɔːrməti/",
+    zh: "重大不符合事項",
+    category: "sec",
+    desc: "ISO 19011 稽核中最嚴重等級之發現。代表核心條款未滿足、控制措施系統性崩潰或對資安產生直接重大危害。直接阻擋證書簽發，受稽方需於 90 天內完成 RCA 並接受實地複查。"
+  },
+  {
+    en: "Minor Non-conformity",
+    phonetic: "/ˈmaɪnər nɑːnkənˈfɔːrməti/",
+    zh: "次要不符合事項",
+    category: "sec",
+    desc: "單一或偶發性之作業疏漏，未對整體 ISMS 有效性構成系統性衝擊。不阻擋證書發放，但需於限期內提出矯正措施計畫（CAP）及佐證資料送書面複審。"
+  },
+  {
+    en: "Opportunity for Improvement (OFI)",
+    phonetic: "/ˌɑːpərˈtuːnəti fər ɪmˈpruːvmənt/",
+    zh: "改善機會 / 觀察事項",
+    category: "sec",
+    desc: "現行作業符合標準要求，但依稽核員專業判斷存在潛在惡化風險或具備更佳業界做法之建議，不需開立矯正措施單，供受稽組織持續精進參考。"
+  },
+  {
+    en: "Root Cause Analysis (RCA)",
+    phonetic: "/ruːt kɔːz əˈnæləsɪs/",
+    zh: "根本原因分析",
+    category: "sec",
+    desc: "ISO 27001 Clause 10.1 要求之問題根因深究方法（如 5-Why 分析法或魚骨圖）。旨在挖掘制度架構、流程自動化與技術機制的根本成因，杜絕問題再度復發。"
+  },
+  {
+    en: "Corrective Action",
+    phonetic: "/kəˈrɛktɪv ˈækʃn/",
+    zh: "矯正措施",
+    category: "sec",
+    desc: "消除已發生之不符合事項根本原因並防止其再次發生的閉環行動。包含：即刻遏阻、根本原因分析、預防措施擬定與執行，以及後續有效性驗證（Verification）。"
+  },
+  {
+    en: "Order of Volatility",
+    phonetic: "/ˈɔːrdər əv ˌvɑːləˈtɪləti/",
+    zh: "數位鑑識揮發性順序",
+    category: "sec",
+    desc: "RFC 3227 現場數位鑑識證據採集鐵律。依揮發性由高至低採集：CPU 暫存器 -> 實體記憶體 RAM -> 網路連線狀態 -> 磁碟儲存媒體 -> 備份媒體，嚴禁第一時間拔除電源。"
+  },
+  {
+    en: "Financial Action Plan 2.0",
+    phonetic: "/faɪˈnænʃl ˈækʃn plæn/",
+    zh: "金融資安行動方案 2.0",
+    category: "sec",
+    desc: "金管會深化金融營運韌性之核心綱領。涵蓋深化治理（專責 CISO）、強化聯防（F-ISAC/SOC）、提升監韌（BIA/RTO/RPO 與防勒索演練）、建構文化四大構面。"
   }
 ];
 

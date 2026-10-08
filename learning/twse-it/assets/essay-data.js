@@ -1,463 +1,318 @@
 /**
- * 臺灣證券交易所 (TWSE) 招募備考系統 - 滿分精要申論題庫 (20 題高分範本)
- * 涵蓋系統與網路管理 (10 題) 及 資通安全 (10 題)
- * 嚴格遵循國家考試與證交所招募評分標準（採點給分、標竿架構、精簡直擊得分字）
+ * 臺灣證券交易所 (TWSE) 招募備考系統 - 滿分精要申論題庫 (24 題全真標竿高分範本)
+ * 涵蓋系統與網路管理 (12 題) 及 資通安全 (12 題)，全數嚴格依據 24 大章節出題
+ * 遵循國家考試與證交所招募評分標準（破題立論、條列架構、橫向對比表、實務參數調校、得分秘笈與深度解說）
  */
 
 const TWSE_ESSAY_DATA = [
-  // =========================================================================
-  // 系統與網路管理人員 (計算機概論) 10 題標竿滿分申論
-  // =========================================================================
   {
-    id: "sn-essay-01",
-    category: "sysnet",
-    title: "金融極致超低延遲撮合架構規劃與 Linux 核心最佳化",
-    points: 25,
-    rubric: "1. 延遲成因分析 (5分)；2. Kernel Bypass 原理與 DPDK/Onload 機制 (8分)；3. Linux 核心與 CPU/NUMA 調校措施 (8分)；4. 結論與監控量化 (4分)",
-    question: "臺灣證券交易所全面實施逐筆撮合（Continuous Trading），對於訂單處理往返延遲（Round-Trip Latency）之要求已進入微秒（µs）級別。請分析傳統 Linux 作業系統網路通訊架構之主要延遲瓶頸，並詳述如何運用 Kernel Bypass 技術與作業系統底層調校策略，建構高吞吐、微秒級之撮合引擎執行環境？",
-    modelAnswer: `
-<h4>一、傳統 Linux 網路堆疊之延遲瓶頸分析</h4>
-<ol>
-  <li><strong>環境切換（Context Switch）開銷</strong>：傳統 Socket API 每次呼叫 <code>send()/recv()</code> 均需在 User Space 與 Kernel Space 間往返切換，伴隨暫存器儲存與保護等級變更。</li>
-  <li><strong>中斷處理與排程抖動</strong>：網卡產生硬體與軟中斷（SoftIRQ）強制插隊 CPU 管線，造成長尾延遲（Tail Latency）飆升。</li>
-  <li><strong>多次記憶體拷貝</strong>：封包自網卡 DMA 緩衝區複製至核心 sk_buff，再拷貝至應用層緩衝區，消耗 CPU 週期與記憶體頻寬。</li>
-</ol>
-
-<h4>二、Kernel Bypass 核心旁路技術之導入架構</h4>
-<ol>
-  <li><strong>DPDK / Solarflare Onload 技術</strong>：
-    <ul>
-      <li>利用<strong>輪詢模式驅動（PMD, Poll Mode Driver）</strong>，撮合行程於使用者空間直接輪詢網卡環形緩衝區（Ring Buffer），徹底消除中斷引發之延遲。</li>
-      <li>實現<strong>零拷貝（Zero-Copy）</strong>存取，封包直接抵達撮合記憶體結構，單向通訊延遲壓縮至 <strong>1.5 微秒以內</strong>。</li>
-    </ul>
-  </li>
-  <li><strong>無鎖設計（Lock-free Ring Buffer）</strong>：撮合佇列採用 LMAX Disruptor 記憶體架構，配合記憶體屏障消除 Mutex 互斥鎖競爭。</li>
-</ol>
-
-<h4>三、作業系統核心與硬體親和性調校實務</h4>
-<ol>
-  <li><strong>CPU 核心隔離與綁定（Core Pinning）</strong>：
-    <ul>
-      <li>設定 Linux 開機核心參數 <code>isolcpus=2-15 nohz_full=2-15 rcu_nocbs=2-15</code>，阻斷 CFS 排程器中斷撮合核心。</li>
-      <li>設定即時排程策略 <code>SCHED_FIFO</code>（最高優先權 99），獨佔實體 CPU 運算能力。</li>
-    </ul>
-  </li>
-  <li><strong>NUMA 親和性與快取保護</strong>：
-    <ul>
-      <li>使用 <code>numactl</code> 將撮合行程綁定於網卡 PCIe 總線相連之同一 NUMA Node，消除跨總線存取延遲。</li>
-      <li>程式碼關鍵結構採用 <code>alignas(64)</code> 進行 Cache Line 填充，徹底避免多核心<strong>偽共享（False Sharing）</strong>。</li>
-    </ul>
-  </li>
-  <li><strong>記憶體鎖定與大頁配置</strong>：
-    <ul>
-      <li>執行 <code>mlockall(MCL_CURRENT | MCL_FUTURE)</code> 鎖死實體 RAM，嚴禁發生 Swap 換頁分頁中斷（Page Fault）。</li>
-      <li>配置 1GB 靜態 HugePages 並停用透明大頁（THP），極大化 TLB 快取命中率。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>四、結論</h4>
-<p>透過「Kernel Bypass 網路加速 + CPU/NUMA 物理隔離 + 零拷貝無鎖記憶體」三大核心支柱，能徹底消弭作業系統開銷，將逐筆撮合平均處理延遲壓制於 5 微秒以內，抖動率小於 2%，完美確保證券交易系統公平性與流暢度。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：務必點出『Context Switch』、『PMD 輪詢驅動』、『isolcpus/SCHED_FIFO』、『NUMA 綁定』與『False Sharing 快取行偽共享』，這些是資深評審標準答案之核心關鍵字。"
+    "id": "sn-essay-01",
+    "category": "sysnet",
+    "chapter": "第 1 章：臺灣證交所撮合架構與超低延遲運算",
+    "title": "金融極致超低延遲逐筆撮合架構規劃與 Linux 核心最佳化",
+    "points": 25,
+    "rubric": "1. 逐筆撮合延遲成因分析 (5分)；2. Kernel Bypass 原理與 DPDK/Onload 機制 (8分)；3. Linux 核心與 CPU/NUMA 調校措施 (8分)；4. 結論與量化指標 (4分)",
+    "question": "臺灣證券交易所（TWSE）全面推動逐筆撮合（Continuous Trading），對於訂單處理往返延遲（Round-Trip Latency）之要求已進入微秒（µs）級別。請分析傳統 Linux 作業系統網路通訊架構之主要延遲瓶頸，並詳述如何運用 Kernel Bypass 技術與作業系統底層調校策略，建構高吞吐、微秒級之撮合引擎執行環境？",
+    "modelAnswer": "\n<h4>一、破題：傳統 Linux 網路堆疊延遲瓶頸</h4>\n<p>傳統 Linux 核心網路堆疊設計著重於通用性與安全性，但在微秒級金融撮合情境下存在三大致命開銷：</p>\n<ol>\n  <li><strong>環境切換（Context Switch）開銷</strong>：POSIX Socket 每次呼叫 <code>send()/recv()</code> 均需在 User Space 與 Kernel Space 間切換，消耗 1,000~2,500 個 CPU 週期。</li>\n  <li><strong>硬體與軟中斷（Hardware & Software IRQ）</strong>：網卡抵達封包觸發中斷，強行打斷 CPU 執行緒管線，造成長尾延遲（Tail Latency）飆升。</li>\n  <li><strong>多次記憶體拷貝</strong>：封包經 DMA 寫入核心 <code>sk_buff</code>，再複製至應用層緩衝區，消耗記憶體頻寬。</li>\n</ol>\n\n<h4>二、核心旁路技術（Kernel Bypass）架構對策</h4>\n<ol>\n  <li><strong>DPDK（Data Plane Development Kit）</strong>：\n    採用<strong>輪詢模式驅動（PMD, Poll Mode Driver）</strong>，撮合行程於使用者空間直接輪詢網卡環形緩衝區（Ring Buffer），全無中斷開銷；實現<strong>零拷貝（Zero-Copy）</strong>，單向網路延遲壓制至 <strong>1.2 微秒以內</strong>。\n  </li>\n  <li><strong>Solarflare Onload（OpenOnload）</strong>：\n    在使用者空間實現完整 TCP/IP 堆疊，應用程式<strong>無需修改標準 Socket 原始碼</strong>即可透明加速，適合券商 FIX 閘道快速對接。\n  </li>\n</ol>\n\n<h4>三、技術方案橫向對比分析表</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">比較指標</th>\n      <th style=\"padding:6px 10px;\">傳統 Linux 網路堆疊</th>\n      <th style=\"padding:6px 10px;\">Solarflare Onload</th>\n      <th style=\"padding:6px 10px;\">Intel DPDK</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">單向網路延遲</td>\n      <td style=\"padding:6px 10px;\">15 ~ 35 µs</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">1.2 ~ 1.8 µs</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">0.8 ~ 1.5 µs</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">中斷處理模式</td>\n      <td style=\"padding:6px 10px;\">硬體中斷 + SoftIRQ</td>\n      <td style=\"padding:6px 10px;\">使用者空間混合輪詢</td>\n      <td style=\"padding:6px 10px;\">純 PMD 100% 輪詢</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">代碼重構成本</td>\n      <td style=\"padding:6px 10px;\">無</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">完全免改（LD_PRELOAD）</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">需專用 API 重寫</td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、作業系統核心與硬體親和性調校實務</h4>\n<ol>\n  <li><strong>CPU 隔離與綁定</strong>：設定 Linux GRUB 開機參數 <code>isolcpus=2-15 nohz_full=2-15 rcu_nocbs=2-15</code>，配合即時排程 <code>SCHED_FIFO</code>（優先級 99），排他性獨佔實體核心。</li>\n  <li><strong>NUMA 記憶體親和性</strong>：執行 <code>numactl --cpunodebind=0 --membind=0</code>，綁定網卡 PCIe 總線直通之 NUMA 節點，消除跨總線 40ns 延遲懲罰。</li>\n  <li><strong>記憶體鎖定與大頁</strong>：呼叫 <code>mlockall(MCL_CURRENT | MCL_FUTURE)</code> 鎖死實體 RAM，停用 Swap；配置 1GB 靜態 HugePages，極大化 TLB 快取命中率。</li>\n</ol>\n\n<h4>五、結論</h4>\n<p>透過「Kernel Bypass 網路加速 + CPU/NUMA 物理隔離 + 零拷貝無鎖記憶體」三大支柱，能將逐筆撮合平均延遲壓制於 5 微秒以內，抖動率小於 2%，完美保障臺灣證券市場交易之公平性與高可用性。</p>\n            ",
+    "examinerTips": "閱卷得分秘笈：務必寫出『Context Switch』、『PMD 輪詢驅動』、『isolcpus/SCHED_FIFO』、『NUMA 綁定』與『False Sharing 快取行偽共享』，這些是資深評審標準答案之核心關鍵字。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>延遲成因分析（5分）</strong>：需精準點出 Context Switch、中斷（IRQ）打斷 CPU 管線、記憶體二次拷貝這三個核心根因，若僅泛泛而談「網路慢」則只能得 2 分。</li>\n  <li><strong>Kernel Bypass 機制（8分）</strong>：需區分 DPDK 與 Solarflare Onload 之差異（DPDK 需改代碼但延遲極致；Onload 完全相容 Socket API）。點出 PMD 與 Zero-Copy 各得 2 分。</li>\n  <li><strong>底層調校實務（8分）</strong>：列出具體 Linux 參數 <code>isolcpus</code>、<code>nohz_full</code>、<code>SCHED_FIFO</code>、<code>mlockall</code> 與 <code>1GB HugePages</code>，每項命中得 1.5~2 分。</li>\n  <li><strong>對比表格與結論（4分）</strong>：橫向二維表格展現專業架構師綜整能力，直接鎖定滿分級距。</li>\n</ul>\n<h5>⚠️ 考生常見失分陷阱</h5>\n<ol>\n  <li><strong>混淆集合競價與逐筆撮合</strong>：集合競價是 5 秒累積撮合一次，逐筆撮合是「隨到隨撮」，此題核心在「單筆封包處理延遲」，不可寫成批次演算法。</li>\n  <li><strong>只寫概念沒寫參數</strong>：寫「做 CPU 綁定」只得一半分數，寫出「<code>isolcpus=2-15</code> 搭配 <code>numactl</code>」才算具備實戰能力的專業工程師。</li>\n</ol>\n<h5>🏛️ 臺灣證券交易所（TWSE）實務背景</h5>\n<p>證交所板橋機房主機共置（Co-location）服務，各證券商伺服器與證交所撮合主機位於同一棟數據中心，物理距離僅數十公尺。在此極端環境下，網路傳播延遲已降至百奈秒（ns）級，伺服器內部的作業系統排程與 Socket 堆疊延遲成為決定勝負的最關鍵戰場。</p>\n            "
   },
   {
-    id: "sn-essay-02",
-    category: "sysnet",
-    title: "金融多點廣播（Multicast）行情推播與微突發防禦設計",
-    points: 25,
-    rubric: "1. 多點廣播協定架構 (7分)；2. PIM-SSM 與 IGMPv3 優勢 (6分)；3. Spine-Leaf 與 Microburst 緩解策略 (8分)；4. 高可用冗餘設計 (4分)",
-    question: "臺灣證券交易所每日產出海量逐筆成交與五檔委託行情資訊，必須即時、公平且低延遲地推播至全臺數百家證券商。請說明證交所為何採用 UDP Multicast 作為行情推播協定？試述 PIM-SSM 與 IGMPv3 在此架構下的運作原理，並針對開盤瞬時流量微突發（Microburst）提出交換器端之防禦與調校對策。",
-    modelAnswer: `
-<h4>一、UDP Multicast 行情推播之必要性與公平性優勢</h4>
-<ol>
-  <li><strong>伺服器出口負載固定化</strong>：單播（Unicast）模式下頻寬消耗隨券商連線數線性暴增；多點廣播下，交易所行情主機僅需發布<strong>單一封包</strong>，由網路設備硬體複製轉發，杜絕主機網路卡瓶頸。</li>
-  <li><strong>市場資訊到達一致性（絕對公平）</strong>：交換器以硬體線速複製多份封包同時送達各券商接取端點，確保資訊揭示之同步性，防止因發送順序先後導致市場不公。</li>
-</ol>
-
-<h4>二、PIM-SSM 與 IGMPv3 協定運作原理</h4>
-<ol>
-  <li><strong>IGMPv3（指定來源主機回報）</strong>：券商接收端主機向接取交換器（Leaf）發送 IGMPv3 報告，精確指定所需之群播組位址（G）與交易所合法發送端來源 IP（S），有效阻絕非法假冒來源。</li>
-  <li><strong>PIM-SSM（指定來源多點廣播）</strong>：
-    <ul>
-      <li>直接建立以來源主機為根節點的最短路徑樹（SPT, Shortest Path Tree）。</li>
-      <li><strong>徹底省去 PIM-SM 之 RP（匯聚點 Rendezvous Point）</strong>，消除向 RP 註冊及共享樹轉向最短路徑樹之延遲與收斂風險，大幅縮短行情鏈路建立時間。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>三、Microburst（微突發）威脅分析與交換器調校對策</h4>
-<ol>
-  <li><strong>Microburst 危害</strong>：開盤劇烈波動時，數萬筆行情與委託在數十微秒內湧入，即使交換器平均頻寬利用率低於 30%，特定出埠之佇列緩衝區（Queue Buffer）瞬間溢滿，造成<strong>尾端丟包（Tail Drop）</strong>與重傳。</li>
-  <li><strong>交換器層級緩解與最佳化</strong>：
-    <ul>
-      <li><strong>Cut-Through（直通式交換）</strong>：讀取 MAC 標頭即啟動線速轉發，縮短封包在交換器晶片內停留時間至 300 奈秒。</li>
-      <li><strong>動態共用緩衝區（Dynamic Shared Buffer / Alpha Tuning）</strong>：調高突發吸收閾值，允許特定連接埠在微突發瞬間借用整台交換器的共享晶片緩衝記憶體。</li>
-      <li><strong>Spine-Leaf 架構與 ECMP 多路徑</strong>：透過 5-tuple 雜湊將跨葉流量均勻分散至所有 Spine 交換器，消除瓶頸單點。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>四、雙迴路冗餘機制（A/B Line Feed）</h4>
-<p>證交所行情推播全面採用 <strong>Feed A 與 Feed B 雙獨立實體迴路</strong> 並行廣播。接收端網卡同時監聽兩路封包，以序號（Sequence Number）進行即時去重，若任一迴路因微突發丟包，另一迴路可實現<strong>無縫零延遲瞬時補位</strong>，無需等待請求重傳。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：明確對比 PIM-SM（需 RP）與 PIM-SSM（免 RP、直接建 SPT）之技術差異，並提出雙路廣播（A/B Feed）去重補位機制，展現金融級高可用深度思維。"
+    "id": "sn-essay-02",
+    "category": "sysnet",
+    "chapter": "第 2 章：金融高可靠網路拓撲與行情推播",
+    "title": "金融多點廣播（Multicast）行情推播與微突發防禦設計",
+    "points": 25,
+    "rubric": "1. Multicast 必要性與公平性 (7分)；2. PIM-SSM 與 IGMPv3 機制 (6分)；3. Spine-Leaf 與 Microburst 防禦策略 (8分)；4. 雙路備份結論 (4分)",
+    "question": "臺灣證券交易所每日產出海量逐筆成交與五檔委託行情資訊，必須即時、公平且低延遲地推播至全臺數百家證券商。請說明證交所為何採用 UDP Multicast 作為行情推播協定？試述 PIM-SSM 與 IGMPv3 在此架構下的運作原理，並針對開盤瞬時流量微突發（Microburst）提出交換器端之防禦與調校對策。",
+    "modelAnswer": "\n<h4>一、破題：UDP Multicast 行情推播之必要性與公平性</h4>\n<p>在證券交易市場中，行情揭示（Market Data）必須遵循嚴格的<strong>資訊同步到達原則</strong>：</p>\n<ol>\n  <li><strong>伺服器出口負載固定化</strong>：單播（Unicast）模式下頻寬消耗隨券商連線數線性暴增；多點廣播下，交易所行情主機僅需發布<strong>單一封包</strong>，由網路設備硬體線速複製轉發，杜絕主機網卡出口瓶頸。</li>\n  <li><strong>市場資訊到達一致性（絕對公平）</strong>：交換器以硬體線速複製封包同時送達各券商接取端點，確保資訊揭示之同步性，防止因發送順序先後導致市場不公。</li>\n</ol>\n\n<h4>二、PIM-SSM 與 IGMPv3 協定運作原理</h4>\n<ol>\n  <li><strong>IGMPv3（指定來源主機回報）</strong>：券商接收端主機向接取交換器（Leaf）發送 IGMPv3 報告，精確指定所需之群播組位址（G）與交易所合法發送端來源 IP（S），有效阻絕非法假冒來源。</li>\n  <li><strong>PIM-SSM（指定來源群播路由）</strong>：\n    相較於傳統 PIM-SM 依賴複雜且易成單點瓶頸的集合點（RP, Rendezvous Point），PIM-SSM 省略共享樹（Shared Tree）構建，直接建立<strong>最短路徑樹（Shortest Path Tree, SPT）</strong>，收斂速度小於 10ms，徹底消除轉發跳數延遲。\n  </li>\n</ol>\n\n<h4>三、微突發（Microburst）成因與交換器緩衝區調校</h4>\n<p>開盤瞬時（09:00:00）數萬筆下單觸發大量成交行情，數十微秒內封包速率遠超實體頻寬，導致交換器緩衝區瞬間溢出掉包。</p>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">防禦維度</th>\n      <th style=\"padding:6px 10px;\">傳統交換器設定</th>\n      <th style=\"padding:6px 10px;\">金融級微突發優化對策</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">緩衝區分配</td>\n      <td style=\"padding:6px 10px;\">靜態平均分配（Static Buffer）</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">動態共用緩衝區（Dynamic Shared Buffer，調高 Alpha 權重）</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">交換轉發架構</td>\n      <td style=\"padding:6px 10px;\">儲存後轉發（Store-and-Forward）</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">直通轉發（Cut-Through Switching，僅讀取前 14 Bytes MAC）</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">擁塞控制機制</td>\n      <td style=\"padding:6px 10px;\">TCP 逾時重傳</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">ECN 標記搭配 RoCEv2 PFC 優先級流量控制</td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、結論：Feed A / Feed B 雙路獨立冗餘</h4>\n<p>為達成封包遺失零容忍，證交所採用 <strong>Feed A 與 Feed B 雙路實體隔離廣播</strong>。行情封包標記全域遞增序號（Sequence Number），券商端仲裁器（Arbiter）先到先解，另一路重複自動丟棄，構築堅不可摧的高可靠行情基盤。</p>\n            ",
+    "examinerTips": "得分關鍵：切中『UDP Multicast 解決出口頻寬線性增長』、『PIM-SSM 免去 RP 單點瓶頸』、『Cut-Through 直通轉發』與『Feed A/B 雙路仲裁』四項要點。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>Multicast 必要性（7分）</strong>：需說明單播對伺服器網路卡造成的出口頻寬暴增，以及多播對所有券商「到達時間一致性（公平交易）」之監理意義。</li>\n  <li><strong>PIM-SSM 與 IGMPv3（6分）</strong>：點出 IGMPv3 具備指定來源 (S,G) 能力；點出 PIM-SSM 繞過 RP 直接建構 SPT 最短路徑樹。</li>\n  <li><strong>微突發緩解（8分）</strong>：說明開盤微秒級瞬時突發成因，並提出動態緩衝區（Dynamic Shared Buffer）、Cut-Through 直通交換與 ECN/PFC 三大解法。</li>\n  <li><strong>結論（4分）</strong>：提及 Feed A/B 雙路冗餘架構與序列號去重，獲得滿分。</li>\n</ul>\n<h5>⚠️ 考生常見失分陷阱</h5>\n<p>許多考生誤以為 Multicast 使用 TCP 協定。必須明確指出 Multicast 僅支援 UDP，因為 TCP 握手與 ACK 機制在多對一環境下會引發 ACK 廣播風暴（ACK Implosion）直接癱瘓網路。</p>\n            "
   },
   {
-    id: "sn-essay-03",
-    category: "sysnet",
-    title: "金融核心資料庫 ACID 保證與同城雙活（Active-Active）容災建設",
-    points: 25,
-    rubric: "1. WAL 預寫日誌與 Crash Recovery 機制 (7分)；2. 交易隔離層級與 MVCC (6分)；3. 雙活機房 RTO/RPO 指標與同步複寫架構 (8分)；4. 裂腦防範措施 (4分)",
-    question: "臺灣證券交易所負責全臺灣資本市場之結算與交易核心，資料庫必須保證極致的 ACID 特性，並建構符合主管機關最高標準之容災體系。請詳述關聯式資料庫如何透過 WAL（Write-Ahead Logging）保證持久性與崩潰復原？並說明如何規劃同城雙活（Metro Active-Active）資料中心以達成 RTO ≈ 0、RPO = 0 之容災目標？",
-    modelAnswer: `
-<h4>一、WAL 預寫日誌原理與崩潰復原（Crash Recovery）</h4>
-<ol>
-  <li><strong>WAL 核心法則</strong>：記憶體中髒頁（Dirty Pages）被刷入磁碟資料表前，對應的<strong>重做/復原日誌記錄（Redo/Undo Log）必須先循序寫入磁碟並執行 <code>fsync()</code> 確認落盤</strong>。將隨機 I/O 轉換為高速循序 I/O，大幅提升交易吞吐量。</li>
-  <li><strong>ARIES 崩潰復原三階段</strong>：
-    <ul>
-      <li><strong>分析階段（Analysis）</strong>：掃描最近檢查點（Checkpoint）後的日誌，識別崩潰時尚未寫入磁碟之髒頁及未提交之活躍交易。</li>
-      <li><strong>重做階段（REDO）</strong>：依日誌順序重現所有已提交交易之變更（包含未刷盤者），將資料狀態復原至崩潰前瞬間。</li>
-      <li><strong>復原階段（UNDO）</strong>：反向滾動並撤銷所有在崩潰發生前尚未 Commit 之未完成交易，捍衛資料庫一致性。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>二、交易隔離性與 MVCC 多版本併發控制</h4>
-<p>資料庫採用 <strong>MVCC（Multi-Version Concurrency Control）</strong> 機制。讀取操作僅需讀取特定快照版本，<strong>「讀不阻塞寫，寫不阻塞讀」</strong>。在 <code>Repeatable Read</code> 隔離層級下，透過記錄 Undo Log 版本鏈與 ReadView 快照判斷可見性，配合 <code>Next-Key Lock</code> 鎖定間隙，杜絕髒讀、不可重複讀與幻讀現象。</p>
-
-<h4>三、同城雙活（Active-Active）資料中心規劃（RTO ≈ 0, RPO = 0）</h4>
-<ol>
-  <li><strong>實體傳輸基礎</strong>：兩座機房相距 30 公里以內，配置多路密集波分複用（DWDM）專用暗光纖直連，保證單向傳輸延遲小於 1 毫秒。</li>
-  <li><strong>同步鏡像複寫（Synchronous Replication）</strong>：採用半同步或強一致性 Raft/Paxos 協定。撮合提交交易時，必須確保 WAL 日誌已成功同步寫入主機房與同城備援機房記憶體/磁碟並獲得 ACK，確保<strong>災難發生時零資料遺失（RPO = 0）</strong>。</li>
-  <li><strong>雙活負載與流量秒級切換</strong>：兩機房同時處於活躍提供服務狀態。入口前置 GSLB 與 BGP Anycast 監控後端健康狀態，一旦偵測到單一站點失效，自動在 <strong>1~3 秒內將連線無縫導流至另一站點（RTO ≈ 0）</strong>。</li>
-</ol>
-
-<h4>四、裂腦（Split-Brain）仲裁機制</h4>
-<p>為防止跨機房通訊鏈路中斷引發兩機房各自獨立宣稱 Master 之裂腦災難，架構中必須部署<strong>第三站點獨立仲裁者（Quorum Witness）</strong>。唯有取得超過半數票數（> 50% Quorum）之站點方可合法接管叢集寫入權限，確保資本市場交易資料絕對正確。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：準確區分 REDO 與 UNDO 的時機，闡述 ARIES 復原演算法三步驟；在雙活部分必須強調 DWDM 暗光纖、強同步複寫與第三地仲裁節點（Witness Quorum），得分直接封頂。"
+    "id": "sn-essay-03",
+    "category": "sysnet",
+    "chapter": "第 3 章：金融高精度時間同步與時序工程",
+    "title": "金融交易時戳合規性與 IEEE 1588v2 (PTP) 奈秒級時間同步規劃",
+    "summary": "解析 MiFID II 國際時間監理規範、NTP vs PTP 精度差異、Grandmaster / BC / TC 運作架構與 Linux ptp4l / phc2sys 落地實務。",
+    "points": 25,
+    "rubric": "1. 監理合規要求與時序重要性 (6分)；2. NTP 與 IEEE 1588 PTP 機制差異 (7分)；3. PTP 時鐘架構 (BC/TC/GM) (8分)；4. Linux 落地實踐 (4分)",
+    "question": "國際金融監理規範（如歐盟 MiFID II RTS 25）對高頻交易與委託撮合之時間戳記精度提出了嚴苛要求。試說明證券交易系統為何不能單純仰賴傳統 NTP？請詳述 IEEE 1588v2 (PTP) 達成奈秒級同步之原理，並說明 Grandmaster Clock、Boundary Clock (BC) 及 Transparent Clock (TC) 之分工職責。",
+    "modelAnswer": "\n<h4>一、破題：高頻交易時序合規性與監理挑戰</h4>\n<p>在逐筆撮合與演算法交易中，訂單抵達時序攸關交易公平性與穿透性追蹤。歐盟 <strong>MiFID II RTS 25</strong> 嚴格規範：高頻演算法交易時間戳記精度必須達到 <strong>100 微秒（µs）以內</strong>，與 UTC（世界協調時間）最大允許偏差不得超過 <strong>1 微秒（µs）</strong>，傳統時間協定已完全無法滿足監理要求。</p>\n\n<h4>二、NTP vs IEEE 1588v2 PTP 機制全方位比較</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">比較指標</th>\n      <th style=\"padding:6px 10px;\">NTP (Network Time Protocol)</th>\n      <th style=\"padding:6px 10px;\">IEEE 1588v2 PTP</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">同步精度</td>\n      <td style=\"padding:6px 10px;\">毫秒級 (1 ~ 50 ms)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>奈秒級至次微秒級 (10 ~ 100 ns)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">時戳打標層級</td>\n      <td style=\"padding:6px 10px;\">應用層或作業系統軟體打標 (受中斷干擾)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>實體網卡 PHY / MAC 層硬體晶片打標</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">交換器支援</td>\n      <td style=\"padding:6px 10px;\">普通交換器即可</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">需交換器硬體支援 BC 或 TC 補償排隊延遲</td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、IEEE 1588v2 PTP 網路架構元件分工</h4>\n<ol>\n  <li><strong>Grandmaster Clock（主時鐘，GM）</strong>：\n    機房最高權威時鐘來源，內建銣原子鐘（Rubidium Atomic Clock）並鎖定 GPS / 北斗雙模衛星授時信號，提供絕對 UTC 時間基準。\n  </li>\n  <li><strong>Boundary Clock（邊界時鐘，BC）</strong>：\n    部署於 Spine/Leaf 交換器。上行作為 Slave 同步 GM，下行作為 Master 重新產生乾淨的 PTP 報文發送至伺服器，<strong>徹底阻斷 PTP 報文廣播風暴</strong>並消除交換器累積抖動。\n  </li>\n  <li><strong>Transparent Clock（透明時鐘，TC）</strong>：\n    交換器不終結時鐘，但在封包轉發時精確量測封包在交換器內部排隊駐留時間（Residence Time），並即時累加至 PTP 報文的校正欄位（Correction Field）。\n  </li>\n</ol>\n\n<h4>四、Linux 伺服器端落地實務</h4>\n<p>在撮合伺服器上，結合 <code>ptp4l</code> 透過網卡硬體時鐘（PHC, PTP Hardware Clock）進行奈秒級同步，再利用 <code>phc2sys</code> 將網卡時間同步回 Linux 核心系統時鐘 <code>CLOCK_REALTIME</code>，並由撮合引擎直接呼叫 <code>clock_gettime(CLOCK_REALTIME)</code> 為每筆委託打上無可爭議的法定時間戳記。</p>\n            ",
+    "examinerTips": "評分秘笈：寫出『MiFID II 100µs / 1µs 規範』立即展現金融監理專業視野；精準剖析『PHY/MAC 層硬體時間戳記』與『GM / BC / TC 職責』可獲滿分。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>監理背景（6分）</strong>：點出 MiFID II RTS 25 規範細節與時間偏差對高頻交易委託排隊公平性的致命影響。</li>\n  <li><strong>NTP vs PTP 差異（7分）</strong>：指出 NTP 軟體打標受作業系統中斷排程干擾（ms 級），而 PTP 是網卡 PHY/MAC 層由硬體 ASIC 晶片打標（ns 級）。</li>\n  <li><strong>時鐘架構（8分）</strong>：清楚陳述 Grandmaster（原子鐘/衛星）、Boundary Clock（分段終結）、Transparent Clock（計算駐留時間）。</li>\n  <li><strong>Linux 落地（4分）</strong>：寫出 <code>ptp4l</code> 與 <code>phc2sys</code> 雙核心組件。</li>\n</ul>\n            "
   },
   {
-    id: "sn-essay-04",
-    category: "sysnet",
-    title: "金融交易時戳合規性與 IEEE 1588 (PTP) 奈秒級時間同步系統建置",
-    points: 20,
-    rubric: "1. 金融監理時戳法規要求 (4分)；2. NTP 之局限性分析 (5分)；3. IEEE 1588 PTP 硬體時戳原理 (7分)；4. 伺服器與網路部署實踐 (4分)",
-    question: "國際金融監理規範（如歐盟 MiFID II RTS 25）與我國證券交易監理法令均對高頻委託與撮合成交之時間戳記（Timestamp）精準度訂定嚴苛規範。請分析傳統 NTP 協定無法滿足逐筆撮合時戳合規之原因，並詳細說明 IEEE 1588v2（PTP）高精準度時間協定之運作原理及其在證券機房內之建置架構。",
-    modelAnswer: `
-<h4>一、金融監理時戳合規性要求與 NTP 局限性</h4>
-<ol>
-  <li><strong>法規嚴格指標</strong>：MiFID II 規定從事高頻交易與撮合之系統，時間戳記與 UTC 官方時間之<strong>最大偏差不得超過 100 微秒（µs）</strong>，解析度必須達 1 微秒，以確保爭議訂單先後順序可嚴格仲裁。</li>
-  <li><strong>NTP（網路時間協定）之致命缺失</strong>：
-    <ul>
-      <li>NTP 時間戳記由作業系統核心軟體堆疊生成，受中斷延遲、行程排程與緩衝佇列影響，誤差高達數毫秒（1~50ms）。</li>
-      <li>單向路徑延遲假設為對稱（Symmetric Delay），但真實網路佇列與交換器轉發存在顯著非對稱抖動，無法滿足微秒級法遵標準。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>二、IEEE 1588v2（PTP）運作機制與硬體時間戳記</h4>
-<ol>
-  <li><strong>PHY 層硬體時間戳記（Hardware Timestamping）</strong>：
-    <ul>
-      <li>PTP 封包在通過網卡實體層（PHY）晶片進出網路介面之精確瞬間，硬體計數器立即烙印奈秒時戳。</li>
-      <li><strong>徹底消除驅動程式、作業系統核心軟中斷及應用程式的所有軟體延遲</strong>。</li>
-    </ul>
-  </li>
-  <li><strong>四步驟延遲計算（Delay-Request-Response 機制）</strong>：
-    <ul>
-      <li>主時鐘發送 <code>Sync</code> 報文（紀錄發送時間 t1），從時鐘接收（紀錄 t2）。</li>
-      <li>從時鐘發送 <code>Delay_Req</code>（紀錄發送時間 t3），主時鐘接收（紀錄 t4）。</li>
-      <li>單向傳輸延遲 \( \text{Mean Delay} = \frac{(t2 - t1) + (t4 - t3)}{2} \)；時鐘相位偏差 \( \text{Offset} = \frac{(t2 - t1) - (t4 - t3)}{2} \)。透過連續反饋校正，誤差縮小至 <strong>< 100 奈秒（ns）</strong>。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>三、證券機房 PTP 拓撲部署與實踐架構</h4>
-<ol>
-  <li><strong>時鐘源根節點（Grandmaster Clock）</strong>：在資料中心天線引進 GPS/北斗/GLONASS 衛星訊號，輔以銣原子鐘（Rubidium Atomic Clock）維持 Holdover 守時能力。</li>
-  <li><strong>邊界時鐘（Boundary Clock）與透明交換器（Transparent Clock）</strong>：機房 Spine-Leaf 交換器全面支援 PTP TC/BC，硬體即時測量封包在交換器內部排隊滯留時間（Residence Time）並寫入 Correction Field，消除網路微突發對時間同步之干擾。</li>
-  <li><strong>伺服器接取端</strong>：撮合伺服器選配支援 PTP 之高速網卡（如 Solarflare / Mellanox），透過 <code>ptp4l</code> 與 <code>phc2sys</code> 將網卡硬體時鐘（PHC）與 Linux 系統時鐘實時鎖相同步。</li>
-</ol>
-    `,
-    examinerTips: "閱卷得分秘訣：列出 PTP 四個核心時間戳公式（t1, t2, t3, t4）與 PHY 層硬體打標原理，並強調 Grandmaster 銣原子鐘與 Transparent Clock 交換器消除內部排隊滯留時間。"
+    "id": "sn-essay-04",
+    "category": "sysnet",
+    "chapter": "第 4 章：作業系統核心機制、程序調度與並行通訊",
+    "title": "Linux CFS 排程原理與撮合即時排程（SCHED_FIFO）實踐",
+    "summary": "深入剖析 Linux CFS 紅黑樹 vruntime 排程機制、即時排程 SCHED_FIFO 搶占特徵、四級分頁 TLB 命中率優化，以及 POSIX 共享記憶體無鎖通訊。",
+    "points": 25,
+    "rubric": "1. CFS 原理與金融弊端 (7分)；2. SCHED_FIFO 即時排程優勢 (6分)；3. 虛擬記憶體與大頁優化 (8分)；4. IPC 共享記憶體實踐 (4分)",
+    "question": "傳統 Linux 預設排程器（CFS）基於公平性原則設計，但在金融高並發撮合系統中容易引發非預期排程延遲與上下文切換。試分析 CFS 之運作原理及其在低延遲交易下的缺陷，並說明如何配置即時排程（SCHED_FIFO）與記憶體大頁（HugePages）以確保撮合執行緒之絕對執行特權？",
+    "modelAnswer": "\n<h4>一、破題：Linux CFS 運作原理與低延遲金融缺陷</h4>\n<p>Linux 完全公平排程器（CFS, Completely Fair Scheduler）核心設計目標為<strong>兼顧各行程之公平性與整體吞吐量</strong>：</p>\n<ol>\n  <li><strong>底層紅黑樹與 vruntime</strong>：CFS 以紅黑樹維護所有可執行行程，鍵值為虛擬執行時間 <code>vruntime</code>。排程器每次總是挑選最左側節點（vruntime 最小者）執行。</li>\n  <li><strong>金融交易缺陷</strong>：當撮合引擎在短暫等待訂單封包被喚醒時，CFS 仍需歷經紅黑樹搜尋、時間片配額計算與可能之多核遷移，引入 <strong>15~50 微秒的排程抖動</strong>，無法保證交易指令隨到隨算。</li>\n</ol>\n\n<h4>二、即時排程策略：SCHED_FIFO 排他性特權</h4>\n<ol>\n  <li><strong>無時間片不被搶占</strong>：<code>SCHED_FIFO</code> 靜態優先級設為 1~99（建議撮合行程設為 98 或 99）。一旦取得 CPU，只要不主動發起阻塞呼叫，<strong>CFS 普通行程絕對無法搶占其 CPU 資源</strong>。</li>\n  <li><strong>核心隔離連動</strong>：在 Linux 開機參數配置 <code>isolcpus=2-15 nohz_full=2-15 rcu_nocbs=2-15</code>，阻斷時鐘中斷（Timer Tick）與 RCU 回呼干擾，確保實體核心 100% 算力專屬於撮合邏輯。</li>\n</ol>\n\n<h4>三、虛擬記憶體與 1GB HugePages 大頁調校</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">記憶體分頁配置</th>\n      <th style=\"padding:6px 10px;\">分頁大小</th>\n      <th style=\"padding:6px 10px;\">TLB 覆蓋範圍</th>\n      <th style=\"padding:6px 10px;\">金融撮合評估</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">標準分頁 (Default)</td>\n      <td style=\"padding:6px 10px;\">4 KB</td>\n      <td style=\"padding:6px 10px;\">1,024 條目僅覆蓋 4 MB</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">TLB Miss 頻繁，每次懲罰 30~50ns</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">靜態巨大分頁 (HugePages)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>1 GB</strong></td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>單條目覆蓋 1 GB</strong></td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">TLB 命中率接近 100%，消除兩級頁表解析</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">透明大頁 (THP)</td>\n      <td style=\"padding:6px 10px;\">2 MB (動態)</td>\n      <td style=\"padding:6px 10px;\">動態維護</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\"><strong>必須停用！khugepaged 整理時引發記憶體凍結</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、高效 IPC：POSIX 共享記憶體無鎖通訊</h4>\n<p>撮合核心與行情廣播行程部署於同台伺服器時，採用 <code>shm_open()</code> 與 <code>mmap()</code> 建立<strong>POSIX 共享記憶體區塊</strong>。搭配 LMAX Disruptor 環形無鎖佇列與 <code>alignas(64)</code> 快取行對齊，通訊延遲小於 100 奈秒，完全超越 Socket 迴路通訊。</p>\n            ",
+    "examinerTips": "亮點字眼：『vruntime 與紅黑樹』、『SCHED_FIFO 靜態優先級 99』、『1GB 靜態大頁 vs 停用 THP』、『alignas(64) 消除偽共享』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>CFS 原理（7分）</strong>：清晰解釋紅黑樹與 vruntime，並具體指出其在低延遲交易中的抖動問題。</li>\n  <li><strong>SCHED_FIFO（6分）</strong>：說明即時排程高優先權不被搶占特性，並結合 isolcpus 隔離。</li>\n  <li><strong>HugePages（8分）</strong>：解釋四級頁表、TLB 快取覆蓋率與 1GB 大頁優勢，特別點出<strong>必須停用 THP（透明大頁）</strong>。</li>\n  <li><strong>IPC（4分）</strong>：陳述 POSIX shm 與無鎖 Disruptor 架構。</li>\n</ul>\n            "
   },
   {
-    id: "sn-essay-05",
-    category: "sysnet",
-    title: "金融資料中心 Spine-Leaf 現代網路架構與 BGP EVPN/VXLAN 規劃",
-    points: 20,
-    rubric: "1. 傳統三層式網路瓶頸 (4分)；2. Spine-Leaf 架構優勢 (6分)；3. BGP EVPN / VXLAN 運作原理 (6分)；4. 高可用與負載均衡實踐 (4分)",
-    question: "傳統金融機房多採用核心-匯聚-接取（Core-Aggregation-Access）之三層式網路架構，在應對現代微服務與高頻撮合大量東-西向（East-West）流量時遭遇重大瓶頸。請分析三層式架構之限制，並詳述 Spine-Leaf（脊葉式）架構如何結合 BGP EVPN 與 VXLAN 技術，建立高頻寬、低延遲、無阻塞之現代證券資料中心網路？",
-    modelAnswer: `
-<h4>一、傳統三層式架構瓶頸分析</h4>
-<ol>
-  <li><strong>STP 生成樹鏈路浪費與收斂緩慢</strong>：為防止環路，STP 強制阻塞高達 50% 的冗餘鏈路；一旦發生鏈路中斷，STP 收斂耗時數秒至數十秒，導致證券交易重大斷線。</li>
-  <li><strong>東-西向流量路徑過長且延遲不可預測</strong>：伺服器間跨機櫃橫向通訊必須經由 Access → Aggregation → Core 再繞回，跳數多且隨交換器排隊狀態劇烈抖動。</li>
-</ol>
-
-<h4>二、Spine-Leaf 脊葉架構之核心設計</h4>
-<ol>
-  <li><strong>扁平化雙層全互連</strong>：
-    <ul>
-      <li>每個 Leaf 交換器均與所有 Spine 交換器建立實體直連；Spine 之間互不相連，Leaf 之間互不相連。</li>
-      <li><strong>嚴格固定雙跳轉發</strong>：機房內任兩台伺服器間傳輸固定為「Leaf → Spine → Leaf」，單向延遲均勻維持在 1 微秒以內。</li>
-    </ul>
-  </li>
-  <li><strong>ECMP（等價多路徑）全頻寬利用</strong>：所有實體鏈路全部維持活躍轉發狀態，以 5-tuple 雜湊將連線平均分攤至多台 Spine 交換器，消除任何頻寬閒置。</li>
-</ol>
-
-<h4>三、BGP EVPN 控制平面與 VXLAN 資料平面實作</h4>
-<ol>
-  <li><strong>VXLAN（大二層覆蓋網路 Overlay）</strong>：採用 MAC-in-UDP 封裝技術，突破傳統 VLAN 4096 個識別碼限制（擴充至 24-bit VNI，支援 1,600 萬個虛擬網段），使伺服器叢集可跨三層底層（Underlay）進行二層透明漂移。</li>
-  <li><strong>BGP EVPN（現代化控制平面）</strong>：
-    <ul>
-      <li>取代傳統 VXLAN 氾濫且易癱瘓網路之「數據平面泛洪與學習（Flood-and-Learn）」。</li>
-      <li>透過 MP-BGP EVPN 路由協定在各 Leaf（VTEP）間傳遞 MAC/IP 路由資訊（Type-2 路由與 Type-5 前綴路由），以純控制平面預先完成位址解析，<strong>徹底消除 ARP 大量廣播風暴</strong>。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>四、總結</h4>
-<p>Spine-Leaf 搭配 BGP EVPN/VXLAN 達成實體底層（Underlay）與邏輯覆蓋層（Overlay）之完美解耦，兼具極致無阻塞擴展性、微秒級固定延遲與毫秒級鏈路故障自癒能力，為證券交易資料中心之標準架構首選。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：精準指出 STP 阻塞 50% 頻寬之痛點，並對比 VXLAN『Flood-and-Learn』與 BGP EVPN『Type-2 MAC/IP 控制平面廣播抑制』之差異。"
-  },
-
-  // =========================================================================
-  // 資通安全人員 (資訊安全概論) 10 題標竿滿分申論
-  // =========================================================================
-  {
-    id: "sec-essay-01",
-    category: "sec",
-    title: "金融關鍵基礎設施零信任架構（ZTA）規劃與落地實踐",
-    points: 25,
-    rubric: "1. 傳統邊界防禦局限性 (4分)；2. NIST SP 800-207 核心原則與組件 (8分)；3. 身分/設備/微隔離落地方案 (9分)；4. 證券情境實務效益 (4分)",
-    question: "隨著金融供應鏈外包與混合辦公普及，傳統依賴邊界防火牆與 VPN 之防護模式已面臨嚴峻挑戰。請說明何謂零信任架構（Zero Trust Architecture, ZTA）？並依據 NIST SP 800-207 標準，詳述核心邏輯組件（PE, PA, PEP）之互動流程，以及臺灣證券周邊機構如何循序落實身分鑑別、設備健全度與網路微隔離三大支柱？",
-    modelAnswer: `
-<h4>一、傳統周界防禦（Perimeter Defense）之致命局限</h4>
-<ol>
-  <li><strong>隱含信任（Implicit Trust）漏洞</strong>：傳統架構預設「內網為安全、外網為危險」。一旦攻擊者透過釣魚或 VPN 憑證漏洞滲透進入內網，便可暢行無阻發動<strong>橫向移動（Lateral Movement）</strong>。</li>
-  <li><strong>供應鏈邊界模糊化</strong>：委外維運廠商、遠距辦公與雲端服務使傳統物理防護邊界徹底瓦解。</li>
-</ol>
-
-<h4>二、NIST SP 800-207 零信任核心哲學與邏輯組件運作</h4>
-<p>零信任最高準則為：<strong>「Never Trust, Always Verify（永不信任，始終驗證）」</strong>，所有存取請求不論來源位置，均需經過動態、持續性之情境式評估。</p>
-
-<ol>
-  <li><strong>三大邏輯控制元件互動流程</strong>：
-    <ul>
-      <li><strong>PEP（Policy Enforcement Point，政策執行點）</strong>：駐守於存取閘道，攔截使用者對關鍵資產之請求，轉發給控制平面，並嚴格執行裁定結果。</li>
-      <li><strong>PE（Policy Engine，政策引擎）</strong>：接收身分證書、端點健康狀態、威脅情資、即時風險指標，進行動態信任評分並產生存取決策。</li>
-      <li><strong>PA（Policy Administrator，政策管理器）</strong>：依據 PE 決策，向 PEP 發出指令，建立或撤銷加密通訊通道，並核發短效性憑證。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>三、證券周邊機構落地推動三大支柱策略</h4>
-<ol>
-  <li><strong>支柱一：強固身分鑑別（Identity Authentication）</strong>：
-    <ul>
-      <li>全面導入 <strong>FIDO2 / WebAuthn</strong> 無密碼多因素驗證（MFA），利用硬體安全金鑰簽章阻絕各類釣魚與攔截攻擊。</li>
-      <li>落實 <strong>RBAC / ABAC 最小特權原則</strong>，管理員存取需搭配特權帳號管理（PAM）與雙人覆核。</li>
-    </ul>
-  </li>
-  <li><strong>支柱二：設備端點健全度持續驗證（Device Health Check）</strong>：
-    <ul>
-      <li>由端點 EDR 代理程式即時查驗：OS 補丁版本、磁碟 BitLocker 全盤加密狀態、防毒特徵更新、無異常進程注入，始得標註為「合規受信任設備」。</li>
-      <li>連線期間實施<strong>持續動態驗證（Continuous Diagnostic & Mitigation）</strong>，一旦設備偵測到惡意軟體活動，立即自動撤回存取權杖。</li>
-    </ul>
-  </li>
-  <li><strong>支柱三：網路微隔離（Micro-segmentation）</strong>：
-    <ul>
-      <li>在資料中心核心主機與 Kubernetes Pod 間部署軟體定義防火牆與 eBPF 規則。</li>
-      <li>嚴格隔離東-西向（East-West）流量，即使某台輔助系統主機失陷，攻擊者亦絕對無法橫向探測撮合核心主機。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>四、結論</h4>
-<p>落實零信任架構能將攻防戰線自不可靠之外圍邊界，收縮至「每一筆交易請求與單一工作負載」之微粒度防護，建構縱深防禦實體，完美達成金融行動方案 2.0 強化關鍵韌性之目標。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：必須清楚畫出或描述 PE、PA、PEP 的三角交互關係，並條列身分（FIDO2）、設備（EDR健康度）、網路（微隔離）三大支柱，術語準確即可獲 23 分以上高分。"
+    "id": "sn-essay-05",
+    "category": "sysnet",
+    "chapter": "第 5 章：TCP/IP 通訊協定棧調校與伺服器效能工程",
+    "title": "券商下單閘道器（Gateway）TCP 網路堆疊極限優化與 I/O 多工",
+    "summary": "深入剖析證券下單閘道器 TCP_NODELAY、SO_BUSY_POLL 核心參數調校、epoll ET 邊緣觸發高並發架構與 eBPF 性能觀測工具鏈。",
+    "points": 25,
+    "rubric": "1. TCP 延遲成因與 Nagle/Delayed-ACK 衝突 (7分)；2. 關鍵核心參數與 SO_BUSY_POLL (7分)；3. epoll ET 架構 (7分)；4. 結論 (4分)",
+    "question": "證券商下單連線多採 TCP 協定以確保委託指令傳輸可靠性，但預設 TCP 行為容易引入高達 40ms 之致命延遲。請分析 Nagle 演算法與 Delayed ACK 之交互衝突成因，並詳述在 Linux 下單閘道器中應如何透過核心參數、Socket 選項與 epoll ET 邊緣觸發模式，達成萬級高並發連線之微秒級處理？",
+    "modelAnswer": "\n<h4>一、破題：Nagle 演算法與 Delayed ACK 的 40ms 致命死鎖</h4>\n<ol>\n  <li><strong>Nagle 演算法成因</strong>：為避免網路上充斥微小封包，Nagle 演算法規定：若有未確認之在途資料（In-flight Data），新產生之小封包必須在本地緩衝區等待，直到湊滿一個 MSS 或收到前一封包的 ACK。</li>\n  <li><strong>Delayed ACK 衝突</strong>：接收端作業系統為節省 ACK 頻寬，預設會延遲 40ms~200ms 等待是否有回程資料可捎帶（Piggyback）ACK。</li>\n  <li><strong>死鎖結果</strong>：發送端等待 ACK，接收端等待資料，雙方陷入僵局直至 40ms 逾時強制發送 ACK。在金融即時下單中此延遲足以導致交易失敗。</li>\n</ol>\n\n<h4>二、Socket 選項與 Linux 核心參數極限調校</h4>\n<ul>\n  <li><strong>強制停用 Nagle 演算法</strong>：所有下單 Socket 必須調用 <code>setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &1, sizeof(int))</code>，小封包立即發送。</li>\n  <li><strong>啟用 TCP_QUICKACK</strong>：接收端強迫核心收到封包立即回應 ACK，取消捎帶等待。</li>\n  <li><strong>SO_BUSY_POLL 核心忙輪詢</strong>：\n    配置 <code>setsockopt(fd, SOL_SOCKET, SO_BUSY_POLL, &usec, sizeof(usec))</code>，讓 Socket 在進入睡眠等待前先在核心層直接輪詢網卡佇列，消弭行程上下文喚醒延遲。\n  </li>\n  <li><strong>核心緩衝區優化（/etc/sysctl.conf）</strong>：\n    <code>net.core.somaxconn = 65535</code>（擴充全連線佇列）與 <code>net.ipv4.tcp_tw_reuse = 1</code>（安全重用 TIME_WAIT 連線）。\n  </li>\n</ul>\n\n<h4>三、I/O 多工模型：epoll ET 邊緣觸發高並發架構</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">比較維度</th>\n      <th style=\"padding:6px 10px;\">epoll LT (水平觸發，預設)</th>\n      <th style=\"padding:6px 10px;\">epoll ET (邊緣觸發，高並發首選)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">通知觸發條件</td>\n      <td style=\"padding:6px 10px;\">只要緩衝區有未讀資料就反覆通知</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>僅在狀態由無到有變更時通知一次</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">系統呼叫開銷</td>\n      <td style=\"padding:6px 10px;\">次數頻繁，浪費 CPU</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">系統呼叫最小化，吞吐提升 30%</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">程式設計要求</td>\n      <td style=\"padding:6px 10px;\">標準阻塞或非阻塞皆可</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\"><strong>必須搭配 Non-blocking I/O 迴圈讀取至 EAGAIN</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、結論</h4>\n<p>結合「TCP_NODELAY + SO_BUSY_POLL + epoll ET 非阻塞處理」，下單閘道器能在單機維護數萬個券商連線的情境下，將平均網路處理延遲壓制在 3 微秒內，並維持高吞吐穩定性。</p>\n            ",
+    "examinerTips": "評分亮點：『Nagle 與 Delayed ACK 交互產生 40ms 延遲』、『TCP_NODELAY』、『SO_BUSY_POLL 核心忙輪詢』、『epoll ET 搭配 EAGAIN 迴圈讀取』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>Nagle 與 Delayed ACK（7分）</strong>：精確指出兩者各自初衷（節省頻寬）及其在小封包交替場景下的死鎖機制。</li>\n  <li><strong>Socket 與核心參數（7分）</strong>：寫出 <code>TCP_NODELAY</code>、<code>TCP_QUICKACK</code>、<code>SO_BUSY_POLL</code> 與 <code>somaxconn</code>。</li>\n  <li><strong>epoll ET 模式（7分）</strong>：對比 LT 與 ET，強調 ET 必須搭配 Non-blocking Socket 與迴圈讀取直至返回 <code>EAGAIN / EWOULDBLOCK</code>，否則會發生封包遺漏饑餓。</li>\n  <li><strong>結論（4分）</strong>：量化延遲指標。</li>\n</ul>\n            "
   },
   {
-    id: "sec-essay-02",
-    category: "sec",
-    title: "金融業分散式阻斷服務（DDoS）立體防禦與流量清洗架構",
-    points: 25,
-    rubric: "1. 攻擊手法分類 (L3/L4 vs L7) (6分)；2. BGP Anycast 電信清洗機制 (8分)；3. 應用層防護與防禦技術 (7分)；4. 應變通報與合規演練 (4分)",
-    question: "近期國際國家級黑客組織頻繁對我國金融機構及證券期貨下單閘道發動數百 Gbps 級之分散式阻斷服務（DDoS）攻擊。請分析容積型（Volumetric）與應用層（Layer 7）DDoS 攻擊之特徵差異，並詳述證券機構如何構建結合 BGP Anycast 雲端清洗中心、邊界硬體設備與 WAF 之立體防禦體系，確保委託下單服務之高可用性？",
-    modelAnswer: `
-<h4>一、DDoS 攻擊手法分類與金融威脅特徵</h4>
-<ol>
-  <li><strong>L3/L4 容積型攻擊（Volumetric Attack）</strong>：
-    <ul>
-      <li><strong>手法</strong>：利用 NTP/DNS/SSDP UDP 反射放大、SYN Flood、ICMP Flood，攻擊流量瞬間飆升至 500Gbps~1Tbps。</li>
-      <li><strong>威脅</strong>：直接灌爆證交所與券商之實體對外電信專線頻寬，導致正常封包直接被電信端丟棄。</li>
-    </ul>
-  </li>
-  <li><strong>L7 應用層慢速/高頻攻擊（Application Layer Attack）</strong>：
-    <ul>
-      <li><strong>手法</strong>：HTTP GET/POST Flood、Slowloris 慢速連線攻擊、惡意鎖定重負載查詢 API（如高頻檢索歷史逐筆成交資料）。</li>
-      <li><strong>威脅</strong>：流量僅數十 Mbps 難以觸發頻寬警報，但極迅速耗盡後端 Web 伺服器之連線執行緒（Thread Pool）與資料庫連線池（Connection Pool），引發服務癱瘓。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>二、電信級 BGP Anycast 流量清洗中心聯防機制</h4>
-<ol>
-  <li><strong>Anycast BGP 路由牽引</strong>：證券入口 IP 網段透過 BGP 路由通告，向全球各大電信骨幹廣播。當攻擊發動時，海量分佈式殭屍網路流量被就近引流至全球各處分散之電信清洗中心（Scrubbing Center），避免流量在本地單一鏈路匯聚。</li>
-  <li><strong>封包過濾與指紋比對</strong>：清洗中心透過硬體 ASIC 晶片過濾 UDP 反射放大封包、對 TCP 連線執行 SYN Proxy / Cookie 驗證，並運用大數據行為基準過濾畸形特徵封包。</li>
-  <li><strong>乾淨流量回注（Clean Traffic Reinjection）</strong>：清洗完成後，僅將合法連線封包透過專用 GRE Tunnel 或 MPLS 專線安全回傳至證券實體資料中心。</li>
-</ol>
-
-<h4>三、地端邊界設備與 WAF 縱深防禦措施</h4>
-<ol>
-  <li><strong>地端防 DDoS 專用防護設備</strong>：於防火牆前端架設硬體防護設備，防範穿透清洗中心之剩餘突發攻擊，維持狀態表（State Table）穩定。</li>
-  <li><strong>次世代 WAF 應用層精準防護</strong>：
-    <ul>
-      <li><strong>速率限制（Rate Limiting）</strong>：依據 API 端點、客戶端 JWT Token、來源 IP 設定微粒度頻率限制（例如單一 IP 每秒下單上限 50 筆）。</li>
-      <li><strong>無感 JavaScript 運算挑戰</strong>：對可疑 HTTP 流量主動注入背景 JS 數學挑戰或行為生物特徵驗證，迅速剔除無瀏覽器引擎之自動化 Python/Curl 腳本。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>四、應變通報與合規演練標準作業程序</h4>
-<p>依據金融資安法規，發生足以影響交易之 DDoS 事件時，必須於<strong>「30 分鐘內」完成金管會證期局與 F-ISAC 線上通報</strong>；同時啟動備用下單替代網址（DR URL），並定期每季實施外部專業紅隊實兵 DDoS 壓力抗擊演練。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：精準區分 L3/L4（塞爆頻寬）與 L7（耗盡連線池資源），清洗方案必提『BGP Anycast 路由牽引』與『GRE 乾淨流量回注』，並寫出金管會『30 分鐘內通報』法規關鍵字。"
+    "id": "sn-essay-06",
+    "category": "sysnet",
+    "chapter": "第 6 章：關聯式資料庫交易、WAL 與金融雙活容災架構",
+    "title": "金融帳務資料庫 ACID 保證與同城雙活（Active-Active）容災建設",
+    "summary": "深入解構金融交易 ACID 底層實作（Undo/Redo Log、MVCC、ARIES 演算法）、同城雙活 Raft/2PC 分散式事務與 RTO=0 / RPO=0 容災指標。",
+    "points": 25,
+    "rubric": "1. ACID 底層原理與 WAL/MVCC (8分)；2. 隔離層級與髒讀/幻讀防範 (5分)；3. 同城雙活容災架構 (Raft/2PC) (8分)；4. 監理合規結論 (4分)",
+    "question": "證券帳務與結算系統要求資料庫具備絕對的 ACID 交易保證與零資料遺失能力。試從資料庫核心原理說明 WAL（Write-Ahead Logging）與 MVCC 如何協同保障交易之原子性、隔離性與持久性？並針對臺灣證券交易所之容災要求，規劃一套具備 RPO=0、RTO≤10分鐘之同城雙活（Active-Active）資料庫容災架構。",
+    "modelAnswer": "\n<h4>一、破題：資料庫交易 ACID 底層實現機制</h4>\n<ol>\n  <li><strong>原子性（Atomicity）與持久性（Durability）</strong>：\n    依賴 <strong>WAL（Write-Ahead Logging，預寫日誌）</strong> 與雙日誌架構。交易變更前先將舊值寫入 <strong>Undo Log</strong>（崩潰回滾依據）；交易提交時將變更物理日誌 <strong>Redo Log</strong> 循序強制 Flush 至磁碟。遵循 ARIES 演算法，重啟時先重做（Redo）已提交交易，再復原（Undo）未完成交易。\n  </li>\n  <li><strong>隔離性（Isolation）</strong>：\n    結合<strong>鎖機制（兩階段鎖 2PL）</strong>與 <strong>MVCC（多版本並行控制）</strong>。寫入操作產生新資料版本，讀取操作透過 <code>Read View</code> 與 Undo Log 鏈讀取快照歷史版本，達成「讀寫不互斥」，極大化並行吞吐。\n  </li>\n</ol>\n\n<h4>二、隔離層級與異常現象防範</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">隔離層級</th>\n      <th style=\"padding:6px 10px;\">髒讀 (Dirty Read)</th>\n      <th style=\"padding:6px 10px;\">不可重複讀 (Non-Repeatable)</th>\n      <th style=\"padding:6px 10px;\">幻讀 (Phantom Read)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">Read Committed</td>\n      <td style=\"padding:6px 10px; color:#16a34a;\">已防禦 (MVCC 每次讀取產生新視圖)</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">仍可能發生</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">仍可能發生</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">Repeatable Read (金融推薦)</td>\n      <td style=\"padding:6px 10px; color:#16a34a;\">已防禦</td>\n      <td style=\"padding:6px 10px; color:#16a34a;\">已防禦 (MVCC 事務內共用首個視圖)</td>\n      <td style=\"padding:6px 10px; color:#16a34a;\">已防禦 (結合 Next-Key Lock 間隙鎖)</td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、同城雙活（Active-Active）資料庫容災架構規劃</h4>\n<p>為達成 <strong>RPO = 0（資料零遺失）</strong> 與 <strong>RTO ≤ 10 分鐘</strong>，架構設計如下：</p>\n<ol>\n  <li><strong>專用暗光纖（Dark Fiber）直連</strong>：主機房（板橋）與同城備援中心鋪設雙路實體隔離光纖，單向傳輸延遲小於 1ms（距離小於 30km）。</li>\n  <li><strong>分散式共識多數決（Paxos / Raft）</strong>：\n    資料庫採用三節點或五節點架構（機房 A 部署 2 副本、機房 B 部署 2 副本、獨立第三方見證節點 1 副本）。交易 Commit 必須取得<strong>過半數節點（Quorum ≥ 3）同步寫入 Redo Log</strong>，單一機房全毀資料絕對不丟失。\n  </li>\n  <li><strong>跨機房分片與 2PC 兩階段提交</strong>：不同券商帳戶分庫分表，同城機房各自承載部分券商寫入；跨分片交易以兩階段提交（Prepare / Commit）確保分散式強一致性。</li>\n</ol>\n\n<h4>四、結論</h4>\n<p>本架構透過「WAL 預寫日誌 + MVCC 多版本快照 + Raft 分散式多數決」，在確保微秒級交易低延遲的同時，落實 RPO=0、RTO≤10 分鐘之金融最高容災指標。</p>\n            ",
+    "examinerTips": "得分核心：『Undo Log 負責原子性回滾，Redo Log 負責持久性前滾』、『MVCC 讀寫不互斥』、『同城暗光纖小於 1ms』與『Raft/Paxos Quorum 多數決實現 RPO=0』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>ACID 底層實現（8分）</strong>：深入剖析 WAL、Undo Log、Redo Log 及 ARIES 復原機制，點出 MVCC 實現原理。</li>\n  <li><strong>隔離層級表格（5分）</strong>：清晰呈現 Read Committed vs Repeatable Read 對髒讀、不可重複讀與幻讀的防禦機制（特別是 Next-Key Lock 間隙鎖）。</li>\n  <li><strong>同城雙活架構（8分）</strong>：提出具體光纖延遲（<1ms）、Raft 多數決 Quorum 節點排布（2+2+1）、兩階段提交（2PC）。</li>\n  <li><strong>指標與結論（4分）</strong>：緊扣 RPO=0 與 RTO≤10 分鐘。</li>\n</ul>\n            "
   },
   {
-    id: "sec-essay-03",
-    category: "sec",
-    title: "金融交易憑證生命週期管理與 FIPS 140-2 Level 3 HSM 部署實務",
-    points: 20,
-    rubric: "1. 數位簽章與不可否認性 (5分)；2. 金鑰生命週期各階段 (5分)；3. HSM 防護標準與實體銷毀機制 (6分)；4. 雙人控制與多方門檻 (4分)",
-    question: "電子化證券交易中，投資人委託下單之不可否認性（Non-repudiation）奠基於 PKI 公開金鑰基礎建設與數位簽章技術。請詳細說明金融交易私鑰於產生、儲存、使用至銷毀之生命週期控制要點，並闡述硬體安全模組（HSM）如何符合 FIPS 140-2 Level 3 標準，防範物理與側通道（Side-Channel）攻擊？",
-    modelAnswer: `
-<h4>一、金融數位簽章與不可否認性（Non-repudiation）核心</h4>
-<p>依據我國《電子簽章法》，證券委託委任關係必須由下單端以客戶私鑰對訂單雜湊值（SHA-256）進行<strong>非對稱加密生成數位簽章（ECDSA / RSA）</strong>，收單端以公鑰驗證。數位簽章同時滿足三大安全屬性：<strong>身分鑑別性（Authentication）、資料完整性（Integrity）與無可否認性（Non-repudiation）</strong>。</p>
-
-<h4>二、金融敏感金鑰全生命週期管理（Key Lifecycle Management）</h4>
-<ol>
-  <li><strong>金鑰生成（Generation）</strong>：必須在取得 FIPS 認證之 HSM 內部硬體真隨機數生成器（TRNG, True Random Number Generator）產生，嚴禁任何軟體層擬隨機生成。</li>
-  <li><strong>金鑰儲存（Storage）</strong>：根金鑰（Master Key）永久封裝於 HSM 安全晶片內，<strong>「私鑰永不出模組（Never Leave HSM in Cleartext）」</strong>；次級工作金鑰（Working Key）若匯出，必須經由根金鑰以 AES-256 金鑰加密金鑰（KEK, Key Encryption Key）包裹加密。</li>
-  <li><strong>金鑰使用（Usage）</strong>：簽章運算完全在 HSM 內部晶片記憶體執行，僅將簽章結果對外回傳，作業系統核心與應用層均無法窺探私鑰明文。</li>
-  <li><strong>金鑰銷毀（Destruction / Zeroization）</strong>：金鑰到期或設備退役時，執行不可逆之覆寫清除程序，抹除所有晶片記憶體痕跡。</li>
-</ol>
-
-<h4>三、FIPS 140-2 / 140-3 Level 3 HSM 防護技術與防側通道機制</h4>
-<ol>
-  <li><strong>實體防拆與主動自毀（Tamper-Response Mechanisms）</strong>：
-    <ul>
-      <li>HSM 機殼覆蓋高靈敏度物理感測網格（Tamper Detection Envelope）。</li>
-      <li>一旦偵測到物理鑽孔、機蓋開啟、異常電壓波動、X光探測或劇烈溫差（防冷卻凍結 RAM 攻擊），微控制器在<strong>數微秒內自動切斷備用電池並觸發自毀（Zeroization）</strong>，將存放金鑰之揮發性記憶體徹底放電清零。</li>
-    </ul>
-  </li>
-  <li><strong>側通道攻擊（Side-Channel Attack）防禦</strong>：內部電路加入抗功耗分析（DPA, Differential Power Analysis）與抗電磁輻射洩漏（EM Analysis）遮蔽，加入隨機雜訊遮罩，防止攻擊者藉由時脈耗電微小特徵逆向推導私鑰。</li>
-</ol>
-
-<h4>四、雙人控制（Dual Control）與 M of N 門檻機制</h4>
-<p>HSM 管理員授權嚴格落實<strong>職能分工（Segregation of Duties）</strong>。根金鑰備份分割為多把智慧卡分由不同安全官持有，需滿足「M of N 門檻」（例如 3 of 5），同時插入 3 位資安官實體卡片並鍵入個別密碼方可執行金鑰回復，杜絕內部單人作惡風險。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：牢記核心金句『私鑰永不出模組（Never Leave HSM in Cleartext）』；詳細說明 FIPS Level 3 之『主動自毀清零（Zeroization）』感測器機制與『M of N 雙人控制』。"
+    "id": "sn-essay-07",
+    "category": "sysnet",
+    "chapter": "第 7 章：電腦硬體結構、CPU 體系架構與快取階層",
+    "title": "現代伺服器 CPU 快取階層、偽共享（False Sharing）防禦與記憶體屏障",
+    "summary": "深入解構 x86-64 伺服器 CPU 快取架構、MESI 快取一致性協定、Cache Line 偽共享防禦實踐，以及記憶體屏障在多執行緒無鎖佇列之應用。",
+    "points": 25,
+    "rubric": "1. CPU 快取階層延遲與架構 (7分)；2. MESI 協定原理 (6分)；3. 偽共享 (False Sharing) 成因與代碼防護 (8分)；4. 記憶體屏障結論 (4分)",
+    "question": "在高效能多執行緒金融交易撮合引擎中，多核心並行寫入常因 CPU 快取行偽共享（False Sharing）導致嚴重的效能雪崩。試說明現代 CPU 記憶體階層架構與 MESI 快取一致性協定之運作原理，並詳述偽共享之成因及其在 C/C++ 程式碼層級之解決對策？",
+    "modelAnswer": "\n<h4>一、破題：CPU 記憶體快取階層延遲特徵</h4>\n<p>現代 CPU 運算時脈（3~5 GHz）遠快於主記憶體 DRAM 存取速度，CPU 內部設計了三級快取階層：</p>\n<pre><code class=\"language-text\">L1 Cache (L1i/L1d, 32KB/core) ──> 延遲約 1 ~ 1.5 ns (約 4 週期)\nL2 Cache (512KB ~ 1MB/core)    ──> 延遲約 3 ~ 4 ns (約 12 週期)\nL3 Cache (Shared, 32MB ~ 64MB) ──> 延遲約 10 ~ 15 ns (約 40 週期)\n主記憶體 DRAM                  ──> 延遲約 60 ~ 80 ns (約 200 週期，延遲百倍放大！)</code></pre>\n<p>CPU 快取與記憶體間以<strong>快取行（Cache Line，固定 64 位元組）</strong>為最小資料傳輸單位。</p>\n\n<h4>二、MESI 快取一致性協定原理</h4>\n<p>為確保多核心讀寫同一記憶體時資料一致，硬體實施 MESI 狀態機：</p>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">狀態標籤</th>\n      <th style=\"padding:6px 10px;\">定義說明</th>\n      <th style=\"padding:6px 10px;\">與主記憶體關係</th>\n      <th style=\"padding:6px 10px;\">其他核心快取副本</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">M (Modified)</td>\n      <td style=\"padding:6px 10px;\">核心已修改該快取行（髒資料）</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">不一致（主記憶體過期）</td>\n      <td style=\"padding:6px 10px;\">其他核心皆無副本</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">E (Exclusive)</td>\n      <td style=\"padding:6px 10px;\">核心獨佔該快取行，未被修改</td>\n      <td style=\"padding:6px 10px; color:#16a34a;\">完全一致</td>\n      <td style=\"padding:6px 10px;\">其他核心皆無副本</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">S (Shared)</td>\n      <td style=\"padding:6px 10px;\">多個核心同時擁有該快取行唯讀副本</td>\n      <td style=\"padding:6px 10px; color:#16a34a;\">完全一致</td>\n      <td style=\"padding:6px 10px;\">其他核心存在 S 狀態副本</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">I (Invalid)</td>\n      <td style=\"padding:6px 10px;\">該快取行資料已失效，不可讀取</td>\n      <td style=\"padding:6px 10px;\">無效</td>\n      <td style=\"padding:6px 10px;\">-</td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、快取偽共享（False Sharing）成因與代碼對策</h4>\n<ol>\n  <li><strong>成因分析</strong>：當執行緒 A 負責寫入變數 <code>X</code>，執行緒 B 負責寫入變數 <code>Y</code>。若 <code>X</code> 與 <code>Y</code> 恰好落在同一個 64-byte Cache Line 內，即便兩者邏輯完全獨立，每當核心 A 修改 <code>X</code>，MESI 協定會強制將核心 B 的整個 Cache Line 標記為 <strong>Invalid</strong>，迫使核心 B 重新向總線發起慢速的記憶體重新讀取，引發嚴重的<strong>快取行無效化風暴</strong>。</li>\n  <li><strong>程式碼對策：快取行填充（Cache Line Padding）</strong>：\n<pre><code class=\"language-c\">// C++11 / C 語言偽共享防護範例\nstruct alignas(64) OrderQueueCounter {\n    volatile uint64_t sequence;  // 8 bytes 關鍵計數器\n    char padding[56];            // 填充 56 bytes，填滿整整 64-byte Cache Line\n};\n// 確保兩個計數器絕對分布在不同的實體快取行中\nOrderQueueCounter g_producer_seq;\nOrderQueueCounter g_consumer_seq;</code></pre>\n  </li>\n</ol>\n\n<h4>四、結論：記憶體屏障（Memory Barrier）協同保證</h4>\n<p>在無鎖佇列中，除了以 <code>alignas(64)</code> 消除偽共享外，必須呼叫 <code>std::atomic_thread_fence(std::memory_order_release)</code> 插入記憶體屏障，嚴格禁止 CPU 亂序執行跨越屏障，確保記憶體更新對其他核心立即可見。</p>\n            ",
+    "examinerTips": "滿分關鍵字：『64-byte Cache Line』、『MESI 四種狀態機』、『偽共享成因：獨立變數落入同一快取行』、『alignas(64) 或 Padding 填充』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>快取延遲階層（7分）</strong>：繪製或列出 L1（~1ns）、L2（~4ns）、L3（~15ns）、DRAM（~60-80ns）之具體時鐘週期與延遲量級。</li>\n  <li><strong>MESI 協定（6分）</strong>：逐項解釋 M、E、S、I 四種狀態轉換與總線監聽（Bus Snooping）。</li>\n  <li><strong>偽共享防護（8分）</strong>：清楚陳述偽共享成因，並給出使用 <code>alignas(64)</code> 或 Padding 陣列的精確 C/C++ 代碼片段。</li>\n  <li><strong>結論（4分）</strong>：提及記憶體屏障防範 CPU 亂序重排。</li>\n</ul>\n            "
   },
   {
-    id: "sec-essay-04",
-    category: "sec",
-    title: "ISO/IEC 27001:2022 改版重點剖析與證券業資安控制實務",
-    points: 20,
-    rubric: "1. 2022 版結構變更 (4分)；2. 四大主題與 93 項控制措施 (6分)；3. 11 項新增控制措施與金融實作 (7分)；4. PDCA 持續改善循環 (3分)",
-    question: "國際標準化組織發布 ISO/IEC 27001:2022 新版標準，附錄 A（Annex A）控制措施進行了重大整併與更新。請詳細說明 ISO 27001:2022 相比 2013 舊版之核心架構變更，闡述四大主題分類與 11 項新增控制措施，並說明證券交易所應如何實踐『威脅情資（A.5.7）』與『安全編碼（A.8.28）』之合規要求？",
-    modelAnswer: `
-<h4>一、ISO/IEC 27001:2022 核心架構重大變更解析</h4>
-<ol>
-  <li><strong>控制措施章節重組</strong>：由舊版（2013）的 14 個領域、114 項控制措施，重新精簡整併為<strong>四大主題（Themes）、共 93 項控制措施</strong>。</li>
-  <li><strong>引進五大屬性標籤（Attribute Concept）</strong>：新版為每項控制措施引入 5 種屬性（控制類型、資訊安全特性 CIA、網路安全概念 IPDRR、維運能力、安全領域），極大化企業與 NIST CSF 及各國監理法規之對照效率。</li>
-</ol>
-
-<h4>二、四大主題分類（Four Themes）架構</h4>
-<ul>
-  <li><strong>5. 組織控制措施（Organizational Controls）</strong>：37 項（如資訊安全政策、資產盤點、供應鏈安全）。</li>
-  <li><strong>6. 人員控制措施（People Controls）</strong>：8 項（如到職審查、離職權限撤銷、資安意識教育）。</li>
-  <li><strong>7. 實體控制措施（Physical Controls）</strong>：14 項（如機房實體邊界、設備安全、走清桌清規範）。</li>
-  <li><strong>8. 技術控制措施（Technological Controls）</strong>：34 項（如端點保護、特權存取、資料遮蔽、容量管理）。</li>
-</ul>
-
-<h4>三、11 項新增關鍵控制措施與證券實務實踐</h4>
-<div class="callout-box">
-  <div class="callout-title">📌 2022 新增控制措施全覽</div>
-  <p>威脅情資(A.5.7)、雲端服務安全(A.5.23)、資通訊準備度(A.5.30)、實體安全監控(A.7.4)、組態管理(A.8.9)、資訊刪除(A.8.10)、資料遮蔽(A.8.11)、資料外洩防護(A.8.12)、活動監控(A.8.16)、網頁過濾(A.8.23)、安全編碼(A.8.28)。</p>
-</div>
-
-<ol>
-  <li><strong>A.5.7 威脅情資（Threat Intelligence）實踐</strong>：
-    <ul>
-      <li>對接金融 F-ISAC、N-ISAC 與商業威脅情資（STIX/TAXII 格式）。</li>
-      <li>將最新金融 APT 組織之惡意指標（IoC - 惡意 IP、C2 域名、檔案雜湊）自動同步注入次世代防火牆、EDR 與 SIEM 關聯規則，達到主動阻斷。</li>
-    </ul>
-  </li>
-  <li><strong>A.8.28 安全編碼（Secure Coding）實踐</strong>：
-    <ul>
-      <li>訂定全機構程式碼安全指引（針對 OWASP Top 10 與 CWE/SANS Top 25）。</li>
-      <li>在 CI/CD 流程中落實 <strong>DevSecOps 安全左移</strong>，強制執行 SAST 靜態代碼檢測，任何 Critical/High 漏洞未修復前禁止部署至正式環境。</li>
-    </ul>
-  </li>
-</ol>
-
-<h4>四、結論</h4>
-<p>ISO 27001:2022 不再僅是書面合規，而是強調「動態威脅預防、雲端安全治理與安全研發實踐」。透過落實 PDCA 持續改善循環，使證券核心資訊系統具備對抗新興複雜威脅之現代化免疫力。</p>
-    `,
-    examinerTips: "閱卷得分秘訣：精準寫出數字『四大主題、93 項控制措施、11 項新增措施』，並詳細論述 A.5.7（威脅情資對接 F-ISAC）與 A.8.28（安全編碼/DevSecOps 左移），分數必然名列前茅。"
+    "id": "sn-essay-08",
+    "category": "sysnet",
+    "chapter": "第 8 章：儲存架構、全快閃陣列與高可用容災備份",
+    "title": "全快閃儲存陣列（AFA）、NVMe-oF 與 WORM 防勒索儲存架構",
+    "summary": "深入解構金融級全快閃儲存陣列（AFA）、NVMe-oF 協定、重複資料刪除與壓縮、WORM 不可竄改儲存機制，以及 SRDF 異地備援規劃。",
+    "points": 25,
+    "rubric": "1. NVMe-oF 相較傳統 SAN 優勢 (7分)；2. 去重/壓縮與快照技術 (6分)；3. WORM 防勒索不可變儲存 (8分)；4. 容災備份結論 (4分)",
+    "question": "面對勒索軟體攻擊與巨量交易紀錄審計需求，金融機構之儲存基礎架構正面臨全面升級。試比較 NVMe-oF 全快閃陣列（AFA）相較傳統 FC SAN 儲存之技術優勢，並詳述如何運用 WORM（Write Once Read Many）技術與不可變快照（Immutable Snapshot）建構抵禦勒索病毒之最後安全防線？",
+    "modelAnswer": "\n<h4>一、破題：傳統 FC SAN 瓶頸與 NVMe-oF AFA 技術優勢</h4>\n<p>傳統光纖通道（Fibre Channel）SAN 儲存受限於老舊的 SCSI 命令集與硬碟架構，面臨單一佇列瓶頸。<strong>NVMe-oF（NVMe over Fabrics）全快閃儲存陣列</strong>帶來顛覆性突破：</p>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">比較指標</th>\n      <th style=\"padding:6px 10px;\">傳統 FC SAN (SCSI 堆疊)</th>\n      <th style=\"padding:6px 10px;\">NVMe-oF AFA (RDMA / TCP)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">並行命令佇列數</td>\n      <td style=\"padding:6px 10px;\">單一命令佇列 (深度 32)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>高達 64,000 個佇列 (每個深度 64,000)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">單向 I/O 延遲</td>\n      <td style=\"padding:6px 10px;\">100 ~ 250 微秒 (µs)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>小於 10 微秒 (µs)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">CPU 協議轉換損耗</td>\n      <td style=\"padding:6px 10px;\">多次 SCSI 驅動封裝轉發</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">RDMA Kernel Bypass 直通 PCIe 匯流排</td>\n    </tr>\n  </table>\n</div>\n\n<h4>二、線上重複資料刪除與壓縮（Inline Deduplication & Compression）</h4>\n<ol>\n  <li><strong>線速區塊去重</strong>：控制器在資料寫入 Flash 前即時計算 SHA-256 雜湊，相同資料區塊僅保存一份索引，容量節省 65% 以上。</li>\n  <li><strong>延長快閃壽命</strong>：大幅減少對 NAND Flash 的物理擦寫次數（P/E Cycles），同時顯著降低每 GB 儲存擁有成本（TCO）。</li>\n</ol>\n\n<h4>三、防範勒索軟體最後防線：WORM 與不可變快照</h4>\n<ol>\n  <li><strong>WORM（Write Once Read Many）法規鎖定</strong>：\n    儲存底層強制啟用 WORM 合規模式。資料寫入後在指定保存年限內（如證券交易法要求 5 年或 7 年），<strong>禁止任何人（包括儲存最高管理員 root/admin）修改或提前刪除</strong>。\n  </li>\n  <li><strong>不可變唯讀快照（Air-gapped Immutable Snapshot）</strong>：\n    快照生成後立即去除所有寫入權限，並透過專用邏輯氣隙（Air-gap）與生產網路隔離。即便主系統遭受勒索軟體全盤加密，唯讀快照依然完好如初，可在數分鐘內以指標重新掛載恢復營運。\n  </li>\n</ol>\n\n<h4>四、結論</h4>\n<p>透過「NVMe-oF 低延遲全快閃 + WORM 防篡改法規儲存 + 異地 SRDF 同步鏡像」，證券交易所能兼顧微秒級高頻寫入效能與堅如磐石的防勒索災難復原保障。</p>\n            ",
+    "examinerTips": "評分秘笈：對比表格展現『64,000 並行佇列 vs 深度 32』；切中『WORM 連管理員亦無權刪除』與『不可變快照氣隙隔離』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>NVMe-oF 優勢（7分）</strong>：指出其原生多佇列、RDMA 直通 PCIe、以及 <10µs 延遲特性。</li>\n  <li><strong>去重與壓縮（6分）</strong>：說明在 Flash 寫入前執行去重，降低寫入放大係數（WAF）並延長壽命。</li>\n  <li><strong>WORM 與不可變快照（8分）</strong>：清楚陳述 WORM 法規防護機制與氣隙隔離快照防勒索原理。</li>\n  <li><strong>結論（4分）</strong>：整合 SRDF 同步鏡像機制。</li>\n</ul>\n            "
   },
   {
-    id: "sec-essay-05",
-    category: "sec",
-    title: "金融資安重大事件應變處置生命週期與數位鑑識（Forensics）實務",
-    points: 20,
-    rubric: "1. NIST SP 800-61 四大階段 (6分)；2. 數位鑑識順序與監管鏈 CoC (6分)；3. 金管會通報法遵時限 (4分)；4. 業務持續復原要點 (4分)",
-    question: "某證券商核心系統凌晨遭受進階持續性勒索軟體（Ransomware）攻擊，伺服器資料遭加密且對外服務中斷。請依據 NIST SP 800-61 Rev.2 事件處理生命週期，詳述資安應變小組（CSIRT）應執行之標準處理流程；並從數位鑑識角度，說明資料易失性順序（Order of Volatility）與證據監管鏈（Chain of Custody）之嚴格規範。",
-    modelAnswer: `
-<h4>一、NIST SP 800-61 Rev.2 事件應變四大生命週期處置</h4>
-<ol>
-  <li><strong>準備階段（Preparation）</strong>：預先建置獨立應變環境、鑑識專用筆電、冷備份離線隔離庫（Air-Gapped Backup），並落實內部 SOP 演習。</li>
-  <li><strong>偵測與分析階段（Detection & Analysis）</strong>：
-    <ul>
-      <li>透過 SIEM/EDR 日誌確認勒索病毒家族（如 LockBit、BlackCat）與首波入侵點（Patient Zero，如外包 VPN 帳密洩漏）。</li>
-      <li>評估影響範圍與資料外洩等級，立即依金管會規定於<strong>「30 分鐘內完成重大資安事件即時通報（通報證期局與 F-ISAC）」</strong>。</li>
-    </ul>
-  </li>
-  <li><strong>圍堵、消除與復原（Containment, Eradication & Recovery）</strong>：
-    <ul>
-      <li><strong>短線圍堵</strong>：下發微隔離與交換器指令，直接<strong>拔除實體網路線或阻斷受害網段之 VLAN 路由</strong>，嚴禁直接關機重啟（防止揮發性記憶體證據消失及觸發惡意重啟破壞）。</li>
-      <li><strong>根除威脅</strong>：強制註銷受害帳號凭證、封鎖 C2 對外通訊 IP、徹底抹除惡意排程服務（Persistence）。</li>
-      <li><strong>安全復原</strong>：自驗證無毒之<strong>離線唯讀冷備份（Immutable Backup）</strong>重建作業系統，更新至最新安全補丁，啟動 72 小時全流量密集鑑控後逐步恢復對外連線。</li>
-    </ul>
-  </li>
-  <li><strong>事後檢討（Post-Incident Activity）</strong>：召開根因分析會議（RCA），於規定期限向主管機關提交完整調查結案報告。</li>
-</ol>
-
-<h4>二、數位鑑識與資料易失性順序（Order of Volatility）</h4>
-<p>現場鑑識人員必須嚴格遵守 RFC 3227 規定之易失性順序，由最易消失之資料優先採集：</p>
-<ol>
-  <li><strong>暫存器與 CPU 快取（Registers, Cache）</strong></li>
-  <li><strong>實體記憶體（Physical RAM）</strong>：利用 LiME / DumpIt 提取 RAM 映像。許多現代勒索軟體解密金鑰暫存於記憶體中，關機即永久消失！</li>
-  <li><strong>網路連線狀態、ARP 快取與活躍行程表（Network State, Process Table）</strong></li>
-  <li><strong>次級儲存媒體（硬碟、SSD、NVMe）</strong>：使用唯讀防寫器（Write Blocker）製作全盤映像檔（Bit-Stream Image, DD/E01）。</li>
-  <li><strong>遠端日誌與歸檔備份（Remote Logs）</strong></li>
-</ol>
-
-<h4>三、證據監管鏈（Chain of Custody, CoC）法定效力保全</h4>
-<ol>
-  <li><strong>嚴禁在受害原始碟上直接開機或操作</strong>，所有鑑識分析工作僅能在複本映像檔案上進行。</li>
-  <li><strong>雜湊完整性比對</strong>：製作映像檔前後，必須即時計算並簽署 <strong>SHA-256 雜湊值</strong>。若分析中雜湊有一位元不符，法庭將判定證據遭污染無效。</li>
-  <li><strong>詳實紙本與電子存證記錄</strong>：詳細載明採證人、時間、地點、工具型號、移交清單與雙人簽名，保全法律追訴之完整效力。</li>
-</ol>
-    `,
-    examinerTips: "閱卷得分秘訣：在圍堵時切忌寫『立即關機』，正確做法是『拔除網路線隔離，先做記憶體傾印』；精確列出 Order of Volatility 順序與 SHA-256 Chain of Custody 雜湊保全。"
+    "id": "sn-essay-09",
+    "category": "sysnet",
+    "chapter": "第 9 章：容器化、Kubernetes 與金融雲原生維運",
+    "title": "Kubernetes 金融私有雲架構規劃、容器隔離與 SRE 維運實踐",
+    "summary": "深入解構 Linux Namespaces/cgroups 容器隔離原理、K8s 控制平面高可用、SR-IOV/Calico 網路微隔離，以及 SRE SLI/SLO 錯誤預算維運工程。",
+    "points": 25,
+    "rubric": "1. 容器隔離 Namespaces 與 cgroups 原理 (7分)；2. Kubernetes 控制平面高可用規劃 (7分)；3. SRE SLI/SLO 與錯誤預算運作機制 (7分)；4. 結論 (4分)",
+    "question": "隨著金融微服務架構普及，證券期貨業逐步評估將周邊報表、風控與非即時交易系統遷移至 Kubernetes 容器平台。請說明 Linux Namespaces 與 cgroups 在容器資源隔離上的技術底層原理；規劃金融高可用 Kubernetes 控制平面（etcd、API Server）架構；並闡述 SRE 核心理念中如何運用 SLI、SLO 與錯誤預算（Error Budget）維運關鍵金融服務？",
+    "modelAnswer": "\n<h4>一、破題：容器底層核心隔離技術：Namespaces 與 cgroups</h4>\n<p>容器並非傳統虛擬機，其本質上是受 Linux 核心邊界約束的獨立使用者空間行程：</p>\n<ol>\n  <li><strong>Linux Namespaces（檢視邊界隔離）</strong>：利用 <code>pid</code>、<code>net</code>、<code>ipc</code>、<code>mnt</code>、<code>uts</code> 與 <code>user</code> 六大命名空間，隔離行程清單、網路堆疊、掛載點與使用者權限。</li>\n  <li><strong>Linux cgroups v2（物理資源配額約束）</strong>：嚴格限制容器 CPU 核心份額（<code>cpu.max</code>）、實體記憶體上限（<code>memory.max</code>），防止單一容器資源耗盡引發節點崩潰（OOM Crash）。</li>\n</ol>\n\n<h4>二、Kubernetes 控制平面金融高可用規劃</h4>\n<ul>\n  <li><strong>etcd 奇數節點強一致性叢集</strong>：部署 3 或 5 節點 etcd 叢集，採用 Raft 分散式共識協定，底層配置 NVMe SSD 確保 fsync 延遲小於 5ms。</li>\n  <li><strong>kube-apiserver 多活負載平衡</strong>：多台 API Server 透過專屬硬體 F5 / LVS 進行四層負載均衡，工作節點透過 VIP 雙向 TLS (mTLS) 安全互聯。</li>\n  <li><strong>高效網路 CNI 與微隔離</strong>：停用傳統 Overlay 封裝，採用 <strong>Calico eBPF 模式</strong> 直接由核心進行路由轉發；透過 <strong>NetworkPolicy</strong> 實施預設拒絕（Default Deny）網路微隔離。</li>\n</ul>\n\n<h4>三、SRE 維運體系：SLI、SLO 與錯誤預算（Error Budget）</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">SRE 核心概念</th>\n      <th style=\"padding:6px 10px;\">金融證券系統定義</th>\n      <th style=\"padding:6px 10px;\">指標標準範例</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">SLI (服務等級指標)</td>\n      <td style=\"padding:6px 10px;\">實際量測之關鍵服務品質指標</td>\n      <td style=\"padding:6px 10px;\">委託下單 API 成功率；撮合延遲 P99 分位數</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">SLO (服務等級目標)</td>\n      <td style=\"padding:6px 10px;\">團隊內部追求之高可靠度目標</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">每月下單可用率 ≥ 99.99% (每月允許停機 4.38 分鐘)</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">SLA (服務等級協定)</td>\n      <td style=\"padding:6px 10px;\">對外簽署具備法律效力之合約</td>\n      <td style=\"padding:6px 10px;\">可用率未達 99.9% 需按比例賠償券商連線費</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">Error Budget (錯誤預算)</td>\n      <td style=\"padding:6px 10px;\">100% - SLO (平衡創新與穩定)</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">預算耗盡時全面凍結發版，全員投入穩定性治理</td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、結論</h4>\n<p>透過「cgroups/Namespaces 核心硬隔離 + K8s 宣告式自動修復 + SRE 錯誤預算治理」，能在雲原生架構下實現金融微服務彈性調度與高可用性維運。</p>\n            ",
+    "examinerTips": "評分核心：『Namespaces 負責檢視隔離，cgroups 負責資源配額』、『etcd Raft 共識』與『SRE SLI / SLO / SLA / 錯誤預算四要素』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>容器底層（7分）</strong>：精確指出 Namespaces 與 cgroups 的各自職責。</li>\n  <li><strong>K8s 控制平面（6分）</strong>：說明 etcd 奇數節點 Raft 機制與 API Server 負載平衡。</li>\n  <li><strong>SRE 體系表格（8分）</strong>：完整表格展示 SLI、SLO、SLA 與 Error Budget 定義與互動機制。</li>\n  <li><strong>結論（4分）</strong>：雲原生與金融維運綜效。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sn-essay-10",
+    "category": "sysnet",
+    "chapter": "第 10 章：高可用伺服器叢集、負載平衡與容錯工程",
+    "title": "高可用叢集腦裂（Split-Brain）成因、STONITH 硬體隔離與 LVS 負載均衡",
+    "summary": "深入解構 Pacemaker/Corosync 叢集、腦裂危害、STONITH 帶外硬體斷電隔離機制，以及 LVS DR 模式直接路由百萬並發負載分流架構。",
+    "points": 25,
+    "rubric": "1. 腦裂成因與資料損害風險 (7分)；2. STONITH 原理與硬體斷電 (7分)；3. LVS DR 模式直接路由原理 (7分)；4. 結論 (4分)",
+    "question": "在雙節點或多節點高可用（HA）伺服器叢集中，若節點間心跳網路中斷，極易引發「腦裂（Split-Brain）」災難。試分析腦裂之成因與資料破壞風險，並說明為何 Pacemaker 叢集必須強制啟用 STONITH（Fencing）機制？另請比較 LVS DR 模式相較 NAT 模式在金融網路中的效能優勢。",
+    "modelAnswer": "\n<h4>一、破題：高可用叢集腦裂（Split-Brain）成因與災難後果</h4>\n<ol>\n  <li><strong>成因分析</strong>：當雙節點（Node A 與 Node B）間的心跳連線（Heartbeat Network）發生故障中斷，但兩台主機硬體與應用皆正常運行。此時雙方皆誤判對方已宕機，進而同時搶佔虛擬 IP（VIP）並掛載共享儲存。</li>\n  <li><strong>災難後果：資料毀滅性覆蓋（Data Corruption）</strong>：兩側主機同時對同一個檔案系統或資料庫執行寫入，快取與日誌嚴重衝突，引發不可逆的檔案系統結構損壞與交易帳務錯亂。</li>\n</ol>\n\n<h4>二、STONITH（Shoot The Other Node In The Head）防護原則</h4>\n<p>在 Pacemaker / Corosync 叢集中，<strong>STONITH 是絕對不允許被關閉的生死機制</strong>：</p>\n<ul>\n  <li><strong>硬體隔離（Fencing）原理</strong>：一旦發生心跳中斷，獲得 Quorum（多數決）的合法節點在接管業務前，必須強制透過伺服器 <strong>IPMI / iDRAC / iLO</strong> 帶外管理介面或智慧 PDU，直接對可疑節點下達<strong>硬體斷電指令（Power Cut / Cold Reset）</strong>。</li>\n  <li><strong>百分之百確認死透</strong>：必須等待硬體斷電成功確認（ACK）返回，確保失聯節點絕無可能繼續向共享磁碟發起寫入，倖存節點方可安全掛載儲存並接管 VIP。</li>\n</ul>\n\n<h4>三、LVS DR 模式（直接路由）相較 NAT 模式效能優勢</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">比較項目</th>\n      <th style=\"padding:6px 10px;\">LVS NAT 模式</th>\n      <th style=\"padding:6px 10px;\">LVS DR 模式 (Direct Routing，金融首選)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">轉發原理</td>\n      <td style=\"padding:6px 10px;\">修改 IP 標頭目標 IP，進出雙向皆經 LVS</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>僅修改封包目標 MAC 位址，IP 完全不變</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">回程流量路徑</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">回應流量必須原路穿過 LVS 回傳</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>真實伺服器直接向客戶端回傳 (三角路由 DSR)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">負載吞吐能力</td>\n      <td style=\"padding:6px 10px;\">受 LVS 總出口頻寬限制 (約 10~20 Gbps)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>突破 LVS 瓶頸，單台可分流數百萬 QPS</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、結論</h4>\n<p>「STONITH 硬體斷電保全 + LVS DR 三角路由分流」能建構零腦裂風險、具備百萬 QPS 吞吐之金融級高可用伺服器陣列。</p>\n            ",
+    "examinerTips": "評分亮點：『心跳中斷雙方爭搶 VIP 與共享儲存引發資料覆蓋』、『STONITH 透過 IPMI 硬體拔插頭』與『LVS DR 僅改 MAC、回程走 DSR 三角路由』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>腦裂成因（7分）</strong>：清晰指出心跳斷裂、誤判宕機、雙主爭搶 VIP 與磁碟寫入覆蓋風險。</li>\n  <li><strong>STONITH 原理（7分）</strong>：強調透過 IPMI / iDRAC 執行實體切斷電源（Shoot in the head），並等待確認後再接管。</li>\n  <li><strong>LVS DR 模式（7分）</strong>：以表格對比 NAT 與 DR，點出 Direct Server Return (DSR) 三角路由。</li>\n  <li><strong>結論（4分）</strong>：總結高可用與極致吞吐架構。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sn-essay-11",
+    "category": "sysnet",
+    "chapter": "第 11 章：金融訊息中介軟體與高效佇列系統",
+    "title": "金融 FIX 協定架構、Kafka 巨量串流與 Exactly-Once 訊息交付保證",
+    "summary": "深入解構金融資訊交換協定（FIX Protocol）會話層連續序號管理、Kafka 分散式日誌分區 Zero-Copy 實踐，以及分散式訊息 Exactly-Once 交付語意實作。",
+    "points": 25,
+    "rubric": "1. FIX 協定會話層連續序號與 Gap 偵測機制 (7分)；2. Kafka 循序寫入與 Zero-Copy 吞吐架構 (7分)；3. 三大訊息交付語意與 Exactly-Once 實踐 (7分)；4. 結論 (4分)",
+    "question": "臺灣證券期貨市場各券商與交易所間大量依賴 FIX 協定進行委託下單，而在後台巨量資料處理與風控管線上則採用 Apache Kafka 分散式串流架構。請說明 FIX 協定之連續序號管理與 Gap 偵測重傳機制；分析 Kafka 如何利用循序寫入與 Zero-Copy 達到極致吞吐量；並比較分散式訊息三大交付語意，詳述在金融金流中如何實作 Exactly-Once（精確一次）保證？",
+    "modelAnswer": "\n<h4>一、破題：金融 FIX 協定連續序號與會話層可靠性</h4>\n<p><strong>FIX（Financial Information eXchange Protocol）</strong> 是全球證券期貨業標準通訊語言：</p>\n<ol>\n  <li><strong>雙向遞增序號（MsgSeqNum）</strong>：連線雙方各自維護嚴格單調遞增的整數序號。每一筆委託與回報皆依序編號。</li>\n  <li><strong>序號斷層與自動重傳機制</strong>：接收端一旦偵測到抵達序號大於預期（例如預期第 100 筆，卻收到第 102 筆），立即主動發出 <code>ResendRequest (35=2)</code> 要求重傳第 100 至 101 筆，保證交易訊息絕不脫序與遺漏。</li>\n</ol>\n\n<h4>二、Apache Kafka 金融巨量串流高吞吐核心設計</h4>\n<ul>\n  <li><strong>分區順序追加（Append-Only Write）</strong>：充分發揮磁碟循序 I/O 速度遠高於隨機 I/O 之物理特性，吞吐量逼近實體記憶體頻寬。</li>\n  <li><strong>Linux Zero-Copy（零拷貝 sendfile）</strong>：消費端讀取日誌時，資料直接由 Page Cache 經 DMA 複製至網卡緩衝區發送，完全不進入 JVM 堆積記憶體，消除使用者空間切換。</li>\n  <li><strong>ISR（In-Sync Replicas）高可用多副本</strong>：設定 <code>acks=all</code>，資料必須同步寫入所有保持同步的副本節點方回報成功。</li>\n</ul>\n\n<h4>三、分散式訊息交付三大語意與 Exactly-Once 實現</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">交付語意</th>\n      <th style=\"padding:6px 10px;\">特性與風險</th>\n      <th style=\"padding:6px 10px;\">金融適用場景</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">At-Most-Once (最多一次)</td>\n      <td style=\"padding:6px 10px;\">發送即忘，可能丟失訊息，但絕不重複</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">嚴禁於交易金流中使用；僅可用於可丟棄之次要監控指標</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">At-Least-Once (至少一次)</td>\n      <td style=\"padding:6px 10px;\">逾時自動重傳，保證不丟失，但可能重複</td>\n      <td style=\"padding:6px 10px;\">通用日誌收集、非即時報表統計</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">Exactly-Once (精確一次)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>訊息保證不丟失且嚴格僅處理一次</strong></td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>證券撮合、帳務扣款、持股清算交割（金融唯一標準）</strong></td>\n    </tr>\n  </table>\n</div>\n<p><strong>Exactly-Once 落地實務</strong>：依賴「生產端冪等性（Idempotent Producer PID + Sequence）」搭配「消費端分散式交易或業務唯一鍵去重（Redis SETNX / 資料庫 Unique Constraint 唯一索引）」，達成絕對防重扣款。</p>\n            ",
+    "examinerTips": "得分核心：『FIX MsgSeqNum 序號斷層觸發 ResendRequest』、『Kafka 磁碟循序追加與 Zero-Copy sendfile』、『Exactly-Once 依賴生產端冪等 + 消費端唯一鍵去重』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>FIX 協定（7分）</strong>：深入說明 Session 層序列號管理與重傳請求，解釋其對交易不脫序的保障。</li>\n  <li><strong>Kafka 架構（7分）</strong>：指出 Sequential Write、Zero-Copy sendfile、ISR 高可用副本。</li>\n  <li><strong>三大語意對比（7分）</strong>：以表格呈現 At-Most-Once、At-Least-Once、Exactly-Once，給出 Exactly-Once 的具體實現架構。</li>\n  <li><strong>結論（4分）</strong>：總結金融訊息基盤設計。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sn-essay-12",
+    "category": "sysnet",
+    "chapter": "第 12 章：金融維運自動化、SRE 與生產故障排查實戰",
+    "title": "金融基礎設施即代碼（IaC）、混沌工程與生產故障排查實戰",
+    "summary": "深入剖析 Ansible 自動化組態冪等性、金融系統混沌工程故障注入演練、Linux 系統效能排查工具鏈，以及 kdump 核心轉儲與 GDB 事後偵錯實務。",
+    "points": 25,
+    "rubric": "1. IaC 宣告式自動化與 GitOps 雙人稽核 (6分)；2. 混沌工程金融生產環境容錯驗證 (6分)；3. Linux 生查四維度工具鏈 (9分)；4. Core Dump 與 GDB 事後調試結論 (4分)",
+    "question": "證券交易所交易系統對於可用性要求極高，日常維運嚴格禁止手動變更伺服器設定。請說明 Ansible 基礎設施即代碼（IaC）之宣告式與冪等性架構優勢；闡述金融系統如何落實混沌工程（Chaos Engineering）主動注入受控故障以驗證容錯指標；並列出 Linux 生產環境效能排查工具鏈與 Core Dump 事後分析流程。",
+    "modelAnswer": "\n<h4>一、破題：基礎設施即代碼（IaC）與自動化合規治理</h4>\n<p>證交所核心伺服器嚴禁任何手工臨時修改，必須落實 <strong>IaC（Infrastructure as Code）</strong>：</p>\n<ol>\n  <li><strong>Ansible 宣告式自動化</strong>：透過無代理（Agentless）架構與 SSH 金鑰，批量下發系統參數與應用配置，具備<strong>冪等性（Idempotency）</strong>，保證反覆執行多次狀態恆等。</li>\n  <li><strong>GitOps 雙人審查</strong>：所有伺服器設定檔由 Git 儲存庫受控管理，變更需經 Pull Request 雙人覆核與 CI/CD 自動化安全合規檢查，具備完整法規稽核軌跡。</li>\n</ol>\n\n<h4>二、金融系統混沌工程（Chaos Engineering）實戰演練</h4>\n<p>遵循「假定系統必定出錯」思維，主動在演練環境注入受控故障（Fault Injection）：</p>\n<ul>\n  <li><strong>網路層混亂注入</strong>：透過 Chaos Mesh 注入 5% 丟包、20ms 延遲與 DNS 污染，檢驗 PTP 時間同步穩定性與 Feed A/B 雙收切換機制。</li>\n  <li><strong>節點崩潰注入</strong>：模擬主撮合節點突然 <code>kill -9</code> 或模擬機房斷電，驗證 Raft 共識自動選主與 VIP 漂移耗時是否嚴格小於 10 秒。</li>\n</ul>\n\n<h4>三、Linux 生產效能急救排查工具鏈</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">系統資源維度</th>\n      <th style=\"padding:6px 10px;\">首選診斷工具</th>\n      <th style=\"padding:6px 10px;\">核心觀察指標與異常預警</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">CPU 效能與排程</td>\n      <td style=\"padding:6px 10px;\"><code>uptime, top -H, mpstat 1</code></td>\n      <td style=\"padding:6px 10px;\">Load Avg 飆高、%si (軟中斷過高)、%wa (等待 I/O)</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">記憶體與換頁</td>\n      <td style=\"padding:6px 10px;\"><code>free -h, vmstat 1</code></td>\n      <td style=\"padding:6px 10px; color:#dc2626;\"><strong>si / so 大於 0 (發生致命 Swap 換頁！)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">磁碟 I/O 吞吐</td>\n      <td style=\"padding:6px 10px;\"><code>iostat -xz 1</code></td>\n      <td style=\"padding:6px 10px;\">%util 逼近 100%、await 延遲超過 10ms</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">網路連線佇列</td>\n      <td style=\"padding:6px 10px;\"><code>ss -s, netstat -s</code></td>\n      <td style=\"padding:6px 10px;\">TCP ListenDrop 溢出、RetransSegs 重傳飆升</td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、結論：崩潰轉儲（kdump）與 GDB 堆疊回溯</h4>\n<p>生產程式崩潰時，透過 Linux <code>ulimit -c unlimited</code> 保留 Core Dump 核心映象，工程師於離線環境以 <code>gdb ./twse_engine core-dump-file</code> 執行 <code>bt full</code> 打印全線程呼叫棧，徹底定位空指針或並發死鎖（Deadlock）根因。</p>\n            ",
+    "examinerTips": "評分亮點：『Ansible 宣告式冪等性』、『混沌工程主動注入網路丟包與斷電選主驗證』、『Linux 排查四維度工具與 si/so Swap 警訊』、『Core Dump + GDB bt full 定位死鎖』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>IaC 與自動化（6分）</strong>：說明 Ansible 冪等性與 GitOps 雙人稽核審查機制。</li>\n  <li><strong>混沌工程（6分）</strong>：列出在金融生產系統中注入網路延遲、節點當機以驗證容錯指標。</li>\n  <li><strong>Linux 排查表格（9分）</strong>：完整條列 CPU、記憶體（強調 si/so）、磁碟（%util/await）、網路（ListenDrop）排查工具鏈。</li>\n  <li><strong>崩潰診斷（4分）</strong>：陳述 Core Dump 與 GDB 事後調試流程。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-01",
+    "category": "sec",
+    "chapter": "第 1 章：金融資安法規治理與證券期貨業聯防體系",
+    "title": "金融資安行動方案 2.0 治理實踐與 30 分鐘重大資安通報應變",
+    "summary": "深入解構金融資安行動方案 2.0 四大構面、證券期貨業重大事件 30 分鐘通報法定時效、F-ISAC 橫向聯防，以及軟體供應鏈 SBOM 管理實務。",
+    "points": 25,
+    "rubric": "1. 行動方案 2.0 四大構面 (7分)；2. 重大事件認定與 30 分鐘通報機制 (7分)；3. F-ISAC/CERT/SOC 聯防架構 (7分)；4. 供應鏈 SBOM 結論 (4分)",
+    "question": "金管會推動「金融資安行動方案 2.0」，強化金融關鍵基礎設施之營運韌性。試說明該方案之四大核心構面為何？若證券商或證交所核心下單系統遭受駭客攻擊導致服務中斷，依主管機關規範重大事件之認定標準與法定通報時限為何？並說明 F-ISAC 在聯防體系中扮演之角色。",
+    "modelAnswer": "\n<h4>一、破題：金融資安行動方案 2.0 四大核心構面</h4>\n<ol>\n  <li><strong>深化資安治理（Governance）</strong>：推動設置具備專業資格之<strong>專責資安長（CISO）</strong>，成立獨立資安專責部門，董事會每年定期聽取資安成效報告，健全資安三道防線。</li>\n  <li><strong>強化資安聯防（Joint Defense）</strong>：對接 F-ISAC、F-CERT 與 F-SOC，促成跨機構資安情資即時共享與自動化威脅阻斷。</li>\n  <li><strong>提升資安監韌（Resilience）</strong>：落實營運衝擊分析（BIA），要求核心交易系統 RTO ≤ 10 分鐘、RPO 趨近於 0，並每年辦理無預警分散式災害實兵演練。</li>\n  <li><strong>發揮資安文化（Culture）</strong>：全員社交工程郵件演練、資安專業證照（如 CISSP/ISO 27001 LA）考核與供應鏈資安稽核。</li>\n</ol>\n\n<h4>二、重大資安事件認定標準與「30 分鐘」通報時效</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">通報維度</th>\n      <th style=\"padding:6px 10px;\">法定規範標準</th>\n      <th style=\"padding:6px 10px;\">應處置作為</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">重大事件認定條件</td>\n      <td style=\"padding:6px 10px;\">1. 核心系統中斷達 10 分鐘以上<br>2. 大量客戶機密/憑證資料遭外洩<br>3. 遭受勒索軟體全盤加密</td>\n      <td style=\"padding:6px 10px; color:#dc2626; font-weight:700;\">啟動緊急應變小組並成立前進指揮所</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">初次通報法定時限</td>\n      <td style=\"padding:6px 10px; color:#dc2626; font-weight:700;\"><strong>自「知悉（Awareness）」起 30 分鐘以內</strong></td>\n      <td style=\"padding:6px 10px;\">向金管會證期局及 F-ISAC 完成線上通報</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">後續追蹤與結案</td>\n      <td style=\"padding:6px 10px;\">每 2 小時更新最新處置進度</td>\n      <td style=\"padding:6px 10px;\">事件平息後 3 個工作天內繳交完整根因調查報告</td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、F-ISAC 橫向聯防與情資分享生態系</h4>\n<ul>\n  <li><strong>情資匯聚與分析</strong>：F-ISAC 整合全臺銀行、證券、期貨機構遭受的攻擊指標（IoC，如惡意 IP、C2 域名、惡意程式雜湊），以 STIX/TAXII 標準格式即時派發。</li>\n  <li><strong>一家受駭，全體免疫</strong>：證交所接收情資後，自動聯動邊界防火牆下發黑名單阻斷，在駭客橫向擴散前建立全行業免疫屏障。</li>\n</ul>\n\n<h4>四、結論：第三方供應鏈 SBOM 治理</h4>\n<p>為防範供應鏈跳板攻擊，證交所全面推行<strong>軟體物料清單（SBOM）</strong>管理，要求委外軟體交付時必須提供 SPDX/CycloneDX 格式清單，落實全生命週期軟體供應鏈安全監控。</p>\n            ",
+    "examinerTips": "核心得分點：『行動方案 2.0 四大構面：治理、聯防、監韌、文化』、『知悉起 30 分鐘重大通報時效』、『核心中斷 10 分鐘認定標準』、『F-ISAC STIX/TAXII 一家受駭全體免疫』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>行動方案 2.0（7分）</strong>：完整列出四個構面並具體解釋 CISO、F-ISAC、BIA、社交工程。</li>\n  <li><strong>30 分鐘通報（7分）</strong>：點出「知悉起 30 分鐘」以及「核心系統中斷 10 分鐘」之認定門檻。</li>\n  <li><strong>F-ISAC 角色（7分）</strong>：說明橫向威脅情資共享機制與「一家受駭，全體免疫」價值。</li>\n  <li><strong>結論（4分）</strong>：提及供應鏈 SBOM 軟體物料清單。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-02",
+    "category": "sec",
+    "chapter": "第 2 章：資安標準與控制框架（ISO 27001:2022 與 NIST CSF 2.0）",
+    "title": "ISO/IEC 27001:2022 改版四大面向剖析與 NIST CSF 2.0 治理實踐",
+    "summary": "深入解構 ISO 27001:2022 四大主題 93 項控制措施、11 項全新控制項、SoA 適用性聲明五大屬性標籤，以及 NIST CSF 2.0 六大功能落地實務。",
+    "points": 25,
+    "rubric": "1. 2022 版架構變革 (7分)；2. 11 項新控制項亮點分析 (7分)；3. SoA 五大屬性標籤 (6分)；4. NIST CSF 2.0 治理結論 (5分)",
+    "question": "國際資安管理系統標準 ISO/IEC 27001 於 2022 年發布重大改版。請詳述 2022 年版相較於 2013 年版在 Annex A 控制措施架構上的核心重組變革為何？試列舉三項全新新增之控制措施並說明其在證券業之落地應用；並說明 NIST CSF 2.0 新納入「GOVERN（治理）」構面之意義。",
+    "modelAnswer": "\n<h4>一、破題：ISO/IEC 27001:2022 Annex A 架構重大改版</h4>\n<p>ISO/IEC 27001:2022 將舊版 14 個網域 114 項控制措施，重新精簡整併為<strong>四大主題（Themes）共 93 項控制措施</strong>：</p>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">2022 新版主題分類</th>\n      <th style=\"padding:6px 10px;\">控制項數量</th>\n      <th style=\"padding:6px 10px;\">核心重點與證券業應用</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">A.5 組織控制措施</td>\n      <td style=\"padding:6px 10px;\">37 項</td>\n      <td style=\"padding:6px 10px;\">資安政策、角色分工、資產管理、雲端服務資訊安全</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">A.6 人員控制措施</td>\n      <td style=\"padding:6px 10px;\">8 項</td>\n      <td style=\"padding:6px 10px;\">背景查核、在職意識教育、離職立即註銷權限</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">A.7 實體控制措施</td>\n      <td style=\"padding:6px 10px;\">14 項</td>\n      <td style=\"padding:6px 10px;\">機房實體邊界、門禁多因子管制、支援性公用設施（電力空調）</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">A.8 技術控制措施</td>\n      <td style=\"padding:6px 10px;\">34 項</td>\n      <td style=\"padding:6px 10px;\">端點防護、特權帳號管理、網路微隔離、安全編碼 (SSDLC)</td>\n    </tr>\n  </table>\n</div>\n\n<h4>二、精選全新新增控制項與證券業落地實務</h4>\n<ol>\n  <li><strong>A.5.7 威脅情資（Threat Intelligence）</strong>：\n    組織應收集外部威脅情報。證券業落實於對接 F-ISAC 情資饋送，自動將最新 C2 惡意域名注入邊界 DNS RPZ 與防火牆進行即時阻斷。\n  </li>\n  <li><strong>A.5.30 業務營運持續之 ICT 整備度（ICT readiness for BC）</strong>：\n    明確要求 IT 系統具備支撐業務持續之備援能力。證券業落實於板橋主機房與同城備援中心之雙活資料庫與 2N 電力備援。\n  </li>\n  <li><strong>A.8.12 資料外洩防護（Data Leakage Prevention, DLP）</strong>：\n    在端點、網路與雲端部署敏感資料檢測機制，防止內部員工將投資人個資或未公開財報經由隨身碟或外部雲端硬碟外流。\n  </li>\n</ol>\n\n<h4>三、適用性聲明書（SoA）之五大屬性標籤（Attributes）</h4>\n<p>2022 版引進 <code>#Control Types</code>（預防/偵測/矯正）、<code>#Information Security Properties</code>（CIA）、<code>#Cybersecurity Concepts</code>（IPDRR）、<code>#Operational Capabilities</code> 與 <code>#Security Domains</code> 五維度標籤，讓 SoA 篩選與跨標準（如對齊 NIST CSF）映射更加直覺自動化。</p>\n\n<h4>四、結論：NIST CSF 2.0「GOVERN 治理」之戰略意涵</h4>\n<p>NIST CSF 2.0 擴充為 <strong>Govern、Identify、Protect、Detect、Respond、Recover 六大功能</strong>。Govern 居於核心樞紐，宣示資安不再僅是底層工程師的技術防禦，而是必須由董事會與高階主管主導之企業最高經營戰略與法規合規基石。</p>\n            ",
+    "examinerTips": "評分亮點：『四大主題 93 項（A.5組織37項、A.6人員8項、A.7實體14項、A.8技術34項）』；具體寫出『A.5.7 威脅情資』與『A.5.30 ICT 營運持續整備度』；點出『NIST CSF 2.0 GOVERN 治理居於中樞』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>2022 架構變革（7分）</strong>：精確背誦出四大主題名稱與各自主題項數（37, 8, 14, 34，總計 93 項）。</li>\n  <li><strong>新控制項（7分）</strong>：舉例 A.5.7（威脅情資）、A.5.30（ICT 整備度）、A.8.12（DLP），並結合證券業場景。</li>\n  <li><strong>SoA 屬性標籤（6分）</strong>：解釋五大屬性標籤（Control Types, CIA, IPDRR 等）。</li>\n  <li><strong>NIST CSF 2.0（5分）</strong>：深入詮釋 Govern 治理如何將資安提升至企業戰略層次。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-03",
+    "category": "sec",
+    "chapter": "第 3 章：密碼學原理、硬體安全模組（HSM）與 PKI 憑證",
+    "title": "金融交易憑證生命週期管理、FIPS 140-3 HSM 部署與 TLS 1.3 前向保密",
+    "summary": "深入剖析數位簽章不可否認性、X.509 憑證鏈 OCSP 查驗、硬體安全模組（HSM）防拆解零化機制，以及 TLS 1.3 完全前向保密（PFS）原理。",
+    "points": 25,
+    "rubric": "1. 數位簽章與不可否認性 (7分)；2. X.509 憑證生命週期與 OCSP (6分)；3. HSM FIPS 140-3 Level 3 零化防護 (7分)；4. TLS 1.3 PFS 結論 (5分)",
+    "question": "在證券網路下單系統中，電子下單憑證與硬體安全模組（HSM）是確保交易機密性、完整性與不可否認性之核心基石。試說明數位簽章如何依據《數位簽章法》建立不可否認性？詳述 X.509 憑證生命週期與 OCSP 即時查驗機制，並說明 FIPS 140-3 Level 3 認證之 HSM 具備哪些物理與邏輯安全防禦特性？",
+    "modelAnswer": "\n<h4>一、破題：數位簽章原理與不可否認性（Non-repudiation）</h4>\n<ol>\n  <li><strong>簽章生成與驗證流程</strong>：\n    客戶端委託下單時，系統先對交易明細計算 <strong>SHA-256 雜湊摘要</strong>，再以客戶私鑰（Private Key）加密摘要生成<strong>數位簽章</strong>。券商/交易所端使用客戶公開金鑰（Public Key）解密簽章取得摘要 A，與收到資料重新計算之摘要 B 比對。若完全一致，證明資料傳輸過程未遭竄改。\n  </li>\n  <li><strong>法律推定不可否認性</strong>：\n    依臺灣《數位簽章法》規範，經合格憑證機構（CA，如 TWCA）簽署之數位憑證，在法律上推定為本人親簽，委託人事後不得否認下單指令，徹底解決交易法律糾紛。\n  </li>\n</ol>\n\n<h4>二、X.509 憑證生命週期與 OCSP 即時狀態查驗</h4>\n<p>憑證生命週期包含申請、審驗、簽發、儲存、驗證、展期與廢止（Revocation）：</p>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">查驗機制</th>\n      <th style=\"padding:6px 10px;\">CRL (憑證撤銷清單)</th>\n      <th style=\"padding:6px 10px;\">OCSP (線上憑證狀態協定)</th>\n      <th style=\"padding:6px 10px;\">OCSP Stapling (裝訂優化)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">即時性</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">低 (週期性更新，具時間差)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">高 (即時向 CA 查詢狀態)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">極高 (由伺服器預先取得 CA 簽名)</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">網路開銷</td>\n      <td style=\"padding:6px 10px;\">清單檔案龐大，浪費頻寬</td>\n      <td style=\"padding:6px 10px;\">每次交易需額外發起 HTTP 請求</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>零客戶端額外請求，大幅縮減延遲</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、金融硬體安全模組（HSM FIPS 140-3 Level 3）防護特性</h4>\n<ol>\n  <li><strong>實體防拆與零化機制（Zeroization）</strong>：\n    HSM 具備防探針、防外殼拆卸、溫度與電壓監控感測電路。一旦偵測到遭受物理開殼或侵入式探測，電容立即放電，<strong>在微秒內永久抹除內部根金鑰</strong>，保證金鑰絕不落入敵手。\n  </li>\n  <li><strong>安全邊界與 KMIP 生命週期管理</strong>：\n    所有金鑰生成（TRNG 真隨機數）、簽署、驗證與銷毀皆嚴格在加密邊界內部完成，私鑰以非導出（Non-exportable）標記鎖定，永不以明文形式出現在主機記憶體中。\n</li>\n</ol>\n\n<h4>四、結論：TLS 1.3 完全前向保密（PFS）</h4>\n<p>金融通訊強制啟用 TLS 1.3，全面廢除 RSA 金鑰交換，強制採用 <strong>ECDHE 臨時金鑰協商</strong>。每次 Session 產生臨時金鑰對，即便未來伺服器長期主金鑰洩漏，歷史被側錄之密文亦永遠無法被解密。</p>\n            ",
+    "examinerTips": "亮點字眼：『SHA-256 + 私鑰簽署 = 不可否認性』、『OCSP Stapling 消除握手延遲』、『FIPS 140-3 Level 3 物理開殼即零化 (Zeroization)』、『TLS 1.3 ECDHE 完全前向保密 PFS』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>數位簽章法規與流程（7分）</strong>：清晰推導雜湊摘要、私鑰簽名、公鑰解密校驗流程，並引用數位簽章法法定不可否認性。</li>\n  <li><strong>憑證查驗表格（6分）</strong>：以表格對比 CRL、OCSP 與 OCSP Stapling 之時效性與效能。</li>\n  <li><strong>HSM 防護特性（7分）</strong>：寫出 FIPS 140-3 Level 3 物理防護等級與「Zeroization 零化銷毀」。</li>\n  <li><strong>TLS 1.3 結論（5分）</strong>：詮釋 ECDHE 臨時密鑰協商與 PFS 完全前向保密。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-04",
+    "category": "sec",
+    "chapter": "第 4 章：零信任架構（ZTA）、身分鑑別與特權存取管理",
+    "title": "金融關鍵基礎設施零信任架構（ZTA）規劃與落地實踐",
+    "summary": "深入解構 NIST SP 800-207 零信任 PDP/PEP 架構、FIDO2 抗釣魚強鑑別、OAuth 2.0/OIDC 授權，以及 PAM 堡壘機特權帳號防護實務。",
+    "points": 25,
+    "rubric": "1. 零信任三大原則 (6分)；2. PDP 與 PEP 邏輯架構 (7分)；3. FIDO2 抗釣魚原理 (7分)；4. PAM 與微隔離結論 (5分)",
+    "question": "傳統基於邊界防火牆之「城堡護城河」資安模型在面對現代進階持續性威脅（APT）時已顯脆弱。請說明 NIST SP 800-207 所定義之零信任架構（ZTA）三大核心原則為何？繪述並說明原則決定點（PDP）與原則強制執行點（PEP）之運作關係，並剖析 FIDO2 / WebAuthn 為何能達成抗釣魚（Phishing-Resistant）之強身分鑑別？",
+    "modelAnswer": "\n<h4>一、破題：NIST SP 800-207 零信任架構三大核心原則</h4>\n<ol>\n  <li><strong>Never Trust, Always Verify（永不信任，始終驗證）</strong>：不再以網路位置（內網 vs 外網）作信任假設，每次存取請求無論來源何處，皆必須通過身分、設備健康度與情境風險的多維度連續驗證。</li>\n  <li><strong>Least Privilege Access（最小特權原則）</strong>：基於 RBAC/ABAC 動態按需授權（Just-In-Time），僅授予完成特定操作所需之最小權限，操作結束即刻回收。</li>\n  <li><strong>Assume Breach（假定已遭入侵）</strong>：預設敵手已潛伏於內部網路中，實施網路微隔離（Micro-segmentation），限制橫向移動（Lateral Movement）爆炸半徑。</li>\n</ol>\n\n<h4>二、零信任核心控制架構：PDP 與 PEP 運作關係</h4>\n<pre><code class=\"language-text\">  使用者 / 設備存取請求 (Subject)\n           │\n           ▼\n┌─────────────────────────┐\n│ 原則強制執行點 (PEP)     │ <─── 攔截請求，強制執行允許/拒絕\n└──────────┬──────────────┘\n           │ 諮詢決策指令\n           ▼\n┌────────────────────────────────────────────────────────┐\n│ 原則決定點 (PDP, Policy Decision Point)                │\n│   ├── 原則引擎 (Policy Engine, PE): 綜合情資動態評分   │\n│   └── 原則管理員 (Policy Administrator, PA): 派發憑證與│\n│                                              控制指令  │\n└──────────────────────────┬─────────────────────────────┘\n                           │ 整合情資 (身分庫/EDR狀態/威脅情報)\n                           ▼\n             企業受保護核心資產 (Enterprise Resources)</code></pre>\n<p><strong>運作機制</strong>：PEP 攔截連線並將使用者身分、設備合規性（如是否安裝 EDR、磁碟是否加密）傳送給 PDP。PDP 之原則引擎結合威脅情資進行即時動態風險評分，由原則管理員向 PEP 下達放行、二次 MFA 挑戰或阻斷指令。</p>\n\n<h4>三、FIDO2 / WebAuthn 抗釣魚（Phishing-Resistant）原理</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">身分驗證機制</th>\n      <th style=\"padding:6px 10px;\">SMS 簡訊 / TOTP 動態密碼</th>\n      <th style=\"padding:6px 10px;\">FIDO2 / WebAuthn (公私鑰)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">私鑰儲存位置</td>\n      <td style=\"padding:6px 10px;\">無私鑰 (伺服器共用密鑰)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>硬體安全晶片 (TPM 2.0 / YubiKey，永不導出)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">釣魚網站防禦</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">極易遭受反向代理 (Evilginx) 即時轉發竊取</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>來源網域綁定 (Origin Binding)，釣魚網域簽章失效</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>四、結論：PAM 堡壘機特權帳號防禦</h4>\n<p>針對機房核心管理員，全面部署 <strong>特權存取管理（PAM）堡壘機</strong>。落實動態一次性密碼、雙人覆核授權與全工作階段螢幕錄影，杜絕橫向滲透風險。</p>\n            ",
+    "examinerTips": "滿分關鍵字：『三大原則：永不信任/最小特權/假定遭入侵』、『PDP 決定原則 + PEP 強制執行』、『FIDO2 來源網域綁定 Origin Binding 抗釣魚』、『PAM 雙人覆核與螢幕錄影』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>三大原則（6分）</strong>：精確指出 Never Trust Always Verify、Least Privilege、Assume Breach 的定義。</li>\n  <li><strong>PDP 與 PEP（7分）</strong>：繪出或清晰說明 PEP 攔截、PDP 決策、PE 評估與 PA 派發之控制流。</li>\n  <li><strong>FIDO2 抗釣魚（7分）</strong>：以表格對比 TOTP 與 FIDO2，詳細解釋 Origin Binding（網域綁定）如何讓偽冒釣魚網站簽名失敗。</li>\n  <li><strong>結論（5分）</strong>：結合 PAM 特權存取治理。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-05",
+    "category": "sec",
+    "chapter": "第 5 章：應用程式安全、Web 攻防與安全軟體開發（SSDLC）",
+    "title": "OWASP Top 10 核心弱點防護與 DevSecOps 安全左移實戰",
+    "summary": "深入解構 OWASP Top 10 A01 越權存取、A03 注入式攻擊、A10 SSRF 成因與防禦，以及 DevSecOps CI/CD 管線 SAST/DAST/SCA 整合實務。",
+    "points": 25,
+    "rubric": "1. OWASP Top 10 核心弱點剖析 (8分)；2. 防禦代碼實踐 (參數化查詢) (6分)；3. DevSecOps 安全左移管線 (7分)；4. 結論 (4分)",
+    "question": "在證券線上交易與 Web 應用系統中，應用程式弱點常成為駭客打穿內網之首要突破口。試分析 OWASP Top 10:2021 中 A01 權限控制失效（IDOR）與 A03 注入式攻擊（SQLi）之成因與危害？並詳述如何在 DevSecOps CI/CD 流程中實施「安全左移（Shift-Left）」，整合 SAST、DAST 與 SCA 工具鏈？",
+    "modelAnswer": "\n<h4>一、破題：OWASP Top 10 核心弱點成因與危害</h4>\n<ol>\n  <li><strong>A01:2021 Broken Access Control（權限控制失效，如 IDOR 水平越權）</strong>：\n    - <strong>成因</strong>：開發者僅仰賴客戶端傳入之參數（如 <code>GET /api/account?id=1001</code>）檢索資料，伺服端未強制校驗當前 Session 登入者是否具備該資料之所有權。<br>\n    - <strong>危害</strong>：攻擊者遍歷參數即可竊取全市場投資人持股庫存與下單機密。\n  </li>\n  <li><strong>A03:2021 Injection（注入式攻擊，如 SQLi）</strong>：\n    - <strong>成因</strong>：未對使用者輸入進行驗證與過濾，直接將未受信任字串拼接入 SQL 查詢語句中。<br>\n    - <strong>危害</strong>：攻擊者透過精心構造的 Payload 繞過身分驗證，進一步脫庫盜取帳務資料或獲取作業系統最高執行權限。\n  </li>\n</ol>\n\n<h4>二、核心防禦對策與安全編碼實務</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">弱點類別</th>\n      <th style=\"padding:6px 10px;\">傳統錯誤做法 (易受駭)</th>\n      <th style=\"padding:6px 10px;\">金級防禦實踐 (Secure Coding)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">SQL 注入防禦</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">字串拼接 (String Concatenation)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>強制使用參數化查詢 (Prepared Statement / ORM 綁定)</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">水平越權防禦</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">信任前端傳入之 userId 參數</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>由伺服器 Session / JWT Claims 提取身分並進行強權限校驗</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">跨站腳本 (XSS)</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">直接輸出未過濾 HTML</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">內容上下文輸出編碼 (Output Encoding) 搭配 CSP 標頭</td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、DevSecOps「安全左移（Shift-Left）」流水線架構</h4>\n<pre><code class=\"language-text\">開發編碼 (Code) ──> 提交代碼 (Commit) ──> 建置編譯 (Build) ──> 測試驗證 (Test) ──> 上線部署 (Deploy)\n       │                    │                    │                    │                   │\n   IDE 即時檢查          SAST 靜態代碼分析       SCA 開源相依分析      DAST 動態黑箱掃描   容器防護 (Falco)\n(SonarLint/Snyk)      (SonarQube/Checkmarx) (Dependency-Check)      (OWASP ZAP/Acunetix)  (CSPM/CWPP)</code></pre>\n<ol>\n  <li><strong>SAST（靜態代碼分析）</strong>：於 Commit 階段自動掃描原始碼，揪出硬編碼密鑰與潛在漏洞。</li>\n  <li><strong>SCA（軟體成分分析）</strong>：檢查 <code>pom.xml / package.json</code> 第三方開源相依套件是否包含已知 CVE。</li>\n  <li><strong>DAST（動態黑箱測試）</strong>：在測試環境模擬黑客向運行中 API 發起攻擊負載。</li>\n  <li><strong>品質閘門（Quality Gate）</strong>：發現 High / Critical 弱點強制中斷 CI/CD 管線禁止發布。</li>\n</ol>\n\n<h4>四、結論</h4>\n<p>落實「安全左移」將弱點修復成本自維運階段的數十倍降低至開發階段，結合自動化檢測建構堅韌之軟體供應鏈安全防線。</p>\n            ",
+    "examinerTips": "評分核心：『IDOR 水平越權成因』、『SQL 注入唯一正解：參數化查詢 Prepared Statement』、『DevSecOps 三大工具：SAST、DAST、SCA 分工與 CI/CD 阻斷』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>弱點剖析（8分）</strong>：深入說明 A01 IDOR 與 A03 SQLi 的底層成因，並舉出具體危害。</li>\n  <li><strong>安全編碼（6分）</strong>：對比表格展現 Prepared Statement 與 Session 校驗之最佳實踐。</li>\n  <li><strong>DevSecOps 管線（7分）</strong>：清晰呈現流水線圖表，並定義 SAST、SCA、DAST 與 Quality Gate。</li>\n  <li><strong>結論（4分）</strong>：總結安全左移之成本效益。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-06",
+    "category": "sec",
+    "chapter": "第 6 章：網路邊界防禦、DDoS 防護與微隔離架構",
+    "title": "金融分散式阻斷服務（DDoS）立體防禦與流量清洗架構",
+    "summary": "深入解構金融 Terabit 級 DDoS 混合攻擊、BGP Anycast 全球清洗中心、Anti-DDoS 邊界硬體 SYN Cookie 技術與微隔離架構。",
+    "points": 25,
+    "rubric": "1. DDoS 攻擊向量分類 (7分)；2. 三道立體清洗防線 (8分)；3. SYN Cookie 原理 (6分)；4. 內部微隔離結論 (4分)",
+    "question": "證券期貨業屢遭境外駭客集團發動大規模阻斷服務（DDoS）勒索攻擊，威脅市場交易穩定。請分析常見 DDoS 攻擊類型（L3/L4 泛洪 vs L7 應用層慢速攻擊）之原理與差異？並為臺灣證券交易所設計一套結合電信端 Clean Pipe 清洗、邊界硬體防護與 WAF 之立體化 DDoS 防禦體系。",
+    "modelAnswer": "\n<h4>一、破題：DDoS 攻擊向量分類全維度對比</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">攻擊層次</th>\n      <th style=\"padding:6px 10px;\">代表攻擊類型</th>\n      <th style=\"padding:6px 10px;\">攻擊原理</th>\n      <th style=\"padding:6px 10px;\">金融系統危害場景</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">L3 / L4 頻寬泛洪 (Volumetric)</td>\n      <td style=\"padding:6px 10px;\">NTP / DNS 反射放大攻擊、UDP Flood</td>\n      <td style=\"padding:6px 10px;\">偽造受害者 IP 向公網脆弱伺服器發送請求，數十倍放大流量灌爆出口</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">打滿機房數十 Gbps 實體頻寬，導致正常券商專線連線中斷</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">L4 協定狀態耗盡 (State Exhaustion)</td>\n      <td style=\"padding:6px 10px;\">SYN Flood、ACK Flood、RST Flood</td>\n      <td style=\"padding:6px 10px;\">發送海量 SYN 請求但不回應 ACK，塞爆伺服器半開連線佇列 (SYN Backlog)</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">伺服器 TCP 狀態表耗盡，無法接受任何新交易連線</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">L7 應用層耗損 (Application Layer)</td>\n      <td style=\"padding:6px 10px;\">HTTP CC 攻擊、Slowloris 慢速攻擊</td>\n      <td style=\"padding:6px 10px;\">模擬正常客戶端低速發送 HTTP 標頭或高頻觸發複雜 SQL 查詢</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">流量僅數十 Mbps，但直接耗盡資料庫執行緒與 CPU 算力</td>\n    </tr>\n  </table>\n</div>\n\n<h4>二、立體化三道清洗防禦體系規劃</h4>\n<pre><code class=\"language-text\">外部海量攻擊洪峰 (數百 Gbps ~ Tbps 混合巨量攻擊)\n       │\n       ▼\n【第 1 道防線：電信端 Clean Pipe 流量清洗 / BGP Anycast CDN】\n  - 承載 Volumetric 頻寬型巨量流量，透過 Anycast 分流至全球清洗節點\n  - 阻斷反射放大與惡意無效協定，僅將純淨業務流量回源至證交所機房\n       │\n       ▼\n【第 2 道防線：機房邊界專用 Anti-DDoS 防禦硬體】\n  - 抵禦 L4 協定型攻擊 (SYN Flood / TCP 反射)\n  - 啟用硬體級 **SYN Cookie** 與 TCP 雙向認證，零延遲防護連線池耗盡\n       │\n       ▼\n【第 3 道防線：Web 應用防火牆 (WAF) & API Gateway】\n  - 抵禦 L7 應用層 CC 攻擊與慢速連線 (Slowloris)\n  - 結合 JavaScript 挑戰碼、動態 CAPTCHA、行為指紋分析與嚴格 Rate Limiting</code></pre>\n\n<h4>三、SYN Cookie 技術原理剖析</h4>\n<p>在遭受 SYN Flood 時，伺服器<strong>不分配任何記憶體建立半開連線結構</strong>。而是將客戶端 IP、Port 與伺服器密鑰透過雜湊計算編碼成一個 <code>Initial Sequence Number (ISN)</code> 作為 SYN-ACK 回應。當客戶端回應合法的第三次 ACK 時，伺服器逆向校驗 ISN 雜湊合法性，方才建立正式連線，徹底免疫 SYN 佇列耗盡。</p>\n\n<h4>四、結論：內部微隔離防範內網穿透</h4>\n<p>邊界防禦與內部<strong>網路微隔離（Micro-segmentation）</strong>協同，下單前端與帳務資料庫間實施白名單存取控制，杜絕勒索威脅內網擴散。</p>\n            ",
+    "examinerTips": "評分核心：『L3/L4 頻寬泛洪 vs L4 狀態耗盡 vs L7 慢速 CC 攻擊三維分類』、『三道立體清洗架構圖』、『SYN Cookie 不分配記憶體直接編碼 ISN』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>DDoS 分類表格（7分）</strong>：清晰呈現 Volumetric、State Exhaustion 與 Application 攻擊之原理與危害。</li>\n  <li><strong>三道防線（8分）</strong>：繪出包含 Clean Pipe、Anti-DDoS 硬體與 WAF 的立體防護鏈路。</li>\n  <li><strong>SYN Cookie（6分）</strong>：深入推導不分配記憶體、以雜湊計算 ISN 的核心運作機制。</li>\n  <li><strong>結論（4分）</strong>：結合網路微隔離。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-07",
+    "category": "sec",
+    "chapter": "第 7 章：SOC 威脅監控、SIEM/SOAR、EDR 與事件應變",
+    "title": "金融安全維運中心（SOC）7x24 聯防、SIEM/SOAR 自動化與數位鑑識",
+    "summary": "深入解構金融 SOC 三層運作體系、SIEM 關聯分析規則、SOAR 劇本秒級自動化阻斷，以及 NIST SP 800-61 六步法與揮發性數位鑑識取證實務。",
+    "points": 25,
+    "rubric": "1. SOC 三層分工與 SIEM 關聯 (7分)；2. SOAR 自動化 Playbook (6分)；3. 事件應變六步法與揮發性取證 (8分)；4. 結論 (4分)",
+    "question": "金融監督管理委員會要求一級金融機構建置 7x24 資安維運中心（SOC）。試說明現代 SOC 內部三層架構之分工職責為何？如何透過 SIEM 與 SOAR 實現微秒級自動化聯動應變？若某台伺服器疑似遭受進階持續性威脅（APT）入侵，在數位鑑識現場取證時，應遵循何種「揮發性順序（Order of Volatility）」進行證據保全？",
+    "modelAnswer": "\n<h4>一、破題：現代金融 7x24 SOC 三層運作體系</h4>\n<ol>\n  <li><strong>Tier 1（警報分流與初勘）</strong>：監控 SIEM 即時告警儀表板，依照既定 SOP 初篩警報真實性，排除誤報，於 <strong>15 分鐘內完成分流升級</strong>。</li>\n  <li><strong>Tier 2（深度調查與應變）</strong>：研判攻擊路徑與擴散範圍，定位受害主機與攻擊源，協同網管人員執行即時遏制阻斷。</li>\n  <li><strong>Tier 3（主動威脅獵捕與鑑識）</strong>：利用 EDR/XDR、記憶體逆向分析工具主動獵捕隱匿 APT 威脅，進行惡意代碼逆向工程與漏洞根因分析。</li>\n</ol>\n\n<h4>二、SIEM 關聯分析與 SOAR 自動化劇本聯動</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">平台系統</th>\n      <th style=\"padding:6px 10px;\">核心定位與職責</th>\n      <th style=\"padding:6px 10px;\">金融實戰聯動範例</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">SIEM (安全資訊與事件管理)</td>\n      <td style=\"padding:6px 10px;\">多源日誌正規化、時間戳標準化、跨設備規則關聯分析</td>\n      <td style=\"padding:6px 10px;\">偵測「同一帳號 5 分鐘內跨國登入」或「夜間大量帳號噴灑」，觸發高風險警報</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">SOAR (安全協調與自動化回應)</td>\n      <td style=\"padding:6px 10px;\">執行自動化處置劇本 (Playbook)，大幅縮減 MTTR</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>3 秒內自動完成：(1)防火牆封鎖IP (2)EDR隔離受駭主機 (3)凍結AD帳號</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、數位鑑識證據保全原則：揮發性順序（Order of Volatility）</h4>\n<p>在面對 APT 潛伏調查時，<strong>嚴禁第一時間拔除電源或重開機</strong>，否則記憶體惡意程式將永久消失。必須嚴格依據揮發性由高至低採證：</p>\n<ol>\n  <li><strong>CPU 暫存器與快取記憶體（Registers & Cache）</strong>：揮發性最高，幾奈秒內即消失。</li>\n  <li><strong>實體記憶體（Routing Table / ARP / Process Table / 實體 RAM）</strong>：\n    使用專業工具（如 LiME、DumpIt）採集完整實體記憶體映象，利用 <strong>Volatility</strong> 分析內存注入代碼、未落盤之無檔案（Fileless）惡意進程與記憶體憑證。\n  </li>\n  <li><strong>即時網路連線狀態</strong>：擷取現存 TCP/UDP Socket、開啟連接埠與遠端連線 IP（<code>ss / netstat</code> 快照）。</li>\n  <li><strong>非揮發性磁碟儲存</strong>：以硬體防寫設備（Write Blocker）配合 <code>dd / FTK Imager</code> 製作唯讀 Bit-stream 鏡像，計算 SHA-256 雜湊保全<strong>監管鏈（Chain of Custody）</strong>。</li>\n</ol>\n\n<h4>四、結論</h4>\n<p>「SIEM 巨量偵測 + SOAR 秒級自動化遏制 + 規範化數位鑑識取證」，構成金融關鍵基礎設施現代化縱深防禦與法規舉證的核心能力。</p>\n            ",
+    "examinerTips": "滿分關鍵字：『SOC 三層分工（Tier 1 分流、Tier 2 調查、Tier 3 獵捕）』、『SOAR 秒級劇本自動阻斷』、『揮發性順序：暫存器 -> 實體 RAM -> 網路連線 -> 磁碟』、『嚴禁直接拔電源/重啟』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>SOC 三層分工（7分）</strong>：清楚陳述 Tier 1、Tier 2、Tier 3 各自的職責與應變時效。</li>\n  <li><strong>SIEM 與 SOAR（6分）</strong>：以表格對比兩者功能，並具體給出 Playbook 自動封鎖 IP、隔離主機、凍結帳號之範例。</li>\n  <li><strong>揮發性順序（8分）</strong>：嚴格由高至低列出四大層級，特別強調實體記憶體（RAM）的取證價值，警告不可直接拔電源。</li>\n  <li><strong>結論（4分）</strong>：鏈接監管鏈與合規價值。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-08",
+    "category": "sec",
+    "chapter": "第 8 章：金融釣魚防禦、社交工程與端點深度強化",
+    "title": "金融電子郵件防護鐵三角（SPF/DKIM/DMARC）與端點基線加固",
+    "summary": "深入解構電子郵件防偽協議（SPF、DKIM、DMARC）運作原理、郵件安全閘道動態沙箱、針對性社交工程演練，以及 Windows/Linux 端點安全基線加固實務。",
+    "points": 25,
+    "rubric": "1. SPF/DKIM/DMARC 原理剖析 (8分)；2. 郵件安全閘道動態沙箱 (5分)；3. 端點安全基線 (Credential Guard 等) (8分)；4. 結論 (4分)",
+    "question": "電子郵件社交工程釣魚是攻擊者滲透金融機構最主要的初始存取（Initial Access）途徑。試說明 SPF、DKIM 與 DMARC 如何協同防範電子郵件偽冒？並說明端點作業系統應採取何種具體基線強化（Hardening）措施，以防禦 Mimikatz 等憑證竊取工具從記憶體中提取網域管理員密碼雜湊？",
+    "modelAnswer": "\n<h4>一、破題：電子郵件防偽鐵三角協同防禦機制</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">協定名稱</th>\n      <th style=\"padding:6px 10px;\">驗證原理與機制</th>\n      <th style=\"padding:6px 10px;\">局限性與防護盲點</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">SPF (寄件者政策框架)</td>\n      <td style=\"padding:6px 10px;\">網域擁有者在 DNS 發布 TXT 記錄，定義允許發信之合法伺服器 IP</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">僅驗證 Return-Path，無法防範轉發郵件及 Header From 偽冒</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">DKIM (網域名稱金鑰識別)</td>\n      <td style=\"padding:6px 10px;\">發信端以私鑰簽署信件內容與標頭，接收端以 DNS 公鑰驗證防竄改</td>\n      <td style=\"padding:6px 10px; color:#dc2626;\">僅保證內容未被竄改，無法直接指定驗證失敗時的處置策略</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">DMARC (網域型認證與合規)</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>統一對齊 SPF/DKIM，並在 DNS 明確指定處置政策 (p=reject)</strong></td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">全面防堵偽冒交易所網域名稱，未通過者直接拒收並回傳報告</td>\n    </tr>\n  </table>\n</div>\n\n<h4>二、郵件安全閘道（SEG）縱深防護</h4>\n<ul>\n  <li><strong>URL 動態重寫（URL Rewriting）</strong>：點擊連結時透過雲端安全閘道即時檢查目標頁面最新狀態，防禦延遲投毒（發信時正常、過濾後變為釣魚頁）。</li>\n  <li><strong>未知附檔動態沙箱引爆（Sandbox Detonation）</strong>：未知 Office 巨集或 PDF 自動送入虛擬機執行，監控進程注入與 C2 連線。</li>\n</ul>\n\n<h4>三、端點安全基線加固：防範 Mimikatz 憑證竊取</h4>\n<ol>\n  <li><strong>啟用 Windows Defender Credential Guard</strong>：\n    利用<strong>基於虛擬化的安全性（VBS, Virtualization-Based Security）</strong>，將金鑰隔離儲存於 Hyper-V 獨立安全分區（Isolated User Mode）。即便駭客在主機取得 SYSTEM 最高權限，執行 Mimikatz 存取 <code>lsass.exe</code> 記憶體時依然被 Hypervisor 阻斷，<strong>徹底令 LSA 記憶體導出無效化</strong>。\n  </li>\n  <li><strong>停用 WDigest 明文密碼快取</strong>：\n    在註冊表中設定 <code>UseLogonCredential = 0</code>，禁止在記憶體中保留明文密碼。\n  </li>\n  <li><strong>限制管理工具環境（Constrained Language Mode）</strong>：\n    透過 AppLocker 強制 PowerShell 運行於受限模式，阻斷攻擊者利用 WMI / PowerShell 動態載入惡意二進位檔。\n  </li>\n</ol>\n\n<h4>四、結論</h4>\n<p>「DMARC 強制拒收偽冒信件 + SEG 雲端動態沙箱 + 端點 Credential Guard 虛擬隔離」，能有效封堵 95% 以上之社交工程釣魚與內網橫向移動風險。</p>\n            ",
+    "examinerTips": "評分核心：『SPF 驗證 IP、DKIM 驗證簽章、DMARC 整合對齊並設定 p=reject』；寫出『Credential Guard 利用 VBS 隔離 lsass.exe 記憶體防 Mimikatz』獲最高分評級。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>SPF/DKIM/DMARC（8分）</strong>：深入剖析三個協定的協同運作流程，明確說明 DMARC <code>p=reject</code> 的決定性作用。</li>\n  <li><strong>SEG 沙箱（5分）</strong>：說明 URL 重寫與沙箱動態分析。</li>\n  <li><strong>端點防禦 Mimikatz（8分）</strong>：詳細解釋 Credential Guard、VBS 虛擬化安全技術與 WDigest 註冊表關閉。</li>\n  <li><strong>結論（4分）</strong>：總結端點縱深防禦。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-09",
+    "category": "sec",
+    "chapter": "第 9 章：雲端安全、容器安全與金融私有雲防護",
+    "title": "CIS Kubernetes Benchmark、Falco 核心監控與金融私有雲容器防護",
+    "summary": "深入解構雲端共享責任模型、CIS Kubernetes Benchmark 基線安全、Falco 基於 Linux eBPF 執行期異常系統呼叫偵測，以及 CSPM/CWPP 雲端態勢治理。",
+    "points": 25,
+    "rubric": "1. 雲端責任共擔模型界限 (6分)；2. CIS K8s Benchmark 三階段防禦 (8分)；3. Falco 執行期 eBPF 監控 (7分)；4. 結論 (4分)",
+    "question": "隨著金融機構加速向雲原生與容器化微服務架構遷移，傳統主機安全防禦機制面臨嚴峻挑戰。試說明雲端責任共擔模型（Shared Responsibility Model）在 IaaS 與 PaaS 下之責任界線？並詳述如何依據 CIS Kubernetes Benchmark 落實容器建置、部署與執行期（Runtime）之安全控制？",
+    "modelAnswer": "\n<h4>一、破題：雲端責任共擔模型（Shared Responsibility Model）界線</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">服務模式</th>\n      <th style=\"padding:6px 10px;\">雲端服務商 (CSP) 負責範疇</th>\n      <th style=\"padding:6px 10px;\">金融機構客戶負責範疇</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">IaaS (基礎架構即服務)</td>\n      <td style=\"padding:6px 10px;\">實體機房、電力空調、實體伺服器與虛擬化底層</td>\n      <td style=\"padding:6px 10px; color:#dc2626; font-weight:700;\"><strong>OS 補丁、中介軟體、防火牆規則、IAM 權限與資料加密</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">PaaS (平台即服務)</td>\n      <td style=\"padding:6px 10px;\">延伸負責作業系統維護、執行庫環境與硬體擴展</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>應用程式原始碼、API 存取授權與客戶機密資料保護</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>二、CIS Kubernetes Benchmark 容器三道安全防線</h4>\n<ol>\n  <li><strong>建置期安全（Build-Time Security）</strong>：\n    - <strong>映像檔極小化</strong>：全面採用 Google Distroless 或 Alpine 基礎映像檔，移除 <code>curl, sh, netcat</code> 等潛在攻擊工具。<br>\n    - <strong>靜態漏洞掃描與簽章</strong>：透過 Trivy 掃描 CVE 弱點，並使用 <strong>Cosign 進行數位簽署</strong>，無簽章映像檔嚴禁上線。\n  </li>\n  <li><strong>部署期準入控制（Deploy-Time Admission Control）</strong>：\n    部署 OPA Gatekeeper 準入控制器強制落實資安政策：嚴禁特權容器（<code>privileged: false</code>）、強制以非 root 身分執行（<code>runAsNonRoot: true</code>）、容器根檔案系統唯讀（<code>readOnlyRootFilesystem: true</code>）。\n  </li>\n  <li><strong>執行期威脅偵測（Runtime Security）：Falco 核心監控</strong>：\n    基於 <strong>Linux 核心 eBPF / ptrace</strong> 監控系統呼叫（Syscalls）。一旦容器內部發生異常行為（如嘗試在 nginx 容器中產生 bash shell、非法讀取 <code>/etc/shadow</code> 或嘗試寫入 <code>/bin</code> 目錄），即刻觸發告警並自動終止異常 Pod。\n  </li>\n</ol>\n\n<h4>三、結論：CSPM 與 CWPP 雲端安全態勢管理</h4>\n<p>結合 CSPM（自動化掃描雲端資產錯誤配置）與 CWPP（工作負載內部行為防護），建構可視、合規且自癒的金融私有雲資安防護屏障。</p>\n            ",
+    "examinerTips": "評分核心：『IaaS vs PaaS 責任劃分界線』、『建置期 (Distroless/Trivy/Cosign) -> 部署期 (OPA Gatekeeper 禁特權/禁root) -> 執行期 (Falco eBPF 攔截 shell)』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>責任共擔模型（6分）</strong>：以表格準確區分 IaaS 與 PaaS 的客戶責任範疇。</li>\n  <li><strong>容器安全三階段（8分）</strong>：清楚劃分 Build、Deploy 與 Runtime，寫出 Distroless、Trivy、Cosign、OPA Gatekeeper 具體工具。</li>\n  <li><strong>Falco eBPF（7分）</strong>：說明其在核心系統呼叫層級偵測異常 shell 啟動與檔案存取的原理。</li>\n  <li><strong>結論（4分）</strong>：總結 CSPM 與 CWPP 綜效。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-10",
+    "category": "sec",
+    "chapter": "第 10 章：紅藍對抗、滲透測試與漏洞弱點管理",
+    "title": "金融紅隊演練（Red Teaming）、紫隊協同實踐與 CVSS v3.1 漏洞管理",
+    "summary": "深入解構金融紅藍紫演練方法論、MITRE ATT&CK 框架映射實戰、CVSS v3.1 漏洞評分模型與金管會重大漏洞 1 個月修補 SLA 合規規範。",
+    "points": 25,
+    "rubric": "1. 滲透測試 vs 紅隊演練差異 (7分)；2. CVSS v3.1 評分計算模型 (7分)；3. 漏洞修補 SLA 與補償控制 (7分)；4. 紫隊協同結論 (4分)",
+    "question": "傳統定期滲透測試已無法全面檢驗金融機構抵禦高度隱匿 APT 組織之實戰防禦能力。試比較傳統滲透測試與「紅隊演練（Red Teaming）」之本質差異？說明通用弱點評分系統（CVSS v3.1）基礎指標之計算維度，並說明金管會針對證券期貨業重大弱點修補時效之合規要求為何？",
+    "modelAnswer": "\n<h4>一、破題：傳統滲透測試 vs 金融紅隊演練（Red Teaming）本質差異</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">比較項目</th>\n      <th style=\"padding:6px 10px;\">傳統滲透測試 (Penetration Testing)</th>\n      <th style=\"padding:6px 10px;\">金融紅隊演練 (Red Teaming)</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">核心目標</td>\n      <td style=\"padding:6px 10px;\">找出指定單一系統（如 Web 網站）之盡可能多的已知漏洞</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>以業務為目標（如攻入撮合主機、竊取客戶憑證、控制網域）</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">攻擊手段限制</td>\n      <td style=\"padding:6px 10px;\">僅限技術漏洞掃描，禁止社交工程與實體入侵</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>全方位全鏈路（釣魚郵件、供應鏈跳板、近身實體 Wi-Fi 滲透）</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">受測方感知 (藍隊)</td>\n      <td style=\"padding:6px 10px;\">已知測試時間與來源 IP（白名單預告測試）</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>雙盲實戰測試（藍隊事前不知情，全面檢驗 SOC 偵測應變真實力）</strong></td>\n    </tr>\n  </table>\n</div>\n\n<h4>二、CVSS v3.1 通用弱點評分系統基礎指標維度</h4>\n<p>CVSS v3.1 基礎指標（Base Metric Group, 0.0 ~ 10.0 分）評估弱點本身之固有屬性：</p>\n<ol>\n  <li><strong>可利用性指標（Exploitability Metrics，攻入難度）</strong>：\n    - <strong>Attack Vector (AV, 攻擊途徑)</strong>：Network (N) > Adjacent (A) > Local (L) > Physical (P)<br>\n    - <strong>Attack Complexity (AC, 攻擊複雜度)</strong>：Low (L) > High (H)<br>\n    - <strong>Privileges Required (PR, 所需權限)</strong>：None (N) > Low (L) > High (H)<br>\n    - <strong>User Interaction (UI, 使用者互動)</strong>：None (N) > Required (R)\n  </li>\n  <li><strong>影響範圍（Scope, S）</strong>：Unchanged (U) vs Changed (C，如成功跳出 VM/容器逃逸跨界攻擊）。</li>\n  <li><strong>衝擊指標（Impact Metrics，破壞程度）</strong>：Confidentiality (C 機密性)、Integrity (I 完整性)、Availability (A 可用性)，分級為 High / Low / None。</li>\n</ol>\n\n<h4>三、金管會證券期貨業漏洞修補時限合規要求</h4>\n<ul>\n  <li><strong>重大/高風險漏洞（Critical / High, CVSS ≥ 7.0）</strong>：必須在收到漏洞通報或原廠補丁後 <strong>1 個月內完成修補與驗證</strong>。</li>\n  <li><strong>重大緊急 0-day 漏洞</strong>：若原廠尚未釋出補丁，需在 <strong>48 小時內</strong> 採取補償性控制措施（如 WAF 虛擬修補 Virtual Patching 或停用特定易受駭模組）。</li>\n  <li><strong>中度風險漏洞（Medium, CVSS 4.0~6.9）</strong>：需於 <strong>2 個月內</strong> 完成修補。</li>\n</ul>\n\n<h4>四、結論：紫隊（Purple Teaming）協同進化</h4>\n<p>演練結束後推動紫隊協同，紅隊逐項復現攻擊鏈，藍隊針對未告警環節即時調整 SIEM 相關性規則與 EDR 阻斷策略，達成持續性實戰化安全成熟度升級。</p>\n            ",
+    "examinerTips": "評分亮點：『滲透測試找漏洞 vs 紅隊演練以業務目標為導向之雙盲測試』、『CVSS v3.1 AV/AC/PR/UI/Scope/CIA 維度』、『金管會高風險漏洞 1 個月修補 SLA，48 小時虛擬補丁』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>紅隊 vs 滲透測試（7分）</strong>：以表格準確呈現目標、手段與感知方式的本質差異。</li>\n  <li><strong>CVSS v3.1（7分）</strong>：深入解構 Exploitability（AV/AC/PR/UI）、Scope、Impact（CIA）。</li>\n  <li><strong>修補 SLA（7分）</strong>：寫出金管會法規要求的 1 個月與 48 小時虛擬修補。</li>\n  <li><strong>紫隊結論（4分）</strong>：總結紅藍紫協同價值。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-11",
+    "category": "sec",
+    "chapter": "第 11 章：業務連續性計畫（BCP）與防勒索災難復原",
+    "title": "ISO 22301 BCMS 體系、3-2-1-1-0 防勒索備份與分散式實兵演練",
+    "summary": "深入解構 ISO 22301 業務持續性管理體系、BIA 營運衝擊分析（MTPD/RTO/RPO）、現代 3-2-1-1-0 不可變氣隙備份，以及無預警災難切換演練規範。",
+    "points": 25,
+    "rubric": "1. ISO 22301 BIA 核心指標 (7分)；2. 3-2-1-1-0 防勒索架構 (8分)；3. 無預警災難切換演練 (6分)；4. 結論 (4分)",
+    "question": "近年高階勒索軟體集團常採取「雙重甚至三重勒索」戰術，潛伏數週先行破壞或加密企業備份資料庫後方才引爆勒索。試說明 ISO 22301 業務持續性管理體系中 BIA 評估之關鍵指標為何？並闡述如何將傳統 3-2-1 備份原則升級為「3-2-1-1-0」架構，以確保核心交易系統遭遇勒索軟體全盤毀滅時仍具備絕對復原能力？",
+    "modelAnswer": "\n<h4>一、破題：ISO 22301 營運衝擊分析（BIA）關鍵指標</h4>\n<p><strong>BIA（Business Impact Analysis，營運衝擊分析）</strong> 旨在識別關鍵業務功能與中斷容忍上限：</p>\n<ol>\n  <li><strong>MTPD（Maximum Tolerable Period of Disruption，最大可容忍中斷時間）</strong>：業務停擺引發致命財務、法規監理或聲譽損失的生死期限。撮合交易 MTPD 趨近於零。</li>\n  <li><strong>RTO（Recovery Time Objective，復原時間目標）</strong>：系統自中斷到復原可運作之最大允許時間（證券核心要求 <strong>RTO ≤ 10 分鐘</strong>）。</li>\n  <li><strong>RPO（Recovery Point Objective，復原點目標）</strong>：容許遺失的最大資料時間長度（證券帳務交易嚴格要求 <strong>RPO = 0</strong>）。</li>\n</ol>\n\n<h4>二、現代防勒索備份架構：3-2-1 升級為 3-2-1-1-0 原則</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">架構維度</th>\n      <th style=\"padding:6px 10px;\">具體規範與技術要求</th>\n      <th style=\"padding:6px 10px;\">防禦勒索軟體之核心價值</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">【3】3 份資料副本</td>\n      <td style=\"padding:6px 10px;\">1 份原始生產資料 + 2 份獨立備份副本</td>\n      <td style=\"padding:6px 10px;\">防範單一備份毀損或傳輸不全</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">【2】2 種儲存媒介</td>\n      <td style=\"padding:6px 10px;\">如高效 NVMe 磁碟陣列 + 實體 LTO-9 磁帶機</td>\n      <td style=\"padding:6px 10px;\">消除單一硬體架構或韌體漏洞之共因故障</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">【1】1 份異地存放</td>\n      <td style=\"padding:6px 10px;\">跨縣市（如板橋主機房 vs 高雄遠距災備中心）</td>\n      <td style=\"padding:6px 10px;\">防禦地震、區域大停電或廣域天災</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">【1】1 份離線/不可變</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>實體氣隙隔離 (Air-gapped) 或 WORM 不可變快照</strong></td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>即便駭客取得最高網域權限，亦絕對無法加密或刪除！</strong></td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">【0】0 復原錯誤</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\"><strong>自動化定期還原演練校驗 (Zero Recovery Errors)</strong></td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">確保備份並非「備心安」，真實災難時保證百分之百可還原</td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、證券交易所無預警實兵切換演練規範</h4>\n<p>紙上計畫面臨真實災難時往往手足無措。證交所落實<strong>「無預警分散式災難復原演練」</strong>：直接在非交易日無預警切斷主機房電力與網路，檢驗自動化 BGP 路由重定向、雙活資料庫 Quorum 選主與券商連線切換，實測驗證 RTO 是否嚴格小於 10 分鐘且資料零遺失。</p>\n\n<h4>四、結論</h4>\n<p>「ISO 22301 BIA 科學指標 + 3-2-1-1-0 氣隙不可變備份 + 定期無預警實兵演練」，建構金融交易系統面對極端災難時之終極營運韌性。</p>\n            ",
+    "examinerTips": "評分亮點：『BIA 三指標：MTPD、RTO ≤ 10 分鐘、RPO = 0』、『3-2-1-1-0 中額外的 1（不可變氣隙）與 0（零復原錯誤驗證）』、『無預警實兵演練』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>BIA 評估（7分）</strong>：深入定義 MTPD、RTO、RPO，並對標金融證券嚴苛指標。</li>\n  <li><strong>3-2-1-1-0 表格（8分）</strong>：完整表格展示五項維度，特別突顯「不可變/氣隙」與「0 還原錯誤」的關鍵防禦價值。</li>\n  <li><strong>實兵演練（6分）</strong>：說明無預警斷電、BGP 切換與全真驗證機制。</li>\n  <li><strong>結論（4分）</strong>：總結營運韌性。</li>\n</ul>\n            "
+  },
+  {
+    "id": "sec-essay-12",
+    "category": "sec",
+    "chapter": "第 12 章：新興科技資安、人工智慧（AI）與大語言模型安全",
+    "title": "金融生成式 AI（GenAI）金管會指引、OWASP Top 10 for LLM 與後量子密碼遷移",
+    "summary": "深入解構金融業導入大型語言模型（LLM）之金管會資安治理原則、OWASP LLM 核心風險（提示注入/資料投毒/敏感外洩），以及後量子密碼學（PQC）抗量子遷移戰略。",
+    "points": 25,
+    "rubric": "1. 金管會 AI 治理核心原則（問責、公平性、隱私）(7分)；2. OWASP LLM 三大風險與防禦對策 (8分)；3. PQC 後量子密碼演算法與加密敏捷性 (6分)；4. 結論 (4分)",
+    "question": "人工智慧與大型語言模型（LLM）正迅速重塑金融科技，然伴隨之隱私洩漏、提示注入與模型幻覺亦引發高度監理關切；同時，量子計算發展亦對現行 RSA/ECC 公開金鑰加密構成根本威脅。請說明金管會「金融業運用人工智慧（AI）核心原則」之治理重點；列舉 OWASP Top 10 for LLM 之三項重大威脅與防禦對策；並闡述後量子密碼學（PQC）演算法與金融加密敏捷性（Crypto-Agility）遷移架構。",
+    "modelAnswer": "\n<h4>一、破題：金管會金融業運用人工智慧（AI）核心治理原則</h4>\n<ol>\n  <li><strong>建立治理與問責機制（Accountability）</strong>：金融機構不可因依賴 AI 決策而免除法定責任，高階管理階層需對 AI 輸出產生的法律與財務後果負最終責任。</li>\n  <li><strong>重視公平性與人機協同（Fairness & Human-in-the-Loop）</strong>：重大金融決策（如自動化風控阻斷、高額委託核准）必須保留<strong>人工介入機制</strong>，嚴防模型偏見。</li>\n  <li><strong>保護隱私與機密資料（Privacy）</strong>：禁止將未經去識別化之客戶個人資料或交易機密直接作為外部公有模型之訓練輸入。</li>\n</ol>\n\n<h4>二、OWASP Top 10 for LLM 核心風險與防禦對策</h4>\n<div class=\"table-wrap\">\n  <table style=\"width:100%; border-collapse:collapse; margin:10px 0;\">\n    <tr style=\"background:#1e3a8a; color:#fff;\">\n      <th style=\"padding:6px 10px;\">OWASP 排名</th>\n      <th style=\"padding:6px 10px;\">威脅名稱與原理</th>\n      <th style=\"padding:6px 10px;\">金融系統危害場景</th>\n      <th style=\"padding:6px 10px;\">核心技術防禦對策</th>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">LLM01:2023</td>\n      <td style=\"padding:6px 10px;\">Prompt Injection (提示注入)</td>\n      <td style=\"padding:6px 10px;\">使用者輸入惡意指令覆蓋系統 Prompt，誘使金融客服機器人吐出機密 API 金鑰</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">嚴格隔離系統指令與使用者上下文、部署 NeMo Guardrails 安全護欄過濾</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">LLM02:2023</td>\n      <td style=\"padding:6px 10px;\">Sensitive Information Disclosure (敏感資訊洩漏)</td>\n      <td style=\"padding:6px 10px;\">模型在預訓練或微調記憶了客戶個資或帳號，被攻擊者精心構造的提問套出</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">訓練前嚴格資料清洗去識別化、差分隱私 (Differential Privacy)、輸出層 DLP 遮罩</td>\n    </tr>\n    <tr>\n      <td style=\"padding:6px 10px; font-weight:700;\">LLM06:2023</td>\n      <td style=\"padding:6px 10px;\">Excessive Agency (過度代理權限)</td>\n      <td style=\"padding:6px 10px;\">AI Agent 串接後台資料庫，自主執行未經雙人覆核的異常高額轉帳或下單</td>\n      <td style=\"padding:6px 10px; color:#16a34a; font-weight:700;\">外掛外掛工具採最小特權原則、關鍵操作強制加入 Human-in-the-Loop 人工授權</td>\n    </tr>\n  </table>\n</div>\n\n<h4>三、後量子密碼學（PQC, Post-Quantum Cryptography）抗量子遷移戰略</h4>\n<p>量子電腦具備強大的 Shor 演算法，預計未來將在數秒內攻破目前金融主流的 RSA-2048 與 ECC 非對稱加密。攻擊者現正實施<strong>「先側錄，後解密（Store Now, Decrypt Later）」</strong>：</p>\n<ul>\n  <li><strong>NIST PQC 正式標準演算法</strong>：\n    - <strong>金鑰封裝機制（KEM）</strong>：<strong>ML-KEM (CRYSTALS-Kyber)</strong>，基於晶格密碼學（Lattice-based Cryptography）；<br>\n    - <strong>數位簽章演算法</strong>：<strong>ML-DSA (CRYSTALS-Dilithium)</strong> 與 <strong>SLH-DSA (SPHINCS+)</strong>。\n  </li>\n  <li><strong>金融加密敏捷性（Crypto-Agility）混合模式</strong>：證交所超前部署「混合過渡架構」，在下單憑證與 TLS 1.3 協商中同時注入傳統 ECDSA 與 PQC 雙重簽章，平滑邁向後量子安全新紀元。</li>\n</ul>\n\n<h4>四、結論</h4>\n<p>在人工智慧與量子計算新興浪潮下，金融資安必須將「負責任 AI 治理」與「後量子加密敏捷性」納入頂層戰略規劃，確保臺灣金融交易市場永續穩健運行。</p>\n            ",
+    "examinerTips": "評分核心：『金管會 AI 指引：問責、公平性、人機協同 (Human-in-the-Loop)』、『OWASP LLM：提示注入與敏感資訊外洩』、『PQC：Shor 演算法、ML-KEM/ML-DSA、加密敏捷性 Crypto-Agility』。",
+    "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>金管會 AI 原則（7分）</strong>：指出問責機制（高階主管負終極責任）、公平性與 Human-in-the-loop、資料隱私。</li>\n  <li><strong>OWASP LLM 表格（8分）</strong>：完整表格列出 Prompt Injection、敏感資訊洩漏與 Excessive Agency 之成因、危害與防禦技術。</li>\n  <li><strong>PQC 後量子密碼（6分）</strong>：深入詮釋 Shor 演算法對 RSA/ECC 的威脅，寫出 NIST 最新標準演算法 ML-KEM 與 ML-DSA，並提出混合過渡模式。</li>\n  <li><strong>結論（4分）</strong>：展現新興科技資安戰略前瞻性。</li>\n</ul>\n            "
   }
 ];
-
-window.TWSE_ESSAY_DATA = TWSE_ESSAY_DATA;
