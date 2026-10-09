@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>臺灣證券交易所 (TWSE) · 資訊人員招募備考神盾 | 1,400題精解·24章講義·滿分申論·術語發音·全真模擬考</title>
-  <meta name="description" content="臺灣證券交易所（TWSE）資訊人員招募考試專用備考平台。全面涵蓋「系統與網路管理人員」與「資通安全人員」雙考科，收錄1,400題逐選項深度解析題庫、24章實務深度講義、24題標竿滿分申論範本、雙語金融資訊術語發音辭典與全真計時模擬考。">
+  <title>臺灣證券交易所 (TWSE) · 資訊人員招募備考神盾 | 1,400題精解·24章講義·64題滿分申論·術語發音·全真模擬考</title>
+  <meta name="description" content="臺灣證券交易所（TWSE）資訊人員招募考試專用備考平台。全面涵蓋「系統與網路管理人員」與「資通安全人員」雙考科，收錄1,400題逐選項深度解析題庫、24章實務深度講義、64題標竿滿分申論範本、雙語金融資訊術語發音辭典與全真計時模擬考。">
   
   <!-- 字體引入 (Google Fonts: Noto Sans TC, Noto Serif TC, JetBrains Mono) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,7 +75,7 @@
         <h1 class="hero-title">微秒撮合與金融聯防 · 資訊專業極致研鑽</h1>
         <p class="hero-desc">
           溫潤和紙質感研習空間，專為證交所招募「系統與網路管理人員」與「資通安全人員」打造。
-          完整收錄雙考科各 700 題（總計 <strong>1,400 題逐選項深度剖析</strong>）、<strong>24 大深入核心講義</strong>、<strong>24 題標竿滿分申論</strong>、雙語金融資訊術語發音辭典與全真計時模擬考。
+          完整收錄雙考科各 700 題（總計 <strong>1,400 題逐選項深度剖析</strong>）、<strong>24 大深入核心講義</strong>、<strong>64 題標竿滿分申論</strong>、雙語金融資訊術語發音辭典與全真計時模擬考。
         </p>
       </div>
 
@@ -123,7 +123,7 @@
             <span>📝 單選測驗題 (700 題)</span>
           </button>
           <button class="q-type-btn" id="btnModeEssay" onclick="switchQuestionMode('essay')">
-            <span>📋 滿分申論研習 (12 題標竿)</span>
+            <span>📋 滿分申論研習 (32 題標竿)</span>
           </button>
         </div>
 
@@ -240,16 +240,16 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem;">
           <div class="quick-filters">
             <button class="filter-toggle-btn active" id="btnEssayAll" onclick="filterEssays('all')">
-              全部範本 (24 題)
+              全部範本 (64 題)
+            </button>
+            <button class="filter-toggle-btn" id="btnEssaySec" onclick="filterEssays('sec')">
+              🛡️ 資通安全 (32 題 · 主考科)
             </button>
             <button class="filter-toggle-btn" id="btnEssayTwseIso" onclick="filterEssays('twse-iso')" title="高頻必考：TWSE 核心猜題與 ISO 27001 LA 雙軌題">
               🎯 TWSE猜題 × ISO 27001 LA
             </button>
             <button class="filter-toggle-btn" id="btnEssaySysnet" onclick="filterEssays('sysnet')">
-              💻 系統與網路管理 (12 題)
-            </button>
-            <button class="filter-toggle-btn" id="btnEssaySec" onclick="filterEssays('sec')">
-              🛡️ 資通安全 (12 題)
+              💻 系統與網路管理 (32 題 · 輔助考科)
             </button>
           </div>
           <div class="search-box" style="max-width: 340px;">
@@ -593,8 +593,17 @@
         state.selectedChapter = 'all';
         state.currentPage = 1;
 
-        document.getElementById('btnRoleSysnet').classList.toggle('active', cat === 'sysnet');
-        document.getElementById('btnRoleSec').classList.toggle('active', cat === 'sec');
+        const btnSys = document.getElementById('btnRoleSysnet');
+        const btnSec = document.getElementById('btnRoleSec');
+        if (btnSys) btnSys.classList.toggle('active', cat === 'sysnet');
+        if (btnSec) btnSec.classList.toggle('active', cat === 'sec');
+
+        const btnEssayMode = document.getElementById('btnModeEssay');
+        if (btnEssayMode) {
+          const allEssays = window.TWSE_ESSAY_DATA || (typeof TWSE_ESSAY_DATA !== 'undefined' ? TWSE_ESSAY_DATA : []);
+          const count = allEssays.filter(e => e.category === cat).length;
+          btnEssayMode.innerHTML = `<span>📋 滿分申論研習 (${count} 題標竿)</span>`;
+        }
 
         updateChapterSelectOptions();
         renderQuestions();
