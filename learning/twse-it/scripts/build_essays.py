@@ -1683,7 +1683,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 
 if __name__ == '__main__':
     data = get_essay_data()
-    js_content = "/**\n * 臺灣證券交易所 (TWSE) 招募備考系統 - 滿分精要申論題庫 (24 題全真標竿高分範本)\n * 涵蓋系統與網路管理 (12 題) 及 資通安全 (12 題)，全數嚴格依據 24 大章節出題\n * 遵循國家考試與證交所招募評分標準（破題立論、條列架構、橫向對比表、實務參數調校、得分秘笈與深度解說）\n */\n\nconst TWSE_ESSAY_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n"
+    js_content = "/**\n * 臺灣證券交易所 (TWSE) 招募備考系統 - 滿分精要申論題庫 (24 題全真標竿高分範本)\n * 涵蓋系統與網路管理 (12 題) 及 資通安全 (12 題)，全數嚴格依據 24 大章節出題\n * 遵循國家考試與證交所招募評分標準（破題立論、條列架構、橫向對比表、實務參數調校、得分秘笈與深度解說）\n */\n\nconst TWSE_ESSAY_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n\n// 關鍵導出：附掛於全局 window 物件以利跨腳本存取\nwindow.TWSE_ESSAY_DATA = TWSE_ESSAY_DATA;\n"
     with open('learning/twse-it/assets/essay-data.js', 'w', encoding='utf-8') as f:
         f.write(js_content)
     print(f"Successfully generated essay-data.js with {len(data)} essays!")

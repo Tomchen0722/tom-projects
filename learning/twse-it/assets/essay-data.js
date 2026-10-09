@@ -316,3 +316,6 @@ const TWSE_ESSAY_DATA = [
     "detailedExplanation": "\n<h5>🎯 評分踩點邏輯剖析</h5>\n<ul>\n  <li><strong>金管會 AI 原則（7分）</strong>：指出問責機制（高階主管負終極責任）、公平性與 Human-in-the-loop、資料隱私。</li>\n  <li><strong>OWASP LLM 表格（8分）</strong>：完整表格列出 Prompt Injection、敏感資訊洩漏與 Excessive Agency 之成因、危害與防禦技術。</li>\n  <li><strong>PQC 後量子密碼（6分）</strong>：深入詮釋 Shor 演算法對 RSA/ECC 的威脅，寫出 NIST 最新標準演算法 ML-KEM 與 ML-DSA，並提出混合過渡模式。</li>\n  <li><strong>結論（4分）</strong>：展現新興科技資安戰略前瞻性。</li>\n</ul>\n            "
   }
 ];
+
+// 關鍵導出：附掛於全局 window 物件以利跨腳本存取
+window.TWSE_ESSAY_DATA = TWSE_ESSAY_DATA;

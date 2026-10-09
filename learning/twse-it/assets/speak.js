@@ -2,8 +2,8 @@
  * 臺灣證券交易所 (TWSE) 備考系統 - 雙語發音引擎 (Web Speech API TTS)
  * 1. 提供全局 speakEn(text, btn) / window.ttsEngine.speak(text, btn)：朗讀標準清晰美式英語（en-US，語速 0.88x）。
  * 2. 劃詞選取發音：滑鼠選取任何含英文的文字時，自動浮現「🔊 朗讀英文」氣泡按鈕。
- * 3. 專有名詞自動附加按鈕：自動在「中文 (English Term)」、名詞速查表、題目與選項、講義標題旁插入 🔊 朗讀按鈕。
- * 4. 點擊 <code> 標籤或任何帶有英文的詞彙立即發音。
+ * 3. 專有名詞自動附加按鈕：自動在「中文 (English Term)」、名詞速查表、題目與選項、講義標題/內文旁插入 🔊 朗讀按鈕。
+ * 4. 點擊 <code> 標籤、.vocab-pill 或任何帶有英文的詞彙立即發音。
  * 5. 點擊正在播放之按鈕可即刻停止播放，並具備波紋動畫回饋。
  */
 
@@ -53,7 +53,7 @@
       t = t.replace(/\$\$.+?\$\$/gs, ' ');
       t = t.replace(/\$[^\$]+?\$/g, ' ');
       t = t.replace(/\\\w+(\{[^}]*\})?/g, ' ');
-      // 移除中文字元
+      // 移除中文字元與全形標點
       t = t.replace(/[\u4e00-\u9fa5]+/g, ' ');
       // 特殊符號轉停頓
       t = t.replace(/[\/|\\]+/g, ', ');
@@ -71,7 +71,7 @@
       const clean = this.cleanText(text);
       if (!clean) return;
 
-      // 若正在朗讀相同按鈕，則停止
+      // 若正在朗讀相同按鈕，則停止播放
       if (this.isSpeaking && this.currentBtn === triggerButton) {
         this.stop();
         return;
@@ -210,14 +210,16 @@
 
   // 自動掃描並為括號英文、程式碼標籤、表格英文附加發音
   function autoAttachSpeechButtons() {
-    // (A) 處理括號內的英文專有名詞，例如：逐筆撮合 (Continuous Trading)、核心旁路 (Kernel Bypass)
+    // 包含講義主體 (#lectureBody, .notes-body, .notes-content-card)、申論、題庫各容器
     const candidateContainers = document.querySelectorAll(
+      '#lectureBody p, #lectureBody li, #lectureBody h2, #lectureBody h3, #lectureBody h4, #lectureBody td, #lectureBody th, #lectureBody .callout-box, ' +
+      '.notes-body p, .notes-body li, .notes-body h2, .notes-body h3, .notes-body h4, .notes-body td, .notes-body th, ' +
       '.lecture-content p, .lecture-content li, .lecture-content h2, .lecture-content h3, .lecture-content td, ' +
-      '.essay-prompt, .essay-model-answer p, .essay-model-answer li, .essay-model-answer td, .essay-detailed-panel p, .essay-detailed-panel li, ' +
+      '.essay-prompt, .essay-model-answer p, .essay-model-answer li, .essay-model-answer td, .essay-detailed-panel p, .essay-detailed-panel li, .essay-examiner-tips, .exam-prediction-box, ' +
       '.q-stem, .option-text, .option-expl-desc'
     );
 
-    const parenRegex = /([\(（]([A-Za-z][A-Za-z0-9\s\-_/\'.:]{1,50})[\)）])/g;
+    const parenRegex = /([\(（]([A-Za-z][A-Za-z0-9\s\-_/\'.:]{1,60})[\)）])/g;
 
     candidateContainers.forEach(function (container) {
       if (container.closest('pre') || container.dataset.spkScanned) return;
@@ -227,7 +229,7 @@
       const textNodes = [];
       let node;
       while ((node = walker.nextNode())) {
-        if (node.parentNode && (node.parentNode.nodeName === 'PRE' || node.parentNode.classList.contains('spk-btn'))) {
+        if (node.parentNode && (node.parentNode.nodeName === 'PRE' || node.parentNode.classList.contains('spk-btn') || node.parentNode.classList.contains('vocab-pill'))) {
           continue;
         }
         textNodes.push(node);
@@ -273,14 +275,15 @@
       });
     });
 
-    // (B) 處理 <code> 標籤中的短英文名詞（如 `DPDK`, `Onload`, `PIM-SSM`, `FIDO2`）
+    // 處理 <code> 標籤中的短英文名詞（如 `DPDK`, `Onload`, `PIM-SSM`, `FIDO2`, `AES-GCM` 等）
     document.querySelectorAll('code').forEach(function (codeEl) {
       if (codeEl.closest('pre') || codeEl.dataset.spkCodeBound) return;
       codeEl.dataset.spkCodeBound = '1';
       const text = (codeEl.textContent || '').trim();
       const letters = (text.match(/[A-Za-z]/g) || []).length;
-      if (letters >= 2 && text.length <= 40 && !text.includes('\n')) {
+      if (letters >= 2 && text.length <= 45 && !text.includes('\n')) {
         codeEl.style.cursor = 'pointer';
+        codeEl.classList.add('en-code-speakable');
         codeEl.title = '點擊聆聽英文發音：' + text;
         codeEl.addEventListener('click', function (e) {
           e.stopPropagation();
@@ -289,21 +292,21 @@
       }
     });
 
-    // (C) 處理表格第一欄中的英文專有名詞
-    document.querySelectorAll('table tbody tr td:first-child, table tr td:first-child').forEach(function (td) {
-      if (td.dataset.spkAttached || td.querySelector('.spk-btn')) return;
-      td.dataset.spkAttached = '1';
+    // 處理表格欄位中包含英文的單元格
+    document.querySelectorAll('table tbody tr td, table tr td, table tr th').forEach(function (td) {
+      if (td.dataset.spkAttached || td.querySelector('.spk-btn') || td.querySelector('.vocab-pill')) return;
       const cellText = (td.textContent || '').trim();
       const englishLetters = (cellText.match(/[A-Za-z]/g) || []).length;
-      if (englishLetters >= 2 && cellText.length < 60 && !td.querySelector('button')) {
+      if (englishLetters >= 3 && cellText.length < 50 && !td.querySelector('button') && !cellText.includes('\n')) {
+        td.dataset.spkAttached = '1';
         td.appendChild(createSpkButton(cellText, '點擊朗讀 ' + cellText));
       }
     });
   }
 
-  // 委派點擊現有 .btn-speech 或 [data-speak]
+  // 委派點擊現有 .btn-speech, [data-speak], .vocab-pill, .en-term
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-speech, [data-speak]');
+    const btn = e.target.closest('.btn-speech, [data-speak], .vocab-pill, .en-term, .en-code');
     if (btn) {
       e.preventDefault();
       e.stopPropagation();
@@ -326,6 +329,6 @@
 
   // 全域主動重新掃描 API
   window.refreshSpeechButtons = function () {
-    setTimeout(autoAttachSpeechButtons, 50);
+    setTimeout(autoAttachSpeechButtons, 40);
   };
 })();
