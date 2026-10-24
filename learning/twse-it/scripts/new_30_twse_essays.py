@@ -30,34 +30,11 @@ def get_30_new_essays():
 </ol>
 
 <h4>二、NIST 官方頒布三大後量子密碼學標準架構</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">標準代號</th>
-      <th style="padding:6px 10px;">演算法名稱</th>
-      <th style="padding:6px 10px;">底層數學難題</th>
-      <th style="padding:6px 10px;">證券應用場景</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">FIPS 203</td>
-      <td style="padding:6px 10px;">ML-KEM (原 CRYSTALS-Kyber)</td>
-      <td style="padding:6px 10px;">模格誤差學習 (Module-LWE)</td>
-      <td style="padding:6px 10px;">TLS 1.3 金鑰交換，防範 SNDL 側錄</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">FIPS 204</td>
-      <td style="padding:6px 10px;">ML-DSA (原 CRYSTALS-Dilithium)</td>
-      <td style="padding:6px 10px;">模格最短向量 (SVP)</td>
-      <td style="padding:6px 10px;">證券下單電子憑證簽章，具備最高效能</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">FIPS 205</td>
-      <td style="padding:6px 10px;">SLH-DSA (原 SPHINCS+)</td>
-      <td style="padding:6px 10px;">無狀態雜湊樹 (Hash-Based)</td>
-      <td style="padding:6px 10px;">根憑證機構（Root CA）長期簽章保證</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>FIPS 203</strong>：<strong>演算法名稱</strong>：ML-KEM (原 CRYSTALS-Kyber)；<strong>底層數學難題</strong>：模格誤差學習 (Module-LWE)；TLS 1.3 金鑰交換，防範 SNDL 側錄。</li>
+  <li><strong>FIPS 204</strong>：<strong>演算法名稱</strong>：ML-DSA (原 CRYSTALS-Dilithium)；<strong>底層數學難題</strong>：模格最短向量 (SVP)；證券下單電子憑證簽章，具備最高效能。</li>
+  <li><strong>FIPS 205</strong>：<strong>演算法名稱</strong>：SLH-DSA (原 SPHINCS+)；<strong>底層數學難題</strong>：無狀態雜湊樹 (Hash-Based)；根憑證機構（Root CA）長期簽章保證。</li>
+</ul>
 
 <h4>三、證券交易體系混合憑證（Hybrid Certificate）平滑過渡方案</h4>
 <p>為避免既有下單端點與未支援 PQC 之老舊券商系統斷線，證交所應採取雙軌混合架構：</p>
@@ -87,7 +64,7 @@ def get_30_new_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>量子威脅剖析（6分）</strong>：深入點出 Shor 演算法並舉出 SNDL 威脅現實意義。</li>
-  <li><strong>NIST 三大標準（7分）</strong>：以表格準確呈現 FIPS 203/204/205 對應之原名、格架構/雜湊難題與金融應用場景。</li>
+  <li><strong>NIST 三大標準（7分）</strong>：以清晰條列準確呈現 FIPS 203/204/205 對應之原名、格架構/雜湊難題與金融應用場景。</li>
   <li><strong>混合憑證架構（7分）</strong>：清晰繪出傳統 ECDSA 與後量子 ML-DSA 複合簽章架構，並提及憑證擴充與封包大小考量。</li>
   <li><strong>結論（5分）</strong>：闡釋加密敏捷性（Crypto-Agility）在金融架構之長遠價值。</li>
 </ul>
@@ -112,30 +89,11 @@ def get_30_new_essays():
 </ol>
 
 <h4>二、金管會《金融業運用 AI 指引》核心合規要點</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">指引構面</th>
-      <th style="padding:6px 10px;">法規合規標準</th>
-      <th style="padding:6px 10px;">證券業實務措施</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">人機協同 (Human-in-the-loop)</td>
-      <td style="padding:6px 10px;">重大決策不得全自動交由 AI 決定</td>
-      <td style="padding:6px 10px;">風控評級、停權或重大異常交易需專責人員雙重覆核</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">隱私與個資保護</td>
-      <td style="padding:6px 10px;">禁止傳輸未去識別化客戶資料至公有雲</td>
-      <td style="padding:6px 10px;">建置本地端資料脫敏過濾器，去識別化 (k-anonymity)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">可解釋性與問責</td>
-      <td style="padding:6px 10px;">提供決策輔助依據與稽核軌跡</td>
-      <td style="padding:6px 10px;">採用 RAG 檢索增強生成架構，完整記錄參考來源文件</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>人機協同 (Human-in-the-loop)</strong>：標準為 <strong>重大決策不得全自動交由 AI 決定</strong>；處置作為：風控評級、停權或重大異常交易需專責人員雙重覆核。</li>
+  <li><strong>隱私與個資保護</strong>：標準為 <strong>禁止傳輸未去識別化客戶資料至公有雲</strong>；處置作為：建置本地端資料脫敏過濾器，去識別化 (k-anonymity)。</li>
+  <li><strong>可解釋性與問責</strong>：標準為 <strong>提供決策輔助依據與稽核軌跡</strong>；處置作為：採用 RAG 檢索增強生成架構，完整記錄參考來源文件。</li>
+</ul>
 
 <h4>三、OWASP Top 10 for LLM 之「AI 護欄（Guardrails）」架構設計</h4>
 <pre><code class="language-text">  外部使用者 / 內部員工輸入 (Prompt)
@@ -172,7 +130,7 @@ def get_30_new_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>GenAI 資安風險（6分）</strong>：深入列舉機敏資料洩漏、Prompt Injection、投毒與幻覺。</li>
-  <li><strong>金管會法規指引（6分）</strong>：以表格準確呈現 Human-in-the-loop 人機協同、隱私脫敏與 RAG 可解釋性。</li>
+  <li><strong>金管會法規指引（6分）</strong>：以清晰條列準確呈現 Human-in-the-loop 人機協同、隱私脫敏與 RAG 可解釋性。</li>
   <li><strong>AI 護欄防護架構（7分）</strong>：架構圖清楚展示輸入側（Prompt 消毒、DLP）與輸出側（事實核驗、JSON 格式過濾）之雙向攔截機制。</li>
   <li><strong>結論（6分）</strong>：結合 LLM 紅隊演練與 SAST 程式碼掃描。</li>
 </ul>
@@ -197,35 +155,12 @@ def get_30_new_essays():
 </ol>
 
 <h4>二、SLSA（Supply-chain Levels for Software Artifacts）等級標準</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">SLSA 等級</th>
-      <th style="padding:6px 10px;">核心要求標準</th>
-      <th style="padding:6px 10px;">證交所安全價值</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SLSA Level 1</td>
-      <td style="padding:6px 10px;">建置流程腳本化自動化，生成基本 Provenance 來源文件</td>
-      <td style="padding:6px 10px;">杜絕手動隨意編譯交付</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SLSA Level 2</td>
-      <td style="padding:6px 10px;">使用版本控制系統 (Git)，產出具備簽章之來源驗證</td>
-      <td style="padding:6px 10px;">保證建置輸入源頭不可否認</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SLSA Level 3</td>
-      <td style="padding:6px 10px;">建置平台隔離（Ephemeral Build Runner），防範篡改</td>
-      <td style="padding:6px 10px;"><strong>證券核心系統基準門檻，防範建置期植入後門</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SLSA Level 4</td>
-      <td style="padding:6px 10px;">雙人代碼審查（Two-person Review）與可重複建置（Hermetic）</td>
-      <td style="padding:6px 10px;">達到國防與金融最高供應鏈保證</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>SLSA Level 1</strong>：標準為 <strong>建置流程腳本化自動化，生成基本 Provenance 來源文件</strong>；處置作為：杜絕手動隨意編譯交付。</li>
+  <li><strong>SLSA Level 2</strong>：標準為 <strong>使用版本控制系統 (Git)，產出具備簽章之來源驗證</strong>；處置作為：保證建置輸入源頭不可否認。</li>
+  <li><strong>SLSA Level 3</strong>：標準為 <strong>建置平台隔離（Ephemeral Build Runner），防範篡改</strong>；處置作為：證券核心系統基準門檻，防範建置期植入後門。</li>
+  <li><strong>SLSA Level 4</strong>：標準為 <strong>雙人代碼審查（Two-person Review）與可重複建置（Hermetic）</strong>；處置作為：達到國防與金融最高供應鏈保證。</li>
+</ul>
 
 <h4>三、證交所 CI/CD Pipeline 供應鏈信任鏈落地架構</h4>
 <pre><code class="language-text">  開發者 Git Commit (雙人覆核)
@@ -263,7 +198,7 @@ def get_30_new_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>供應鏈三階段威脅（6分）</strong>：結合 SolarWinds 與 XZ Utils 真實案例精確拆解。</li>
-  <li><strong>SLSA 四個等級（6分）</strong>：以標準表格呈現 Level 1-4 要求，並特別標記金融應達 Level 3。</li>
+  <li><strong>SLSA 四個等級（6分）</strong>：以標準條列架構呈現 Level 1-4 要求，並特別標記金融應達 Level 3。</li>
   <li><strong>Sigstore 與 CI/CD 流程（8分）</strong>：完整畫出從 Syft/Grype SBOM、Sigstore (Fulcio/Rekor/Cosign) 到 K8s Admission Control 準入控制之閉環流程。</li>
   <li><strong>結論（5分）</strong>：總結無金鑰架構與端到端信任鏈價值。</li>
 </ul>
@@ -292,51 +227,21 @@ def get_30_new_essays():
 </ol>
 
 <h4>三、DPoP（RFC 9449）vs mTLS 雙向認證防竊機制對比</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較維度</th>
-      <th style="padding:6px 10px;">RFC 8705 mTLS 雙向綁定 (Certificate-Bound)</th>
-      <th style="padding:6px 10px;">RFC 9449 DPoP 應用層公鑰綁定</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">運作層級</td>
-      <td style="padding:6px 10px;">傳輸層 (L4 / TLS 握手)</td>
-      <td style="padding:6px 10px;">應用層 (L7 / HTTP Header)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">權杖綁定機制</td>
-      <td style="padding:6px 10px;">Token 內封裝客戶端 X.509 憑證指紋 (cnf 欄位)</td>
-      <td style="padding:6px 10px;">每次請求附帶私鑰簽署之 DPoP Proof JWT</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">防重放機制 (Anti-Replay)</td>
-      <td style="padding:6px 10px;">依賴 TLS 工作階段狀態</td>
-      <td style="padding:6px 10px;"><strong>JWT 包含 HTTP Method, URI, JTI 與 Nonce</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">架構穿透性</td>
-      <td style="padding:6px 10px;">若前方有 L7 WAF/負載均衡，憑證轉發複雜</td>
-      <td style="padding:6px 10px;"><strong>純應用層 HTTP 標頭，極易跨多層反向代理轉發</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">證券業最佳應用</td>
-      <td style="padding:6px 10px;">券商伺服器 ⟷ 證交所主機（固網專線）</td>
-      <td style="padding:6px 10px;">投資人手機 App / TSP ⟷ 券商開放 API</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【RFC 8705 mTLS 雙向綁定 (Certificate-Bound)】</strong>：<strong>運作層級</strong>：傳輸層 (L4 / TLS 握手)；<strong>權杖綁定機制</strong>：Token 內封裝客戶端 X.509 憑證指紋 (cnf 欄位)；<strong>防重放機制 (Anti-Replay)</strong>：依賴 TLS 工作階段狀態；<strong>架構穿透性</strong>：若前方有 L7 WAF/負載均衡，憑證轉發複雜；<strong>證券業最佳應用</strong>：券商伺服器 ⟷ 證交所主機（固網專線）。</li>
+  <li><strong>【RFC 9449 DPoP 應用層公鑰綁定】</strong>：<strong>運作層級</strong>：應用層 (L7 / HTTP Header)；<strong>權杖綁定機制</strong>：每次請求附帶私鑰簽署之 DPoP Proof JWT；<strong>防重放機制 (Anti-Replay)</strong>：JWT 包含 HTTP Method, URI, JTI 與 Nonce；<strong>架構穿透性</strong>：純應用層 HTTP 標頭，極易跨多層反向代理轉發；<strong>證券業最佳應用</strong>：投資人手機 App / TSP ⟷ 券商開放 API。</li>
+</ul>
 
 <h4>四、結論：構建開放證券立體化縱深防禦體系</h4>
 <p>臺灣證交所與證券商之骨幹系統應採用 <strong>mTLS 雙向憑證綁定</strong>，保證系統間專屬通道之不可否認性；而在面對公網 TSP 及一般行動用戶端時，全面推行 <strong>OAuth 2.1 + PKCE + DPoP</strong>，確保即使 Token 遭竊取，敵手無客戶端原生私鑰簽署 DPoP Proof，API 閘道器將直接予以阻斷，達成全方位金融資料保全。</p>
         """,
-        "examinerTips": "亮點字眼：『Bearer Token 致命現金屬性』、『OAuth 2.1 強制 PKCE 並廢除 Implicit/Password』、『FAPI 2.0 金融級標準』、『DPoP RFC 9449 與 mTLS 深度對比表』、『DPoP Proof 綁定 HTTP Method/URI/JTI/Nonce』。",
+        "examinerTips": "亮點字眼：『Bearer Token 致命現金屬性』、『OAuth 2.1 強制 PKCE 並廢除 Implicit/Password』、『FAPI 2.0 金融級標準』、『DPoP RFC 9449 與 mTLS 深度對比分析』、『DPoP Proof 綁定 HTTP Method/URI/JTI/Nonce』。",
         "detailedExplanation": """
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>開放 API 威脅與 Bearer 缺陷（6分）</strong>：切中痛點，深入論述持有證明（PoP）的必要性。</li>
   <li><strong>OAuth 2.1 / FAPI 2.0（6分）</strong>：精準指出 PKCE、移除隱含/密碼模式與短效 Token 合規標準。</li>
-  <li><strong>DPoP 與 mTLS 對比（7分）</strong>：以完整專業表格對比 L4 mTLS 與 L7 DPoP 在架構複雜度、防重放機制與金融場景之分工。</li>
+  <li><strong>DPoP 與 mTLS 對比（7分）</strong>：以清晰架構對比 L4 mTLS 與 L7 DPoP 在架構複雜度、防重放機制與金融場景之分工。</li>
   <li><strong>結論（6分）</strong>：設計券商專線用 mTLS、公網用戶用 DPoP 的分層最佳實務。</li>
 </ul>
         """
@@ -378,7 +283,7 @@ def get_30_new_essays():
             "title": title,
             "summary": summary,
             "points": 25,
-            "rubric": "1. 核心威脅與背景法規剖析 (6分)；2. 關鍵技術架構與機制說明 (7分)；3. 橫向對比表或流程剖析 (7分)；4. 證券實務結論與防禦建議 (5分)",
+            "rubric": "1. 核心威脅與背景法規剖析 (6分)；2. 關鍵技術架構與機制說明 (7分)；3. 關鍵技術機制與架構剖析 (7分)；4. 證券實務結論與防禦建議 (5分)",
             "question": f"【🎯 證交所年度核心猜題背景】針對「{title}」，請從金融關鍵基礎設施資安要求出發，深入闡明該項技術所解決之核心安全痛點；詳述其關鍵底層原理與國際標準規範；以具體架構或流程說明其在臺灣證券交易所之落地佈署方式；並提出保障業務連續性與極致效能之實務建議。",
             "modelAnswer": f"""
 <h4>一、破題：核心資安痛點與金融法規背景</h4>
@@ -388,31 +293,12 @@ def get_30_new_essays():
   <li><strong>實務安全痛點</strong>：傳統架構存在過度信任、單點故障及偵測延遲過長等弊端，無法抵禦自動化工具與勒索軟體之橫向滲透。</li>
 </ol>
 
-<h4>二、關鍵技術原理與國際規範對標</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">技術維度</th>
-      <th style="padding:6px 10px;">傳統舊有機制</th>
-      <th style="padding:6px 10px;">現代金融防禦標準實踐</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">防禦策略</td>
-      <td style="padding:6px 10px;">邊界靜態防護、定時週期審計</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">連續動態監控、實時行為關聯分析</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">權限與鑑別</td>
-      <td style="padding:6px 10px;">常設高權限、帳密靜態儲存</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">零常設權限 (ZSP)、JIT 動態簽發多因子校驗</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">應變與阻斷</td>
-      <td style="padding:6px 10px;">人工通報處置 (數小時至數天)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">自動化 Playbook 秒級阻斷、F-ISAC 橫向聯防</td>
-    </tr>
-  </table>
-</div>
+<h4>二、關鍵技術原理與現代金融防禦架構</h4>
+<ul>
+  <li><strong>防禦策略維度</strong>：由傳統邊界靜態防護與定時週期審計，升級為<strong>連續動態監控與即時行為關聯分析</strong>。</li>
+  <li><strong>權限與鑑別維度</strong>：摒棄常設高權限與靜態密碼，全面落實<strong>零常設權限（ZSP）與 JIT 動態簽發多因子校驗</strong>。</li>
+  <li><strong>應變與阻斷維度</strong>：淘汰耗時數小時的人工通報，建置<strong>自動化 Playbook 秒級阻斷與 F-ISAC 跨機構聯防</strong>。</li>
+</ul>
 
 <h4>三、證券交易所落地架構與核心實施步驟</h4>
 <ol>
@@ -429,7 +315,7 @@ def get_30_new_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>法規與背景（6分）</strong>：深入連結我國金管會行動方案與資通安全管理法標準。</li>
-  <li><strong>技術原理對比（7分）</strong>：以表格具體展示傳統與現代安全機制的本質差異。</li>
+  <li><strong>技術原理對比（7分）</strong>：以條列架構深入展示傳統與現代安全機制的本質差異。</li>
   <li><strong>實務落地（7分）</strong>：分步驟規劃證交所系統部署、最小權限與備援機制。</li>
   <li><strong>結論（5分）</strong>：總結金融韌性戰略意涵。</li>
 </ul>
@@ -479,7 +365,7 @@ def get_30_new_essays():
             "title": title,
             "summary": summary,
             "points": 25,
-            "rubric": "1. 系統架構瓶頸與業務背景剖析 (6分)；2. 核心技術架構與機制推導 (7分)；3. 效能對比表格與關鍵參數 (7分)；4. 證券實務落地結論與 SRE 最佳實踐 (5分)",
+            "rubric": "1. 系統架構瓶頸與業務背景剖析 (6分)；2. 核心技術架構與機制推導 (7分)；3. 效能重點對比與關鍵參數 (7分)；4. 證券實務落地結論與 SRE 最佳實踐 (5分)",
             "question": f"【🎯 證交所年度核心猜題背景】針對「{title}」，請從臺灣證券交易所之極致微秒撮合與不中斷高可用架構出發，詳述傳統架構之技術瓶頸；深入說明現代化技術之核心運作原理與關鍵演算法；列出關鍵架構參數或對比分析；並提出生產環境落地實作與穩定維運策略。",
             "modelAnswer": f"""
 <h4>一、破題：系統性能瓶頸與金融交易要求</h4>
@@ -489,31 +375,12 @@ def get_30_new_essays():
   <li><strong>高可用韌性要求</strong>：系統必須具備 RTO ≤ 10 分鐘、RPO = 0 之嚴苛容災能力，杜絕單點故障（SPOF）。</li>
 </ol>
 
-<h4>二、核心技術架構與運作原理對比</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">系統維度</th>
-      <th style="padding:6px 10px;">傳統通用架構</th>
-      <th style="padding:6px 10px;">證交所極致低延遲現代化實務</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">I/O 與網路路徑</td>
-      <td style="padding:6px 10px;">標準核心堆疊、中斷驅動、多次記憶體拷貝</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">核心旁路 (Kernel Bypass) / 零拷貝環形緩衝區</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">排程與親和性</td>
-      <td style="padding:6px 10px;">CFS 動態時間片排程、跨 NUMA 隨機存取</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">CPU 核心隔離 (isolcpus)、固定 NUMA 本地記憶體鎖定</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">容災與一致性</td>
-      <td style="padding:6px 10px;">冷備援、非同步複製 (可能遺失資料)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Raft/雙活同步、秒級自動容災轉移 (Zero RPO)</td>
-    </tr>
-  </table>
-</div>
+<h4>二、核心技術架構與運作原理深度剖析</h4>
+<ul>
+  <li><strong>I/O 與網路路徑</strong>：淘汰傳統中斷驅動與多次拷貝，全面導入<strong>核心旁路（Kernel Bypass）與零拷貝環形緩衝區</strong>。</li>
+  <li><strong>排程與親和性</strong>：消除 CFS 動態時間片與跨 NUMA 延遲，實施 <strong>CPU 核心隔離（isolcpus）與 NUMA 本地記憶體鎖定</strong>。</li>
+  <li><strong>容災與一致性</strong>：揚棄可能遺失資料的非同步冷備援，採用 <strong>Raft/雙活同步複製，實現秒級容災接管與 RPO = 0</strong>。</li>
+</ul>
 
 <h4>三、證券交易所生產環境具體落地與關鍵參數</h4>
 <ol>
@@ -530,7 +397,7 @@ def get_30_new_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>效能瓶頸推導（6分）</strong>：深入切入證交所微秒撮合與 P99.99 長尾抖動痛點。</li>
-  <li><strong>核心技術對比（7分）</strong>：以表格準確呈現 I/O、排程親和性與容災架構之進階對比。</li>
+  <li><strong>核心技術對比（7分）</strong>：以清晰條列準確呈現 I/O、排程親和性與容災架構之進階對比。</li>
   <li><strong>實務參數調校（7分）</strong>：分維度提出硬體、記憶體快取與全鏈路監控之最佳實踐。</li>
   <li><strong>結論（5分）</strong>：總結高可用與資本市場戰略意義。</li>
 </ul>

@@ -11,7 +11,7 @@ def get_more_sysnet_essays_18_to_32():
             "chapter": "第 6 章：關係型與分散式資料庫架構與 ACID 保證",
             "title": "金融分散式交易協調：二階段提交（2PC）、Saga 模式與 TCC 模式之容錯性與效能對比",
             "points": 25,
-            "rubric": "1. 分散式交易 ACID 挑戰與 CAP/BASE 定理 (6分)；2. 2PC 協定阻塞痛點剖析 (7分)；3. TCC 與 Saga 補償機制實作對照表 (8分)；4. 結論 (4分)",
+            "rubric": "1. 分散式交易 ACID 挑戰與 CAP/BASE 定理 (6分)；2. 2PC 協定阻塞痛點剖析 (7分)；3. TCC 與 Saga 補償機制實作重點對比 (8分)；4. 結論 (4分)",
             "question": "隨著金融服務拆分為微服務架構，一筆涉及下單、扣款、徵信與風控的複合交易往往跨越數個異質資料庫。請深入分析傳統「二階段提交（2PC）」協定在網路分區時的同步阻塞（Blocking）與單點故障風險，並對比「TCC（Try-Confirm-Cancel）」與「Saga（補償型交易）」兩大最終一致性框架在金融實務中的運作原理、隔離性保證與適用場景。",
             "modelAnswer": """
 <h4>一、破題：微服務架構下的分散式事務難題</h4>
@@ -35,41 +35,12 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、2PC vs TCC vs Saga 技術特徵對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較指標</th>
-      <th style="padding:6px 10px;">二階段提交 (2PC)</th>
-      <th style="padding:6px 10px;">TCC 模式</th>
-      <th style="padding:6px 10px;">Saga 模式</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">一致性級別</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">剛性強一致性 (Strict ACID)</td>
-      <td style="padding:6px 10px;">最終一致性 (無讀隔離)</td>
-      <td style="padding:6px 10px;">最終一致性 (無隔離性)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">效能與吞吐量</td>
-      <td style="padding:6px 10px; color:#ef4444;">低 (底層資料庫長鎖阻塞)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">高 (業務層預留凍結)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極高 (異步事件推進)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">業務代碼侵入性</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">零侵入 (由 XA 資料庫層承擔)</td>
-      <td style="padding:6px 10px; color:#ef4444;">極高 (需撰寫 Try/Confirm/Cancel 3 個方法)</td>
-      <td style="padding:6px 10px;">高 (需為每步驟撰寫對應補償函式)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">證交所實務建議</td>
-      <td style="padding:6px 10px;">僅限於核心結算之極小封閉集群</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">券商下單保證金扣抵與風控</td>
-      <td style="padding:6px 10px;">跨行對帳、跨機構開戶審批長流程</td>
-    </tr>
-  </table>
-</div>
+<h4>三、2PC vs TCC vs Saga 技術特徵重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【二階段提交 (2PC)】</strong>：<strong>一致性級別</strong>：剛性強一致性 (Strict ACID)；<strong>效能與吞吐量</strong>：低 (底層資料庫長鎖阻塞)；<strong>業務代碼侵入性</strong>：零侵入 (由 XA 資料庫層承擔)；<strong>證交所實務建議</strong>：僅限於核心結算之極小封閉集群。</li>
+  <li><strong>【TCC 模式】</strong>：<strong>一致性級別</strong>：最終一致性 (無讀隔離)；<strong>效能與吞吐量</strong>：高 (業務層預留凍結)；<strong>業務代碼侵入性</strong>：極高 (需撰寫 Try/Confirm/Cancel 3 個方法)；<strong>證交所實務建議</strong>：券商下單保證金扣抵與風控。</li>
+  <li><strong>【Saga 模式】</strong>：<strong>一致性級別</strong>：最終一致性 (無隔離性)；<strong>效能與吞吐量</strong>：極高 (異步事件推進)；<strong>業務代碼侵入性</strong>：高 (需為每步驟撰寫對應補償函式)；<strong>證交所實務建議</strong>：跨行對帳、跨機構開戶審批長流程。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在金融高並發架構中，「沒有完美的方案，只有合適的權衡」。核心下單風控推薦採用 TCC 凍結機制以換取極限吞吐；而跨機構長流程則以 Saga 補償驅動，達成兼顧韌性與效能之現代金融架構。</p>
@@ -83,7 +54,7 @@ def get_more_sysnet_essays_18_to_32():
             "chapter": "第 8 章：儲存架構、SAN/NAS 與檔案系統深度實務",
             "title": "金融檔案儲存極速架構：分散式平行檔案系統在高頻行情歷史巨量回測之應用",
             "points": 25,
-            "rubric": "1. 巨量行情回測儲存 I/O 瓶頸剖析 (6分)；2. 分散式平行檔案系統（Ceph / GPFS）元數據解耦 (8分)；3. 儲存架構性能對照表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 巨量行情回測儲存 I/O 瓶頸剖析 (6分)；2. 分散式平行檔案系統（Ceph / GPFS）元數據解耦 (8分)；3. 儲存架構性能對比剖析 (7分)；4. 結論 (4分)",
             "question": "證券期貨量化投資人與證交所歷史大數據分析平台，每天產生數 TB 的逐筆委託與成交 Tick 級歷史資料。在執行多年期多因子回測與演算法模型訓練時，傳統 NAS/NFS 儲存極易發生元數據瓶頸與網路擁塞。請規劃一套金融級分散式平行檔案系統架構，闡述其如何將「資料路徑（Data Path）」與「元數據路徑（Metadata Path）」分離，並利用 NVMe 快閃層與多客戶端條帶化（Striping）達成百 GB/s 循序讀取吞吐量？",
             "modelAnswer": """
 <h4>一、破題：量化金融的海量小檔與巨量循序讀取雙重挑戰</h4>
@@ -104,41 +75,12 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、傳統 NAS vs 企業級 SAN vs 分散式平行檔案系統對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">架構指標</th>
-      <th style="padding:6px 10px;">傳統 NAS (NFS / SMB)</th>
-      <th style="padding:6px 10px;">企業級 SAN (FC 區塊存儲)</th>
-      <th style="padding:6px 10px;">分散式平行檔案系統 (GPFS/Ceph)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">擴充彈性模型</td>
-      <td style="padding:6px 10px;">Scale-Up (縱向擴展受限)</td>
-      <td style="padding:6px 10px;">Scale-Up (雙控雙主機頭)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Scale-Out (橫向線性擴展至數百節點)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">聚集吞吐量</td>
-      <td style="padding:6px 10px; color:#ef4444;">1 ~ 4 GB/s (受限於單一控制器)</td>
-      <td style="padding:6px 10px;">5 ~ 15 GB/s</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">50 ~ 200+ GB/s (全節點並行聚集)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">元數據瓶頸</td>
-      <td style="padding:6px 10px; color:#ef4444;">海量小檔時 Controller CPU 100% 癱瘓</td>
-      <td style="padding:6px 10px;">區塊層無檔案系統語意</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">分散式 MDS + 動態目錄分片，完全解耦</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">傳輸通訊協定</td>
-      <td style="padding:6px 10px;">TCP/IP (多次記憶體拷貝)</td>
-      <td style="padding:6px 10px;">Fibre Channel (FC 32G)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">RoCE v2 / InfiniBand RDMA 零拷貝</td>
-    </tr>
-  </table>
-</div>
+<h4>三、傳統 NAS vs 企業級 SAN vs 分散式平行檔案系統重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【傳統 NAS (NFS / SMB)】</strong>：<strong>擴充彈性模型</strong>：Scale-Up (縱向擴展受限)；<strong>聚集吞吐量</strong>：1 ~ 4 GB/s (受限於單一控制器)；<strong>元數據瓶頸</strong>：海量小檔時 Controller CPU 100% 癱瘓；<strong>傳輸通訊協定</strong>：TCP/IP (多次記憶體拷貝)。</li>
+  <li><strong>【企業級 SAN (FC 區塊存儲)】</strong>：<strong>擴充彈性模型</strong>：Scale-Up (雙控雙主機頭)；<strong>聚集吞吐量</strong>：5 ~ 15 GB/s；<strong>元數據瓶頸</strong>：區塊層無檔案系統語意；<strong>傳輸通訊協定</strong>：Fibre Channel (FC 32G)。</li>
+  <li><strong>【分散式平行檔案系統 (GPFS/Ceph)】</strong>：<strong>擴充彈性模型</strong>：Scale-Out (橫向線性擴展至數百節點)；<strong>聚集吞吐量</strong>：50 ~ 200+ GB/s (全節點並行聚集)；<strong>元數據瓶頸</strong>：分散式 MDS + 動態目錄分片，完全解耦；<strong>傳輸通訊協定</strong>：RoCE v2 / InfiniBand RDMA 零拷貝。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在以算力驅動金融研究的現代證券市場，平行檔案系統藉由「元數據解耦、全鏈路 RDMA 與動態條帶化」，成功打破傳統儲存單點枷鎖，為巨量量化回測與 AI 交易模型提供源源不絕的高速數據動能。</p>
@@ -171,46 +113,13 @@ def get_more_sysnet_essays_18_to_32():
 </ol>
 
 <h4>三、BIOS 與 Linux 核心極致效能調校清單</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">調校層級</th>
-      <th style="padding:6px 10px;">設定項目 / 核心參數</th>
-      <th style="padding:6px 10px;">參數數值</th>
-      <th style="padding:6px 10px;">工程目標與調校效益</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">硬體 BIOS</td>
-      <td style="padding:6px 10px;">Power Regulator / Profile</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Static High Performance</td>
-      <td style="padding:6px 10px;">強制主機板關閉所有硬體級動態節能技術</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">硬體 BIOS</td>
-      <td style="padding:6px 10px;">CPU C-States Support</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Disabled (或強制鎖定 C0/C1)</td>
-      <td style="padding:6px 10px;">徹底禁用 C3/C6 深度休眠，杜絕 50µs 喚醒延遲</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Linux 核心啟動參數</td>
-      <td style="padding:6px 10px;"><code>processor.max_cstate=0</code><br><code>intel_idle.max_cstate=0</code></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">0 (或 1)</td>
-      <td style="padding:6px 10px;">核心層級強制 CPU 核心永不進入任何深層休眠</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Linux CPU 調度器</td>
-      <td style="padding:6px 10px;"><code>scaling_governor</code></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">performance</td>
-      <td style="padding:6px 10px;">將 CPU 時脈永久鎖定在最高頻率，消除升頻停頓</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Linux 電源延遲鎖</td>
-      <td style="padding:6px 10px;"><code>/dev/cpu_dma_latency</code></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">寫入 0</td>
-      <td style="padding:6px 10px;">透過 PM QoS 介面向核心宣示：容許延遲為 0 微秒</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>硬體 BIOS</strong>：Power Regulator / Profile；<strong>參數數值</strong>：Static High Performance；<strong>工程目標與調校效益</strong>：強制主機板關閉所有硬體級動態節能技術。</li>
+  <li><strong>硬體 BIOS</strong>：CPU C-States Support；<strong>參數數值</strong>：Disabled (或強制鎖定 C0/C1)；<strong>工程目標與調校效益</strong>：徹底禁用 C3/C6 深度休眠，杜絕 50µs 喚醒延遲。</li>
+  <li><strong>Linux 核心啟動參數</strong>：processor.max_cstate=0 intel_idle.max_cstate=0；<strong>參數數值</strong>：0 (或 1)；<strong>工程目標與調校效益</strong>：核心層級強制 CPU 核心永不進入任何深層休眠。</li>
+  <li><strong>Linux CPU 調度器</strong>：scaling_governor；<strong>參數數值</strong>：performance；<strong>工程目標與調校效益</strong>：將 CPU 時脈永久鎖定在最高頻率，消除升頻停頓。</li>
+  <li><strong>Linux 電源延遲鎖</strong>：/dev/cpu_dma_latency；<strong>參數數值</strong>：寫入 0；<strong>工程目標與調校效益</strong>：透過 PM QoS 介面向核心宣示：容許延遲為 0 微秒。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在金融撮合戰場，「電力消耗換取絕對確定性」。透過 BIOS 與 OS 雙重鎖死 C-states/P-states，使 CPU 核心永不休眠、全時全速運轉，徹底撫平長尾延遲抖動，達成微秒級的確定性撮合體驗。</p>
@@ -242,41 +151,12 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、Unicast vs GeoDNS vs Anycast BGP 全維度對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較維度</th>
-      <th style="padding:6px 10px;">傳統單播 (Unicast IP)</th>
-      <th style="padding:6px 10px;">地理 DNS (GeoDNS)</th>
-      <th style="padding:6px 10px;">選播路由 (Anycast BGP)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">IP 位址架構</td>
-      <td style="padding:6px 10px;">每機房獨立 IP</td>
-      <td style="padding:6px 10px;">多機房多 IP 依地域返回</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">跨多機房共用單一虛擬 IP</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">故障容災切換時效</td>
-      <td style="padding:6px 10px; color:#ef4444;">數十分鐘 (受限於 DNS TTL 快取)</td>
-      <td style="padding:6px 10px;">數分鐘 (取決於 TTL 設定與生效)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">亞秒級 (BGP 網路層毫秒級收斂)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">DDoS 洪水抵禦能力</td>
-      <td style="padding:6px 10px; color:#ef4444;">差 (所有攻擊集中單一線路打爆)</td>
-      <td style="padding:6px 10px;">中 (受地域解析限制)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極強 (天然將全球巨量洪水稀釋分散至各 PoP)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">有狀態連線 (TCP) 挑戰</td>
-      <td style="padding:6px 10px;">單路徑無漂移問題</td>
-      <td style="padding:6px 10px;">無漂移問題</td>
-      <td style="padding:6px 10px;">需穩定 BGP 路由防振盪（BGP Flapping）</td>
-    </tr>
-  </table>
-</div>
+<h4>三、Unicast vs GeoDNS vs Anycast BGP 重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【傳統單播 (Unicast IP)】</strong>：<strong>IP 位址架構</strong>：每機房獨立 IP；<strong>故障容災切換時效</strong>：數十分鐘 (受限於 DNS TTL 快取)；<strong>DDoS 洪水抵禦能力</strong>：差 (所有攻擊集中單一線路打爆)；<strong>有狀態連線 (TCP) 挑戰</strong>：單路徑無漂移問題。</li>
+  <li><strong>【地理 DNS (GeoDNS)】</strong>：<strong>IP 位址架構</strong>：多機房多 IP 依地域返回；<strong>故障容災切換時效</strong>：數分鐘 (取決於 TTL 設定與生效)；<strong>DDoS 洪水抵禦能力</strong>：中 (受地域解析限制)；<strong>有狀態連線 (TCP) 挑戰</strong>：無漂移問題。</li>
+  <li><strong>【選播路由 (Anycast BGP)】</strong>：<strong>IP 位址架構</strong>：跨多機房共用單一虛擬 IP；<strong>故障容災切換時效</strong>：亞秒級 (BGP 網路層毫秒級收斂)；<strong>DDoS 洪水抵禦能力</strong>：極強 (天然將全球巨量洪水稀釋分散至各 PoP)；<strong>有狀態連線 (TCP) 挑戰</strong>：需穩定 BGP 路由防振盪（BGP Flapping）。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在證券交易基礎架構中，以 Anycast BGP 構築網路連線第一道入口，搭配 GeoDNS 實施宏觀引流，徹底消除傳統單點單播之單點癱瘓風險，賦予證券下單通道堅不可摧的容災自癒韌性。</p>
@@ -310,41 +190,12 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、Flannel vs Calico vs Cilium 性能全構面對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較構面</th>
-      <th style="padding:6px 10px;">Flannel (VXLAN)</th>
-      <th style="padding:6px 10px;">Calico (BGP Non-Overlay)</th>
-      <th style="padding:6px 10px;">Cilium (eBPF Native)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">轉發引擎與底層機制</td>
-      <td style="padding:6px 10px;">Linux 核心 VXLAN 封裝</td>
-      <td style="padding:6px 10px;">純三層 Linux 路由 + IPSet</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">eBPF JIT 程式碼直接繞行 (Bypass)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Service 負載平衡開銷</td>
-      <td style="padding:6px 10px; color:#ef4444;">依賴 kube-proxy (iptables O(n))</td>
-      <td style="padding:6px 10px;">依賴 IPVS 或 eBPF 模式</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">eBPF Socket-LB (O(1) 哈希查找)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">封包傳輸延遲</td>
-      <td style="padding:6px 10px; color:#ef4444;">最高 (需封裝解封裝 + 50 Bytes 開銷)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極低 (接近實體網卡線速)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極低 (跳過 TCP/IP 堆疊，最佳)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">網路資安策略 (NetworkPolicy)</td>
-      <td style="padding:6px 10px; color:#ef4444;">不支援 (需外掛其他元件)</td>
-      <td style="padding:6px 10px;">支援 L3/L4 NetworkPolicy</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">支援 L3/L4/L7 (HTTP/gRPC/Kafka) 原生感知</td>
-    </tr>
-  </table>
-</div>
+<h4>三、Flannel vs Calico vs Cilium 性能全構面重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【Flannel (VXLAN)】</strong>：<strong>轉發引擎與底層機制</strong>：Linux 核心 VXLAN 封裝；<strong>Service 負載平衡開銷</strong>：依賴 kube-proxy (iptables O(n))；<strong>封包傳輸延遲</strong>：最高 (需封裝解封裝 + 50 Bytes 開銷)；<strong>網路資安策略 (NetworkPolicy)</strong>：不支援 (需外掛其他元件)。</li>
+  <li><strong>【Calico (BGP Non-Overlay)】</strong>：<strong>轉發引擎與底層機制</strong>：純三層 Linux 路由 + IPSet；<strong>Service 負載平衡開銷</strong>：依賴 IPVS 或 eBPF 模式；<strong>封包傳輸延遲</strong>：極低 (接近實體網卡線速)；<strong>網路資安策略 (NetworkPolicy)</strong>：支援 L3/L4 NetworkPolicy。</li>
+  <li><strong>【Cilium (eBPF Native)】</strong>：<strong>轉發引擎與底層機制</strong>：eBPF JIT 程式碼直接繞行 (Bypass)；<strong>Service 負載平衡開銷</strong>：eBPF Socket-LB (O(1) 哈希查找)；<strong>封包傳輸延遲</strong>：極低 (跳過 TCP/IP 堆疊，最佳)；<strong>網路資安策略 (NetworkPolicy)</strong>：支援 L3/L4/L7 (HTTP/gRPC/Kafka) 原生感知。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在證券金融 K8s 私有雲規劃中，<strong>首選 Cilium eBPF 方案（或 Calico BGP 直連模式）</strong>，徹底拔除傳統 kube-proxy 效能毒瘤，使容器化交易系統兼具雲原生彈性與裸金屬極速轉發效能。</p>
@@ -378,40 +229,11 @@ def get_more_sysnet_essays_18_to_32():
 </ol>
 
 <h4>三、支撐單機百萬併發（C1000K）關鍵系統參數調校表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">調校層次</th>
-      <th style="padding:6px 10px;">系統參數 / 設定檔案</th>
-      <th style="padding:6px 10px;">調校數值</th>
-      <th style="padding:6px 10px;">避免之瓶頸</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">系統最大開啟檔案數</td>
-      <td style="padding:6px 10px;"><code>/proc/sys/fs/file-max</code></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">2,097,152 (200 萬)</td>
-      <td style="padding:6px 10px;">防止全系統全域 FD 耗盡報錯 "Too many open files"</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">行程等級限制 (ulimit)</td>
-      <td style="padding:6px 10px;"><code>/etc/security/limits.conf</code> (nofile)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">soft/hard nofile 1048576</td>
-      <td style="padding:6px 10px;">放寬單一 Gateway 行程可開啟之最大 Socket 限制</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">TCP 記憶體緩衝區</td>
-      <td style="padding:6px 10px;"><code>net.ipv4.tcp_rmem</code><br><code>net.ipv4.tcp_wmem</code></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">4096 87380 4194304 (壓低預設值)</td>
-      <td style="padding:6px 10px;">百萬連線若每 Socket 預設佔用太大，將直接打爆 RAM (OOM)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">半連接與全連接佇列</td>
-      <td style="padding:6px 10px;"><code>net.ipv4.tcp_max_syn_backlog</code><br><code>net.core.somaxconn</code></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">65535</td>
-      <td style="padding:6px 10px;">開盤大量連線湧入時，防止 SYN Queue 溢位丟棄握手封包</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【系統參數 / 設定檔案】</strong>：<strong>系統最大開啟檔案數</strong>：/proc/sys/fs/file-max；<strong>行程等級限制 (ulimit)</strong>：/etc/security/limits.conf (nofile)；<strong>TCP 記憶體緩衝區</strong>：net.ipv4.tcp_rmem net.ipv4.tcp_wmem；<strong>半連接與全連接佇列</strong>：net.ipv4.tcp_max_syn_backlog net.core.somaxconn。</li>
+  <li><strong>【調校數值】</strong>：<strong>系統最大開啟檔案數</strong>：2,097,152 (200 萬)；<strong>行程等級限制 (ulimit)</strong>：soft/hard nofile 1048576；<strong>TCP 記憶體緩衝區</strong>：4096 87380 4194304 (壓低預設值)；<strong>半連接與全連接佇列</strong>：65535。</li>
+  <li><strong>【避免之瓶頸】</strong>：<strong>系統最大開啟檔案數</strong>：防止全系統全域 FD 耗盡報錯 "Too many open files"；<strong>行程等級限制 (ulimit)</strong>：放寬單一 Gateway 行程可開啟之最大 Socket 限制；<strong>TCP 記憶體緩衝區</strong>：百萬連線若每 Socket 預設佔用太大，將直接打爆 RAM (OOM)；<strong>半連接與全連接佇列</strong>：開盤大量連線湧入時，防止 SYN Queue 溢位丟棄握手封包。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>從 select 到 epoll ET 模式，代表了 Linux I/O 架構由「盲目輪詢」昇華為「事件驅動」之經典範式。結合精準的 TCP 核心記憶體調校，單台伺服器即可從容駕馭百萬券商行情併發連線。</p>
@@ -452,36 +274,11 @@ def get_more_sysnet_essays_18_to_32():
   <li><strong>日終批次動態雜湊比對（Merkle Tree / Hash Bucket Comparison）</strong>：收盤後，將數億筆委託成交資料依主鍵雜湊分桶（Bucket），在主備兩端分別並行計算每個分桶的 SHA-256 雜湊樹（Merkle Tree）。僅需比對樹狀頂層雜湊，<strong>數秒內即可定位哪一個分區存在微小不一致</strong>，無需全表暴力跨網傳輸比對！</li>
 </ol>
 
-<h4>四、實體 WAL 複製 vs 邏輯 CDC 複製對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">評估指標</th>
-      <th style="padding:6px 10px;">實體 WAL 串流複製</th>
-      <th style="padding:6px 10px;">邏輯 CDC 複製 (Kafka Connect)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">底層傳輸顆粒度</td>
-      <td style="padding:6px 10px;">磁碟區塊/分頁層級二進位 Byte 串流</td>
-      <td style="padding:6px 10px;">資料列層級 (Row-level) 結構化 JSON/Avro 事件</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">異質系統支援能力</td>
-      <td style="padding:6px 10px; color:#ef4444;">僅限同版本、同架構之同構資料庫</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">支援跨廠牌異質系統 (Oracle -> Postgres)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">複製延遲與 CPU 開銷</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">延遲次秒級，CPU 消耗低於 3%</td>
-      <td style="padding:6px 10px;">受限於 Kafka 與解析器，CPU 消耗 15~25%</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">證交所實務定位</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">同城/異地核心帳務容災資料庫首選</td>
-      <td style="padding:6px 10px;">跨平台資料倉儲、即時大數據分析湖倉同步</td>
-    </tr>
-  </table>
-</div>
+<h4>四、實體 WAL 複製 vs 邏輯 CDC 複製重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【實體 WAL 串流複製】</strong>：<strong>底層傳輸顆粒度</strong>：磁碟區塊/分頁層級二進位 Byte 串流；<strong>異質系統支援能力</strong>：僅限同版本、同架構之同構資料庫；<strong>複製延遲與 CPU 開銷</strong>：延遲次秒級，CPU 消耗低於 3%；<strong>證交所實務定位</strong>：同城/異地核心帳務容災資料庫首選。</li>
+  <li><strong>【邏輯 CDC 複製 (Kafka Connect)】</strong>：<strong>底層傳輸顆粒度</strong>：資料列層級 (Row-level) 結構化 JSON/Avro 事件；<strong>異質系統支援能力</strong>：支援跨廠牌異質系統 (Oracle -> Postgres)；<strong>複製延遲與 CPU 開銷</strong>：受限於 Kafka 與解析器，CPU 消耗 15~25%；<strong>證交所實務定位</strong>：跨平台資料倉儲、即時大數據分析湖倉同步。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>在異地金融容災體系中，以「實體 WAL 串流作為高速容災主動脈，以 Merkle Tree 雜湊樹作為端到端一致性防禦盾牌」，能確保在極端災難降臨時，異地備援資料庫隨時具備 100% 準確接管業務的頂級韌性。</p>
@@ -495,7 +292,7 @@ def get_more_sysnet_essays_18_to_32():
             "chapter": "第 11 章：全方位系統可觀測性、APM 與日誌架構",
             "title": "現代可觀測性三大支柱：OpenTelemetry 分散式追蹤（Tracing）、指標（Metrics）與結構化日誌在交易鏈路之全景剖析",
             "points": 25,
-            "rubric": "1. 可觀測性三大支柱（Metrics / Logs / Traces）關聯模型 (6分)；2. OpenTelemetry W3C TraceContext 跨進程傳遞 (8分)；3. 交易全鏈路診斷架構表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 可觀測性三大支柱（Metrics / Logs / Traces）關聯模型 (6分)；2. OpenTelemetry W3C TraceContext 跨進程傳遞 (8分)；3. 交易全鏈路診斷架構重點 (7分)；4. 結論 (4分)",
             "question": "一筆證券委託從券商下單 App 發出，經由 API Gateway、風控前置、撮合引擎、帳務資料庫到行情廣播，涉及數十個微服務與實體主機。傳統分散的日誌收集（如獨立 Syslog）在發生延遲突增時，極難跨服務定位瓶頸。請說明現代可觀測性（Observability）三大支柱（指標、日誌、追蹤）之數據模型，闡述 OpenTelemetry 如何透過 W3C TraceContext 實現跨執行緒與網路之分散式追蹤，並設計一套端對端全鏈路延遲故障排查體系。",
             "modelAnswer": """
 <h4>一、破題：微服務分散式鏈路的「黑盒子」困境</h4>
@@ -515,36 +312,11 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、傳統監控 vs 現代 OpenTelemetry 整合可觀測性對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較構面</th>
-      <th style="padding:6px 10px;">傳統分立監控 (Siloed Monitoring)</th>
-      <th style="padding:6px 10px;">現代整合可觀測性 (OpenTelemetry + Prometheus/Jaeger)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">數據關聯性</td>
-      <td style="padding:6px 10px; color:#ef4444;">各自獨立割裂，依靠時間戳記人工盲目比對</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">全局 Trace ID 串聯，指標、鏈路、日誌點擊即穿透</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">故障排查耗時 (MTTR)</td>
-      <td style="padding:6px 10px;">數小時至數天 (跨部門開會排查)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">數分鐘內精確定位到具體程式碼行或慢 SQL</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">採樣與效能開銷</td>
-      <td style="padding:6px 10px;">全量文字寫檔打爆磁碟 I/O</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">尾端自適應採樣 (Tail-Based Sampling，只保留異常與慢鏈路)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">廠商鎖定風險</td>
-      <td style="padding:6px 10px;">依賴特定商業 APM (Dynatrace/AppDynamics)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">CNCF 國際開源標準，代碼一次插樁通用所有後端</td>
-    </tr>
-  </table>
-</div>
+<h4>三、傳統監控 vs 現代 OpenTelemetry 整合可觀測性重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【傳統分立監控 (Siloed Monitoring)】</strong>：<strong>數據關聯性</strong>：各自獨立割裂，依靠時間戳記人工盲目比對；<strong>故障排查耗時 (MTTR)</strong>：數小時至數天 (跨部門開會排查)；<strong>採樣與效能開銷</strong>：全量文字寫檔打爆磁碟 I/O；<strong>廠商鎖定風險</strong>：依賴特定商業 APM (Dynatrace/AppDynamics)。</li>
+  <li><strong>【現代整合可觀測性 (OpenTelemetry + Prometheus/Jaeger)】</strong>：<strong>數據關聯性</strong>：全局 Trace ID 串聯，指標、鏈路、日誌點擊即穿透；<strong>故障排查耗時 (MTTR)</strong>：數分鐘內精確定位到具體程式碼行或慢 SQL；<strong>採樣與效能開銷</strong>：尾端自適應採樣 (Tail-Based Sampling，只保留異常與慢鏈路)；<strong>廠商鎖定風險</strong>：CNCF 國際開源標準，代碼一次插樁通用所有後端。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在超低延遲金融系統中，建構以 OpenTelemetry 為核心之可觀測性體系，使維運團隊徹底告別盲人摸象的黑盒除錯時代，讓每一筆微秒級交易鏈路在陽光下透明運行。</p>
@@ -558,7 +330,7 @@ def get_more_sysnet_essays_18_to_32():
             "chapter": "第 4 章：金融交易網路協定、Multicast 與低延遲網路",
             "title": "金融專線（Leased Line）延遲預算（Latency Budget）估算與波分多工（WDM/DWDM）傳輸實務",
             "points": 25,
-            "rubric": "1. 實體光纖傳輸物理極限與延遲模型 (6分)；2. 光纖放大器與色散補償開銷剖析 (7分)；3. 專線技術（DWDM vs SDH vs MPLS）全維度對比表 (8分)；4. 結論 (4分)",
+            "rubric": "1. 實體光纖傳輸物理極限與延遲模型 (6分)；2. 光纖放大器與色散補償開銷剖析 (7分)；3. 專線技術（DWDM vs SDH vs MPLS）全維度關鍵對比 (8分)；4. 結論 (4分)",
             "question": "在跨機房同城雙活與券商主機代管（Colocation）場景中，網路實體傳輸延遲受到光在玻璃纖維中傳播速度的嚴格物理限制。請推導光纖通訊之延遲理論極限（折射率 n 與傳播速度），詳細拆解「發送端光電轉換、光纖傳輸、光放大器（EDFA）、色散補償與接收端解碼」之延遲預算（Latency Budget），並闡述如何運用密集波分多工（DWDM）與專屬暗光纖（Dark Fiber）構建微秒級金融骨幹互聯。",
             "modelAnswer": """
 <h4>一、破題：光速的物理極限——金融低延遲的終極邊界</h4>
@@ -578,39 +350,12 @@ def get_more_sysnet_essays_18_to_32():
   <li><strong>協定轉發延遲</strong>：捨棄傳統二層/三層交換器轉發，採用<strong>光傳輸網絡（OTN / DWDM）直接光層直通（Optical Passthrough）</strong>，跳過任何封包排隊緩衝！</li>
 </ol>
 
-<h4>三、金融互聯傳輸技術架構對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">傳輸技術方案</th>
-      <th style="padding:6px 10px;">底層架構原理</th>
-      <th style="padding:6px 10px;">附加設備處理延遲</th>
-      <th style="padding:6px 10px;">抖動穩定性</th>
-      <th style="padding:6px 10px;">證交所實務應用場景</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">公共 VPN / Internet</td>
-      <td style="padding:6px 10px;">公網 L3 路由器跳數轉發 + IPsec 加密</td>
-      <td style="padding:6px 10px; color:#ef4444;">數毫秒至數十毫秒 (排隊抖動大)</td>
-      <td style="padding:6px 10px; color:#ef4444;">極差</td>
-      <td style="padding:6px 10px;">僅限內部辦公非核心系統</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">電信級 MPLS VPN</td>
-      <td style="padding:6px 10px;">電信商骨幹網標籤交換 (Label Switching)</td>
-      <td style="padding:6px 10px;">50 ~ 200 µs (受電信節點排隊影響)</td>
-      <td style="padding:6px 10px;">中等</td>
-      <td style="padding:6px 10px;">遠距備援資料庫日常備份同步</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">專屬暗光纖 + DWDM</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">租用專用實體光芯，密集波分多工光層直通</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">< 100 奈秒 (純物理光速傳播)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">絕對恆定 (零排隊零抖動)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">同城雙活撮合熱鏡像與主機代管 (Co-lo)</td>
-    </tr>
-  </table>
-</div>
+<h4>三、金融互聯傳輸技術架構重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>公共 VPN / Internet</strong>：<strong>底層架構原理</strong>：公網 L3 路由器跳數轉發 + IPsec 加密；<strong>附加設備處理延遲</strong>：數毫秒至數十毫秒 (排隊抖動大)；<strong>抖動穩定性</strong>：極差；僅限內部辦公非核心系統。</li>
+  <li><strong>電信級 MPLS VPN</strong>：<strong>底層架構原理</strong>：電信商骨幹網標籤交換 (Label Switching)；<strong>附加設備處理延遲</strong>：50 ~ 200 µs (受電信節點排隊影響)；<strong>抖動穩定性</strong>：中等；遠距備援資料庫日常備份同步。</li>
+  <li><strong>專屬暗光纖 + DWDM</strong>：<strong>底層架構原理</strong>：租用專用實體光芯，密集波分多工光層直通；<strong>附加設備處理延遲</strong>：< 100 奈秒 (純物理光速傳播)；<strong>抖動穩定性</strong>：絕對恆定 (零排隊零抖動)；同城雙活撮合熱鏡像與主機代管 (Co-lo)。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在追求極限的金融底層通訊中，理解光學物理極限是網路架構師的基本素養。透過「專屬暗光纖、DWDM 光層直通與電子色散補償」之頂級配置，將傳輸延遲壓縮至絕對物理極限，捍衛證券市場毫秒不差的公平競爭基石。</p>
@@ -645,39 +390,13 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、傳統虛擬化網卡 vs 半虛擬化 vs SR-IOV 直通全對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">技術機制</th>
-      <th style="padding:6px 10px;">封包轉發路徑</th>
-      <th style="padding:6px 10px;">單向網路延遲</th>
-      <th style="padding:6px 10px;">主機 CPU 開銷</th>
-      <th style="padding:6px 10px;">動態遷移 (vMotion) 支援</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">全模擬網卡 (e1000)</td>
-      <td style="padding:6px 10px;">Hypervisor 軟體完全模擬暫存器</td>
-      <td style="padding:6px 10px; color:#ef4444;">25 ~ 50 µs</td>
-      <td style="padding:6px 10px; color:#ef4444;">極高</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">完全支援</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">半虛擬化 (virtio-net)</td>
-      <td style="padding:6px 10px;">共享環形記憶體，經 vSwitch 轉發</td>
-      <td style="padding:6px 10px;">8 ~ 15 µs</td>
-      <td style="padding:6px 10px;">中等</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">完全支援</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SR-IOV 直通 (VF)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">網卡硬體 DMA 直達 VM，跳過 Hypervisor</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">1.2 ~ 1.8 µs (裸機級)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">趨近於零</td>
-      <td style="padding:6px 10px; color:#ef4444;">需綁定備用 virtio 網卡始可熱漂移</td>
-    </tr>
-  </table>
-</div>
+<h4>三、傳統虛擬化網卡 vs 半虛擬化 vs SR-IOV 直通全重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【封包轉發路徑】</strong>：<strong>全模擬網卡 (e1000)</strong>：Hypervisor 軟體完全模擬暫存器；<strong>半虛擬化 (virtio-net)</strong>：共享環形記憶體，經 vSwitch 轉發；<strong>SR-IOV 直通 (VF)</strong>：網卡硬體 DMA 直達 VM，跳過 Hypervisor。</li>
+  <li><strong>【單向網路延遲】</strong>：<strong>全模擬網卡 (e1000)</strong>：25 ~ 50 µs；<strong>半虛擬化 (virtio-net)</strong>：8 ~ 15 µs；<strong>SR-IOV 直通 (VF)</strong>：1.2 ~ 1.8 µs (裸機級)。</li>
+  <li><strong>【主機 CPU 開銷】</strong>：<strong>全模擬網卡 (e1000)</strong>：極高；<strong>半虛擬化 (virtio-net)</strong>：中等；<strong>SR-IOV 直通 (VF)</strong>：趨近於零。</li>
+  <li><strong>【動態遷移 (vMotion) 支援】</strong>：<strong>全模擬網卡 (e1000)</strong>：完全支援；<strong>半虛擬化 (virtio-net)</strong>：完全支援；<strong>SR-IOV 直通 (VF)</strong>：需綁定備用 virtio 網卡始可熱漂移。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在金融私有雲整合大勢下，SR-IOV 結合 CPU Pinning 成功打破了「虛擬化必然慢」的歷史魔咒。它讓虛擬機器同時具備雲化的運維敏捷性與物理機級別的微秒撮合狂飆效能。</p>
@@ -713,39 +432,12 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、Kafka 傳輸模式與確認級別 (acks) 全方位對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">acks 設定參數</th>
-      <th style="padding:6px 10px;">確認條件與機制</th>
-      <th style="padding:6px 10px;">資料遺失風險 (RPO)</th>
-      <th style="padding:6px 10px;">發送吞吐效能</th>
-      <th style="padding:6px 10px;">金融業務推薦場景</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;"><code>acks = 0</code></td>
-      <td style="padding:6px 10px;">送出封包即視為成功，不等待任何回應</td>
-      <td style="padding:6px 10px; color:#ef4444;">極高 (網路斷線或 Broker 宕機即丟失)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極致最高</td>
-      <td style="padding:6px 10px;">非關鍵次要指標監控與日誌收集</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;"><code>acks = 1</code></td>
-      <td style="padding:6px 10px;">僅 Leader 副本寫入本地 PageCache 即返回</td>
-      <td style="padding:6px 10px; color:#ef4444;">中等 (Leader 尚未同步即崩潰會丟失)</td>
-      <td style="padding:6px 10px;">高</td>
-      <td style="padding:6px 10px;">一般行情廣播轉發</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;"><code>acks = all</code><br>(min.insync=2)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Leader 與所有 ISR 副本確認寫入後始返回</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">絕對為零 (RPO = 0，無任何資料遺失)</td>
-      <td style="padding:6px 10px;">中高 (需一次 RTT 副本複製)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">★★★★★ 核心交易稽核、委託串流日誌</td>
-    </tr>
-  </table>
-</div>
+<h4>三、Kafka 傳輸模式與確認級別 (acks) 全方位重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>acks = 0</strong>：<strong>確認條件與機制</strong>：送出封包即視為成功，不等待任何回應；<strong>資料遺失風險 (RPO)</strong>：極高 (網路斷線或 Broker 宕機即丟失)；<strong>發送吞吐效能</strong>：極致最高；非關鍵次要指標監控與日誌收集。</li>
+  <li><strong>acks = 1</strong>：<strong>確認條件與機制</strong>：僅 Leader 副本寫入本地 PageCache 即返回；<strong>資料遺失風險 (RPO)</strong>：中等 (Leader 尚未同步即崩潰會丟失)；<strong>發送吞吐效能</strong>：高；一般行情廣播轉發。</li>
+  <li><strong>acks = all (min.insync=2)</strong>：<strong>確認條件與機制</strong>：Leader 與所有 ISR 副本確認寫入後始返回；<strong>資料遺失風險 (RPO)</strong>：絕對為零 (RPO = 0，無任何資料遺失)；<strong>發送吞吐效能</strong>：中高 (需一次 RTT 副本複製)；★★★★★ 核心交易稽核、委託串流日誌。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>Kafka 藉由循序磁碟 I/O 與 Linux 零拷貝機制創造了超低延遲神話，並以嚴密的 ISR 與 acks=all 參數矩陣築牢可靠性防線，堪稱現代金融巨量資料架構的典範。</p>
@@ -778,39 +470,12 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、交換器佇列架構全構面性能對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">交換器架構型態</th>
-      <th style="padding:6px 10px;">隊列維護方式</th>
-      <th style="padding:6px 10px;">頭端阻塞 (HoL) 狀態</th>
-      <th style="padding:6px 10px;">最大理論吞吐量</th>
-      <th style="padding:6px 10px;">金融撮合適用性</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">傳統輸入排隊 (IQ)</td>
-      <td style="padding:6px 10px;">每個輸入埠單一 FIFO 隊列</td>
-      <td style="padding:6px 10px; color:#ef4444;">嚴重！佇列首包受阻全隊卡死</td>
-      <td style="padding:6px 10px; color:#ef4444;">僅 58.6% (嚴重大容量浪費)</td>
-      <td style="padding:6px 10px;">淘汰禁用</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">輸出排隊 (OQ)</td>
-      <td style="padding:6px 10px;">隊列完全設在輸出端</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">無頭端阻塞</td>
-      <td style="padding:6px 10px;">100% (但需內部 N 倍光速加速比)</td>
-      <td style="padding:6px 10px;">成本與記憶體帶寬過高</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">VoQ + Crossbar 矩陣</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">輸入端維護 N 個輸出對應專屬 VoQ</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">100% 根除！完全消除頭端阻塞</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">100% 線速無阻塞轉發</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">★★★★★ 現代金融低延遲交換器標準</td>
-    </tr>
-  </table>
-</div>
+<h4>三、交換器佇列架構全構面性能重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>傳統輸入排隊 (IQ)</strong>：<strong>隊列維護方式</strong>：每個輸入埠單一 FIFO 隊列；<strong>頭端阻塞 (HoL) 狀態</strong>：嚴重！佇列首包受阻全隊卡死；<strong>最大理論吞吐量</strong>：僅 58.6% (嚴重大容量浪費)；<strong>金融撮合適用性</strong>：淘汰禁用。</li>
+  <li><strong>輸出排隊 (OQ)</strong>：<strong>隊列維護方式</strong>：隊列完全設在輸出端；<strong>頭端阻塞 (HoL) 狀態</strong>：無頭端阻塞；<strong>最大理論吞吐量</strong>：100% (但需內部 N 倍光速加速比)；<strong>金融撮合適用性</strong>：成本與記憶體帶寬過高。</li>
+  <li><strong>VoQ + Crossbar 矩陣</strong>：<strong>隊列維護方式</strong>：輸入端維護 N 個輸出對應專屬 VoQ；<strong>頭端阻塞 (HoL) 狀態</strong>：100% 根除！完全消除頭端阻塞；<strong>最大理論吞吐量</strong>：100% 線速無阻塞轉發；<strong>金融撮合適用性</strong>：★★★★★ 現代金融低延遲交換器標準。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在撮合網路中，微秒延遲的勝負往往取決於交換器矽晶片內部的佇列邏輯。以 VoQ 破除頭端阻塞魔咒，輔以 Cut-Through 奈秒轉發，確保交易所網路在任意高突發流量下皆能發揮 100% 線速吞吐能量。</p>
@@ -824,7 +489,7 @@ def get_more_sysnet_essays_18_to_32():
             "chapter": "第 3 章：資料中心高可用性與交易永續容災架構",
             "title": "撮合引擎崩潰即時自動復原（Crash Recovery）：日誌重放（Replay）、快照（Snapshot）與記憶體狀態重建",
             "points": 25,
-            "rubric": "1. 記憶體撮合引擎狀態崩潰挑戰 (6分)；2. ARIES 復原演算法（Analysis / Redo / Undo）(8分)；3. 快照與 WAL 重放效能對照表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 記憶體撮合引擎狀態崩潰挑戰 (6分)；2. ARIES 復原演算法（Analysis / Redo / Undo）(8分)；3. 快照與 WAL 重放效能對比剖析 (7分)；4. 結論 (4分)",
             "question": "臺灣證券交易所為追求極限微秒延遲，委託簿（Order Book）與撮合狀態全數常駐於伺服器記憶體中。一旦撮合進程發生核心崩潰（Kernel Panic / Crash），記憶體中未落盤的交易狀態將瞬間蒸發。請說明金融交易引擎如何結合「非同步記憶體快照（Snapshot）」與「預寫日誌（WAL, Write-Ahead Logging）」，依據 ARIES 復原演算法在數秒內精確重建最後一致的撮合狀態？",
             "modelAnswer": """
 <h4>一、破題：純記憶體撮合的脆弱性與復原挑戰</h4>
@@ -843,35 +508,12 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>三、純 WAL 重放 vs 定期快照 + WAL 重放對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">復原策略</th>
-      <th style="padding:6px 10px;">復原時間 (RTO)</th>
-      <th style="padding:6px 10px;">磁碟空間佔用</th>
-      <th style="padding:6px 10px;">證交所實務評價</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">純 WAL 全量重放</td>
-      <td style="padding:6px 10px; color:#ef4444;">極長 (需自早晨開盤重放數億筆，需 10~30 分鐘)</td>
-      <td style="padding:6px 10px;">保留全日日誌</td>
-      <td style="padding:6px 10px; color:#ef4444;">不可接受！嚴重違反金融 RTO 監理標準</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">定期快照 + 增量 WAL</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極短 (僅需載入快照 + 重放最後 1~2 分鐘 WAL，< 5 秒)</td>
-      <td style="padding:6px 10px;">需儲存快照 + 滾動 WAL</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">★★★★★ 最佳實務！兼顧效能與極速復原</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">雙機熱鏡像 (Hot Standby)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">次秒級 (直接切換備機)</td>
-      <td style="padding:6px 10px;">雙倍硬體資源</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">生產環境標配，與快照機制形成雙重保險</td>
-    </tr>
-  </table>
-</div>
+<h4>三、純 WAL 重放 vs 定期快照 + WAL 重放重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>純 WAL 全量重放</strong>：<strong>復原時間 (RTO)</strong>：極長 (需自早晨開盤重放數億筆，需 10~30 分鐘)；<strong>磁碟空間佔用</strong>：保留全日日誌；<strong>證交所實務評價</strong>：不可接受！嚴重違反金融 RTO 監理標準。</li>
+  <li><strong>定期快照 + 增量 WAL</strong>：<strong>復原時間 (RTO)</strong>：極短 (僅需載入快照 + 重放最後 1~2 分鐘 WAL，< 5 秒)；<strong>磁碟空間佔用</strong>：需儲存快照 + 滾動 WAL；<strong>證交所實務評價</strong>：★★★★★ 最佳實務！兼顧效能與極速復原。</li>
+  <li><strong>雙機熱鏡像 (Hot Standby)</strong>：<strong>復原時間 (RTO)</strong>：次秒級 (直接切換備機)；<strong>磁碟空間佔用</strong>：雙倍硬體資源；<strong>證交所實務評價</strong>：生產環境標配，與快照機制形成雙重保險。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在記憶體撮合架構中，快照定義了系統復原的起跑線，WAL 補齊了最後一哩路的確定性。藉由 ARIES 經典演算法的精密實踐，方能在不可預期的硬體崩潰下，秒級重生出絲毫不差的委託交易世界。</p>
@@ -885,7 +527,7 @@ def get_more_sysnet_essays_18_to_32():
             "chapter": "第 12 章：新一代金融科技基礎設施與前沿探索",
             "title": "金融微服務架構之服務網格（Service Mesh - Istio/Linkerd）在低延遲交易系統之開銷評估與旁路替代方案",
             "points": 25,
-            "rubric": "1. 服務網格 Sidecar 代理架構之微秒級延遲開銷 (6分)；2. 金融核心拒絕傳統 Sidecar 之實務原因 (7分)；3. 無邊車架構（Ambient Mesh / eBPF）對比表 (8分)；4. 結論 (4分)",
+            "rubric": "1. 服務網格 Sidecar 代理架構之微秒級延遲開銷 (6分)；2. 金融核心拒絕傳統 Sidecar 之實務原因 (7分)；3. 無邊車架構（Ambient Mesh / eBPF）關鍵對比 (8分)；4. 結論 (4分)",
             "question": "服務網格（Service Mesh，如 Istio 搭配 Envoy Sidecar）具備強大的流量管理、mTLS 零信任加密與可觀測性。然而，在高頻撮合與交易前置風控場景中，Sidecar 模式常引發「延遲翻倍」與「記憶體膨脹」。請量化分析 Envoy Sidecar 在每跳通訊中引入之環境切換、封包攔截與通訊協定解析開銷，並說明新一代「無邊車架構（Sidecarless / Ambient Mesh / Cilium Service Mesh）」如何運用 eBPF 實現零延遲衰減之服務治理？",
             "modelAnswer": """
 <h4>一、破題：Service Mesh 的承諾與高頻金融的痛點</h4>
@@ -912,36 +554,11 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>四、傳統 Sidecar 模式 vs eBPF 無邊車模式全構面對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">架構指標</th>
-      <th style="padding:6px 10px;">傳統 Sidecar 模式 (Istio + Envoy)</th>
-      <th style="padding:6px 10px;">無邊車模式 (Cilium eBPF / Ambient)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">微服務單跳附加延遲</td>
-      <td style="padding:6px 10px; color:#ef4444;">額外增加 2.0 ~ 4.5 毫秒 (翻倍)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">次毫秒級 (僅增加 0.1 ~ 0.3 毫秒)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">封包傳輸路徑跳數</td>
-      <td style="padding:6px 10px; color:#ef4444;">需經過 2 次 Envoy 代理 + iptables 轉發</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">eBPF 在核心 Socket 層直通轉發</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">叢集記憶體開銷</td>
-      <td style="padding:6px 10px; color:#ef4444;">極高 (每個 Pod 均需獨立 Envoy 容器)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極低 (每台主機僅共享單一代理)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">金融高頻撮合適用性</td>
-      <td style="padding:6px 10px; color:#ef4444;">嚴格禁用於撮合與委託核心鏈路</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">適用於新一代低延遲雲原生微服務</td>
-    </tr>
-  </table>
-</div>
+<h4>四、傳統 Sidecar 模式 vs eBPF 無邊車模式全構面重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【傳統 Sidecar 模式 (Istio + Envoy)】</strong>：<strong>微服務單跳附加延遲</strong>：額外增加 2.0 ~ 4.5 毫秒 (翻倍)；<strong>封包傳輸路徑跳數</strong>：需經過 2 次 Envoy 代理 + iptables 轉發；<strong>叢集記憶體開銷</strong>：極高 (每個 Pod 均需獨立 Envoy 容器)；<strong>金融高頻撮合適用性</strong>：嚴格禁用於撮合與委託核心鏈路。</li>
+  <li><strong>【無邊車模式 (Cilium eBPF / Ambient)】</strong>：<strong>微服務單跳附加延遲</strong>：次毫秒級 (僅增加 0.1 ~ 0.3 毫秒)；<strong>封包傳輸路徑跳數</strong>：eBPF 在核心 Socket 層直通轉發；<strong>叢集記憶體開銷</strong>：極低 (每台主機僅共享單一代理)；<strong>金融高頻撮合適用性</strong>：適用於新一代低延遲雲原生微服務。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在金融基礎設施架構中，切忌盲目跟風技術熱詞。辨明 Service Mesh Sidecar 的延遲代價，依據業務延遲敏感度實施「核心旁路直通、週邊無邊車 eBPF 治理」之分層選型，方為成熟架構師的理性之道。</p>
@@ -987,41 +604,13 @@ def get_more_sysnet_essays_18_to_32():
   </li>
 </ol>
 
-<h4>四、資料庫掃描方式與鎖定模型對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">掃描/鎖定方式</th>
-      <th style="padding:6px 10px;">執行計畫特徵</th>
-      <th style="padding:6px 10px;">I/O 與並發效能表現</th>
-      <th style="padding:6px 10px;">優化對策</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Seq Scan (全表掃描)</td>
-      <td style="padding:6px 10px; color:#ef4444;">遍歷全表所有數據頁</td>
-      <td style="padding:6px 10px; color:#ef4444;">極慢，大表直接打爆記憶體與磁碟</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">依據查詢條件精確建立適當 B+ Tree 索引</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Index Only Scan (覆蓋索引)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">僅存取索引葉子節點即可滿足查詢</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極致高速，零回表 (No Heap Fetch)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">建立包含 SELECT 欄位的複合涵蓋索引</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">長事務排他鎖阻塞</td>
-      <td style="padding:6px 10px; color:#ef4444;">大量交易進入 Lock Wait 狀態</td>
-      <td style="padding:6px 10px; color:#ef4444;">連線池爆滿，系統雪崩式中斷</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">設定 <code>statement_timeout</code>，事務禁入外部網絡呼叫</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SKIP LOCKED 併發搶佔</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">跳過鎖定行，只取可用空閒行</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">零鎖等待，並發消費吞吐量提升十倍</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">交易隊列消費與非同步任務分配標準架構</td>
-    </tr>
-  </table>
-</div>
+<h4>四、資料庫掃描方式與鎖定模型重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>Seq Scan (全表掃描)</strong>：<strong>執行計畫特徵</strong>：遍歷全表所有數據頁；<strong>I/O 與並發效能表現</strong>：極慢，大表直接打爆記憶體與磁碟；<strong>優化對策</strong>：依據查詢條件精確建立適當 B+ Tree 索引。</li>
+  <li><strong>Index Only Scan (覆蓋索引)</strong>：<strong>執行計畫特徵</strong>：僅存取索引葉子節點即可滿足查詢；<strong>I/O 與並發效能表現</strong>：極致高速，零回表 (No Heap Fetch)；<strong>優化對策</strong>：建立包含 SELECT 欄位的複合涵蓋索引。</li>
+  <li><strong>長事務排他鎖阻塞</strong>：<strong>執行計畫特徵</strong>：大量交易進入 Lock Wait 狀態；<strong>I/O 與並發效能表現</strong>：連線池爆滿，系統雪崩式中斷；<strong>優化對策</strong>：設定 statement_timeout ，事務禁入外部網絡呼叫。</li>
+  <li><strong>SKIP LOCKED 併發搶佔</strong>：<strong>執行計畫特徵</strong>：跳過鎖定行，只取可用空閒行；<strong>I/O 與並發效能表現</strong>：零鎖等待，並發消費吞吐量提升十倍；<strong>優化對策</strong>：交易隊列消費與非同步任務分配標準架構。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>資料庫是金融交易系統的心臟。透過 EXPLAIN 執行計畫洞察微觀細節，以涵蓋索引根除回表，並以極短事務降伏鎖爭用，方能維護證券核心帳務堅若磐石的運轉效能。</p>

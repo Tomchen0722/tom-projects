@@ -12,7 +12,7 @@ def get_20_new_sysnet_essays():
             "chapter": "第 6 章：關係型與分散式資料庫架構與 ACID 保證",
             "title": "金融核心資料庫雙主動（Multi-Master / Active-Active）架構與分散式衝突解決方案",
             "points": 25,
-            "rubric": "1. 雙主動資料庫架構優勢與裂腦/衝突挑戰 (6分)；2. 分散式共識協定（Raft / Paxos）與交易保證 (8分)；3. 資料庫高可用方案對比表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 雙主動資料庫架構優勢與裂腦/衝突挑戰 (6分)；2. 分散式共識協定（Raft / Paxos）與交易保證 (8分)；3. 資料庫高可用方案關鍵對比 (7分)；4. 結論 (4分)",
             "question": "為落實金融交易零停機（RTO ≈ 0）與零資料遺失（RPO = 0）之同城雙活（Active-Active）目標，證券核心帳務系統常考慮建置雙主動（Multi-Master）資料庫架構。請分析傳統關聯式資料庫雙向複製面臨之「寫入衝突（Write Conflict）」與「腦裂（Split-Brain）」風險，並深入剖析現代分散式資料庫如何運用 Raft/Paxos 共識演算法與多版本並發控制（MVCC），在維持 ACID 強一致性下達成跨機房雙活寫入？",
             "modelAnswer": """
 <h4>一、破題：金融交易資料庫對極致可用性的追求</h4>
@@ -31,45 +31,18 @@ def get_20_new_sysnet_essays():
   </li>
 </ol>
 
-<h4>三、主流資料庫高可用與容災方案橫向對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">架構型態</th>
-      <th style="padding:6px 10px;">資料一致性模型</th>
-      <th style="padding:6px 10px;">RTO (復原時間)</th>
-      <th style="padding:6px 10px;">RPO (復原點)</th>
-      <th style="padding:6px 10px;">證交所實務評價</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">傳統主從非同步 (Async)</td>
-      <td style="padding:6px 10px;">最終一致性 (弱一致)</td>
-      <td style="padding:6px 10px;">1 ~ 5 分鐘</td>
-      <td style="padding:6px 10px; color:#ef4444;">> 0 (可能遺失數秒資料)</td>
-      <td style="padding:6px 10px;">無法滿足核心帳務零資料遺失法規底線</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">半同步複製 (Semi-Sync)</td>
-      <td style="padding:6px 10px;">至少一從節點落盤</td>
-      <td style="padding:6px 10px;">30 ~ 60 秒</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">≈ 0 (主節點無降級下)</td>
-      <td style="padding:6px 10px;">兼顧成本與可靠性之過渡方案</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">原生分散式 (Raft/Paxos)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">強一致性 (Strict Serializability)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">< 5 秒 (自動 Leader 選舉)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">0 (過半數 Quorum 承諾)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">新一代同城雙活與彈性擴容最佳架構</td>
-    </tr>
-  </table>
-</div>
+<h4>三、主流資料庫高可用與容災方案橫向重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>傳統主從非同步 (Async)</strong>：<strong>資料一致性模型</strong>：最終一致性 (弱一致)；<strong>RTO (復原時間)</strong>：1 ~ 5 分鐘；<strong>RPO (復原點)</strong>：> 0 (可能遺失數秒資料)；<strong>證交所實務評價</strong>：無法滿足核心帳務零資料遺失法規底線。</li>
+  <li><strong>半同步複製 (Semi-Sync)</strong>：<strong>資料一致性模型</strong>：至少一從節點落盤；<strong>RTO (復原時間)</strong>：30 ~ 60 秒；<strong>RPO (復原點)</strong>：≈ 0 (主節點無降級下)；<strong>證交所實務評價</strong>：兼顧成本與可靠性之過渡方案。</li>
+  <li><strong>原生分散式 (Raft/Paxos)</strong>：<strong>資料一致性模型</strong>：強一致性 (Strict Serializability)；<strong>RTO (復原時間)</strong>：< 5 秒 (自動 Leader 選舉)；<strong>RPO (復原點)</strong>：0 (過半數 Quorum 承諾)；<strong>證交所實務評價</strong>：新一代同城雙活與彈性擴容最佳架構。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在金融高可用領域，單純依賴傳統資料庫雙主模式易帶來災難性的邏輯衝突。邁向以 Raft/Paxos 為核心之分散式強一致架構，是達成 RTO趨近零且 RPO完全為零的終極解法。</p>
             """,
             "examinerTips": "評分亮點：『傳統雙主非同步複製衝突與 LWW 缺陷』、『Raft/Paxos 過半數 Quorum 共識機制』、『2PC + Raft 結合 MVCC 快照隔離』、『RTO < 5 秒與 RPO = 0 的量化承諾』。",
-            "detailedExplanation": "核心帳務系統資料庫設計是系統工程師必答大題。考生精準闡述 Raft 演算法如何解決傳統腦裂，並給出清晰對照表，是奪取高分的關鍵。"
+            "detailedExplanation": "核心帳務系統資料庫設計是系統工程師必答大題。考生精準闡述 Raft 演算法如何解決傳統腦裂，並給出清晰架構對比，是奪取高分的關鍵。"
         },
         {
             "id": "sn-essay-14",
@@ -101,39 +74,12 @@ def get_20_new_sysnet_essays():
   </li>
 </ol>
 
-<h4>三、iptables vs DPDK vs eBPF/XDP 效能技術評估表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">技術架構</th>
-      <th style="padding:6px 10px;">封包處理攔截位置</th>
-      <th style="padding:6px 10px;">sk_buff 記憶體分配</th>
-      <th style="padding:6px 10px;">CPU 佔用與調度</th>
-      <th style="padding:6px 10px;">線速過濾能力 (Mpps)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">傳統 iptables (netfilter)</td>
-      <td style="padding:6px 10px;">核心網路堆疊 PREROUTING</td>
-      <td style="padding:6px 10px; color:#ef4444;">必須完整分配 sk_buff</td>
-      <td style="padding:6px 10px;">中斷 + SoftIRQ 開銷大</td>
-      <td style="padding:6px 10px;">1 ~ 2 Mpps</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Intel DPDK</td>
-      <td style="padding:6px 10px;">用戶空間 PMD 驅動</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">零分配 (完全接管網卡)</td>
-      <td style="padding:6px 10px; color:#ef4444;">100% 獨佔綁定 CPU 核心</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">30 ~ 50 Mpps</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Linux eBPF / XDP</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">網卡驅動層 (Driver Level)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">無需分配 sk_buff</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">按需執行，極致省電</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">20 ~ 30 Mpps</td>
-    </tr>
-  </table>
-</div>
+<h4>三、iptables vs DPDK vs eBPF/XDP 效能技術重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>傳統 iptables (netfilter)</strong>：<strong>封包處理攔截位置</strong>：核心網路堆疊 PREROUTING；<strong>sk_buff 記憶體分配</strong>：必須完整分配 sk_buff；<strong>CPU 佔用與調度</strong>：中斷 + SoftIRQ 開銷大；<strong>線速過濾能力 (Mpps)</strong>：1 ~ 2 Mpps。</li>
+  <li><strong>Intel DPDK</strong>：<strong>封包處理攔截位置</strong>：用戶空間 PMD 驅動；<strong>sk_buff 記憶體分配</strong>：零分配 (完全接管網卡)；<strong>CPU 佔用與調度</strong>：100% 獨佔綁定 CPU 核心；<strong>線速過濾能力 (Mpps)</strong>：30 ~ 50 Mpps。</li>
+  <li><strong>Linux eBPF / XDP</strong>：<strong>封包處理攔截位置</strong>：網卡驅動層 (Driver Level)；<strong>sk_buff 記憶體分配</strong>：無需分配 sk_buff；<strong>CPU 佔用與調度</strong>：按需執行，極致省電；<strong>線速過濾能力 (Mpps)</strong>：20 ~ 30 Mpps。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>eBPF/XDP 在「無旁路之重、享旁路之速」間取得了完美平衡。它為證交所超低延遲系統提供了原生、安全且對系統零負擔的極致可觀測性與邊界防護利器。</p>
@@ -147,7 +93,7 @@ def get_20_new_sysnet_essays():
             "chapter": "第 5 章：軟體定義網路、BGP 路由與資料中心互聯",
             "title": "現代資料中心 BGP EVPN 與 VXLAN 覆蓋網路（Overlay Network）之脊葉（Spine-Leaf）架構規劃",
             "points": 25,
-            "rubric": "1. 傳統三層式網路 STP 瓶頸 (6分)；2. Spine-Leaf 拓撲與 ECMP 等價負載平衡 (7分)；3. BGP EVPN + VXLAN 控制與轉發平面架構表 (8分)；4. 結論 (4分)",
+            "rubric": "1. 傳統三層式網路 STP 瓶頸 (6分)；2. Spine-Leaf 拓撲與 ECMP 等價負載平衡 (7分)；3. BGP EVPN + VXLAN 控制與轉發平面架構重點 (8分)；4. 結論 (4分)",
             "question": "傳統企業資料中心採用「核心-匯聚-接入」三層架構與生成樹通訊協定（STP），存在頻寬浪費、收斂緩慢與東西向伺服器橫向通訊延遲高之缺點。請規劃臺灣證券交易所現代雲化機房之「脊葉（Spine-Leaf）」無阻塞網路架構，闡述如何以 BGP EVPN（乙太網路虛擬專用網路）作為控制平面，並搭配 VXLAN 覆蓋網路實現跨機房大二層虛擬化與任意虛擬機靈活漂移？",
             "modelAnswer": """
 <h4>一、破題：傳統資料中心架構的算力桎梏</h4>
@@ -173,36 +119,11 @@ def get_20_new_sysnet_essays():
   </li>
 </ol>
 
-<h4>四、傳統三層式網路 vs 現代 Spine-Leaf BGP EVPN 對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較構面</th>
-      <th style="padding:6px 10px;">傳統三層式網路 (STP)</th>
-      <th style="padding:6px 10px;">現代 Spine-Leaf (BGP EVPN + VXLAN)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">鏈路利用率</td>
-      <td style="padding:6px 10px; color:#ef4444;">僅 50% (STP 阻斷備援鏈路防迴圈)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">100% 滿載利用 (ECMP 等價多路徑動態散列)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">東西向傳輸延遲</td>
-      <td style="padding:6px 10px;">長且不確定 (需繞經匯聚與核心層)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極致恆定 (嚴格固定 3 跳，次微秒級)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">跨機房虛擬機漂移</td>
-      <td style="padding:6px 10px;">受限於實體 VLAN 邊界，極難跨網段遷移</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">無縫大二層延伸，IP/MAC 保持不變自由熱漂移</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">廣播風暴防護</td>
-      <td style="padding:6px 10px;">依賴 STP 緩慢收斂</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">BGP EVPN 控制面主動學習，本地 ARP 抑制與代答</td>
-    </tr>
-  </table>
-</div>
+<h4>四、傳統三層式網路 vs 現代 Spine-Leaf BGP EVPN 重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【傳統三層式網路 (STP)】</strong>：<strong>鏈路利用率</strong>：僅 50% (STP 阻斷備援鏈路防迴圈)；<strong>東西向傳輸延遲</strong>：長且不確定 (需繞經匯聚與核心層)；<strong>跨機房虛擬機漂移</strong>：受限於實體 VLAN 邊界，極難跨網段遷移；<strong>廣播風暴防護</strong>：依賴 STP 緩慢收斂。</li>
+  <li><strong>【現代 Spine-Leaf (BGP EVPN + VXLAN)】</strong>：<strong>鏈路利用率</strong>：100% 滿載利用 (ECMP 等價多路徑動態散列)；<strong>東西向傳輸延遲</strong>：極致恆定 (嚴格固定 3 跳，次微秒級)；<strong>跨機房虛擬機漂移</strong>：無縫大二層延伸，IP/MAC 保持不變自由熱漂移；<strong>廣播風暴防護</strong>：BGP EVPN 控制面主動學習，本地 ARP 抑制與代答。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>規劃以 Spine-Leaf 結合 BGP EVPN/VXLAN 為核心之資料中心網路，徹底釋放金融叢集之橫向算力，為證券交易新一代雲原生平台提供高可靠、低延遲、無阻塞的堅韌網路骨幹。</p>
@@ -236,34 +157,11 @@ def get_20_new_sysnet_essays():
 </ol>
 
 <h4>三、擁塞控制機制全維度對比與調校參數表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">機制</th>
-      <th style="padding:6px 10px;">控制觸發條件</th>
-      <th style="padding:6px 10px;">封包處理動作</th>
-      <th style="padding:6px 10px;">金融撮合場景之利弊</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">尾端丟棄 (Tail Drop)</td>
-      <td style="padding:6px 10px;">隊列緩衝區 100% 耗盡</td>
-      <td style="padding:6px 10px; color:#ef4444;">無差別強制丟棄所有後續封包</td>
-      <td style="padding:6px 10px; color:#ef4444;">最差！引發大量 TCP 重傳與長尾延遲</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">WRED (加權早期檢測)</td>
-      <td style="padding:6px 10px;">隊列超過 Min_Th 閾值</td>
-      <td style="padding:6px 10px;">依優先級以特定機率丟包提醒發送方</td>
-      <td style="padding:6px 10px;">避免全網同步，但仍有少數封包需重傳</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">WRED + ECN 標記</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">隊列超過 Min_Th 但未滿 Max_Th</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">不丟包！直接於 IP 標頭打上 CE 標記</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">最佳！零丟包消除重傳延遲，平滑消化微突發</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>尾端丟棄 (Tail Drop)</strong>：<strong>控制觸發條件</strong>：隊列緩衝區 100% 耗盡；<strong>封包處理動作</strong>：無差別強制丟棄所有後續封包；最差！引發大量 TCP 重傳與長尾延遲。</li>
+  <li><strong>WRED (加權早期檢測)</strong>：<strong>控制觸發條件</strong>：隊列超過 Min_Th 閾值；<strong>封包處理動作</strong>：依優先級以特定機率丟包提醒發送方；避免全網同步，但仍有少數封包需重傳。</li>
+  <li><strong>WRED + ECN 標記</strong>：<strong>控制觸發條件</strong>：隊列超過 Min_Th 但未滿 Max_Th；<strong>封包處理動作</strong>：不丟包！直接於 IP 標頭打上 CE 標記；最佳！零丟包消除重傳延遲，平滑消化微突發。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在以微秒決勝的現代證券市場中，微突發防禦必須將交換器硬體動態緩衝池與端到端 ECN 機制深度結合，確保在市場行情驚濤駭浪之際，每一筆委託均能零遺失、低延遲送達撮合核心。</p>
@@ -277,7 +175,7 @@ def get_20_new_sysnet_essays():
             "chapter": "第 2 章：Linux 系統底層核心與極致效能調校",
             "title": "金融極速記憶體架構：HugePages（大頁記憶體）、NUMA 節點交織與記憶體階層無鎖演算法",
             "points": 25,
-            "rubric": "1. 記憶體管理單元（MMU）與 TLB Miss 延遲瓶頸 (6分)；2. HugePages (2MB/1GB) 調校與 NUMA 本地記憶體親和性 (8分)；3. 無鎖環形緩衝區與記憶體階層對照表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 記憶體管理單元（MMU）與 TLB Miss 延遲瓶頸 (6分)；2. HugePages (2MB/1GB) 調校與 NUMA 本地記憶體親和性 (8分)；3. 無鎖環形緩衝區與記憶體階層重點對比 (7分)；4. 結論 (4分)",
             "question": "在每秒百萬級委託處理的高頻撮合主機中，CPU 記憶體存取延遲（RAM Latency）與轉譯後備緩衝區（TLB, Translation Lookaside Buffer）命中率直接決定系統成敗。請剖析 Linux 預設 4KB 分頁在超大記憶體環境下的 TLB 抖動缺陷，說明如何規劃靜態 HugePages（2MB / 1GB）與 NUMA 架構親和性調校，並設計一套基於 CAS（Compare-And-Swap）的無鎖環形佇列（Lock-Free Ring Buffer）以避免執行緒鎖競爭？",
             "modelAnswer": """
 <h4>一、破題：記憶體牆（Memory Wall）與 TLB 命中率考驗</h4>
@@ -300,38 +198,12 @@ def get_20_new_sysnet_essays():
 </ol>
 
 <h4>三、分頁模式與記憶體架構全景性能比較表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">機制規格</th>
-      <th style="padding:6px 10px;">分頁大小</th>
-      <th style="padding:6px 10px;">TLB 覆蓋範圍 (以 512 條目計)</th>
-      <th style="padding:6px 10px;">延遲穩定性與抖動風險</th>
-      <th style="padding:6px 10px;">金融撮合推薦指數</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">標準分頁 (Default)</td>
-      <td style="padding:6px 10px;">4 KB</td>
-      <td style="padding:6px 10px; color:#ef4444;">僅 2 MB</td>
-      <td style="padding:6px 10px;">高 TLB Miss，隨機讀寫延遲波動大</td>
-      <td style="padding:6px 10px;">不推薦</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">透明巨頁 (THP)</td>
-      <td style="padding:6px 10px;">2 MB (動態分配)</td>
-      <td style="padding:6px 10px;">1 GB</td>
-      <td style="padding:6px 10px; color:#ef4444;">極危險！khugepaged 背景壓縮引發毫秒停頓</td>
-      <td style="padding:6px 10px; color:#ef4444;">嚴格禁用！</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">靜態巨頁 (HugePages)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">2 MB 或 1 GB (開機預留)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">高達 512 GB</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極致平穩！開機锁定記憶體，零分頁換出</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">★★★★★ 強制採用</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【分頁大小】</strong>：<strong>標準分頁 (Default)</strong>：4 KB；<strong>透明巨頁 (THP)</strong>：2 MB (動態分配)；<strong>靜態巨頁 (HugePages)</strong>：2 MB 或 1 GB (開機預留)。</li>
+  <li><strong>【TLB 覆蓋範圍 (以 512 條目計)】</strong>：<strong>標準分頁 (Default)</strong>：僅 2 MB；<strong>透明巨頁 (THP)</strong>：1 GB；<strong>靜態巨頁 (HugePages)</strong>：高達 512 GB。</li>
+  <li><strong>【延遲穩定性與抖動風險】</strong>：<strong>標準分頁 (Default)</strong>：高 TLB Miss，隨機讀寫延遲波動大；<strong>透明巨頁 (THP)</strong>：極危險！khugepaged 背景壓縮引發毫秒停頓；<strong>靜態巨頁 (HugePages)</strong>：極致平穩！開機锁定記憶體，零分頁換出。</li>
+  <li><strong>【金融撮合推薦指數】</strong>：<strong>標準分頁 (Default)</strong>：不推薦；<strong>透明巨頁 (THP)</strong>：嚴格禁用！；<strong>靜態巨頁 (HugePages)</strong>：★★★★★ 強制採用。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>打造極致撮合引擎必須由微觀硬體層面著手。以靜態 1GB HugePages 征服 TLB 抖動，以 NUMA 綁定降伏跨匯流排延遲，輔以 CAS 無鎖演算法，徹底榨乾現代伺服器記憶體架構之極限潛能。</p>

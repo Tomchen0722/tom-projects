@@ -21,7 +21,7 @@ def get_20_new_sec_essays():
             "title": "金管會「金融機構資通安全防護基準」主機加固、評估等級與獨立驗證實踐",
             "points": 25,
             "rubric": "1. 資通安全防護基準等級劃分原則 (6分)；2. 伺服器核心作業系統與網路加固規範 (8分)；3. 獨立資安檢測與第三方查核機制 (7分)；4. 結論 (4分)",
-            "question": "依金管會與證券期貨局發布之「金融機構資通安全防護基準」，證券期貨業者必須依據業務性質及系統重要性實施分級防護。請分析該防護基準對核心交易系統之主機加固（Hardening）、帳號生命週期、密碼強度、網路通訊加密及定期獨立驗證之明確規範，並以表格對比不同防護等級之關鍵控制要求。",
+            "question": "依金管會與證券期貨局發布之「金融機構資通安全防護基準」，證券期貨業者必須依據業務性質及系統重要性實施分級防護。請分析該防護基準對核心交易系統之主機加固（Hardening）、帳號生命週期、密碼強度、網路通訊加密及定期獨立驗證之明確規範，並以條列對比不同防護等級之關鍵控制要求。",
             "modelAnswer": """
 <h4>一、破題：金融機構資通安全防護基準之戰略定位</h4>
 <p>金管會「金融機構資通安全防護基準」為我國證券期貨業建立資通安全縱深防禦體系之根本法規。其核心精神在於<strong>「風險導向、分級管理、持續驗證」</strong>，針對核心業務系統（如撮合、委託收受、行情推播）施加最高標準之防護措施。</p>
@@ -42,41 +42,13 @@ def get_20_new_sec_essays():
   </li>
 </ol>
 
-<h4>三、系統防護等級關鍵控制項目橫向對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">控制構面</th>
-      <th style="padding:6px 10px;">第一級（核心交易系統）</th>
-      <th style="padding:6px 10px;">第二級（一般營運系統）</th>
-      <th style="padding:6px 10px;">第三級（內部行政系統）</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">多因子身分鑑別 (MFA)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">全面強制要求 (FIDO2 / 硬體 Token)</td>
-      <td style="padding:6px 10px;">特權帳號強制要求</td>
-      <td style="padding:6px 10px;">建議特權帳號啟用</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">傳輸加密規格</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">強制 TLS 1.3 / mTLS 雙向認證</td>
-      <td style="padding:6px 10px;">TLS 1.2 以上加密傳輸</td>
-      <td style="padding:6px 10px;">標準 HTTPS 傳輸</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">獨立安全檢驗頻率</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">每年 1 次第三方滲透測試 + 紅隊演練</td>
-      <td style="padding:6px 10px;">每兩年 1 次滲透測試</td>
-      <td style="padding:6px 10px;">每年弱點掃描</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">稽核日誌保存年限</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">至少保存 5 年 (WORM 唯讀存儲)</td>
-      <td style="padding:6px 10px;">至少保存 3 年</td>
-      <td style="padding:6px 10px;">至少保存 1 年</td>
-    </tr>
-  </table>
-</div>
+<h4>三、系統防護等級關鍵控制項目重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>多因子身分鑑別 (MFA)</strong>：全面強制要求 (FIDO2 / 硬體 Token)；<strong>第二級（一般營運系統）</strong>：特權帳號強制要求；<strong>第三級（內部行政系統）</strong>：建議特權帳號啟用。</li>
+  <li><strong>傳輸加密規格</strong>：強制 TLS 1.3 / mTLS 雙向認證；<strong>第二級（一般營運系統）</strong>：TLS 1.2 以上加密傳輸；<strong>第三級（內部行政系統）</strong>：標準 HTTPS 傳輸。</li>
+  <li><strong>獨立安全檢驗頻率</strong>：每年 1 次第三方滲透測試 + 紅隊演練；<strong>第二級（一般營運系統）</strong>：每兩年 1 次滲透測試；<strong>第三級（內部行政系統）</strong>：每年弱點掃描。</li>
+  <li><strong>稽核日誌保存年限</strong>：至少保存 5 年 (WORM 唯讀存儲)；<strong>第二級（一般營運系統）</strong>：至少保存 3 年；<strong>第三級（內部行政系統）</strong>：至少保存 1 年。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>臺灣證券交易所作為我國金融核心關鍵基礎設施，必須以「超越基準、全員防護」之高規格實踐防護基準，確保證券市場主機在遭遇複合式威脅時仍具備極致韌性。</p>
@@ -90,7 +62,7 @@ def get_20_new_sec_essays():
             "chapter": "第 3 章：ISO 19011 管理系統稽核指引與主導稽核員實務",
             "title": "ISO 19011:2018 稽核指引：第一階段（Stage 1）與第二階段（Stage 2）稽核執行差異與現場抽樣技術",
             "points": 25,
-            "rubric": "1. Stage 1 文件審查與準備度查核目的 (6分)；2. Stage 2 現場實施查核方法與客觀證據 (8分)；3. 兩階段對比分析表 (7分)；4. 抽樣偏差防範與結論 (4分)",
+            "rubric": "1. Stage 1 文件審查與準備度查核目的 (6分)；2. Stage 2 現場實施查核方法與客觀證據 (8分)；3. 兩階段對比分析 (7分)；4. 抽樣偏差防範與結論 (4分)",
             "question": "臺灣證券交易所為確保資訊安全管理系統（ISMS）持續符合 ISO/IEC 27001 國際標準，定期委由外部認證機構執行轉證稽核。主導稽核員依據 ISO 19011:2018 執行評審時，何謂 Stage 1（文件審查與準備度查核）與 Stage 2（現場實施與有效性查核）？請比較兩者目標、範圍、查證手法與常見產出，並說明現場稽核時如何運用代表性抽樣避免採樣偏差？",
             "modelAnswer": """
 <h4>一、破題：ISO 19011 稽核指引雙階段認證哲學</h4>
@@ -109,36 +81,11 @@ def get_20_new_sec_essays():
   </li>
 </ol>
 
-<h4>三、Stage 1 vs Stage 2 稽核全構面對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">評審維度</th>
-      <th style="padding:6px 10px;">第一階段稽核 (Stage 1)</th>
-      <th style="padding:6px 10px;">第二階段稽核 (Stage 2)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">主要目標</td>
-      <td style="padding:6px 10px;">審查文管架構、確認範圍與 Stage 2 準備度</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">驗證控制措施之現場落實度與持續有效性</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">查核重點</td>
-      <td style="padding:6px 10px;">SoA、風險評鑑報告、內稽與管審紀錄</td>
-      <td style="padding:6px 10px;">日常維運紀錄、變更單、門禁日誌、事件處置單</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">查驗手法</td>
-      <td style="padding:6px 10px;">文件審閱、高階主管溝通、流程走查</td>
-      <td style="padding:6px 10px;">系統現場實機驗證、隨機抽樣日誌、人員隨機訪談</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">稽核結論產出</td>
-      <td style="padding:6px 10px;">準備度報告、Stage 2 稽核計畫、改善建議</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">不符合事項報告（Major/Minor NC）、發證建議</td>
-    </tr>
-  </table>
-</div>
+<h4>三、Stage 1 vs Stage 2 稽核全構面重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【第一階段稽核 (Stage 1)】</strong>：<strong>主要目標</strong>：審查文管架構、確認範圍與 Stage 2 準備度；<strong>查核重點</strong>：SoA、風險評鑑報告、內稽與管審紀錄；<strong>查驗手法</strong>：文件審閱、高階主管溝通、流程走查；<strong>稽核結論產出</strong>：準備度報告、Stage 2 稽核計畫、改善建議。</li>
+  <li><strong>【第二階段稽核 (Stage 2)】</strong>：<strong>主要目標</strong>：驗證控制措施之現場落實度與持續有效性；<strong>查核重點</strong>：日常維運紀錄、變更單、門禁日誌、事件處置單；<strong>查驗手法</strong>：系統現場實機驗證、隨機抽樣日誌、人員隨機訪談；<strong>稽核結論產出</strong>：不符合事項報告（Major/Minor NC）、發證建議。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>主導稽核員依循 ISO 19011 原則嚴謹分流雙階段稽核，不僅保障發證公信力，更實質促使證交所 ISMS 體系自形式合規昇華至實質強固之安全文化。</p>
@@ -152,7 +99,7 @@ def get_20_new_sec_essays():
             "chapter": "第 3 章：ISO 19011 管理系統稽核指引與主導稽核員實務",
             "title": "稽核不符合事項（Non-Conformity）判定原則、重大與次要缺失界定及 8D 根本原因分析（RCA）矯正措施",
             "points": 25,
-            "rubric": "1. Major NC、Minor NC 與 Observation 判定基準 (7分)；2. 8D 問題解決方法架構與根本原因分析 (9分)；3. 不符合事項改善閉環對照表 (5分)；4. 結論 (4分)",
+            "rubric": "1. Major NC、Minor NC 與 Observation 判定基準 (7分)；2. 8D 問題解決方法架構與根本原因分析 (9分)；3. 不符合事項改善閉環分析 (5分)；4. 結論 (4分)",
             "question": "資訊安全稽核過程中，稽核員若發現受稽單位未依作業程序執行定期特權帳號審查，應如何依據 ISO 19011 與 ISO/IEC 27001 判定其為「重大不符合事項（Major NC）」、「次要不符合事項（Minor NC）」或「觀察事項（Observation）」？請詳述其判定準則，並針對已開立之重大不符合事項，說明如何運用 8D（Eight Disciplines）問題解決方法完成根本原因分析（RCA）及後續矯正預防措施（CAPA）之有效性驗證。",
             "modelAnswer": """
 <h4>一、破題：稽核發現與不符合事項本質</h4>
@@ -175,40 +122,13 @@ def get_20_new_sec_essays():
 </ol>
 
 <h4>三、8D（Eight Disciplines）問題分析與矯正預防實踐</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">8D 步驟</th>
-      <th style="padding:6px 10px;">步驟名稱</th>
-      <th style="padding:6px 10px;">特權帳號審查缺失之實務行動</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">D1 & D2</td>
-      <td style="padding:6px 10px;">成立團隊 & 問題描述</td>
-      <td style="padding:6px 10px;">指派資安主管、維運組長成立小組；明確定義「撮合伺服器特權帳號未落實雙月覆核」。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">D3</td>
-      <td style="padding:6px 10px;">臨時遏阻行動 (Containment)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">立即清查並凍結所有未經覆核之臨時特權帳號，限縮存取權限。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">D4</td>
-      <td style="padding:6px 10px;">根本原因分析 (RCA)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">運用 5-Whys 與魚骨圖，發現真因為「依賴人工行事曆提醒，人員輪調無交接機制」。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">D5 & D6</td>
-      <td style="padding:6px 10px;">擬定並執行永久對策</td>
-      <td style="padding:6px 10px;">導入自動化 PAM 平台，自動產生存取清單並強制每 60 天鎖定逾期帳號。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">D7 & D8</td>
-      <td style="padding:6px 10px;">預防再發 & 肯定表彰</td>
-      <td style="padding:6px 10px;">修訂 ISMS-P-08 程序書，並由稽核主管於 3 個月後驗證關閉。</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>D1 & D2</strong>：成立團隊 & 問題描述；指派資安主管、維運組長成立小組；明確定義「撮合伺服器特權帳號未落實雙月覆核」。。</li>
+  <li><strong>D3</strong>：臨時遏阻行動 (Containment)；立即清查並凍結所有未經覆核之臨時特權帳號，限縮存取權限。。</li>
+  <li><strong>D4</strong>：根本原因分析 (RCA)；運用 5-Whys 與魚骨圖，發現真因為「依賴人工行事曆提醒，人員輪調無交接機制」。。</li>
+  <li><strong>D5 & D6</strong>：擬定並執行永久對策；導入自動化 PAM 平台，自動產生存取清單並強制每 60 天鎖定逾期帳號。。</li>
+  <li><strong>D7 & D8</strong>：預防再發 & 肯定表彰；修訂 ISMS-P-08 程序書，並由稽核主管於 3 個月後驗證關閉。。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>稽核的終極價值不在於開單，而在於引導組織啟動閉環改善。唯有落實 8D 根本原因剖析與有效性驗證，方能杜絕資安破口死灰復燃。</p>
@@ -222,7 +142,7 @@ def get_20_new_sec_essays():
             "chapter": "第 4 章：身分識別、存取控制與零信任架構（ZTA）",
             "title": "金融 FIDO2 / WebAuthn 無密碼強身分認證架構與防中間人（Anti-MITM）攻擊分析",
             "points": 25,
-            "rubric": "1. 傳統 SMS/OTP 缺陷與反向代理釣魚威脅 (6分)；2. FIDO2 / WebAuthn 公私鑰非對稱認證機制 (8分)；3. Origin 綁定與防釣魚技術對照表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 傳統 SMS/OTP 缺陷與反向代理釣魚威脅 (6分)；2. FIDO2 / WebAuthn 公私鑰非對稱認證機制 (8分)；3. Origin 綁定與防釣魚技術重點對比 (7分)；4. 結論 (4分)",
             "question": "傳統以「帳號/密碼 + 簡訊 OTP / 軟體動態密碼」為基礎之雙因子認證（2FA），極易遭受即時反向代理（Reverse Proxy, 如 Evilginx）釣魚攻擊攔截 Session Token。請說明 FIDO Alliance 與 W3C 制定之 FIDO2 / WebAuthn 無密碼強認證標準架構，闡明用戶端設備（Client/Authenticator）如何運用晶片硬體產生金鑰對，並透過網域來源綁定（Origin Binding）徹底免疫中間人（MITM）釣魚攻擊？",
             "modelAnswer": """
 <h4>一、破題：傳統多因子驗證之崩潰與反向代理釣魚危機</h4>
@@ -243,41 +163,12 @@ def get_20_new_sec_essays():
   </li>
 </ol>
 
-<h4>三、傳統 2FA 機制 vs FIDO2 / WebAuthn 防護對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較構面</th>
-      <th style="padding:6px 10px;">簡訊 SMS OTP</th>
-      <th style="padding:6px 10px;">軟體 TOTP (Google Auth)</th>
-      <th style="padding:6px 10px;">FIDO2 / WebAuthn (硬體/Passkey)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">防反向代理中間人 (AiTM)</td>
-      <td style="padding:6px 10px; color:#ef4444;">無防禦力 (可被轉發截獲)</td>
-      <td style="padding:6px 10px; color:#ef4444;">無防禦力 (可被即時轉發)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">100% 免疫 (Origin 網域綁定)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">私鑰/秘密值保存機制</td>
-      <td style="padding:6px 10px;">電信商簡訊傳遞 (SIM Swapping)</td>
-      <td style="padding:6px 10px;">手機軟體記憶體共享金鑰</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">硬體安全元件 (TPM / SE) 永不導出</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">密碼洩漏風險</td>
-      <td style="padding:6px 10px;">高 (仍需輸入帳號主密碼)</td>
-      <td style="padding:6px 10px;">高 (仍需輸入主密碼)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">零 (真正無密碼 Passwordless)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">法遵與監理推薦</td>
-      <td style="padding:6px 10px;">金管會逐步限縮核心業務使用</td>
-      <td style="padding:6px 10px;">一般金融系統標準配置</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">金融資安行動方案 2.0 優先推薦標準</td>
-    </tr>
-  </table>
-</div>
+<h4>三、傳統 2FA 機制 vs FIDO2 / WebAuthn 防護重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【簡訊 SMS OTP】</strong>：<strong>防反向代理中間人 (AiTM)</strong>：無防禦力 (可被轉發截獲)；<strong>私鑰/秘密值保存機制</strong>：電信商簡訊傳遞 (SIM Swapping)；<strong>密碼洩漏風險</strong>：高 (仍需輸入帳號主密碼)；<strong>法遵與監理推薦</strong>：金管會逐步限縮核心業務使用。</li>
+  <li><strong>【軟體 TOTP (Google Auth)】</strong>：<strong>防反向代理中間人 (AiTM)</strong>：無防禦力 (可被即時轉發)；<strong>私鑰/秘密值保存機制</strong>：手機軟體記憶體共享金鑰；<strong>密碼洩漏風險</strong>：高 (仍需輸入主密碼)；<strong>法遵與監理推薦</strong>：一般金融系統標準配置。</li>
+  <li><strong>【FIDO2 / WebAuthn (硬體/Passkey)】</strong>：<strong>防反向代理中間人 (AiTM)</strong>：100% 免疫 (Origin 網域綁定)；<strong>私鑰/秘密值保存機制</strong>：硬體安全元件 (TPM / SE) 永不導出；<strong>密碼洩漏風險</strong>：零 (真正無密碼 Passwordless)；<strong>法遵與監理推薦</strong>：金融資安行動方案 2.0 優先推薦標準。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>導入 FIDO2/WebAuthn 不僅達成極致無密碼便捷性，更從密碼學本質拔除釣魚憑證盜用之禍根，為證券交易下單提供無懈可擊之身分護城河。</p>
@@ -317,35 +208,12 @@ def get_20_new_sec_essays():
   </li>
 </ol>
 
-<h4>四、OWASP API 核心風險防護對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">風險類別</th>
-      <th style="padding:6px 10px;">漏洞成因</th>
-      <th style="padding:6px 10px;">攻擊手法示範</th>
-      <th style="padding:6px 10px;">防禦與治理對策</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">API1: BOLA</td>
-      <td style="padding:6px 10px;">代碼未校驗用戶與資源物件之所有權歸屬</td>
-      <td style="padding:6px 10px;">遞增替換 URL 中之訂單編號 Order_ID</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">在資料庫查詢強制注入 <code>WHERE user_id = current_user</code></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">API3: BOPLA</td>
-      <td style="padding:6px 10px;">反序列化時盲目綁定用戶傳入的所有 JSON 欄位</td>
-      <td style="padding:6px 10px;">在下單 JSON 額外注入 <code>is_vip: true</code></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">嚴格使用 DTO (Data Transfer Object) 白名單過濾</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">API4: 資源耗盡</td>
-      <td style="padding:6px 10px;">缺乏速率限制 (Rate Limiting) 與請求大小限制</td>
-      <td style="padding:6px 10px;">高頻發送巨大批次委託查詢瘫瘓後端</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">API Gateway 實施權杖桶 (Token Bucket) 限流</td>
-    </tr>
-  </table>
-</div>
+<h4>四、OWASP API 核心風險防護重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>API1: BOLA</strong>：<strong>漏洞成因</strong>：代碼未校驗用戶與資源物件之所有權歸屬；<strong>攻擊手法示範</strong>：遞增替換 URL 中之訂單編號 Order_ID；<strong>防禦與治理對策</strong>：在資料庫查詢強制注入 WHERE user_id = current_user。</li>
+  <li><strong>API3: BOPLA</strong>：<strong>漏洞成因</strong>：反序列化時盲目綁定用戶傳入的所有 JSON 欄位；<strong>攻擊手法示範</strong>：在下單 JSON 額外注入 is_vip: true；<strong>防禦與治理對策</strong>：嚴格使用 DTO (Data Transfer Object) 白名單過濾。</li>
+  <li><strong>API4: 資源耗盡</strong>：<strong>漏洞成因</strong>：缺乏速率限制 (Rate Limiting) 與請求大小限制；<strong>攻擊手法示範</strong>：高頻發送巨大批次委託查詢瘫瘓後端；<strong>防禦與治理對策</strong>：API Gateway 實施權杖桶 (Token Bucket) 限流。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>金融 API 的防護是一場全鏈路縱深防禦，必須結合架構層之 mTLS/OAuth2 綁定與程式碼層之嚴格 DTO 驗證，杜絕任何越權存取破口。</p>
@@ -385,34 +253,11 @@ def get_20_new_sec_essays():
 </ol>
 
 <h4>四、SPDX vs CycloneDX 與 SLSA 等級全貌表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較構面</th>
-      <th style="padding:6px 10px;">SPDX 格式</th>
-      <th style="padding:6px 10px;">CycloneDX 格式</th>
-      <th style="padding:6px 10px;">SLSA 核心對應等級</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">主導組織與標準</td>
-      <td style="padding:6px 10px;">Linux Foundation (ISO/IEC 5962)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">OWASP 基金會</td>
-      <td style="padding:6px 10px;">Google / OpenSSF 聯盟</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">核心應用強項</td>
-      <td style="padding:6px 10px;">開源授權合規、智財權盤點</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">漏洞風險分析、VEX 漏洞狀態通報</td>
-      <td style="padding:6px 10px;">CI/CD 管線防竄改與產物真偽驗證</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">防禦關鍵技術</td>
-      <td style="padding:6px 10px;">套件哈希校驗、授權條款解析</td>
-      <td style="padding:6px 10px;">結合 SCA 工具 (Grype/Trivy) 掃描</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Cosign 簽名 + In-toto 證明鏈 + Kyverno 攔截</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【SPDX 格式】</strong>：<strong>主導組織與標準</strong>：Linux Foundation (ISO/IEC 5962)；<strong>核心應用強項</strong>：開源授權合規、智財權盤點；<strong>防禦關鍵技術</strong>：套件哈希校驗、授權條款解析。</li>
+  <li><strong>【CycloneDX 格式】</strong>：<strong>主導組織與標準</strong>：OWASP 基金會；<strong>核心應用強項</strong>：漏洞風險分析、VEX 漏洞狀態通報；<strong>防禦關鍵技術</strong>：結合 SCA 工具 (Grype/Trivy) 掃描。</li>
+  <li><strong>【SLSA 核心對應等級】</strong>：<strong>主導組織與標準</strong>：Google / OpenSSF 聯盟；<strong>核心應用強項</strong>：CI/CD 管線防竄改與產物真偽驗證；<strong>防禦關鍵技術</strong>：Cosign 簽名 + In-toto 證明鏈 + Kyverno 攔截。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>在金融 DevSecOps 時代，「代碼即資產、產物即合規」。導入 SBOM 與 SLSA 體系，方能確保證交所核心系統之每行代碼與每個二進位執行檔皆可溯源、無毒且不容竄改。</p>
@@ -426,7 +271,7 @@ def get_20_new_sec_essays():
             "chapter": "第 5 章：現代密碼學、公鑰基礎設施（PKI）與硬體安全模組",
             "title": "金融實體伺服器硬體安全：TPM 2.0 晶片、安全開機（Secure Boot）信任鏈與韌體微碼加固",
             "points": 25,
-            "rubric": "1. 實體信任根（Root of Trust）原理 (7分)；2. TPM 2.0 PCR 暫存器度量開機與密封機制 (8分)；3. 開機防禦技術對照表 (6分)；4. 結論 (4分)",
+            "rubric": "1. 實體信任根（Root of Trust）原理 (7分)；2. TPM 2.0 PCR 暫存器度量開機與密封機制 (8分)；3. 開機防禦技術對比 (6分)；4. 結論 (4分)",
             "question": "高階持續性威脅（APT）日益轉向作業系統底層，利用開機磁區（Bootkit）或 UEFI 韌體漏洞繞過常規防毒軟體。請說明伺服器硬體層信任根（Root of Trust, RoT）之運作機制，闡述 TPM 2.0 晶片之平台組態暫存器（Platform Configuration Registers, PCR）度量開機（Measured Boot）與密封（Sealing）原理，並規劃證交所金融交易伺服器之 UEFI Secure Boot 信任鏈與韌體防護策略。",
             "modelAnswer": """
 <h4>一、破題：作業系統以下（Below-the-OS）的致命盲區</h4>
@@ -448,35 +293,12 @@ def get_20_new_sec_essays():
   </li>
 </ol>
 
-<h4>三、傳統開機 vs Secure Boot vs Measured Boot 對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">機制</th>
-      <th style="padding:6px 10px;">防護目標</th>
-      <th style="padding:6px 10px;">核心執行動作</th>
-      <th style="padding:6px 10px;">異常處理結果</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">傳統 BIOS</td>
-      <td style="padding:6px 10px;">無防護</td>
-      <td style="padding:6px 10px;">直接執行 MBR 第一磁區程式碼</td>
-      <td style="padding:6px 10px; color:#ef4444;">無條件執行惡意 Bootkit</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">UEFI Secure Boot</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">防止未經簽章之韌體與核心引導</td>
-      <td style="padding:6px 10px;">逐層驗證 X.509 數位簽名 (PK->KEK->db)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">阻斷開機流程，拒絕啟動</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">TPM 2.0 Measured Boot</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">記錄開機狀態並保護靜態硬碟加密金鑰</td>
-      <td style="padding:6px 10px;">將各階段組件雜湊累積至 PCR 暫存器</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">拒絕解鎖金鑰 (Unseal)，防資料外洩</td>
-    </tr>
-  </table>
-</div>
+<h4>三、傳統開機 vs Secure Boot vs Measured Boot 重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【防護目標】</strong>：<strong>傳統 BIOS</strong>：無防護；<strong>UEFI Secure Boot</strong>：防止未經簽章之韌體與核心引導；<strong>TPM 2.0 Measured Boot</strong>：記錄開機狀態並保護靜態硬碟加密金鑰。</li>
+  <li><strong>【核心執行動作】</strong>：<strong>傳統 BIOS</strong>：直接執行 MBR 第一磁區程式碼；<strong>UEFI Secure Boot</strong>：逐層驗證 X.509 數位簽名 (PK->KEK->db)；<strong>TPM 2.0 Measured Boot</strong>：將各階段組件雜湊累積至 PCR 暫存器。</li>
+  <li><strong>【異常處理結果】</strong>：<strong>傳統 BIOS</strong>：無條件執行惡意 Bootkit；<strong>UEFI Secure Boot</strong>：阻斷開機流程，拒絕啟動；<strong>TPM 2.0 Measured Boot</strong>：拒絕解鎖金鑰 (Unseal)，防資料外洩。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在證券交易所核心伺服器導入「Secure Boot + TPM 2.0 度量密封」，成功將安全邊界由作業系統向上推至晶片矽層（Silicon-level），建構不可撼動之物理級資安防禦基石。</p>
@@ -519,41 +341,12 @@ def get_20_new_sec_essays():
   </li>
 </ol>
 
-<h4>四、去識別化技術全構面對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">技術機制</th>
-      <th style="padding:6px 10px;">資料可逆性</th>
-      <th style="padding:6px 10px;">效能與儲存開銷</th>
-      <th style="padding:6px 10px;">證交所最佳實務應用情境</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">靜態遮蔽 (SDM)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">完全不可逆</td>
-      <td style="padding:6px 10px;">離線批次轉換，運行零開銷</td>
-      <td style="padding:6px 10px;">下包外包商研發測試環境資料庫遮蔽</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">動態遮蔽 (DDM)</td>
-      <td style="padding:6px 10px;">儲存維持明文，依角色即時隱蔽</td>
-      <td style="padding:6px 10px;">增加資料庫查詢 CPU 處理開銷</td>
-      <td style="padding:6px 10px;">內部臨櫃交易與客服人員權限審閱</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">權杖化 (Tokenization)</td>
-      <td style="padding:6px 10px;">透過 Vault 受控單向映射可逆</td>
-      <td style="padding:6px 10px;">需維護龐大 Vault 映射庫與金鑰</td>
-      <td style="padding:6px 10px;">跨金融機構下單帳號與身分代碼流轉</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">差分隱私 (DP)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">群體統計輸出，完全無法還原個體</td>
-      <td style="padding:6px 10px;">需計算敏感度並注入數學雜訊</td>
-      <td style="padding:6px 10px;">大數據市場總交易趨勢與量化研究發布</td>
-    </tr>
-  </table>
-</div>
+<h4>四、去識別化技術全構面重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【資料可逆性】</strong>：<strong>靜態遮蔽 (SDM)</strong>：完全不可逆；<strong>動態遮蔽 (DDM)</strong>：儲存維持明文，依角色即時隱蔽；<strong>權杖化 (Tokenization)</strong>：透過 Vault 受控單向映射可逆；<strong>差分隱私 (DP)</strong>：群體統計輸出，完全無法還原個體。</li>
+  <li><strong>【效能與儲存開銷】</strong>：<strong>靜態遮蔽 (SDM)</strong>：離線批次轉換，運行零開銷；<strong>動態遮蔽 (DDM)</strong>：增加資料庫查詢 CPU 處理開銷；<strong>權杖化 (Tokenization)</strong>：需維護龐大 Vault 映射庫與金鑰；<strong>差分隱私 (DP)</strong>：需計算敏感度並注入數學雜訊。</li>
+  <li><strong>【證交所最佳實務應用情境】</strong>：<strong>靜態遮蔽 (SDM)</strong>：下包外包商研發測試環境資料庫遮蔽；<strong>動態遮蔽 (DDM)</strong>：內部臨櫃交易與客服人員權限審閱；<strong>權杖化 (Tokenization)</strong>：跨金融機構下單帳號與身分代碼流轉；<strong>差分隱私 (DP)</strong>：大數據市場總交易趨勢與量化研究發布。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>金融去識別化不可一概而論，必須依業務情境動態組合 SDM、Tokenization 與差分隱私，方能達成兼顧業務前瞻發展與法遵底線之雙贏格局。</p>
@@ -602,35 +395,12 @@ def get_more_sec_essays_21_to_32():
   </li>
 </ol>
 
-<h4>四、PtH vs Kerberoasting 攻防對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">攻擊手法</th>
-      <th style="padding:6px 10px;">攻擊協定</th>
-      <th style="padding:6px 10px;">利用之底層弱點</th>
-      <th style="padding:6px 10px;">防禦與誘捕最佳對策</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Pass-the-Hash (PtH)</td>
-      <td style="padding:6px 10px;">NTLM / SMB / RPC</td>
-      <td style="padding:6px 10px;">LSASS 殘留 NTLM 雜湊直接作為認證憑據</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">啟用 Credential Guard、停用 NTLM、AD 階層隔離</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Kerberoasting</td>
-      <td style="padding:6px 10px;">Kerberos TGS</td>
-      <td style="padding:6px 10px;">任何普通用戶皆可申請 SPN TGS 並離線破解</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">強制採用 gMSA、設定 25 字元以上強密碼、AES 強加密</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">HoneyToken 誘捕</td>
-      <td style="padding:6px 10px;">全協定偵測</td>
-      <td style="padding:6px 10px;">攻擊者無差別掃描並嘗試利用高權限帳號</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">佈建虛假高權限 SPN 帳號，觸發即連鎖 SOAR 隔離</td>
-    </tr>
-  </table>
-</div>
+<h4>四、PtH vs Kerberoasting 攻防重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>Pass-the-Hash (PtH)</strong>：<strong>攻擊協定</strong>：NTLM / SMB / RPC；<strong>利用之底層弱點</strong>：LSASS 殘留 NTLM 雜湊直接作為認證憑據；<strong>防禦與誘捕最佳對策</strong>：啟用 Credential Guard、停用 NTLM、AD 階層隔離。</li>
+  <li><strong>Kerberoasting</strong>：<strong>攻擊協定</strong>：Kerberos TGS；<strong>利用之底層弱點</strong>：任何普通用戶皆可申請 SPN TGS 並離線破解；<strong>防禦與誘捕最佳對策</strong>：強制採用 gMSA、設定 25 字元以上強密碼、AES 強加密。</li>
+  <li><strong>HoneyToken 誘捕</strong>：<strong>攻擊協定</strong>：全協定偵測；<strong>利用之底層弱點</strong>：攻擊者無差別掃描並嘗試利用高權限帳號；<strong>防禦與誘捕最佳對策</strong>：佈建虛假高權限 SPN 帳號，觸發即連鎖 SOAR 隔離。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>在面對內網進階威脅時，防禦思維必須自被動圍堵進化為「假定已遭滲透（Assume Breach）」，透過嚴密之身分階層架構與主動誘捕蜜罐，在橫向擴散早期精準殲滅威脅。</p>
@@ -666,35 +436,12 @@ def get_more_sec_essays_21_to_32():
   </li>
 </ol>
 
-<h4>三、微隔離主流實作架構對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">架構型態</th>
-      <th style="padding:6px 10px;">實現技術核心</th>
-      <th style="padding:6px 10px;">優點</th>
-      <th style="padding:6px 10px;">挑戰與限制</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">主機代理型 (Host-Agent)</td>
-      <td style="padding:6px 10px;">於各主機核心安裝 Agent 調控 iptables/Windows WFP</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">跨多雲/實體機/虛擬機統一治理，支援行程級識別</td>
-      <td style="padding:6px 10px;">需在每台主機安裝 Agent，極限超低延遲撮合需精細調校</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">虛擬化管理層 (Hypervisor)</td>
-      <td style="padding:6px 10px;">VMware NSX 分散式防火牆 (DFW) 於 vSwitch 攔截</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">無侵入主機 (Agentless)，在虛擬網卡硬性攔截</td>
-      <td style="padding:6px 10px;">受限於單一虛擬化平台，無法直接控管裸金屬實體機</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">雲原生 CNI (eBPF)</td>
-      <td style="padding:6px 10px;">Cilium 於 Linux Kernel 透過 eBPF 攔截封包</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">K8s 原生標籤匹配，效能極高無 iptables 鏈開銷</td>
-      <td style="padding:6px 10px;">僅適用於 Linux 容器化叢集環境</td>
-    </tr>
-  </table>
-</div>
+<h4>三、微隔離主流實作架構重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>主機代理型 (Host-Agent)</strong>：於各主機核心安裝 Agent 調控 iptables/Windows WFP；<strong>優點</strong>：跨多雲/實體機/虛擬機統一治理，支援行程級識別；<strong>挑戰與限制</strong>：需在每台主機安裝 Agent，極限超低延遲撮合需精細調校。</li>
+  <li><strong>虛擬化管理層 (Hypervisor)</strong>：VMware NSX 分散式防火牆 (DFW) 於 vSwitch 攔截；<strong>優點</strong>：無侵入主機 (Agentless)，在虛擬網卡硬性攔截；<strong>挑戰與限制</strong>：受限於單一虛擬化平台，無法直接控管裸金屬實體機。</li>
+  <li><strong>雲原生 CNI (eBPF)</strong>：Cilium 於 Linux Kernel 透過 eBPF 攔截封包；<strong>優點</strong>：K8s 原生標籤匹配，效能極高無 iptables 鏈開銷；<strong>挑戰與限制</strong>：僅適用於 Linux 容器化叢集環境。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>落實微隔離為金融零信任架構中不可或缺的網路支柱。透過身分標籤與預設拒絕（Default Deny）白名單策略，能將單點滲透的爆炸半徑（Blast Radius）嚴格限縮在最小單元內。</p>
@@ -732,35 +479,10 @@ def get_more_sec_essays_21_to_32():
 </ol>
 
 <h4>三、靜態 SIEM 規則 vs 機器學習 UEBA 分析能力矩陣表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較構面</th>
-      <th style="padding:6px 10px;">傳統 SIEM 靜態規則</th>
-      <th style="padding:6px 10px;">UEBA 行為分析引擎</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">偵測核心邏輯</td>
-      <td style="padding:6px 10px;">已知特徵、布林邏輯、固定時間窗口閾值</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">動態行為基準線、統計偏差、機器學習模型</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">合法帳號遭竊防禦</td>
-      <td style="padding:6px 10px; color:#ef4444;">無效 (合法憑證視為正常交易)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">強大 (精準識別不合常理的時空與操作偏離)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">內部威脅與內鬼偵測</td>
-      <td style="padding:6px 10px; color:#ef4444;">難以發現緩慢漸進竊密</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">透過同儕比對與資料外傳異常敏銳捕捉</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">誤報率 (False Positive)</td>
-      <td style="padding:6px 10px;">高 (易引發資安人員告警疲勞)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">低 (多維度風險評分聚合驗證)</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【傳統 SIEM 靜態規則】</strong>：<strong>偵測核心邏輯</strong>：已知特徵、布林邏輯、固定時間窗口閾值；<strong>合法帳號遭竊防禦</strong>：無效 (合法憑證視為正常交易)；<strong>內部威脅與內鬼偵測</strong>：難以發現緩慢漸進竊密；<strong>誤報率 (False Positive)</strong>：高 (易引發資安人員告警疲勞)。</li>
+  <li><strong>【UEBA 行為分析引擎】</strong>：<strong>偵測核心邏輯</strong>：動態行為基準線、統計偏差、機器學習模型；<strong>合法帳號遭竊防禦</strong>：強大 (精準識別不合常理的時空與操作偏離)；<strong>內部威脅與內鬼偵測</strong>：透過同儕比對與資料外傳異常敏銳捕捉；<strong>誤報率 (False Positive)</strong>：低 (多維度風險評分聚合驗證)。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在資安戰場上，攻擊者使用合法帳號登入系統已成常態。透過 UEBA 動態行為基準線與同儕分析，證交所 SOC 監控中心得以突破傳統特徵比對極限，有效抵禦最隱蔽的特權盜用威脅。</p>
@@ -793,35 +515,12 @@ def get_more_sec_essays_21_to_32():
   </li>
 </ol>
 
-<h4>三、CSPM vs CWPP vs CIEM 多雲安全三劍客對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">平台類別</th>
-      <th style="padding:6px 10px;">防護焦點與維度</th>
-      <th style="padding:6px 10px;">部署與收集手法</th>
-      <th style="padding:6px 10px;">典型阻斷威脅場景</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">CSPM (態勢管理)</td>
-      <td style="padding:6px 10px;">雲端控制平面之靜態架構與組態設定</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">API 連接無代理 (Agentless)，每小時巡檢</td>
-      <td style="padding:6px 10px;">儲存桶未加密、管理埠公開暴露、未啟用日誌</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">CWPP (負載保護)</td>
-      <td style="padding:6px 10px;">運算實體內部之動態運行時 (Runtime) 行為</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">主機 Agent、eBPF 核心感應探針</td>
-      <td style="padding:6px 10px;">容器被植入挖礦木馬、WebShell 反連、權限逃逸</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">CIEM (身分管理)</td>
-      <td style="padding:6px 10px;">雲端 IAM 身分、角色與過度授權 (Over-privileged)</td>
-      <td style="padding:6px 10px;">IAM 授權日誌與存取分析</td>
-      <td style="padding:6px 10px;">閒置特權角色遭濫用、跨帳戶未授權躍遷</td>
-    </tr>
-  </table>
-</div>
+<h4>三、CSPM vs CWPP vs CIEM 多雲安全三劍客重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>CSPM (態勢管理)</strong>：<strong>防護焦點與維度</strong>：雲端控制平面之靜態架構與組態設定；<strong>部署與收集手法</strong>：API 連接無代理 (Agentless)，每小時巡檢；儲存桶未加密、管理埠公開暴露、未啟用日誌。</li>
+  <li><strong>CWPP (負載保護)</strong>：<strong>防護焦點與維度</strong>：運算實體內部之動態運行時 (Runtime) 行為；<strong>部署與收集手法</strong>：主機 Agent、eBPF 核心感應探針；容器被植入挖礦木馬、WebShell 反連、權限逃逸。</li>
+  <li><strong>CIEM (身分管理)</strong>：<strong>防護焦點與維度</strong>：雲端 IAM 身分、角色與過度授權 (Over-privileged)；<strong>部署與收集手法</strong>：IAM 授權日誌與存取分析；閒置特權角色遭濫用、跨帳戶未授權躍遷。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在金融混合雲建設中，CSPM 提供宏觀架構之合規導航，CWPP 則提供微觀執行之近身肉搏防護，兩者深度整合（CNAPP）方能構築兼顧敏捷與安全的現代雲端堡壘。</p>
@@ -859,35 +558,12 @@ def get_more_sec_essays_21_to_32():
   </li>
 </ol>
 
-<h4>三、社交工程演練情境分級與後續輔導改善對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">情境難度</th>
-      <th style="padding:6px 10px;">釣魚手法特徵</th>
-      <th style="padding:6px 10px;">測驗目標構面</th>
-      <th style="padding:6px 10px;">受測失敗之處置輔導措施</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">基礎級 (Level 1)</td>
-      <td style="padding:6px 10px;">明顯錯別字、通用寄件者、中獎假消息</td>
-      <td style="padding:6px 10px;">基本防範警覺、寄件者網域辨別</td>
-      <td style="padding:6px 10px;">線上完成 1 小時基礎防釣魚教學與測驗</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">進階級 (Level 2)</td>
-      <td style="padding:6px 10px;">相似網域 (Typosquatting)、假冒人資通知</td>
-      <td style="padding:6px 10px;">超連結懸停預覽檢視、內部公告求證</td>
-      <td style="padding:6px 10px;">面談輔導、由資安主管重新審查權限</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">精準標靶 (Level 3)</td>
-      <td style="padding:6px 10px;">Quishing 二維碼、供應商真實業務主題偽冒</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">跨載具攻擊警覺、雙管道確認機制</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">強制參加實體工作坊，次季納入重點複測</td>
-    </tr>
-  </table>
-</div>
+<h4>三、社交工程演練情境分級與後續輔導改善重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>基礎級 (Level 1)</strong>：<strong>釣魚手法特徵</strong>：明顯錯別字、通用寄件者、中獎假消息；<strong>測驗目標構面</strong>：基本防範警覺、寄件者網域辨別；<strong>受測失敗之處置輔導措施</strong>：線上完成 1 小時基礎防釣魚教學與測驗。</li>
+  <li><strong>進階級 (Level 2)</strong>：<strong>釣魚手法特徵</strong>：相似網域 (Typosquatting)、假冒人資通知；<strong>測驗目標構面</strong>：超連結懸停預覽檢視、內部公告求證；<strong>受測失敗之處置輔導措施</strong>：面談輔導、由資安主管重新審查權限。</li>
+  <li><strong>精準標靶 (Level 3)</strong>：<strong>釣魚手法特徵</strong>：Quishing 二維碼、供應商真實業務主題偽冒；<strong>測驗目標構面</strong>：跨載具攻擊警覺、雙管道確認機制；<strong>受測失敗之處置輔導措施</strong>：強制參加實體工作坊，次季納入重點複測。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>社交工程演練絕非懲處員工之手段，而是強化組織防禦彈性的訓練工具。結合主動通報獎勵與高擬真演練，方能建立「人人皆哨兵」的堅韌金融資安文化。</p>
@@ -901,7 +577,7 @@ def get_more_sec_essays_21_to_32():
             "chapter": "第 5 章：現代密碼學、公鑰基礎設施（PKI）與硬體安全模組",
             "title": "交易防竄改：SHA-3、HMAC、數位簽章（Ed25519）在金融委託回報傳輸之防重放（Anti-Replay）防護",
             "points": 25,
-            "rubric": "1. 金融訊息安全威脅模型 (6分)；2. SHA-3、HMAC 與 Ed25519 密碼特性 (8分)；3. 防重放協定設計與對照表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 金融訊息安全威脅模型 (6分)；2. SHA-3、HMAC 與 Ed25519 密碼特性 (8分)；3. 防重放協定設計與重點對比 (7分)；4. 結論 (4分)",
             "question": "證券期貨電子交易系統中，委託下單（Order Placement）與成交回報（Trade Execution Report）必須嚴格具備機密性、不可否認性（Non-Repudiation）、訊息完整性與即時有效性。請詳述現代密碼學中 SHA-3（Keccak 海綿結構）、HMAC 與橢圓曲線數位簽章 Ed25519 之安全優勢，並設計一套結合時間戳記（Timestamp）、一次性隨機數（Nonce）與遞增序列號（Sequence Number）之高抗重放交易通訊框架。",
             "modelAnswer": """
 <h4>一、破題：金融委託傳輸的威脅模型</h4>
@@ -924,40 +600,11 @@ def get_more_sec_essays_21_to_32():
 </ol>
 
 <h4>三、防重放（Anti-Replay）高可用交易協定設計</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">防重放機制</th>
-      <th style="padding:6px 10px;">控制技術與參數</th>
-      <th style="padding:6px 10px;">防護原理與驗證邏輯</th>
-      <th style="padding:6px 10px;">邊界防禦效果</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">時間戳記 (Timestamp)</td>
-      <td style="padding:6px 10px;">PTP 奈秒級伺服器時間，設定時間窗口 Δt = 500ms</td>
-      <td style="padding:6px 10px;">伺服器比對 <code>|T_server - T_msg| > Δt</code> 立即判定逾時丟棄</td>
-      <td style="padding:6px 10px;">防禦跨日或長時間延遲之離線重放</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">一次性隨機數 (Nonce)</td>
-      <td style="padding:6px 10px;">客戶端每次產生 128-bit 密碼學安全隨機數</td>
-      <td style="padding:6px 10px;">伺服器將 Nonce 存入高速記憶體快取 (Redis/BloomFilter) 查重</td>
-      <td style="padding:6px 10px;">保證相同時間窗口內完全無重複報文</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">嚴格單調遞增序號 (SeqNum)</td>
-      <td style="padding:6px 10px;">每個 Session 連線維持 64-bit 嚴格遞增序號</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">伺服器強制要求 <code>Seq_recv == Seq_expected</code>，否則中斷連線</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">徹底杜絕封包調序（Out-of-Order）與任何注入攻擊</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">不可否認數位簽章</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Ed25519(OrderData || Timestamp || Nonce || Seq)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">使用客戶端私鑰對上述所有防重放欄位一同簽署</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">提供法律效力之不可否認性與完整性保證</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【控制技術與參數】</strong>：<strong>時間戳記 (Timestamp)</strong>：PTP 奈秒級伺服器時間，設定時間窗口 Δt = 500ms；<strong>一次性隨機數 (Nonce)</strong>：客戶端每次產生 128-bit 密碼學安全隨機數；<strong>嚴格單調遞增序號 (SeqNum)</strong>：每個 Session 連線維持 64-bit 嚴格遞增序號；<strong>不可否認數位簽章</strong>：Ed25519(OrderData || Timestamp || Nonce || Seq)。</li>
+  <li><strong>【防護原理與驗證邏輯】</strong>：<strong>時間戳記 (Timestamp)</strong>：伺服器比對 |T_server - T_msg| > Δt 立即判定逾時丟棄；<strong>一次性隨機數 (Nonce)</strong>：伺服器將 Nonce 存入高速記憶體快取 (Redis/BloomFilter) 查重；<strong>嚴格單調遞增序號 (SeqNum)</strong>：伺服器強制要求 Seq_recv == Seq_expected ，否則中斷連線；<strong>不可否認數位簽章</strong>：使用客戶端私鑰對上述所有防重放欄位一同簽署。</li>
+  <li><strong>【邊界防禦效果】</strong>：<strong>時間戳記 (Timestamp)</strong>：防禦跨日或長時間延遲之離線重放；<strong>一次性隨機數 (Nonce)</strong>：保證相同時間窗口內完全無重複報文；<strong>嚴格單調遞增序號 (SeqNum)</strong>：徹底杜絕封包調序（Out-of-Order）與任何注入攻擊；<strong>不可否認數位簽章</strong>：提供法律效力之不可否認性與完整性保證。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>金融下單安全必須同時兼顧「密碼學數學確定性」與「微秒級吞吐效能」。結合 Ed25519 決定性簽章與三合一防重放機制，為證券交易構建起高抗攻擊、無法竄改與無從反悔的信任基石。</p>
@@ -990,34 +637,11 @@ def get_more_sec_essays_21_to_32():
 </ol>
 
 <h4>三、多向量 DDoS 攻擊演練場景與驗收標準表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">攻擊向量類別</th>
-      <th style="padding:6px 10px;">模擬攻擊技術指標</th>
-      <th style="padding:6px 10px;">預期防禦觸發動作</th>
-      <th style="padding:6px 10px;">量化驗收成功指標 (KPI)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">L3/L4 巨量頻寬洪水</td>
-      <td style="padding:6px 10px;">NTP / DNS 反射放大、SYN Flood (50 Gbps)</td>
-      <td style="padding:6px 10px;">觸發電信級 Clean Pipe 引流與 SYN Cookie</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">3 分鐘內完成引流，主線頻寬佔用率 < 70%</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">L7 應用層連線耗盡</td>
-      <td style="padding:6px 10px;">Slowloris / HTTP Post 慢速連線攻擊 (10 萬連線)</td>
-      <td style="padding:6px 10px;">邊界防禦設備逾時強制中斷、動態 IP 封鎖</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Web 伺服器連線池佔用 < 50%，正常查詢無逾時</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">BGP 路由層級防禦</td>
-      <td style="padding:6px 10px;">針對特定下單 Gateway IP 之精準阻斷</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">自動下發 BGP Flowspec 丟棄惡意來源特徵封包</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">合法券商下單連線封包遺失率 (Packet Loss) < 0.1%</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>L3/L4 巨量頻寬洪水</strong>：<strong>模擬攻擊技術指標</strong>：NTP / DNS 反射放大、SYN Flood (50 Gbps)；<strong>預期防禦觸發動作</strong>：觸發電信級 Clean Pipe 引流與 SYN Cookie；<strong>量化驗收成功指標 (KPI)</strong>：3 分鐘內完成引流，主線頻寬佔用率 < 70%。</li>
+  <li><strong>L7 應用層連線耗盡</strong>：<strong>模擬攻擊技術指標</strong>：Slowloris / HTTP Post 慢速連線攻擊 (10 萬連線)；<strong>預期防禦觸發動作</strong>：邊界防禦設備逾時強制中斷、動態 IP 封鎖；<strong>量化驗收成功指標 (KPI)</strong>：Web 伺服器連線池佔用 < 50%，正常查詢無逾時。</li>
+  <li><strong>BGP 路由層級防禦</strong>：<strong>模擬攻擊技術指標</strong>：針對特定下單 Gateway IP 之精準阻斷；<strong>預期防禦觸發動作</strong>：自動下發 BGP Flowspec 丟棄惡意來源特徵封包；<strong>量化驗收成功指標 (KPI)</strong>：合法券商下單連線封包遺失率 (Packet Loss) < 0.1%。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>DDoS 演練是一場對電信基礎設施、清洗平台與內部維運團隊之全面大考驗。透過 BGP Flowspec 精準引流與指標化驗證，證交所得以確保在面臨國家級網路戰威脅時，交易通道永不中斷。</p>
@@ -1031,7 +655,7 @@ def get_more_sec_essays_21_to_32():
             "chapter": "第 12 章：新興金融資安威脅、AI 安全與後量子密碼學",
             "title": "金融數位資產資安：冷熱錢包實體隔離、多重簽章（Multi-Sig）與多方安全計算（MPC/TSS）防護架構",
             "points": 25,
-            "rubric": "1. 數位資產私鑰安全生命週期 (6分)；2. 冷/溫/熱錢包分級與實體保全 (7分)；3. Multi-Sig 與 MPC-TSS 門檻式簽章對照表 (8分)；4. 結論 (4分)",
+            "rubric": "1. 數位資產私鑰安全生命週期 (6分)；2. 冷/溫/熱錢包分級與實體保全 (7分)；3. Multi-Sig 與 MPC-TSS 門檻式簽章重點對比 (8分)；4. 結論 (4分)",
             "question": "隨著金融市場發展與證券期貨業跨足數位資產託管（Digital Asset Custody）與代幣化證券（Security Token Offering, STO）業務，私鑰（Private Key）安全即為資產安全之命脈。請分析冷錢包（Cold Wallet）、溫錢包（Warm Wallet）與熱錢包（Hot Wallet）之實體與網路隔離要求，並深入比較「智慧合約多重簽章（Multi-Sig）」與「門檻式簽章方案（MPC-TSS, Threshold Signature Scheme）」在金鑰分散產生、授權簽署與跨鏈相容性之優劣。",
             "modelAnswer": """
 <h4>一、破題：Not Your Keys, Not Your Assets 的金融監理考驗</h4>
@@ -1064,36 +688,11 @@ def get_more_sec_essays_21_to_32():
   </li>
 </ol>
 
-<h4>四、Multi-Sig vs MPC-TSS 全維度對比表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較構面</th>
-      <th style="padding:6px 10px;">智慧合約 Multi-Sig</th>
-      <th style="padding:6px 10px;">門檻簽章 MPC-TSS</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">私鑰存在形態</td>
-      <td style="padding:6px 10px;">各自維護獨立的完整私鑰，由合約彙整</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">私鑰自始至終不存在，僅有分散的數學碎片</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">跨鏈相容性</td>
-      <td style="padding:6px 10px; color:#ef4444;">差 (受限於該鏈之智能合約能力)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極高 (通用於所有支援 ECDSA/Ed25519 區塊鏈)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">鏈上交易成本 (Gas)</td>
-      <td style="padding:6px 10px;">高 (需驗證多次合約呼叫與狀態)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">低 (鏈上等同普通單簽交易)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">金鑰更換與動態管理</td>
-      <td style="padding:6px 10px;">需發起鏈上合約呼叫變更所有者</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">支援 Resharing，動態更換碎片且鏈上地址不變</td>
-    </tr>
-  </table>
-</div>
+<h4>四、Multi-Sig vs MPC-TSS 重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【智慧合約 Multi-Sig】</strong>：<strong>私鑰存在形態</strong>：各自維護獨立的完整私鑰，由合約彙整；<strong>跨鏈相容性</strong>：差 (受限於該鏈之智能合約能力)；<strong>鏈上交易成本 (Gas)</strong>：高 (需驗證多次合約呼叫與狀態)；<strong>金鑰更換與動態管理</strong>：需發起鏈上合約呼叫變更所有者。</li>
+  <li><strong>【門檻簽章 MPC-TSS】</strong>：<strong>私鑰存在形態</strong>：私鑰自始至終不存在，僅有分散的數學碎片；<strong>跨鏈相容性</strong>：極高 (通用於所有支援 ECDSA/Ed25519 區塊鏈)；<strong>鏈上交易成本 (Gas)</strong>：低 (鏈上等同普通單簽交易)；<strong>金鑰更換與動態管理</strong>：支援 Resharing，動態更換碎片且鏈上地址不變。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>金融機構涉足數位資產託管，必須採納「90% 冷錢包 Air-Gapped + 核心金鑰 MPC-TSS 門檻治理」的黃金架構，徹底根除單點金鑰洩漏風險，樹立機構級資產託管新標竿。</p>
@@ -1151,36 +750,13 @@ rule TWSE_Targeted_Trojan_Hunting {
 }
 </pre>
 
-<h4>四、CSIRT 事件應變流程與處置對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">應變階段</th>
-      <th style="padding:6px 10px;">核心執行任務</th>
-      <th style="padding:6px 10px;">產出與客觀證據</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">遏阻 (Containment)</td>
-      <td style="padding:6px 10px;">EDR 網路隔離受害端點，保留記憶體通電狀態</td>
-      <td style="padding:6px 10px;">LiME / WinPmem 記憶體映像檔、受控連線中斷</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">分析 (Analysis)</td>
-      <td style="padding:6px 10px;">沙盒引爆監控 Process Injection，萃取 C2 與檔案特徵</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">動態行為分析報告、IoC 清單、YARA 獵捕規則</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">獵捕與根除 (Eradication)</td>
-      <td style="padding:6px 10px;">下發 YARA 規則全內網伺服器磁碟與記憶體掃描</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">清除潛伏後門、重置受影響帳號、撤銷舊金鑰</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">復原與檢討 (Recovery)</td>
-      <td style="padding:6px 10px;">乾淨備份重建主機、強化防火牆、召開 PIR 會議</td>
-      <td style="padding:6px 10px;">根本原因分析報告 (RCA)、內部控制漏洞修補單</td>
-    </tr>
-  </table>
-</div>
+<h4>四、CSIRT 事件應變流程與處置重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>遏阻 (Containment)</strong>：EDR 網路隔離受害端點，保留記憶體通電狀態；LiME / WinPmem 記憶體映像檔、受控連線中斷。</li>
+  <li><strong>分析 (Analysis)</strong>：沙盒引爆監控 Process Injection，萃取 C2 與檔案特徵；動態行為分析報告、IoC 清單、YARA 獵捕規則。</li>
+  <li><strong>獵捕與根除 (Eradication)</strong>：下發 YARA 規則全內網伺服器磁碟與記憶體掃描；清除潛伏後門、重置受影響帳號、撤銷舊金鑰。</li>
+  <li><strong>復原與檢討 (Recovery)</strong>：乾淨備份重建主機、強化防火牆、召開 PIR 會議；根本原因分析報告 (RCA)、內部控制漏洞修補單。</li>
+</ul>
 
 <h4>五、結論</h4>
 <p>資安防禦是一場與時間賽跑的戰役。建立敏捷運作的 CSIRT，結合高擬真沙盒逆向與精準 YARA 威脅獵捕，能將未知惡意攻擊的平均圍堵時間（MTTR）壓縮至最短，保衛金融交易核心秩序。</p>
@@ -1194,7 +770,7 @@ rule TWSE_Targeted_Trojan_Hunting {
             "chapter": "第 4 章：身分識別、存取控制與零信任架構（ZTA）",
             "title": "金融機構特權帳號管理（PAM）：雙人控管、一次性憑證（OTP）、跳板機堡壘與全時側錄稽核架構",
             "points": 25,
-            "rubric": "1. 特權帳號風險威脅分析 (6分)；2. 現代 PAM 核心模組架構 (8分)；3. 雙人覆核與側錄稽核對照表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 特權帳號風險威脅分析 (6分)；2. 現代 PAM 核心模組架構 (8分)；3. 雙人覆核與側錄稽核重點對比 (7分)；4. 結論 (4分)",
             "question": "內外部重大資安事件多數源自特權帳號（Privileged Accounts，如 AD Domain Admins、Linux Root、資料庫 DBA）遭濫用或竊取。請針對臺灣證券交易所關鍵交易主機環境，規劃一套端對端「特權帳號管理（PAM, Privileged Access Management）」系統架構，詳述密碼保險箱（Credential Vault）、及時授權（Just-In-Time / Ephemeral Credentials）、雙人覆核機制與終端連線全時錄影側錄之技術實作。",
             "modelAnswer": """
 <h4>一、破題：王國鑰匙的危機與管理痛點</h4>
@@ -1216,36 +792,11 @@ rule TWSE_Targeted_Trojan_Hunting {
   </li>
 </ol>
 
-<h4>三、傳統跳板機 vs 現代零信任 PAM 平台能力對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">評估指標</th>
-      <th style="padding:6px 10px;">傳統跳板機 (Bastion Host)</th>
-      <th style="padding:6px 10px;">現代零信任 PAM 平台</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">密碼透明度</td>
-      <td style="padding:6px 10px; color:#ef4444;">人員知曉主機密碼，容易私下備份抄寫</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">人員完全盲打，密碼託管於 Vault 每次輪換</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">授權模型</td>
-      <td style="padding:6px 10px;">靜態長效帳號 (Standing Privileges)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">動態及時授權 (JIT) 與零常駐特權 (ZSP)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">雙人覆核機制</td>
-      <td style="padding:6px 10px;">依賴線下紙本或電子郵件，無法系統硬性攔截</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">四眼原則 (Four-Eyes) 線上即時審批始解鎖通道</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">稽核追溯能力</td>
-      <td style="padding:6px 10px;">僅有文字 Log，難以追查 GUI 點擊行徑</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">全螢幕視訊錄影 + 擊鍵索引 + 高危指令即時中斷</td>
-    </tr>
-  </table>
-</div>
+<h4>三、傳統跳板機 vs 現代零信任 PAM 平台能力重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【傳統跳板機 (Bastion Host)】</strong>：<strong>密碼透明度</strong>：人員知曉主機密碼，容易私下備份抄寫；<strong>授權模型</strong>：靜態長效帳號 (Standing Privileges)；<strong>雙人覆核機制</strong>：依賴線下紙本或電子郵件，無法系統硬性攔截；<strong>稽核追溯能力</strong>：僅有文字 Log，難以追查 GUI 點擊行徑。</li>
+  <li><strong>【現代零信任 PAM 平台】</strong>：<strong>密碼透明度</strong>：人員完全盲打，密碼託管於 Vault 每次輪換；<strong>授權模型</strong>：動態及時授權 (JIT) 與零常駐特權 (ZSP)；<strong>雙人覆核機制</strong>：四眼原則 (Four-Eyes) 線上即時審批始解鎖通道；<strong>稽核追溯能力</strong>：全螢幕視訊錄影 + 擊鍵索引 + 高危指令即時中斷。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在金融資安治理中，「信任是好事，但驗證更重要」。透過 PAM 架構的落地，將特權帳號的申請、使用、監控與回收全面自動化與閉環化，為證券交易核心主機打造最可靠的特權防線。</p>
@@ -1283,36 +834,11 @@ rule TWSE_Targeted_Trojan_Hunting {
   </li>
 </ol>
 
-<h4>三、金融行動 App 資安檢測項目與防禦對照表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">檢測維度</th>
-      <th style="padding:6px 10px;">法規合規要求</th>
-      <th style="padding:6px 10px;">核心技術防禦實施對策</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">原始碼加固</td>
-      <td style="padding:6px 10px;">防止靜態逆向工程、文字字串暴露</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">控制流程平坦化、字串加密、Native C/C++ 封裝</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">動態運行安全</td>
-      <td style="padding:6px 10px;">防止記憶體除錯、動態 Hook 注入與二度打包</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">Anti-Frida 偵測、ptrace 反除錯、簽章雜湊自校驗</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">敏感資料儲存</td>
-      <td style="padding:6px 10px;">身分憑證與交易金鑰不得明文落地</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">調用 Android KeyStore (StrongBox) / iOS Keychain</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">傳輸通訊安全</td>
-      <td style="padding:6px 10px;">防止傳輸竊聽、攔截與中間人偽造</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">TLS 1.3 + HPKP / 靜態公鑰綁定 (SSL Pinning)</td>
-    </tr>
-  </table>
-</div>
+<h4>三、金融行動 App 資安檢測項目與防禦重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【法規合規要求】</strong>：<strong>原始碼加固</strong>：防止靜態逆向工程、文字字串暴露；<strong>動態運行安全</strong>：防止記憶體除錯、動態 Hook 注入與二度打包；<strong>敏感資料儲存</strong>：身分憑證與交易金鑰不得明文落地；<strong>傳輸通訊安全</strong>：防止傳輸竊聽、攔截與中間人偽造。</li>
+  <li><strong>【核心技術防禦實施對策】</strong>：<strong>原始碼加固</strong>：控制流程平坦化、字串加密、Native C/C++ 封裝；<strong>動態運行安全</strong>：Anti-Frida 偵測、ptrace 反除錯、簽章雜湊自校驗；<strong>敏感資料儲存</strong>：調用 Android KeyStore (StrongBox) / iOS Keychain；<strong>傳輸通訊安全</strong>：TLS 1.3 + HPKP / 靜態公鑰綁定 (SSL Pinning)。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>在「行動優先」的金融下單時代，唯有建構從靜態加固、動態自衛到硬體金鑰庫防護之端到端縱深防禦，方能保護廣大投資人之交易資產安全。</p>
@@ -1326,7 +852,7 @@ rule TWSE_Targeted_Trojan_Hunting {
             "chapter": "第 12 章：新興金融資安威脅、AI 安全與後量子密碼學",
             "title": "量子破譯危機下之金融根憑證（Root CA）遷移策略、NIST PQC 演算法實裝與混合模式（Hybrid Mode）測試",
             "points": 25,
-            "rubric": "1. 量子破譯衝擊剖析 (6分)；2. 根憑證遷移五大階段規劃 (8分)；3. 經典與後量子演算法效能對照表 (7分)；4. 結論 (4分)",
+            "rubric": "1. 量子破譯衝擊剖析 (6分)；2. 根憑證遷移五大階段規劃 (8分)；3. 經典與後量子演算法效能對比剖析 (7分)；4. 結論 (4分)",
             "question": "面對量子電腦於十年內破解 RSA 及 ECC 非對稱加密之潛在危機，全球金融基礎設施正積極啟動「後量子密碼遷移專案（PQC Migration）」。請針對臺灣證券交易所之公鑰基礎設施（PKI）與金融根憑證機構（Root CA），規劃一套完整的後量子轉型策略，詳述如何設計「經典演算法與 PQC 混合模式（Hybrid X.509 Certificate）」以兼顧舊版交易系統之向後相容性，並分析 PQC 龐大簽章體積（Signature Overhead）對金融網路傳輸效能之影響與調校對策。",
             "modelAnswer": """
 <h4>一、破題：Y2Q（Years to Quantum）與金融密碼末日危機</h4>
@@ -1354,48 +880,15 @@ rule TWSE_Targeted_Trojan_Hunting {
   </li>
 </ol>
 
-<h4>三、PQC 演算法體積對網路傳輸之衝擊與性能評估表</h4>
+<h4>三、PQC 演算法體積對網路傳輸之衝擊與性能重點對比與關鍵分析</h4>
 <p>PQC 演算法雖然具備抗量子數學強度，但其金鑰與簽章體積遠大於傳統演算法，容易導致 <strong>TCP 封包分段（Fragmentation）</strong>與延遲上升：</p>
 
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">演算法規格</th>
-      <th style="padding:6px 10px;">演算法類型與標準</th>
-      <th style="padding:6px 10px;">公鑰長度</th>
-      <th style="padding:6px 10px;">密文/簽章長度</th>
-      <th style="padding:6px 10px;">高頻撮合網路影響評估</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">ECDSA (P-256)</td>
-      <td style="padding:6px 10px;">傳統橢圓曲線 (非抗量子)</td>
-      <td style="padding:6px 10px;">64 Bytes</td>
-      <td style="padding:6px 10px;">64 Bytes</td>
-      <td style="padding:6px 10px;">單一 MTU 內可容納，微秒級</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">ML-DSA-65 (Dilithium)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">NIST PQC 晶格數位簽章標準</td>
-      <td style="padding:6px 10px;">1,952 Bytes</td>
-      <td style="padding:6px 10px; color:#ef4444; font-weight:700;">3,309 Bytes</td>
-      <td style="padding:6px 10px;">需跨越 3 個 TCP 封包 (MTU 1500)，需調校 Jumbo Frame</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">ML-KEM-768 (Kyber)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">NIST PQC 晶格金鑰封裝標準</td>
-      <td style="padding:6px 10px;">1,184 Bytes</td>
-      <td style="padding:6px 10px;">1,088 Bytes</td>
-      <td style="padding:6px 10px;">TLS 1.3 協商首包稍微膨脹，但運算速度極快</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Falcon-512</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">NIST PQC 緊湊型數位簽章</td>
-      <td style="padding:6px 10px;">897 Bytes</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">666 Bytes</td>
-      <td style="padding:6px 10px;">簽章最小，單包傳輸，極契合低延遲金融交易</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>ECDSA (P-256)</strong>：<strong>演算法類型與標準</strong>：傳統橢圓曲線 (非抗量子)；<strong>公鑰長度</strong>：64 Bytes；<strong>密文/簽章長度</strong>：64 Bytes；<strong>高頻撮合網路影響評估</strong>：單一 MTU 內可容納，微秒級。</li>
+  <li><strong>ML-DSA-65 (Dilithium)</strong>：<strong>演算法類型與標準</strong>：NIST PQC 晶格數位簽章標準；<strong>公鑰長度</strong>：1,952 Bytes；<strong>密文/簽章長度</strong>：3,309 Bytes；<strong>高頻撮合網路影響評估</strong>：需跨越 3 個 TCP 封包 (MTU 1500)，需調校 Jumbo Frame。</li>
+  <li><strong>ML-KEM-768 (Kyber)</strong>：<strong>演算法類型與標準</strong>：NIST PQC 晶格金鑰封裝標準；<strong>公鑰長度</strong>：1,184 Bytes；<strong>密文/簽章長度</strong>：1,088 Bytes；<strong>高頻撮合網路影響評估</strong>：TLS 1.3 協商首包稍微膨脹，但運算速度極快。</li>
+  <li><strong>Falcon-512</strong>：<strong>演算法類型與標準</strong>：NIST PQC 緊湊型數位簽章；<strong>公鑰長度</strong>：897 Bytes；<strong>密文/簽章長度</strong>：666 Bytes；<strong>高頻撮合網路影響評估</strong>：簽章最小，單包傳輸，極契合低延遲金融交易。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>後量子密碼遷移不是單純的演算法替換，而是一項跨越十年的金融基礎設施升級大工程。藉由「加密敏捷性、雙軌混合憑證、巨型訊框 Jumbo Frame 調校」之三維推進，臺灣證券交易所將引領我國資本市場從容邁入抗量子的全新安全紀元。</p>

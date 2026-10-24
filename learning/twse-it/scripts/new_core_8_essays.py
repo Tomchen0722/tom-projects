@@ -22,56 +22,19 @@ def get_8_core_twse_essays():
             "title": "金融核心交易系統零信任架構（ZTA）三大原則落地與設計實務",
             "summary": "深入解構 NIST SP 800-207 零信任架構理念、永不信任（微隔離/最小權限）、始終驗證（FIDO2 MFA/持續動態授權）、假設已遭入侵（爆炸半徑收斂/全流量鑑識）在證券交易之實踐。",
             "points": 25,
-            "rubric": "1. 零信任架構本質與破題 (7分)；2. 三大核心原則落地技術對比表 (7分)；3. 證券交易核心實務架構設計 (7分)；4. 結論 (4分)",
+            "rubric": "1. 零信任架構本質與破題 (7分)；2. 三大核心原則落地技術關鍵對比 (7分)；3. 證券交易核心實務架構設計 (7分)；4. 結論 (4分)",
             "question": "請說明何謂「零信任架構（Zero Trust Architecture, ZTA）」，並申論金融機構（如證券交易所、證券商）在設計核心交易系統防護時，應如何落實零信任的三大核心原則（永不信任、始終驗證、假設已遭入侵）？",
             "modelAnswer": """
 <h4>一、破題：零信任架構（ZTA）之核心哲學</h4>
 <p>傳統金融機構資安依賴「城堡護城河（Perimeter-based Security）」模型，預設內部局域網（Intranet）為安全信任區。然而，在供應鏈跳板攻擊、勒索軟體與內網橫向滲透日益猖獗的背景下，邊界已被徹底打破。</p>
 <p><strong>零信任架構（NIST SP 800-207）</strong>的核心哲學是<strong>「以身分為中心、將邊界縮小至單一資源」</strong>，預設網路環境始終充滿威脅，揚棄任何基於網路拓撲或實體位置的預設信任，全面貫徹「持續評估、動態授權」。</p>
 
-<h4>二、核心交易系統落實零信任三大核心原則之技術矩陣</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">核心原則</th>
-      <th style="padding:6px 10px;">安全架構設計重點</th>
-      <th style="padding:6px 10px;">證券核心交易系統具體落地實務</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">1. 永不信任<br>(Never Trust)</td>
-      <td style="padding:6px 10px;">
-        - 徹底消除內部專用網路特權；<br>
-        - 實施微隔離（Micro-segmentation）；<br>
-        - 最小權限存取（Least Privilege）與零常設權限（ZSP）。
-      </td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        撮合主機、下單閘道器與帳務資料庫劃分於獨立極小網段；各伺服器間預設<strong>全面禁止互通（Default-Deny）</strong>；管理員無常設 root 權限，全面透過 PAM 堡壘機實施 Just-In-Time（JIT）按需提權與雙人授權。
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">2. 始終驗證<br>(Always Verify)</td>
-      <td style="padding:6px 10px;">
-        - 每次存取皆視為全新獨立連線；<br>
-        - 多因子身分鑑別（MFA）；<br>
-        - 原則決定點（PDP）動態計算信任分數。
-      </td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        強制推行 <strong>FIDO2 / WebAuthn 抗釣魚硬體認證</strong>；原則強制點（PEP）攔截所有 API 下單連線，綜合評估用戶身分、客戶端憑證（mTLS）、端點設備健康度（EDR 合規）進行動態存取判定。
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">3. 假設已遭入侵<br>(Assume Breach)</td>
-      <td style="padding:6px 10px;">
-        - 預設敵手已成功滲透至內網；<br>
-        - 收斂單點爆炸半徑（Blast Radius）；<br>
-        - 全流量封包鑑識與威脅主動獵捕。
-      </td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        資料全面靜態加密（AES-256）且私鑰鎖定於 <strong>FIPS 140-3 HSM</strong>；部署 eBPF（Cilium / Tetragon）在 Linux 系統呼叫層直接阻斷容器逃逸；7x24 SOC 與 NDR 全量分析橫向移動。
-      </td>
-    </tr>
-  </table>
-</div>
+<h4>二、核心交易系統落實零信任三大核心原則之重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>1. 永不信任 (Never Trust)</strong>：- 徹底消除內部專用網路特權； - 實施微隔離（Micro-segmentation）； - 最小權限存取（Least Privilege）與零常設權限（ZSP）。；撮合主機、下單閘道器與帳務資料庫劃分於獨立極小網段；各伺服器間預設 全面禁止互通（Default-Deny） ；管理員無常設 root 權限，全面透過 PAM 堡壘機實施 Just-In-Time（JIT）按需提權與雙人授權。。</li>
+  <li><strong>2. 始終驗證 (Always Verify)</strong>：- 每次存取皆視為全新獨立連線； - 多因子身分鑑別（MFA）； - 原則決定點（PDP）動態計算信任分數。；強制推行 FIDO2 / WebAuthn 抗釣魚硬體認證 ；原則強制點（PEP）攔截所有 API 下單連線，綜合評估用戶身分、客戶端憑證（mTLS）、端點設備健康度（EDR 合規）進行動態存取判定。。</li>
+  <li><strong>3. 假設已遭入侵 (Assume Breach)</strong>：- 預設敵手已成功滲透至內網； - 收斂單點爆炸半徑（Blast Radius）； - 全流量封包鑑識與威脅主動獵捕。；資料全面靜態加密（AES-256）且私鑰鎖定於 FIPS 140-3 HSM ；部署 eBPF（Cilium / Tetragon）在 Linux 系統呼叫層直接阻斷容器逃逸；7x24 SOC 與 NDR 全量分析橫向移動。。</li>
+</ul>
 
 <h4>三、證券核心交易系統零信任控制流規劃</h4>
 <ol>
@@ -87,7 +50,7 @@ def get_8_core_twse_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>零信任定義與哲學（7分）</strong>：引用 NIST SP 800-207 概念，對比傳統城堡模型與現代身分邊界架構。</li>
-  <li><strong>三大原則落地矩陣表（7分）</strong>：以表格逐項剖析永不信任、始終驗證、假設已遭入侵之設計重點與證券撮合/帳務之具體落實手法。</li>
+  <li><strong>三大原則落地矩陣表（7分）</strong>：以條列逐項剖析永不信任、始終驗證、假設已遭入侵之設計重點與證券撮合/帳務之具體落實手法。</li>
   <li><strong>核心控制流規劃（7分）</strong>：詳述 PEP/PDP 下單連線控制流與 PAM 堡壘機維運治理。</li>
   <li><strong>結論（4分）</strong>：總結零信任對金融強韌性之保障。</li>
 </ul>
@@ -102,7 +65,7 @@ def get_8_core_twse_essays():
             "title": "證券商資安分級防護下滲透測試與弱點掃描之差異、實務互補與申報稽核實踐",
             "summary": "深入剖析證交所「證券商資安分級防護應辦事項」、第一至三級證券商規範、弱點掃描（廣度/自動化）與滲透測試（深度/實彈鏈式利用）之技術差異，以及申報專區閉環管理。",
             "points": 25,
-            "rubric": "1. 證交所分級防護監理背景 (7分)；2. 弱點掃描 vs 滲透測試對比表 (7分)；3. 實務互補流程與申報專區列管 (7分)；4. 結論 (4分)",
+            "rubric": "1. 證交所分級防護監理背景 (7分)；2. 弱點掃描 vs 滲透測試關鍵對比 (7分)；3. 實務互補流程與申報專區列管 (7分)；4. 結論 (4分)",
             "question": "證交所近期建立「證券商資安防護事項申報專區」並推動資安分級防護。請闡述一般證券商（或第一至三級證券商）定期進行滲透測試（Penetration Test）與弱點掃描（Vulnerability Scan）的差異與實務互補性。",
             "modelAnswer": """
 <h4>一、破題：證交所推動資安分級防護與申報專區之監理意涵</h4>
@@ -110,35 +73,10 @@ def get_8_core_twse_essays():
 <p>在此監理框架下，<strong>弱點掃描（VS）</strong>與<strong>滲透測試（PT）</strong>為法定必辦之兩大核心技術檢測手段，兩者定位不同且不可相互替代。</p>
 
 <h4>二、弱點掃描（Vulnerability Scan）vs 滲透測試（Penetration Test）核心差異</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較維度</th>
-      <th style="padding:6px 10px;">弱點掃描 (Vulnerability Scan)</th>
-      <th style="padding:6px 10px;">滲透測試 (Penetration Test)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">檢測本質與手段</td>
-      <td style="padding:6px 10px;"><strong>自動化工具靜態比對</strong>（如 Nessus、OpenVAS），比對已知 CVE 漏洞庫與特徵字串。</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>人工白帽黑客實戰攻防</strong>，模擬真實 APT 組織進行戰術與邏輯漏洞刺探。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">檢測深度與廣度</td>
-      <td style="padding:6px 10px;"><strong>廣度優先</strong>：能於短時間內全面掃描全網數千台伺服器之開放連接埠與軟體版本。</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>深度優先</strong>：透過<strong>鏈式漏洞組合（Chained Exploits）</strong>，深入打穿邊界並嘗試內網橫向移動（Lateral Movement）。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">業務邏輯漏洞偵測</td>
-      <td style="padding:6px 10px; color:#dc2626;"><strong>完全無能為力</strong>：無法理解如「下單金額篡改、越權讀取他人委託單」等複雜業務流程。</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>極佳</strong>：重點挖掘身分認證繞過、IDOR 水平越權、競態條件（Race Condition）等交易邏輯弱點。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">檢測頻率與成本</td>
-      <td style="padding:6px 10px;">頻率高（每月/每季）、執行成本低、產出大量報告（常含偽陽性 False Positives）。</td>
-      <td style="padding:6px 10px;">頻率低（每年至少 1 次或系統重大改版）、成本高、驗證真實可利用性（零偽陽性）。</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【弱點掃描 (Vulnerability Scan)】</strong>：<strong>檢測本質與手段</strong>：自動化工具靜態比對 （如 Nessus、OpenVAS），比對已知 CVE 漏洞庫與特徵字串。；<strong>檢測深度與廣度</strong>：廣度優先 ：能於短時間內全面掃描全網數千台伺服器之開放連接埠與軟體版本。；<strong>業務邏輯漏洞偵測</strong>：完全無能為力 ：無法理解如「下單金額篡改、越權讀取他人委託單」等複雜業務流程。；<strong>檢測頻率與成本</strong>：頻率高（每月/每季）、執行成本低、產出大量報告（常含偽陽性 False Positives）。。</li>
+  <li><strong>【滲透測試 (Penetration Test)】</strong>：<strong>檢測本質與手段</strong>：人工白帽黑客實戰攻防 ，模擬真實 APT 組織進行戰術與邏輯漏洞刺探。；<strong>檢測深度與廣度</strong>：深度優先 ：透過 鏈式漏洞組合（Chained Exploits） ，深入打穿邊界並嘗試內網橫向移動（Lateral Movement）。；<strong>業務邏輯漏洞偵測</strong>：極佳 ：重點挖掘身分認證繞過、IDOR 水平越權、競態條件（Race Condition）等交易邏輯弱點。；<strong>檢測頻率與成本</strong>：頻率低（每年至少 1 次或系統重大改版）、成本高、驗證真實可利用性（零偽陽性）。。</li>
+</ul>
 
 <h4>三、實務互補運作流程與證交所申報合規實踐</h4>
 <ol>
@@ -160,7 +98,7 @@ def get_8_core_twse_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>證交所監理背景（7分）</strong>：深入點評第一至三級資安防護規範，引出申報專區列管之制度脈絡。</li>
-  <li><strong>核心差異橫向對比表（7分）</strong>：以標準表格從手段、廣深度、業務邏輯能力、成本頻率詳盡對比兩者本質差異。</li>
+  <li><strong>核心差異橫向重點對比（7分）</strong>：以標準條列架構從手段、廣深度、業務邏輯能力、成本頻率詳盡對比兩者本質差異。</li>
   <li><strong>互補性流程與申報實務（7分）</strong>：提出兩階段協同流程，並結合證交所申報專區限期修復複測要求。</li>
   <li><strong>結論（4分）</strong>：以常態體檢與特種壓力測試形象總結。</li>
 </ul>
@@ -201,35 +139,12 @@ def get_8_core_twse_essays():
 </ol>
 
 <h4>三、風險處理 4T 策略與適用性聲明書（SoA）落地（Clause 6.1.3）</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">風險處理 4T 策略</th>
-      <th style="padding:6px 10px;">策略核心定義</th>
-      <th style="padding:6px 10px;">電子交易平台對應控制措施 (ISO 27001:2022)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">1. 降低 (Treat / Mitigate)</td>
-      <td style="padding:6px 10px;">導入技術或管理控制項，將風險值壓制至可接受水準。</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">對照 <strong>Annex A 四大主題 93 項控制措施</strong>：如導入 A.8.12 (DLP)、A.8.20 (網路安全)、A.5.7 (威脅情資) 與 A.8.5 (安全認證 MFA)。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">2. 轉移 (Transfer / Share)</td>
-      <td style="padding:6px 10px;">將潛在財務或營運損失分擔給第三方承擔。</td>
-      <td style="padding:6px 10px;">投保商業資安保險（Cyber Insurance）；將非核心報表伺服器委外予合格大型雲端供應商並簽署嚴格 SLA。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">3. 規避 (Avoid / Terminate)</td>
-      <td style="padding:6px 10px;">直接終止特定高風險業務活動或技術。</td>
-      <td style="padding:6px 10px;">全面廢除過期且易受攻擊之 TLS 1.0/1.1 協議，停止使用易遭釣魚之純帳密登入下單功能。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">4. 接受 (Tolerate / Retain)</td>
-      <td style="padding:6px 10px;">低風險且修復成本高於潛在損失，經核准接受。</td>
-      <td style="padding:6px 10px;">針對內部封閉測試網段殘餘之低危漏洞，經 CISO 與業務主管正式書面簽核接受殘餘風險。</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>1. 降低 (Treat / Mitigate)</strong>：導入技術或管理控制項，將風險值壓制至可接受水準。；<strong>實務落地/對策</strong>：對照 Annex A 四大主題 93 項控制措施 ：如導入 A.8.12 (DLP)、A.8.20 (網路安全)、A.5.7 (威脅情資) 與 A.8.5 (安全認證 MFA)。。</li>
+  <li><strong>2. 轉移 (Transfer / Share)</strong>：將潛在財務或營運損失分擔給第三方承擔。；<strong>實務落地/對策</strong>：投保商業資安保險（Cyber Insurance）；將非核心報表伺服器委外予合格大型雲端供應商並簽署嚴格 SLA。。</li>
+  <li><strong>3. 規避 (Avoid / Terminate)</strong>：直接終止特定高風險業務活動或技術。；<strong>實務落地/對策</strong>：全面廢除過期且易受攻擊之 TLS 1.0/1.1 協議，停止使用易遭釣魚之純帳密登入下單功能。。</li>
+  <li><strong>4. 接受 (Tolerate / Retain)</strong>：低風險且修復成本高於潛在損失，經核准接受。；<strong>實務落地/對策</strong>：針對內部封閉測試網段殘餘之低危漏洞，經 CISO 與業務主管正式書面簽核接受殘餘風險。。</li>
+</ul>
 <p><strong>輸出關鍵成果</strong>：完成<strong>「適用性聲明書（Statement of Applicability, SoA）」</strong>，逐項說明 93 項控制措施之適用與否及理由；並編製<strong>「風險處理計畫（Risk Treatment Plan, RTP）」</strong>，載明指派負責人、預算與完成時限。</p>
 
 <h4>四、結論</h4>
@@ -241,7 +156,7 @@ def get_8_core_twse_essays():
 <ul>
   <li><strong>ISO 標準核心依據（7分）</strong>：精確指出 Clause 6.1.2 與 6.1.3 標準要求，闡述以風險為導向之精神。</li>
   <li><strong>四步驟評鑑流程（7分）</strong>：條列資產盤點（CIA 評定）、威脅弱點辨識、風險公式量化與可接受準則比對。</li>
-  <li><strong>風險處理 4T 與 SoA 表格（7分）</strong>：以標準表格列舉 Treat、Transfer、Avoid、Tolerate 之實戰定義，並對齊 ISO 27001:2022 Annex A 93項控制項與 SoA/RTP 輸出文件。</li>
+  <li><strong>風險處理 4T 與 SoA 重點條列（7分）</strong>：以標準條列架構列舉 Treat、Transfer、Avoid、Tolerate 之實戰定義，並對齊 ISO 27001:2022 Annex A 93項控制項與 SoA/RTP 輸出文件。</li>
   <li><strong>結論（4分）</strong>：總結資源精準投放對金融系統之價值。</li>
 </ul>
             """
@@ -262,64 +177,14 @@ def get_8_core_twse_essays():
 <p>證券交易具備微秒級即時性與高金流敏感度。開盤期間（09:00~13:30）一旦因 DDoS 攻擊造成投資人連線延遲或斷線，將引發無法即時停損平倉之巨額金融損失與市場信心崩盤。依金管會《金融機構資通安全防護基準》與通報規範，重大資安事件必須於<strong>「知悉起 30 分鐘內」</strong>向主管機關通報。資安專員必須依據 <strong>NIST SP 800-61 Rev. 2</strong> 擬定分秒必爭的實戰應變 SOP。</p>
 
 <h4>二、證券交易 DDoS 緊急應變與復原完整 SOP</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">應變階段</th>
-      <th style="padding:6px 10px;">關鍵實施動作 (SOP)</th>
-      <th style="padding:6px 10px;">權責人員與時效要求</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">1. 準備階段<br>(Preparation)</td>
-      <td style="padding:6px 10px;">
-        - 部署三層立體防護（電信端 Clean Pipe、CDN 邊緣、地端 Anti-DDoS 設備）；<br>
-        - 預先簽訂電信業者「BGP 動態引流清洗協定」；演練「一鍵引流腳本」。
-      </td>
-      <td style="padding:6px 10px;">資安架構師 / 平時常態整備</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">2. 偵測與判定<br>(Detection)</td>
-      <td style="padding:6px 10px;">
-        - 監控下單 API 吞吐量與錯誤率（HTTP 502/504）；<br>
-        - <strong>辨識攻擊類型</strong>：L3/L4 頻寬泛洪（SYN/UDP/ICMP Flood）或 L7 CC/慢速攻擊（Slowloris）。
-      </td>
-      <td style="padding:6px 10px; color:#dc2626;">SOC 監控團隊 / <strong>T+5 分鐘內</strong> 完成判定</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">3. 遏止與通報<br>(Containment)</td>
-      <td style="padding:6px 10px;">
-        - <strong>啟動電信引流</strong>：發布 BGP Flowspec 或切換 DNS CNAME 至高防清洗中心；<br>
-        - <strong>地端過濾</strong>：啟用 SYN Cookie、封鎖異常 GeoIP、API 閘道啟動動態限速；<br>
-        - <strong>法定通報</strong>：登入通報專區向金管會證期局及 F-ISAC 完成重大通報。
-      </td>
-      <td style="padding:6px 10px; color:#dc2626; font-weight:700;">應變小組 / <strong>T+15 分鐘啟動清洗；知悉 30 分鐘內通報</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">4. 根除與保護<br>(Eradication)</td>
-      <td style="padding:6px 10px;">
-        - <strong>交易專線通道絕對保障</strong>：強制對各券商下單之固網專線（Leased Line）實施 QoS 頻寬保留，阻絕公網髒流量干擾；<br>
-        - WAAP 啟用進階機器人驗證（PoW 算力挑戰），剔除自動化刷單殭屍。
-      </td>
-      <td style="padding:6px 10px;">網路維運團隊 / 攻擊持續期間</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">5. 復原上線<br>(Recovery)</td>
-      <td style="padding:6px 10px;">
-        - 髒流量壓制至正常基準線後，執行模擬下單與撮合鏈路完整性回歸測試；<br>
-        - 依受控步驟將公網 DNS 流量切回，全時監控伺服器延遲。
-      </td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">系統主管 / <strong>RTO ≤ 10 分鐘</strong> 恢復運作</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">6. 檢討與報告<br>(Post-Incident)</td>
-      <td style="padding:6px 10px;">
-        - 匯出全封包 PCAP 與攻擊 IoC（惡意 IP/JA4 指紋）分享至 F-ISAC；<br>
-        - 於事件平息後 3 個工作天內向金管會提交正式 RCA 調查結案報告。
-      </td>
-      <td style="padding:6px 10px;">CISO / 事後 3 個工作天內</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>1. 準備階段 (Preparation)</strong>：- 部署三層立體防護（電信端 Clean Pipe、CDN 邊緣、地端 Anti-DDoS 設備）； - 預先簽訂電信業者「BGP 動態引流清洗協定」；演練「一鍵引流腳本」。；資安架構師 / 平時常態整備。</li>
+  <li><strong>2. 偵測與判定 (Detection)</strong>：- 監控下單 API 吞吐量與錯誤率（HTTP 502/504）； - 辨識攻擊類型 ：L3/L4 頻寬泛洪（SYN/UDP/ICMP Flood）或 L7 CC/慢速攻擊（Slowloris）。；SOC 監控團隊 / T+5 分鐘內 完成判定。</li>
+  <li><strong>3. 遏止與通報 (Containment)</strong>：- 啟動電信引流 ：發布 BGP Flowspec 或切換 DNS CNAME 至高防清洗中心； - 地端過濾 ：啟用 SYN Cookie、封鎖異常 GeoIP、API 閘道啟動動態限速； - 法定通報 ：登入通報專區向金管會證期局及 F-ISAC 完成重大通報。；應變小組 / T+15 分鐘啟動清洗；知悉 30 分鐘內通報。</li>
+  <li><strong>4. 根除與保護 (Eradication)</strong>：- 交易專線通道絕對保障 ：強制對各券商下單之固網專線（Leased Line）實施 QoS 頻寬保留，阻絕公網髒流量干擾； - WAAP 啟用進階機器人驗證（PoW 算力挑戰），剔除自動化刷單殭屍。；網路維運團隊 / 攻擊持續期間。</li>
+  <li><strong>5. 復原上線 (Recovery)</strong>：- 髒流量壓制至正常基準線後，執行模擬下單與撮合鏈路完整性回歸測試； - 依受控步驟將公網 DNS 流量切回，全時監控伺服器延遲。；系統主管 / RTO ≤ 10 分鐘 恢復運作。</li>
+  <li><strong>6. 檢討與報告 (Post-Incident)</strong>：- 匯出全封包 PCAP 與攻擊 IoC（惡意 IP/JA4 指紋）分享至 F-ISAC； - 於事件平息後 3 個工作天內向金管會提交正式 RCA 調查結案報告。；CISO / 事後 3 個工作天內。</li>
+</ul>
 
 <h4>三、證券交易專屬復原保障策略</h4>
 <ol>
@@ -335,7 +200,7 @@ def get_8_core_twse_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>證券 DDoS 特殊性與監理（7分）</strong>：深入點出開盤時間中斷的嚴重金流後果，精確引用 NIST SP 800-61 與 30 分鐘法定通報時限。</li>
-  <li><strong>六階段緊急應變表格（7分）</strong>：以標準表格列舉準備、偵測、遏止、根除、復原與檢討的具體動作與時效目標（RTO ≤ 10 分鐘）。</li>
+  <li><strong>六階段緊急應變重點條列（7分）</strong>：以標準條列架構列舉準備、偵測、遏止、根除、復原與檢討的具體動作與時效目標（RTO ≤ 10 分鐘）。</li>
   <li><strong>證券專線隔離與引流技術（7分）</strong>：提出固網專線 QoS 隔離、BGP Flowspec 引流與 L7 WAAP PoW 算力反制。</li>
   <li><strong>結論（4分）</strong>：總結金融韌性防線價值。</li>
 </ul>
@@ -371,44 +236,11 @@ def get_8_core_twse_essays():
 </ol>
 
 <h4>三、網路分段（Network Segmentation）阻絕橫向移動之實務配置</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">網路分段策略</th>
-      <th style="padding:6px 10px;">具體技術實施配置</th>
-      <th style="padding:6px 10px;">防範黑客橫向移動之實質效果</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">1. 區域縱深分段<br>(Zone Segmentation)</td>
-      <td style="padding:6px 10px;">將企業劃分為 <strong>DMZ、OA 辦公區、核心交易區、帳務資料庫區、備份管理專區</strong>；跨網段必須經由次世代防火牆（NGFW）。</td>
-      <td style="padding:6px 10px;">將攻擊收斂於最初受害的單一辦公端點，<strong>阻絕黑客自辦公區直通交易撮合與備份主機</strong>。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">2. 封鎖高危橫向傳播通訊埠</td>
-      <td style="padding:6px 10px;">在所有內部交換器與端點防火牆強制封鎖：<br>
-        - <strong>TCP 445 / 139 (SMB)</strong>；<br>
-        - <strong>TCP 135 (RPC / WMI)</strong>；<br>
-        - <strong>TCP 3389 (RDP)</strong>；<br>
-        - <strong>TCP 5985/5986 (WinRM)</strong>。
-      </td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        徹底切斷勒索軟體最常用的自動化蠕蟲擴散管道（如 PsExec、WMI 遠端執行、EternalBlue 漏洞利用）。
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">3. Active Directory 階層隔離<br>(AD Tier Model)</td>
-      <td style="padding:6px 10px;">
-        - <strong>Tier 0 (DC/PKI)</strong>；<br>
-        - <strong>Tier 1 (交易主機/資料庫)</strong>；<br>
-        - <strong>Tier 2 (員工個人電腦)</strong>。<br>
-        嚴禁高階帳號登入低階主機！
-      </td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        即使攻擊者攻陷 Tier 2 辦公電腦，記憶體中亦絕無 Tier 0 管理員憑證，<strong>徹底終結 Pass-the-Hash / Mimikatz 抓取明文密碼直攻網域控制站</strong>之慘劇。
-      </td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>1. 區域縱深分段 (Zone Segmentation)</strong>：將企業劃分為 DMZ、OA 辦公區、核心交易區、帳務資料庫區、備份管理專區 ；跨網段必須經由次世代防火牆（NGFW）。；將攻擊收斂於最初受害的單一辦公端點， 阻絕黑客自辦公區直通交易撮合與備份主機 。。</li>
+  <li><strong>2. 封鎖高危橫向傳播通訊埠</strong>：在所有內部交換器與端點防火牆強制封鎖： - TCP 445 / 139 (SMB) ； - TCP 135 (RPC / WMI) ； - TCP 3389 (RDP) ； - TCP 5985/5986 (WinRM) 。；徹底切斷勒索軟體最常用的自動化蠕蟲擴散管道（如 PsExec、WMI 遠端執行、EternalBlue 漏洞利用）。。</li>
+  <li><strong>3. Active Directory 階層隔離 (AD Tier Model)</strong>：- Tier 0 (DC/PKI) ； - Tier 1 (交易主機/資料庫) ； - Tier 2 (員工個人電腦) 。 嚴禁高階帳號登入低階主機！；即使攻擊者攻陷 Tier 2 辦公電腦，記憶體中亦絕無 Tier 0 管理員憑證， 徹底終結 Pass-the-Hash / Mimikatz 抓取明文密碼直攻網域控制站 之慘劇。。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>面對雙重勒索，「備份是最後生存底線，而網路分段則是阻斷蔓延的防火牆」。透過「3-2-1-1-0」不可篡改備份保證數據生存，搭配網路微隔離與 AD 階層劃分斬斷橫向移動鏈，證券機構方能從容瓦解勒索軟體的雙重勒索攻勢。</p>
@@ -419,7 +251,7 @@ def get_8_core_twse_essays():
 <ul>
   <li><strong>雙重勒索威脅本質（7分）</strong>：深入點評現代勒索軟體先偷後殺、專門摧毀在線備份之戰術特徵。</li>
   <li><strong>3-2-1-1-0 進階備份原則（7分）</strong>：條列 3-2-1 基礎，精準點出防勒索核心：1 份不可變儲存（WORM Object Lock）與 0 錯誤驗證。</li>
-  <li><strong>網路分段阻絕橫向移動表（7分）</strong>：以表格詳盡列舉區域分段、封鎖 SMB 445/RPC 135 蠕蟲端口，以及 AD Tier 0~2 階層模型防 PtH 憑證橫向劫持。</li>
+  <li><strong>網路分段阻絕橫向移動表（7分）</strong>：以條列詳盡列舉區域分段、封鎖 SMB 445/RPC 135 蠕蟲端口，以及 AD Tier 0~2 階層模型防 PtH 憑證橫向劫持。</li>
   <li><strong>結論（4分）</strong>：總結最後底線與物理阻斷之互補成效。</li>
 </ul>
             """
@@ -440,32 +272,11 @@ def get_8_core_twse_essays():
 <p>在進階持續性威脅（APT）攻擊中，超過 90% 的攻擊鏈起點源自<strong>魚叉式釣魚郵件（Spear-phishing）</strong>。黑客偽造金管會公文、證交所公告或外部合作券商名義，夾帶惡意巨集或釣魚連結，誘騙內部員工點擊。建構完善的郵件防護機制，必須融合<strong>「郵件來源鑑別鐵三角」</strong>、<strong>「深度內容動態過濾」</strong>與<strong>「全生命週期鑑別日誌審計」</strong>。</p>
 
 <h4>二、郵件來源鑑別鐵三角：SPF、DKIM 與 DMARC</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">鑑別協定</th>
-      <th style="padding:6px 10px;">底層工作原理</th>
-      <th style="padding:6px 10px;">防範偽冒攻擊效果</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SPF<br>(Sender Policy Framework)</td>
-      <td style="padding:6px 10px;">網域擁有者於 public DNS 發布 TXT 記錄，宣告合法發送郵件的伺服器 IP 清單。</td>
-      <td style="padding:6px 10px;">收件伺服器比對發信端 SMTP 連線 IP；若不在 SPF 名單內，判定為偽冒 IP（SPF Fail）。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">DKIM<br>(DomainKeys Identified Mail)</td>
-      <td style="padding:6px 10px;">發件伺服器以<strong>私鑰對郵件標頭與內文進行數位簽章</strong>，公鑰發布於 DNS TXT 記錄中。</td>
-      <td style="padding:6px 10px;">收件端調用公鑰解密驗證簽章；確保郵件在傳輸過程中<strong>內文與附件未遭中間人（MITM）篡改</strong>。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">DMARC<br>(Domain-based Message Authentication)</td>
-      <td style="padding:6px 10px;">整合 SPF 與 DKIM，要求寄件者標頭（From:）必須與驗證網域一致（Alignment），並設定強制處置策略。</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        強制設定 <strong><code>p=reject</code>（直接拒收阻斷）</strong>；若驗證失敗信件直接丟棄；並接收外部網域回傳之聚合鑑別日誌報告（RUA/RUF）。
-      </td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>SPF (Sender Policy Framework)</strong>：網域擁有者於 public DNS 發布 TXT 記錄，宣告合法發送郵件的伺服器 IP 清單。；<strong>實務落地/對策</strong>：收件伺服器比對發信端 SMTP 連線 IP；若不在 SPF 名單內，判定為偽冒 IP（SPF Fail）。。</li>
+  <li><strong>DKIM (DomainKeys Identified Mail)</strong>：發件伺服器以 私鑰對郵件標頭與內文進行數位簽章 ，公鑰發布於 DNS TXT 記錄中。；<strong>實務落地/對策</strong>：收件端調用公鑰解密驗證簽章；確保郵件在傳輸過程中 內文與附件未遭中間人（MITM）篡改 。。</li>
+  <li><strong>DMARC (Domain-based Message Authentication)</strong>：整合 SPF 與 DKIM，要求寄件者標頭（From:）必須與驗證網域一致（Alignment），並設定強制處置策略。；<strong>實務落地/對策</strong>：強制設定 p=reject （直接拒收阻斷） ；若驗證失敗信件直接丟棄；並接收外部網域回傳之聚合鑑別日誌報告（RUA/RUF）。。</li>
+</ul>
 
 <h4>三、前置技術過濾規則與深度威脅防護</h4>
 <ol>
@@ -498,7 +309,7 @@ def get_8_core_twse_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>威脅現況與破題（7分）</strong>：深入指出郵件作為初始存取破口之嚴重性，點出三維一體防禦框架。</li>
-  <li><strong>鑑別鐵三角原理表格（7分）</strong>：以表格逐項剖析 SPF、DKIM、DMARC 之 DNS 原理、驗證機制與 p=reject 阻斷價值。</li>
+  <li><strong>鑑別鐵三角原理重點條列（7分）</strong>：以條列逐項剖析 SPF、DKIM、DMARC 之 DNS 原理、驗證機制與 p=reject 阻斷價值。</li>
   <li><strong>前置過濾與日誌 SOAR 實踐（7分）</strong>：詳細說明沙盒動態分析、Time-of-Click 點擊重導防護、180天日誌留存與 SOAR 自動撤回機制。</li>
   <li><strong>結論（4分）</strong>：總結由「被動防範」昇華為「技術自動化防護」之價值。</li>
 </ul>
@@ -513,7 +324,7 @@ def get_8_core_twse_essays():
             "title": "SQL 注入（SQLi）與跨網站指令碼（XSS）攻擊剖析及 SDLC 全生命週期防禦實務",
             "summary": "深入解構 OWASP Top 10 核心弱點 SQL Injection 與 XSS 原理與危害、參數化查詢（Prepared Statements）、上下文相關輸出編碼、CSP 標頭，以及 SDLC 設計/開發/測試/維運階段安全分工。",
             "points": 25,
-            "rubric": "1. SQL 注入與 XSS 攻擊原理與危害剖析 (7分)；2. 程式開發防禦代碼實踐對比表 (7分)；3. SDLC 各階段資安與開發分工架構 (7分)；4. 結論 (4分)",
+            "rubric": "1. SQL 注入與 XSS 攻擊原理與危害剖析 (7分)；2. 程式開發防禦代碼實踐關鍵對比 (7分)；3. SDLC 各階段資安與開發分工架構 (7分)；4. 結論 (4分)",
             "question": "請解釋何謂 SQL 注入（SQL Injection） 與 跨網站指令碼（XSS） 攻擊？並從軟體開發生命週期（SDLC）的角度，說明程式設計人員與資安人員應如何防範這兩類常見的 OWASP Top 10 弱點？",
             "modelAnswer": """
 <h4>一、破題：SQL 注入與 XSS 之底層攻擊原理與金融危害</h4>
@@ -529,33 +340,10 @@ def get_8_core_twse_essays():
 </ol>
 
 <h4>二、核心安全編碼實務對比（開發人員責任）</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">弱點類別</th>
-      <th style="padding:6px 10px;">脆弱寫法 (易受駭代碼)</th>
-      <th style="padding:6px 10px;">安全編碼黃金標準 (Gold Standard)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SQL 注入防禦</td>
-      <td style="padding:6px 10px; color:#dc2626;"><code>String sql = "SELECT * FROM users WHERE acct = '" + input + "'";</code> (字串拼接)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        <strong>強制使用參數化查詢（Prepared Statements / Parameterized Query）</strong>：<br>
-        <code>PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM users WHERE acct = ?"); pstmt.setString(1, input);</code><br>
-        資料庫預先編譯 SQL 語法結構，輸入字串僅被視為純文字純量，絕對無法改變指令語法！
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">XSS 跨站腳本防禦</td>
-      <td style="padding:6px 10px; color:#dc2626;"><code>document.write("&lt;div&gt;" + userInput + "&lt;/div&gt;");</code> (直接輸出 HTML)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">
-        1. <strong>上下文相關輸出編碼（Context-aware Output Encoding）</strong>：將 <code>&lt;, &gt;, &, ', "</code> 轉義為 HTML 實體；<br>
-        2. <strong>敏感 Cookie 標記</strong>：<code>HttpOnly; Secure; SameSite=Strict</code>（禁止 JS 讀取 Document.cookie）；<br>
-        3. <strong>啟用 CSP 標頭</strong>：<code>Content-Security-Policy: default-src 'self'</code>。
-      </td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>SQL 注入防禦</strong>：傳統易受駭作法為 String sql = "SELECT * FROM users WHERE acct = '" + input + "'"; (字串拼接)；<strong>安全黃金實踐</strong>為 強制使用參數化查詢（Prepared Statements / Parameterized Query） ： PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM users WHERE acct = ?"); pstmt.setString(1, input); 資料庫預先編譯 SQL 語法結構，輸入字串僅被視為純文字純量，絕對無法改變指令語法！。</li>
+  <li><strong>XSS 跨站腳本防禦</strong>：傳統易受駭作法為 document.write("<div>" + userInput + "</div>"); (直接輸出 HTML)；<strong>安全黃金實踐</strong>為 1. 上下文相關輸出編碼（Context-aware Output Encoding） ：將 <, >, &, ', " 轉義為 HTML 實體； 2. 敏感 Cookie 標記 ： HttpOnly; Secure; SameSite=Strict （禁止 JS 讀取 Document.cookie）； 3. 啟用 CSP 標頭 ： Content-Security-Policy: default-src 'self' 。。</li>
+</ul>
 
 <h4>三、SDLC 全生命週期之防禦協同分工（開發 vs 資安）</h4>
 <pre><code class="language-text">[1. 需求與設計階段] ──> [2. 開發實作階段] ──> [3. 測試驗證階段] ──> [4. 維運上線階段]
@@ -588,7 +376,7 @@ def get_8_core_twse_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>漏洞原理與金融危害（7分）</strong>：深入辨析 SQLi 與 XSS 的注入機制與語法改變本質，條列對金融交易的實質威脅。</li>
-  <li><strong>安全代碼實踐對比表（7分）</strong>：以代碼示例對比字串拼接與 Prepared Statements 預編譯原理，並詳列 XSS 輸出編碼、HttpOnly 與 CSP。</li>
+  <li><strong>安全代碼實踐重點對比（7分）</strong>：以代碼示例對比字串拼接與 Prepared Statements 預編譯原理，並詳列 XSS 輸出編碼、HttpOnly 與 CSP。</li>
   <li><strong>SDLC 各階段協同架構（7分）</strong>：繪出流程圖，條理分明區分開發與資安在需求、開發、測試（SAST/DAST/Quality Gate）與維運之分工。</li>
   <li><strong>結論（4分）</strong>：總結源頭治理與安全左移之核心理念。</li>
 </ul>
@@ -603,48 +391,17 @@ def get_8_core_twse_essays():
             "title": "對稱加密與非對稱加密深度比較及在 TLS 1.3 / HTTPS 中之協同運作機制",
             "summary": "深入剖析對稱加密（AES-GCM/ChaCha20）與非對稱加密（RSA/ECC/ECDHE）優缺點對比、混成加密（Hybrid Cryptosystem）、X.509 數位憑證認證、金鑰協商與 TLS 1.3 完全前向保密（PFS）協同運作實踐。",
             "points": 25,
-            "rubric": "1. 密碼學兩大加密體系核心對比表 (7分)；2. TLS 握手與金鑰協商協同流程 (7分)；3. TLS 1.3 前向保密 (PFS) 與證券交易實作 (7分)；4. 結論 (4分)",
+            "rubric": "1. 密碼學兩大加密體系核心關鍵對比 (7分)；2. TLS 握手與金鑰協商協同流程 (7分)；3. TLS 1.3 前向保密 (PFS) 與證券交易實作 (7分)；4. 結論 (4分)",
             "question": "API 憑證與傳輸安全在金融科技（FinTech）中至關重要。請比較對稱加密（Symmetric Encryption）與非對稱加密（Asymmetric Encryption）之優缺點，並說明兩者在傳輸層安全性協定（TLS/HTTPS）中如何協同工作。",
             "modelAnswer": """
 <h4>一、破題：現代密碼學之兩難與「混成加密（Hybrid Cryptosystem）」</h4>
 <p>在金融開放 API（Open API）與證券高頻交易中，傳輸層安全面臨著<strong>「極致效能」</strong>與<strong>「金鑰分發安全」</strong>的根本衝突：對稱加密速度極快但金鑰無法在不安全網路中公開傳輸；非對稱加密完美解決了密鑰安全交換與身分鑑別問題，但計算開銷巨大（慢數百至數千倍）。現代 <strong>TLS 1.3 / HTTPS 協定</strong>巧妙地將二者融合為<strong>「混成加密系統」</strong>，達成了速度與安全的完美平衡。</p>
 
 <h4>二、對稱加密 vs 非對稱加密核心特徵深入對比</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較維度</th>
-      <th style="padding:6px 10px;">對稱加密 (Symmetric Encryption)</th>
-      <th style="padding:6px 10px;">非對稱加密 (Asymmetric Encryption)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">金鑰結構</td>
-      <td style="padding:6px 10px;">加密與解密使用<strong>同一把共享密鑰（Shared Secret Key）</strong>。</td>
-      <td style="padding:6px 10px;">使用成對的<strong>公開金鑰（Public Key）</strong>與<strong>私有金鑰（Private Key）</strong>。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">主流演算法代表</td>
-      <td style="padding:6px 10px;">AES-128/256-GCM、ChaCha20-Poly1305</td>
-      <td style="padding:6px 10px;">RSA-2048/4096、ECDSA、Ed25519、ECDHE</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">加解密效能與資源</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>極快（微秒級）</strong>：底層具備 CPU AES-NI 硬體指令集加速，計算開銷極低。</td>
-      <td style="padding:6px 10px; color:#dc2626;"><strong>較慢（毫秒級）</strong>：涉及大質數因數分解或橢圓曲線點乘等複雜高精度數學運算。</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">主要優缺點</td>
-      <td style="padding:6px 10px;">
-        - <strong>優點</strong>：適合海量資料傳輸；<br>
-        - <strong>缺點</strong>：<strong>金鑰管理與分發困難</strong>（N 個人通訊需 N(N-1)/2 把金鑰）。
-      </td>
-      <td style="padding:6px 10px;">
-        - <strong>優點</strong>：金鑰分發容易（公鑰可公開發布）、天然支援數位簽章與不可否認性；<br>
-        - <strong>缺點</strong>：無法用於巨量數據直接加密。
-      </td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【對稱加密 (Symmetric Encryption)】</strong>：<strong>金鑰結構</strong>：加密與解密使用 同一把共享密鑰（Shared Secret Key） 。；<strong>主流演算法代表</strong>：AES-128/256-GCM、ChaCha20-Poly1305；<strong>加解密效能與資源</strong>：極快（微秒級） ：底層具備 CPU AES-NI 硬體指令集加速，計算開銷極低。；<strong>主要優缺點</strong>：- 優點 ：適合海量資料傳輸； - 缺點 ： 金鑰管理與分發困難 （N 個人通訊需 N(N-1)/2 把金鑰）。。</li>
+  <li><strong>【非對稱加密 (Asymmetric Encryption)】</strong>：<strong>金鑰結構</strong>：使用成對的 公開金鑰（Public Key） 與 私有金鑰（Private Key） 。；<strong>主流演算法代表</strong>：RSA-2048/4096、ECDSA、Ed25519、ECDHE；<strong>加解密效能與資源</strong>：較慢（毫秒級） ：涉及大質數因數分解或橢圓曲線點乘等複雜高精度數學運算。；<strong>主要優缺點</strong>：- 優點 ：金鑰分發容易（公鑰可公開發布）、天然支援數位簽章與不可否認性； - 缺點 ：無法用於巨量數據直接加密。。</li>
+</ul>
 
 <h4>三、兩者在 TLS 1.3 / HTTPS 協定中之協同運作流程</h4>
 <pre><code class="language-text">[客戶端 (瀏覽器/下單App)]                                      [證交所 API 伺服器]
@@ -680,7 +437,7 @@ def get_8_core_twse_essays():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>混成加密破題（7分）</strong>：深入辨析對稱與非對稱之根本衝突與互補哲學，定義混成加密本質。</li>
-  <li><strong>兩大加密體系對比表（7分）</strong>：以表格從金鑰結構、演算法、效能（AES-NI）、管理複雜度詳盡比較。</li>
+  <li><strong>兩大加密體系重點對比（7分）</strong>：以條列從金鑰結構、演算法、效能（AES-NI）、管理複雜度詳盡比較。</li>
   <li><strong>TLS 1.3 協同工作流程（7分）</strong>：繪出 Client Hello / Server Hello 流程圖，詳述 X.509 身分鑑別、ECDHE 金鑰協商與 AES-GCM 大量資料傳輸分工。</li>
   <li><strong>PFS 結論（4分）</strong>：闡述完全前向保密對歷史金融資料保全之關鍵價值。</li>
 </ul>

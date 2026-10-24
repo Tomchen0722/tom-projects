@@ -37,35 +37,12 @@ def get_essay_data():
   </li>
 </ol>
 
-<h4>三、技術方案橫向對比分析表</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較指標</th>
-      <th style="padding:6px 10px;">傳統 Linux 網路堆疊</th>
-      <th style="padding:6px 10px;">Solarflare Onload</th>
-      <th style="padding:6px 10px;">Intel DPDK</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">單向網路延遲</td>
-      <td style="padding:6px 10px;">15 ~ 35 µs</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">1.2 ~ 1.8 µs</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">0.8 ~ 1.5 µs</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">中斷處理模式</td>
-      <td style="padding:6px 10px;">硬體中斷 + SoftIRQ</td>
-      <td style="padding:6px 10px;">使用者空間混合輪詢</td>
-      <td style="padding:6px 10px;">純 PMD 100% 輪詢</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">代碼重構成本</td>
-      <td style="padding:6px 10px;">無</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">完全免改（LD_PRELOAD）</td>
-      <td style="padding:6px 10px; color:#dc2626;">需專用 API 重寫</td>
-    </tr>
-  </table>
-</div>
+<h4>三、技術方案重點對比與關鍵分析</h4>
+<ul>
+  <li><strong>【傳統 Linux 網路堆疊】</strong>：<strong>單向網路延遲</strong>：15 ~ 35 µs；<strong>中斷處理模式</strong>：硬體中斷 + SoftIRQ；<strong>代碼重構成本</strong>：無。</li>
+  <li><strong>【Solarflare Onload】</strong>：<strong>單向網路延遲</strong>：1.2 ~ 1.8 µs；<strong>中斷處理模式</strong>：使用者空間混合輪詢；<strong>代碼重構成本</strong>：完全免改（LD_PRELOAD）。</li>
+  <li><strong>【Intel DPDK】</strong>：<strong>單向網路延遲</strong>：0.8 ~ 1.5 µs；<strong>中斷處理模式</strong>：純 PMD 100% 輪詢；<strong>代碼重構成本</strong>：需專用 API 重寫。</li>
+</ul>
 
 <h4>四、作業系統核心與硬體親和性調校實務</h4>
 <ol>
@@ -84,7 +61,7 @@ def get_essay_data():
   <li><strong>延遲成因分析（5分）</strong>：需精準點出 Context Switch、中斷（IRQ）打斷 CPU 管線、記憶體二次拷貝這三個核心根因，若僅泛泛而談「網路慢」則只能得 2 分。</li>
   <li><strong>Kernel Bypass 機制（8分）</strong>：需區分 DPDK 與 Solarflare Onload 之差異（DPDK 需改代碼但延遲極致；Onload 完全相容 Socket API）。點出 PMD 與 Zero-Copy 各得 2 分。</li>
   <li><strong>底層調校實務（8分）</strong>：列出具體 Linux 參數 <code>isolcpus</code>、<code>nohz_full</code>、<code>SCHED_FIFO</code>、<code>mlockall</code> 與 <code>1GB HugePages</code>，每項命中得 1.5~2 分。</li>
-  <li><strong>對比表格與結論（4分）</strong>：橫向二維表格展現專業架構師綜整能力，直接鎖定滿分級距。</li>
+  <li><strong>重點對比與結論（4分）</strong>：關鍵條列對比展現專業架構師綜整能力，直接鎖定滿分級距。</li>
 </ul>
 <h5>⚠️ 考生常見失分陷阱</h5>
 <ol>
@@ -121,30 +98,10 @@ def get_essay_data():
 
 <h4>三、微突發（Microburst）成因與交換器緩衝區調校</h4>
 <p>開盤瞬時（09:00:00）數萬筆下單觸發大量成交行情，數十微秒內封包速率遠超實體頻寬，導致交換器緩衝區瞬間溢出掉包。</p>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">防禦維度</th>
-      <th style="padding:6px 10px;">傳統交換器設定</th>
-      <th style="padding:6px 10px;">金融級微突發優化對策</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">緩衝區分配</td>
-      <td style="padding:6px 10px;">靜態平均分配（Static Buffer）</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">動態共用緩衝區（Dynamic Shared Buffer，調高 Alpha 權重）</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">交換轉發架構</td>
-      <td style="padding:6px 10px;">儲存後轉發（Store-and-Forward）</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">直通轉發（Cut-Through Switching，僅讀取前 14 Bytes MAC）</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">擁塞控制機制</td>
-      <td style="padding:6px 10px;">TCP 逾時重傳</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">ECN 標記搭配 RoCEv2 PFC 優先級流量控制</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【傳統交換器設定】</strong>：<strong>緩衝區分配</strong>：靜態平均分配（Static Buffer）；<strong>交換轉發架構</strong>：儲存後轉發（Store-and-Forward）；<strong>擁塞控制機制</strong>：TCP 逾時重傳。</li>
+  <li><strong>【金融級微突發優化對策】</strong>：<strong>緩衝區分配</strong>：動態共用緩衝區（Dynamic Shared Buffer，調高 Alpha 權重）；<strong>交換轉發架構</strong>：直通轉發（Cut-Through Switching，僅讀取前 14 Bytes MAC）；<strong>擁塞控制機制</strong>：ECN 標記搭配 RoCEv2 PFC 優先級流量控制。</li>
+</ul>
 
 <h4>四、結論：Feed A / Feed B 雙路獨立冗餘</h4>
 <p>為達成封包遺失零容忍，證交所採用 <strong>Feed A 與 Feed B 雙路實體隔離廣播</strong>。行情封包標記全域遞增序號（Sequence Number），券商端仲裁器（Arbiter）先到先解，另一路重複自動丟棄，構築堅不可摧的高可靠行情基盤。</p>
@@ -176,30 +133,10 @@ def get_essay_data():
 <p>在逐筆撮合與演算法交易中，訂單抵達時序攸關交易公平性與穿透性追蹤。歐盟 <strong>MiFID II RTS 25</strong> 嚴格規範：高頻演算法交易時間戳記精度必須達到 <strong>100 微秒（µs）以內</strong>，與 UTC（世界協調時間）最大允許偏差不得超過 <strong>1 微秒（µs）</strong>，傳統時間協定已完全無法滿足監理要求。</p>
 
 <h4>二、NTP vs IEEE 1588v2 PTP 機制全方位比較</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較指標</th>
-      <th style="padding:6px 10px;">NTP (Network Time Protocol)</th>
-      <th style="padding:6px 10px;">IEEE 1588v2 PTP</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">同步精度</td>
-      <td style="padding:6px 10px;">毫秒級 (1 ~ 50 ms)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>奈秒級至次微秒級 (10 ~ 100 ns)</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">時戳打標層級</td>
-      <td style="padding:6px 10px;">應用層或作業系統軟體打標 (受中斷干擾)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>實體網卡 PHY / MAC 層硬體晶片打標</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">交換器支援</td>
-      <td style="padding:6px 10px;">普通交換器即可</td>
-      <td style="padding:6px 10px; color:#dc2626;">需交換器硬體支援 BC 或 TC 補償排隊延遲</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【NTP (Network Time Protocol)】</strong>：<strong>同步精度</strong>：毫秒級 (1 ~ 50 ms)；<strong>時戳打標層級</strong>：應用層或作業系統軟體打標 (受中斷干擾)；<strong>交換器支援</strong>：普通交換器即可。</li>
+  <li><strong>【IEEE 1588v2 PTP】</strong>：<strong>同步精度</strong>：奈秒級至次微秒級 (10 ~ 100 ns)；<strong>時戳打標層級</strong>：實體網卡 PHY / MAC 層硬體晶片打標；<strong>交換器支援</strong>：需交換器硬體支援 BC 或 TC 補償排隊延遲。</li>
+</ul>
 
 <h4>三、IEEE 1588v2 PTP 網路架構元件分工</h4>
 <ol>
@@ -252,34 +189,11 @@ def get_essay_data():
 </ol>
 
 <h4>三、虛擬記憶體與 1GB HugePages 大頁調校</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">記憶體分頁配置</th>
-      <th style="padding:6px 10px;">分頁大小</th>
-      <th style="padding:6px 10px;">TLB 覆蓋範圍</th>
-      <th style="padding:6px 10px;">金融撮合評估</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">標準分頁 (Default)</td>
-      <td style="padding:6px 10px;">4 KB</td>
-      <td style="padding:6px 10px;">1,024 條目僅覆蓋 4 MB</td>
-      <td style="padding:6px 10px; color:#dc2626;">TLB Miss 頻繁，每次懲罰 30~50ns</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">靜態巨大分頁 (HugePages)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>1 GB</strong></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>單條目覆蓋 1 GB</strong></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">TLB 命中率接近 100%，消除兩級頁表解析</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">透明大頁 (THP)</td>
-      <td style="padding:6px 10px;">2 MB (動態)</td>
-      <td style="padding:6px 10px;">動態維護</td>
-      <td style="padding:6px 10px; color:#dc2626;"><strong>必須停用！khugepaged 整理時引發記憶體凍結</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>標準分頁 (Default)</strong>：<strong>分頁大小</strong>：4 KB；<strong>TLB 覆蓋範圍</strong>：1,024 條目僅覆蓋 4 MB；<strong>金融撮合評估</strong>：TLB Miss 頻繁，每次懲罰 30~50ns。</li>
+  <li><strong>靜態巨大分頁 (HugePages)</strong>：<strong>分頁大小</strong>：1 GB；<strong>TLB 覆蓋範圍</strong>：單條目覆蓋 1 GB；<strong>金融撮合評估</strong>：TLB 命中率接近 100%，消除兩級頁表解析。</li>
+  <li><strong>透明大頁 (THP)</strong>：<strong>分頁大小</strong>：2 MB (動態)；<strong>TLB 覆蓋範圍</strong>：動態維護；<strong>金融撮合評估</strong>：必須停用！khugepaged 整理時引發記憶體凍結。</li>
+</ul>
 
 <h4>四、高效 IPC：POSIX 共享記憶體無鎖通訊</h4>
 <p>撮合核心與行情廣播行程部署於同台伺服器時，採用 <code>shm_open()</code> 與 <code>mmap()</code> 建立<strong>POSIX 共享記憶體區塊</strong>。搭配 LMAX Disruptor 環形無鎖佇列與 <code>alignas(64)</code> 快取行對齊，通訊延遲小於 100 奈秒，完全超越 Socket 迴路通訊。</p>
@@ -325,30 +239,10 @@ def get_essay_data():
 </ul>
 
 <h4>三、I/O 多工模型：epoll ET 邊緣觸發高並發架構</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較維度</th>
-      <th style="padding:6px 10px;">epoll LT (水平觸發，預設)</th>
-      <th style="padding:6px 10px;">epoll ET (邊緣觸發，高並發首選)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">通知觸發條件</td>
-      <td style="padding:6px 10px;">只要緩衝區有未讀資料就反覆通知</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>僅在狀態由無到有變更時通知一次</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">系統呼叫開銷</td>
-      <td style="padding:6px 10px;">次數頻繁，浪費 CPU</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">系統呼叫最小化，吞吐提升 30%</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">程式設計要求</td>
-      <td style="padding:6px 10px;">標準阻塞或非阻塞皆可</td>
-      <td style="padding:6px 10px; color:#dc2626;"><strong>必須搭配 Non-blocking I/O 迴圈讀取至 EAGAIN</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【epoll LT (水平觸發，預設)】</strong>：<strong>通知觸發條件</strong>：只要緩衝區有未讀資料就反覆通知；<strong>系統呼叫開銷</strong>：次數頻繁，浪費 CPU；<strong>程式設計要求</strong>：標準阻塞或非阻塞皆可。</li>
+  <li><strong>【epoll ET (邊緣觸發，高並發首選)】</strong>：<strong>通知觸發條件</strong>：僅在狀態由無到有變更時通知一次；<strong>系統呼叫開銷</strong>：系統呼叫最小化，吞吐提升 30%；<strong>程式設計要求</strong>：必須搭配 Non-blocking I/O 迴圈讀取至 EAGAIN。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>結合「TCP_NODELAY + SO_BUSY_POLL + epoll ET 非阻塞處理」，下單閘道器能在單機維護數萬個券商連線的情境下，將平均網路處理延遲壓制在 3 微秒內，並維持高吞吐穩定性。</p>
@@ -385,28 +279,10 @@ def get_essay_data():
 </ol>
 
 <h4>二、隔離層級與異常現象防範</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">隔離層級</th>
-      <th style="padding:6px 10px;">髒讀 (Dirty Read)</th>
-      <th style="padding:6px 10px;">不可重複讀 (Non-Repeatable)</th>
-      <th style="padding:6px 10px;">幻讀 (Phantom Read)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Read Committed</td>
-      <td style="padding:6px 10px; color:#16a34a;">已防禦 (MVCC 每次讀取產生新視圖)</td>
-      <td style="padding:6px 10px; color:#dc2626;">仍可能發生</td>
-      <td style="padding:6px 10px; color:#dc2626;">仍可能發生</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Repeatable Read (金融推薦)</td>
-      <td style="padding:6px 10px; color:#16a34a;">已防禦</td>
-      <td style="padding:6px 10px; color:#16a34a;">已防禦 (MVCC 事務內共用首個視圖)</td>
-      <td style="padding:6px 10px; color:#16a34a;">已防禦 (結合 Next-Key Lock 間隙鎖)</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>Read Committed</strong>：<strong>髒讀 (Dirty Read)</strong>：已防禦 (MVCC 每次讀取產生新視圖)；<strong>不可重複讀 (Non-Repeatable)</strong>：仍可能發生；<strong>幻讀 (Phantom Read)</strong>：仍可能發生。</li>
+  <li><strong>Repeatable Read (金融推薦)</strong>：<strong>髒讀 (Dirty Read)</strong>：已防禦；<strong>不可重複讀 (Non-Repeatable)</strong>：已防禦 (MVCC 事務內共用首個視圖)；<strong>幻讀 (Phantom Read)</strong>：已防禦 (結合 Next-Key Lock 間隙鎖)。</li>
+</ul>
 
 <h4>三、同城雙活（Active-Active）資料庫容災架構規劃</h4>
 <p>為達成 <strong>RPO = 0（資料零遺失）</strong> 與 <strong>RTO ≤ 10 分鐘</strong>，架構設計如下：</p>
@@ -426,7 +302,7 @@ def get_essay_data():
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>ACID 底層實現（8分）</strong>：深入剖析 WAL、Undo Log、Redo Log 及 ARIES 復原機制，點出 MVCC 實現原理。</li>
-  <li><strong>隔離層級表格（5分）</strong>：清晰呈現 Read Committed vs Repeatable Read 對髒讀、不可重複讀與幻讀的防禦機制（特別是 Next-Key Lock 間隙鎖）。</li>
+  <li><strong>隔離層級重點條列（5分）</strong>：清晰呈現 Read Committed vs Repeatable Read 對髒讀、不可重複讀與幻讀的防禦機制（特別是 Next-Key Lock 間隙鎖）。</li>
   <li><strong>同城雙活架構（8分）</strong>：提出具體光纖延遲（<1ms）、Raft 多數決 Quorum 節點排布（2+2+1）、兩階段提交（2PC）。</li>
   <li><strong>指標與結論（4分）</strong>：緊扣 RPO=0 與 RTO≤10 分鐘。</li>
 </ul>
@@ -452,40 +328,12 @@ L3 Cache (Shared, 32MB ~ 64MB) ──> 延遲約 10 ~ 15 ns (約 40 週期)
 
 <h4>二、MESI 快取一致性協定原理</h4>
 <p>為確保多核心讀寫同一記憶體時資料一致，硬體實施 MESI 狀態機：</p>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">狀態標籤</th>
-      <th style="padding:6px 10px;">定義說明</th>
-      <th style="padding:6px 10px;">與主記憶體關係</th>
-      <th style="padding:6px 10px;">其他核心快取副本</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">M (Modified)</td>
-      <td style="padding:6px 10px;">核心已修改該快取行（髒資料）</td>
-      <td style="padding:6px 10px; color:#dc2626;">不一致（主記憶體過期）</td>
-      <td style="padding:6px 10px;">其他核心皆無副本</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">E (Exclusive)</td>
-      <td style="padding:6px 10px;">核心獨佔該快取行，未被修改</td>
-      <td style="padding:6px 10px; color:#16a34a;">完全一致</td>
-      <td style="padding:6px 10px;">其他核心皆無副本</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">S (Shared)</td>
-      <td style="padding:6px 10px;">多個核心同時擁有該快取行唯讀副本</td>
-      <td style="padding:6px 10px; color:#16a34a;">完全一致</td>
-      <td style="padding:6px 10px;">其他核心存在 S 狀態副本</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">I (Invalid)</td>
-      <td style="padding:6px 10px;">該快取行資料已失效，不可讀取</td>
-      <td style="padding:6px 10px;">無效</td>
-      <td style="padding:6px 10px;">-</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>M (Modified)</strong>：核心已修改該快取行（髒資料）；<strong>與主記憶體關係</strong>：不一致（主記憶體過期）；其他核心皆無副本。</li>
+  <li><strong>E (Exclusive)</strong>：核心獨佔該快取行，未被修改；<strong>與主記憶體關係</strong>：完全一致；其他核心皆無副本。</li>
+  <li><strong>S (Shared)</strong>：多個核心同時擁有該快取行唯讀副本；<strong>與主記憶體關係</strong>：完全一致；其他核心存在 S 狀態副本。</li>
+  <li><strong>I (Invalid)</strong>：該快取行資料已失效，不可讀取；<strong>與主記憶體關係</strong>：無效；-。</li>
+</ul>
 
 <h4>三、快取偽共享（False Sharing）成因與代碼對策</h4>
 <ol>
@@ -528,30 +376,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "modelAnswer": """
 <h4>一、破題：傳統 FC SAN 瓶頸與 NVMe-oF AFA 技術優勢</h4>
 <p>傳統光纖通道（Fibre Channel）SAN 儲存受限於老舊的 SCSI 命令集與硬碟架構，面臨單一佇列瓶頸。<strong>NVMe-oF（NVMe over Fabrics）全快閃儲存陣列</strong>帶來顛覆性突破：</p>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較指標</th>
-      <th style="padding:6px 10px;">傳統 FC SAN (SCSI 堆疊)</th>
-      <th style="padding:6px 10px;">NVMe-oF AFA (RDMA / TCP)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">並行命令佇列數</td>
-      <td style="padding:6px 10px;">單一命令佇列 (深度 32)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>高達 64,000 個佇列 (每個深度 64,000)</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">單向 I/O 延遲</td>
-      <td style="padding:6px 10px;">100 ~ 250 微秒 (µs)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>小於 10 微秒 (µs)</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">CPU 協議轉換損耗</td>
-      <td style="padding:6px 10px;">多次 SCSI 驅動封裝轉發</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">RDMA Kernel Bypass 直通 PCIe 匯流排</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【傳統 FC SAN (SCSI 堆疊)】</strong>：<strong>並行命令佇列數</strong>：單一命令佇列 (深度 32)；<strong>單向 I/O 延遲</strong>：100 ~ 250 微秒 (µs)；<strong>CPU 協議轉換損耗</strong>：多次 SCSI 驅動封裝轉發。</li>
+  <li><strong>【NVMe-oF AFA (RDMA / TCP)】</strong>：<strong>並行命令佇列數</strong>：高達 64,000 個佇列 (每個深度 64,000)；<strong>單向 I/O 延遲</strong>：小於 10 微秒 (µs)；<strong>CPU 協議轉換損耗</strong>：RDMA Kernel Bypass 直通 PCIe 匯流排。</li>
+</ul>
 
 <h4>二、線上重複資料刪除與壓縮（Inline Deduplication & Compression）</h4>
 <ol>
@@ -572,7 +400,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <h4>四、結論</h4>
 <p>透過「NVMe-oF 低延遲全快閃 + WORM 防篡改法規儲存 + 異地 SRDF 同步鏡像」，證券交易所能兼顧微秒級高頻寫入效能與堅如磐石的防勒索災難復原保障。</p>
             """,
-            "examinerTips": "評分秘笈：對比表格展現『64,000 並行佇列 vs 深度 32』；切中『WORM 連管理員亦無權刪除』與『不可變快照氣隙隔離』。",
+            "examinerTips": "評分秘笈：重點對比展現『64,000 並行佇列 vs 深度 32』；切中『WORM 連管理員亦無權刪除』與『不可變快照氣隙隔離』。",
             "detailedExplanation": """
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
@@ -608,35 +436,12 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ul>
 
 <h4>三、SRE 維運體系：SLI、SLO 與錯誤預算（Error Budget）</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">SRE 核心概念</th>
-      <th style="padding:6px 10px;">金融證券系統定義</th>
-      <th style="padding:6px 10px;">指標標準範例</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SLI (服務等級指標)</td>
-      <td style="padding:6px 10px;">實際量測之關鍵服務品質指標</td>
-      <td style="padding:6px 10px;">委託下單 API 成功率；撮合延遲 P99 分位數</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SLO (服務等級目標)</td>
-      <td style="padding:6px 10px;">團隊內部追求之高可靠度目標</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">每月下單可用率 ≥ 99.99% (每月允許停機 4.38 分鐘)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SLA (服務等級協定)</td>
-      <td style="padding:6px 10px;">對外簽署具備法律效力之合約</td>
-      <td style="padding:6px 10px;">可用率未達 99.9% 需按比例賠償券商連線費</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Error Budget (錯誤預算)</td>
-      <td style="padding:6px 10px;">100% - SLO (平衡創新與穩定)</td>
-      <td style="padding:6px 10px; color:#dc2626;">預算耗盡時全面凍結發版，全員投入穩定性治理</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>SLI (服務等級指標)</strong>：實際量測之關鍵服務品質指標；<strong>實務落地/對策</strong>：委託下單 API 成功率；撮合延遲 P99 分位數。</li>
+  <li><strong>SLO (服務等級目標)</strong>：團隊內部追求之高可靠度目標；<strong>實務落地/對策</strong>：每月下單可用率 ≥ 99.99% (每月允許停機 4.38 分鐘)。</li>
+  <li><strong>SLA (服務等級協定)</strong>：對外簽署具備法律效力之合約；<strong>實務落地/對策</strong>：可用率未達 99.9% 需按比例賠償券商連線費。</li>
+  <li><strong>Error Budget (錯誤預算)</strong>：100% - SLO (平衡創新與穩定)；<strong>實務落地/對策</strong>：預算耗盡時全面凍結發版，全員投入穩定性治理。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>透過「cgroups/Namespaces 核心硬隔離 + K8s 宣告式自動修復 + SRE 錯誤預算治理」，能在雲原生架構下實現金融微服務彈性調度與高可用性維運。</p>
@@ -647,7 +452,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <ul>
   <li><strong>容器底層（7分）</strong>：精確指出 Namespaces 與 cgroups 的各自職責。</li>
   <li><strong>K8s 控制平面（6分）</strong>：說明 etcd 奇數節點 Raft 機制與 API Server 負載平衡。</li>
-  <li><strong>SRE 體系表格（8分）</strong>：完整表格展示 SLI、SLO、SLA 與 Error Budget 定義與互動機制。</li>
+  <li><strong>SRE 體系重點條列（8分）</strong>：完整條列展示 SLI、SLO、SLA 與 Error Budget 定義與互動機制。</li>
   <li><strong>結論（4分）</strong>：雲原生與金融維運綜效。</li>
 </ul>
             """
@@ -676,30 +481,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ul>
 
 <h4>三、LVS DR 模式（直接路由）相較 NAT 模式效能優勢</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較項目</th>
-      <th style="padding:6px 10px;">LVS NAT 模式</th>
-      <th style="padding:6px 10px;">LVS DR 模式 (Direct Routing，金融首選)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">轉發原理</td>
-      <td style="padding:6px 10px;">修改 IP 標頭目標 IP，進出雙向皆經 LVS</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>僅修改封包目標 MAC 位址，IP 完全不變</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">回程流量路徑</td>
-      <td style="padding:6px 10px; color:#dc2626;">回應流量必須原路穿過 LVS 回傳</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>真實伺服器直接向客戶端回傳 (三角路由 DSR)</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">負載吞吐能力</td>
-      <td style="padding:6px 10px;">受 LVS 總出口頻寬限制 (約 10~20 Gbps)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>突破 LVS 瓶頸，單台可分流數百萬 QPS</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【LVS NAT 模式】</strong>：<strong>轉發原理</strong>：修改 IP 標頭目標 IP，進出雙向皆經 LVS；<strong>回程流量路徑</strong>：回應流量必須原路穿過 LVS 回傳；<strong>負載吞吐能力</strong>：受 LVS 總出口頻寬限制 (約 10~20 Gbps)。</li>
+  <li><strong>【LVS DR 模式 (Direct Routing，金融首選)】</strong>：<strong>轉發原理</strong>：僅修改封包目標 MAC 位址，IP 完全不變；<strong>回程流量路徑</strong>：真實伺服器直接向客戶端回傳 (三角路由 DSR)；<strong>負載吞吐能力</strong>：突破 LVS 瓶頸，單台可分流數百萬 QPS。</li>
+</ul>
 
 <h4>四、結論</h4>
 <p>「STONITH 硬體斷電保全 + LVS DR 三角路由分流」能建構零腦裂風險、具備百萬 QPS 吞吐之金融級高可用伺服器陣列。</p>
@@ -710,7 +495,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <ul>
   <li><strong>腦裂成因（7分）</strong>：清晰指出心跳斷裂、誤判宕機、雙主爭搶 VIP 與磁碟寫入覆蓋風險。</li>
   <li><strong>STONITH 原理（7分）</strong>：強調透過 IPMI / iDRAC 執行實體切斷電源（Shoot in the head），並等待確認後再接管。</li>
-  <li><strong>LVS DR 模式（7分）</strong>：以表格對比 NAT 與 DR，點出 Direct Server Return (DSR) 三角路由。</li>
+  <li><strong>LVS DR 模式（7分）</strong>：以條列對比 NAT 與 DR，點出 Direct Server Return (DSR) 三角路由。</li>
   <li><strong>結論（4分）</strong>：總結高可用與極致吞吐架構。</li>
 </ul>
             """
@@ -740,30 +525,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ul>
 
 <h4>三、分散式訊息交付三大語意與 Exactly-Once 實現</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">交付語意</th>
-      <th style="padding:6px 10px;">特性與風險</th>
-      <th style="padding:6px 10px;">金融適用場景</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">At-Most-Once (最多一次)</td>
-      <td style="padding:6px 10px;">發送即忘，可能丟失訊息，但絕不重複</td>
-      <td style="padding:6px 10px; color:#dc2626;">嚴禁於交易金流中使用；僅可用於可丟棄之次要監控指標</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">At-Least-Once (至少一次)</td>
-      <td style="padding:6px 10px;">逾時自動重傳，保證不丟失，但可能重複</td>
-      <td style="padding:6px 10px;">通用日誌收集、非即時報表統計</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">Exactly-Once (精確一次)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>訊息保證不丟失且嚴格僅處理一次</strong></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>證券撮合、帳務扣款、持股清算交割（金融唯一標準）</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【特性與風險】</strong>：<strong>At-Most-Once (最多一次)</strong>：發送即忘，可能丟失訊息，但絕不重複；<strong>At-Least-Once (至少一次)</strong>：逾時自動重傳，保證不丟失，但可能重複；<strong>Exactly-Once (精確一次)</strong>：訊息保證不丟失且嚴格僅處理一次。</li>
+  <li><strong>【金融適用場景】</strong>：<strong>At-Most-Once (最多一次)</strong>：嚴禁於交易金流中使用；僅可用於可丟棄之次要監控指標；<strong>At-Least-Once (至少一次)</strong>：通用日誌收集、非即時報表統計；<strong>Exactly-Once (精確一次)</strong>：證券撮合、帳務扣款、持股清算交割（金融唯一標準）。</li>
+</ul>
 <p><strong>Exactly-Once 落地實務</strong>：依賴「生產端冪等性（Idempotent Producer PID + Sequence）」搭配「消費端分散式交易或業務唯一鍵去重（Redis SETNX / 資料庫 Unique Constraint 唯一索引）」，達成絕對防重扣款。</p>
             """,
             "examinerTips": "得分核心：『FIX MsgSeqNum 序號斷層觸發 ResendRequest』、『Kafka 磁碟循序追加與 Zero-Copy sendfile』、『Exactly-Once 依賴生產端冪等 + 消費端唯一鍵去重』。",
@@ -772,7 +537,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <ul>
   <li><strong>FIX 協定（7分）</strong>：深入說明 Session 層序列號管理與重傳請求，解釋其對交易不脫序的保障。</li>
   <li><strong>Kafka 架構（7分）</strong>：指出 Sequential Write、Zero-Copy sendfile、ISR 高可用副本。</li>
-  <li><strong>三大語意對比（7分）</strong>：以表格呈現 At-Most-Once、At-Least-Once、Exactly-Once，給出 Exactly-Once 的具體實現架構。</li>
+  <li><strong>三大語意對比（7分）</strong>：以清晰條列呈現 At-Most-Once、At-Least-Once、Exactly-Once，給出 Exactly-Once 的具體實現架構。</li>
   <li><strong>結論（4分）</strong>：總結金融訊息基盤設計。</li>
 </ul>
             """
@@ -802,35 +567,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ul>
 
 <h4>三、Linux 生產效能急救排查工具鏈</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">系統資源維度</th>
-      <th style="padding:6px 10px;">首選診斷工具</th>
-      <th style="padding:6px 10px;">核心觀察指標與異常預警</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">CPU 效能與排程</td>
-      <td style="padding:6px 10px;"><code>uptime, top -H, mpstat 1</code></td>
-      <td style="padding:6px 10px;">Load Avg 飆高、%si (軟中斷過高)、%wa (等待 I/O)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">記憶體與換頁</td>
-      <td style="padding:6px 10px;"><code>free -h, vmstat 1</code></td>
-      <td style="padding:6px 10px; color:#dc2626;"><strong>si / so 大於 0 (發生致命 Swap 換頁！)</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">磁碟 I/O 吞吐</td>
-      <td style="padding:6px 10px;"><code>iostat -xz 1</code></td>
-      <td style="padding:6px 10px;">%util 逼近 100%、await 延遲超過 10ms</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">網路連線佇列</td>
-      <td style="padding:6px 10px;"><code>ss -s, netstat -s</code></td>
-      <td style="padding:6px 10px;">TCP ListenDrop 溢出、RetransSegs 重傳飆升</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【首選診斷工具】</strong>：<strong>CPU 效能與排程</strong>：uptime, top -H, mpstat 1；<strong>記憶體與換頁</strong>：free -h, vmstat 1；<strong>磁碟 I/O 吞吐</strong>：iostat -xz 1；<strong>網路連線佇列</strong>：ss -s, netstat -s。</li>
+  <li><strong>【核心觀察指標與異常預警】</strong>：<strong>CPU 效能與排程</strong>：Load Avg 飆高、%si (軟中斷過高)、%wa (等待 I/O)；<strong>記憶體與換頁</strong>：si / so 大於 0 (發生致命 Swap 換頁！)；<strong>磁碟 I/O 吞吐</strong>：%util 逼近 100%、await 延遲超過 10ms；<strong>網路連線佇列</strong>：TCP ListenDrop 溢出、RetransSegs 重傳飆升。</li>
+</ul>
 
 <h4>四、結論：崩潰轉儲（kdump）與 GDB 堆疊回溯</h4>
 <p>生產程式崩潰時，透過 Linux <code>ulimit -c unlimited</code> 保留 Core Dump 核心映象，工程師於離線環境以 <code>gdb ./twse_engine core-dump-file</code> 執行 <code>bt full</code> 打印全線程呼叫棧，徹底定位空指針或並發死鎖（Deadlock）根因。</p>
@@ -841,7 +581,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <ul>
   <li><strong>IaC 與自動化（6分）</strong>：說明 Ansible 冪等性與 GitOps 雙人稽核審查機制。</li>
   <li><strong>混沌工程（6分）</strong>：列出在金融生產系統中注入網路延遲、節點當機以驗證容錯指標。</li>
-  <li><strong>Linux 排查表格（9分）</strong>：完整條列 CPU、記憶體（強調 si/so）、磁碟（%util/await）、網路（ListenDrop）排查工具鏈。</li>
+  <li><strong>Linux 排查重點條列（9分）</strong>：完整條列 CPU、記憶體（強調 si/so）、磁碟（%util/await）、網路（ListenDrop）排查工具鏈。</li>
   <li><strong>崩潰診斷（4分）</strong>：陳述 Core Dump 與 GDB 事後調試流程。</li>
 </ul>
             """
@@ -869,30 +609,11 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ol>
 
 <h4>二、重大資安事件認定標準與「30 分鐘」通報時效</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">通報維度</th>
-      <th style="padding:6px 10px;">法定規範標準</th>
-      <th style="padding:6px 10px;">應處置作為</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">重大事件認定條件</td>
-      <td style="padding:6px 10px;">1. 核心系統中斷達 10 分鐘以上<br>2. 大量客戶機密/憑證資料遭外洩<br>3. 遭受勒索軟體全盤加密</td>
-      <td style="padding:6px 10px; color:#dc2626; font-weight:700;">啟動緊急應變小組並成立前進指揮所</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">初次通報法定時限</td>
-      <td style="padding:6px 10px; color:#dc2626; font-weight:700;"><strong>自「知悉（Awareness）」起 30 分鐘以內</strong></td>
-      <td style="padding:6px 10px;">向金管會證期局及 F-ISAC 完成線上通報</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">後續追蹤與結案</td>
-      <td style="padding:6px 10px;">每 2 小時更新最新處置進度</td>
-      <td style="padding:6px 10px;">事件平息後 3 個工作天內繳交完整根因調查報告</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>重大事件認定條件</strong>：標準為 <strong>1. 核心系統中斷達 10 分鐘以上 2. 大量客戶機密/憑證資料遭外洩 3. 遭受勒索軟體全盤加密</strong>；處置作為：啟動緊急應變小組並成立前進指揮所。</li>
+  <li><strong>初次通報法定時限</strong>：標準為 <strong>自「知悉（Awareness）」起 30 分鐘以內</strong>；處置作為：向金管會證期局及 F-ISAC 完成線上通報。</li>
+  <li><strong>後續追蹤與結案</strong>：標準為 <strong>每 2 小時更新最新處置進度</strong>；處置作為：事件平息後 3 個工作天內繳交完整根因調查報告。</li>
+</ul>
 
 <h4>三、F-ISAC 橫向聯防與情資分享生態系</h4>
 <ul>
@@ -926,35 +647,12 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "modelAnswer": """
 <h4>一、破題：ISO/IEC 27001:2022 Annex A 架構重大改版</h4>
 <p>ISO/IEC 27001:2022 將舊版 14 個網域 114 項控制措施，重新精簡整併為<strong>四大主題（Themes）共 93 項控制措施</strong>：</p>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">2022 新版主題分類</th>
-      <th style="padding:6px 10px;">控制項數量</th>
-      <th style="padding:6px 10px;">核心重點與證券業應用</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">A.5 組織控制措施</td>
-      <td style="padding:6px 10px;">37 項</td>
-      <td style="padding:6px 10px;">資安政策、角色分工、資產管理、雲端服務資訊安全</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">A.6 人員控制措施</td>
-      <td style="padding:6px 10px;">8 項</td>
-      <td style="padding:6px 10px;">背景查核、在職意識教育、離職立即註銷權限</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">A.7 實體控制措施</td>
-      <td style="padding:6px 10px;">14 項</td>
-      <td style="padding:6px 10px;">機房實體邊界、門禁多因子管制、支援性公用設施（電力空調）</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">A.8 技術控制措施</td>
-      <td style="padding:6px 10px;">34 項</td>
-      <td style="padding:6px 10px;">端點防護、特權帳號管理、網路微隔離、安全編碼 (SSDLC)</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>A.5 組織控制措施（37 項）</strong>：資安政策、角色分工、資產管理、雲端服務資訊安全。</li>
+  <li><strong>A.6 人員控制措施（8 項）</strong>：背景查核、在職意識教育、離職立即註銷權限。</li>
+  <li><strong>A.7 實體控制措施（14 項）</strong>：機房實體邊界、門禁多因子管制、支援性公用設施（電力空調）。</li>
+  <li><strong>A.8 技術控制措施（34 項）</strong>：端點防護、特權帳號管理、網路微隔離、安全編碼 (SSDLC)。</li>
+</ul>
 
 <h4>二、精選全新新增控制項與證券業落地實務</h4>
 <ol>
@@ -1008,28 +706,11 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 
 <h4>二、X.509 憑證生命週期與 OCSP 即時狀態查驗</h4>
 <p>憑證生命週期包含申請、審驗、簽發、儲存、驗證、展期與廢止（Revocation）：</p>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">查驗機制</th>
-      <th style="padding:6px 10px;">CRL (憑證撤銷清單)</th>
-      <th style="padding:6px 10px;">OCSP (線上憑證狀態協定)</th>
-      <th style="padding:6px 10px;">OCSP Stapling (裝訂優化)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">即時性</td>
-      <td style="padding:6px 10px; color:#dc2626;">低 (週期性更新，具時間差)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">高 (即時向 CA 查詢狀態)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">極高 (由伺服器預先取得 CA 簽名)</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">網路開銷</td>
-      <td style="padding:6px 10px;">清單檔案龐大，浪費頻寬</td>
-      <td style="padding:6px 10px;">每次交易需額外發起 HTTP 請求</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>零客戶端額外請求，大幅縮減延遲</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【CRL (憑證撤銷清單)】</strong>：<strong>即時性</strong>：低 (週期性更新，具時間差)；<strong>網路開銷</strong>：清單檔案龐大，浪費頻寬。</li>
+  <li><strong>【OCSP (線上憑證狀態協定)】</strong>：<strong>即時性</strong>：高 (即時向 CA 查詢狀態)；<strong>網路開銷</strong>：每次交易需額外發起 HTTP 請求。</li>
+  <li><strong>【OCSP Stapling (裝訂優化)】</strong>：<strong>即時性</strong>：極高 (由伺服器預先取得 CA 簽名)；<strong>網路開銷</strong>：零客戶端額外請求，大幅縮減延遲。</li>
+</ul>
 
 <h4>三、金融硬體安全模組（HSM FIPS 140-3 Level 3）防護特性</h4>
 <ol>
@@ -1049,7 +730,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>數位簽章法規與流程（7分）</strong>：清晰推導雜湊摘要、私鑰簽名、公鑰解密校驗流程，並引用數位簽章法法定不可否認性。</li>
-  <li><strong>憑證查驗表格（6分）</strong>：以表格對比 CRL、OCSP 與 OCSP Stapling 之時效性與效能。</li>
+  <li><strong>憑證查驗機制對比（6分）</strong>：以條列對比 CRL、OCSP 與 OCSP Stapling 之時效性與效能。</li>
   <li><strong>HSM 防護特性（7分）</strong>：寫出 FIPS 140-3 Level 3 物理防護等級與「Zeroization 零化銷毀」。</li>
   <li><strong>TLS 1.3 結論（5分）</strong>：詮釋 ECDHE 臨時密鑰協商與 PFS 完全前向保密。</li>
 </ul>
@@ -1093,25 +774,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <p><strong>運作機制</strong>：PEP 攔截連線並將使用者身分、設備合規性（如是否安裝 EDR、磁碟是否加密）傳送給 PDP。PDP 之原則引擎結合威脅情資進行即時動態風險評分，由原則管理員向 PEP 下達放行、二次 MFA 挑戰或阻斷指令。</p>
 
 <h4>三、FIDO2 / WebAuthn 抗釣魚（Phishing-Resistant）原理</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">身分驗證機制</th>
-      <th style="padding:6px 10px;">SMS 簡訊 / TOTP 動態密碼</th>
-      <th style="padding:6px 10px;">FIDO2 / WebAuthn (公私鑰)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">私鑰儲存位置</td>
-      <td style="padding:6px 10px;">無私鑰 (伺服器共用密鑰)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>硬體安全晶片 (TPM 2.0 / YubiKey，永不導出)</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">釣魚網站防禦</td>
-      <td style="padding:6px 10px; color:#dc2626;">極易遭受反向代理 (Evilginx) 即時轉發竊取</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>來源網域綁定 (Origin Binding)，釣魚網域簽章失效</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【SMS 簡訊 / TOTP 動態密碼】</strong>：<strong>私鑰儲存位置</strong>：無私鑰 (伺服器共用密鑰)；<strong>釣魚網站防禦</strong>：極易遭受反向代理 (Evilginx) 即時轉發竊取。</li>
+  <li><strong>【FIDO2 / WebAuthn (公私鑰)】</strong>：<strong>私鑰儲存位置</strong>：硬體安全晶片 (TPM 2.0 / YubiKey，永不導出)；<strong>釣魚網站防禦</strong>：來源網域綁定 (Origin Binding)，釣魚網域簽章失效。</li>
+</ul>
 
 <h4>四、結論：PAM 堡壘機特權帳號防禦</h4>
 <p>針對機房核心管理員，全面部署 <strong>特權存取管理（PAM）堡壘機</strong>。落實動態一次性密碼、雙人覆核授權與全工作階段螢幕錄影，杜絕橫向滲透風險。</p>
@@ -1122,7 +788,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <ul>
   <li><strong>三大原則（6分）</strong>：精確指出 Never Trust Always Verify、Least Privilege、Assume Breach 的定義。</li>
   <li><strong>PDP 與 PEP（7分）</strong>：繪出或清晰說明 PEP 攔截、PDP 決策、PE 評估與 PA 派發之控制流。</li>
-  <li><strong>FIDO2 抗釣魚（7分）</strong>：以表格對比 TOTP 與 FIDO2，詳細解釋 Origin Binding（網域綁定）如何讓偽冒釣魚網站簽名失敗。</li>
+  <li><strong>FIDO2 抗釣魚（7分）</strong>：以條列對比 TOTP 與 FIDO2，詳細解釋 Origin Binding（網域綁定）如何讓偽冒釣魚網站簽名失敗。</li>
   <li><strong>結論（5分）</strong>：結合 PAM 特權存取治理。</li>
 </ul>
             """
@@ -1150,30 +816,11 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ol>
 
 <h4>二、核心防禦對策與安全編碼實務</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">弱點類別</th>
-      <th style="padding:6px 10px;">傳統錯誤做法 (易受駭)</th>
-      <th style="padding:6px 10px;">金級防禦實踐 (Secure Coding)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SQL 注入防禦</td>
-      <td style="padding:6px 10px; color:#dc2626;">字串拼接 (String Concatenation)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>強制使用參數化查詢 (Prepared Statement / ORM 綁定)</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">水平越權防禦</td>
-      <td style="padding:6px 10px; color:#dc2626;">信任前端傳入之 userId 參數</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>由伺服器 Session / JWT Claims 提取身分並進行強權限校驗</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">跨站腳本 (XSS)</td>
-      <td style="padding:6px 10px; color:#dc2626;">直接輸出未過濾 HTML</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">內容上下文輸出編碼 (Output Encoding) 搭配 CSP 標頭</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>SQL 注入防禦</strong>：傳統易受駭作法為 字串拼接 (String Concatenation)；<strong>安全黃金實踐</strong>為 強制使用參數化查詢 (Prepared Statement / ORM 綁定)。</li>
+  <li><strong>水平越權防禦</strong>：傳統易受駭作法為 信任前端傳入之 userId 參數；<strong>安全黃金實踐</strong>為 由伺服器 Session / JWT Claims 提取身分並進行強權限校驗。</li>
+  <li><strong>跨站腳本 (XSS)</strong>：傳統易受駭作法為 直接輸出未過濾 HTML；<strong>安全黃金實踐</strong>為 內容上下文輸出編碼 (Output Encoding) 搭配 CSP 標頭。</li>
+</ul>
 
 <h4>三、DevSecOps「安全左移（Shift-Left）」流水線架構</h4>
 <pre><code class="language-text">開發編碼 (Code) ──> 提交代碼 (Commit) ──> 建置編譯 (Build) ──> 測試驗證 (Test) ──> 上線部署 (Deploy)
@@ -1195,7 +842,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>弱點剖析（8分）</strong>：深入說明 A01 IDOR 與 A03 SQLi 的底層成因，並舉出具體危害。</li>
-  <li><strong>安全編碼（6分）</strong>：對比表格展現 Prepared Statement 與 Session 校驗之最佳實踐。</li>
+  <li><strong>安全編碼（6分）</strong>：重點對比展現 Prepared Statement 與 Session 校驗之最佳實踐。</li>
   <li><strong>DevSecOps 管線（7分）</strong>：清晰呈現流水線圖表，並定義 SAST、SCA、DAST 與 Quality Gate。</li>
   <li><strong>結論（4分）</strong>：總結安全左移之成本效益。</li>
 </ul>
@@ -1212,34 +859,11 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "question": "證券期貨業屢遭境外駭客集團發動大規模阻斷服務（DDoS）勒索攻擊，威脅市場交易穩定。請分析常見 DDoS 攻擊類型（L3/L4 泛洪 vs L7 應用層慢速攻擊）之原理與差異？並為臺灣證券交易所設計一套結合電信端 Clean Pipe 清洗、邊界硬體防護與 WAF 之立體化 DDoS 防禦體系。",
             "modelAnswer": """
 <h4>一、破題：DDoS 攻擊向量分類全維度對比</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">攻擊層次</th>
-      <th style="padding:6px 10px;">代表攻擊類型</th>
-      <th style="padding:6px 10px;">攻擊原理</th>
-      <th style="padding:6px 10px;">金融系統危害場景</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">L3 / L4 頻寬泛洪 (Volumetric)</td>
-      <td style="padding:6px 10px;">NTP / DNS 反射放大攻擊、UDP Flood</td>
-      <td style="padding:6px 10px;">偽造受害者 IP 向公網脆弱伺服器發送請求，數十倍放大流量灌爆出口</td>
-      <td style="padding:6px 10px; color:#dc2626;">打滿機房數十 Gbps 實體頻寬，導致正常券商專線連線中斷</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">L4 協定狀態耗盡 (State Exhaustion)</td>
-      <td style="padding:6px 10px;">SYN Flood、ACK Flood、RST Flood</td>
-      <td style="padding:6px 10px;">發送海量 SYN 請求但不回應 ACK，塞爆伺服器半開連線佇列 (SYN Backlog)</td>
-      <td style="padding:6px 10px; color:#dc2626;">伺服器 TCP 狀態表耗盡，無法接受任何新交易連線</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">L7 應用層耗損 (Application Layer)</td>
-      <td style="padding:6px 10px;">HTTP CC 攻擊、Slowloris 慢速攻擊</td>
-      <td style="padding:6px 10px;">模擬正常客戶端低速發送 HTTP 標頭或高頻觸發複雜 SQL 查詢</td>
-      <td style="padding:6px 10px; color:#dc2626;">流量僅數十 Mbps，但直接耗盡資料庫執行緒與 CPU 算力</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【代表攻擊類型】</strong>：<strong>L3 / L4 頻寬泛洪 (Volumetric)</strong>：NTP / DNS 反射放大攻擊、UDP Flood；<strong>L4 協定狀態耗盡 (State Exhaustion)</strong>：SYN Flood、ACK Flood、RST Flood；<strong>L7 應用層耗損 (Application Layer)</strong>：HTTP CC 攻擊、Slowloris 慢速攻擊。</li>
+  <li><strong>【攻擊原理】</strong>：<strong>L3 / L4 頻寬泛洪 (Volumetric)</strong>：偽造受害者 IP 向公網脆弱伺服器發送請求，數十倍放大流量灌爆出口；<strong>L4 協定狀態耗盡 (State Exhaustion)</strong>：發送海量 SYN 請求但不回應 ACK，塞爆伺服器半開連線佇列 (SYN Backlog)；<strong>L7 應用層耗損 (Application Layer)</strong>：模擬正常客戶端低速發送 HTTP 標頭或高頻觸發複雜 SQL 查詢。</li>
+  <li><strong>【金融系統危害場景】</strong>：<strong>L3 / L4 頻寬泛洪 (Volumetric)</strong>：打滿機房數十 Gbps 實體頻寬，導致正常券商專線連線中斷；<strong>L4 協定狀態耗盡 (State Exhaustion)</strong>：伺服器 TCP 狀態表耗盡，無法接受任何新交易連線；<strong>L7 應用層耗損 (Application Layer)</strong>：流量僅數十 Mbps，但直接耗盡資料庫執行緒與 CPU 算力。</li>
+</ul>
 
 <h4>二、立體化三道清洗防禦體系規劃</h4>
 <pre><code class="language-text">外部海量攻擊洪峰 (數百 Gbps ~ Tbps 混合巨量攻擊)
@@ -1269,7 +893,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "detailedExplanation": """
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
-  <li><strong>DDoS 分類表格（7分）</strong>：清晰呈現 Volumetric、State Exhaustion 與 Application 攻擊之原理與危害。</li>
+  <li><strong>DDoS 分類重點條列（7分）</strong>：清晰呈現 Volumetric、State Exhaustion 與 Application 攻擊之原理與危害。</li>
   <li><strong>三道防線（8分）</strong>：繪出包含 Clean Pipe、Anti-DDoS 硬體與 WAF 的立體防護鏈路。</li>
   <li><strong>SYN Cookie（6分）</strong>：深入推導不分配記憶體、以雜湊計算 ISN 的核心運作機制。</li>
   <li><strong>結論（4分）</strong>：結合網路微隔離。</li>
@@ -1294,25 +918,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ol>
 
 <h4>二、SIEM 關聯分析與 SOAR 自動化劇本聯動</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">平台系統</th>
-      <th style="padding:6px 10px;">核心定位與職責</th>
-      <th style="padding:6px 10px;">金融實戰聯動範例</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SIEM (安全資訊與事件管理)</td>
-      <td style="padding:6px 10px;">多源日誌正規化、時間戳標準化、跨設備規則關聯分析</td>
-      <td style="padding:6px 10px;">偵測「同一帳號 5 分鐘內跨國登入」或「夜間大量帳號噴灑」，觸發高風險警報</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SOAR (安全協調與自動化回應)</td>
-      <td style="padding:6px 10px;">執行自動化處置劇本 (Playbook)，大幅縮減 MTTR</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>3 秒內自動完成：(1)防火牆封鎖IP (2)EDR隔離受駭主機 (3)凍結AD帳號</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>SIEM (安全資訊與事件管理)</strong>：多源日誌正規化、時間戳標準化、跨設備規則關聯分析；偵測「同一帳號 5 分鐘內跨國登入」或「夜間大量帳號噴灑」，觸發高風險警報。</li>
+  <li><strong>SOAR (安全協調與自動化回應)</strong>：執行自動化處置劇本 (Playbook)，大幅縮減 MTTR；3 秒內自動完成：(1)防火牆封鎖IP (2)EDR隔離受駭主機 (3)凍結AD帳號。</li>
+</ul>
 
 <h4>三、數位鑑識證據保全原則：揮發性順序（Order of Volatility）</h4>
 <p>在面對 APT 潛伏調查時，<strong>嚴禁第一時間拔除電源或重開機</strong>，否則記憶體惡意程式將永久消失。必須嚴格依據揮發性由高至低採證：</p>
@@ -1333,7 +942,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>SOC 三層分工（7分）</strong>：清楚陳述 Tier 1、Tier 2、Tier 3 各自的職責與應變時效。</li>
-  <li><strong>SIEM 與 SOAR（6分）</strong>：以表格對比兩者功能，並具體給出 Playbook 自動封鎖 IP、隔離主機、凍結帳號之範例。</li>
+  <li><strong>SIEM 與 SOAR（6分）</strong>：以條列對比兩者功能，並具體給出 Playbook 自動封鎖 IP、隔離主機、凍結帳號之範例。</li>
   <li><strong>揮發性順序（8分）</strong>：嚴格由高至低列出四大層級，特別強調實體記憶體（RAM）的取證價值，警告不可直接拔電源。</li>
   <li><strong>結論（4分）</strong>：鏈接監管鏈與合規價值。</li>
 </ul>
@@ -1350,30 +959,11 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "question": "電子郵件社交工程釣魚是攻擊者滲透金融機構最主要的初始存取（Initial Access）途徑。試說明 SPF、DKIM 與 DMARC 如何協同防範電子郵件偽冒？並說明端點作業系統應採取何種具體基線強化（Hardening）措施，以防禦 Mimikatz 等憑證竊取工具從記憶體中提取網域管理員密碼雜湊？",
             "modelAnswer": """
 <h4>一、破題：電子郵件防偽鐵三角協同防禦機制</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">協定名稱</th>
-      <th style="padding:6px 10px;">驗證原理與機制</th>
-      <th style="padding:6px 10px;">局限性與防護盲點</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">SPF (寄件者政策框架)</td>
-      <td style="padding:6px 10px;">網域擁有者在 DNS 發布 TXT 記錄，定義允許發信之合法伺服器 IP</td>
-      <td style="padding:6px 10px; color:#dc2626;">僅驗證 Return-Path，無法防範轉發郵件及 Header From 偽冒</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">DKIM (網域名稱金鑰識別)</td>
-      <td style="padding:6px 10px;">發信端以私鑰簽署信件內容與標頭，接收端以 DNS 公鑰驗證防竄改</td>
-      <td style="padding:6px 10px; color:#dc2626;">僅保證內容未被竄改，無法直接指定驗證失敗時的處置策略</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">DMARC (網域型認證與合規)</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>統一對齊 SPF/DKIM，並在 DNS 明確指定處置政策 (p=reject)</strong></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">全面防堵偽冒交易所網域名稱，未通過者直接拒收並回傳報告</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>SPF (寄件者政策框架)</strong>：網域擁有者在 DNS 發布 TXT 記錄，定義允許發信之合法伺服器 IP；<strong>實務落地/對策</strong>：僅驗證 Return-Path，無法防範轉發郵件及 Header From 偽冒。</li>
+  <li><strong>DKIM (網域名稱金鑰識別)</strong>：發信端以私鑰簽署信件內容與標頭，接收端以 DNS 公鑰驗證防竄改；<strong>實務落地/對策</strong>：僅保證內容未被竄改，無法直接指定驗證失敗時的處置策略。</li>
+  <li><strong>DMARC (網域型認證與合規)</strong>：統一對齊 SPF/DKIM，並在 DNS 明確指定處置政策 (p=reject)；<strong>實務落地/對策</strong>：全面防堵偽冒交易所網域名稱，未通過者直接拒收並回傳報告。</li>
+</ul>
 
 <h4>二、郵件安全閘道（SEG）縱深防護</h4>
 <ul>
@@ -1419,25 +1009,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "question": "隨著金融機構加速向雲原生與容器化微服務架構遷移，傳統主機安全防禦機制面臨嚴峻挑戰。試說明雲端責任共擔模型（Shared Responsibility Model）在 IaaS 與 PaaS 下之責任界線？並詳述如何依據 CIS Kubernetes Benchmark 落實容器建置、部署與執行期（Runtime）之安全控制？",
             "modelAnswer": """
 <h4>一、破題：雲端責任共擔模型（Shared Responsibility Model）界線</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">服務模式</th>
-      <th style="padding:6px 10px;">雲端服務商 (CSP) 負責範疇</th>
-      <th style="padding:6px 10px;">金融機構客戶負責範疇</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">IaaS (基礎架構即服務)</td>
-      <td style="padding:6px 10px;">實體機房、電力空調、實體伺服器與虛擬化底層</td>
-      <td style="padding:6px 10px; color:#dc2626; font-weight:700;"><strong>OS 補丁、中介軟體、防火牆規則、IAM 權限與資料加密</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">PaaS (平台即服務)</td>
-      <td style="padding:6px 10px;">延伸負責作業系統維護、執行庫環境與硬體擴展</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>應用程式原始碼、API 存取授權與客戶機密資料保護</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>IaaS (基礎架構即服務)</strong>：CSP 負責 實體機房、電力空調、實體伺服器與虛擬化底層；金融機構負責 <strong>OS 補丁、中介軟體、防火牆規則、IAM 權限與資料加密</strong>。</li>
+  <li><strong>PaaS (平台即服務)</strong>：CSP 負責 延伸負責作業系統維護、執行庫環境與硬體擴展；金融機構負責 <strong>應用程式原始碼、API 存取授權與客戶機密資料保護</strong>。</li>
+</ul>
 
 <h4>二、CIS Kubernetes Benchmark 容器三道安全防線</h4>
 <ol>
@@ -1460,7 +1035,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "detailedExplanation": """
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
-  <li><strong>責任共擔模型（6分）</strong>：以表格準確區分 IaaS 與 PaaS 的客戶責任範疇。</li>
+  <li><strong>責任共擔模型（6分）</strong>：以清晰條列準確區分 IaaS 與 PaaS 的客戶責任範疇。</li>
   <li><strong>容器安全三階段（8分）</strong>：清楚劃分 Build、Deploy 與 Runtime，寫出 Distroless、Trivy、Cosign、OPA Gatekeeper 具體工具。</li>
   <li><strong>Falco eBPF（7分）</strong>：說明其在核心系統呼叫層級偵測異常 shell 啟動與檔案存取的原理。</li>
   <li><strong>結論（4分）</strong>：總結 CSPM 與 CWPP 綜效。</li>
@@ -1478,30 +1053,10 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "question": "傳統定期滲透測試已無法全面檢驗金融機構抵禦高度隱匿 APT 組織之實戰防禦能力。試比較傳統滲透測試與「紅隊演練（Red Teaming）」之本質差異？說明通用弱點評分系統（CVSS v3.1）基礎指標之計算維度，並說明金管會針對證券期貨業重大弱點修補時效之合規要求為何？",
             "modelAnswer": """
 <h4>一、破題：傳統滲透測試 vs 金融紅隊演練（Red Teaming）本質差異</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">比較項目</th>
-      <th style="padding:6px 10px;">傳統滲透測試 (Penetration Testing)</th>
-      <th style="padding:6px 10px;">金融紅隊演練 (Red Teaming)</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">核心目標</td>
-      <td style="padding:6px 10px;">找出指定單一系統（如 Web 網站）之盡可能多的已知漏洞</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>以業務為目標（如攻入撮合主機、竊取客戶憑證、控制網域）</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">攻擊手段限制</td>
-      <td style="padding:6px 10px;">僅限技術漏洞掃描，禁止社交工程與實體入侵</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>全方位全鏈路（釣魚郵件、供應鏈跳板、近身實體 Wi-Fi 滲透）</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">受測方感知 (藍隊)</td>
-      <td style="padding:6px 10px;">已知測試時間與來源 IP（白名單預告測試）</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>雙盲實戰測試（藍隊事前不知情，全面檢驗 SOC 偵測應變真實力）</strong></td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【傳統滲透測試 (Penetration Testing)】</strong>：<strong>核心目標</strong>：找出指定單一系統（如 Web 網站）之盡可能多的已知漏洞；<strong>攻擊手段限制</strong>：僅限技術漏洞掃描，禁止社交工程與實體入侵；<strong>受測方感知 (藍隊)</strong>：已知測試時間與來源 IP（白名單預告測試）。</li>
+  <li><strong>【金融紅隊演練 (Red Teaming)】</strong>：<strong>核心目標</strong>：以業務為目標（如攻入撮合主機、竊取客戶憑證、控制網域）；<strong>攻擊手段限制</strong>：全方位全鏈路（釣魚郵件、供應鏈跳板、近身實體 Wi-Fi 滲透）；<strong>受測方感知 (藍隊)</strong>：雙盲實戰測試（藍隊事前不知情，全面檢驗 SOC 偵測應變真實力）。</li>
+</ul>
 
 <h4>二、CVSS v3.1 通用弱點評分系統基礎指標維度</h4>
 <p>CVSS v3.1 基礎指標（Base Metric Group, 0.0 ~ 10.0 分）評估弱點本身之固有屬性：</p>
@@ -1530,7 +1085,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
             "detailedExplanation": """
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
-  <li><strong>紅隊 vs 滲透測試（7分）</strong>：以表格準確呈現目標、手段與感知方式的本質差異。</li>
+  <li><strong>紅隊 vs 滲透測試（7分）</strong>：以清晰條列準確呈現目標、手段與感知方式的本質差異。</li>
   <li><strong>CVSS v3.1（7分）</strong>：深入解構 Exploitability（AV/AC/PR/UI）、Scope、Impact（CIA）。</li>
   <li><strong>修補 SLA（7分）</strong>：寫出金管會法規要求的 1 個月與 48 小時虛擬修補。</li>
   <li><strong>紫隊結論（4分）</strong>：總結紅藍紫協同價值。</li>
@@ -1556,40 +1111,13 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ol>
 
 <h4>二、現代防勒索備份架構：3-2-1 升級為 3-2-1-1-0 原則</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">架構維度</th>
-      <th style="padding:6px 10px;">具體規範與技術要求</th>
-      <th style="padding:6px 10px;">防禦勒索軟體之核心價值</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">【3】3 份資料副本</td>
-      <td style="padding:6px 10px;">1 份原始生產資料 + 2 份獨立備份副本</td>
-      <td style="padding:6px 10px;">防範單一備份毀損或傳輸不全</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">【2】2 種儲存媒介</td>
-      <td style="padding:6px 10px;">如高效 NVMe 磁碟陣列 + 實體 LTO-9 磁帶機</td>
-      <td style="padding:6px 10px;">消除單一硬體架構或韌體漏洞之共因故障</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">【1】1 份異地存放</td>
-      <td style="padding:6px 10px;">跨縣市（如板橋主機房 vs 高雄遠距災備中心）</td>
-      <td style="padding:6px 10px;">防禦地震、區域大停電或廣域天災</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">【1】1 份離線/不可變</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>實體氣隙隔離 (Air-gapped) 或 WORM 不可變快照</strong></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>即便駭客取得最高網域權限，亦絕對無法加密或刪除！</strong></td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">【0】0 復原錯誤</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;"><strong>自動化定期還原演練校驗 (Zero Recovery Errors)</strong></td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">確保備份並非「備心安」，真實災難時保證百分之百可還原</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>【3】3 份資料副本</strong>：1 份原始生產資料 + 2 份獨立備份副本；防範單一備份毀損或傳輸不全。</li>
+  <li><strong>【2】2 種儲存媒介</strong>：如高效 NVMe 磁碟陣列 + 實體 LTO-9 磁帶機；消除單一硬體架構或韌體漏洞之共因故障。</li>
+  <li><strong>【1】1 份異地存放</strong>：跨縣市（如板橋主機房 vs 高雄遠距災備中心）；防禦地震、區域大停電或廣域天災。</li>
+  <li><strong>【1】1 份離線/不可變</strong>：實體氣隙隔離 (Air-gapped) 或 WORM 不可變快照；即便駭客取得最高網域權限，亦絕對無法加密或刪除！。</li>
+  <li><strong>【0】0 復原錯誤</strong>：自動化定期還原演練校驗 (Zero Recovery Errors)；確保備份並非「備心安」，真實災難時保證百分之百可還原。</li>
+</ul>
 
 <h4>三、證券交易所無預警實兵切換演練規範</h4>
 <p>紙上計畫面臨真實災難時往往手足無措。證交所落實<strong>「無預警分散式災難復原演練」</strong>：直接在非交易日無預警切斷主機房電力與網路，檢驗自動化 BGP 路由重定向、雙活資料庫 Quorum 選主與券商連線切換，實測驗證 RTO 是否嚴格小於 10 分鐘且資料零遺失。</p>
@@ -1602,7 +1130,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>BIA 評估（7分）</strong>：深入定義 MTPD、RTO、RPO，並對標金融證券嚴苛指標。</li>
-  <li><strong>3-2-1-1-0 表格（8分）</strong>：完整表格展示五項維度，特別突顯「不可變/氣隙」與「0 還原錯誤」的關鍵防禦價值。</li>
+  <li><strong>3-2-1-1-0 重點條列（8分）</strong>：完整條列展示五項維度，特別突顯「不可變/氣隙」與「0 還原錯誤」的關鍵防禦價值。</li>
   <li><strong>實兵演練（6分）</strong>：說明無預警斷電、BGP 切換與全真驗證機制。</li>
   <li><strong>結論（4分）</strong>：總結營運韌性。</li>
 </ul>
@@ -1626,34 +1154,11 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 </ol>
 
 <h4>二、OWASP Top 10 for LLM 核心風險與防禦對策</h4>
-<div class="table-wrap">
-  <table style="width:100%; border-collapse:collapse; margin:10px 0;">
-    <tr style="background:#1e3a8a; color:#fff;">
-      <th style="padding:6px 10px;">OWASP 排名</th>
-      <th style="padding:6px 10px;">威脅名稱與原理</th>
-      <th style="padding:6px 10px;">金融系統危害場景</th>
-      <th style="padding:6px 10px;">核心技術防禦對策</th>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">LLM01:2023</td>
-      <td style="padding:6px 10px;">Prompt Injection (提示注入)</td>
-      <td style="padding:6px 10px;">使用者輸入惡意指令覆蓋系統 Prompt，誘使金融客服機器人吐出機密 API 金鑰</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">嚴格隔離系統指令與使用者上下文、部署 NeMo Guardrails 安全護欄過濾</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">LLM02:2023</td>
-      <td style="padding:6px 10px;">Sensitive Information Disclosure (敏感資訊洩漏)</td>
-      <td style="padding:6px 10px;">模型在預訓練或微調記憶了客戶個資或帳號，被攻擊者精心構造的提問套出</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">訓練前嚴格資料清洗去識別化、差分隱私 (Differential Privacy)、輸出層 DLP 遮罩</td>
-    </tr>
-    <tr>
-      <td style="padding:6px 10px; font-weight:700;">LLM06:2023</td>
-      <td style="padding:6px 10px;">Excessive Agency (過度代理權限)</td>
-      <td style="padding:6px 10px;">AI Agent 串接後台資料庫，自主執行未經雙人覆核的異常高額轉帳或下單</td>
-      <td style="padding:6px 10px; color:#16a34a; font-weight:700;">外掛外掛工具採最小特權原則、關鍵操作強制加入 Human-in-the-Loop 人工授權</td>
-    </tr>
-  </table>
-</div>
+<ul>
+  <li><strong>LLM01:2023</strong>：<strong>威脅名稱與原理</strong>：Prompt Injection (提示注入)；使用者輸入惡意指令覆蓋系統 Prompt，誘使金融客服機器人吐出機密 API 金鑰；嚴格隔離系統指令與使用者上下文、部署 NeMo Guardrails 安全護欄過濾。</li>
+  <li><strong>LLM02:2023</strong>：<strong>威脅名稱與原理</strong>：Sensitive Information Disclosure (敏感資訊洩漏)；模型在預訓練或微調記憶了客戶個資或帳號，被攻擊者精心構造的提問套出；訓練前嚴格資料清洗去識別化、差分隱私 (Differential Privacy)、輸出層 DLP 遮罩。</li>
+  <li><strong>LLM06:2023</strong>：<strong>威脅名稱與原理</strong>：Excessive Agency (過度代理權限)；AI Agent 串接後台資料庫，自主執行未經雙人覆核的異常高額轉帳或下單；外掛外掛工具採最小特權原則、關鍵操作強制加入 Human-in-the-Loop 人工授權。</li>
+</ul>
 
 <h4>三、後量子密碼學（PQC, Post-Quantum Cryptography）抗量子遷移戰略</h4>
 <p>量子電腦具備強大的 Shor 演算法，預計未來將在數秒內攻破目前金融主流的 RSA-2048 與 ECC 非對稱加密。攻擊者現正實施<strong>「先側錄，後解密（Store Now, Decrypt Later）」</strong>：</p>
@@ -1673,7 +1178,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 <h5>🎯 評分踩點邏輯剖析</h5>
 <ul>
   <li><strong>金管會 AI 原則（7分）</strong>：指出問責機制（高階主管負終極責任）、公平性與 Human-in-the-loop、資料隱私。</li>
-  <li><strong>OWASP LLM 表格（8分）</strong>：完整表格列出 Prompt Injection、敏感資訊洩漏與 Excessive Agency 之成因、危害與防禦技術。</li>
+  <li><strong>OWASP LLM 重點條列（8分）</strong>：完整條列剖析 Prompt Injection、敏感資訊洩漏與 Excessive Agency 之成因、危害與防禦技術。</li>
   <li><strong>PQC 後量子密碼（6分）</strong>：深入詮釋 Shor 演算法對 RSA/ECC 的威脅，寫出 NIST 最新標準演算法 ML-KEM 與 ML-DSA，並提出混合過渡模式。</li>
   <li><strong>結論（4分）</strong>：展現新興科技資安戰略前瞻性。</li>
 </ul>
@@ -1683,7 +1188,7 @@ OrderQueueCounter g_consumer_seq;</code></pre>
 
 if __name__ == '__main__':
     data = get_essay_data()
-    js_content = "/**\n * 臺灣證券交易所 (TWSE) 招募備考系統 - 滿分精要申論題庫 (24 題全真標竿高分範本)\n * 涵蓋系統與網路管理 (12 題) 及 資通安全 (12 題)，全數嚴格依據 24 大章節出題\n * 遵循國家考試與證交所招募評分標準（破題立論、條列架構、橫向對比表、實務參數調校、得分秘笈與深度解說）\n */\n\nconst TWSE_ESSAY_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n\n// 關鍵導出：附掛於全局 window 物件以利跨腳本存取\nwindow.TWSE_ESSAY_DATA = TWSE_ESSAY_DATA;\n"
+    js_content = "/**\n * 臺灣證券交易所 (TWSE) 招募備考系統 - 滿分精要申論題庫 (24 題全真標竿高分範本)\n * 涵蓋系統與網路管理 (12 題) 及 資通安全 (12 題)，全數嚴格依據 24 大章節出題\n * 遵循國家考試與證交所招募評分標準（破題立論、條列架構、橫向關鍵對比、實務參數調校、得分秘笈與深度解說）\n */\n\nconst TWSE_ESSAY_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n\n// 關鍵導出：附掛於全局 window 物件以利跨腳本存取\nwindow.TWSE_ESSAY_DATA = TWSE_ESSAY_DATA;\n"
     with open('learning/twse-it/assets/essay-data.js', 'w', encoding='utf-8') as f:
         f.write(js_content)
     print(f"Successfully generated essay-data.js with {len(data)} essays!")
