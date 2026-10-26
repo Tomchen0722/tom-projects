@@ -33,21 +33,21 @@ sec_essays = [e for e in essays if e.get("category") == "sec"]
 sys_essays = [e for e in essays if e.get("category") == "sysnet"]
 
 print(f"\n[Essay Verification]")
-print(f"  Total essays:     {len(essays)} (Expected: 125)")
-print(f"  Sec essays:       {len(sec_essays)} (Expected: 79)")
+print(f"  Total essays:     {len(essays)} (Expected: 135)")
+print(f"  Sec essays:       {len(sec_essays)} (Expected: 89)")
 print(f"  Sysnet essays:    {len(sys_essays)} (Expected: 46)")
 
-assert len(essays) == 125, f"Expected 125, got {len(essays)}"
-assert len(sec_essays) == 79, f"Expected 79, got {len(sec_essays)}"
+assert len(essays) == 135, f"Expected 135, got {len(essays)}"
+assert len(sec_essays) == 89, f"Expected 89, got {len(sec_essays)}"
 assert len(sys_essays) == 46, f"Expected 46, got {len(sys_essays)}"
 
 # Ensure IDs are distinct
 ids = [e["id"] for e in essays]
 assert len(ids) == len(set(ids)), f"Duplicate essay IDs detected: {len(ids)} vs {len(set(ids))}"
-print("  [OK] All 125 IDs are distinct!")
+print("  [OK] All 135 IDs are distinct!")
 
-# Ensure all 31 newly added essays (sec-essay-49 ~ sec-essay-79) exist and have complete structure
-for i in range(49, 80):
+# Ensure all 41 newly added essays (sec-essay-49 ~ sec-essay-89) exist and have complete structure
+for i in range(49, 90):
     expected_id = f"sec-essay-{i:02d}"
     matched = [e for e in essays if e["id"] == expected_id]
     assert len(matched) == 1, f"Missing or duplicate {expected_id}"
@@ -55,7 +55,7 @@ for i in range(49, 80):
     for key in ["title", "chapter", "question", "modelAnswer", "examinerTips", "detailedExplanation", "rubric", "points"]:
         assert key in e and e[key], f"Missing {key} in {expected_id}"
 
-print("  [OK] All 31 new InfoSec essays (sec-essay-49 to sec-essay-79) verified with complete rubrics and model answers!")
+print("  [OK] All 41 new InfoSec essays (sec-essay-49 to sec-essay-89) verified with complete rubrics and model answers!")
 
 # Check notes
 notes_sysnet_path = os.path.join(base_dir, "assets", "notes-sysnet.js")
