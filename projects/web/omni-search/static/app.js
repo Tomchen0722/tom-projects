@@ -1,6 +1,6 @@
 /**
  * OmniSearch — 前端互動引擎
- * 具備即時搜尋、Google 補全建議、鍵盤導覽、語音辨識、AI 概覽、知識圖譜、閱讀模式速覽與收藏管理。
+ * 具備即時搜尋、開放補全建議、鍵盤導覽、語音辨識、AI 概覽、知識圖譜、閱讀模式速覽與收藏管理。
  */
 
 (function () {
@@ -469,13 +469,13 @@
       return;
     }
 
-    // 若在純前端免伺服器模式，直接使用 Google Suggest JSONP
+    // 若在純前端免伺服器模式，使用維基百科開放 OpenSearch 建議
     if (state.isClientMode) {
-      fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl);
+      fetchWikiSuggestions(query, dropdownEl, inputEl);
       return;
     }
 
-    // 發送建議補全 API 請求 (失敗自動 fallback 到 JSONP)
+    // 發送建議補全 API 請求 (失敗自動 fallback 到開放 OpenSearch)
     fetch(`/api/suggest?q=${encodeURIComponent(query)}`)
       .then(res => res.json())
       .then(data => {
@@ -483,37 +483,29 @@
           const list = data.suggestions.slice(0, 8).map(s => ({ text: s, isHistory: false }));
           renderSuggestItems(dropdownEl, list, inputEl);
         } else {
-          fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl);
+          fetchWikiSuggestions(query, dropdownEl, inputEl);
         }
       })
       .catch(() => {
-        fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl);
+        fetchWikiSuggestions(query, dropdownEl, inputEl);
       });
   }
 
-  // Google 官方建議補全 JSONP (零 CORS 限制，純前端直連)
-  function fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl) {
-    const cbName = 'googleSuggestCb_' + Math.floor(Math.random() * 1000000);
-    window[cbName] = function (data) {
-      delete window[cbName];
-      const sTag = document.getElementById(cbName);
-      if (sTag) sTag.remove();
+  // 維基百科開放 OpenSearch 補全 (100% 獨立自主架構、支援 CORS origin=*)
+  async function fetchWikiSuggestions(query, dropdownEl, inputEl) {
+    try {
+      const url = `https://zh.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(query)}&limit=8&format=json&origin=*`;
+      const res = await fetch(url);
+      const data = await res.json();
       if (data && Array.isArray(data[1]) && data[1].length > 0) {
         const list = data[1].slice(0, 8).map(s => ({ text: String(s), isHistory: false }));
         renderSuggestItems(dropdownEl, list, inputEl);
       } else {
         dropdownEl.style.display = 'none';
       }
-    };
-    const script = document.createElement('script');
-    script.id = cbName;
-    script.src = `https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(query)}&jsonp=${cbName}`;
-    script.onerror = () => {
-      delete window[cbName];
-      script.remove();
+    } catch (e) {
       dropdownEl.style.display = 'none';
-    };
-    document.head.appendChild(script);
+    }
   }
 
   function renderSuggestItems(dropdownEl, items, inputEl) {
@@ -663,7 +655,7 @@
           display_url: `https://zh.wikipedia.org/wiki/${h.title}`,
           domain: 'zh.wikipedia.org',
           snippet: cleanSnippet || `${h.title} 的維基百科完整條目與介紹。`,
-          favicon: 'https://www.google.com/s2/favicons?domain=wikipedia.org&sz=32',
+          favicon: 'https://icons.duckduckgo.com/ip3/zh.wikipedia.org.ico',
           source: 'wikipedia'
         });
       });
@@ -677,7 +669,7 @@
             display_url: `https://en.wikipedia.org/wiki/${h.title}`,
             domain: 'en.wikipedia.org',
             snippet: cleanSnippet || `${h.title} encyclopedia entry.`,
-            favicon: 'https://www.google.com/s2/favicons?domain=wikipedia.org&sz=32',
+            favicon: 'https://icons.duckduckgo.com/ip3/en.wikipedia.org.ico',
             source: 'wikipedia'
           });
         }
@@ -1128,7 +1120,7 @@
     el.relatedSearchesBox.style.display = 'block';
   }
 
-  // 9. 分頁切換器 (Google 風格)
+  // 9. 分頁切換器 (OmniSearch 流暢分頁)
   function renderPagination(currentPage, hasMore) {
     el.paginationPages.innerHTML = '';
 

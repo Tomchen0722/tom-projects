@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-OmniSearch 全球萬維搜尋引擎 — 本機服務器
-提供高速網頁檢索、即時搜尋補全、Google 新聞 RSS、維基百科知識圖譜與 AI 概覽 API。
+OmniSearch 全球萬維搜尋引擎 — 本機服務器 (100% 非 Google 模組之自主架構)
+提供高速網頁檢索、即時搜尋補全、即時新聞 RSS、維基百科知識圖譜與 AI 概覽 API。
 啟動：python app.py → http://127.0.0.1:7050
 """
 from __future__ import annotations
@@ -42,7 +42,7 @@ def api_search():
     """
     綜合搜尋端點：
     支援全部網頁、新聞、圖片、維基百科分頁查詢，
-    並於首頁結果附帶 AI 概覽 (AI Overview) 與 Google 風格知識圖譜。
+    並於首頁結果附帶 AI 概覽 (AI Overview) 與知識圖譜卡片。
     """
     start_time = time.time()
     query = request.args.get("q", "").strip()

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-OmniSearch 搜尋引擎核心模組
-提供全網搜尋 (DuckDuckGo Lite)、Google 建議補全、Google 新聞 RSS、維基百科知識圖譜、圖片檢索與 AI 概覽生成。
+OmniSearch 搜尋引擎核心模組（100% 非 Google 模組自主架構）
+採用 DuckDuckGo Lite 實時爬取、Bing News RSS 全球新聞、維基百科全站開源知識庫、
+DuckDuckGo Icons 網站圖標、DuckDuckGo 即時補全與本機 AI 摘要合成。
 """
 from __future__ import annotations
 
@@ -53,7 +54,8 @@ def decode_ddg_url(raw_url: str) -> str:
 def search_web(query: str, page: int = 1) -> Dict[str, Any]:
     """
     全網網頁搜尋：
-    以 DuckDuckGo Lite 為主力爬梳引擎，若無結果則智慧 fallback 至維基百科與全球資訊庫。
+    以 DuckDuckGo Lite 為主力爬梳引擎，若無結果則智慧 fallback 至維基百科開放全文庫。
+    完全不依賴任何 Google 服務。
     """
     query = (query or "").strip()
     if not query:
@@ -63,7 +65,7 @@ def search_web(query: str, page: int = 1) -> Dict[str, Any]:
     results: List[Dict[str, Any]] = []
     has_more = False
 
-    # 1. 嘗試 DuckDuckGo Lite
+    # 1. 嘗試 DuckDuckGo Lite 實時檢索
     try:
         post_data = {"q": query}
         if page > 1:
@@ -90,8 +92,7 @@ def search_web(query: str, page: int = 1) -> Dict[str, Any]:
                 if not actual_url or actual_url.startswith("#"):
                     continue
 
-                # 嘗試尋找對應的 snippet
-                # DDG Lite 通常在 link 之後的 tr 或 td.result-snippet
+                # 尋找對應的摘要文字
                 snippet = ""
                 tr = a_tag.find_parent("tr")
                 if tr:
@@ -105,7 +106,8 @@ def search_web(query: str, page: int = 1) -> Dict[str, Any]:
 
                 parsed_url = urllib.parse.urlparse(actual_url)
                 domain = parsed_url.netloc or "web"
-                favicon = f"https://www.google.com/s2/favicons?domain={domain}&sz=32"
+                # 使用 DuckDuckGo 官方圖標服務（非 Google）
+                favicon = f"https://icons.duckduckgo.com/ip3/{domain}.ico"
 
                 results.append({
                     "title": title,
@@ -119,12 +121,11 @@ def search_web(query: str, page: int = 1) -> Dict[str, Any]:
     except Exception as e:
         logger.warning(f"DuckDuckGo search error: {e}")
 
-    # 2. 如果結果偏少，智慧補充維基百科與權威資訊
+    # 2. 如果結果偏少，智慧補充開放式維基百科權威條目
     if len(results) < 3 and page == 1:
         try:
             wiki_items = search_wikipedia(query, limit=5)
             for w in wiki_items:
-                # 避免重複
                 if not any(r["url"] == w["url"] for r in results):
                     results.append(w)
         except Exception as e:
@@ -145,14 +146,14 @@ def search_web(query: str, page: int = 1) -> Dict[str, Any]:
 
 def search_news(query: str) -> List[Dict[str, Any]]:
     """
-    即時新聞搜尋：利用 Google News RSS 獲取最新多來源報導
+    即時新聞搜尋：利用 Bing News RSS 獲取最新多來源報導（非 Google 服務）
     """
     query = (query or "").strip()
     if not query:
         return []
 
     encoded = urllib.parse.quote(query)
-    rss_url = f"https://news.google.com/rss/search?q={encoded}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    rss_url = f"https://www.bing.com/news/search?q={encoded}&format=rss"
 
     s = _get_session()
     news_items: List[Dict[str, Any]] = []
@@ -165,40 +166,36 @@ def search_news(query: str) -> List[Dict[str, Any]]:
                 title_elem = item.find("title")
                 link_elem = item.find("link")
                 pub_elem = item.find("pubDate")
-                source_elem = item.find("source")
+                desc_elem = item.find("description")
 
                 raw_title = title_elem.text if title_elem is not None else ""
                 link = link_elem.text if link_elem is not None else ""
                 pub_date = pub_elem.text if pub_elem is not None else ""
-                source_name = source_elem.text if source_elem is not None else "新聞媒體"
+                desc = desc_elem.text if desc_elem is not None else ""
 
-                # Google News 標題通常是 "標題 - 媒體名稱"
-                clean_title = raw_title
-                if " - " in raw_title:
-                    clean_title = raw_title.rsplit(" - ", 1)[0]
-
-                domain = "news.google.com"
+                domain = "news"
                 if link:
                     p = urllib.parse.urlparse(link)
                     domain = p.netloc or domain
 
                 news_items.append({
-                    "title": clean_title,
+                    "title": raw_title,
                     "url": link,
-                    "source": source_name,
+                    "source": domain,
                     "domain": domain,
                     "pub_date": pub_date,
-                    "favicon": f"https://www.google.com/s2/favicons?domain={domain}&sz=32",
+                    "snippet": desc,
+                    "favicon": f"https://icons.duckduckgo.com/ip3/{domain}.ico",
                 })
     except Exception as e:
-        logger.warning(f"Google News RSS error: {e}")
+        logger.warning(f"Bing News RSS error: {e}")
 
     return news_items
 
 
 def search_images(query: str) -> List[Dict[str, Any]]:
     """
-    圖片搜尋：檢索維基媒體 (Wikimedia / Wikipedia) 高畫質圖庫
+    圖片搜尋：檢索維基媒體 (Wikimedia Commons / Wikipedia) 開放圖庫（非 Google 服務）
     """
     query = (query or "").strip()
     if not query:
@@ -231,7 +228,7 @@ def search_images(query: str) -> List[Dict[str, Any]]:
                             "thumbnail": img_url,
                             "url": img_url,
                             "page_url": f"https://{lang}.wikipedia.org/wiki/{urllib.parse.quote(title)}",
-                            "source": f"Wikipedia ({lang.upper()})",
+                            "source": f"Wikimedia ({lang.upper()})",
                             "description": extract[:120] if extract else title,
                             "width": thumb.get("width", 600),
                             "height": thumb.get("height", 400),
@@ -244,7 +241,7 @@ def search_images(query: str) -> List[Dict[str, Any]]:
 
 def search_wikipedia(query: str, limit: int = 5) -> List[Dict[str, Any]]:
     """
-    維基百科全文搜尋
+    維基百科開源全文搜尋（非 Google 服務）
     """
     query = (query or "").strip()
     if not query:
@@ -265,7 +262,6 @@ def search_wikipedia(query: str, limit: int = 5) -> List[Dict[str, Any]]:
             for item in items:
                 title = item.get("title", "")
                 snippet_html = item.get("snippet", "")
-                # 清除 HTML 標籤
                 clean_snippet = re.sub(r"<[^>]+>", "", snippet_html)
                 clean_snippet = html.unescape(clean_snippet)
                 target_url = f"https://zh.wikipedia.org/wiki/{urllib.parse.quote(title)}"
@@ -276,7 +272,7 @@ def search_wikipedia(query: str, limit: int = 5) -> List[Dict[str, Any]]:
                     "display_url": f"https://zh.wikipedia.org/wiki/{title}",
                     "domain": "zh.wikipedia.org",
                     "snippet": clean_snippet or f"{title} 的維基百科完整條目與介紹。",
-                    "favicon": "https://www.google.com/s2/favicons?domain=wikipedia.org&sz=32",
+                    "favicon": "https://icons.duckduckgo.com/ip3/wikipedia.org.ico",
                     "source": "wikipedia"
                 })
     except Exception as e:
@@ -287,20 +283,16 @@ def search_wikipedia(query: str, limit: int = 5) -> List[Dict[str, Any]]:
 
 def get_knowledge_card(query: str) -> Optional[Dict[str, Any]]:
     """
-    獲取知識圖譜卡片（Google 知識面板風格）：
-    查詢維基百科官方 REST 摘要 API
+    獲取知識圖譜卡片（非 Google 服務，查詢維基百科官方開放 REST 摘要）
     """
     query = (query or "").strip()
     if not query:
         return None
 
     s = _get_session()
-
-    # 嘗試繁體與簡體 Wikipedia
     clean_q = re.sub(r"[?？!！,，。]+", "", query).strip()
-
     candidate_titles = [clean_q]
-    # 先做一次 search 找到最貼近的精確詞條
+
     try:
         search_api = (
             f"https://zh.wikipedia.org/w/api.php?"
@@ -327,7 +319,6 @@ def get_knowledge_card(query: str) -> Optional[Dict[str, Any]]:
                     extract = data.get("extract", "")
                     page_type = data.get("type", "standard")
 
-                    # 排除消除歧義頁
                     if page_type == "disambiguation" or not extract:
                         continue
 
@@ -337,7 +328,7 @@ def get_knowledge_card(query: str) -> Optional[Dict[str, Any]]:
 
                     return {
                         "title": data.get("title", title),
-                        "subtitle": data.get("description", "百科全書核心條目"),
+                        "subtitle": data.get("description", "開源百科核心條目"),
                         "extract": extract,
                         "thumbnail": thumb,
                         "image": orig_img,
@@ -353,25 +344,38 @@ def get_knowledge_card(query: str) -> Optional[Dict[str, Any]]:
 
 def get_suggestions(query: str) -> List[str]:
     """
-    取得即時自動完成搜尋建議（整合 Google Suggest API）
+    取得即時自動完成搜尋建議（整合 DuckDuckGo Autocomplete 與維基百科 OpenSearch）
+    100% 不使用任何 Google 模組或 API。
     """
     query = (query or "").strip()
     if not query:
         return []
 
     s = _get_session()
+
+    # 1. 優先嘗試 DuckDuckGo Autocomplete API
     try:
-        url = f"https://suggestqueries.google.com/complete/search?client=chrome&q={urllib.parse.quote(query)}"
-        resp = s.get(url, timeout=3.5)
+        ddg_url = f"https://duckduckgo.com/ac/?q={urllib.parse.quote(query)}&type=list"
+        resp = s.get(ddg_url, timeout=3.5)
         if resp.status_code == 200:
             data = resp.json()
-            if len(data) > 1 and isinstance(data[1], list):
-                # 排除空字串與雜訊
+            if len(data) > 1 and isinstance(data[1], list) and data[1]:
                 return [str(item).strip() for item in data[1][:8] if str(item).strip()]
     except Exception as e:
-        logger.warning(f"Google suggestions error: {e}")
+        logger.debug(f"DuckDuckGo suggestions error: {e}")
 
-    # Fallback: 提供常用的上下文擴充
+    # 2. 備援：維基百科開放搜尋 (OpenSearch)
+    try:
+        wiki_url = f"https://zh.wikipedia.org/w/api.php?action=opensearch&search={urllib.parse.quote(query)}&limit=8&format=json"
+        resp = s.get(wiki_url, timeout=3.5)
+        if resp.status_code == 200:
+            data = resp.json()
+            if len(data) > 1 and isinstance(data[1], list) and data[1]:
+                return [str(item).strip() for item in data[1][:8] if str(item).strip()]
+    except Exception as e:
+        logger.debug(f"Wiki suggestions error: {e}")
+
+    # 3. 語意延伸 Fallback
     return [
         f"{query} 是什麼",
         f"{query} 教學",
@@ -383,8 +387,8 @@ def get_suggestions(query: str) -> List[str]:
 
 def generate_ai_overview(query: str, results: List[Dict[str, Any]], knowledge: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
-    生成 Google SGE / Gemini 風格的 AI 智慧摘要
-    整合前幾筆搜尋結果與知識圖譜重點，提取最核心的答覆與條列重點
+    生成智慧 AI 概覽摘要
+    整合前幾筆搜尋結果與開放知識圖譜重點，提取最核心的答覆與條列重點
     """
     if not results and not knowledge:
         return {
@@ -403,7 +407,7 @@ def generate_ai_overview(query: str, results: List[Dict[str, Any]], knowledge: O
             "name": knowledge["title"],
             "url": knowledge["page_url"],
             "domain": "wikipedia.org",
-            "favicon": "https://www.google.com/s2/favicons?domain=wikipedia.org&sz=32"
+            "favicon": "https://icons.duckduckgo.com/ip3/wikipedia.org.ico"
         })
 
     for r in results[:5]:
@@ -418,12 +422,9 @@ def generate_ai_overview(query: str, results: List[Dict[str, Any]], knowledge: O
                 "favicon": r.get("favicon", "")
             })
 
-    # 智慧分句與精華濃縮
     combined = " ".join(text_corpus)
-    # 分割成句子
     sentences = [s.strip() for s in re.split(r"[。！？\n]+", combined) if len(s.strip()) > 15]
 
-    # 去重
     seen = set()
     clean_sentences = []
     for s in sentences:
@@ -437,7 +438,7 @@ def generate_ai_overview(query: str, results: List[Dict[str, Any]], knowledge: O
         takeaways = [combined[:120] + "..."]
 
     summary_text = (
-        f"根據全網最新資訊與權威資料庫綜整：針對「{query}」，核心重點如下："
+        f"全網資訊萃取與智慧綜整：針對「{query}」，核心重點如下："
     )
 
     return {
@@ -462,13 +463,11 @@ def preview_webpage(url: str) -> Dict[str, Any]:
         resp.encoding = resp.apparent_encoding or "utf-8"
         soup = bs4.BeautifulSoup(resp.text, "html.parser")
 
-        # 移除干擾元素
         for tag in soup(["script", "style", "noscript", "iframe", "header", "footer", "nav", "svg", "button"]):
             tag.decompose()
 
         title = soup.title.string.strip() if soup.title and soup.title.string else "網頁閱讀模式"
 
-        # 提取內文段落
         paragraphs = []
         for p in soup.find_all(["p", "h1", "h2", "h3", "li"]):
             text = p.get_text(strip=True)

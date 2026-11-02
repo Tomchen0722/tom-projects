@@ -1,40 +1,41 @@
-# OmniSearch 全球萬維智慧搜尋引擎
+# OmniSearch 全球萬維智慧搜尋引擎 (100% 非 Google 模組自主架構)
 
-媲美 Google 的現代化智慧搜尋引擎 — 跨網頁全域檢索、即時自動補全、Google 新聞 RSS、維基百科知識圖譜、圖片檢索、AI 智慧摘要與深色/淺色模式。
+全新的現代化自主搜尋引擎 — **完全不依賴任何 Google 模組、API 或服務**，採用開源與隱私友好的技術棧：跨網頁全域檢索、即時開放式自動補全、即時新聞 RSS、維基百科知識圖譜、高解析圖片檢索、AI 智慧摘要與流暢深色/淺色主題。
 
 ---
 
-## 🌟 核心特色功能
+## 🌟 核心特色功能 (100% 獨立自主架構)
 
 1. **🌐 全域實時網頁檢索 (Live Web Search)**
    - 採用 DuckDuckGo Lite 實時爬梳引擎，支援任何中英文詞彙、程式語言、國際新聞與即時資訊檢索。
-   - 解析網站 Favicon、完整階層網址（Breadcrumb）、高亮關鍵字標題與內文摘要。
-   - 具備 Wikipedia 權威全文與 Google 新聞 RSS 智慧備援機制，保證查詢絕不留白。
+   - 解析網站 Favicon (DuckDuckGo Icons 服務)、完整階層網址（Breadcrumb）、高亮關鍵字標題與內文摘要。
+   - 具備 Wikipedia 權威全文與即時新聞備援機制，保證查詢絕不留白。
 
-2. **⚡ Google 級即時補全建議 (Google Suggest Autocomplete)**
-   - 整合 Google Suggest API，打字瞬間提供 8 組最相關建議字詞。
+2. **⚡ 開放式即時補全建議 (Autocomplete Suggestions)**
+   - 整合 DuckDuckGo Autocomplete API 與維基百科 OpenSearch，打字瞬間提供 8 組最相關建議字詞。
+   - 零 Google 服務呼叫，開放跨域原生支援。
    - 支援鍵盤方向鍵（↑ / ↓）選取、Enter 立即搜尋與 Escape 關閉。
    - 當輸入框為空時，智慧提示最近搜尋歷史紀錄。
 
-3. **✨ Google SGE / Gemini 風格 AI 智慧摘要 (AI Overview)**
+3. **✨ AI 智慧摘要概覽 (AI Overview)**
    - 針對搜尋關鍵字，自前列網頁即時萃取精華、歸納 3~4 項核心要點與條列解析。
    - 附帶參考來源標籤（Source Chips），可直接點擊回溯來源。
 
-4. **📚 Google 知識圖譜卡片 (Knowledge Graph Panel)**
+4. **📚 權威知識圖譜卡片 (Knowledge Graph Panel)**
    - 桌面版右側即時展示權威維基百科圖譜：高畫質首圖、核心介紹、資訊方塊與官方百科直達連結。
 
 5. **📰 多維度分類檢索 (Tabs)**
    - **🌐 全部 (All)**：全網各類網頁與權威站台。
-   - **📰 新聞 (News)**：Google News RSS 即時媒體報導與發佈時間。
-   - **🖼️ 圖片 (Images)**：維基媒體高解析圖庫與專屬燈箱大圖預覽（Lightbox）。
+   - **📰 新聞 (News)**：Bing News RSS 即時媒體報導與發佈時間。
+   - **🖼️ 圖片 (Images)**：維基媒體（Wikimedia Commons）高解析圖庫與專屬燈箱大圖預覽（Lightbox）。
    - **📚 知識百科 (Knowledge)**：維基百科深入專題條目。
 
-6. **🎯 Google 級精緻細節與貼心設計**
+6. **🎯 精緻細節與貼心設計**
    - **好手氣 (I'm Feeling Lucky)**：一鍵直接導向最相關的首選目標網頁。
    - **📖 閱讀速覽模式 (Reader Mode Modal)**：不用跳出搜尋引擎，在純淨閱讀視窗中預覽網頁內容。
    - **⭐ 星號收藏夾 (Bookmarks Drawer)**：支援收藏喜愛的網頁結果，資料長效保存於本機。
    - **🎙️ 語音搜尋 (Voice Search)**：整合 Web Speech API，支援國語與英語語音即時辨識。
-   - **🌙 深色/淺色雙主題**：完美遵循 Google Material Design 3 與 Google 深色模式規範。
+   - **🌙 深色/淺色雙主題**：採用現代系統無感字型與流暢深淺色主題。
    - **🧮 即時運算小工具**：直接輸入數學算式（如 `25*40`、`1024/8`）瞬間計算結果。
 
 ---
@@ -43,7 +44,7 @@
 
 ### 方式一：線上免安裝、免伺服器直接使用（推薦！可在手機、平板與他人電腦直接開）
 本專案內建**「雙模自動切換引擎」**：
-- 當沒有啟動本機 Python 後端時，前端會自動啟用純前端免伺服器檢索引擎，透過開放式 CORS 全球資訊庫與 Google 官方建議服務直接提供搜尋服務。
+- 當沒有啟動本機 Python 後端時，前端會自動啟用純前端免伺服器檢索引擎，透過開放式 CORS 全球資訊庫與開放補全服務直接提供搜尋服務。
 - 只要部署到 GitHub Pages，任何人打開網址：
   `https://tomchen0722.github.io/tom-projects/projects/web/omni-search/static/index.html`
   **完全不用在電腦上執行任何程式，用手機、平板或任何瀏覽器點開即可搜尋！**
@@ -69,15 +70,15 @@ python projects/web/omni-search/app.py
 ```
 omni-search/
 ├── app.py              # Flask 後端伺服器 (API 路由、CORS、速覽提取)
-├── search_engine.py    # 搜尋爬蟲核心 (DuckDuckGo Lite, Google Suggest, Google News, Wikipedia)
+├── search_engine.py    # 100% 非 Google 獨立搜尋爬蟲核心 (DuckDuckGo Lite, Bing News RSS, Wikipedia)
 ├── requirements.txt    # 相依套件
 ├── Procfile            # 雲端 PaaS (Render, Heroku, Railway) 啟動配置
 ├── render.yaml         # Render 免費雲端自動部署設定
 ├── vercel.json         # Vercel 靜態/雲端路由設定
 ├── README.md           # 專案詳細說明文件
 ├── start.bat           # Windows 快速啟動捷徑
-└── static/             # Google 風格前端 Single Page Application (支援純前端免伺服器模式)
+└── static/             # 獨立前端 Single Page Application (支援純前端免伺服器模式)
     ├── index.html      # 語意化 HTML5 架構與狀態標記
-    ├── style.css       # Material Design 3 設計系統、主題切換與微動畫
+    ├── style.css       # 現代獨立設計系統、主題切換與微動畫
     └── app.js          # 雙模檢索引擎 (後端 API + 純前端開放檢索)
 ```
