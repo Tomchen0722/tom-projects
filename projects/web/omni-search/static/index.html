@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniSearch — 全球萬維智慧搜尋引擎</title>
+  <meta name="description" content="OmniSearch 是全方位現代化搜尋引擎：支援跨網頁全域檢索、即時 Google 建議補全、Google 新聞 RSS、維基百科知識圖譜、圖片檢索與 AI 智慧摘要概覽。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234285F4' d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/></svg>">
+</head>
+<body>
+
+  <!-- ==================== 首頁視圖 (Home View) ==================== -->
+  <div id="homeView" class="home-container">
+    <!-- 頂部功能列 -->
+    <header class="home-header">
+      <div class="header-left">
+        <a href="http://127.0.0.1:7000" id="homeHubReturnBtn" class="hub-pill-btn" title="返回 Tom Chen Project Hub">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          <span>Project Hub</span>
+        </a>
+      </div>
+      <div class="header-right">
+        <button id="homeBookmarksBtn" class="icon-btn" title="查看星號收藏" aria-label="收藏夾">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          <span class="badge-count" id="homeBookmarkCount">0</span>
+        </button>
+        <button id="homeThemeToggle" class="icon-btn theme-toggle-btn" title="切換深色/淺色模式" aria-label="切換主題">
+          <span class="theme-icon">🌙</span>
+        </button>
+        <button id="homeAppsBtn" class="icon-btn" title="快捷應用選單" aria-label="應用清單">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM6 4c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </button>
+        <div class="user-avatar" title="Tom Chen">T</div>
+      </div>
+    </header>
+
+    <!-- 首頁主體：Logo、搜尋框、按鈕、熱門趨勢 -->
+    <main class="home-main">
+      <!-- Google 經典配色品牌標誌 -->
+      <div class="brand-logo-wrap">
+        <h1 class="brand-logo" id="homeLogo">
+          <span class="c-blue">O</span><span class="c-red">m</span><span class="c-yellow">n</span><span class="c-blue">i</span><span class="c-green">S</span><span class="c-red">e</span><span class="c-blue">a</span><span class="c-yellow">r</span><span class="c-green">c</span><span class="c-red">h</span>
+        </h1>
+        <div class="brand-badge">
+          <span class="badge-sparkle">✨</span>
+          <span>全域智慧搜尋 • 跨網萬維檢索</span>
+        </div>
+      </div>
+
+      <!-- 核心搜尋輸入框 -->
+      <div class="search-box-wrapper" id="homeSearchBoxWrapper">
+        <div class="search-box" id="homeSearchBox">
+          <span class="search-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          </span>
+          <input type="text" id="homeSearchInput" class="search-input" placeholder="在全網搜尋任何內容，或輸入網址..." autocomplete="off" autofocus spellcheck="false">
+          <button id="homeClearBtn" class="clear-btn" title="清除" style="display: none;">✕</button>
+          <button id="homeVoiceBtn" class="voice-btn" title="語音搜尋" aria-label="語音輸入">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+          </button>
+        </div>
+
+        <!-- 即時自動完成推薦下拉選單 -->
+        <div class="suggest-dropdown" id="homeSuggestDropdown" style="display: none;"></div>
+      </div>
+
+      <!-- 搜尋按鈕組 -->
+      <div class="home-actions">
+        <button type="button" id="homeSearchBtn" class="action-btn primary-btn">Omni 搜尋</button>
+        <button type="button" id="homeLuckyBtn" class="action-btn lucky-btn">好手氣 (I'm Feeling Lucky)</button>
+      </div>
+
+      <!-- 熱門探索標籤 -->
+      <div class="trending-section">
+        <div class="trending-title">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
+          <span>熱門探索趨勢：</span>
+        </div>
+        <div class="trending-chips" id="trendingChips">
+          <button class="chip" data-q="人工智慧 最新模型">🤖 人工智慧最新突破</button>
+          <button class="chip" data-q="臺灣科技產業新聞">🇹🇼 臺灣半導體與科技動態</button>
+          <button class="chip" data-q="Python 網路爬蟲教學">🐍 Python 實戰精選教學</button>
+          <button class="chip" data-q="台股大盤走勢即時">📈 臺灣股市走勢焦點</button>
+          <button class="chip" data-q="維基百科 今日精選">📚 維基百科每日知識</button>
+          <button class="chip" data-q="太空探索 NASA 最新照片">🌌 詹姆斯韋伯太空望遠鏡</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 首頁頁尾 -->
+    <footer class="home-footer">
+      <div class="footer-top">
+        <span>臺灣 • 繁體中文全域檢索</span>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-left">
+          <span>關於 OmniSearch</span>
+          <span>即時 DuckDuckGo 引擎</span>
+          <span>Google 建議補全</span>
+        </div>
+        <div class="footer-right">
+          <span>隱私權政策</span>
+          <span>服務條款</span>
+          <span>快捷鍵提示: Enter / ↑↓</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ==================== 搜尋結果視圖 (Results View) ==================== -->
+  <div id="resultsView" class="results-container" style="display: none;">
+    <!-- 置頂搜尋導覽列 -->
+    <header class="results-header" id="resultsHeader">
+      <div class="header-main-bar">
+        <!-- 迷你 Logo -->
+        <a href="#" id="resultsMiniLogo" class="mini-logo" title="回搜尋首頁">
+          <span class="c-blue">O</span><span class="c-red">m</span><span class="c-yellow">n</span><span class="c-blue">i</span>
+        </a>
+
+        <!-- 置頂搜尋框 -->
+        <div class="header-search-box-wrap">
+          <div class="search-box header-search-box" id="headerSearchBox">
+            <input type="text" id="headerSearchInput" class="search-input" placeholder="搜尋..." autocomplete="off" spellcheck="false">
+            <button id="headerClearBtn" class="clear-btn" title="清除" style="display: none;">✕</button>
+            <button id="headerVoiceBtn" class="voice-btn" title="語音搜尋" aria-label="語音輸入">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            </button>
+            <button id="headerSearchBtn" class="header-search-btn" title="執行搜尋" aria-label="搜尋">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            </button>
+          </div>
+          <!-- 置頂搜尋補全下拉 -->
+          <div class="suggest-dropdown" id="headerSuggestDropdown" style="display: none;"></div>
+        </div>
+
+        <!-- 頂部右側動作按鈕 -->
+        <div class="results-header-actions">
+          <a href="http://127.0.0.1:7000" id="resultsHubReturnBtn" class="hub-pill-btn mini-hub-btn" title="返回 Project Hub">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            <span>Hub</span>
+          </a>
+          <button id="resultsBookmarksBtn" class="icon-btn" title="查看收藏" aria-label="收藏夾">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            <span class="badge-count" id="resultsBookmarkCount">0</span>
+          </button>
+          <button id="resultsThemeToggle" class="icon-btn theme-toggle-btn" title="切換主題" aria-label="切換主題">
+            <span class="theme-icon">🌙</span>
+          </button>
+          <div class="user-avatar" title="Tom Chen">T</div>
+        </div>
+      </div>
+
+      <!-- 分類分頁標籤導覽 (Tabs) -->
+      <nav class="category-tabs" id="categoryTabs">
+        <div class="tabs-list">
+          <button class="tab-btn active" data-cat="all">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            <span>全部</span>
+          </button>
+          <button class="tab-btn" data-cat="news">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            <span>新聞</span>
+          </button>
+          <button class="tab-btn" data-cat="images">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+            <span>圖片</span>
+          </button>
+          <button class="tab-btn" data-cat="knowledge">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+            <span>知識百科</span>
+          </button>
+          <button class="tab-btn tools-tab-btn" id="toggleToolsBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+            <span>搜尋工具</span>
+          </button>
+        </div>
+      </nav>
+
+      <!-- 展開式搜尋工具列 -->
+      <div class="tools-bar" id="toolsBar" style="display: none;">
+        <div class="tool-group">
+          <label>時間範圍：</label>
+          <select id="timeFilterSelect" class="tool-select">
+            <option value="all">不限時間</option>
+            <option value="day">過去 24 小時</option>
+            <option value="week">過去 1 週</option>
+            <option value="year">過去 1 年</option>
+          </select>
+        </div>
+        <div class="tool-group">
+          <label>語言偏好：</label>
+          <select id="langFilterSelect" class="tool-select">
+            <option value="all">所有語言</option>
+            <option value="tw" selected>繁體中文優先</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- 搜尋統計資訊 -->
+    <div class="results-stats-bar">
+      <div class="stats-text" id="statsText">約有 0 項結果 (0.00 秒)</div>
+    </div>
+
+    <!-- 主要內容區（左側結果 + 右側知識卡片） -->
+    <main class="results-main-layout">
+      <!-- 左欄：主結果區 -->
+      <div class="results-primary-col" id="resultsPrimaryCol">
+
+        <!-- 骨架加載狀態 (Skeleton Loading) -->
+        <div class="skeleton-container" id="skeletonLoader" style="display: none;">
+          <div class="skeleton-card skeleton-ai"></div>
+          <div class="skeleton-card skeleton-item"></div>
+          <div class="skeleton-card skeleton-item"></div>
+          <div class="skeleton-card skeleton-item"></div>
+        </div>
+
+        <!-- AI Overview (Google SGE / Gemini 風格智慧摘要) -->
+        <section class="ai-overview-card" id="aiOverviewCard" style="display: none;">
+          <div class="ai-overview-header">
+            <div class="ai-badge">
+              <span class="ai-sparkle-icon">✨</span>
+              <span class="ai-title">AI 智慧摘要 (AI Overview)</span>
+            </div>
+            <button class="ai-toggle-btn" id="aiToggleBtn" title="展開/收合">展開摘要</button>
+          </div>
+          <div class="ai-overview-body" id="aiOverviewBody">
+            <p class="ai-summary-text" id="aiSummaryText"></p>
+            <ul class="ai-takeaways-list" id="aiTakeawaysList"></ul>
+            <div class="ai-sources-row">
+              <span class="sources-label">資訊參考來源：</span>
+              <div class="sources-chips" id="aiSourcesChips"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 即時計算機 / 答案小工具 (可支援簡單算式與換算) -->
+        <div class="direct-answer-card" id="directAnswerCard" style="display: none;">
+          <div class="direct-answer-icon">💡</div>
+          <div class="direct-answer-content">
+            <div class="direct-answer-label" id="directAnswerLabel">即時運算</div>
+            <div class="direct-answer-value" id="directAnswerValue"></div>
+          </div>
+        </div>
+
+        <!-- 網頁搜尋結果列表 (Organic Results) -->
+        <div class="organic-results-list" id="organicResultsList"></div>
+
+        <!-- 新聞列表視圖 (News Tab 專用) -->
+        <div class="news-results-list" id="newsResultsList" style="display: none;"></div>
+
+        <!-- 圖片瀑布流網格 (Images Tab 專用) -->
+        <div class="images-results-grid" id="imagesResultsGrid" style="display: none;"></div>
+
+        <!-- 大家也問了 (People Also Ask) 相關問題 -->
+        <div class="people-ask-card" id="peopleAskCard" style="display: none;">
+          <h3 class="people-ask-title">大家也問了這些問題</h3>
+          <div class="people-ask-accordion" id="peopleAskAccordion"></div>
+        </div>
+
+        <!-- 相關搜尋詞 (Related Searches) -->
+        <div class="related-searches-box" id="relatedSearchesBox" style="display: none;">
+          <h3 class="related-title">相關搜尋</h3>
+          <div class="related-chips" id="relatedChips"></div>
+        </div>
+
+        <!-- 分頁切換器 (Google 風格 Gooooooogle) -->
+        <div class="pagination-container" id="paginationContainer" style="display: none;">
+          <div class="google-logo-pagination">
+            <span class="c-blue">G</span>
+            <span class="c-red o-repeat" id="oRepeatLetters">ooooo</span>
+            <span class="c-blue">g</span>
+            <span class="c-green">l</span>
+            <span class="c-red">e</span>
+          </div>
+          <div class="pagination-pages" id="paginationPages"></div>
+        </div>
+
+      </div>
+
+      <!-- 右欄：Google 知識圖譜卡片 (Knowledge Graph Panel) -->
+      <aside class="results-side-col" id="resultsSideCol">
+        <div class="knowledge-panel" id="knowledgePanel" style="display: none;">
+          <div class="kp-image-wrap" id="kpImageWrap" style="display: none;">
+            <img id="kpImage" src="" alt="知識圖譜圖片" loading="lazy">
+          </div>
+          <div class="kp-content">
+            <h2 class="kp-title" id="kpTitle"></h2>
+            <div class="kp-subtitle" id="kpSubtitle"></div>
+            <div class="kp-divider"></div>
+            <p class="kp-extract" id="kpExtract"></p>
+            <div class="kp-facts" id="kpFacts"></div>
+            <div class="kp-footer">
+              <a href="#" id="kpReadMore" target="_blank" rel="noopener noreferrer" class="kp-link">
+                在維基百科上深入閱讀
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- ==================== 網頁速覽器 / 閱讀模式彈窗 (Reader Modal) ==================== -->
+  <div class="modal-backdrop" id="readerModal" style="display: none;">
+    <div class="modal-card reader-modal-card">
+      <div class="modal-header">
+        <div class="reader-header-info">
+          <span class="reader-tag">📖 智慧速覽閱讀模式</span>
+          <h3 class="reader-title" id="readerModalTitle"></h3>
+          <div class="reader-domain" id="readerModalDomain"></div>
+        </div>
+        <div class="modal-actions">
+          <a href="#" id="readerOpenExternal" target="_blank" rel="noopener noreferrer" class="btn-text">
+            <span>開啟原始網站</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+          </a>
+          <button class="modal-close-btn" id="readerCloseBtn">✕</button>
+        </div>
+      </div>
+      <div class="modal-body reader-body" id="readerModalBody">
+        <div class="reader-loading">正在提取純淨閱讀模式內容...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 星號收藏抽屜 (Bookmarks Drawer) ==================== -->
+  <div class="drawer-backdrop" id="bookmarksDrawerBackdrop" style="display: none;">
+    <aside class="drawer-panel" id="bookmarksDrawer">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          <span>已儲存的星號收藏</span>
+        </div>
+        <button class="drawer-close-btn" id="bookmarksCloseBtn">✕</button>
+      </div>
+      <div class="drawer-toolbar">
+        <span class="drawer-count" id="drawerCountText">共 0 項收藏</span>
+        <button class="btn-clear-all" id="clearAllBookmarksBtn">全部清除</button>
+      </div>
+      <div class="drawer-body" id="bookmarksList">
+        <div class="empty-state">尚無收藏項目。搜尋時點選網頁旁的星號 ⭐ 即可儲存。</div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ==================== 圖片燈箱大圖預覽 (Lightbox Modal) ==================== -->
+  <div class="modal-backdrop lightbox-backdrop" id="lightboxModal" style="display: none;">
+    <div class="lightbox-content">
+      <button class="lightbox-close" id="lightboxCloseBtn">✕</button>
+      <div class="lightbox-image-wrap">
+        <img id="lightboxImg" src="" alt="大圖預覽">
+      </div>
+      <div class="lightbox-info">
+        <h3 id="lightboxTitle"></h3>
+        <p id="lightboxDesc"></p>
+        <div class="lightbox-actions">
+          <a href="#" id="lightboxSourceLink" target="_blank" rel="noopener noreferrer" class="btn-text">檢視來源網頁</a>
+          <a href="#" id="lightboxDownloadBtn" target="_blank" download class="btn-text">下載高畫質原圖</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 語音輸入彈窗 (Voice Modal) ==================== -->
+  <div class="modal-backdrop voice-backdrop" id="voiceModal" style="display: none;">
+    <div class="voice-modal-card">
+      <button class="modal-close-btn" id="voiceCloseBtn">✕</button>
+      <div class="voice-wave-ring">
+        <div class="wave wave-1"></div>
+        <div class="wave wave-2"></div>
+        <div class="wave wave-3"></div>
+        <div class="voice-mic-icon">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+        </div>
+      </div>
+      <h3 class="voice-status-title" id="voiceStatusTitle">請說出您想查詢的關鍵字...</h3>
+      <div class="voice-transcript" id="voiceTranscript">正在聆聽中...</div>
+      <div class="voice-hint">支援國語與英語語音辨識</div>
+    </div>
+  </div>
+
+  <!-- ==================== 浮動提示 Toast ==================== -->
+  <div class="toast-notification" id="toastNotification"></div>
+
+  
+
+  <script src="app.js"></script>
+
+<!-- TOM_HUB_RETURN start : 由 Project Hub 注入，可用 hub/tools/inject_return.py 重新產生 -->
+<script>
+(function(){
+  if (document.getElementById('tom-hub-return')) return;
+  // 依所在環境決定回哪裡：
+  //   本機          → 本機的 Project Hub
+  //   作品集站台內  → 用相對路徑，換網域也不會壞
+  //   其他網域      → 專案自己部署在 Render 等平台，相對路徑會超出根目錄，
+  //                   只能用完整網址連回作品集
+  var host = location.hostname;
+  var local = ['127.0.0.1','localhost',''].indexOf(host) >= 0;
+  var onSite = host === 'tomchen0722.github.io';
+  var href = local ? 'http://127.0.0.1:7000'
+           : (onSite ? '../../../../index.html' : 'https://tomchen0722.github.io/tom-projects/');
+  var label = local ? '回 Hub' : '回作品集';
+  function mount() {
+    if (!document.body) return;
+    var s = document.createElement('style');
+    s.textContent = '#tom-hub-return{position:fixed;left:18px;bottom:18px;z-index:2147483000;'
+      + 'display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:11px 18px;'
+      + 'background:#1C1A18;color:#FEFEF9;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;'
+      + 'font-size:13px;font-weight:500;letter-spacing:.03em;line-height:1;text-decoration:none;'
+      + 'box-shadow:0 6px 24px rgba(28,26,24,.22);'
+      + 'transition:background .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);}'
+      + '#tom-hub-return::after{content:"";position:absolute;bottom:-3px;right:-3px;width:100%;height:100%;'
+      + 'border:1.5px solid #3A68AD;opacity:.45;pointer-events:none;transition:opacity .25s;}'
+      + '#tom-hub-return:hover{background:#3A68AD;transform:translateY(-2px);}'
+      + '#tom-hub-return:hover::after{opacity:0;}'
+      + '#tom-hub-return:focus-visible{outline:2px solid #3A68AD;outline-offset:3px;}'
+      // media query 的左大括號後面刻意留一個空格：這段也會被注入到 Jinja2 模板裡，
+      // 左大括號緊接井號會被 Jinja2 當成註解開始，導致整頁解析失敗。
+      + '@media(max-width:600px){ #tom-hub-return{left:12px;bottom:12px;padding:11px 15px;font-size:12px;}}'
+      + '@media(prefers-reduced-motion:reduce){ #tom-hub-return{transition:none;}}'
+      + '@media print{ #tom-hub-return{display:none;}}';
+    document.head.appendChild(s);
+    var a = document.createElement('a');
+    a.id = 'tom-hub-return';
+    a.href = href;
+    a.title = label;
+    a.setAttribute('aria-label', label);
+    a.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+      + ' stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      + '<line x1="19" y1="12" x2="5" y2="12"></line>'
+      + '<polyline points="12 19 5 12 12 5"></polyline></svg><span>' + label + '</span>';
+    document.body.appendChild(a);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mount);
+  } else {
+    mount();
+  }
+})();
+</script>
+<!-- TOM_HUB_RETURN end -->
+</body>
+</html>

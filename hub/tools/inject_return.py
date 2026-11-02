@@ -29,6 +29,7 @@ MARKER = "TOM_HUB_RETURN"
 TARGETS = [
     "projects/web/QR_order/templates/base.html",
     "projects/web/AI_agent/static/index.html",
+    "projects/web/omni-search/static/index.html",
     "learning/dev/CyberSecAcademy/templates/index.html",
     "learning/cloud/AWS/*.html",
     "learning/cloud/GCP-Learning/*.html",

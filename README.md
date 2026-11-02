@@ -57,6 +57,7 @@ tom-projects/
 
 | 專案 | 型態 | Port | 狀態 |
 |------|------|------|------|
+| OmniSearch 全球萬維智慧搜尋引擎 | Flask | 7050 | 可執行（全域網頁檢索、Google補全、AI概覽） |
 | 智慧旅宿平台 | Streamlit | 8501 | 可執行 |
 | QR 點餐系統 | Flask | 3000 | 可執行（連 Supabase） |
 | 自動的小龍蝦 AI 指揮室 | Flask | 5566 | 可執行 |
