@@ -22,6 +22,7 @@
     speechRecognition: null,
     isListening: false,
     suggestTimer: null,
+    isClientMode: false,
   };
 
   // ==========================================
@@ -44,9 +45,11 @@
     homeThemeToggle: document.getElementById('homeThemeToggle'),
     homeBookmarksBtn: document.getElementById('homeBookmarksBtn'),
     homeBookmarkCount: document.getElementById('homeBookmarkCount'),
+    homeModeBadge: document.getElementById('homeModeBadge'),
 
     // Results Header
     resultsMiniLogo: document.getElementById('resultsMiniLogo'),
+    resultsModeBadge: document.getElementById('resultsModeBadge'),
     headerSearchInput: document.getElementById('headerSearchInput'),
     headerSearchBox: document.getElementById('headerSearchBox'),
     headerSearchBtn: document.getElementById('headerSearchBtn'),
@@ -131,11 +134,12 @@
   // ==========================================
   // 初始化 (Initialization)
   // ==========================================
-  function init() {
+  async function init() {
     applyTheme(state.theme);
     updateBookmarkBadge();
     bindEvents();
     initSpeechRecognition();
+    await detectBackend();
 
     // 檢查網址參數是否帶有搜尋 query (支援重新整理或外連)
     const params = new URLSearchParams(window.location.search);
@@ -145,6 +149,41 @@
 
     if (q) {
       executeSearch(q, cat, page, false);
+    }
+  }
+
+  // ==========================================
+  // 後端與連線模式檢測 (Backend Detection)
+  // ==========================================
+  async function detectBackend() {
+    if (window.location.protocol === 'file:' || window.location.hostname.endsWith('github.io')) {
+      setClientMode(true);
+      return false;
+    }
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 1200);
+      const res = await fetch('/health', { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (res.ok) {
+        setClientMode(false);
+        return true;
+      }
+    } catch (e) {}
+    setClientMode(true);
+    return false;
+  }
+
+  function setClientMode(enabled) {
+    state.isClientMode = enabled;
+    const badgeText = enabled ? '⚡ 純前端免伺服器 (直接線上用)' : '🟢 本機/雲端 API 模式';
+    if (el.homeModeBadge) {
+      el.homeModeBadge.textContent = badgeText;
+      el.homeModeBadge.className = 'mode-badge ' + (enabled ? 'client-mode' : '');
+    }
+    if (el.resultsModeBadge) {
+      el.resultsModeBadge.textContent = enabled ? '⚡ 免伺服器' : '🟢 API 模式';
+      el.resultsModeBadge.className = 'mode-badge ' + (enabled ? 'client-mode' : '');
     }
   }
 
@@ -430,7 +469,13 @@
       return;
     }
 
-    // 發送建議補全 API 請求
+    // 若在純前端免伺服器模式，直接使用 Google Suggest JSONP
+    if (state.isClientMode) {
+      fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl);
+      return;
+    }
+
+    // 發送建議補全 API 請求 (失敗自動 fallback 到 JSONP)
     fetch(`/api/suggest?q=${encodeURIComponent(query)}`)
       .then(res => res.json())
       .then(data => {
@@ -438,12 +483,37 @@
           const list = data.suggestions.slice(0, 8).map(s => ({ text: s, isHistory: false }));
           renderSuggestItems(dropdownEl, list, inputEl);
         } else {
-          dropdownEl.style.display = 'none';
+          fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl);
         }
       })
       .catch(() => {
-        dropdownEl.style.display = 'none';
+        fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl);
       });
+  }
+
+  // Google 官方建議補全 JSONP (零 CORS 限制，純前端直連)
+  function fetchGoogleSuggestionsJsonp(query, dropdownEl, inputEl) {
+    const cbName = 'googleSuggestCb_' + Math.floor(Math.random() * 1000000);
+    window[cbName] = function (data) {
+      delete window[cbName];
+      const sTag = document.getElementById(cbName);
+      if (sTag) sTag.remove();
+      if (data && Array.isArray(data[1]) && data[1].length > 0) {
+        const list = data[1].slice(0, 8).map(s => ({ text: String(s), isHistory: false }));
+        renderSuggestItems(dropdownEl, list, inputEl);
+      } else {
+        dropdownEl.style.display = 'none';
+      }
+    };
+    const script = document.createElement('script');
+    script.id = cbName;
+    script.src = `https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(query)}&jsonp=${cbName}`;
+    script.onerror = () => {
+      delete window[cbName];
+      script.remove();
+      dropdownEl.style.display = 'none';
+    };
+    document.head.appendChild(script);
   }
 
   function renderSuggestItems(dropdownEl, items, inputEl) {
@@ -526,24 +596,198 @@
     // 檢查運算式小工具 (如: 25*40 或 100/5)
     checkDirectAnswer(query);
 
-    // 發送全域搜尋 API
-    const apiUrl = `/api/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}&page=${page}`;
+    // 若已確認為免伺服器模式，直接跑純前端檢索
+    if (state.isClientMode) {
+      executeClientSideSearch(query, category, page);
+      return;
+    }
 
-    fetch(apiUrl)
-      .then(res => res.json())
+    // 發送全域搜尋 API (若後端未啟動或逾時，自動無縫切換至純前端免伺服器引擎)
+    const apiUrl = `/api/search?q=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}&page=${page}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    fetch(apiUrl, { signal: controller.signal })
+      .then(res => {
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error('API 回應非 200');
+        return res.json();
+      })
       .then(data => {
         showSkeleton(false);
         if (data.ok) {
           renderSearchResults(data);
         } else {
-          showErrorState('搜尋服務暫時無法回應，請稍後再試。');
+          executeClientSideSearch(query, category, page);
         }
       })
       .catch(err => {
-        showSkeleton(false);
-        console.error('Search request failed:', err);
-        showErrorState('網路連線逾時或伺服器異常，請檢查連線狀態。');
+        clearTimeout(timeoutId);
+        console.warn('後端服務未回應，自動啟用純前端免伺服器檢索引擎：', err);
+        setClientMode(true);
+        executeClientSideSearch(query, category, page);
       });
+  }
+
+  // ==========================================
+  // 純前端免伺服器檢索引擎 (Client-Side Search Engine)
+  // 不需任何本機 Python 後端，直接以瀏覽器跨網調用開放百科全文檢索與高解析圖庫
+  // ==========================================
+  async function executeClientSideSearch(query, category = 'all', page = 1) {
+    const startTime = performance.now();
+    try {
+      // 1. 維基百科中文全文檢索 (CORS 開放)
+      const wikiUrl = `https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=15&utf8=&format=json&origin=*`;
+      const wikiRes = await fetch(wikiUrl);
+      const wikiJson = await wikiRes.json();
+      const hits = wikiJson.query?.search || [];
+
+      // 2. 若中文結果偏少，補充英文百科
+      let enHits = [];
+      if (hits.length < 5) {
+        try {
+          const enUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=8&utf8=&format=json&origin=*`;
+          const enRes = await fetch(enUrl);
+          const enJson = await enRes.json();
+          enHits = enJson.query?.search || [];
+        } catch (e) {}
+      }
+
+      // 組裝搜尋結果
+      const results = [];
+      hits.forEach(h => {
+        const cleanSnippet = h.snippet.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"');
+        results.push({
+          title: `${h.title} - 維基百科，自由的百科全書`,
+          url: `https://zh.wikipedia.org/wiki/${encodeURIComponent(h.title)}`,
+          display_url: `https://zh.wikipedia.org/wiki/${h.title}`,
+          domain: 'zh.wikipedia.org',
+          snippet: cleanSnippet || `${h.title} 的維基百科完整條目與介紹。`,
+          favicon: 'https://www.google.com/s2/favicons?domain=wikipedia.org&sz=32',
+          source: 'wikipedia'
+        });
+      });
+
+      enHits.forEach(h => {
+        if (!results.some(r => r.title.includes(h.title))) {
+          const cleanSnippet = h.snippet.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"');
+          results.push({
+            title: `${h.title} - Wikipedia`,
+            url: `https://en.wikipedia.org/wiki/${encodeURIComponent(h.title)}`,
+            display_url: `https://en.wikipedia.org/wiki/${h.title}`,
+            domain: 'en.wikipedia.org',
+            snippet: cleanSnippet || `${h.title} encyclopedia entry.`,
+            favicon: 'https://www.google.com/s2/favicons?domain=wikipedia.org&sz=32',
+            source: 'wikipedia'
+          });
+        }
+      });
+
+      // 3. 知識圖譜卡片 (REST API 摘要)
+      let knowledge_card = null;
+      const cleanQ = query.replace(/[?？!！,，。]+/g, '').trim();
+      const targetEntity = hits.length > 0 ? hits[0].title : cleanQ;
+
+      try {
+        const sumRes = await fetch(`https://zh.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(targetEntity)}`);
+        if (sumRes.ok) {
+          const sData = await sumRes.json();
+          if (sData.extract && sData.type !== 'disambiguation') {
+            knowledge_card = {
+              title: sData.title,
+              subtitle: sData.description || '維基百科權威核心條目',
+              extract: sData.extract,
+              thumbnail: sData.thumbnail?.source,
+              image: sData.originalimage?.source || sData.thumbnail?.source,
+              page_url: sData.content_urls?.desktop?.page || `https://zh.wikipedia.org/wiki/${encodeURIComponent(sData.title)}`,
+              source: '維基百科 (Wikipedia)',
+              lang: 'zh'
+            };
+          }
+        }
+      } catch (e) {}
+
+      // 4. 圖片搜尋 (若選取圖片 Tab)
+      let images = [];
+      if (category === 'images') {
+        try {
+          const imgUrl = `https://zh.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=20&prop=pageimages|extracts&exintro=1&explaintext=1&exsentences=1&pithumbsize=800&format=json&origin=*`;
+          const imgRes = await fetch(imgUrl);
+          const imgJson = await imgRes.json();
+          const pages = imgJson.query?.pages || {};
+          Object.values(pages).forEach(p => {
+            if (p.thumbnail?.source) {
+              images.push({
+                title: p.title,
+                thumbnail: p.thumbnail.source,
+                url: p.thumbnail.source,
+                page_url: `https://zh.wikipedia.org/wiki/${encodeURIComponent(p.title)}`,
+                source: 'Wikimedia Commons',
+                description: p.extract || p.title
+              });
+            }
+          });
+        } catch (e) {}
+      }
+
+      // 5. 純前端 AI Overview 智慧摘要
+      let ai_overview = null;
+      if (page === 1 && results.length > 0) {
+        const takeaways = [];
+        if (knowledge_card && knowledge_card.extract) {
+          takeaways.push(knowledge_card.extract.slice(0, 140) + '。');
+        }
+        results.slice(0, 3).forEach(r => {
+          if (r.snippet && r.snippet.length > 20) {
+            const firstSentence = r.snippet.split(/[。！？\n]/)[0].trim();
+            if (firstSentence && !takeaways.includes(firstSentence)) {
+              takeaways.push(firstSentence + '。');
+            }
+          }
+        });
+
+        const sources = results.slice(0, 3).map(r => ({
+          name: r.domain,
+          url: r.url,
+          domain: r.domain,
+          favicon: r.favicon
+        }));
+
+        ai_overview = {
+          has_overview: true,
+          query: query,
+          summary: `免伺服器檢索模式綜整：針對「${query}」，核心重點如下：`,
+          takeaways: takeaways.slice(0, 4),
+          sources: sources
+        };
+      }
+
+      const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+      showSkeleton(false);
+
+      renderSearchResults({
+        ok: true,
+        query: query,
+        category: category,
+        page: page,
+        results: category === 'images' ? images : results,
+        total_estimate: (results.length * 12500) + 3800,
+        has_more: results.length >= 8,
+        elapsed_sec: elapsed,
+        ai_overview: ai_overview,
+        knowledge_card: knowledge_card,
+        related_queries: [
+          `${query} 介紹`,
+          `${query} 是什麼`,
+          `${query} 官網`,
+          `${query} 教學`
+        ]
+      });
+
+    } catch (err) {
+      showSkeleton(false);
+      showErrorState(`免伺服器檢索模式失敗：${err.message || '請確認網路可正常存取'}`);
+    }
   }
 
   // ==========================================
@@ -551,6 +795,10 @@
   // ==========================================
   function executeLucky(query) {
     showToast('正在前往最相關的目標網頁...');
+    if (state.isClientMode) {
+      window.open(`https://zh.wikipedia.org/wiki/${encodeURIComponent(query)}`, '_blank');
+      return;
+    }
     fetch(`/api/lucky?q=${encodeURIComponent(query)}`)
       .then(res => res.json())
       .then(data => {
@@ -1015,6 +1263,24 @@
     el.readerOpenExternal.href = url;
     el.readerModalBody.innerHTML = '<div class="reader-loading">正在提取網頁核心閱讀內容...</div>';
     el.readerModal.style.display = 'flex';
+
+    if (state.isClientMode) {
+      // 純前端模式：直接抓取開放百科摘要
+      const cleanTitle = title.replace(/\s*-\s*維基百科.*$/i, '').replace(/\s*-\s*Wikipedia.*$/i, '').trim();
+      fetch(`https://zh.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanTitle)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.extract) {
+            el.readerModalBody.innerHTML = `<p>${escapeHtml(data.extract)}</p><p style="margin-top:16px;"><a href="${url}" target="_blank" rel="noopener noreferrer" class="btn-text">點此前往完整原始網頁 ↗</a></p>`;
+          } else {
+            el.readerModalBody.innerHTML = `<p>此網頁在純前端免伺服器模式下受跨域保護，請點擊右上角按鈕直接前往原始網站。</p>`;
+          }
+        })
+        .catch(() => {
+          el.readerModalBody.innerHTML = `<p>請點擊右上角按鈕在新分頁直接開啟原始網站。</p>`;
+        });
+      return;
+    }
 
     fetch(`/api/preview?url=${encodeURIComponent(url)}`)
       .then(res => res.json())

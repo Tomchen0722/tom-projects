@@ -39,16 +39,28 @@
 
 ---
 
-## 🚀 快速啟動
+## 🚀 三種執行與使用方式
 
-### 方式一：透過 Tom Chen Project Hub 一鍵啟動
+### 方式一：線上免安裝、免伺服器直接使用（推薦！可在手機、平板與他人電腦直接開）
+本專案內建**「雙模自動切換引擎」**：
+- 當沒有啟動本機 Python 後端時，前端會自動啟用純前端免伺服器檢索引擎，透過開放式 CORS 全球資訊庫與 Google 官方建議服務直接提供搜尋服務。
+- 只要部署到 GitHub Pages，任何人打開網址：
+  `https://tomchen0722.github.io/tom-projects/projects/web/omni-search/static/index.html`
+  **完全不用在電腦上執行任何程式，用手機、平板或任何瀏覽器點開即可搜尋！**
+
+### 方式二：免費雲端 24 小時線上部署（Render / Vercel）
+若需要 24 小時全功能的 Python 爬蟲檢索服務：
+1. 專案內已附帶 `render.yaml` 與 `Procfile`、`vercel.json`。
+2. 前往 [Render.com](https://render.com) 連結此 GitHub 倉庫建立免費 Web Service。
+3. 即可獲得永久專屬公開網址（如 `https://omni-search-xxxx.onrender.com`），不需開機也能隨時連線。
+
+### 方式三：透過 Tom Chen Project Hub 本機一鍵啟動
 在根目錄啟動 Hub (`啟動Hub.bat`)，點選「OmniSearch 全球萬維搜尋引擎」卡片即可自動開啟 <http://127.0.0.1:7050>。
 
-### 方式二：手動啟動
+也可以手動在終端執行：
 ```bash
 python projects/web/omni-search/app.py
 ```
-開啟瀏覽器前往 <http://127.0.0.1:7050>。
 
 ---
 
@@ -57,12 +69,15 @@ python projects/web/omni-search/app.py
 ```
 omni-search/
 ├── app.py              # Flask 後端伺服器 (API 路由、CORS、速覽提取)
-├── search_engine.py    # 搜尋爬蟲核心 (DuckDuckGo, Google Suggest, Google News, Wikipedia)
+├── search_engine.py    # 搜尋爬蟲核心 (DuckDuckGo Lite, Google Suggest, Google News, Wikipedia)
 ├── requirements.txt    # 相依套件
+├── Procfile            # 雲端 PaaS (Render, Heroku, Railway) 啟動配置
+├── render.yaml         # Render 免費雲端自動部署設定
+├── vercel.json         # Vercel 靜態/雲端路由設定
 ├── README.md           # 專案詳細說明文件
 ├── start.bat           # Windows 快速啟動捷徑
-└── static/             # Google 風格前端 Single Page Application
-    ├── index.html      # 語意化 HTML5 架構
+└── static/             # Google 風格前端 Single Page Application (支援純前端免伺服器模式)
+    ├── index.html      # 語意化 HTML5 架構與狀態標記
     ├── style.css       # Material Design 3 設計系統、主題切換與微動畫
-    └── app.js          # 即時搜尋、語音辨識、鍵盤導覽與收藏夾
+    └── app.js          # 雙模檢索引擎 (後端 API + 純前端開放檢索)
 ```
