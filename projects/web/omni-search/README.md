@@ -76,6 +76,7 @@ omni-search/
 ├── render.yaml         # Render 免費雲端自動部署設定
 ├── vercel.json         # Vercel 靜態/雲端路由設定
 ├── README.md           # 專案詳細說明文件
+├── 搜尋引擎運作原理與技術架構解析.md # 深度技術架構、爬蟲原理與搜尋生命週期詳解手冊
 ├── start.bat           # Windows 快速啟動捷徑
 └── static/             # 獨立前端 Single Page Application (支援純前端免伺服器模式)
     ├── index.html      # 語意化 HTML5 架構與狀態標記
