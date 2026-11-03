@@ -1098,7 +1098,48 @@
       renderPracticeView();
     });
 
-    // 預設進入總覽
+    // ==========================================================================
+  // 考前速讀筆記控制邏輯 (Cheat Sheet Controller)
+  // ==========================================================================
+  function filterCheatDomain(domain) {
+    document.querySelectorAll(".cheat-pill-btn").forEach(btn => {
+      if (btn.getAttribute("onclick") && btn.getAttribute("onclick").includes(`'${domain}'`)) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
+
+    const cards = document.querySelectorAll("#cheatSheetGrid .cheat-section-card");
+    cards.forEach(card => {
+      if (domain === "all" || card.getAttribute("data-domain") === domain) {
+        card.style.display = "block";
+      } else {
+        card.style.display = "none";
+      }
+    });
+  }
+
+  function searchCheatSheet() {
+    const input = document.getElementById("cheatSearchInput");
+    if (!input) return;
+    const query = input.value.trim().toLowerCase();
+    
+    const items = document.querySelectorAll("#cheatSheetGrid .cheat-item-box");
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      if (!query || text.includes(query)) {
+        item.style.display = "block";
+      } else {
+        item.style.display = "none";
+      }
+    });
+  }
+
+  window.filterCheatDomain = filterCheatDomain;
+  window.searchCheatSheet = searchCheatSheet;
+
+  // 預設進入總覽
     switchTab("dashboard");
   });
 
