@@ -13,7 +13,8 @@ scripts = re.findall(r'<script src="([^"]+)"', html)
 print(f"Total linked scripts in index.html: {len(scripts)}")
 
 for s in scripts:
-    p = os.path.join(base_dir, s)
+    clean_s = s.split("?")[0]
+    p = os.path.join(base_dir, clean_s)
     if os.path.exists(p):
         size = os.path.getsize(p)
         print(f"  [OK] {s}: {size:,} bytes")
