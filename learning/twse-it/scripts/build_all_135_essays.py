@@ -26,6 +26,7 @@ import new_sec_20_essays
 import new_core_8_essays
 import new_facility_3_essays
 import new_facility_10_essays
+from streamline_answers import streamline_model_answer
 
 def assemble_135_essays():
     # 1. Original 24 essays (12 sysnet + 12 sec)
@@ -72,6 +73,16 @@ def assemble_135_essays():
     ids = [e["id"] for e in combined]
     assert len(ids) == len(set(ids)), f"Duplicate IDs detected: {len(ids)} vs {len(set(ids))}"
     assert len(combined) == 135, f"Expected 135 essays, got {len(combined)}"
+
+    # Streamline all model answers into concise 80%-score high-impact benchmarks
+    print("Streamlining all 135 model answers into concise 80%-score benchmarks...")
+    for essay in combined:
+        essay["modelAnswer"] = streamline_model_answer(essay["modelAnswer"])
+
+    # Ensure all answers remain unique after streamlining
+    answers = [e["modelAnswer"] for e in combined]
+    assert len(answers) == len(set(answers)), f"Duplicate model answers detected after streamlining: {len(answers)} vs {len(set(answers))}"
+    print("All 135 streamlined answers verified 100% unique!")
 
     output_path = os.path.join(CURRENT_DIR, "..", "assets", "essay-data.js")
     output_path = os.path.normpath(output_path)
