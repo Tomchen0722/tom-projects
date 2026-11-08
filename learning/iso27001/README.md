@@ -45,6 +45,7 @@ learning/iso27001/
 │   ├── case-studies.html                # 經典稽核案例判定（D~H）
 │   └── audit-scenarios.html             # 稽核情境進階實戰（I~P）
 └── 06-la-audit/                         # 模組六：ISO 27001 LA 主導稽核員與實戰特訓（全新擴充）
+    ├── la-5day-course.html              # CQI/IRCA 5 天 40 小時全真受訓課程地圖（Day 1~5 模組 1~20、晚間作業、範例試卷、考試規則與流程演練）
     ├── la-roadmap.html                  # CQI/IRCA 考證攻略、12週自學進度規劃、YouTube自學影音、中華電信招考策略
     ├── ti-semi-eagle364.html            # 半導體測試機台資安：Teradyne Eagle 364 工控弱點 vs SEMI E187 晶圓測試防護 vs TI 經驗
     ├── cht-power-datacenter.html        # 關鍵基礎設施實體安全：國廷電機駐點中華電信數據一大樓電力室一級保養實戰（A.7.11/A.5.30）
@@ -55,6 +56,13 @@ learning/iso27001/
 ---
 
 ## 🎯 模組六亮點特色
+
+### 0. CQI / IRCA 5 天 40 小時官方全真課程地圖（Day 1 ～ Day 5 模組 1～20）
+- **Day 1（ISMS 基礎與條款）**：Module 2 何謂 ISMS、Module 3 過程方法（烏龜圖/PDCA）、Module 4 ISO 27001 條款概覽（Clause 4~10）、Day 1 晚間作業。
+- **Day 2（控制措施與查核表）**：晨測、Module 5 控制措施介紹（Annex A 93項）、Module 6 概覽稽核過程、Module 7 稽核 SOA、Module 8 稽核與稽核員（獨立性與品格）、Module 9 稽核規劃、Module 10 會議與溝通、Module 11 檢查表編製、Day 2 晚間作業。
+- **Day 3（過程稽核與不符合）**：晨測、Module 12 過程稽核（端到端 Audit Trail）、Module 13 個案研究、Module 14 進行稽核（訪談與取證）、Module 15 不符合事項（Major/Minor/OFI）、Day 3 晚間作業（手寫 3 份正式 NCR 報告）。
+- **Day 4（試卷·結束會議·報告）**：NCR 批改點評、Module 16 個案研究 (續)、Module 17 官方範例試卷拆解、Module 18 結束會議（拒簽應對）、Module 19 矯正措施（Correction vs Corrective Action）、Module 20 報告稽核、Next steps 後續註冊。
+- **Day 5（半天 8:30~12:00，不供餐）**：08:30~09:15 考前練習與難題掃除、09:15~09:30 課程評估問卷、09:30~10:00 考試規則說明與流程演練、10:00~11:45 正式 105 分鐘認證考試（及格線 70%）、12:00 收卷交件。
 
 ### 1. CQI/IRCA 考證攻略 & 12 週（每週 6 小時）自學進度表
 - **考試架構剖析**：Section 1（條文概念客觀題，40分）、Section 2（簡答與情境分析，20分）、Section 3（三方稽核實務題，40分）、Section 4（情境 NCR 撰寫與稽核發現，40分），總分 140 分（70% / 98 分及格）。
