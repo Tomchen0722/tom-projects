@@ -247,162 +247,15 @@ def get_30_new_essays():
         """
     })
 
-    # Generate additional security essays (37 to 48)
-    sec_topics = [
-        (37, "第 1 章：金融資安法規治理與證券期貨業聯防體系", "PCI-DSS 4.0 於金融支付與證券交割系統之全面升級要點與多因子鑑別（MFA）強制要求",
-         "剖析 PCI-DSS 4.0 客製化實作方法（Customized Approach）、第 8.4.2 條針對所有非主控台管理與一般存取強制全面部署 MFA、電子支付交易防竄改機制與合規查核要領。"),
-        (38, "第 1 章：金融資安法規治理與證券期貨業聯防體系", "金融關鍵基礎設施之資通安全責任等級「A級」機關維護與金管會雙軸稽核實務",
-         "解析《資通安全管理法》A級機關之專責人力配比、每年二次實兵攻防演練、核心資通系統 100% 通過第三方驗證，以及金管會對證券期貨周邊單位定期資安實地查核之應處規範。"),
-        (39, "第 6 章：分散式阻斷服務（DDoS）攻擊防禦與網路微隔離", "暗網威脅情資（Dark Web Intelligence）監控與證券期貨帳號密碼撞庫（Credential Stuffing）立體聯防",
-         "剖析敵手自暗網購買外洩憑證對證券下單網站進行大規模撞庫攻擊手法、CAPTCHA 動態行為分析、客戶端裝置指紋（Device Fingerprinting）與 F-ISAC 撞庫特徵共享阻斷架構。"),
-        (40, "第 6 章：分散式阻斷服務（DDoS）攻擊防禦與網路微隔離", "微隔離（Micro-segmentation）結合 eBPF Cilium 於容器化交易微服務之安全防護架構",
-         "分析傳統 iptables/OVS 規則膨脹對高效能撮合之效能損耗，詳述 eBPF Cilium 在核心層進行 L3/L4/L7 身分感知存取控制、跨主機 WireGuard/IPsec 線速加密與動態阻斷架構。"),
-        (41, "第 11 章：業務營運持續（BCP）、高可用性與災難復原演練", "金融資通安全事件應變團隊（CSIRT）兵推演練：勒索軟體雙重勒索（Double Extortion）之遏止與根除流程",
-         "依據 NIST SP 800-61r2 標準應變流程，設計證券核心系統遭遇加密與資料外洩雙重勒索之實兵兵推流程、30分鐘通報啟動、主動隔離切斷橫向擴散、WORM 備份復原驗證與零贖金策略。"),
-        (42, "第 5 章：安全軟體開發生命週期（SSDLC）與 OWASP Top 10", "證券網路下單 App 原始碼安全檢測、反動態偵錯與反竄改硬化防禦（OWASP MASVS）",
-         "詳解行動下單 App 之逆向工程威脅、Frida/Xposed 動態 Hook 防範、Jailbreak/Root 環境檢測、動態記憶體除錯阻止、字串混淆、白箱與黑箱雙軌檢測與金融合規認證標章規範。"),
-        (43, "第 9 章：容器安全、DevSecOps 與 Kubernetes 叢集防禦", "雲端安全架構：金融雲端多租戶隔離、CSPM 與 CIEM（雲端權限管理）在跨雲治理之實踐",
-         "深入解構證券金融機構上雲之共擔責任模型（Shared Responsibility Model）、雲端安全狀態管理（CSPM）合規檢測、雲端身分權限管理（CIEM）最小特權治理與跨雲金鑰託管（BYOK）架構。"),
-        (44, "第 7 章：資安監控中心（SOC）、SIEM 與威脅情資聯防", "端點偵測與回應（EDR）與自動化聯防（SOAR）在證券交易中心面對微突發惡意腳本之處置",
-         "剖析無檔案惡意程式（Fileless Malware）利用 PowerShell/WMI 進行 Living-off-the-Land（LotL）攻擊特徵，說明 EDR 記憶體攔截、SOAR 劇本（Playbook）秒級阻斷與跨行鑑識流程。"),
-        (45, "第 4 章：零信任架構（ZTA）、身分鑑別與特權存取管理", "特權存取安全：零常設權限（Zero Standing Privileges, ZSP）與 Just-In-Time（JIT）提權在核心資料庫之控管",
-         "針對交易所 DBA 與核心主機管理者，規劃消除永久特權帳號、基於工作單動態簽發 30 分鐘有效之臨時雜湊憑證、自動跳板錄影與指令白名單限制之現代化特權帳號管理（PAM）體系。"),
-        (46, "第 3 章：密碼學原理、硬體安全模組（HSM）與 PKI 憑證", "金融硬體安全：硬體亂數產生器（TRNG）、抗側通道攻擊（Side-Channel Attack）與晶片物理安全",
-         "解構 HSM 內部物理熱噪聲/量子穿隧 TRNG 隨機性檢驗（NIST SP 800-90B）、防範差分功耗分析（DPA）與時序攻擊（Timing Attack）之遮罩（Masking）電路設計與主動遮蔽屏蔽層。"),
-        (47, "第 11 章：業務營運持續（BCP）、高可用性與災難復原演練", "金融業務營運衝擊分析（BIA）與最大可容忍中斷時間（MTPD）在證交所撮合系統之量化訂定",
-         "深入解構金融關鍵基礎設施 BIA 分析方法論，針對市場委託、成交回報、行情分送三大業務流程，精確量化計算 MTPD、RTO（≤ 10分鐘）與 RPO（= 0），並規劃同城/異地災備切換決策矩陣。"),
-        (48, "第 6 章：分散式阻斷服務（DDoS）攻擊防禦與網路微隔離", "DNS 安全延伸（DNSSEC）與安全通道：DoT/DoH 在證券邊界防範快取污染（Cache Poisoning）之設計",
-         "剖析 Kaminsky 偽造攻擊與 DNS 快取投毒原理，詳述 DNSSEC 數位簽章鏈（RRSIG/DNSKEY/DS）驗證機制，並評估 DNS over TLS/HTTPS（DoT/DoH）在證券網路對抗竊聽與阻絕污染之落地優劣。")
-    ]
+    #
 
-    for num, ch, title, summary in sec_topics:
-        essays.append({
-            "id": f"sec-essay-{num}",
-            "category": "sec",
-            "chapter": ch,
-            "title": title,
-            "summary": summary,
-            "points": 25,
-            "rubric": "1. 核心威脅與背景法規剖析 (6分)；2. 關鍵技術架構與機制說明 (7分)；3. 關鍵技術機制與架構剖析 (7分)；4. 證券實務結論與防禦建議 (5分)",
-            "question": f"【🎯 證交所年度核心猜題背景】針對「{title}」，請從金融關鍵基礎設施資安要求出發，深入闡明該項技術所解決之核心安全痛點；詳述其關鍵底層原理與國際標準規範；以具體架構或流程說明其在臺灣證券交易所之落地佈署方式；並提出保障業務連續性與極致效能之實務建議。",
-            "modelAnswer": f"""
-<h4>一、破題：核心資安痛點與金融法規背景</h4>
-<p>在臺灣證券交易所之極致金融環境中，<strong>{title}</strong> 代表現代化主動防禦之核心防線。面對進階持續性滲透（APT）與微秒級撮合之雙重挑戰，傳統防護難以滿足金管會金融資安行動方案與關鍵基礎設施（CI）防禦之最高安全準則，必須導入系統化、可驗證之標準架構。</p>
-<ol>
-  <li><strong>法規遵循與合規門檻</strong>：對標 ISO/IEC 27001:2022、NIST CSF 2.0 及我國《資通安全管理法》，要求關鍵業務具備可溯源、抗竄改與即時遏止之能力。</li>
-  <li><strong>實務安全痛點</strong>：傳統架構存在過度信任、單點故障及偵測延遲過長等弊端，無法抵禦自動化工具與勒索軟體之橫向滲透。</li>
-</ol>
+    # Import and append the 12 deep, non-repetitive security essays (sec-essay-37 to sec-essay-48)
+    import twse_sec_essays_37_to_48
+    essays.extend(twse_sec_essays_37_to_48.get_sec_essays_37_to_48())
 
-<h4>二、關鍵技術原理與現代金融防禦架構</h4>
-<ul>
-  <li><strong>防禦策略維度</strong>：由傳統邊界靜態防護與定時週期審計，升級為<strong>連續動態監控與即時行為關聯分析</strong>。</li>
-  <li><strong>權限與鑑別維度</strong>：摒棄常設高權限與靜態密碼，全面落實<strong>零常設權限（ZSP）與 JIT 動態簽發多因子校驗</strong>。</li>
-  <li><strong>應變與阻斷維度</strong>：淘汰耗時數小時的人工通報，建置<strong>自動化 Playbook 秒級阻斷與 F-ISAC 跨機構聯防</strong>。</li>
-</ul>
-
-<h4>三、證券交易所落地架構與核心實施步驟</h4>
-<ol>
-  <li><strong>資產盤點與安全基準建置</strong>：全面盤點核心業務系統、相依元件與跨系統連線拓撲，制定標準安全基準組態（Baseline）。</li>
-  <li><strong>自動化偵測與精密控制</strong>：部署即時監控引擎，將日誌與遙測數據結構化上送至集中防護中樞，實施最小權限隔離。</li>
-  <li><strong>緊急切換與業務連續性維護</strong>：結合 BCP 業務持續計畫，建立自動故障轉移（Failover）與無預警演練機制，確保 RTO ≤ 10 分鐘、RPO = 0。</li>
-</ol>
-
-<h4>四、結論：建立主動韌性與數位信任</h4>
-<p>落實 <strong>{title}</strong> 不僅是合規要求，更是維繫我國資本市場交易安全與全球投資人信心的基石。透過技術硬化、制度稽核與全員文化之結合，達成金融關鍵基礎設施之長治久安。</p>
-            """,
-            "examinerTips": f"評分核心：準確切中『{title}』之底層核心技術名詞；對比傳統與現代金融標準；寫出 RTO ≤ 10分鐘、RPO = 0、F-ISAC 聯防等關鍵指標。",
-            "detailedExplanation": f"""
-<h5>🎯 評分踩點邏輯剖析</h5>
-<ul>
-  <li><strong>法規與背景（6分）</strong>：深入連結我國金管會行動方案與資通安全管理法標準。</li>
-  <li><strong>技術原理對比（7分）</strong>：以條列架構深入展示傳統與現代安全機制的本質差異。</li>
-  <li><strong>實務落地（7分）</strong>：分步驟規劃證交所系統部署、最小權限與備援機制。</li>
-  <li><strong>結論（5分）</strong>：總結金融韌性戰略意涵。</li>
-</ul>
-            """
-        })
-
-    # ══════════════════════════════════════════════════════════════════════
-    # 14 NEW SYSTEM & NETWORK ESSAYS (sn-essay-33 to sn-essay-46)
-    # ══════════════════════════════════════════════════════════════════════
-
-    sysnet_topics = [
-        (33, "第 1 章：撮合核心與超低延遲系統架構（Kernel Bypass 與記憶體優化）", "超低延遲撮合：Linux 6.x io_uring 與傳統 epoll/select 在下單閘道器（Gateway）之效能評估與架構設計",
-         "深入解構 Linux 6.x io_uring 提交佇列（SQ）與完成佇列（CQ）無鎖環形緩衝區架構、IORING_SETUP_SQPOLL 核心執行緒輪詢、Registered Buffers 零拷貝機制，以及在下單閘道器消除 Syscall 開銷之實務規劃。"),
-        (34, "第 1 章：撮合核心與超低延遲系統架構（Kernel Bypass 與記憶體優化）", "網路虛擬化硬體加速：SR-IOV 與 DPDK 結合在證券期貨下單與多播行情主機之優化策略",
-         "剖析 PCIe 單根 I/O 虛擬化（SR-IOV）之實體功能（PF）與虛擬功能（VF）硬體切分、結合 DPDK Poll Mode Driver（PMD）旁路 Linux 核心網路堆疊，消除中斷與上下文切換之極致延遲架構。"),
-        (35, "第 2 章：金融專屬網路拓撲與行情多點廣播（Multicast）", "跨資料中心 BGP Anycast 與等價多路徑（ECMP）在證交所多機房負載均衡與秒級容災接管",
-         "剖析 IP Anycast 原理、BGP 路由屬性（MED, AS-Path Prepending）、五元組雜湊負載均衡、健康檢查連動 BGP 撤銷（BGP Route Withdrawal）達成秒級自動流量轉移之架構實務。"),
-        (36, "第 6 章：分散式交易、雙活資料庫與高可用叢集", "全快閃儲存 NVMe-oF（Over Fabrics）RoCEv2 在證券撮合日誌持久化與資料庫儲存之架構設計",
-         "分析 RDMA over Converged Ethernet（RoCEv2）無失真網路架構、PFC 優先級流量控制、ECN 壅塞通知，以及 NVMe-oF 將遠端儲存存取延遲由毫秒壓降至微秒之撮合 WAL 落地設計。"),
-        (37, "第 4 章：作業系統核心調校與即時排程（Linux Kernel Tuning）", "Linux 核心參數深度調校：消除記憶體分頁回寫（Dirty Ratio）與定時器中斷對極致撮合之抖動",
-         "解構 Linux 記憶體回寫參數（vm.dirty_background_ratio, vm.dirty_ratio）、定時器無滴答核心（nohz_full）、RCU 核心綁定（rcu_nocbs）消除撮合主機 CPU 抖動（Jitter）之最佳實務調校。"),
-        (38, "第 6 章：分散式交易、雙活資料庫與高可用叢集", "分散式高可用撮合叢集：Raft 共識演算法與 Paxos 在金流簿記（Ledger）狀態機複製之應用",
-         "深入剖析 Raft 演算法 Leader 選舉、日誌複製（Log Replication）、安全性保證與腦裂（Split-Brain）多數決（Quorum）機制，設計金融交易帳本狀態機強一致性複製架構。"),
-        (39, "第 12 章：維運自動化（IaC）、SRE 網站可靠性工程與監控體系", "分散式可觀測性：OpenTelemetry 結合微秒級分散式追蹤（Distributed Tracing）在下單全鏈路之診斷",
-         "探討 W3C TraceContext 標準、Span 傳遞、eBPF 自動無侵入式探針、全鏈路延遲瓶頸分析（券商網關-風控-撮合主機-行情推播）與動態採樣策略。"),
-        (40, "第 7 章：微服務、容器編排與 Kubernetes 金融實務", "Kubernetes 容器平台容災：多叢集多活架構（Multi-Cluster Multi-Active）與 GitOps 持續交付實務",
-         "規劃板橋主機房與備援機房之跨叢集服務網格（Cilium Cluster Mesh）、ArgoCD 宣告式 GitOps 部署、不可變基礎設施與秒級流量調度架構。"),
-        (41, "第 5 章：金融通訊協定（FIX/ITCH/OUCH）與低延遲訊息佇列", "次世代傳輸協定 QUIC（HTTP/3）於行動證券看盤與行情下單高丟包環境之應用評估",
-         "對比 TCP 與 QUIC（UDP 基礎）機制，剖析單一封包遺失不影響其他 Stream 之消除隊頭阻塞（Head-of-Line Blocking）原理、0-RTT 連線建立與 5G 移動網路連線遷移（Connection Migration）在證券下單之優勢。"),
-        (42, "第 2 章：金融專屬網路拓撲與行情多點廣播（Multicast）", "證交所骨幹網路光纖 DWDM（波分複用）與板橋-台北主備機房超低延遲直連架構規劃",
-         "計算光纖每公里約 5 微秒物理傳播延遲、DWDM 多波長傳輸、光保護倒換（APS）50 毫秒內自癒切換，以及最小化色散補償與放大器跳數之雙活專線設計。"),
-        (43, "第 6 章：分散式交易、雙活資料庫與高可用叢集", "資料庫分散式交易：Saga 模式與 TCC（Try-Confirm-Cancel）在跨證券交割服務之最終一致性實踐",
-         "對比 2PC 兩階段提交之效能瓶頸，深入闡述 TCC 模式預留資源與 Saga 補償機制在跨結算機構金融交易之狀態機設計與冪等性（Idempotence）保證。"),
-        (44, "第 1 章：撮合核心與超低延遲系統架構（Kernel Bypass 與記憶體優化）", "高效能記憶體資料庫 Redis Cluster 在逐筆撮合委託單快顯緩存與防崩潰（雪崩/穿透/擊穿）之架構",
-         "剖析 16384 個 Hash Slot 分片、Sentinel 哨兵機制、布隆過濾器（Bloom Filter）防穿透、互斥鎖（Mutex）防擊穿與雙活快顯預熱之金融實務部署。"),
-        (45, "第 8 章：雲原生儲存、高可用叢集與微突發流量防禦", "微服務架構流量治理：自適應限流（Adaptive Rate Limiting）與熔斷降級（Circuit Breaker）在開盤微突發之防護",
-         "分析開盤 9:00 之極端百倍微突發流量，規劃滑動視窗令牌桶（Token Bucket）、Sentinel 自適應 CPU 負載限流、核心交易保證與非核心業務優雅降級策略。"),
-        (46, "第 12 章：維運自動化（IaC）、SRE 網站可靠性工程與監控體系", "綠色金融科技（Green FinTech）：證券資料中心 PUE（電力使用效率）優化與高密度液冷（Liquid Cooling）機櫃部署",
-         "解構金融綠色運算標準、PUE 指標計算（總用電量/IT設備用電量）、冷板式與浸沒式液冷散熱技術、動態電壓頻率調整（DVFS）與金管會 ESG 永續金融評鑑要求。")
-    ]
-
-    for num, ch, title, summary in sysnet_topics:
-        essays.append({
-            "id": f"sn-essay-{num}",
-            "category": "sysnet",
-            "chapter": ch,
-            "title": title,
-            "summary": summary,
-            "points": 25,
-            "rubric": "1. 系統架構瓶頸與業務背景剖析 (6分)；2. 核心技術架構與機制推導 (7分)；3. 效能重點對比與關鍵參數 (7分)；4. 證券實務落地結論與 SRE 最佳實踐 (5分)",
-            "question": f"【🎯 證交所年度核心猜題背景】針對「{title}」，請從臺灣證券交易所之極致微秒撮合與不中斷高可用架構出發，詳述傳統架構之技術瓶頸；深入說明現代化技術之核心運作原理與關鍵演算法；列出關鍵架構參數或對比分析；並提出生產環境落地實作與穩定維運策略。",
-            "modelAnswer": f"""
-<h4>一、破題：系統性能瓶頸與金融交易要求</h4>
-<p>臺灣證券交易所全面實施逐筆撮合機制，核心系統對<strong>延遲確定性（Deterministic Latency）</strong>與<strong>P99.99 長尾抖動控制</strong>提出最嚴格之物理指標。傳統 Linux 預設配置與通用架構在面對開盤微突發（Microburst）與巨量委託時，頻繁遭遇中斷排隊、記憶體缺頁及跨節點延遲，必須導入 <strong>{title}</strong> 進行根本性重構。</p>
-<ol>
-  <li><strong>低延遲吞吐指標</strong>：單筆委託穿越主機延遲必須壓降至微秒（μs）級別，消除一切非必要的上下文切換（Context Switch）。</li>
-  <li><strong>高可用韌性要求</strong>：系統必須具備 RTO ≤ 10 分鐘、RPO = 0 之嚴苛容災能力，杜絕單點故障（SPOF）。</li>
-</ol>
-
-<h4>二、核心技術架構與運作原理深度剖析</h4>
-<ul>
-  <li><strong>I/O 與網路路徑</strong>：淘汰傳統中斷驅動與多次拷貝，全面導入<strong>核心旁路（Kernel Bypass）與零拷貝環形緩衝區</strong>。</li>
-  <li><strong>排程與親和性</strong>：消除 CFS 動態時間片與跨 NUMA 延遲，實施 <strong>CPU 核心隔離（isolcpus）與 NUMA 本地記憶體鎖定</strong>。</li>
-  <li><strong>容災與一致性</strong>：揚棄可能遺失資料的非同步冷備援，採用 <strong>Raft/雙活同步複製，實現秒級容災接管與 RPO = 0</strong>。</li>
-</ul>
-
-<h4>三、證券交易所生產環境具體落地與關鍵參數</h4>
-<ol>
-  <li><strong>物理主機與網路硬體優化</strong>：啟用 PCIe 直通與 100GbE 雙路光纖網卡，封閉節能 C-states 鎖定最高時脈，消除 CPU 頻率切換延遲。</li>
-  <li><strong>日誌持久化與記憶體快取架構</strong>：WAL 交易日誌採用無鎖環形結構，結合高效能快取預熱，徹底阻斷儲存 I/O 阻塞撮合執行緒。</li>
-  <li><strong>全鏈路微秒可觀測性監控</strong>：部署高頻探針監控網卡 RX/TX 佇列水線與 P99.9 尾端延遲，建立異常自動告警與分流處置流程。</li>
-</ol>
-
-<h4>四、結論：邁向世界級金融科技基礎設施</h4>
-<p>透過導入 <strong>{title}</strong>，臺灣證券交易所不僅能確保在交易量暴增至數千億元時系統依然穩如泰山，更為我國資本市場邁向跨國金融中心提供最堅實可靠的底層算力保證。</p>
-            """,
-            "examinerTips": f"評分核心：準確推導『{title}』之底層核心技術名詞；對比傳統通用與金融極致架構差異；列出 CPU 核心隔離、零拷貝與無損容災關鍵指標。",
-            "detailedExplanation": f"""
-<h5>🎯 評分踩點邏輯剖析</h5>
-<ul>
-  <li><strong>效能瓶頸推導（6分）</strong>：深入切入證交所微秒撮合與 P99.99 長尾抖動痛點。</li>
-  <li><strong>核心技術對比（7分）</strong>：以清晰條列準確呈現 I/O、排程親和性與容災架構之進階對比。</li>
-  <li><strong>實務參數調校（7分）</strong>：分維度提出硬體、記憶體快取與全鏈路監控之最佳實踐。</li>
-  <li><strong>結論（5分）</strong>：總結高可用與資本市場戰略意義。</li>
-</ul>
-            """
-        })
+    # Import and append the 14 deep, non-repetitive sysnet essays (sn-essay-33 to sn-essay-46)
+    import twse_sysnet_essays_33_to_46
+    essays.extend(twse_sysnet_essays_33_to_46.get_sysnet_essays_33_to_46())
 
     return essays
 
@@ -411,4 +264,5 @@ if __name__ == "__main__":
     print(f"Generated {len(new_essays)} new essays.")
     sec_count = len([e for e in new_essays if e["category"] == "sec"])
     sys_count = len([e for e in new_essays if e["category"] == "sysnet"])
-    print(f"Sec count: {sec_count}, Sysnet count: {sys_count}")
+    print(f"  Sec: {sec_count} (16 expected)")
+    print(f"  Sysnet: {sys_count} (14 expected)")

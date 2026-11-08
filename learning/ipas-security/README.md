@@ -114,3 +114,4 @@ npx serve learning/ipas-security -p 7030
 python -m http.server 7030 -d learning/ipas-security
 ```
 開啟後即可在頂部導覽列切換「總覽首頁」、「全真模擬考」、「章節練習」、「錯題筆記本」、「題庫搜尋」、「術語發音辭典」、「考科全真講義」以及「考前速讀筆記」！
+

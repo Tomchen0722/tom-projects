@@ -46,6 +46,16 @@ ids = [e["id"] for e in essays]
 assert len(ids) == len(set(ids)), f"Duplicate essay IDs detected: {len(ids)} vs {len(set(ids))}"
 print("  [OK] All 135 IDs are distinct!")
 
+# Ensure all 135 questions and model answers are non-empty and unique
+questions = [e["question"] for e in essays]
+answers = [e["modelAnswer"] for e in essays]
+explanations = [e["detailedExplanation"] for e in essays]
+
+assert len(questions) == len(set(questions)), "Duplicate question texts detected across essays!"
+assert len(answers) == len(set(answers)), "Duplicate model answers detected across essays!"
+assert len(explanations) == len(set(explanations)), "Duplicate detailed explanations detected across essays!"
+print("  [OK] All 135 questions, model answers, and detailed explanations are 100% unique and distinct!")
+
 # Ensure all 41 newly added essays (sec-essay-49 ~ sec-essay-89) exist and have complete structure
 for i in range(49, 90):
     expected_id = f"sec-essay-{i:02d}"
